@@ -15,8 +15,11 @@ import { createSources } from './sources.ts';
 
 import { configureSourceProviders } from './source-providers.ts';
 import { mountProject } from './mount.ts';
+import { createCoforgeRuntime } from '../../infrastructure/coforge/runtime.ts';
+import { registerCoforgeCommands } from '../../infrastructure/coforge/commands.ts';
 export async function initializeProject(plugin: Plugin) {
   const shell = await createServices(nativeAdapters(plugin));
+  const coforge = createCoforgeRuntime(plugin, code => shell.diagnostics.report(code, 'coforge.runtime'));
   let sources: ReturnType<typeof createSources>;
   let providers: ReturnType<typeof configureSourceProviders> | undefined;
   const views = new Set<ShowcaseView>(); const modals = new Set<Modal>(); const settings = new Set<() => void>();
@@ -30,6 +33,7 @@ export async function initializeProject(plugin: Plugin) {
     
     try { stopCommands(); } catch { shell.diagnostics.report('generated.cleanup','command.dispose'); }
     try { providers?.dispose(); } catch { shell.diagnostics.report('generated.cleanup','sources.dispose'); }
+    void coforge.dispose().catch(() => shell.diagnostics.report('coforge.cleanup','studio.dispose'));
     try { stopEvents(); } finally { shell.dispose(); }
   };
   function openModal(id: string) {
@@ -37,7 +41,7 @@ export async function initializeProject(plugin: Plugin) {
     const screen = screens.find(s => s.id === id && s.kind === 'modal'); if (!screen) throw new Error('MODAL_NOT_DECLARED');
     const modal = new Modal(plugin.app); let release = () => {};
     modal.setTitle(screen.label);
-    modal.onOpen = () => { release = mountProject(modal.contentEl,shell,sources,openModal,id,true); };
+    modal.onOpen = () => { release = mountProject(modal.contentEl,shell,sources,openModal,id,true,coforge); };
     modal.onClose = () => { release(); modals.delete(modal); };
     modals.add(modal);
     try { modal.open(); } catch (error) { modal.close(); throw error; }
@@ -59,7 +63,7 @@ export async function initializeProject(plugin: Plugin) {
     for (const definition of definitions) {
       const View = nativeViewClass({type:definition.type,title:()=>definition.label});
       plugin.registerView(definition.type,leaf => new View(leaf,
-        element => mountProject(element,shell,sources,openModal,definition.id),
+        element => mountProject(element,shell,sources,openModal,definition.id,false,coforge),
         {preferences:shell.preferences,diagnostics:shell.diagnostics,text:key=>shell.i18n.global.t(key),toggleHeader:()=>{void shell.preferences.toggleViewHeader();}},
         (view,visible) => { if (visible) views.add(view); else views.delete(view); }));
     }
@@ -68,13 +72,13 @@ export async function initializeProject(plugin: Plugin) {
     for (const screen of screens.filter(s => s.command || s.ribbon)) {
       if (['group','action'].includes(screen.kind)) continue;
       if (screen.command) plugin.addCommand({id:'open-'+screen.slug,name:screen.label,callback:()=>invoke(screen.id)});
-      if (screen.ribbon) plugin.addRibbonIcon('blocks',screen.label,()=>invoke(screen.id));
+      if (screen.ribbon) plugin.addRibbonIcon('gamepad-2',screen.label,()=>invoke(screen.id));
     }
     for (const screen of screens.filter(s => s.kind === 'settings')) {
       // eslint-disable-next-line obsidianmd/settings-tab/prefer-setting-definitions -- this tab mounts the generated Vue settings screen in display(); its controls have no declarative definitions to index.
       class ProjectSettings extends PluginSettingTab {
         private release = () => {};
-        display() { this.hide(); this.containerEl.empty(); this.release = mountProject(this.containerEl,shell,sources,openModal,screen.id,true); settings.add(this.release); }
+        display() { this.hide(); this.containerEl.empty(); this.release = mountProject(this.containerEl,shell,sources,openModal,screen.id,true,coforge); settings.add(this.release); }
         override hide() { this.release(); settings.delete(this.release); this.release = () => {}; }
       }
       plugin.addSettingTab(new ProjectSettings(plugin.app,plugin));
@@ -84,6 +88,8 @@ export async function initializeProject(plugin: Plugin) {
       {validKey:key=>shell.i18n.global.te(key),onFailure:(error,id)=>{ shell.notifications.show('command:'+id,'error',error.key,true,'runtime'); }});
     stopCommands = bindCommands(plugin,debugCommands,key=>shell.i18n.global.t(key),shell.diagnostics);
     stopEvents = bindHostEvents(plugin,shell.hostEvents,shell.diagnostics,shell.scheduler);
+    registerCoforgeCommands(plugin, coforge.studio);
+    plugin.app.workspace.onLayoutReady(() => { void coforge.start().catch(() => shell.diagnostics.report('coforge.start','studio.start')); });
     return {dispose};
   } catch (error) { dispose(); throw error; }
 }

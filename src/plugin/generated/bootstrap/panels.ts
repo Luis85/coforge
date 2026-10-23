@@ -1,5 +1,6 @@
-import GWorkspace from '../presentation/components/screens/workspace-screen.vue';
-import GPreferences from '../presentation/components/screens/preferences-screen.vue';
+import StudioApp from '../../presentation/components/coforge/StudioApp.vue';
+import PluginSettings from '../../presentation/components/coforge/PluginSettings.vue';
 import type { Component } from 'vue';
-export const panels: Record<string,Component> = {"node-1": GWorkspace,
-"node-2": GPreferences};
+// The workspace view hosts the CoForge studio; the settings tab hosts its integration settings.
+export const panels: Record<string,Component> = {"node-1": StudioApp,
+"node-2": PluginSettings};
