@@ -66,7 +66,24 @@ zero-width and other invisible characters, bidirectional overrides, Unicode tag 
 combining marks per character; normalized whitespace. Model input is sanitized again right
 before each run, because idea notes can be edited in the vault. Idea descriptions and titles
 are written into notes with Markdown escaped, so chat text cannot embed images, HTML, links,
-tags or inline Dataview/Templater expressions.
+tags or inline Dataview/Templater expressions. Note properties written by CoForge (titles,
+names, screening reasons, plans) are defanged with an invisible word joiner inside `<%`, `%>`,
+`[[`, `]]`, `{{`, `}}` and backticks, so Templater, wikilinks and inline queries never fire on them;
+CoForge removes the joiners when it reads a note back.
+
+Intake is bounded: at most three ideas per viewer waiting for screening, ten new ideas per
+minute overall, requests need at least three letters or digits, and duplicates are detected
+regardless of case, punctuation and spacing. Viewer names cannot pose as CoForge, the streamer
+or staff. Local heuristics also flag role and delimiter injection, shell commands, links and
+encoded payloads for human moderation. Model output is sanitized like chat before it is
+validated and saved.
+
+**Notes changed outside CoForge are re-screened.** CoForge fingerprints what it last wrote
+for each idea (text, category, status, screening verdict, score, plan and review note). When an
+idea past the inbox no longer matches — its note was edited in the vault, synced in, or added
+by someone else — it returns to the inbox without its screening, score and plan, with a visible
+message, before any model sees the new content. A run whose idea changes while the agent works
+is discarded. Edit idea text through chat or the studio, or expect to run the stages again.
 
 Screening combines local heuristics with a model classifier. It is a moderation signal,
 **not proof that content is safe**. **A Git worktree is not an operating-system

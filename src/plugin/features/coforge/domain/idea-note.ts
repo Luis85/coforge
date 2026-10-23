@@ -1,5 +1,5 @@
 import { CheckError, list, noteTimestamp as timestamp, nullable, number, oneOf, optional, record, shape, text } from './check';
-import { cleanLine, cleanText, escapeMarkdown, unescapeMarkdown } from './sanitize';
+import { cleanDeep, cleanLine, cleanText, defangProperty, escapeMarkdown, unescapeMarkdown } from './sanitize';
 import type { Idea } from './types';
 import { CATEGORIES, IDEA_STATUSES, planMarkdown } from './types';
 
@@ -36,6 +36,11 @@ export function ideaProperties(idea: Idea, authorName: string): Partial<Record<O
   });
   if (idea.reviewNote) p['review-note'] = idea.reviewNote;
   if (idea.lastError) p['last-error'] = idea.lastError;
+  // Titles, names and model output are untrusted text: defang links, Templater commands and inline queries.
+  for (const [key, value] of Object.entries(p) as Array<[Owned, unknown]>) {
+    if (typeof value === 'string') p[key] = defangProperty(value);
+    else if (Array.isArray(value)) p[key] = value.map(item => typeof item === 'string' ? defangProperty(item) : item);
+  }
   return p;
 }
 
@@ -68,23 +73,29 @@ export function ideaFileName(idea: Pick<Idea, 'id' | 'title'>): string {
   return `${idea.id} ${safe || 'Idea'}.md`;
 }
 
-const str = text();
+// Notes can be edited or added outside CoForge, so read-back values get the same bounds as model output.
+const str = text({ max: 6000 });
+const item = text({ max: 2000 });
+const items = (max: number) => optional(nullable(list(item, { max })));
 const provider = oneOf(['demo', 'claude'] as const);
 const noteShape = shape({
   type: oneOf([IDEA_MARKER] as const), id: text({ pattern: /^CF-\d{3,7}$/ }), title: text({ trim: true, min: 1, max: 200 }),
-  category: oneOf(CATEGORIES), status: oneOf(IDEA_STATUSES), author: text({ min: 1 }), created: timestamp, updated: timestamp,
-  screening: optional(oneOf(['clear', 'flagged'] as const)), 'screening-reason': optional(str), 'screening-signals': optional(nullable(list(str))),
+  category: oneOf(CATEGORIES), status: oneOf(IDEA_STATUSES), author: text({ min: 3, max: 120, pattern: /^[a-z]+:\S/ }), created: timestamp, updated: timestamp,
+  screening: optional(oneOf(['clear', 'flagged'] as const)), 'screening-reason': optional(str), 'screening-signals': items(20),
   'screening-checked': optional(timestamp), 'screening-provider': optional(provider),
   'rice-reach': optional(number({ min: 0 })), 'rice-impact': optional(number({ gt: 0, max: 3 })), 'rice-confidence': optional(number({ min: 0, max: 1 })),
   'rice-effort': optional(number({ gt: 0 })), 'rice-score': optional(number({ min: 0 })), 'rice-rationale': optional(str),
-  'plan-summary': optional(str), 'plan-steps': optional(nullable(list(str))), 'plan-acceptance': optional(nullable(list(str))),
-  'plan-risks': optional(nullable(list(str))), 'plan-created': optional(timestamp),
-  'review-note': optional(nullable(str)), 'last-error': optional(nullable(str)),
+  'plan-summary': optional(str), 'plan-steps': items(24), 'plan-acceptance': items(20),
+  'plan-risks': items(16), 'plan-created': optional(timestamp),
+  'review-note': optional(nullable(text({ max: 3000 }))), 'last-error': optional(nullable(str)),
 });
 
-/** Reads an idea from its note. Voters and increments are joined from plugin data by the caller. */
+/**
+ * Reads an idea from its note. Voters and increments are joined from plugin data by the caller. Every string
+ * is sanitized again (this also removes the joiners `defangProperty` inserted when writing).
+ */
 export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'voters' | 'increment'> {
-  const p = noteShape(record(frontmatter));
+  const p = cleanDeep(noteShape(record(frontmatter)));
   const idea: Omit<Idea, 'voters' | 'increment'> = {
     id: p.id, number: Number(p.id.slice(3)), title: cleanLine(p.title, 200) || p.id, description: descriptionFromBody(body, cleanLine(p.title, 200) || p.id), authorId: p.author,
     category: p.category, status: p.status, createdAt: p.created, updatedAt: p.updated,
@@ -98,7 +109,7 @@ export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'v
     idea.rice = { reach, impact, confidence, effort, score: p['rice-score'] ?? 0, rationale: p['rice-rationale'] ?? '' };
   if (p['plan-summary'] !== undefined) {
     const plan = { summary: p['plan-summary'], steps: p['plan-steps'] ?? [], acceptanceCriteria: p['plan-acceptance'] ?? [], risks: p['plan-risks'] ?? [] };
-    idea.plan = { ...plan, createdAt: p['plan-created'] ?? p.updated, markdown: planMarkdown(plan, p.title) };
+    idea.plan = { ...plan, createdAt: p['plan-created'] ?? p.updated, markdown: planMarkdown(plan, idea.title) };
   }
   if (p['review-note']) idea.reviewNote = p['review-note'];
   if (p['last-error']) idea.lastError = p['last-error'];

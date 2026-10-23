@@ -49,6 +49,30 @@ export function cleanDeep<T>(value: T): T {
   return value;
 }
 
+/** Invisible word joiner: breaks trigger sequences without changing what a reader sees; `sanitizeText` removes it on read. */
+const JOINER = '⁠';
+/**
+ * Trigger sequences other plugins act on when they read note text or properties: Templater commands (`<%`),
+ * wikilinks and embeds (`[[`), template placeholders (`{{`), inline Dataview queries (`` `= `` / `` `$= ``).
+ */
+const PROPERTY_TRIGGERS = /<%|%>|\[\[|\]\]|\{\{|\}\}|`/g;
+
+/** Defangs a frontmatter string so Obsidian and plugins treat it as plain data, not a link, template or query. */
+export const defangProperty = (value: string): string => value.replace(PROPERTY_TRIGGERS, sequence => [...sequence].join(JOINER) + (sequence === '`' ? JOINER : ''));
+
+/** Comparable form of a request for duplicate detection: case-, punctuation- and spacing-insensitive. */
+export const comparable = (text: string): string => cleanLine(text).toLocaleLowerCase('en-US').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+/** A request needs real words: at least three letters or digits. */
+export const meaningful = (text: string): boolean => (text.match(/[\p{L}\p{N}]/gu) ?? []).length >= 3;
+
+const RESERVED = new Set(['coforge', 'system', 'streamer', 'moderator', 'admin']);
+/** Viewer names cannot pose as the CoForge bot, the streamer or staff in the studio chat and on the public site. */
+export function displayName(name: string): string {
+  const clean = cleanLine(name, 50);
+  return RESERVED.has(clean.toLocaleLowerCase('en-US').replace(/[^\p{L}\p{N}]/gu, '')) ? `${clean.slice(0, 40)} (viewer)` : clean;
+}
+
 const MARKDOWN = /[\\`*_{}[\]()#+\-.!|<>~=$%&:^"']/g;
 
 /**

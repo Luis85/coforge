@@ -1,5 +1,6 @@
 import { StudioError } from '../domain/errors';
 import { omit } from '../domain/objects';
+import { cleanLine, cleanText } from '../domain/sanitize';
 import { integrationPatch, newIdeaInput, riceInput, settingsPatch } from '../domain/inputs';
 import { createSeed } from '../domain/seed';
 import type { AgentJob, AppState, IdeaAction, IntegrationSettings, Settings } from '../domain/types';
@@ -60,7 +61,11 @@ export class StudioService {
   cancel(jobId: string): Promise<void> { return this.engine.cancel(jobId); }
 
   async updateSettings(input: unknown): Promise<Settings> {
-    const patch = settingsPatch(input);
+    const parsed = settingsPatch(input);
+    const patch = {
+      ...parsed, ...(parsed.projectName === undefined ? {} : { projectName: cleanLine(parsed.projectName, 80) }),
+      ...(parsed.projectBrief === undefined ? {} : { projectBrief: cleanText(parsed.projectBrief, 8000) }),
+    };
     const settings = await this.store.transaction(state => {
       if (patch.provider && patch.provider !== state.settings.provider && state.jobs.some(isActiveJob))
         throw new StudioError('Finish or cancel queued runs before changing the agent provider.', 409);

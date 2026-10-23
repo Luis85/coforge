@@ -1,5 +1,6 @@
 import type { InternalState, LoadedStudio, NoteIdea, StudioStorage, Timers } from '../../../features/coforge/application/ports';
 import { StudioStore } from '../../../features/coforge/application/studio-store';
+import { ideaFingerprint } from '../../../features/coforge/domain/integrity';
 import { noteOnly } from '../../../features/coforge/domain/objects';
 import type { PersistedStudio } from '../../../features/coforge/domain/persisted';
 import { createEmptyState, createSeed, defaultIntegration } from '../../../features/coforge/domain/seed';
@@ -15,6 +16,8 @@ export function toLoaded(state: AppState | InternalState): LoadedStudio {
     votes: Object.fromEntries(state.ideas.map(idea => [idea.id, idea.voters])),
     increments: Object.fromEntries(state.ideas.flatMap(idea => idea.increment ? [[idea.id, idea.increment] as const] : [])),
     ingestMeta: internal.ingestMeta ?? { processedMessages: [], lastRequests: {} }, manualHolds: internal.manualHolds ?? [],
+    // A seeded state counts as written by CoForge, so its ideas are trusted.
+    integrity: internal.integrity ?? Object.fromEntries(state.ideas.map(idea => [idea.id, ideaFingerprint(idea)])),
   };
   return structuredClone({ data, notes, invalidNotes: [] });
 }

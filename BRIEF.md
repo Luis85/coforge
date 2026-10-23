@@ -38,7 +38,8 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - Idea notes (canonical, one Markdown note per idea in the configured ideas folder,
   default `CoForge/Ideas`): ID, title, description (note body), category, status,
   author, screening, RICE and plan properties. CoForge never rewrites the note body
-  after creation and preserves unrelated properties.
+  after creation and preserves unrelated properties. Ideas whose note changes outside CoForge
+  after screening return to the inbox for a new screening (see docs/coforge/INTEGRATIONS.md).
 - Plugin data (`coforge-state.json` in the plugin folder): votes, increments,
   contributors, chat log, agent runs, activity, settings and integration settings.
 - Obsidian secret storage: the Twitch user access token (referenced by name only).
@@ -68,6 +69,8 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 ## Decisions
 
 - 2026-10-23: the prototype's HTTP ingestion bridge for other chat platforms stays out of the plugin.
+- 2026-10-23: untrusted text is sanitized at intake and before every model run; edits made outside CoForge
+  invalidate screening (integrity fingerprints), and chat intake is rate-limited because every request becomes a note.
 
 ## Open questions
 

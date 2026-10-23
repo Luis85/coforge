@@ -1,7 +1,8 @@
 import { normalizePath, parseYaml, stringifyYaml, TFile, type Plugin } from 'obsidian';
 import type { ExternalNoteChange, InternalState, LoadedStudio, NoteIdea, SaveOptions, StudioStorage } from '../../features/coforge/application/ports';
-import { applyIdeaProperties, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, OWNED_PROPERTIES, parseIdeaNote } from '../../features/coforge/domain/idea-note';
+import { applyIdeaProperties, descriptionFromBody, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, OWNED_PROPERTIES, parseIdeaNote } from '../../features/coforge/domain/idea-note';
 import { omit } from '../../features/coforge/domain/objects';
+import { cleanText } from '../../features/coforge/domain/sanitize';
 import { parsePersistedStudio, type PersistedStudio } from '../../features/coforge/domain/persisted';
 import { defaultIntegration } from '../../features/coforge/domain/seed';
 import type { Idea } from '../../features/coforge/domain/types';
@@ -129,14 +130,16 @@ export class VaultStudioStorage implements StudioStorage {
     let frontmatter: unknown;
     try { frontmatter = parseYaml(splitNote(data).yaml ?? ''); } catch { return false; }
     if (!frontmatter || typeof frontmatter !== 'object') return false;
-    const index = pending.indexOf(ownedFingerprint(frontmatter as Record<string, unknown>));
+    // The body description is part of the key, so an edit to the note text is never mistaken for an echo.
+    const { body } = splitNote(data);
+    const index = pending.indexOf(`${ownedFingerprint(frontmatter as Record<string, unknown>)}\n${descriptionFromBody(body, '')}`);
     if (index === -1) return false;
     pending.splice(0, index + 1);
     return true;
   }
 
   private remember(path: string, idea: Idea, author: string): void {
-    this.echoes.set(path, [...(this.echoes.get(path) ?? []), ownedFingerprint(ideaProperties(idea, author))].slice(-20));
+    this.echoes.set(path, [...(this.echoes.get(path) ?? []), `${ownedFingerprint(ideaProperties(idea, author))}\n${cleanText(idea.description, 3000)}`].slice(-20));
   }
 
   private async writeIdea(idea: Idea, author: string): Promise<void> {

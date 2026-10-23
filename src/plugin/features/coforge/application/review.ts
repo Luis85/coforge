@@ -1,6 +1,7 @@
 import { StudioError } from '../domain/errors';
 import type { AgentStage, Idea, IdeaAction, RiceScore } from '../domain/types';
 import { riceValue } from '../domain/types';
+import { cleanText } from '../domain/sanitize';
 import { isActiveJob } from '../domain/workflow';
 import type { InternalState } from './ports';
 import { addEvent } from './studio-store';
@@ -10,7 +11,7 @@ export function applyReview(state: InternalState, ideaId: string, action: Exclud
   const idea = state.ideas.find(i => i.id === ideaId);
   if (!idea) throw new StudioError('Idea not found.', 404);
   if (state.jobs.some(j => j.ideaId === ideaId && isActiveJob(j))) throw new StudioError('Cancel or finish this idea’s agent job before reviewing it.', 409);
-  const text = note.trim();
+  const text = cleanText(note, 3000);
   if (action === 'approve') {
     if (idea.status !== 'review' || !idea.increment) throw new StudioError('Only a completed increment in review can be accepted.', 409);
     idea.status = 'shipped';
@@ -51,7 +52,7 @@ export function adjustRice(state: InternalState, ideaId: string, rice: Omit<Rice
   if (!idea.rice || idea.screening?.verdict !== 'clear') throw new StudioError('Complete the scoring stage before adjusting its estimate.', 409);
   if (['building', 'shipped', 'rejected', 'flagged'].includes(idea.status) || state.jobs.some(j => j.ideaId === idea.id && isActiveJob(j)))
     throw new StudioError('The estimate is locked while work is running or after acceptance.', 409);
-  idea.rice = { ...rice, score: riceValue(rice) };
+  idea.rice = { ...rice, rationale: cleanText(rice.rationale, 3000), score: riceValue(rice) };
   idea.updatedAt = new Date().toISOString();
   addEvent(state, 'review', `The streamer adjusted ${idea.id}’s RICE estimate to ${idea.rice.score}.`, idea.id);
   return idea;

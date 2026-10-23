@@ -5,6 +5,7 @@ import { implementationOutput, planOutput, scoreOutput, screeningOutput, stageIn
 import { buildClaudeArgs, parseClaudeEnvelope, supportsRequiredVersion } from '../../features/coforge/application/claude-protocol';
 import type { StageInput, StageResult } from '../../features/coforge/application/ports';
 import { CheckError } from '../../features/coforge/domain/check';
+import { cleanDeep } from '../../features/coforge/domain/sanitize';
 import type { FileChange, Increment, IntegrationSettings } from '../../features/coforge/domain/types';
 import { planMarkdown, riceValue } from '../../features/coforge/domain/types';
 import { captureProcess } from './process';
@@ -130,7 +131,8 @@ export async function runClaudeStage(input: StageInput): Promise<StageResult> {
       cwd, input: stageInput(stage, idea, settings), timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
     });
     const envelope = parseClaudeEnvelope(raw);
-    return await interpret(input, envelope.output, envelope.costUsd, worktree, onLog);
+    // Model output is saved to notes and shown to viewers: it gets the same sanitizing as chat before validation.
+    return await interpret(input, cleanDeep(envelope.output), envelope.costUsd, worktree, onLog);
   } catch (error) {
     if (error instanceof CheckError) throw new Error('Claude output failed schema validation. The idea was not advanced.');
     if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))

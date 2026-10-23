@@ -1,4 +1,5 @@
 import { errorMessage } from '../domain/errors';
+import { ideaFingerprint, needsVerification, quarantine } from '../domain/integrity';
 import { omit } from '../domain/objects';
 import type { PersistedStudio } from '../domain/persisted';
 import { createEmptyState, defaultIntegration, defaultRuntime } from '../domain/seed';
@@ -11,7 +12,7 @@ export function addEvent(state: InternalState, type: Activity['type'], text: str
 
 /** Joins idea notes with the votes and increments kept in plugin data. */
 export function assemble(loaded: LoadedStudio): InternalState {
-  const data: PersistedStudio = loaded.data ?? { ...createEmptyState(), integration: defaultIntegration(), votes: {}, increments: {}, ingestMeta: { processedMessages: [], lastRequests: {} }, manualHolds: [] };
+  const data: PersistedStudio = loaded.data ?? { ...createEmptyState(), integration: defaultIntegration(), votes: {}, increments: {}, ingestMeta: { processedMessages: [], lastRequests: {} }, manualHolds: [], integrity: {} };
   const ids = new Set<string>();
   const ideas: Idea[] = loaded.notes.map(note => {
     if (ids.has(note.id)) throw new Error(`Two notes use the idea ID ${note.id}. Rename or remove one of them.`);
@@ -25,6 +26,23 @@ export function assemble(loaded: LoadedStudio): InternalState {
 }
 
 /** Applies an edit made directly to an idea note, keeping plugin-owned votes and increments. */
+/**
+ * Verifies ideas that came from the vault against the fingerprints of what CoForge last wrote, quarantines any
+ * changed or unknown idea past the inbox, then records fresh fingerprints for every idea. Returns quarantined IDs.
+ */
+export function enforceIntegrity(state: InternalState, external: ReadonlySet<string> | 'all'): string[] {
+  const quarantined: string[] = [];
+  for (const idea of state.ideas) {
+    if (external !== 'all' && !external.has(idea.id)) continue;
+    if (!needsVerification(idea) || state.integrity[idea.id] === ideaFingerprint(idea)) continue;
+    quarantine(idea);
+    quarantined.push(idea.id);
+    addEvent(state, 'system', `${idea.id} was changed or added outside CoForge after screening. It is back in the inbox for a new screening.`, idea.id);
+  }
+  state.integrity = Object.fromEntries(state.ideas.map(idea => [idea.id, ideaFingerprint(idea)]));
+  return quarantined;
+}
+
 export function mergeNote(state: InternalState, note: NoteIdea): boolean {
   const index = state.ideas.findIndex(idea => idea.id === note.id);
   const current = state.ideas[index];
@@ -53,6 +71,8 @@ export class StudioStore {
     try { loaded = await this.storage.load(); }
     catch (error) { throw new Error(`CoForge could not load its data. The stored files were preserved. ${errorMessage(error)}`); }
     const state = assemble(loaded);
+    // Verify the notes exactly as loaded; the recovery below is CoForge's own change and is trusted afterwards.
+    enforceIntegrity(state, 'all');
     const now = new Date().toISOString();
     for (const job of state.jobs) {
       if (job.status !== 'running' && job.status !== 'queued') continue;
@@ -63,6 +83,7 @@ export class StudioStore {
       if (idea) { idea.lastError = job.error; if (idea.status === 'building') idea.status = 'planned'; }
     }
     delete state.runtime.activeJobId;
+    enforceIntegrity(state, new Set());
     state.settings.paused = true; // Unattended execution never resumes merely because the plugin restarted.
     await this.storage.save(state, null, { fromNotes: state.ideas.filter(idea => !idea.lastError).map(idea => idea.id) });
     this.state = state;
@@ -81,11 +102,14 @@ export class StudioStore {
       const previous = this.current();
       const next = structuredClone(previous);
       const result = mutate(next);
+      // Ideas merged from the vault are verified; changes CoForge made itself become the new trusted fingerprints.
+      const quarantined = enforceIntegrity(next, new Set(options.fromNotes ?? []));
+      const fromNotes = options.fromNotes?.filter(id => !quarantined.includes(id));
       next.events = next.events.slice(-500);
       next.chat = next.chat.slice(-250);
       next.jobs = next.jobs.slice(-500);
       next.ingestMeta.processedMessages = next.ingestMeta.processedMessages.slice(-10000);
-      await this.storage.save(next, previous, options);
+      await this.storage.save(next, previous, { ...options, ...(fromNotes ? { fromNotes } : {}) });
       this.state = next;
       this.emit();
       return result;

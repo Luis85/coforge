@@ -8,7 +8,7 @@ export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: st
 /** Everything except the idea notes. Stored as one JSON file in the plugin folder. */
 export interface PersistedStudio extends Omit<AppState, 'ideas' | 'runtime'> {
   integration: IntegrationSettings; votes: Record<string, string[]>; increments: Record<string, Increment>;
-  ingestMeta: IngestMeta; manualHolds: string[];
+  ingestMeta: IngestMeta; manualHolds: string[]; integrity: Record<string, string>;
 }
 
 const str = text();
@@ -49,7 +49,7 @@ const persisted: Check<PersistedStudio> = shape({
   events: list(shape({ id: str, ideaId: optional(str), type: oneOf(['idea', 'vote', 'agent', 'review', 'system'] as const), text: str, createdAt: timestamp })),
   settings, integration, votes: dictionary(list(str)), increments: dictionary(increment),
   ingestMeta: shape({ processedMessages: list(shape({ id: str, ideaId: optional(str) })), lastRequests: dictionary(timestamp) }),
-  manualHolds: list(str),
+  manualHolds: list(str), integrity: dictionary(str),
 });
 
 /** Validates stored studio data. Missing optional sections receive defaults; invalid data is rejected, never replaced. */
@@ -59,7 +59,7 @@ export function parsePersistedStudio(value: unknown): PersistedStudio {
     ...input,
     settings: { ...defaultSettings(), ...record(input.settings ?? {}, 'settings') },
     integration: { ...defaultIntegration(), ...record(input.integration ?? {}, 'integration') },
-    votes: input.votes ?? {}, increments: input.increments ?? {}, manualHolds: input.manualHolds ?? [],
+    votes: input.votes ?? {}, increments: input.increments ?? {}, manualHolds: input.manualHolds ?? [], integrity: input.integrity ?? {},
     ingestMeta: input.ingestMeta ?? { processedMessages: [], lastRequests: {} },
   });
 }

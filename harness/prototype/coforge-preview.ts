@@ -3,6 +3,7 @@ import { icons } from '@iconify-json/lucide';
 import { createDemoRunner } from '../../src/plugin/features/coforge/application/demo-agent.ts';
 import type { InternalState, LoadedStudio, StudioStorage } from '../../src/plugin/features/coforge/application/ports.ts';
 import { StudioService } from '../../src/plugin/features/coforge/application/studio.ts';
+import { ideaFingerprint } from '../../src/plugin/features/coforge/domain/integrity.ts';
 import { noteOnly } from '../../src/plugin/features/coforge/domain/objects.ts';
 import { createSeed, defaultIntegration } from '../../src/plugin/features/coforge/domain/seed.ts';
 import type { CoforgeContext } from '../../src/plugin/presentation/context/coforge-context.ts';
@@ -16,7 +17,7 @@ class PreviewStorage implements StudioStorage {
       notes, invalidNotes: [],
       data: {
         version: 1, nextIdeaNumber: seed.nextIdeaNumber, contributors: seed.contributors, chat: seed.chat, jobs: seed.jobs, events: seed.events,
-        settings: seed.settings, integration: defaultIntegration(), manualHolds: [], ingestMeta: { processedMessages: [], lastRequests: {} },
+        settings: seed.settings, integration: defaultIntegration(), manualHolds: [], integrity: Object.fromEntries(seed.ideas.map(idea => [idea.id, ideaFingerprint(idea)])), ingestMeta: { processedMessages: [], lastRequests: {} },
         votes: Object.fromEntries(seed.ideas.map(idea => [idea.id, idea.voters])),
         increments: Object.fromEntries(seed.ideas.flatMap(idea => idea.increment ? [[idea.id, idea.increment] as const] : [])),
       },

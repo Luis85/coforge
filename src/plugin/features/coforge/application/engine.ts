@@ -1,7 +1,7 @@
 import { StudioError, errorMessage } from '../domain/errors';
 import type { AgentJob, AgentStage, IdeaAction, Provider } from '../domain/types';
 import { riceValue, STAGE_LABELS, STAGES } from '../domain/types';
-import { assertStage, heuristicSignals, isActiveJob, nextEligible } from '../domain/workflow';
+import { assertStage, heuristicSignals, isActiveJob, nextEligible, statusDuring } from '../domain/workflow';
 import type { InternalState, StageResult, StageRunner, Timers } from './ports';
 import { applyReview } from './review';
 import { addEvent, type StudioStore } from './studio-store';
@@ -19,6 +19,8 @@ function assertRuntime(state: InternalState, stage: AgentStage): void {
 function applyResult(state: InternalState, job: AgentJob, result: StageResult): void {
   const idea = state.ideas.find(i => i.id === job.ideaId);
   if (!idea) throw new Error('The idea was removed while its run was active.');
+  // An idea changed or quarantined during the run must not receive a result produced for its old content.
+  if (idea.status !== statusDuring(job.stage)) throw new Error(`${idea.id} changed while the run was active (now ${idea.status}). The result was discarded.`);
   if (job.stage === 'screen') {
     if (!result.screening) throw new Error('The screening agent returned no valid screening result.');
     const signals = heuristicSignals(`${idea.title}\n${idea.description}`);

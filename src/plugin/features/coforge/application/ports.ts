@@ -4,7 +4,11 @@ import type {
 } from '../domain/types';
 
 /** Full in-memory studio state. Only `AppState` is exposed to views. */
-export interface InternalState extends AppState { integration: IntegrationSettings; ingestMeta: IngestMeta; manualHolds: string[] }
+export interface InternalState extends AppState {
+  integration: IntegrationSettings; ingestMeta: IngestMeta; manualHolds: string[];
+  /** Fingerprints of the trusted idea content CoForge last wrote (see domain/integrity.ts). */
+  integrity: Record<string, string>;
+}
 export type NoteIdea = Omit<Idea, 'voters' | 'increment'>;
 
 export interface LoadedStudio { data: PersistedStudio | null; notes: NoteIdea[]; invalidNotes: string[] }

@@ -1,7 +1,7 @@
 import { HELP_TEXT, identity, parseCommand } from '../domain/commands';
 import { StudioError } from '../domain/errors';
 import { buildCommunity } from '../domain/recognition';
-import { cleanLine, cleanText, sanitizeText } from '../domain/sanitize';
+import { cleanLine, cleanText, comparable, displayName, meaningful, sanitizeText } from '../domain/sanitize';
 import type { Category, ChatMessage, ChatSource, Idea } from '../domain/types';
 import { CATEGORIES, CONTRIBUTOR_COLORS, ideaIdFor } from '../domain/types';
 import type { InternalState } from './ports';
@@ -55,13 +55,23 @@ export function addVote(state: InternalState, ideaId: string, input: Person): Ch
   return { ok: true, ideaId: idea.id, message: `Vote counted for ${idea.id} · ${idea.voters.length} votes.` };
 }
 
+/** Every chat request becomes a note in the vault, so intake is bounded per viewer and overall. */
+export const INTAKE_LIMITS = { pendingPerViewer: 3, perMinute: 10 } as const;
+
 function request(state: InternalState, input: ChatInput, userId: string, text: string, now: string): ChatResult {
+  if (!meaningful(text)) return { ok: false, message: 'Describe the idea in words after !request.' };
   const previous = state.ingestMeta.lastRequests[userId];
   const elapsed = previous ? (Date.now() - Date.parse(previous)) / 1000 : Infinity;
-  const duplicate = state.ideas.find(i => i.description.trim().toLocaleLowerCase('en-US') === text.toLocaleLowerCase('en-US') && i.status !== 'rejected');
+  const key = comparable(text);
+  const duplicate = state.ideas.find(i => i.status !== 'rejected' && (comparable(i.description) === key || comparable(i.title) === key));
   if (duplicate) return { ok: true, duplicate: true, ideaId: duplicate.id, message: `That idea already exists as ${duplicate.id}. Use !vote ${duplicate.id} to support it.` };
   if (elapsed < state.settings.requestCooldownSeconds)
     return { ok: false, message: `Please wait ${Math.ceil(state.settings.requestCooldownSeconds - elapsed)} seconds before sending another feature request.` };
+  const pending = state.ideas.filter(i => i.authorId === userId && i.status === 'inbox').length;
+  if (pending >= INTAKE_LIMITS.pendingPerViewer)
+    return { ok: false, message: `You already have ${pending} ideas waiting for screening. Please wait until they are reviewed.` };
+  const recent = state.ideas.filter(i => Date.now() - Date.parse(i.createdAt) < 60_000).length;
+  if (recent >= INTAKE_LIMITS.perMinute) return { ok: false, message: 'Lots of ideas are arriving right now. Please send yours again in a minute.' };
   const title = text.length <= 100 ? text : `${text.slice(0, 97).trimEnd()}…`;
   const idea = createIdea(state, { title, description: text, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source: input.source ?? 'simulator' });
   state.ingestMeta.lastRequests[userId] = now;
@@ -88,7 +98,7 @@ export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<Ch
   if (raw.text.length > 8000) throw new StudioError('Messages must contain 1–2,000 characters.');
   // Normalize before anything else: commands, duplicate checks, heuristics, notes and model input all see the same clean text.
   const { text, removed } = sanitizeText(raw.text);
-  const username = cleanLine(raw.username);
+  const username = displayName(raw.username);
   if (!text || text.length > 2000) throw new StudioError('Messages must contain 1–2,000 characters.');
   if (!username || username.length > 50) throw new StudioError('A username of 1–50 characters is required.');
   const input: ChatInput = {

@@ -5,6 +5,9 @@ import { rankedIdeas, STAGE_LABELS, STAGES } from './types';
 const predecessors: Record<AgentStage, IdeaStatus> = { screen: 'inbox', score: 'screened', plan: 'ranked', implement: 'planned' };
 const nextStage: Partial<Record<IdeaStatus, AgentStage>> = { inbox: 'screen', screened: 'score', ranked: 'plan', planned: 'implement' };
 
+/** The status an idea must still have when a run of this stage finishes. */
+export const statusDuring = (stage: AgentStage): IdeaStatus => stage === 'implement' ? 'building' : predecessors[stage];
+
 export const stageFor = (idea: Idea): AgentStage | null => nextStage[idea.status] ?? null;
 export const isActiveJob = (job: AgentJob): boolean => job.status === 'queued' || job.status === 'running';
 
@@ -47,6 +50,12 @@ const INJECTION_CHECKS: Array<[RegExp, string]> = [
   [/(?:\.env|api[ _-]?key|password|credential).{0,90}(?:upload|external server|webhook|exfiltrat)/i, 'Secret exfiltration'],
   [/(?:rm\s+-rf|format\s+c:|delete\s+(?:all\s+)?(?:system|project)\s+files)/i, 'Destructive command'],
   [/(?:bypass|disable)\s+(?:all\s+)?(?:security|safety|permissions|screening)/i, 'Permission bypass'],
+  [/(?:disregard|forget|override)\s+(?:all\s+|any\s+|the\s+|your\s+)?(?:previous\s+|prior\s+|above\s+|system\s+)?(?:instructions|prompts|rules|guidelines)/i, 'Instruction override'],
+  [/\bnew\s+(?:system\s+)?instructions\s*:|\b(?:developer|god|jailbreak|dan)\s+mode\b|\byou\s+are\s+no\s+longer\b/i, 'Instruction override'],
+  [/<\|[a-z_]+\|>|\[\/?(?:INST|SYS)\]|<\/?(?:system|assistant|user|instructions?)>|^\s*(?:system|assistant)\s*:/im, 'Role or delimiter injection'],
+  [/\b(?:curl|wget|powershell|cmd\.exe|bash\s+-c|sh\s+-c|sudo|chmod|eval\s*\(|exec\s*\(|Invoke-WebRequest|iex)\b/i, 'Shell command'],
+  [/\b(?:https?|ftp|file):\/\/|\bwww\.[a-z0-9-]+\.[a-z]/i, 'Link'],
+  [/[A-Za-z0-9+/]{80,}={0,2}|(?:\\x[0-9a-f]{2}){8,}|(?:%[0-9a-f]{2}){12,}/i, 'Encoded payload'],
 ];
 
 /** Local injection heuristics applied on top of every screening provider. Not a security guarantee. */
