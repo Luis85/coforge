@@ -88,7 +88,7 @@ export async function initializeProject(plugin: Plugin) {
       {validKey:key=>shell.i18n.global.te(key),onFailure:(error,id)=>{ shell.notifications.show('command:'+id,'error',error.key,true,'runtime'); }});
     stopCommands = bindCommands(plugin,debugCommands,key=>shell.i18n.global.t(key),shell.diagnostics);
     stopEvents = bindHostEvents(plugin,shell.hostEvents,shell.diagnostics,shell.scheduler);
-    registerCoforgeCommands(plugin, coforge.studio);
+    registerCoforgeCommands(plugin, coforge.studio, coforge.host);
     plugin.app.workspace.onLayoutReady(() => { void coforge.start().catch(() => shell.diagnostics.report('coforge.start','studio.start')); });
     return {dispose};
   } catch (error) { dispose(); throw error; }

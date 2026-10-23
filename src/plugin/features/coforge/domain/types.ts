@@ -49,6 +49,8 @@ export interface AppState {
 export interface IntegrationSettings {
   ideasFolder: string; claudeBin: string; projectPath: string; allowImplementation: boolean; worktreeFolder: string;
   twitchEnabled: boolean; twitchClientId: string; twitchBotUserId: string; twitchBroadcasterId: string; twitchTokenSecret: string;
+  /** Vault folder for the public viewer board (static site + board.json), deployed to GitHub Pages from main. */
+  publicFolder: string; publicBoardEnabled: boolean;
 }
 export type IdeaAction = AgentStage | 'approve' | 'changes' | 'reject' | 'unflag';
 

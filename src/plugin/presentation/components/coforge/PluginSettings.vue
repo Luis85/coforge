@@ -4,6 +4,7 @@ import CfIcon from './CfIcon.vue';
 import PluginSettingsClaude from './PluginSettingsClaude.vue';
 import PluginSettingsRow from './PluginSettingsRow.vue';
 import PluginSettingsTwitch from './PluginSettingsTwitch.vue';
+import PluginSettingsWebsite from './PluginSettingsWebsite.vue';
 
 const model = usePluginSettings();
 </script>
@@ -36,6 +37,7 @@ const model = usePluginSettings();
       </PluginSettingsRow>
       <PluginSettingsClaude />
       <PluginSettingsTwitch />
+      <PluginSettingsWebsite />
       <div class="cf-plugin-settings-save">
         <div v-if="model.error" class="cf-plugin-settings-message is-error" role="alert">
           <CfIcon name="circle-alert" size="sm" /> <span>{{ model.error }}</span>

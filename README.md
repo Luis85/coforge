@@ -23,7 +23,8 @@ rebuilt on the [obsidian-plugin-shell](https://github.com/Luis85/obsidian-plugin
    inspect the plan and increment, then accept it. Enable stages in **Agent workflow**
    and resume automation for automatic progression (automation always starts paused).
 
-Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume automation**.
+Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume automation**,
+**Publish the viewer board**, **Set up the viewer website**.
 
 | Area | Behaviour |
 | --- | --- |
@@ -33,8 +34,9 @@ Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume au
 | Agents | Clearly labelled demo agents, or the native Claude Code CLI (no tools for screening/scoring, read-only planning, builds in a separate Git worktree) |
 | Review | Plan, diff and files, accept, request changes, archive, moderation override |
 | Recognition | Leaderboards, contributor profiles and seven badges computed from evidence |
+| Viewer website | Read-only, script-free board, leaderboards and badges in a vault folder, deployed to GitHub Pages from `main` by a workflow CoForge writes once |
 
-Integration setup and safety boundaries: [docs/coforge/INTEGRATIONS.md](docs/coforge/INTEGRATIONS.md).
+Integration setup, the viewer website and safety boundaries: [docs/coforge/INTEGRATIONS.md](docs/coforge/INTEGRATIONS.md).
 Product brief: [BRIEF.md](BRIEF.md).
 
 ### Source map

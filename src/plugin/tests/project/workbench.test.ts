@@ -16,7 +16,8 @@ it('mounts the CoForge studio as the workspace screen with isolated view state',
   const studio = new StudioService(new MemoryStorage(), { runners: { demo: runner, claude: runner }, timers, probeRuntime: () => Promise.resolve({ cliAvailable: false, projectPath: null, allowImplementation: false }) });
   await studio.start();
   const context: CoforgeContext = { studio, startupError: () => null, onNotice: () => () => undefined,
-    host: { setSecret: () => false, hasSecret: () => false, openIdeaNote: () => Promise.resolve(false), saveExport: () => Promise.resolve('') } };
+    host: { setSecret: () => false, hasSecret: () => false, openIdeaNote: () => Promise.resolve(false), saveExport: () => Promise.resolve(''),
+      publishBoard: () => Promise.resolve({ folder: 'CoForge/Public', changed: true }), installPagesWorkflow: () => Promise.resolve({ workflow: '', folder: '', created: true }) } };
   const pinia = createPinia();
   const wrapper = mount(Workbench, { global: { plugins: [pinia], directives: { 'cf-icon': {} },
     provide: { [projectKey as symbol]: { panels, flows: [], isolated: false, openModal: () => {} }, [coforgeKey as symbol]: context } } });

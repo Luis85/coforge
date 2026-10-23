@@ -52,4 +52,8 @@ export interface StudioHostActions {
   hasSecret(name: string): boolean;
   openIdeaNote(id: string): Promise<boolean>;
   saveExport(json: string): Promise<string>;
+  /** Writes the public viewer board into the vault; resolves to the folder and whether files changed. */
+  publishBoard(): Promise<{ folder: string; changed: boolean }>;
+  /** Writes the GitHub Pages workflow into the vault repository and publishes the board once. */
+  installPagesWorkflow(): Promise<{ workflow: string; folder: string; created: boolean }>;
 }

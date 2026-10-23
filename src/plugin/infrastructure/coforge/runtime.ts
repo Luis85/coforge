@@ -5,6 +5,8 @@ import { StudioService } from '../../features/coforge/application/studio';
 import { errorMessage } from '../../features/coforge/domain/errors';
 import type { IntegrationSettings } from '../../features/coforge/domain/types';
 import { probeClaude, runClaudeStage } from './claude-runner';
+import { syncPublicBoard } from './public-board-sync';
+import { PublicSitePublisher } from './public-site-publisher';
 import { startTwitch, type HttpRequest } from './twitch';
 import { VaultStudioStorage } from './vault-storage';
 
@@ -39,8 +41,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     runners: { demo: createDemoRunner(timers), claude: runClaudeStage }, timers, probeRuntime: probeClaude,
     report: error => { report('coforge.workflow'); notify(error.message, true); },
   });
+  const publisher = new PublicSitePublisher(plugin);
   let stopTwitch = () => {};
   let stopListening = () => {};
+  let stopPublishing = () => {};
   let disposed = false;
   let failure: string | null = null;
 
@@ -76,6 +80,12 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       await plugin.app.vault.adapter.write(path, json);
       return path;
     },
+    publishBoard: () => publisher.publish(studio.state(), studio.integration().publicFolder),
+    async installPagesWorkflow() {
+      const result = await publisher.installWorkflow(studio.integration().publicFolder);
+      await publisher.publish(studio.state(), studio.integration().publicFolder);
+      return result;
+    },
   };
 
   return {
@@ -93,11 +103,12 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
         path => notify(`CoForge ignored an idea note with invalid or duplicate properties: ${path}`, true),
       );
       stopListening = studio.onIntegrationChange(connectTwitch);
+      stopPublishing = syncPublicBoard(studio, publisher, error => { report('coforge.public'); notify(`The viewer board could not be written: ${errorMessage(error)}`, true); });
       connectTwitch(studio.integration());
     },
     async dispose() {
       disposed = true;
-      stopListening(); stopTwitch();
+      stopListening(); stopTwitch(); stopPublishing();
       listeners.clear();
       await studio.stop();
     },

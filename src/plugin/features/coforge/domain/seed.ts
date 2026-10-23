@@ -13,6 +13,7 @@ export const defaultSettings = (): Settings => ({
 export const defaultIntegration = (): IntegrationSettings => ({
   ideasFolder: 'CoForge/Ideas', claudeBin: 'claude', projectPath: '', allowImplementation: false, worktreeFolder: '',
   twitchEnabled: false, twitchClientId: '', twitchBotUserId: '', twitchBroadcasterId: '', twitchTokenSecret: 'coforge-twitch-token',
+  publicFolder: 'CoForge/Public', publicBoardEnabled: false,
 });
 
 export const defaultRuntime = (): RuntimeInfo => ({

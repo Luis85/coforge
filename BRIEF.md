@@ -30,7 +30,8 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 ## Surfaces (from the design)
 
 - CoForge studio (view, entry): idea board, stream chat, agent workflow, community, studio settings.
-- CoForge settings (native settings tab): ideas folder, Claude Code and Twitch integration.
+- CoForge settings (native settings tab): ideas folder, Claude Code, Twitch and viewer website.
+- Viewer website (GitHub Pages): a read-only, script-free page with the idea board, leaderboards and badges.
 
 ## Data it works with
 
@@ -41,6 +42,9 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - Plugin data (`coforge-state.json` in the plugin folder): votes, increments,
   contributors, chat log, agent runs, activity, settings and integration settings.
 - Obsidian secret storage: the Twitch user access token (referenced by name only).
+- Public viewer board (default `CoForge/Public`): `index.html`, `styles.css`, `board.json` with screened ideas,
+  vote counts, scores, plans, display names and badges only. Deployed to GitHub Pages from the vault
+  repository's `main` by `.github/workflows/coforge-pages.yml`; CoForge writes files, the streamer pushes.
 
 ## Must-have journeys
 
@@ -50,15 +54,21 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - The streamer screens, scores, plans and builds the idea from the idea drawer (demo
   agents), inspects plan and increment, and accepts it; the author's badges update.
 - With automation resumed, enabled stages run one at a time; restarting Obsidian pauses automation.
+- With the viewer website set up, accepting an idea and pushing the vault moves its card to Accepted on the
+  GitHub Pages site; flagged and unscreened requests never appear there.
 - With Claude Code configured, screening/scoring run without tools, planning reads the
   game repository and building edits files only in a separate Git worktree.
 
 ## Out of scope
 
 - Mobile (desktop-only: the Claude Code and Git adapters run native processes).
-- Posting to Twitch, OAuth onboarding, a public viewer portal, the prototype's HTTP
-  ingestion bridge, commits/merges/releases of the game.
+- Posting to Twitch, OAuth onboarding, an interactive viewer portal (the website is read-only),
+  the prototype's HTTP ingestion bridge, commits/merges/pushes of the game or the vault.
+
+## Decisions
+
+- 2026-10-23: the prototype's HTTP ingestion bridge for other chat platforms stays out of the plugin.
 
 ## Open questions
 
-- TODO(owner): should the HTTP ingestion bridge for other chat platforms come back as a plugin feature?
+- None recorded.

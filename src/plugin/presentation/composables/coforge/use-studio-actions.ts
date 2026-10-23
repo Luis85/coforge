@@ -50,6 +50,13 @@ export function useStudioActions() {
     },
     hasSecret: (name: string) => host.hasSecret(name),
     integration: () => studio.integration(),
+    /** Resolve to a status line for the settings tab, or null after a failure toast. */
+    publishBoard: () => store.mutate(() => host.publishBoard()).then(
+      result => result.changed ? `Viewer board written to ${result.folder}. Commit and push the vault to publish it.` : `The viewer board in ${result.folder} is already up to date.`,
+      () => null),
+    installPagesWorkflow: () => store.mutate(() => host.installPagesWorkflow()).then(
+      result => `${result.created ? 'Created' : 'Checked'} ${result.workflow} for ${result.folder}. Commit and push it, then set Settings › Pages › Source to GitHub Actions in the repository.`,
+      () => null),
     openNote: (id: string) => attempt(async () => { if (!(await host.openIdeaNote(id))) throw new Error(`The note for ${id} was not found.`); }),
   };
 }

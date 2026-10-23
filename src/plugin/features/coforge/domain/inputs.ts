@@ -38,4 +38,5 @@ export const integrationPatch = shape({
   allowImplementation: optional(boolean), worktreeFolder: optional(pathText), twitchEnabled: optional(boolean),
   twitchClientId: optional(twitchId), twitchBotUserId: optional(twitchId), twitchBroadcasterId: optional(twitchId),
   twitchTokenSecret: optional(text({ trim: true, min: 1, max: 64, pattern: /^[a-z0-9-]+$/ })),
+  publicFolder: optional(folder), publicBoardEnabled: optional(boolean),
 }, { strict: true });

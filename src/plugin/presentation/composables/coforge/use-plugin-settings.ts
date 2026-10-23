@@ -12,7 +12,7 @@ const TWITCH_ID = /^[\w-]*$/;
 const SECRET_NAME = /^[a-z0-9-]+$/;
 const ABSOLUTE = /^(?:[a-zA-Z]:[\\/]|\/|\\\\)/;
 const WRAPPER = /\.(?:cmd|bat|ps1)$/i;
-const TEXT_KEYS: TextKey[] = ['ideasFolder', 'claudeBin', 'projectPath', 'worktreeFolder', 'twitchClientId', 'twitchBotUserId', 'twitchBroadcasterId', 'twitchTokenSecret'];
+const TEXT_KEYS: TextKey[] = ['ideasFolder', 'claudeBin', 'projectPath', 'worktreeFolder', 'twitchClientId', 'twitchBotUserId', 'twitchBroadcasterId', 'twitchTokenSecret', 'publicFolder'];
 
 function validate(draft: IntegrationSettings): string | null {
   const folder = draft.ideasFolder.trim();
@@ -30,6 +30,9 @@ function validate(draft: IntegrationSettings): string | null {
     if (value.trim().length > 100 || !TWITCH_ID.test(value.trim())) return `${label} may only contain letters, digits, underscores and dashes.`;
   if (draft.twitchEnabled && (!draft.twitchClientId.trim() || !draft.twitchBotUserId.trim() || !draft.twitchBroadcasterId.trim()))
     return 'Add the Client ID, bot user ID and broadcaster ID before enabling Twitch chat.';
+  const board = draft.publicFolder.trim();
+  if (!board || board.length > 200 || !FOLDER.test(board))
+    return 'Use a vault-relative viewer board folder such as CoForge/Public, without a leading slash, “..” or the characters \\ : * ? " < > |.';
   const secret = draft.twitchTokenSecret.trim();
   if (!secret || secret.length > 64 || !SECRET_NAME.test(secret)) return 'The token secret name may only contain lowercase letters, digits and dashes (up to 64).';
   return null;
@@ -41,6 +44,7 @@ function changes(draft: IntegrationSettings, saved: IntegrationSettings): Partia
   for (const key of TEXT_KEYS) if (draft[key].trim() !== saved[key]) patch[key] = draft[key].trim();
   if (draft.allowImplementation !== saved.allowImplementation) patch.allowImplementation = draft.allowImplementation;
   if (draft.twitchEnabled !== saved.twitchEnabled) patch.twitchEnabled = draft.twitchEnabled;
+  if (draft.publicBoardEnabled !== saved.publicBoardEnabled) patch.publicBoardEnabled = draft.publicBoardEnabled;
   return patch;
 }
 
@@ -56,6 +60,8 @@ function createPluginSettings() {
   const token = ref('');
   const tokenStored = ref(false);
   const tokenError = ref('');
+  const website = ref('');
+  const publishing = ref(false);
 
   const load = () => {
     saved.value = { ...actions.integration() };
@@ -97,8 +103,18 @@ function createPluginSettings() {
     tokenStored.value = actions.hasSecret(saved.value.twitchTokenSecret);
   }
 
+  /** Publishing uses the saved folder; an unsaved folder change must be saved first. */
+  async function runWebsite(work: () => Promise<string | null>): Promise<void> {
+    website.value = '';
+    if (draft.publicFolder.trim() !== saved.value.publicFolder) { website.value = 'Save the new viewer board folder first.'; return; }
+    publishing.value = true;
+    try { website.value = (await work()) ?? lastError('The viewer board could not be written.'); } finally { publishing.value = false; }
+  }
+
   return reactive({
-    store, draft, token, error, justSaved, checking, tokenStored, tokenError, loaded, dirty,
+    store, draft, token, error, justSaved, checking, tokenStored, tokenError, loaded, dirty, website, publishing,
+    publish: () => { void runWebsite(actions.publishBoard); },
+    setupPages: () => { void runWebsite(actions.installPagesWorkflow); },
     failure: computed(() => app.failure),
     ready: computed(() => store.state !== null && loaded.value),
     runtime: computed(() => store.state?.runtime),

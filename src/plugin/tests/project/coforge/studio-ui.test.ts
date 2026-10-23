@@ -26,7 +26,8 @@ async function render(seed = true) {
   const errors: unknown[] = [];
   const context: CoforgeContext = {
     studio, startupError: () => null, onNotice: () => () => undefined,
-    host: { setSecret: () => false, hasSecret: () => false, openIdeaNote: () => Promise.resolve(true), saveExport: () => Promise.resolve('export.json') },
+    host: { setSecret: () => false, hasSecret: () => false, openIdeaNote: () => Promise.resolve(true), saveExport: () => Promise.resolve('export.json'),
+      publishBoard: () => Promise.resolve({ folder: 'CoForge/Public', changed: true }), installPagesWorkflow: () => Promise.resolve({ workflow: '', folder: '', created: true }) },
   };
   const pinia = createPinia();
   const wrapper = mount(StudioApp, { attachTo: document.body, global: {

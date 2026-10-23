@@ -4,7 +4,10 @@
     {
       "name": "coforge-preview",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:preview"],
+      "runtimeArgs": [
+        "run",
+        "dev:preview"
+      ],
       "port": 5173
     }
   ]

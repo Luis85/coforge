@@ -46,6 +46,8 @@ export function createPreviewCoforge(): CoforgeContext {
     host: {
       setSecret: () => false, hasSecret: () => false,
       openIdeaNote: () => Promise.resolve(false), saveExport: () => Promise.resolve('the browser preview (not saved)'),
+      publishBoard: () => Promise.reject(new Error('Publishing needs the Obsidian desktop app.')),
+      installPagesWorkflow: () => Promise.reject(new Error('Publishing needs the Obsidian desktop app.')),
     },
   };
 }

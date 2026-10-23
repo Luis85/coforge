@@ -36,6 +36,7 @@ const settings: Check<Settings> = shape({
 const integration: Check<IntegrationSettings> = shape({
   ideasFolder: text({ min: 1 }), claudeBin: text({ min: 1 }), projectPath: str, allowImplementation: boolean, worktreeFolder: str,
   twitchEnabled: boolean, twitchClientId: str, twitchBotUserId: str, twitchBroadcasterId: str, twitchTokenSecret: str,
+  publicFolder: text({ min: 1 }), publicBoardEnabled: boolean,
 });
 const persisted: Check<PersistedStudio> = shape({
   version: oneOf([1] as const), nextIdeaNumber: number({ integer: true, gt: 0 }),

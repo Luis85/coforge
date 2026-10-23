@@ -87,3 +87,40 @@ while disconnected. An expired token shows a status message; save a new token to
 reconnect.
 
 The prototype's platform-neutral HTTP ingestion bridge is not part of the plugin.
+
+## 3. Publish the viewer website (GitHub Pages)
+
+Viewers can follow the idea board, leaderboards and badges on a read-only website. It
+contains no scripts and no forms; votes and requests still happen in chat.
+
+**Requirements:** the vault is (inside) a Git repository with a GitHub remote, and you
+push to `main`.
+
+1. In **Settings → Community plugins → CoForge → Viewer website**, keep or change the
+   **Viewer board folder** (default `CoForge/Public`) and save.
+2. Press **Set up GitHub Pages** (or run **CoForge: Set up the viewer website**). CoForge writes `.github/workflows/coforge-pages.yml` at the root of the vault
+   repository and writes the board once. An existing workflow at that path that CoForge did
+   not create is never replaced.
+3. Commit and push to `main`. In the GitHub repository open **Settings → Pages** and set
+   **Source** to **GitHub Actions**. The workflow deploys the board folder; the page URL is
+   shown on the workflow run.
+4. Enable **Keep the viewer board updated** so CoForge rewrites the board files a few
+   seconds after the board changes, or press **Write board now** / run **CoForge: Publish
+   the viewer board** when you want to publish. Every later push to `main` that changes the
+   folder redeploys the site. CoForge never commits or pushes.
+
+| File | Content |
+| --- | --- |
+| `index.html` | Static board (Inbox, Up next, In progress, Accepted), three leaderboards and earned badges; refreshes itself every two minutes for stream overlays |
+| `styles.css` | Light and dark styles |
+| `board.json` | The same public snapshot as data (`coforge-public-board/v1`) |
+| `.nojekyll` | Serves the folder as-is |
+
+**What is public:** screened ideas on the board (ID, title, description, category, status,
+unique vote count, RICE score, author display name and the saved plan's summary and steps),
+the number of requests still waiting for screening, leaderboards and earned badges.
+**Never public:** unscreened, flagged or archived requests, platform user IDs, the chat log,
+agent run logs, review and moderation notes, increments and diffs, worktree paths and all
+settings. All community text is HTML-escaped, and the page sends a Content Security Policy
+that blocks scripts. Files are rewritten only when the public content changes, so unchanged
+boards do not create commits.
