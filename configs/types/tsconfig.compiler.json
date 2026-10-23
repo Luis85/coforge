@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.framework.json",
+  "include": ["../../src/cli/compiler/**/*.ts"]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "coforge",
+  "name": "CoForge",
+  "version": "0.1.0",
+  "minAppVersion": "1.13.7",
+  "description": "A minimal starting point with an empty workspace and no product requirements.",
+  "author": "Luis Mendez",
+  "isDesktopOnly": true
+}

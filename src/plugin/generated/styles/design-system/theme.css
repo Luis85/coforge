@@ -1,0 +1,102 @@
+/* Generated design system. Edit saved tokens, not this managed file. */
+[data-plugin-ui="coforge"].ps--coforge {
+  --ui-primary: var(--coforge-ds-colors-accent);
+  --coforge-accent: var(--coforge-ds-colors-accent);
+  --coforge-accent-hover: var(--coforge-ds-colors-accent);
+  --coforge-link: var(--coforge-ds-colors-accent);
+  --coforge-border-focus: var(--coforge-ds-colors-accent);
+  --ui-text: var(--coforge-ds-colors-text);
+  --coforge-text: var(--coforge-ds-colors-text);
+  --ui-text-muted: var(--coforge-ds-colors-muted);
+  --ui-text-toned: var(--coforge-ds-colors-muted);
+  --ui-text-dimmed: var(--coforge-ds-colors-muted);
+  --coforge-text-muted: var(--coforge-ds-colors-muted);
+  --coforge-text-subtle: var(--coforge-ds-colors-muted);
+  --ui-text-highlighted: var(--coforge-ds-colors-text);
+  --ui-text-inverted: var(--coforge-ds-colors-accent-text);
+  --coforge-text-on-accent: var(--coforge-ds-colors-accent-text);
+  --ui-bg: var(--coforge-ds-colors-background);
+  --coforge-surface: var(--coforge-ds-colors-background);
+  --ui-bg-muted: var(--coforge-ds-colors-background);
+  --coforge-surface-muted: var(--coforge-ds-colors-background);
+  --ui-bg-elevated: var(--coforge-ds-colors-background);
+  --coforge-surface-raised: var(--coforge-ds-colors-background);
+  --ui-bg-inverted: var(--coforge-ds-colors-text);
+  --ui-border-inverted: var(--coforge-ds-colors-text);
+  --coforge-font-ui: var(--coforge-ds-fonts-interface);
+  --coforge-font-code: var(--coforge-ds-fonts-code);
+  --coforge-space-xs: var(--coforge-ds-spacing-xs);
+  --coforge-space-sm: var(--coforge-ds-spacing-sm);
+  --coforge-space-md: var(--coforge-ds-spacing-md);
+  --coforge-space-lg: var(--coforge-ds-spacing-lg);
+  --coforge-space-xl: var(--coforge-ds-spacing-xl);
+  --coforge-space-2xl: var(--coforge-ds-spacing-xl);
+  --coforge-control-radius: var(--coforge-ds-radii-control);
+  --coforge-radius-sm: var(--coforge-ds-radii-control);
+  --coforge-radius-md: var(--coforge-ds-radii-control);
+  --coforge-radius-lg: var(--coforge-ds-radii-surface);
+  --coforge-control-height: var(--coforge-ds-sizes-control);
+  --coforge-icon-size: var(--coforge-ds-sizes-icon);
+  --ps-font-sans: var(--coforge-ds-fonts-interface);
+  font-family: var(--coforge-ds-fonts-interface);
+  --ps-font-mono: var(--coforge-ds-fonts-code);
+  --ps-text-base: var(--coforge-ds-typography-body-size);
+  --ps-text-base--line-height: var(--coforge-ds-typography-body-line-height);
+  --coforge-text-size: var(--coforge-ds-typography-body-size);
+  --coforge-weight-normal: var(--coforge-ds-typography-body-weight);
+  --coforge-line-height: var(--coforge-ds-typography-body-line-height);
+  --ps-text-sm: var(--coforge-ds-typography-label-size);
+  --ps-text-sm--line-height: var(--coforge-ds-typography-label-line-height);
+  --coforge-text-size-sm: var(--coforge-ds-typography-label-size);
+  --coforge-weight-strong: var(--coforge-ds-typography-label-weight);
+  --ps-text-2xl: var(--coforge-ds-typography-page-title-size);
+  --ps-text-2xl--line-height: var(--coforge-ds-typography-page-title-line-height);
+  --ps-text-lg: var(--coforge-ds-typography-section-title-size);
+  --ps-text-lg--line-height: var(--coforge-ds-typography-section-title-line-height);
+  --ps-spacing: var(--coforge-ds-spacing-xs);
+  --ui-radius: calc(var(--coforge-ds-radii-control) / 1.5);
+  --coforge-inspector-width: var(--coforge-ds-sizes-inspector);
+  color: var(--coforge-ds-colors-text);
+  background-color: var(--coforge-ds-colors-background);
+  accent-color: var(--coforge-ds-colors-accent);
+}
+[data-plugin-ui="coforge"].ps--coforge :is(code,pre,kbd,samp) { font-family: var(--coforge-ds-fonts-code); }
+[data-plugin-ui="coforge"].ps--coforge, [data-plugin-ui="coforge"].ps--coforge :is(.shell-app,.shell-lead,.shell-capability p,.shell-flow-card p,.generated-workbench) {
+  font-family: var(--coforge-ds-typography-body-font);
+  font-size: var(--coforge-ds-typography-body-size);
+  font-weight: var(--coforge-ds-typography-body-weight);
+  line-height: var(--coforge-ds-typography-body-line-height);
+  letter-spacing: var(--coforge-ds-typography-body-tracking);
+}
+
+[data-plugin-ui="coforge"].ps--coforge :is(label,button,input,select,textarea) {
+  font-family: var(--coforge-ds-typography-label-font);
+  font-size: var(--coforge-ds-typography-label-size);
+  font-weight: var(--coforge-ds-typography-label-weight);
+  line-height: var(--coforge-ds-typography-label-line-height);
+  letter-spacing: var(--coforge-ds-typography-label-tracking);
+}
+
+[data-plugin-ui="coforge"].ps--coforge h1 {
+  font-family: var(--coforge-ds-typography-page-title-font);
+  font-size: var(--coforge-ds-typography-page-title-size);
+  font-weight: var(--coforge-ds-typography-page-title-weight);
+  line-height: var(--coforge-ds-typography-page-title-line-height);
+  letter-spacing: var(--coforge-ds-typography-page-title-tracking);
+}
+
+[data-plugin-ui="coforge"].ps--coforge :is(h2,h3) {
+  font-family: var(--coforge-ds-typography-section-title-font);
+  font-size: var(--coforge-ds-typography-section-title-size);
+  font-weight: var(--coforge-ds-typography-section-title-weight);
+  line-height: var(--coforge-ds-typography-section-title-line-height);
+  letter-spacing: var(--coforge-ds-typography-section-title-tracking);
+}
+
+[data-plugin-ui="coforge"].ps--coforge :is(button,input,select,textarea) { border-radius: var(--coforge-ds-radii-control); }
+[data-plugin-ui="coforge"].ps--coforge :is(.shell-capability,.shell-settings-card,.shell-preview,.generated-component) { border-radius: var(--coforge-ds-radii-surface); }
+[data-plugin-ui="coforge"].ps--coforge :is(button,input:not([type="checkbox"]):not([type="radio"]),select) { min-height: var(--coforge-ds-sizes-control); }
+[data-plugin-ui="coforge"].ps--coforge :is([data-slot="leadingIcon"],[data-slot="trailingIcon"]) { width: var(--coforge-ds-sizes-icon); height: var(--coforge-ds-sizes-icon); }
+[data-plugin-ui="coforge"].ps--coforge [data-ds-layout="inspector"] { width: var(--coforge-ds-sizes-inspector); max-width: 100%; min-width: 0; }
+[data-plugin-ui="coforge"].ps--coforge :focus-visible { outline-color: var(--coforge-ds-colors-accent); }
+[data-plugin-ui="coforge"].ps--coforge [class~="ps:text-primary"] { color: var(--ui-primary); }

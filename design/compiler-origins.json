@@ -1,0 +1,665 @@
+{
+  "schemaVersion": 1,
+  "artifacts": [
+    {
+      "path": ".agents/skills/add-feature/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".agents/skills/debug-in-obsidian/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".agents/skills/implement-requirement/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".agents/skills/self-review/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".agents/skills/write-obsidian-test/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".claude/settings.json",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".claude/skills/add-feature/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".claude/skills/debug-in-obsidian/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".claude/skills/implement-requirement/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".claude/skills/self-review/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".claude/skills/write-obsidian-test/SKILL.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".cursor/rules/project.mdc",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".editorconfig",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".github/copilot-instructions.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".github/pull_request_template.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".github/workflows/obsidian.yml",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".vscode/extensions.json",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".vscode/launch.json",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".vscode/settings.json",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": ".vscode/tasks.json",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "AGENTS.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "AIRSHIP.md",
+      "producer": "preview",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "BRIEF.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "CLAUDE.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "PROJECT-IMPLEMENTATION.md",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "README.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "configs/bundling/vite.preview.config.mjs",
+      "producer": "preview",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "configs/testing/vitest.project.config.mjs",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "configs/types/tsconfig.project.json",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "design/design-system.json",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "design/project.json",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "design/style-manifest.json",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "design/traceability.json",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "design/visual-traceability.json",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "docs/project-tasks/TEMPLATE.md",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "harness/prototype/clickdummy-host.ts",
+      "producer": "clickdummy",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "harness/prototype/clickdummy-scenarios.ts",
+      "producer": "clickdummy",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "harness/prototype/clickdummy.css",
+      "producer": "clickdummy",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "harness/prototype/clickdummy.ts",
+      "producer": "clickdummy",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "harness/prototype/index.html",
+      "producer": "preview",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "manifest.json",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "package-lock.json",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "package.json",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "playwright.config.ts",
+      "producer": "ui-quality",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "scripts/clickdummy/build-single-file.mjs",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "scripts/clickdummy/lib/build-output.mjs",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "scripts/clickdummy/lib/build-worker.mjs",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "scripts/clickdummy/lib/io.mjs",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "scripts/clickdummy/lib/offline.mjs",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "scripts/clickdummy/lib/worker-output.mjs",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/application/source-overrides.ts",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/application/sources.ts",
+      "producer": "data",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/application/visual-interactions.ts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/clickdummy-sources.ts",
+      "producer": "clickdummy",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/flows.ts",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/install.ts",
+      "producer": "host",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/mount.ts",
+      "producer": "host",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/native-integrations.ts",
+      "producer": "native",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/panels.ts",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/source-providers.ts",
+      "producer": "host",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/sources.ts",
+      "producer": "data",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/bootstrap/visual-context.ts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/composition-contract.d.mts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/composition-contract.mjs",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/contract.ts",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/detail-actions.ts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/detail-controls.ts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/screens.ts",
+      "producer": "navigation",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/visual-runtime.ts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/visual/visual-ir.d.mts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/visual/visual-ir.mjs",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/visual/visual-session.d.mts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/domain/visual/visual-session.mjs",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/components/ClickdummyPreview.vue",
+      "producer": "clickdummy",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/components/ProjectWorkbench.vue",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/components/screens/preferences-screen.vue",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/components/screens/workspace-screen.vue",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/composables/operation.ts",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/composables/use-screen.ts",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/composables/use-visual.ts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/composables/use-workbench.ts",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/context/clickdummy.ts",
+      "producer": "clickdummy",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/context/project.ts",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/detail-layout.css",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/presentation/stores/navigation.ts",
+      "producer": "navigation",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/custom.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/design-system.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/design-system/colors.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/design-system/fonts.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/design-system/radii.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/design-system/sizes.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/design-system/spacing.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/design-system/theme.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/design-system/typography.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/layout.css",
+      "producer": "host",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/generated/styles/project.css",
+      "producer": "style",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/main.ts",
+      "producer": "host",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/tests/project/acceptance/traceability.test.ts",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/tests/project/fixtures/visual-sources.ts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/tests/project/navigation.test.ts",
+      "producer": "navigation",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/tests/project/operation-lifecycle.test.ts",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/tests/project/plugin-host.test.ts",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/tests/project/ui-bootstrap.mjs",
+      "producer": "devkit",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/tests/project/visual-runtime.test.ts",
+      "producer": "visual",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "src/plugin/tests/project/workbench.test.ts",
+      "producer": "ui",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "tests/e2e/ui-quality.spec.ts",
+      "producer": "ui-quality",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "tooling/e2e/serve-clickdummy.mjs",
+      "producer": "ui-quality",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "versions.json",
+      "producer": "project",
+      "origins": [],
+      "lines": []
+    },
+    {
+      "path": "design/compiler-readiness.json",
+      "producer": "compiler",
+      "origins": [],
+      "lines": []
+    }
+  ]
+}
