@@ -1,14 +1,14 @@
 import { samplePlan, sampleIncrement } from '../domain/seed';
 import { riceValue } from '../domain/types';
 import { heuristicSignals } from '../domain/workflow';
-import type { StageInput, StageResult } from './ports';
+import type { StageInput, StageResult, Timers } from './ports';
 
 /** An abortable pause. Rejects with "Run cancelled." when the signal fires. */
-export function pause(ms: number, signal?: AbortSignal): Promise<void> {
+export function pause(timers: Timers, ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) { reject(new Error('Run cancelled.')); return; }
-    const abort = () => { clearTimeout(timer); reject(new Error('Run cancelled.')); };
-    const timer = setTimeout(() => { signal?.removeEventListener('abort', abort); resolve(); }, ms);
+    const abort = () => { timers.clearTimeout(timer); reject(new Error('Run cancelled.')); };
+    const timer = timers.setTimeout(() => { signal?.removeEventListener('abort', abort); resolve(); }, ms);
     signal?.addEventListener('abort', abort, { once: true });
   });
 }
@@ -21,12 +21,12 @@ const NARRATION = {
 } as const;
 
 /** Clearly simulated agent output. No model is called and no game files are modified. */
-export function createDemoRunner(delays: readonly [number, number] = [500, 650]) {
+export function createDemoRunner(timers: Timers, delays: readonly [number, number] = [500, 650]) {
   return async ({ stage, idea, signal, onLog }: StageInput): Promise<StageResult> => {
     onLog?.('Demo agent started. No external model is called and no game files are modified.');
-    await pause(delays[0], signal);
+    await pause(timers, delays[0], signal);
     onLog?.(NARRATION[stage]);
-    await pause(delays[1], signal);
+    await pause(timers, delays[1], signal);
     const now = new Date().toISOString();
     if (stage === 'screen') {
       const signals = heuristicSignals(`${idea.title}\n${idea.description}`);

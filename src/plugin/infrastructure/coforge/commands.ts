@@ -6,7 +6,7 @@ import { STAGE_LABELS } from '../../features/coforge/domain/types';
 /** Palette commands that act on the studio without opening its view. */
 export function registerCoforgeCommands(plugin: Plugin, studio: StudioService): void {
   const run = (work: () => Promise<string>) => {
-    if (!studio.store.ready) { new Notice('CoForge is still loading.'); return; }
+    if (!studio.store.ready) { new Notice('The studio is still loading.'); return; }
     void work().then(message => new Notice(message), (error: unknown) => new Notice(`CoForge: ${errorMessage(error)}`));
   };
   plugin.addCommand({

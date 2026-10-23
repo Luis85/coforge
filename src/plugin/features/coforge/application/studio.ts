@@ -1,4 +1,5 @@
 import { StudioError } from '../domain/errors';
+import { omit } from '../domain/objects';
 import { integrationPatch, newIdeaInput, riceInput, settingsPatch } from '../domain/inputs';
 import { createSeed } from '../domain/seed';
 import type { AgentJob, AppState, IdeaAction, IntegrationSettings, Settings } from '../domain/types';
@@ -18,7 +19,7 @@ export class StudioService {
   private readonly integrationListeners = new Set<(integration: IntegrationSettings) => void>();
   constructor(storage: StudioStorage, private readonly host: StudioHost) {
     this.store = new StudioStore(storage);
-    this.engine = new WorkflowEngine(this.store, { runners: host.runners, ...(host.report ? { onError: host.report } : {}) });
+    this.engine = new WorkflowEngine(this.store, { runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}) });
   }
 
   async start(): Promise<{ invalidNotes: string[] }> {
@@ -98,13 +99,12 @@ export class StudioService {
       const { runtime, integration } = state;
       Object.assign(state, createSeed(), { runtime, integration, ingestMeta: { processedMessages: [], lastRequests: {} }, manualHolds: [] });
       delete state.runtime.activeJobId;
-    });
+    }, { replaceAll: true });
   }
 
   /** A readable private snapshot. Increments can contain source code and local paths. */
   exportJson(): string {
-    const { runtime: _runtime, ...data } = this.state();
-    return JSON.stringify({ ...data, exportedAt: new Date().toISOString() }, null, 2);
+    return JSON.stringify({ ...omit(this.state(), 'runtime'), exportedAt: new Date().toISOString() }, null, 2);
   }
 
   /** Reconciles an edit or deletion made directly in the vault. */

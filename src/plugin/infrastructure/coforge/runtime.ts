@@ -1,6 +1,6 @@
 import { requestUrl, type App, type Plugin } from 'obsidian';
 import { createDemoRunner } from '../../features/coforge/application/demo-agent';
-import type { StudioHostActions } from '../../features/coforge/application/ports';
+import type { StudioHostActions, Timers } from '../../features/coforge/application/ports';
 import { StudioService } from '../../features/coforge/application/studio';
 import { errorMessage } from '../../features/coforge/domain/errors';
 import type { IntegrationSettings } from '../../features/coforge/domain/types';
@@ -31,8 +31,12 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const storage = new VaultStudioStorage(plugin);
   const listeners = new Set<(notice: StudioNotice) => void>();
   const notify = (message: string, error = false) => { for (const listener of listeners) listener({ message, error }); };
+  const timers: Timers = {
+    setTimeout: (callback, ms) => window.setTimeout(callback, ms), clearTimeout: handle => window.clearTimeout(handle),
+    setInterval: (callback, ms) => window.setInterval(callback, ms), clearInterval: handle => window.clearInterval(handle),
+  };
   const studio = new StudioService(storage, {
-    runners: { demo: createDemoRunner(), claude: runClaudeStage }, probeRuntime: probeClaude,
+    runners: { demo: createDemoRunner(timers), claude: runClaudeStage }, timers, probeRuntime: probeClaude,
     report: error => { report('coforge.workflow'); notify(error.message, true); },
   });
   let stopTwitch = () => {};

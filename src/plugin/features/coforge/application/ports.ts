@@ -8,7 +8,12 @@ export interface InternalState extends AppState { integration: IntegrationSettin
 export type NoteIdea = Omit<Idea, 'voters' | 'increment'>;
 
 export interface LoadedStudio { data: PersistedStudio | null; notes: NoteIdea[]; invalidNotes: string[] }
-export interface SaveOptions { /** Ideas whose note already holds the new values (external edits): do not write them back. */ fromNotes?: readonly string[] }
+export interface SaveOptions {
+  /** Ideas whose note already holds the new values (external edits): do not write them back. */
+  fromNotes?: readonly string[];
+  /** Every idea was replaced (sample workspace): retire all previous notes, even when an ID is reused. */
+  replaceAll?: boolean;
+}
 
 /**
  * Canonical storage: idea notes in the vault plus one plugin-data file for everything else.
@@ -25,9 +30,18 @@ export interface StageResult { screening?: Screening; rice?: RiceScore; plan?: I
 export interface StageInput { stage: AgentStage; idea: Idea; settings: Settings; integration: IntegrationSettings; signal?: AbortSignal; onLog?: (message: string) => void }
 export type StageRunner = (input: StageInput) => Promise<StageResult>;
 
+/** Host timers (Obsidian window timers in the plugin) keep pure code popout-safe and testable. */
+export interface Timers {
+  setTimeout(callback: () => void, ms: number): number;
+  clearTimeout(handle: number): void;
+  setInterval(callback: () => void, ms: number): number;
+  clearInterval(handle: number): void;
+}
+
 /** Host capabilities the studio needs but must not implement itself. */
 export interface StudioHost {
   runners: { demo: StageRunner; claude: StageRunner };
+  timers: Timers;
   probeRuntime(integration: IntegrationSettings): Promise<Pick<RuntimeInfo, 'cliAvailable' | 'projectPath' | 'allowImplementation'>>;
   report?(error: Error): void;
 }

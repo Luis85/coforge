@@ -14,6 +14,8 @@ import { useNavigation } from "../../src/plugin/generated/presentation/stores/na
 import { screens } from "../../src/plugin/generated/domain/screens.ts";
 import type { VisualState } from "../../src/plugin/generated/domain/visual-runtime.ts";
 import { createDialogHost, createPreviewLifecycle } from './clickdummy-host.ts';
+import { createPreviewCoforge, previewIconDirective } from './coforge-preview.ts';
+import { coforgeKey } from '../../src/plugin/presentation/context/coforge-context.ts';
 import { scenariosForSurface, resolveScenario, type PreviewScenario } from './clickdummy-scenarios.ts';
 import './clickdummy.css';
 import '../../src/plugin/styles/app.css';
@@ -22,6 +24,8 @@ import "../../src/plugin/generated/presentation/detail-layout.css";
 const root = document.getElementById('prototype-app');
 if (!root) throw new Error('CLICKDUMMY_ROOT');
 const owner = "coforge", name = "CoForge";
+// The CoForge studio panels run against an in-memory sample studio with demo agents.
+const coforge = createPreviewCoforge();
 const routes: ReadonlyArray<{id: string; surface: string; path: string}> = [];
 const state = ref<VisualState>('default'), error = ref('');
 const dialogs = createDialogHost({ document, owner,
@@ -51,6 +55,7 @@ function mountFrame(target: HTMLElement, modal?: string, inheritedReadOnly = fal
   try { if (!modal && location.hash.startsWith('#surface=')) initial = decodeURIComponent(location.hash.slice(9)); } catch { error.value = 'Invalid preview address.'; }
   if (initial && screens.some(s => s.id === initial && !['group','action','modal'].includes(s.kind))) navigation.open(initial);
   const app: App = createApp(modal ? Workbench : Preview); app.use(pinia); app.use(ui);
+  app.provide(coforgeKey, coforge); app.directive('cf-icon', previewIconDirective);
   const stops: Array<() => void> = [];
   app.runWithContext(() => {
     app.provide(projectKey, { panels, flows: bindFlows(sources,pinia), isolated: !!modal, openModal: frameOpenModal, designState: () => state.value });

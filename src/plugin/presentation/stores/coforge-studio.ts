@@ -15,7 +15,7 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   const activityOpen = ref(false);
   const pending = ref(0);
   const toasts = ref<Toast[]>([]);
-  const timers = new Set<ReturnType<typeof setTimeout>>();
+  const timers = new Set<number>();
   let toastId = 0;
 
   const busy = computed(() => pending.value > 0);
@@ -26,12 +26,12 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   function notify(message: string, error = false) {
     const id = ++toastId;
     toasts.value = [...toasts.value.slice(-2), { id, message, error }];
-    const timer = setTimeout(() => { timers.delete(timer); dismiss(id); }, error ? 8500 : 4500);
+    const timer = window.setTimeout(() => { timers.delete(timer); dismiss(id); }, error ? 8500 : 4500);
     timers.add(timer);
   }
   function navigate(next: StudioView) { view.value = next; activityOpen.value = false; }
   function select(id: string | null) { selected.value = id; activityOpen.value = false; }
-  function dispose() { for (const timer of timers) clearTimeout(timer); timers.clear(); }
+  function dispose() { for (const timer of timers) window.clearTimeout(timer); timers.clear(); }
 
   /** Runs a studio request, reports its outcome as a toast and rethrows failures for the caller. */
   async function mutate<T>(work: () => Promise<T>, success?: string | ((result: T) => string)): Promise<T> {

@@ -1,6 +1,7 @@
 import { normalizePath, parseYaml, stringifyYaml, TFile, type Plugin } from 'obsidian';
 import type { ExternalNoteChange, InternalState, LoadedStudio, NoteIdea, SaveOptions, StudioStorage } from '../../features/coforge/application/ports';
-import { applyIdeaProperties, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, parseIdeaNote } from '../../features/coforge/domain/idea-note';
+import { applyIdeaProperties, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, OWNED_PROPERTIES, parseIdeaNote } from '../../features/coforge/domain/idea-note';
+import { omit } from '../../features/coforge/domain/objects';
 import { parsePersistedStudio, type PersistedStudio } from '../../features/coforge/domain/persisted';
 import { defaultIntegration } from '../../features/coforge/domain/seed';
 import type { Idea } from '../../features/coforge/domain/types';
@@ -21,6 +22,11 @@ export function readIdeaNote(content: string): NoteIdea | null {
 
 const inFolder = (path: string, folder: string) => path.startsWith(`${normalizePath(folder)}/`);
 const noteValues = (idea: Idea, author: string) => JSON.stringify(ideaProperties(idea, author));
+/** Order-independent fingerprint of the CoForge-owned properties, as written or as read back from YAML. */
+function ownedFingerprint(properties: Record<string, unknown>): string {
+  return JSON.stringify(OWNED_PROPERTIES.filter(key => properties[key] !== undefined)
+    .map(key => { const value = properties[key]; return [key, value instanceof Date ? value.toISOString() : value]; }));
+}
 
 /**
  * Idea notes in a vault folder plus `coforge-state.json` in the plugin folder for votes, increments,
@@ -28,6 +34,8 @@ const noteValues = (idea: Idea, author: string) => JSON.stringify(ideaProperties
  */
 export class VaultStudioStorage implements StudioStorage {
   private readonly paths = new Map<string, string>();
+  /** Fingerprints of note writes not yet echoed back by the metadata cache, per note path. */
+  private readonly echoes = new Map<string, string[]>();
   private folder = defaultIntegration().ideasFolder;
   constructor(private readonly plugin: Plugin) {}
 
@@ -55,6 +63,7 @@ export class VaultStudioStorage implements StudioStorage {
   async save(next: InternalState, previous: InternalState | null, options: SaveOptions = {}): Promise<void> {
     if (next.integration.ideasFolder !== this.folder) await this.moveFolder(next.integration.ideasFolder);
     const external = new Set(options.fromNotes ?? []);
+    if (options.replaceAll) await this.retireAll();
     const authors = new Map(next.contributors.map(c => [c.id, c.name]));
     for (const idea of next.ideas) {
       if (external.has(idea.id)) continue;
@@ -77,6 +86,7 @@ export class VaultStudioStorage implements StudioStorage {
     const { vault, metadataCache } = this.plugin.app;
     this.plugin.registerEvent(metadataCache.on('changed', (file, data) => {
       if (!inFolder(file.path, this.folder)) return;
+      if (this.isEcho(file.path, data)) return;
       let idea: NoteIdea | null;
       try { idea = readIdeaNote(data); } catch { onInvalid(file.path); return; }
       if (!idea) return;
@@ -104,22 +114,50 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   private persisted(state: InternalState): PersistedStudio {
-    const { ideas, runtime: _runtime, ...rest } = state;
+    const { ideas } = state;
     return {
-      ...rest,
+      ...omit(state, 'ideas', 'runtime'),
       votes: Object.fromEntries(ideas.filter(i => i.voters.length).map(i => [i.id, i.voters])),
       increments: Object.fromEntries(ideas.flatMap(i => i.increment ? [[i.id, i.increment] as const] : [])),
     };
   }
 
+  /** CoForge's own writes come back as change events; they must not re-apply older values over newer state. */
+  private isEcho(path: string, data: string): boolean {
+    const pending = this.echoes.get(path);
+    if (!pending?.length) return false;
+    let frontmatter: unknown;
+    try { frontmatter = parseYaml(splitNote(data).yaml ?? ''); } catch { return false; }
+    if (!frontmatter || typeof frontmatter !== 'object') return false;
+    const index = pending.indexOf(ownedFingerprint(frontmatter as Record<string, unknown>));
+    if (index === -1) return false;
+    pending.splice(0, index + 1);
+    return true;
+  }
+
+  private remember(path: string, idea: Idea, author: string): void {
+    this.echoes.set(path, [...(this.echoes.get(path) ?? []), ownedFingerprint(ideaProperties(idea, author))].slice(-20));
+  }
+
   private async writeIdea(idea: Idea, author: string): Promise<void> {
     const file = this.file(idea.id);
+    if (file) this.remember(file.path, idea, author);
     if (file) { await this.plugin.app.fileManager.processFrontMatter(file, frontmatter => { applyIdeaProperties(frontmatter as Record<string, unknown>, idea, author); }); return; }
     await this.ensureFolder(this.folder);
     let path = normalizePath(`${this.folder}/${ideaFileName(idea)}`);
     for (let n = 2; this.plugin.app.vault.getAbstractFileByPath(path); n++) path = normalizePath(`${this.folder}/${ideaFileName(idea).replace(/\.md$/, ` ${n}.md`)}`);
+    this.remember(path, idea, author);
     const created = await this.plugin.app.vault.create(path, `---\n${stringifyYaml(ideaProperties(idea, author))}---\n${ideaBody(idea)}`);
     this.paths.set(idea.id, created.path);
+  }
+
+  /** Moves every known idea note to the vault trash (reversible). */
+  private async retireAll(): Promise<void> {
+    for (const id of this.paths.keys()) {
+      const file = this.file(id);
+      this.paths.delete(id);
+      if (file) await this.plugin.app.fileManager.trashFile(file);
+    }
   }
 
   private async moveFolder(target: string): Promise<void> {

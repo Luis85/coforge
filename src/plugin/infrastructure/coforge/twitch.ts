@@ -35,19 +35,19 @@ function reconnectUrl(raw: unknown): string | null {
 export function startTwitch(config: TwitchConfig, transport: Transport, onMessage: (message: TwitchChatInput) => Promise<unknown>, onStatus: (status: string) => void): () => void {
   const { clientId, token, botUserId, broadcasterId } = config;
   let stopped = false; let socket: WebSocket | undefined; let replacement: WebSocket | undefined;
-  let retryTimer: ReturnType<typeof setTimeout> | undefined; let validationTimer: ReturnType<typeof setTimeout> | undefined; let attempts = 0;
-  const closing = new WeakSet<WebSocket>(); const timers = new Map<WebSocket, ReturnType<typeof setTimeout>>();
+  let retryTimer: number | undefined; let validationTimer: number | undefined; let attempts = 0;
+  const closing = new WeakSet<WebSocket>(); const timers = new Map<WebSocket, number>();
 
   function close(ws: WebSocket) {
     closing.add(ws);
-    const timer = timers.get(ws); if (timer) clearTimeout(timer); timers.delete(ws);
+    const timer = timers.get(ws); if (timer) window.clearTimeout(timer); timers.delete(ws);
     try { ws.close(); } catch { /* Already closed. */ }
   }
   function stop() {
     stopped = true;
-    if (retryTimer) clearTimeout(retryTimer);
-    if (validationTimer) clearTimeout(validationTimer);
-    for (const timer of timers.values()) clearTimeout(timer);
+    if (retryTimer) window.clearTimeout(retryTimer);
+    if (validationTimer) window.clearTimeout(validationTimer);
+    for (const timer of timers.values()) window.clearTimeout(timer);
     timers.clear();
     if (socket) close(socket);
     if (replacement) close(replacement);
@@ -66,8 +66,8 @@ export function startTwitch(config: TwitchConfig, transport: Transport, onMessag
   }
   function scheduleValidation(delay: number) {
     if (stopped) return;
-    if (validationTimer) clearTimeout(validationTimer);
-    validationTimer = setTimeout(() => {
+    if (validationTimer) window.clearTimeout(validationTimer);
+    validationTimer = window.setTimeout(() => {
       void validateToken().catch(() => { if (!stopped) { onStatus('Twitch token revalidation temporarily unavailable · retrying'); scheduleValidation(60_000); } });
     }, delay);
   }
@@ -78,7 +78,7 @@ export function startTwitch(config: TwitchConfig, transport: Transport, onMessag
     socket = undefined; replacement = undefined;
     const wait = Math.min(30_000, 1000 * 2 ** Math.min(attempts++, 5));
     onStatus(`Twitch disconnected · reconnecting in ${Math.ceil(wait / 1000)}s`);
-    retryTimer = setTimeout(() => { retryTimer = undefined; void boot(); }, wait);
+    retryTimer = window.setTimeout(() => { retryTimer = undefined; void boot(); }, wait);
   }
   async function subscribe(sessionId: string): Promise<boolean> {
     const response = await transport.request({
@@ -99,13 +99,13 @@ export function startTwitch(config: TwitchConfig, transport: Transport, onMessag
     if (transfersSubscription) replacement = ws; else socket = ws;
     let keepaliveMs = 15_000;
     const armKeepalive = () => {
-      const old = timers.get(ws); if (old) clearTimeout(old);
-      timers.set(ws, setTimeout(() => { if (!stopped && !closing.has(ws)) retry(); }, keepaliveMs + 1500));
+      const old = timers.get(ws); if (old) window.clearTimeout(old);
+      timers.set(ws, window.setTimeout(() => { if (!stopped && !closing.has(ws)) retry(); }, keepaliveMs + 1500));
     };
     armKeepalive();
     ws.addEventListener('message', event => { void receive(event).catch(() => { if (!stopped) retry(); }); });
     ws.addEventListener('close', () => {
-      const timer = timers.get(ws); if (timer) clearTimeout(timer); timers.delete(ws);
+      const timer = timers.get(ws); if (timer) window.clearTimeout(timer); timers.delete(ws);
       if (!stopped && !closing.has(ws)) retry();
     });
     ws.addEventListener('error', () => { if (!stopped && !closing.has(ws)) retry(); });

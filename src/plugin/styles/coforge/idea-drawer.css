@@ -1,1 +1,208 @@
-/* CoForge idea-drawer styles. */
+/* Idea inspection keeps the board visible while protecting the review task. */
+.cf-idea-drawer { width: min(620px, 100%); animation: cf-idea-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes cf-idea-enter { from { opacity: 0; transform: translateX(24px); } }
+
+.cf-idea-inline { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.cf-idea-wrap { flex-wrap: wrap; }
+.cf-studio .cf-idea-help { font-size: 12px; color: var(--cf-muted); line-height: 1.65; margin: 8px 0 0; }
+.cf-idea-body { font-size: 13px; line-height: 1.85; color: var(--cf-text); overflow-wrap: anywhere; }
+.cf-idea-category { color: var(--cf-muted); font-size: 11px; }
+.cf-idea-source { display: inline-flex; align-items: center; gap: 5px; color: var(--cf-muted); font-size: 10px; white-space: nowrap; }
+.cf-idea-dot-separator { color: var(--cf-faint); margin: 0 2px; }
+.cf-btn.cf-idea-small-button { font-size: 11px; padding: 5px 8px; min-height: 29px; gap: 6px; }
+.cf-idea-full-button { width: 100%; }
+
+/* Header, title and section tabs. */
+.cf-idea-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto;
+  padding: 14px 25px; border-bottom: 1px solid var(--cf-border); color: var(--cf-muted); font-size: 11px;
+}
+.cf-idea-id { font-size: 11px; color: var(--cf-muted); }
+.cf-idea-heading { padding: 26px 28px 21px; flex: 0 0 auto; }
+.cf-studio .cf-idea-heading h2 {
+  margin: 16px 0 15px; font-size: 25px; font-weight: 650; line-height: 1.35; letter-spacing: -0.025em; overflow-wrap: anywhere;
+}
+.cf-idea-byline { display: flex; align-items: center; gap: 8px; color: var(--cf-muted); font-size: 10px; flex-wrap: wrap; }
+.cf-idea-byline strong { color: var(--cf-text); font-weight: 600; }
+.cf-idea-tabs { display: flex; padding: 0 28px; border-bottom: 1px solid var(--cf-border); gap: 24px; flex: 0 0 auto; }
+.cf-studio .cf-idea-tabs button {
+  border: 0; border-radius: 0; padding: 12px 0; height: auto; font-size: 12px; color: var(--cf-muted); background: none;
+  position: relative; display: flex; align-items: center; gap: 7px;
+}
+.cf-studio .cf-idea-tabs button:hover { color: var(--cf-text); }
+.cf-studio .cf-idea-tabs button.is-active { color: var(--cf-accent); }
+.cf-idea-tabs button.is-active::after {
+  content: ""; position: absolute; bottom: -1px; height: 2px; left: 0; right: 0; background: var(--cf-accent);
+}
+.cf-idea-tab-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.8; }
+.cf-idea-scroll { flex: 1 1 auto; padding: 25px 28px 30px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+
+/* Sections and headings. */
+.cf-idea-section { margin-bottom: 28px; }
+.cf-studio .cf-idea-section h3 {
+  margin: 0 0 14px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.cf-idea-section h3 > .cf-icon { color: var(--cf-muted); }
+.cf-idea-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+.cf-studio .cf-idea-section-heading h3 { margin: 0; }
+.cf-studio .cf-idea-request {
+  font-size: 14px; color: var(--cf-text); line-height: 1.9; margin: 0 0 20px; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.cf-idea-vote-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 0 21px; border-bottom: 1px solid var(--cf-border);
+}
+.cf-idea-vote-row > div strong { display: block; font-size: 15px; font-weight: 650; }
+.cf-idea-vote-row > div span { display: block; color: var(--cf-muted); font-size: 10px; margin-top: 5px; }
+
+/* Screening evidence and plain lists. */
+.cf-idea-screening {
+  background: color-mix(in srgb, var(--color-green) 4%, transparent); border: 1px solid color-mix(in srgb, var(--color-green) 14%, transparent);
+  border-radius: var(--radius-m); padding: 15px 16px;
+}
+.cf-idea-screening.is-flagged {
+  background: color-mix(in srgb, var(--color-orange) 4%, transparent); border-color: color-mix(in srgb, var(--color-orange) 16%, transparent);
+}
+.cf-idea-screening .cf-muted { font-size: 10px; }
+.cf-studio .cf-idea-screening p { font-size: 12px; line-height: 1.75; margin: 11px 0 0; color: var(--cf-text); }
+.cf-idea-list { padding-left: 19px; color: var(--cf-text); font-size: 12px; line-height: 1.8; margin: 11px 0; }
+.cf-idea-list li { padding-left: 2px; margin-bottom: 6px; overflow-wrap: anywhere; }
+
+/* Forms inside the drawer. */
+.cf-idea-field { margin: 0 0 17px; }
+.cf-idea-field > span .cf-muted { font-weight: 400; }
+.cf-idea-field textarea { min-height: 72px; }
+.cf-idea-fields-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+.cf-idea-form-footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.cf-studio .cf-idea-form-footer .cf-idea-help { margin: 0; }
+
+/* RICE equation. */
+.cf-idea-rice-equation {
+  display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 20px 14px;
+  background: var(--cf-surface); border-radius: var(--radius-m);
+}
+.cf-idea-rice-equation > div { text-align: center; flex: 1; min-width: 0; }
+.cf-idea-rice-equation strong { display: block; font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.025em; }
+.cf-idea-rice-equation span { display: block; color: var(--cf-muted); font-size: 9px; margin-top: 6px; }
+.cf-idea-rice-equation > b { font-size: 12px; font-weight: 400; color: var(--cf-faint); }
+.cf-idea-rice-total strong { color: var(--cf-accent); }
+.cf-studio .cf-idea-rationale { color: var(--cf-text); font-size: 12px; line-height: 1.8; margin: 17px 0 8px; }
+.cf-idea-rice-form { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--cf-border); }
+
+/* Plan. */
+.cf-idea-plan-steps { list-style: none; padding: 0; margin: 22px 0 0; }
+.cf-idea-plan-steps li { display: flex; align-items: flex-start; gap: 14px; padding-bottom: 20px; }
+.cf-idea-plan-steps li > span {
+  width: 24px; height: 24px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px;
+  background: color-mix(in srgb, var(--color-purple) 12%, transparent); color: var(--color-purple); font-size: 11px; font-weight: 650;
+}
+.cf-studio .cf-idea-plan-steps li p { margin: 1px 0 0; font-size: 12px; line-height: 1.8; color: var(--cf-text); overflow-wrap: anywhere; }
+.cf-idea-check-list { list-style: none; margin: 15px 0 0; padding: 0; }
+.cf-idea-check-list li { display: flex; gap: 11px; color: var(--cf-text); font-size: 12px; line-height: 1.8; margin: 0 0 12px; overflow-wrap: anywhere; }
+.cf-idea-check-box {
+  width: 13px; height: 13px; border: 1px solid var(--cf-border-strong); border-radius: 3px; display: inline-block; margin-top: 4px; flex-shrink: 0;
+}
+
+/* Increment: branch, worktree, changed files and diff. */
+.cf-idea-code-meta { display: flex; align-items: center; gap: 9px; color: var(--cf-muted); padding: 8px 0; min-width: 0; }
+.cf-idea-code-meta code { font-size: 11px; overflow-wrap: anywhere; }
+.cf-idea-files { list-style: none; margin: 16px 0 0; padding: 0; border-top: 1px solid var(--cf-border); }
+.cf-idea-files li {
+  display: flex; align-items: center; gap: 9px; padding: 11px 0; font-size: 11px;
+  border-bottom: 1px solid color-mix(in srgb, var(--cf-border) 50%, transparent);
+}
+.cf-idea-files li > .cf-icon { color: var(--cf-muted); }
+.cf-idea-files code { flex: 1; overflow-wrap: anywhere; min-width: 0; }
+.cf-idea-additions { color: var(--color-green); font-variant-numeric: tabular-nums; }
+.cf-idea-deletions { color: var(--color-red); font-variant-numeric: tabular-nums; }
+.cf-studio .cf-idea-code {
+  margin: 13px 0 0; background: var(--cf-surface); color: var(--cf-text); border-radius: var(--radius-s); padding: 15px;
+  font: 11px/1.85 var(--cf-font-mono); white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; max-height: 340px;
+}
+
+/* Activity: timeline and agent runs. */
+.cf-idea-timeline { list-style: none; padding: 0; margin: 18px 0 0; }
+.cf-idea-timeline li { display: flex; gap: 14px; position: relative; padding: 0 0 24px; }
+.cf-idea-timeline li:not(:last-child)::after {
+  content: ""; position: absolute; width: 1px; background: var(--cf-border); top: 13px; bottom: 0; left: 4px;
+}
+.cf-idea-timeline-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--cf-faint); margin-top: 5px; flex-shrink: 0; }
+.cf-idea-timeline-dot.is-review { background: var(--color-green); }
+.cf-idea-timeline-dot.is-agent { background: var(--color-purple); }
+.cf-idea-timeline-dot.is-vote { background: var(--cf-accent); }
+.cf-studio .cf-idea-timeline li p { font-size: 12px; line-height: 1.7; margin: 0 0 5px; color: var(--cf-text); overflow-wrap: anywhere; }
+.cf-idea-timeline time { font-size: 10px; color: var(--cf-muted); }
+.cf-idea-run { border-bottom: 1px solid var(--cf-border); padding: 12px 0; }
+.cf-idea-run summary {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; list-style: none; font-size: 12px;
+}
+.cf-idea-run summary::-webkit-details-marker { display: none; }
+.cf-idea-job-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; background: var(--color-green); }
+.cf-idea-job-dot.is-queued { background: var(--color-yellow); }
+.cf-idea-job-dot.is-running { background: var(--color-purple); }
+.cf-idea-job-dot.is-failed { background: var(--color-red); }
+.cf-idea-job-dot.is-succeeded { background: var(--color-green); }
+.cf-idea-job-dot.is-cancelled { background: var(--cf-faint); }
+
+/* Alerts, quiet and empty states. */
+.cf-idea-alert {
+  display: flex; align-items: flex-start; gap: 11px; padding: 14px 16px; border: 1px solid var(--cf-border);
+  background: var(--cf-surface); border-radius: var(--radius-m); margin: 0 0 20px; font-size: 12px; line-height: 1.65;
+}
+.cf-idea-alert > .cf-icon { margin-top: 2px; color: var(--cf-muted); }
+.cf-idea-alert > span { flex: 1; min-width: 0; }
+.cf-idea-alert strong { display: block; margin-bottom: 3px; font-size: 12px; }
+.cf-idea-alert small { display: block; color: var(--cf-text); font-size: 11px; overflow-wrap: anywhere; }
+.cf-idea-alert.is-error {
+  color: var(--cf-danger); border-color: color-mix(in srgb, var(--text-error) 22%, transparent);
+  background: color-mix(in srgb, var(--text-error) 4%, transparent);
+}
+.cf-idea-alert.is-agent {
+  color: var(--color-purple); border-color: color-mix(in srgb, var(--color-purple) 18%, transparent);
+  background: color-mix(in srgb, var(--color-purple) 4%, transparent);
+}
+.cf-idea-alert.is-success {
+  color: var(--color-green); border-color: color-mix(in srgb, var(--color-green) 16%, transparent);
+  background: color-mix(in srgb, var(--color-green) 4%, transparent);
+}
+.cf-idea-alert:is(.is-error, .is-agent, .is-success) > .cf-icon { color: currentColor; }
+.cf-idea-alert .cf-idea-small-button { flex-shrink: 0; margin: -4px -6px 0 0; }
+.cf-idea-quiet { display: flex; align-items: flex-start; gap: 13px; padding: 19px 0; color: var(--cf-muted); }
+.cf-idea-quiet > .cf-icon { color: var(--color-purple); }
+.cf-idea-quiet strong { font-size: 12px; font-weight: 600; color: var(--cf-text); }
+.cf-studio .cf-idea-quiet p { font-size: 12px; line-height: 1.7; margin: 5px 0 0; }
+.cf-idea-empty { padding: 45px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.cf-idea-empty > .cf-icon { color: var(--cf-muted); margin-bottom: 18px; --cf-icon-size: 32px; }
+.cf-studio .cf-idea-empty h3 { color: var(--cf-text); font-size: 15px; margin: 0 0 10px; }
+.cf-studio .cf-idea-empty p { max-width: 40ch; margin: 0 0 20px; color: var(--cf-muted); font-size: 12px; line-height: 1.8; }
+
+/* Footer: next stage or the streamer's review decision. */
+.cf-idea-footer { flex: 0 0 auto; padding: 19px 28px 24px; border-top: 1px solid var(--cf-border); background: var(--cf-bg); }
+.cf-studio .cf-idea-footer > .cf-idea-help { margin: 0 0 13px; }
+.cf-idea-footer .cf-idea-field { margin-bottom: 12px; }
+.cf-idea-footer .cf-idea-field textarea { min-height: 60px; }
+.cf-idea-review-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.cf-idea-review-actions .cf-btn { font-size: 11px; }
+.cf-idea-button-mode {
+  font-size: 9px; font-weight: 600; padding-left: 9px; opacity: 0.7;
+  border-left: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+}
+
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-idea-fields-grid { gap: 0 12px; }
+  .cf-idea-top { padding: 12px 18px; }
+  .cf-idea-heading { padding: 22px 20px 18px; }
+  .cf-studio .cf-idea-heading h2 { font-size: 23px; }
+  .cf-idea-tabs { padding: 0 20px; gap: 22px; }
+  .cf-idea-scroll { padding: 22px 20px; }
+  .cf-idea-footer { padding: 17px 20px 20px; }
+  .cf-idea-rice-equation { padding: 18px 8px; gap: 3px; }
+  .cf-idea-rice-equation strong { font-size: 16px; }
+  .cf-idea-rice-equation span { font-size: 8px; }
+  .cf-idea-vote-row { gap: 10px; }
+  .cf-idea-vote-row .cf-btn { font-size: 10px; padding-left: 9px; padding-right: 9px; }
+  .cf-idea-review-actions { flex-wrap: wrap; }
+  .cf-idea-review-actions .cf-btn { font-size: 10px; padding-left: 10px; padding-right: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-idea-drawer { animation: none; }
+}

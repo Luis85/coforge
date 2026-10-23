@@ -2,7 +2,7 @@ import { StudioError, errorMessage } from '../domain/errors';
 import type { AgentJob, AgentStage, IdeaAction, Provider } from '../domain/types';
 import { riceValue, STAGE_LABELS, STAGES } from '../domain/types';
 import { assertStage, heuristicSignals, isActiveJob, nextEligible } from '../domain/workflow';
-import type { InternalState, StageResult, StageRunner } from './ports';
+import type { InternalState, StageResult, StageRunner, Timers } from './ports';
 import { applyReview } from './review';
 import { addEvent, type StudioStore } from './studio-store';
 
@@ -48,14 +48,14 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { runners: Record<Provider, StageRunner>; onError?: (error: Error) => void }
+export interface EngineOptions { runners: Record<Provider, StageRunner>; timers: Timers; onError?: (error: Error) => void }
 
 /** One worker, a FIFO queue of at most 50 jobs, optional timed automation and explicit cancellation. */
 export class WorkflowEngine {
   private drainPromise: Promise<void> | null = null;
   private controller: AbortController | null = null;
   private activeId: string | null = null;
-  private timer: ReturnType<typeof setInterval> | null = null;
+  private timer: number | null = null;
   private lastAutomaticTick = 0;
   private stopped = false;
   constructor(readonly store: StudioStore, private readonly options: EngineOptions) {}
@@ -63,7 +63,7 @@ export class WorkflowEngine {
   start(): void {
     this.stopped = false;
     if (this.timer) return;
-    this.timer = setInterval(() => {
+    this.timer = this.options.timers.setInterval(() => {
       const state = this.store.snapshot();
       if (state.settings.paused || this.drainPromise || Date.now() - this.lastAutomaticTick < state.settings.intervalSeconds * 1000) return;
       this.lastAutomaticTick = Date.now();
@@ -73,7 +73,7 @@ export class WorkflowEngine {
 
   async stop(): Promise<void> {
     this.stopped = true;
-    if (this.timer) clearInterval(this.timer);
+    if (this.timer !== null) this.options.timers.clearInterval(this.timer);
     this.timer = null;
     this.controller?.abort();
     await this.drainPromise;

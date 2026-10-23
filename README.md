@@ -1,6 +1,57 @@
 # CoForge
 
-A minimal starting point with an empty workspace and no product requirements.
+**A community game studio inside Obsidian.** Streamers build a game with their viewers and
+AI agents: viewers pitch ideas with `!request` and support them with `!vote`; every idea
+gets a stable ID (`CF-101`), its own Markdown note, a screening verdict, an explained RICE
+score, an implementation plan, a reviewable increment and mandatory streamer review.
+Accepted work earns the author community recognition and badges.
+
+This plugin is the Obsidian port of the CoForge local web prototype (React + Express),
+rebuilt on the [obsidian-plugin-shell](https://github.com/Luis85/obsidian-plugin-shell)
+`blank` starter (Vue 3, Pinia, Nuxt UI, Vite, Vitest). Desktop only.
+
+## Use it
+
+1. Build (`npm ci`, `npm run build`) and copy `dist/main.js`, `dist/styles.css` and
+   `manifest.json` into `<vault>/.obsidian/plugins/coforge/`, then enable **CoForge**.
+2. Click the gamepad ribbon icon or run **CoForge: Open CoForge**.
+3. On the empty board choose **Load sample workspace** to explore the illustrative
+   *Mosslight* project, or **New idea** to start your own. Ideas are written to
+   `CoForge/Ideas` (configurable).
+4. Try the loop: send `!request Add a lantern` in the chat simulator, vote as another
+   viewer, open the idea and run **Screen → Score → Plan → Build** with the demo agents,
+   inspect the plan and increment, then accept it. Enable stages in **Agent workflow**
+   and resume automation for automatic progression (automation always starts paused).
+
+Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume automation**.
+
+| Area | Behaviour |
+| --- | --- |
+| Chat intake | `!request`, `!vote`, `!status`, `!me`, `!help`; local acknowledgements; chat simulator; receive-only Twitch EventSub |
+| Ideas | One note per idea with properties for status, screening, RICE and plan; edits and deletions in the vault flow back into the studio |
+| Workflow | Screen → Score → Plan → Build, single worker, queue, pause/resume, run next, cancel, vote threshold, failure holds |
+| Agents | Clearly labelled demo agents, or the native Claude Code CLI (no tools for screening/scoring, read-only planning, builds in a separate Git worktree) |
+| Review | Plan, diff and files, accept, request changes, archive, moderation override |
+| Recognition | Leaderboards, contributor profiles and seven badges computed from evidence |
+
+Integration setup and safety boundaries: [docs/coforge/INTEGRATIONS.md](docs/coforge/INTEGRATIONS.md).
+Product brief: [BRIEF.md](BRIEF.md).
+
+### Source map
+
+| Path | Responsibility |
+| --- | --- |
+| `src/plugin/features/coforge/domain/` | Types, commands, workflow rules, recognition, idea-note mapping, validation, sample data |
+| `src/plugin/features/coforge/application/` | Studio store and transactions, chat intake, workflow engine, review, demo agent, Claude protocol |
+| `src/plugin/infrastructure/coforge/` | Vault storage, Claude Code/Git process adapter, Twitch EventSub, runtime wiring, commands |
+| `src/plugin/presentation/{components,composables,stores,context}/coforge` | Vue studio UI |
+| `src/plugin/styles/coforge/` | Studio styles on Obsidian theme tokens |
+| `src/plugin/tests/project/coforge/` | Behavioural tests (chat, engine, recognition, vault storage, Claude/Twitch adapters) |
+
+## Plugin Shell scaffold
+
+The sections below come from the Plugin Shell generator and describe the inherited
+tooling and gates.
 
 An Obsidian plugin generated from the Plugin Shell starter kit (Vue 3, Pinia, Nuxt UI,
 Vite, Vitest, Playwright). Run the checks below to qualify this generated scaffold;

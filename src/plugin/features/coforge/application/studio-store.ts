@@ -1,4 +1,5 @@
 import { errorMessage } from '../domain/errors';
+import { omit } from '../domain/objects';
 import type { PersistedStudio } from '../domain/persisted';
 import { createEmptyState, defaultIntegration, defaultRuntime } from '../domain/seed';
 import type { Activity, AppState, Idea } from '../domain/types';
@@ -19,7 +20,7 @@ export function assemble(loaded: LoadedStudio): InternalState {
     return { ...note, voters: [...new Set(data.votes[note.id] ?? [])], ...(increment ? { increment } : {}) };
   }).sort((a, b) => a.number - b.number);
   const nextIdeaNumber = Math.max(data.nextIdeaNumber, ...ideas.map(idea => idea.number + 1));
-  const { votes: _votes, increments: _increments, ...rest } = data;
+  const rest = omit(data, 'votes', 'increments');
   return { ...rest, nextIdeaNumber, ideas, runtime: defaultRuntime() };
 }
 
@@ -71,8 +72,7 @@ export class StudioStore {
 
   get ready(): boolean { return this.state !== null; }
   snapshot(): AppState {
-    const { integration: _i, ingestMeta: _m, manualHolds: _h, ...publicState } = this.current();
-    return structuredClone(publicState);
+    return structuredClone(omit(this.current(), 'integration', 'ingestMeta', 'manualHolds'));
   }
   internalSnapshot(): InternalState { return structuredClone(this.current()); }
 
