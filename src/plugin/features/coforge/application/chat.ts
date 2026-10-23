@@ -1,6 +1,7 @@
 import { HELP_TEXT, identity, parseCommand } from '../domain/commands';
 import { StudioError } from '../domain/errors';
 import { buildCommunity } from '../domain/recognition';
+import { cleanLine, cleanText, sanitizeText } from '../domain/sanitize';
 import type { Category, ChatMessage, ChatSource, Idea } from '../domain/types';
 import { CATEGORIES, CONTRIBUTOR_COLORS, ideaIdFor } from '../domain/types';
 import type { InternalState } from './ports';
@@ -10,19 +11,21 @@ export interface ChatInput { username: string; userId?: string; text: string; so
 export interface ChatResult { ok: boolean; message: string; ideaId?: string; duplicate?: boolean }
 type Person = Pick<ChatInput, 'username' | 'userId' | 'source'>;
 
-function ensureContributor(state: InternalState, input: Person): string {
+function ensureContributor(state: InternalState, raw: Person): string {
+  const input = { ...raw, username: cleanLine(raw.username, 50), ...(raw.userId === undefined ? {} : { userId: cleanLine(raw.userId, 100) }) };
+  if (!input.username) throw new StudioError('A username of 1–50 characters is required.');
   const id = identity(input);
   const contributor = state.contributors.find(c => c.id === id);
-  if (contributor) contributor.name = input.username.trim();
+  if (contributor) contributor.name = input.username;
   else state.contributors.push({
-    id, name: input.username.trim(), color: CONTRIBUTOR_COLORS[state.contributors.length % CONTRIBUTOR_COLORS.length]!, joinedAt: new Date().toISOString(),
+    id, name: input.username, color: CONTRIBUTOR_COLORS[state.contributors.length % CONTRIBUTOR_COLORS.length]!, joinedAt: new Date().toISOString(),
   });
   return id;
 }
 
 export function createIdea(state: InternalState, input: Person & { title: string; description: string; category?: Category }): Idea {
-  const title = input.title.trim();
-  const description = input.description.trim();
+  const title = cleanLine(input.title);
+  const description = cleanText(input.description);
   if (title.length < 5 || title.length > 120) throw new StudioError('Idea titles must contain 5–120 characters.');
   if (description.length > 3000) throw new StudioError('Keep the description under 3,000 characters.');
   if (state.ideas.length >= 5000) throw new StudioError('This project has reached its 5,000-idea limit. Export the project before starting a new one.', 409);
@@ -80,11 +83,18 @@ function me(state: InternalState, userId: string, username: string): string {
 }
 
 /** Applies one chat message: commands, contributor identity, unique votes, cooldowns and event deduplication. */
-export async function ingestChat(store: StudioStore, input: ChatInput): Promise<ChatResult> {
-  const source = input.source ?? 'simulator';
-  const text = input.text.trim();
+export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<ChatResult> {
+  const source = raw.source ?? 'simulator';
+  if (raw.text.length > 8000) throw new StudioError('Messages must contain 1–2,000 characters.');
+  // Normalize before anything else: commands, duplicate checks, heuristics, notes and model input all see the same clean text.
+  const { text, removed } = sanitizeText(raw.text);
+  const username = cleanLine(raw.username);
   if (!text || text.length > 2000) throw new StudioError('Messages must contain 1–2,000 characters.');
-  if (!input.username.trim() || input.username.length > 50) throw new StudioError('A username of 1–50 characters is required.');
+  if (!username || username.length > 50) throw new StudioError('A username of 1–50 characters is required.');
+  const input: ChatInput = {
+    ...raw, text, username,
+    ...(raw.userId === undefined ? {} : { userId: cleanLine(raw.userId, 100) }), ...(raw.messageId === undefined ? {} : { messageId: cleanLine(raw.messageId, 200) }),
+  };
   return store.transaction(state => {
     const messageKey = input.messageId ? `${source}:${input.messageId}` : undefined;
     const seen = messageKey ? state.ingestMeta.processedMessages.find(m => m.id === messageKey) : undefined;
@@ -100,6 +110,7 @@ export async function ingestChat(store: StudioStore, input: ChatInput): Promise<
     else if (parsed.type === 'help') result.message = HELP_TEXT;
     else if (parsed.type === 'status') result = status(state, parsed.ideaId);
     else if (parsed.type === 'me') result.message = me(state, userId, input.username);
+    if (removed && parsed.type !== 'message') result.message += ' Hidden or invisible characters were removed from the message.';
     if (result.ideaId) chat.ideaId = result.ideaId;
     state.chat.push(chat);
     if (parsed.type !== 'message') state.chat.push({

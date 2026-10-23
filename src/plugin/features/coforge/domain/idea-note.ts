@@ -1,4 +1,5 @@
 import { CheckError, list, noteTimestamp as timestamp, nullable, number, oneOf, optional, record, shape, text } from './check';
+import { cleanLine, cleanText, escapeMarkdown, unescapeMarkdown } from './sanitize';
 import type { Idea } from './types';
 import { CATEGORIES, IDEA_STATUSES, planMarkdown } from './types';
 
@@ -48,7 +49,8 @@ export function applyIdeaProperties(frontmatter: Record<string, unknown>, idea: 
 }
 
 export function ideaBody(idea: Pick<Idea, 'title' | 'description'>): string {
-  return `# ${idea.title.replace(/\s+/g, ' ')}\n\n${idea.description}\n\n## Notes\n\n`;
+  // Community text is escaped so Obsidian shows it literally (no embeds, remote images, HTML or inline queries).
+  return `# ${escapeMarkdown(cleanLine(idea.title))}\n\n${escapeMarkdown(cleanText(idea.description))}\n\n## Notes\n\n`;
 }
 
 /** The description is the text between the first heading and the next heading. CoForge only reads it. */
@@ -58,11 +60,11 @@ export function descriptionFromBody(body: string, fallback: string): string {
   const rest = lines.slice(start + 1);
   const end = rest.findIndex(line => /^#{1,6}\s/.test(line));
   const description = (end === -1 ? rest : rest.slice(0, end)).join('\n').trim();
-  return description.slice(0, 3000) || fallback;
+  return cleanText(unescapeMarkdown(description), 3000) || fallback;
 }
 
 export function ideaFileName(idea: Pick<Idea, 'id' | 'title'>): string {
-  const safe = idea.title.replace(/[\\/:*?"<>|#^[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80).replace(/[. ]+$/, '');
+  const safe = cleanLine(idea.title).replace(/[\\/:*?"<>|#^[\]]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80).replace(/[. ]+$/, '');
   return `${idea.id} ${safe || 'Idea'}.md`;
 }
 
@@ -84,7 +86,7 @@ const noteShape = shape({
 export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'voters' | 'increment'> {
   const p = noteShape(record(frontmatter));
   const idea: Omit<Idea, 'voters' | 'increment'> = {
-    id: p.id, number: Number(p.id.slice(3)), title: p.title, description: descriptionFromBody(body, p.title), authorId: p.author,
+    id: p.id, number: Number(p.id.slice(3)), title: cleanLine(p.title, 200) || p.id, description: descriptionFromBody(body, cleanLine(p.title, 200) || p.id), authorId: p.author,
     category: p.category, status: p.status, createdAt: p.created, updatedAt: p.updated,
   };
   if (p.screening) idea.screening = {

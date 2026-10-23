@@ -59,6 +59,15 @@ the path; clean up with `git worktree list` / `git worktree remove` after review
 
 ### Boundaries
 
+Every chat message, viewer name and form entry is sanitized at intake, before commands,
+duplicate checks, heuristics, notes or models see it: Unicode NFKC normalization; removal of
+zero-width and other invisible characters, bidirectional overrides, Unicode tag characters
+("ASCII smuggling"), variation selectors, private-use and control characters; at most two
+combining marks per character; normalized whitespace. Model input is sanitized again right
+before each run, because idea notes can be edited in the vault. Idea descriptions and titles
+are written into notes with Markdown escaped, so chat text cannot embed images, HTML, links,
+tags or inline Dataview/Templater expressions.
+
 Screening combines local heuristics with a model classifier. It is a moderation signal,
 **not proof that content is safe**. **A Git worktree is not an operating-system
 sandbox.** Use a trusted repository without secrets and review generated code before
