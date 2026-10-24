@@ -1,0 +1,4 @@
+export interface Screen { id: string; slug: string; label: string; kind: string; parent: string | null; nav: boolean; entry: boolean; command: boolean; ribbon: boolean; goal: string; components: string[] }
+export interface Interaction { id: string; from: string; to: string; label: string; kind: string }
+export const screens: Screen[] = [{"id":"node-1","slug":"workspace","label":"CoForge studio","kind":"view","parent":null,"nav":false,"entry":true,"command":false,"ribbon":true,"goal":"Build a game with your community: ideas, votes, agent workflow and review.","components":[]},{"id":"node-2","slug":"preferences","label":"CoForge settings","kind":"settings","parent":null,"nav":false,"entry":false,"command":false,"ribbon":false,"goal":"Configure this plugin without changing unrelated host settings.","components":[]}];
+export const interactions: Interaction[] = [];

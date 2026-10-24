@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true
+  },
+  "exclude": [],
+  "include": [
+    "../../src/plugin/**/*.ts",
+    "../../src/plugin/**/*.vue",
+    "../../src/plugin/generated/**/*.ts",
+    "../../src/plugin/generated/**/*.vue",
+    "../../src/plugin/tests/project/**/*.ts",
+    "../../harness/prototype/**/*.ts",
+    "../../src/plugin/tests/unit/generated/**/*.ts"
+  ]
+}

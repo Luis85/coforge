@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "bin/app",
+      "hash": "3449983537f796d65e57eaf215805d7cca29c14a66cb109fd833a72ed427cacf",
+      "bytes": 795
+    },
+    {
+      "path": "bin/app.js",
+      "hash": "f403a81dce129019df1bd0fd69c0fd4f18a667c2796504d067f1da4dd333d46d",
+      "bytes": 5769643
+    },
+    {
+      "path": "bin/LICENSE",
+      "hash": "0e67f2f5063e19ca5716cc24933e860fc0112c37918c759bb8714c110998b4a3",
+      "bytes": 1068
+    },
+    {
+      "path": "bin/licenses/NOTICES.json",
+      "hash": "30c9f360cb36eed3a4e1bf211cc392b35aeb74b6e69b5a6438409e6ed9e42182",
+      "bytes": 563
+    },
+    {
+      "path": "bin/licenses/prettier.LICENSE",
+      "hash": "b0f2417199889f1c0d28ec4e0244eacf1a15de5819d61f641dd7d8f45153ac9c",
+      "bytes": 1065
+    },
+    {
+      "path": "bin/licenses/scope__faker-js__faker.LICENSE",
+      "hash": "8c0814c525426e67c04ca562f28364be477003697903d257160c081d14b271bf",
+      "bytes": 2865
+    },
+    {
+      "path": "bin/licenses/typescript.LICENSE",
+      "hash": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47",
+      "bytes": 9197
+    },
+    {
+      "path": "bin/licenses/yaml.LICENSE",
+      "hash": "5bba27375d93e9119f76c1015f7672cf9ad5f70952296e0842fb2243d6376869",
+      "bytes": 738
+    },
+    {
+      "path": "bin/package.json",
+      "hash": "5b453a1757a1c054b37c2dc2a7fbfca13a96e5dd267c70497aba7462e21ad5a8",
+      "bytes": 94
+    },
+    {
+      "path": "bin/README.md",
+      "hash": "81ee6695c47e12c14c20d248e237b7768c100d8583f1f428478629b011930717",
+      "bytes": 284
+    },
+    {
+      "path": "bin/tools/typescript.js",
+      "hash": "7872f677a630dcca8049b1cf982f3816117232f548caac19c1c1ade911da819b",
+      "bytes": 3576210
+    }
+  ]
+}

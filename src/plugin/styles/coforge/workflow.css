@@ -1,0 +1,174 @@
+/* CoForge workflow styles: stage sequence, active process, and a readable execution ledger. */
+.cf-workflow-page { padding: 30px 32px 48px; max-width: 1480px; margin: 0 auto; width: 100%; min-width: 0; }
+.cf-workflow-heading { align-items: center; }
+.cf-workflow-heading h1 { font-size: 27px; letter-spacing: -0.035em; line-height: 1.25; }
+.cf-workflow-heading p { font-size: 13px; line-height: 1.65; max-width: 66ch; margin-top: 8px; }
+.cf-workflow-inline { display: flex; align-items: center; gap: 8px; }
+.cf-studio .cf-workflow-help { font-size: 12px; color: var(--cf-muted); line-height: 1.65; margin-top: 8px; }
+.cf-workflow-dot-separator { color: var(--cf-faint); margin: 0 2px; }
+.cf-workflow-alert {
+  display: flex; align-items: flex-start; gap: 11px; padding: 14px 16px; margin: 0 0 20px; border-radius: var(--radius-m);
+  font-size: 12px; line-height: 1.65; color: var(--cf-danger);
+  border: 1px solid color-mix(in srgb, var(--text-error) 30%, transparent); background: color-mix(in srgb, var(--text-error) 5%, transparent);
+}
+.cf-workflow-alert > .cf-icon { margin-top: 2px; }
+
+.cf-workflow-summary {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 15px 0 22px;
+  border-top: 1px solid var(--cf-border); color: var(--cf-muted); font-size: 11px;
+}
+.cf-workflow-summary > strong { color: var(--cf-text); font-size: 11px; font-weight: 600; margin-right: 8px; }
+.cf-workflow-live-dot, .cf-workflow-job-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-green); display: inline-block; flex-shrink: 0; }
+.cf-workflow-live-dot.is-paused { background: var(--color-yellow); }
+.cf-workflow-mode-tag { display: flex; align-items: center; gap: 6px; margin-left: auto; color: var(--color-purple); }
+
+.cf-workflow-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 0.57fr); gap: 30px; }
+.cf-workflow-stage-list { min-width: 0; }
+.cf-workflow-stage { display: flex; gap: 15px; min-height: 128px; }
+.cf-workflow-stage-rail { width: 40px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.cf-workflow-stage-icon {
+  width: 38px; height: 38px; border-radius: 11px; display: inline-flex; justify-content: center; align-items: center; flex-shrink: 0;
+  color: var(--color-purple); border: 1px solid color-mix(in srgb, var(--color-purple) 16%, transparent);
+  background: color-mix(in srgb, var(--color-purple) 4%, transparent);
+}
+.cf-workflow-stage-line { width: 1px; flex: 1; background: var(--cf-border-strong); margin: 8px 0; }
+.cf-workflow-stage-body { flex: 1; min-width: 0; padding: 7px 0 24px; }
+.cf-workflow-stage-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cf-workflow-stage-heading h3 { font-size: 13px; font-weight: 650; letter-spacing: -0.01em; }
+.cf-workflow-stage-body > p { font-size: 12px; line-height: 1.75; margin: 10px 0; color: var(--cf-muted); max-width: 60ch; }
+.cf-workflow-stage-flow { display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--cf-text); }
+.cf-workflow-stage-flow > .cf-icon { color: var(--cf-faint); }
+.cf-workflow-stage.is-running .cf-workflow-stage-icon {
+  border-color: color-mix(in srgb, var(--color-purple) 36%, transparent); background: color-mix(in srgb, var(--color-purple) 9%, transparent);
+}
+.cf-workflow-running-label { color: var(--color-purple); margin-left: auto; font-size: 10px; }
+.cf-workflow-stage-body > p.cf-workflow-stage-limit { color: var(--color-orange); font-size: 10px; }
+
+.cf-workflow-toggle {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; position: relative; font-size: 10px; color: var(--cf-muted); flex-shrink: 0;
+}
+.cf-studio .cf-workflow-toggle-input { position: absolute; right: 0; width: 31px; height: 18px; opacity: 0; cursor: pointer; margin: 0; }
+.cf-workflow-toggle-track { width: 31px; height: 18px; border-radius: 10px; background: var(--cf-border-strong); position: relative; pointer-events: none; }
+.cf-workflow-toggle-track::after {
+  content: ""; position: absolute; width: 12px; height: 12px; border-radius: 50%; left: 3px; top: 3px;
+  background: var(--cf-muted); transition: transform 0.15s ease;
+}
+.cf-workflow-toggle-input:checked + .cf-workflow-toggle-track { background: var(--color-purple); }
+.cf-workflow-toggle-input:checked + .cf-workflow-toggle-track::after { background: var(--cf-bg); transform: translateX(13px); }
+.cf-workflow-toggle-input:focus-visible + .cf-workflow-toggle-track { outline: 2px solid var(--cf-accent); outline-offset: 3px; }
+.cf-workflow-toggle-input:disabled + .cf-workflow-toggle-track { opacity: 0.35; }
+.cf-workflow-toggle-input:disabled { cursor: not-allowed; }
+
+.cf-workflow-human-gate { display: flex; align-items: flex-start; gap: 15px; padding-top: 17px; border-top: 1px solid var(--cf-border); }
+.cf-workflow-human-gate .cf-workflow-stage-icon {
+  color: var(--color-green); border-color: color-mix(in srgb, var(--color-green) 15%, transparent);
+  background: color-mix(in srgb, var(--color-green) 4%, transparent);
+}
+.cf-workflow-human-gate h3 { margin: 2px 0 10px; font-size: 13px; display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.cf-workflow-human-gate h3 .cf-badge { font-size: 8px; }
+.cf-workflow-human-gate p { font-size: 11px; line-height: 1.8; color: var(--cf-muted); }
+
+.cf-workflow-aside { border-left: 1px solid var(--cf-border); padding-left: 25px; min-width: 0; }
+.cf-workflow-run-summary h3, .cf-workflow-priority-note h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 0 0 18px; }
+.cf-workflow-run-summary h3 > .cf-icon { color: var(--color-purple); }
+.cf-workflow-run-summary > .cf-badge { margin-bottom: 16px; }
+.cf-workflow-full-button { width: 100%; justify-content: center; margin-top: 18px; }
+.cf-workflow-idea-link {
+  border: 0; padding: 0; color: var(--cf-text); background: none; display: grid; grid-template-columns: 1fr 18px; gap: 7px;
+  text-align: left; height: auto; width: 100%;
+}
+.cf-workflow-idea-link > .cf-mono { grid-column: 1/-1; font-size: 10px; color: var(--cf-muted); }
+.cf-workflow-idea-link strong { font-size: 13px; line-height: 1.7; font-weight: 600; }
+.cf-workflow-idea-link > .cf-icon { color: var(--cf-faint); margin-top: 4px; }
+.cf-workflow-idea-link:hover strong { color: var(--text-accent); }
+.cf-workflow-workbench-empty { padding: 10px 0 25px; }
+.cf-workflow-idle-icon {
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; margin-bottom: 15px;
+  color: var(--color-green); background: color-mix(in srgb, var(--color-green) 5%, transparent);
+}
+.cf-workflow-workbench-empty strong { font-size: 12px; font-weight: 600; }
+.cf-workflow-workbench-empty p { font-size: 11px; line-height: 1.8; color: var(--cf-muted); margin: 9px 0 0; }
+.cf-workflow-priority-note { margin-top: 20px; border-top: 1px solid var(--cf-border); padding-top: 22px; }
+.cf-workflow-priority-note ol { color: var(--cf-muted); font-size: 11px; line-height: 1.8; margin: 0 0 20px; padding-left: 17px; }
+.cf-workflow-priority-note li { margin-bottom: 8px; padding-left: 3px; }
+.cf-workflow-priority-note > .cf-workflow-inline { font-size: 10px; color: var(--cf-text); }
+.cf-workflow-priority-note > .cf-workflow-help { margin-top: 18px; font-size: 10px; }
+
+.cf-workflow-history { margin-top: 38px; padding-top: 26px; border-top: 1px solid var(--cf-border); }
+.cf-workflow-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+.cf-workflow-section-heading h2 { font-size: 16px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 9px; }
+.cf-workflow-count { font-size: 10px; color: var(--cf-muted); border: 1px solid var(--cf-border); padding: 4px 8px; border-radius: var(--radius-s); white-space: nowrap; }
+.cf-workflow-history-head, .cf-workflow-history-row summary {
+  display: grid; grid-template-columns: minmax(140px, 1.4fr) 1fr 1fr 100px; align-items: center; gap: 18px;
+}
+.cf-workflow-history-head { padding: 12px 15px; font-size: 10px; color: var(--cf-muted); border-bottom: 1px solid var(--cf-border); }
+.cf-workflow-history-row { border-bottom: 1px solid color-mix(in srgb, var(--cf-border) 60%, transparent); }
+.cf-workflow-history-row summary { cursor: pointer; list-style: none; padding: 13px 15px; font-size: 11px; color: var(--cf-muted); }
+.cf-workflow-history-row summary::-webkit-details-marker { display: none; }
+.cf-workflow-history-row summary:hover { background: var(--cf-hover); }
+.cf-workflow-history-idea { display: flex; align-items: center; gap: 12px; }
+.cf-workflow-history-idea strong { font-size: 11px; font-weight: 600; color: var(--cf-text); }
+.cf-workflow-history-idea small { display: block; color: var(--cf-muted); margin-top: 4px; font-size: 10px; }
+.cf-workflow-job-dot.is-queued { background: var(--color-yellow); }
+.cf-workflow-job-dot.is-running { background: var(--color-purple); }
+.cf-workflow-job-dot.is-failed { background: var(--color-red); }
+.cf-workflow-job-dot.is-succeeded { background: var(--color-green); }
+.cf-workflow-job-dot.is-cancelled { background: var(--cf-faint); }
+.cf-workflow-job-state { display: inline-flex; align-items: center; gap: 8px; text-transform: capitalize; font-size: 10px; }
+.cf-workflow-job-state > .cf-icon { margin-left: auto; color: var(--cf-faint); transition: transform 0.15s ease; }
+.cf-workflow-job-state.is-succeeded { color: var(--color-green); }
+.cf-workflow-job-state.is-failed { color: var(--cf-danger); }
+.cf-workflow-job-state.is-running { color: var(--color-purple); }
+.cf-workflow-history-row[open] .cf-workflow-job-state > .cf-icon { transform: rotate(90deg); }
+.cf-workflow-history-body { padding: 3px 15px 18px; }
+.cf-workflow-history-body > .cf-workflow-inline { flex-wrap: wrap; }
+.cf-workflow-history-body .cf-workflow-help { margin: 0; }
+.cf-workflow-small-button.cf-btn { font-size: 11px; padding: 5px 8px; min-height: 29px; }
+.cf-workflow-code-block {
+  margin: 13px 0 0; padding: 15px; border-radius: var(--radius-m); background: var(--cf-surface); color: var(--cf-text);
+  font-size: 11px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; max-height: 340px; user-select: text;
+}
+.cf-workflow-empty { padding: 28px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.cf-workflow-empty > .cf-icon { color: var(--cf-faint); margin-bottom: 12px; --cf-icon-size: 26px; }
+.cf-workflow-empty h3 { font-size: 15px; margin: 0 0 10px; }
+.cf-workflow-empty p { max-width: 40ch; margin: 0 0 20px; color: var(--cf-muted); font-size: 12px; line-height: 1.8; }
+.cf-workflow-more { display: flex; margin: 15px auto 0; }
+
+@container plugin-shell-leaf (max-width: 1250px) {
+  .cf-workflow-page { padding: 26px 25px 40px; }
+  .cf-workflow-heading { align-items: flex-start; }
+  .cf-workflow-heading-actions { flex-wrap: wrap; justify-content: flex-end; }
+  .cf-workflow-layout { gap: 23px; grid-template-columns: minmax(0, 1fr) 245px; }
+  .cf-workflow-aside { padding-left: 20px; }
+}
+@container plugin-shell-leaf (max-width: 950px) {
+  .cf-workflow-layout { grid-template-columns: 1fr; }
+  .cf-workflow-aside {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 25px; padding: 23px 0 0; border-left: 0; border-top: 1px solid var(--cf-border);
+  }
+  .cf-workflow-priority-note { padding: 0 0 0 23px; margin: 0; border-top: 0; border-left: 1px solid var(--cf-border); }
+  .cf-workflow-heading { flex-direction: column; gap: 17px; }
+  .cf-workflow-heading-actions { justify-content: flex-start; }
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-workflow-page { padding: 22px 18px 36px; }
+  .cf-workflow-heading { margin-bottom: 23px; gap: 15px; }
+  .cf-workflow-heading h1 { font-size: 23px; }
+  .cf-workflow-heading p { font-size: 12px; }
+  .cf-workflow-summary { column-gap: 8px; row-gap: 13px; }
+  .cf-workflow-summary > .cf-workflow-mode-tag { margin-left: 0; flex-basis: 100%; }
+  .cf-workflow-aside { grid-template-columns: 1fr; }
+  .cf-workflow-priority-note { border-left: 0; padding: 24px 0 0; border-top: 1px solid var(--cf-border); }
+  .cf-workflow-stage { gap: 12px; }
+  .cf-workflow-stage-heading h3 { font-size: 12px; }
+  .cf-workflow-stage-body > p { font-size: 11px; }
+  .cf-workflow-stage-flow { font-size: 9px; }
+  .cf-workflow-history-head, .cf-workflow-history-row summary {
+    grid-template-columns: minmax(110px, 1fr) 68px 85px; gap: 10px; padding-left: 5px; padding-right: 5px;
+  }
+  .cf-workflow-history-head > span:nth-child(2), .cf-workflow-history-provider { display: none; }
+  .cf-workflow-section-heading h2 { font-size: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cf-workflow-toggle-track::after { transition: none; }
+}

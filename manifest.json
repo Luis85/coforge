@@ -1,0 +1,9 @@
+{
+  "id": "coforge",
+  "name": "CoForge",
+  "version": "0.1.0",
+  "minAppVersion": "1.13.7",
+  "description": "Build a game with your stream community and AI agents, from chat ideas and votes to screened, planned and reviewed increments.",
+  "author": "Luis Mendez",
+  "isDesktopOnly": true
+}

@@ -1,0 +1,375 @@
+{
+  "schema": 1,
+  "compiler": "companion-design-system/1",
+  "target": "nuxt-ui-vue",
+  "pluginId": "coforge",
+  "scope": "[data-plugin-ui=\"coforge\"].ps--coforge",
+  "colorPolicy": "host",
+  "bindings": {
+    "primary": {
+      "group": "colors",
+      "token": "accent",
+      "origin": "convention"
+    },
+    "secondary": {
+      "group": "colors",
+      "token": null,
+      "origin": "inherit"
+    },
+    "success": {
+      "group": "colors",
+      "token": null,
+      "origin": "inherit"
+    },
+    "info": {
+      "group": "colors",
+      "token": null,
+      "origin": "inherit"
+    },
+    "warning": {
+      "group": "colors",
+      "token": null,
+      "origin": "inherit"
+    },
+    "error": {
+      "group": "colors",
+      "token": null,
+      "origin": "inherit"
+    },
+    "text": {
+      "group": "colors",
+      "token": "text",
+      "origin": "convention"
+    },
+    "textMuted": {
+      "group": "colors",
+      "token": "muted",
+      "origin": "convention"
+    },
+    "textHighlighted": {
+      "group": "colors",
+      "token": "text",
+      "origin": "convention"
+    },
+    "textInverted": {
+      "group": "colors",
+      "token": "accent-text",
+      "origin": "convention"
+    },
+    "background": {
+      "group": "colors",
+      "token": "background",
+      "origin": "convention"
+    },
+    "backgroundMuted": {
+      "group": "colors",
+      "token": "background",
+      "origin": "convention"
+    },
+    "backgroundElevated": {
+      "group": "colors",
+      "token": "background",
+      "origin": "convention"
+    },
+    "backgroundAccented": {
+      "group": "colors",
+      "token": null,
+      "origin": "inherit"
+    },
+    "backgroundInverted": {
+      "group": "colors",
+      "token": "text",
+      "origin": "convention"
+    },
+    "border": {
+      "group": "colors",
+      "token": null,
+      "origin": "inherit"
+    },
+    "borderAccented": {
+      "group": "colors",
+      "token": null,
+      "origin": "inherit"
+    },
+    "borderInverted": {
+      "group": "colors",
+      "token": "text",
+      "origin": "convention"
+    },
+    "interfaceFont": {
+      "group": "fonts",
+      "token": "interface",
+      "origin": "convention"
+    },
+    "codeFont": {
+      "group": "fonts",
+      "token": "code",
+      "origin": "convention"
+    },
+    "bodyType": {
+      "group": "typography",
+      "token": "body",
+      "origin": "convention"
+    },
+    "labelType": {
+      "group": "typography",
+      "token": "label",
+      "origin": "convention"
+    },
+    "titleType": {
+      "group": "typography",
+      "token": "page-title",
+      "origin": "convention"
+    },
+    "subtitleType": {
+      "group": "typography",
+      "token": "section-title",
+      "origin": "convention"
+    },
+    "spacingUnit": {
+      "group": "spacing",
+      "token": "xs",
+      "origin": "convention"
+    },
+    "spaceXs": {
+      "group": "spacing",
+      "token": "xs",
+      "origin": "convention"
+    },
+    "spaceSm": {
+      "group": "spacing",
+      "token": "sm",
+      "origin": "convention"
+    },
+    "spaceMd": {
+      "group": "spacing",
+      "token": "md",
+      "origin": "convention"
+    },
+    "spaceLg": {
+      "group": "spacing",
+      "token": "lg",
+      "origin": "convention"
+    },
+    "spaceXl": {
+      "group": "spacing",
+      "token": "xl",
+      "origin": "convention"
+    },
+    "controlRadius": {
+      "group": "radii",
+      "token": "control",
+      "origin": "convention"
+    },
+    "surfaceRadius": {
+      "group": "radii",
+      "token": "surface",
+      "origin": "convention"
+    },
+    "controlHeight": {
+      "group": "sizes",
+      "token": "control",
+      "origin": "convention"
+    },
+    "iconSize": {
+      "group": "sizes",
+      "token": "icon",
+      "origin": "convention"
+    },
+    "inspectorWidth": {
+      "group": "sizes",
+      "token": "inspector",
+      "origin": "convention"
+    }
+  },
+  "tokens": {
+    "fonts": [
+      {
+        "id": "body",
+        "variables": [
+          "--coforge-ds-fonts-body"
+        ],
+        "className": "coforge-ds-fonts-body"
+      },
+      {
+        "id": "code",
+        "variables": [
+          "--coforge-ds-fonts-code"
+        ],
+        "className": "coforge-ds-fonts-code"
+      },
+      {
+        "id": "interface",
+        "variables": [
+          "--coforge-ds-fonts-interface"
+        ],
+        "className": "coforge-ds-fonts-interface"
+      }
+    ],
+    "typography": [
+      {
+        "id": "body",
+        "variables": [
+          "--coforge-ds-typography-body-font",
+          "--coforge-ds-typography-body-size",
+          "--coforge-ds-typography-body-weight",
+          "--coforge-ds-typography-body-line-height",
+          "--coforge-ds-typography-body-tracking"
+        ],
+        "className": "coforge-ds-typography-body"
+      },
+      {
+        "id": "label",
+        "variables": [
+          "--coforge-ds-typography-label-font",
+          "--coforge-ds-typography-label-size",
+          "--coforge-ds-typography-label-weight",
+          "--coforge-ds-typography-label-line-height",
+          "--coforge-ds-typography-label-tracking"
+        ],
+        "className": "coforge-ds-typography-label"
+      },
+      {
+        "id": "page-title",
+        "variables": [
+          "--coforge-ds-typography-page-title-font",
+          "--coforge-ds-typography-page-title-size",
+          "--coforge-ds-typography-page-title-weight",
+          "--coforge-ds-typography-page-title-line-height",
+          "--coforge-ds-typography-page-title-tracking"
+        ],
+        "className": "coforge-ds-typography-page-title"
+      },
+      {
+        "id": "section-title",
+        "variables": [
+          "--coforge-ds-typography-section-title-font",
+          "--coforge-ds-typography-section-title-size",
+          "--coforge-ds-typography-section-title-weight",
+          "--coforge-ds-typography-section-title-line-height",
+          "--coforge-ds-typography-section-title-tracking"
+        ],
+        "className": "coforge-ds-typography-section-title"
+      }
+    ],
+    "spacing": [
+      {
+        "id": "lg",
+        "variables": [
+          "--coforge-ds-spacing-lg"
+        ],
+        "className": "coforge-ds-spacing-lg"
+      },
+      {
+        "id": "md",
+        "variables": [
+          "--coforge-ds-spacing-md"
+        ],
+        "className": "coforge-ds-spacing-md"
+      },
+      {
+        "id": "sm",
+        "variables": [
+          "--coforge-ds-spacing-sm"
+        ],
+        "className": "coforge-ds-spacing-sm"
+      },
+      {
+        "id": "xl",
+        "variables": [
+          "--coforge-ds-spacing-xl"
+        ],
+        "className": "coforge-ds-spacing-xl"
+      },
+      {
+        "id": "xs",
+        "variables": [
+          "--coforge-ds-spacing-xs"
+        ],
+        "className": "coforge-ds-spacing-xs"
+      }
+    ],
+    "sizes": [
+      {
+        "id": "control",
+        "variables": [
+          "--coforge-ds-sizes-control"
+        ],
+        "className": "coforge-ds-sizes-control"
+      },
+      {
+        "id": "icon",
+        "variables": [
+          "--coforge-ds-sizes-icon"
+        ],
+        "className": "coforge-ds-sizes-icon"
+      },
+      {
+        "id": "inspector",
+        "variables": [
+          "--coforge-ds-sizes-inspector"
+        ],
+        "className": "coforge-ds-sizes-inspector"
+      }
+    ],
+    "radii": [
+      {
+        "id": "control",
+        "variables": [
+          "--coforge-ds-radii-control"
+        ],
+        "className": "coforge-ds-radii-control"
+      },
+      {
+        "id": "surface",
+        "variables": [
+          "--coforge-ds-radii-surface"
+        ],
+        "className": "coforge-ds-radii-surface"
+      }
+    ],
+    "colors": [
+      {
+        "id": "accent",
+        "variables": [
+          "--coforge-ds-colors-accent"
+        ],
+        "className": "coforge-ds-colors-accent"
+      },
+      {
+        "id": "accent-text",
+        "variables": [
+          "--coforge-ds-colors-accent-text"
+        ],
+        "className": "coforge-ds-colors-accent-text"
+      },
+      {
+        "id": "background",
+        "variables": [
+          "--coforge-ds-colors-background"
+        ],
+        "className": "coforge-ds-colors-background"
+      },
+      {
+        "id": "muted",
+        "variables": [
+          "--coforge-ds-colors-muted"
+        ],
+        "className": "coforge-ds-colors-muted"
+      },
+      {
+        "id": "text",
+        "variables": [
+          "--coforge-ds-colors-text"
+        ],
+        "className": "coforge-ds-colors-text"
+      }
+    ]
+  },
+  "notes": [
+    "Guidelines remain documentation, not executable styling.",
+    "Fonts reference local/host families only.",
+    "Unbound semantic roles retain framework defaults.",
+    "Nuxt variants retain their interaction behavior and relative radius scale."
+  ]
+}

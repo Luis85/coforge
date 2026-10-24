@@ -1,0 +1,24 @@
+{
+  "status": "scaffold-not-accepted",
+  "requirements": [],
+  "interactions": [],
+  "flows": [],
+  "visualDesigns": {
+    "schema": 3,
+    "nextId": 1,
+    "catalog": {
+      "id": "nuxt-ui",
+      "version": 1
+    },
+    "pages": [],
+    "components": [],
+    "layouts": [],
+    "revisions": []
+  },
+  "warnings": [
+    "Native note operations and declared HTTPS providers are generated; custom providers and PRD business outcomes still require implementation and acceptance.",
+    "Explicit controls, mappings and restrict relationships are executable; visual editor engines, undeclared business logic and transactional cascade rules require product implementation.",
+    "Page/component visual designs compile to Vue templates with explicit Nuxt UI imports, typed component contracts, state visibility and safe source projections. Business acceptance and undeclared payload mappings still require implementation.",
+    "Framework internals remain in src/tests; configured folders locate generated product code and product tests."
+  ]
+}

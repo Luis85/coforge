@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.framework.json",
+  "compilerOptions": {
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true
+  },
+  "include": [
+    "../../src/cli/**/*.ts",
+    "../../src/cli/sdk/**/*.ts"
+  ]
+}

@@ -1,0 +1,894 @@
+{
+  "entry": [
+    "src/cli/launcher.mjs",
+    "src/cli/compiler/index.ts",
+    "tooling/compiler/build-clickdummy.mjs",
+    "src/plugin/main.ts",
+    "src/plugin/features/api.ts",
+    "src/plugin/harness/app/main.ts",
+    "src/plugin/harness/style-fixture/fixture.js",
+    "tooling/testing/node-reporter.mjs",
+    "configs/testing/vitest.obsidian.config.mjs",
+    "tooling/testing/evidence-vitest-reporter.mjs",
+    "tooling/styles/export-host-css.mjs",
+    "tooling/testing/check-browser-specimen.mjs",
+    "tooling/harness/serve-style-fixture.mjs",
+    "src/plugin/infrastructure/ui/static-plugin.ts",
+    "src/plugin/styles/index.css",
+    "src/plugin/harness/style-fixture/fixture.css",
+    "src/plugin/harness/styles/obsidian.css",
+    "src/plugin/harness/styles/simulated.css",
+    "src/plugin/harness/styles/host-adapter.css",
+    "tooling/makers/custom/registry.mjs",
+    "src/plugin/bootstrap/authoring-domains.ts",
+    "src/plugin/bootstrap/event-catalog.ts",
+    "docs/concepts/companion/vendor/vue-flow-core.iife.js",
+    "docs/concepts/companion/vendor/vue-flow.scoped.css",
+    "docs/concepts/companion/test-kit/engine.mjs",
+    "docs/concepts/companion/test-kit/adapters.mjs",
+    "docs/concepts/companion/test-kit/storage.mjs",
+    "docs/concepts/companion/test-kit/server.mjs",
+    "docs/concepts/companion/test-kit/cli.mjs",
+    "docs/concepts/companion/test-kit/faker-provider.mjs",
+    "docs/concepts/companion/test-kit/client.mjs",
+    "src/companion/editor/prototype-manager.ts",
+    "src/companion/editor/prototype-view.ts",
+    "src/companion/editor/prototype-navigation.ts",
+    "src/companion/editor/prototype-comparison-view.ts",
+    "src/companion/editor/prototype-host.ts",
+    "src/companion/editor/prototype-markup.ts",
+    "src/companion/editor/prototypes.css",
+    "src/shared/companion/native-contract.mjs",
+    "templates/companion/runtime/operation.ts",
+    "src/shared/companion/storymap-contract.mjs",
+    "templates/companion/runtime/use-visual.ts",
+    "templates/companion/runtime/visual-runtime.ts",
+    "templates/companion/runtime/detail-actions.ts",
+    "src/shared/companion/design-system-roles.mjs",
+    "src/shared/companion/design-system-contract.mjs",
+    "src/shared/companion/design-system-css.mjs",
+    "src/shared/companion/composition-contract.mjs",
+    "src/shared/companion/visual/visual-ir.mjs",
+    "src/shared/companion/visual/visual-mapping.mjs",
+    "src/shared/companion/visual/visual-catalog.mjs",
+    "src/shared/companion/visual/visual-composition.mjs",
+    "src/shared/companion/visual/visual-validate.mjs",
+    "src/shared/companion/visual/visual-layout.mjs",
+    "src/shared/companion/visual/visual-commands.mjs",
+    "src/shared/companion/visual/visual-session.mjs",
+    "src/shared/companion/test-data-manifest.mjs",
+    "src/shared/companion/starter-contract.mjs",
+    "tooling/companion-tools/qualify-starter.mjs",
+    "src/cli/app.ts",
+    "tooling/compiler/qualify-project-starters.mjs",
+    "src/shared/companion/prd-limits.mjs",
+    "src/cli/sdk/*/src/index.ts"
+  ],
+  "plugins": [
+    "tooling/quality/fallow-node-tests.json"
+  ],
+  "ignorePatterns": [
+    "dist/main.js",
+    "dist/styles.css",
+    "dist/manifest.json",
+    "dist-harness/**",
+    "reports/**",
+    "docs/**",
+    "src/companion/app/**",
+    "src/companion/editor/**",
+    "projects/**",
+    "bin/template/package.json"
+  ],
+  "boundaries": {
+    "coverage": {
+      "requireAllFiles": true
+    },
+    "zones": [
+      {
+        "name": "maker-domain",
+        "patterns": [
+          "src/cli/domain/**",
+          "src/cli/documentation/domain/**"
+        ]
+      },
+      {
+        "name": "maker-application",
+        "patterns": [
+          "src/cli/application/**",
+          "src/cli/documentation/application/**"
+        ]
+      },
+      {
+        "name": "maker-host",
+        "patterns": [
+          "src/cli/adapters/**",
+          "src/cli/documentation/adapters/**",
+          "src/cli/presentation/**",
+          "src/cli/app.ts",
+          "src/cli/launcher.mjs",
+          "src/cli/sdk/**"
+        ]
+      },
+      {
+        "name": "compiler-domain",
+        "patterns": [
+          "src/cli/compiler/domain/**"
+        ]
+      },
+      {
+        "name": "compiler-application",
+        "patterns": [
+          "src/cli/compiler/application/**"
+        ]
+      },
+      {
+        "name": "compiler-host",
+        "patterns": [
+          "src/cli/compiler/adapters/**",
+          "src/cli/compiler/index.ts"
+        ]
+      },
+      {
+        "name": "compiler-emitters",
+        "patterns": [
+          "src/cli/compiler/emitters/**"
+        ]
+      },
+      {
+        "name": "companion-authoring-contract",
+        "patterns": [
+          "src/shared/companion/authoring-contract.ts",
+          "src/shared/companion/tooling-contract.ts",
+          "src/shared/companion/tooling-contract.mjs",
+          "src/shared/companion/tooling-options.ts",
+          "src/shared/companion/concepts/**",
+          "src/shared/companion/journey/**",
+          "src/shared/companion/sitemap/**",
+          "src/shared/companion/prototypes/**",
+          "src/shared/companion/visual/**",
+          "src/shared/companion/native-contract.mjs",
+          "src/shared/companion/design-system-contract.mjs",
+          "src/shared/companion/design-system-roles.mjs",
+          "src/shared/companion/storymap-contract.mjs",
+          "src/shared/companion/composition-contract.mjs",
+          "src/shared/companion/prd-limits.mjs",
+          "src/shared/companion/design-system-css.mjs",
+          "src/shared/companion/starter-contract.mjs",
+          "src/shared/companion/test-data-manifest.mjs",
+          "src/shared/companion/schema/**"
+        ]
+      },
+      {
+        "name": "project-templates",
+        "patterns": [
+          "templates/**",
+          "src/shared/companion/runtime-contract.ts"
+        ]
+      },
+      {
+        "name": "domain",
+        "patterns": [
+          "src/plugin/domain/**"
+        ]
+      },
+      {
+        "name": "application",
+        "patterns": [
+          "src/plugin/application/**"
+        ]
+      },
+      {
+        "name": "features",
+        "patterns": [
+          "src/plugin/features/**"
+        ]
+      },
+      {
+        "name": "infrastructure",
+        "patterns": [
+          "src/plugin/infrastructure/**"
+        ]
+      },
+      {
+        "name": "presentation",
+        "patterns": [
+          "src/plugin/presentation/**"
+        ]
+      },
+      {
+        "name": "bootstrap",
+        "patterns": [
+          "src/plugin/bootstrap/**",
+          "src/plugin/main.ts"
+        ]
+      },
+      {
+        "name": "test",
+        "patterns": [
+          "tests/**",
+          "src/*/tests/**",
+          "tooling/tests/**"
+        ]
+      },
+      {
+        "name": "harness",
+        "patterns": [
+          "src/plugin/harness/**"
+        ]
+      },
+      {
+        "name": "cli-data-contract",
+        "patterns": [
+          "src/shared/contracts/json-data.ts"
+        ]
+      },
+      {
+        "name": "cli-result-contract",
+        "patterns": [
+          "src/shared/contracts/result-runtime.mjs",
+          "src/shared/contracts/result.ts",
+          "src/shared/contracts/errors.ts"
+        ]
+      },
+      {
+        "name": "cli-process-contract",
+        "patterns": [
+          "src/shared/platform/process.ts"
+        ]
+      },
+      {
+        "name": "cli-file-plan-contract",
+        "patterns": [
+          "src/shared/platform/file-plan-types.ts",
+          "src/shared/platform/file-plan.ts",
+          "src/shared/platform/file-plan-runtime.ts"
+        ]
+      },
+      {
+        "name": "cli-confirmation-contract",
+        "patterns": [
+          "src/shared/platform/confirmation.ts"
+        ]
+      },
+      {
+        "name": "cli-input-contract",
+        "patterns": [
+          "src/shared/platform/input.ts"
+        ]
+      },
+      {
+        "name": "cli-files-contract",
+        "patterns": [
+          "src/shared/platform/hash.ts",
+          "src/shared/platform/fs-presence.ts"
+        ]
+      },
+      {
+        "name": "cli-bounded-map-contract",
+        "patterns": [
+          "src/shared/platform/bounded-map.ts"
+        ]
+      },
+      {
+        "name": "project-path-contract",
+        "patterns": [
+          "src/shared/platform/project-path.ts",
+          "src/shared/platform/protected-directories.ts"
+        ]
+      },
+      {
+        "name": "cli-serialization-contract",
+        "patterns": [
+          "src/shared/contracts/serialization.ts"
+        ]
+      },
+      {
+        "name": "sketch-errors-contract",
+        "patterns": [
+          "src/shared/contracts/sketch-errors.ts"
+        ]
+      },
+      {
+        "name": "project-starter-contract",
+        "patterns": [
+          "src/shared/companion/starters/project-generator.ts"
+        ]
+      },
+      {
+        "name": "tooling",
+        "patterns": [
+          "tooling/**",
+          "configs/**"
+        ]
+      },
+      {
+        "name": "cli-tooling",
+        "patterns": [
+          "src/cli/tooling/**"
+        ]
+      },
+      {
+        "name": "tui",
+        "patterns": [
+          "src/tui/**"
+        ]
+      },
+      {
+        "name": "shared",
+        "patterns": [
+          "src/shared/**"
+        ]
+      },
+      {
+        "name": "styles",
+        "patterns": [
+          "src/plugin/styles/**"
+        ]
+      },
+      {
+        "name": "companion-concept",
+        "patterns": [
+          "src/companion/app/**",
+          "docs/concepts/companion/vendor/**"
+        ]
+      },
+      {
+        "name": "companion-test-kit",
+        "patterns": [
+          "docs/concepts/companion/test-kit/**"
+        ]
+      },
+      {
+        "name": "companion-editor",
+        "patterns": [
+          "src/companion/editor/**"
+        ]
+      },
+      {
+        "name": "prototype-skill",
+        "patterns": [
+          ".claude/skills/**"
+        ]
+      }
+    ],
+    "rules": [
+      {
+        "from": "domain",
+        "allow": [
+          "domain"
+        ]
+      },
+      {
+        "from": "application",
+        "allow": [
+          "application",
+          "domain"
+        ]
+      },
+      {
+        "from": "features",
+        "allow": [
+          "features",
+          "application",
+          "domain"
+        ]
+      },
+      {
+        "from": "infrastructure",
+        "allow": [
+          "infrastructure",
+          "application",
+          "domain"
+        ]
+      },
+      {
+        "from": "presentation",
+        "allow": [
+          "presentation",
+          "features",
+          "application",
+          "domain",
+          "styles"
+        ]
+      },
+      {
+        "from": "bootstrap",
+        "allow": [
+          "features",
+          "domain",
+          "application",
+          "infrastructure",
+          "presentation",
+          "bootstrap",
+          "styles"
+        ]
+      },
+      {
+        "from": "test",
+        "allow": [
+          "features",
+          "domain",
+          "application",
+          "infrastructure",
+          "presentation",
+          "bootstrap",
+          "test",
+          "harness",
+          "tooling",
+          "styles",
+          "companion-test-kit",
+          "companion-authoring-contract",
+          "project-templates",
+          "prototype-skill",
+          "maker-domain",
+          "maker-application",
+          "maker-host",
+          "compiler-domain",
+          "compiler-application",
+          "compiler-host",
+          "compiler-emitters",
+          "project-path-contract",
+          "cli-data-contract",
+          "cli-result-contract",
+          "cli-process-contract",
+          "cli-confirmation-contract",
+          "cli-file-plan-contract",
+          "cli-input-contract",
+          "cli-files-contract",
+          "cli-bounded-map-contract",
+          "cli-serialization-contract",
+          "cli-tooling",
+          "shared",
+          "project-starter-contract",
+          "tui",
+          "sketch-errors-contract"
+        ]
+      },
+      {
+        "from": "harness",
+        "allow": [
+          "features",
+          "domain",
+          "application",
+          "infrastructure",
+          "presentation",
+          "bootstrap",
+          "test",
+          "harness",
+          "styles",
+          "companion-authoring-contract",
+          "shared",
+          "project-starter-contract"
+        ]
+      },
+      {
+        "from": "tooling",
+        "allow": [
+          "features",
+          "domain",
+          "application",
+          "infrastructure",
+          "presentation",
+          "bootstrap",
+          "test",
+          "harness",
+          "tooling",
+          "styles",
+          "companion-test-kit",
+          "companion-authoring-contract",
+          "project-templates",
+          "maker-domain",
+          "maker-application",
+          "maker-host",
+          "compiler-domain",
+          "compiler-application",
+          "compiler-host",
+          "compiler-emitters",
+          "project-path-contract",
+          "cli-data-contract",
+          "cli-result-contract",
+          "cli-process-contract",
+          "cli-confirmation-contract",
+          "cli-file-plan-contract",
+          "cli-input-contract",
+          "cli-files-contract",
+          "cli-bounded-map-contract",
+          "cli-serialization-contract",
+          "cli-tooling",
+          "shared",
+          "project-starter-contract",
+          "tui",
+          "sketch-errors-contract"
+        ]
+      },
+      {
+        "from": "styles",
+        "allow": [
+          "styles"
+        ]
+      },
+      {
+        "from": "companion-concept",
+        "allow": []
+      },
+      {
+        "from": "companion-test-kit",
+        "allow": [
+          "companion-test-kit"
+        ]
+      },
+      {
+        "from": "companion-authoring-contract",
+        "allow": [
+          "companion-authoring-contract",
+          "cli-data-contract"
+        ]
+      },
+      {
+        "from": "project-templates",
+        "allow": [
+          "project-templates",
+          "companion-authoring-contract"
+        ]
+      },
+      {
+        "from": "companion-editor",
+        "allow": [
+          "companion-editor",
+          "companion-authoring-contract"
+        ]
+      },
+      {
+        "from": "prototype-skill",
+        "allow": [
+          "prototype-skill"
+        ]
+      },
+      {
+        "from": "maker-domain",
+        "allow": [
+          "maker-domain",
+          "companion-authoring-contract",
+          "project-path-contract",
+          "sketch-errors-contract"
+        ]
+      },
+      {
+        "from": "maker-application",
+        "allow": [
+          "maker-application",
+          "maker-domain",
+          "sketch-errors-contract"
+        ]
+      },
+      {
+        "from": "maker-host",
+        "allow": [
+          "maker-host",
+          "compiler-domain",
+          "compiler-application",
+          "compiler-host",
+          "compiler-emitters",
+          "maker-application",
+          "maker-domain",
+          "companion-authoring-contract",
+          "prototype-skill",
+          "project-path-contract",
+          "cli-data-contract",
+          "cli-result-contract",
+          "cli-confirmation-contract",
+          "cli-file-plan-contract",
+          "cli-input-contract",
+          "cli-process-contract",
+          "cli-files-contract",
+          "cli-bounded-map-contract",
+          "cli-serialization-contract",
+          "companion-test-kit",
+          "cli-tooling",
+          "shared",
+          "project-starter-contract",
+          "tui",
+          "sketch-errors-contract"
+        ]
+      },
+      {
+        "from": "compiler-domain",
+        "allow": [
+          "compiler-domain"
+        ]
+      },
+      {
+        "from": "compiler-application",
+        "allow": [
+          "compiler-application",
+          "compiler-domain"
+        ]
+      },
+      {
+        "from": "compiler-host",
+        "allow": [
+          "compiler-host",
+          "compiler-emitters",
+          "compiler-application",
+          "compiler-domain",
+          "maker-host",
+          "companion-authoring-contract",
+          "companion-test-kit",
+          "cli-data-contract",
+          "cli-result-contract",
+          "cli-process-contract",
+          "cli-file-plan-contract",
+          "cli-files-contract",
+          "cli-bounded-map-contract",
+          "project-path-contract",
+          "project-starter-contract"
+        ]
+      },
+      {
+        "from": "compiler-emitters",
+        "allow": [
+          "compiler-emitters",
+          "compiler-domain",
+          "companion-authoring-contract",
+          "project-templates",
+          "cli-serialization-contract"
+        ]
+      },
+      {
+        "from": "cli-serialization-contract",
+        "allow": [
+          "cli-serialization-contract"
+        ]
+      },
+      {
+        "from": "cli-data-contract",
+        "allow": [
+          "cli-data-contract"
+        ]
+      },
+      {
+        "from": "cli-result-contract",
+        "allow": [
+          "cli-result-contract"
+        ]
+      },
+      {
+        "from": "cli-process-contract",
+        "allow": [
+          "cli-process-contract"
+        ]
+      },
+      {
+        "from": "cli-file-plan-contract",
+        "allow": [
+          "cli-file-plan-contract",
+          "cli-bounded-map-contract",
+          "cli-files-contract",
+          "project-path-contract"
+        ]
+      },
+      {
+        "from": "cli-confirmation-contract",
+        "allow": [
+          "cli-confirmation-contract"
+        ]
+      },
+      {
+        "from": "cli-input-contract",
+        "allow": [
+          "cli-input-contract",
+          "cli-result-contract"
+        ]
+      },
+      {
+        "from": "cli-files-contract",
+        "allow": [
+          "cli-files-contract"
+        ]
+      },
+      {
+        "from": "cli-bounded-map-contract",
+        "allow": [
+          "cli-bounded-map-contract"
+        ]
+      },
+      {
+        "from": "project-path-contract",
+        "allow": [
+          "project-path-contract"
+        ]
+      },
+      {
+        "from": "cli-tooling",
+        "allow": [
+          "features",
+          "domain",
+          "application",
+          "infrastructure",
+          "presentation",
+          "bootstrap",
+          "test",
+          "harness",
+          "styles",
+          "companion-test-kit",
+          "companion-authoring-contract",
+          "project-templates",
+          "maker-domain",
+          "maker-application",
+          "maker-host",
+          "compiler-domain",
+          "compiler-application",
+          "compiler-host",
+          "compiler-emitters",
+          "project-path-contract",
+          "cli-data-contract",
+          "cli-result-contract",
+          "cli-process-contract",
+          "cli-confirmation-contract",
+          "cli-file-plan-contract",
+          "cli-input-contract",
+          "cli-files-contract",
+          "cli-bounded-map-contract",
+          "cli-serialization-contract",
+          "cli-tooling",
+          "shared",
+          "project-starter-contract",
+          "tui",
+          "sketch-errors-contract"
+        ]
+      },
+      {
+        "from": "tui",
+        "allow": [
+          "tui",
+          "sketch-errors-contract",
+          "cli-confirmation-contract"
+        ]
+      },
+      {
+        "from": "shared",
+        "allow": [
+          "shared",
+          "project-starter-contract",
+          "sketch-errors-contract",
+          "cli-data-contract",
+          "cli-result-contract",
+          "cli-process-contract",
+          "cli-file-plan-contract",
+          "cli-confirmation-contract",
+          "cli-input-contract",
+          "cli-files-contract",
+          "cli-bounded-map-contract",
+          "project-path-contract",
+          "cli-serialization-contract",
+          "companion-authoring-contract"
+        ]
+      },
+      {
+        "from": "sketch-errors-contract",
+        "allow": [
+          "sketch-errors-contract"
+        ]
+      },
+      {
+        "from": "project-starter-contract",
+        "allow": [
+          "project-starter-contract"
+        ]
+      }
+    ]
+  },
+  "ignoreDependencies": [
+    "obsidian",
+    "fontless",
+    "oxlint",
+    "vue-tsc"
+  ],
+  "ignoreUnresolvedImports": [
+    "/__host.css",
+    "./vendor/obsidian.css"
+  ],
+  "usedClassMembers": [
+    {
+      "extends": "TextFileView",
+      "members": [
+        "getIcon",
+        "getViewData",
+        "setViewData",
+        "save",
+        "disposeNativeView"
+      ]
+    },
+    {
+      "extends": "PluginSettingTab",
+      "members": [
+        "getSettingDefinitions",
+        "getControlValue",
+        "setControlValue",
+        "hide"
+      ]
+    }
+  ],
+  "failOnParseError": true,
+  "rules": {
+    "policy-violation": "off",
+    "deprecated-exports-in-use": "error"
+  },
+  "framework": [
+    {
+      "name": "project-tool-configs",
+      "entryPointRole": "support",
+      "entryPoints": [
+        "configs/bundling/vite.config.mjs",
+        "configs/bundling/vite.harness.config.mjs",
+        "configs/testing/vitest.config.mjs",
+        "configs/testing/vitest.production.config.mjs",
+        "configs/testing/vitest.maker.config.mjs",
+        "configs/testing/playwright.config.ts",
+        "configs/lint/eslint.config.mjs"
+      ],
+      "detection": {
+        "type": "fileExists",
+        "pattern": "configs/bundling/vite.config.mjs"
+      }
+    },
+    {
+      "name": "airship-source-preview-tools",
+      "entryPointRole": "support",
+      "entryPoints": [
+        "tooling/airship/preview-config.mjs",
+        "tooling/airship/qualify.mjs"
+      ],
+      "detection": {
+        "type": "fileExists",
+        "pattern": "tooling/airship/preview-config.mjs"
+      }
+    },
+    {
+      "name": "optional-storybook-qualification",
+      "entryPointRole": "test",
+      "entryPoints": [
+        "tooling/compiler/qualify-storybook.mjs",
+        "tooling/compiler/verify-storybook.mjs"
+      ],
+      "detection": {
+        "type": "fileExists",
+        "pattern": "tooling/compiler/qualify-storybook.mjs"
+      }
+    },
+    {
+      "name": "prototype-build-tools",
+      "entryPointRole": "support",
+      "entryPoints": [
+        ".claude/skills/companion-prototype-design/scripts/build-prototype.mjs",
+        ".claude/skills/companion-prototype-design/scripts/build-single-file.mjs",
+        ".claude/skills/companion-prototype-design/scripts/check-offline.mjs",
+        ".claude/skills/companion-prototype-design/scripts/diff-project.mjs",
+        ".claude/skills/companion-prototype-design/scripts/inspect-repository.mjs",
+        ".claude/skills/companion-prototype-design/scripts/prototype.mjs",
+        ".claude/skills/companion-prototype-design/scripts/save-concept.mjs",
+        ".claude/skills/companion-prototype-design/scripts/validate-project.mjs",
+        ".claude/skills/companion-prototype-design/scripts/verify-browser.mjs",
+        "tooling/concepts/build-mvp.mjs"
+      ],
+      "detection": {
+        "type": "fileExists",
+        "pattern": ".claude/skills/companion-prototype-design/scripts/prototype.mjs"
+      }
+    },
+    {
+      "name": "prototype-build-tests",
+      "entryPointRole": "test",
+      "entryPoints": [
+        ".claude/skills/companion-prototype-design/tests/helpers.checks.mjs",
+        ".claude/skills/companion-prototype-design/tests/integration.checks.mjs",
+        ".claude/skills/companion-prototype-design/tests/validator.checks.mjs",
+        ".claude/skills/companion-prototype-design/tests/worker-output.checks.mjs"
+      ],
+      "detection": {
+        "type": "fileExists",
+        "pattern": ".claude/skills/companion-prototype-design/scripts/prototype.mjs"
+      }
+    }
+  ]
+}

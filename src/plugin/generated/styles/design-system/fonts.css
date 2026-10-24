@@ -1,0 +1,9 @@
+/* Generated design system. Edit saved tokens, not this managed file. */
+[data-plugin-ui="coforge"].ps--coforge {
+  --coforge-ds-fonts-body: var(--font-text, sans-serif);
+  --coforge-ds-fonts-code: var(--font-monospace, monospace);
+  --coforge-ds-fonts-interface: var(--font-interface, system-ui);
+}
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-fonts-body { font-family: var(--coforge-ds-fonts-body); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-fonts-code { font-family: var(--coforge-ds-fonts-code); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-fonts-interface { font-family: var(--coforge-ds-fonts-interface); }

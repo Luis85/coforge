@@ -1,0 +1,18 @@
+/* Generated design system. Edit saved tokens, not this managed file. */
+[data-plugin-ui="coforge"].ps--coforge {
+  --coforge-ds-spacing-lg: 24px;
+  --coforge-ds-spacing-md: 16px;
+  --coforge-ds-spacing-sm: 8px;
+  --coforge-ds-spacing-xl: 32px;
+  --coforge-ds-spacing-xs: 4px;
+}
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-spacing-lg { gap: var(--coforge-ds-spacing-lg); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-padding-lg { padding: var(--coforge-ds-spacing-lg); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-spacing-md { gap: var(--coforge-ds-spacing-md); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-padding-md { padding: var(--coforge-ds-spacing-md); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-spacing-sm { gap: var(--coforge-ds-spacing-sm); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-padding-sm { padding: var(--coforge-ds-spacing-sm); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-spacing-xl { gap: var(--coforge-ds-spacing-xl); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-padding-xl { padding: var(--coforge-ds-spacing-xl); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-spacing-xs { gap: var(--coforge-ds-spacing-xs); }
+[data-plugin-ui="coforge"].ps--coforge .coforge-ds-padding-xs { padding: var(--coforge-ds-spacing-xs); }

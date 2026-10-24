@@ -1,0 +1,4 @@
+/* Application-specific overrides. Use owned selectors and design-system variables. */
+/* The CoForge studio fills its view leaf edge to edge; the generated workbench frame only hosts it. */
+.generated-workbench:has(> main > .cf-studio) { height: 100%; padding: 0; gap: 0; }
+.generated-workbench:has(> main > .cf-studio) > main { height: 100%; min-height: 0; }
