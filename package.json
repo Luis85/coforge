@@ -59,7 +59,7 @@
     "dev:ui": "vite --config configs/bundling/vite.harness.config.mjs --host 127.0.0.1 --open /harness/app/",
     "dev": "node tooling/dev/watch-local.mjs --no-local",
     "build": "node tooling/bundling/build.mjs",
-    "build:local": "node tooling/dev/install-local.mjs",
+    "build:local": "node tooling/dev/install-local.mjs --vault .",
     "test-build": "npm run build:local",
     "typecheck": "node node_modules/vue-tsc/bin/vue-tsc.js --noEmit --project configs/types/tsconfig.project.json",
     "test": "vitest run --config configs/testing/vitest.project.config.mjs",

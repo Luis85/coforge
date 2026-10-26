@@ -33,7 +33,7 @@ const model = useChatPanel();
       <div>
         <strong>Your idea could be next.</strong>
         <p>
-          Type <code>!request</code> to pitch it.
+          Include the project ID with <code>!request</code> to pitch it.
           <br>
           <code>!vote CF-101</code> to back it.
         </p>
@@ -47,7 +47,7 @@ const model = useChatPanel();
     </div>
     <div v-if="model.showHelp" class="cf-chat-help">
       <strong>Chat commands</strong>
-      <p><code>!request Add a fishing minigame</code></p>
+      <p><code>{{ model.requestExample }}</code></p>
       <p><code>!vote CF-101</code></p>
       <p><code>!status CF-101</code> · <code>!me</code></p>
       <p>

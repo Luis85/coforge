@@ -2,7 +2,7 @@ import type { ChatSource } from './types';
 import { ideaIdFor } from './types';
 
 export type ParsedCommand =
-  | { type: 'request'; text: string }
+  | { type: 'request'; projectId: string; text: string }
   | { type: 'vote'; ideaId: string }
   | { type: 'status'; ideaId: string }
   | { type: 'me' }
@@ -21,10 +21,12 @@ function ideaReference(value: string): string | null {
 export function parseCommand(text: string): ParsedCommand {
   const value = text.trim();
   if (/^!request(?:\s|$)/i.test(value)) {
-    const idea = value.replace(/^!request\s*/i, '').trim();
-    if (idea.length < 5) return { type: 'invalid', message: 'Add a feature idea after !request (at least 5 characters).' };
+    const match = /^!request\s+(CFP-\d{3,7})\s+([\s\S]+)$/i.exec(value);
+    if (!match?.[1] || !match[2] || Number(match[1].slice(4)) < 1) return { type: 'invalid', message: 'Include a project ID: !request CFP-001 Your feature idea.' };
+    const idea = match[2].trim();
+    if (idea.length < 5) return { type: 'invalid', message: 'Add a feature idea after the project ID (at least 5 characters).' };
     if (idea.length > 1500) return { type: 'invalid', message: 'Keep a feature request under 1,500 characters.' };
-    return { type: 'request', text: idea };
+    return { type: 'request', projectId: match[1].toUpperCase(), text: idea };
   }
   if (/^!vote(?:\s|$)/i.test(value)) {
     const ideaId = ideaReference(value.replace(/^!vote\s*/i, ''));
@@ -47,4 +49,4 @@ export function identity(input: { username: string; userId?: string; source?: Ch
   return `${source}:${source === 'simulator' ? cleanId.toLocaleLowerCase('en-US') : cleanId}`;
 }
 
-export const HELP_TEXT = 'Suggest: !request your feature idea · Support: !vote CF-101 · Track: !status CF-101 · Your contribution: !me · One vote per viewer, per idea.';
+export const HELP_TEXT = 'Suggest: !request CFP-001 your feature idea (project ID required) · Support: !vote CF-101 · Track: !status CF-101 · Your contribution: !me · One vote per viewer, per idea.';

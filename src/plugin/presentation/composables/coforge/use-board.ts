@@ -33,7 +33,7 @@ function createBoard() {
   const layout = ref<BoardLayout>('board');
   const sort = ref<BoardSort>('rice');
 
-  const ideas = computed(() => store.state?.ideas ?? []);
+  const ideas = computed(() => store.projectIdeas);
   const contributors = computed(() => store.state?.contributors ?? []);
   const countOf = (status: IdeaStatus) => ideas.value.filter(idea => idea.status === status).length;
   const authorOf = (idea: Idea) => contributors.value.find(person => person.id === idea.authorId)?.name ?? '';

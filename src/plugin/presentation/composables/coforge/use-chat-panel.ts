@@ -32,6 +32,7 @@ function messageView(message: ChatMessage, contributors: readonly Contributor[])
 /** Stream chat panel: channel header, pinned command hint, the message log and its auto-scroll. */
 export function useChatPanel() {
   const store = useStudioStore();
+  const actions = useStudioActions();
   const state = computed(() => store.state);
   const live = computed(() => state.value?.runtime.chatSource === 'twitch');
   const showHelp = ref(false);
@@ -45,6 +46,7 @@ export function useChatPanel() {
     chatStatus: computed(() => state.value?.runtime.chatStatus ?? ''),
     channel: computed(() => `${(state.value?.settings.projectName ?? '').toLowerCase().replace(/\s/g, '') || 'community'}-workshop`),
     people: computed(() => state.value?.contributors.length ?? 0),
+    requestExample: computed(() => `!request ${state.value?.activeProjectId ?? 'CFP-001'} Add a fishing minigame`),
     sessionLabel: computed(() => live.value ? 'Connected chat' : 'Sample community · local demo'),
     empty: computed(() => !state.value?.chat.length),
     messages: computed(() => (state.value?.chat ?? []).slice(-100).map(message => messageView(message, state.value?.contributors ?? []))),
@@ -52,7 +54,7 @@ export function useChatPanel() {
     onScroll: scroll.onScroll,
     stick: scroll.stick,
     toggleHelp: () => { showHelp.value = !showHelp.value; },
-    select: (ideaId: string) => { store.select(ideaId); },
+    select: (ideaId: string) => { void actions.openIdea(ideaId); },
   });
 }
 
@@ -81,6 +83,7 @@ export function useChatComposer(emit: (event: 'sent') => void) {
   };
   return reactive({
     username, text, sending, error, live,
+    requestPlaceholder: computed(() => `!request ${store.state?.activeProjectId ?? 'CFP-001'} Your feature idea…`),
     simulating: simulator.running,
     canSend: computed(() => !sending.value && Boolean(text.value.trim()) && Boolean(username.value.trim())),
     sourceNote: computed(() => live.value

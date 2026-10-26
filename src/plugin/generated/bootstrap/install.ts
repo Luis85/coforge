@@ -19,6 +19,8 @@ import { createCoforgeRuntime } from '../../infrastructure/coforge/runtime.ts';
 import { registerCoforgeCommands } from '../../infrastructure/coforge/commands.ts';
 export async function initializeProject(plugin: Plugin) {
   const shell = await createServices(nativeAdapters(plugin));
+  // The CoForge studio supplies its own header; use the host adapter's owned-view preference.
+  if (!shell.preferences.current.hideObsidianViewHeader) await shell.preferences.update({ hideObsidianViewHeader: true });
   const coforge = createCoforgeRuntime(plugin, code => shell.diagnostics.report(code, 'coforge.runtime'));
   let sources: ReturnType<typeof createSources>;
   let providers: ReturnType<typeof configureSourceProviders> | undefined;

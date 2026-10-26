@@ -32,7 +32,7 @@ defineProps<{ model: CommunityModel }>();
     <h3>Make room for the next idea.</h3>
     <p>Share the commands on stream and let your community help shape the game.</p>
     <div class="cf-community-invite-command">
-      <code>!request your idea</code>
+      <code>!request &lt;project-id&gt; your idea</code>
       <CfIcon name="arrow-right" size="sm" />
     </div>
     <div class="cf-community-invite-command">

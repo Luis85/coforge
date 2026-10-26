@@ -17,6 +17,8 @@ export interface Increment {
 }
 export interface Idea {
   id: string; number: number; title: string; description: string; authorId: string; category: Category; status: IdeaStatus;
+  /** Absent only on legacy notes, which migrate to the initial project. */
+  projectId?: string;
   voters: string[]; createdAt: string; updatedAt: string;
   screening?: Screening; rice?: RiceScore; plan?: ImplementationPlan; increment?: Increment; reviewNote?: string; lastError?: string;
 }
@@ -29,6 +31,7 @@ export interface ChatMessage {
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
   id: string; ideaId: string; stage: AgentStage; status: JobStatus; provider: Provider;
+  projectId?: string;
   startedAt: string; finishedAt?: string; logs: string[]; error?: string; costUsd?: number;
 }
 export interface Activity { id: string; ideaId?: string; type: 'idea' | 'vote' | 'agent' | 'review' | 'system'; text: string; createdAt: string }
@@ -41,9 +44,18 @@ export interface RuntimeInfo {
   cliAvailable: boolean; projectPath: string | null; allowImplementation: boolean;
   chatSource: 'simulator' | 'twitch'; chatStatus: string; activeJobId?: string;
 }
+export interface StudioProject {
+  id: string; settings: Settings; projectPath: string; worktreeFolder: string; allowImplementation: boolean;
+  repositoryUrl: string; websiteUrl: string;
+  createdAt: string; updatedAt: string;
+  /** A referenced project note is missing or invalid; never dispatch work for it. */
+  unavailable?: boolean;
+}
 export interface AppState {
   version: 1; nextIdeaNumber: number; ideas: Idea[]; contributors: Contributor[]; chat: ChatMessage[];
   jobs: AgentJob[]; events: Activity[]; settings: Settings; runtime: RuntimeInfo;
+  /** Optional on legacy input only. The application store always supplies these fields. */
+  projects?: StudioProject[]; activeProjectId?: string; nextProjectNumber?: number;
 }
 /** Host-side configuration that replaced the prototype's .env file. Secrets are referenced by name only. */
 export interface IntegrationSettings {

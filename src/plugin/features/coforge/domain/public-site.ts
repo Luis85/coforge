@@ -70,7 +70,7 @@ export function renderPublicSite(board: PublicBoard): string {
   <header class="site-header">
     <p class="eyebrow">Built with our community</p>
     <h1>${e(board.project)}</h1>
-    <p>Suggest ideas in chat with <code>!request your idea</code> and support them with <code>!vote CF-101</code>.
+    <p>Project <strong>${e(board.projectId)}</strong>. Suggest ideas in chat with <code>!request ${e(board.projectId)} your idea</code> and support them with <code>!vote CF-101</code>.
       Updated <time datetime="${e(board.generatedAt)}">${e(updated.toUTCString())}</time>.</p>
     ${board.awaitingScreening ? `<p class="notice">${e(board.awaitingScreening)} new ${board.awaitingScreening === 1 ? 'request is' : 'requests are'} waiting for screening.</p>` : ''}
   </header>

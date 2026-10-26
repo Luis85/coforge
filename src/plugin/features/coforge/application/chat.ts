@@ -6,6 +6,7 @@ import type { Category, ChatMessage, ChatSource, Idea } from '../domain/types';
 import { CATEGORIES, CONTRIBUTOR_COLORS, ideaIdFor } from '../domain/types';
 import type { InternalState } from './ports';
 import { addEvent, type StudioStore } from './studio-store';
+import { findProject, projectIdeas } from '../domain/projects';
 
 export interface ChatInput { username: string; userId?: string; text: string; source?: ChatSource; messageId?: string }
 export interface ChatResult { ok: boolean; message: string; ideaId?: string; duplicate?: boolean }
@@ -23,17 +24,19 @@ function ensureContributor(state: InternalState, raw: Person): string {
   return id;
 }
 
-export function createIdea(state: InternalState, input: Person & { title: string; description: string; category?: Category }): Idea {
+export function createIdea(state: InternalState, input: Person & { title: string; description: string; category?: Category; projectId?: string }): Idea {
+  const projectId = input.projectId ?? state.activeProjectId;
   const title = cleanLine(input.title);
   const description = cleanText(input.description);
   if (title.length < 5 || title.length > 120) throw new StudioError('Idea titles must contain 5–120 characters.');
   if (description.length > 3000) throw new StudioError('Keep the description under 3,000 characters.');
-  if (state.ideas.length >= 5000) throw new StudioError('This project has reached its 5,000-idea limit. Export the project before starting a new one.', 409);
+  if (findProject(state, projectId).unavailable) throw new StudioError('Restore the project note before adding requests.', 409);
+  if (projectIdeas(state, projectId).length >= 5000) throw new StudioError('This project has reached its 5,000-idea limit. Export the project before starting a new one.', 409);
   const authorId = ensureContributor(state, input);
   const number = state.nextIdeaNumber++;
   const now = new Date().toISOString();
   const idea: Idea = {
-    id: ideaIdFor(number), number, title, description: description || title, authorId,
+    id: ideaIdFor(number), number, projectId, title, description: description || title, authorId,
     category: input.category && CATEGORIES.includes(input.category) ? input.category : 'Gameplay',
     status: 'inbox', voters: [], createdAt: now, updatedAt: now,
   };
@@ -58,24 +61,26 @@ export function addVote(state: InternalState, ideaId: string, input: Person): Ch
 /** Every chat request becomes a note in the vault, so intake is bounded per viewer and overall. */
 export const INTAKE_LIMITS = { pendingPerViewer: 3, perMinute: 10 } as const;
 
-function request(state: InternalState, input: ChatInput, userId: string, text: string, now: string): ChatResult {
+function request(state: InternalState, input: ChatInput, userId: string, projectId: string, text: string, now: string): ChatResult {
+  const project = state.projects.find(project => project.id === projectId && !project.unavailable);
+  if (!project) return { ok: false, message: `Project ${projectId} is not available. Use a project ID shown by the streamer.` };
   if (!meaningful(text)) return { ok: false, message: 'Describe the idea in words after !request.' };
   const previous = state.ingestMeta.lastRequests[userId];
   const elapsed = previous ? (Date.now() - Date.parse(previous)) / 1000 : Infinity;
   const key = comparable(text);
-  const duplicate = state.ideas.find(i => i.status !== 'rejected' && (comparable(i.description) === key || comparable(i.title) === key));
+  const duplicate = projectIdeas(state, projectId).find(i => i.status !== 'rejected' && (comparable(i.description) === key || comparable(i.title) === key));
   if (duplicate) return { ok: true, duplicate: true, ideaId: duplicate.id, message: `That idea already exists as ${duplicate.id}. Use !vote ${duplicate.id} to support it.` };
-  if (elapsed < state.settings.requestCooldownSeconds)
-    return { ok: false, message: `Please wait ${Math.ceil(state.settings.requestCooldownSeconds - elapsed)} seconds before sending another feature request.` };
+  if (elapsed < project.settings.requestCooldownSeconds)
+    return { ok: false, message: `Please wait ${Math.ceil(project.settings.requestCooldownSeconds - elapsed)} seconds before sending another feature request.` };
   const pending = state.ideas.filter(i => i.authorId === userId && i.status === 'inbox').length;
   if (pending >= INTAKE_LIMITS.pendingPerViewer)
     return { ok: false, message: `You already have ${pending} ideas waiting for screening. Please wait until they are reviewed.` };
   const recent = state.ideas.filter(i => Date.now() - Date.parse(i.createdAt) < 60_000).length;
   if (recent >= INTAKE_LIMITS.perMinute) return { ok: false, message: 'Lots of ideas are arriving right now. Please send yours again in a minute.' };
   const title = text.length <= 100 ? text : `${text.slice(0, 97).trimEnd()}…`;
-  const idea = createIdea(state, { title, description: text, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source: input.source ?? 'simulator' });
+  const idea = createIdea(state, { title, description: text, projectId, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source: input.source ?? 'simulator' });
   state.ingestMeta.lastRequests[userId] = now;
-  return { ok: true, ideaId: idea.id, message: `Added ${idea.id}. The community can now !vote ${idea.id}.` };
+  return { ok: true, ideaId: idea.id, message: `Added ${idea.id} to ${projectId} · ${project.settings.projectName}. The community can now !vote ${idea.id}.` };
 }
 
 function status(state: InternalState, ideaId: string): ChatResult {
@@ -114,7 +119,7 @@ export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<Ch
     const now = new Date().toISOString();
     const chat: ChatMessage = { id: crypto.randomUUID(), userId, username: input.username.trim(), text, createdAt: now, kind: 'message', source };
     let result: ChatResult = { ok: true, message: 'Message received.' };
-    if (parsed.type === 'request') { result = request(state, { ...input, source }, userId, parsed.text, now); chat.kind = result.ok ? 'request' : 'error'; }
+    if (parsed.type === 'request') { result = request(state, { ...input, source }, userId, parsed.projectId, parsed.text, now); chat.kind = result.ok ? 'request' : 'error'; }
     else if (parsed.type === 'vote') { result = addVote(state, parsed.ideaId, { ...input, source }); chat.kind = result.ok ? 'vote' : 'error'; }
     else if (parsed.type === 'invalid') { result = { ok: false, message: parsed.message }; chat.kind = 'error'; }
     else if (parsed.type === 'help') result.message = HELP_TEXT;
@@ -144,9 +149,9 @@ export async function simulateMessage(store: StudioStore, random: () => number =
   const state = store.snapshot();
   const people = state.contributors.filter(c => c.id.startsWith('simulator:')).slice(0, 12);
   const user = people.length ? people[Math.floor(random() * people.length)]! : { id: '', name: DEMO_VIEWERS[Math.floor(random() * DEMO_VIEWERS.length)]! };
-  const available = state.ideas.filter(i => !['flagged', 'rejected'].includes(i.status) && !i.voters.includes(user.id));
-  const unseen = DEMO_REQUESTS.find(title => !state.ideas.some(i => i.title === title));
+  const available = projectIdeas(state).filter(i => !['flagged', 'rejected'].includes(i.status) && !i.voters.includes(user.id));
+  const unseen = DEMO_REQUESTS.find(title => !projectIdeas(state).some(i => i.title === title));
   const text = available.length && (!unseen || random() > 0.35) ? `!vote ${available[Math.floor(random() * available.length)]!.id}`
-    : unseen ? `!request ${unseen}` : 'This is becoming our favorite little game.';
+    : unseen ? `!request ${state.activeProjectId} ${unseen}` : 'This is becoming our favorite little game.';
   return ingestChat(store, { username: user.name, text, source: 'simulator', messageId: crypto.randomUUID(), ...(user.id ? { userId: user.id.replace(/^simulator:/, '') } : {}) });
 }

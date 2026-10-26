@@ -2,7 +2,8 @@ import { errorMessage } from '../domain/errors';
 import { ideaFingerprint, needsVerification, quarantine } from '../domain/integrity';
 import { omit } from '../domain/objects';
 import type { PersistedStudio } from '../domain/persisted';
-import { createEmptyState, defaultIntegration, defaultRuntime } from '../domain/seed';
+import { createEmptyState, defaultIntegration, defaultRuntime, defaultSettings } from '../domain/seed';
+import { copySettings, initialProject, INITIAL_PROJECT_ID, projectPaths, synchronizeProject } from '../domain/projects';
 import type { Activity, AppState, Idea } from '../domain/types';
 import type { InternalState, LoadedStudio, NoteIdea, SaveOptions, StudioStorage } from './ports';
 
@@ -13,16 +14,31 @@ export function addEvent(state: InternalState, type: Activity['type'], text: str
 /** Joins idea notes with the votes and increments kept in plugin data. */
 export function assemble(loaded: LoadedStudio): InternalState {
   const data: PersistedStudio = loaded.data ?? { ...createEmptyState(), integration: defaultIntegration(), votes: {}, increments: {}, ingestMeta: { processedMessages: [], lastRequests: {} }, manualHolds: [], integrity: {} };
+  const projects = [...(loaded.projects ?? [])];
+  if (!data.activeProjectId && !projects.some(project => project.id === INITIAL_PROJECT_ID)) projects.unshift(initialProject(data.settings, data.integration, new Date().toISOString()));
+  const integrity = { ...data.integrity };
   const ids = new Set<string>();
   const ideas: Idea[] = loaded.notes.map(note => {
     if (ids.has(note.id)) throw new Error(`Two notes use the idea ID ${note.id}. Rename or remove one of them.`);
     ids.add(note.id);
     const increment = data.increments[note.id];
-    return { ...note, voters: [...new Set(data.votes[note.id] ?? [])], ...(increment ? { increment } : {}) };
+    const idea = { ...note, projectId: note.projectId ?? INITIAL_PROJECT_ID, voters: [...new Set(data.votes[note.id] ?? [])], ...(increment ? { increment } : {}) };
+    if (!note.projectId && integrity[note.id] === ideaFingerprint(note)) integrity[note.id] = ideaFingerprint(idea);
+    return idea;
   }).sort((a, b) => a.number - b.number);
   const nextIdeaNumber = Math.max(data.nextIdeaNumber, ...ideas.map(idea => idea.number + 1));
   const rest = omit(data, 'votes', 'increments');
-  return { ...rest, nextIdeaNumber, ideas, runtime: defaultRuntime() };
+  const activeProjectId = data.activeProjectId ?? INITIAL_PROJECT_ID;
+  for (const id of new Set([activeProjectId, ...ideas.map(idea => idea.projectId ?? INITIAL_PROJECT_ID)])) {
+    if (!projects.some(project => project.id === id)) projects.push({
+      ...initialProject({ ...data.settings, projectName: `Missing project note (${id})`, paused: true }, defaultIntegration(), new Date().toISOString()), id, unavailable: true,
+    });
+  }
+  const selected = projects.find(project => project.id === activeProjectId)!;
+  const nextProjectNumber = Math.max(data.nextProjectNumber ?? 2, ...projects.map(project => Number(project.id.match(/^CFP-(\d+)$/)?.[1] ?? 0) + 1));
+  for (const job of rest.jobs) job.projectId ??= ideas.find(idea => idea.id === job.ideaId)?.projectId ?? INITIAL_PROJECT_ID;
+  return { ...rest, integrity, nextIdeaNumber, nextProjectNumber, ideas, projects, activeProjectId,
+    settings: copySettings(selected.settings), integration: { ...data.integration, ...projectPaths(selected) }, runtime: defaultRuntime() };
 }
 
 /** Applies an edit made directly to an idea note, keeping plugin-owned votes and increments. */
@@ -44,6 +60,12 @@ export function enforceIntegrity(state: InternalState, external: ReadonlySet<str
 }
 
 export function mergeNote(state: InternalState, note: NoteIdea): boolean {
+  note = { ...note, projectId: note.projectId ?? INITIAL_PROJECT_ID };
+  if (!state.projects.some(project => project.id === note.projectId)) {
+    state.projects.push({ ...initialProject({ ...defaultSettings(), projectName: `Missing project note (${note.projectId})` }, defaultIntegration(), new Date().toISOString()),
+      id: note.projectId!, unavailable: true });
+    state.nextProjectNumber = Math.max(state.nextProjectNumber, Number(note.projectId!.slice(4)) + 1);
+  }
   const index = state.ideas.findIndex(idea => idea.id === note.id);
   const current = state.ideas[index];
   if (current) {
@@ -85,7 +107,9 @@ export class StudioStore {
     delete state.runtime.activeJobId;
     enforceIntegrity(state, new Set());
     state.settings.paused = true; // Unattended execution never resumes merely because the plugin restarted.
-    await this.storage.save(state, null, { fromNotes: state.ideas.filter(idea => !idea.lastError).map(idea => idea.id) });
+    for (const project of state.projects) project.settings.paused = true;
+    synchronizeProject(state);
+    await this.storage.save(state, null, { fromNotes: state.ideas.filter(idea => !idea.lastError && loaded.notes.find(note => note.id === idea.id)?.projectId).map(idea => idea.id) });
     this.state = state;
     this.emit();
     return { invalidNotes: loaded.invalidNotes };
@@ -102,6 +126,7 @@ export class StudioStore {
       const previous = this.current();
       const next = structuredClone(previous);
       const result = mutate(next);
+      synchronizeProject(next);
       // Ideas merged from the vault are verified; changes CoForge made itself become the new trusted fingerprints.
       const quarantined = enforceIntegrity(next, new Set(options.fromNotes ?? []));
       const fromNotes = options.fromNotes?.filter(id => !quarantined.includes(id));

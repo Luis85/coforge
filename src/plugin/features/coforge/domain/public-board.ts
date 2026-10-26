@@ -1,6 +1,7 @@
 import { buildCommunity, type BadgeId } from './recognition';
 import type { AppState, Category, ContributorColor, Idea, IdeaStatus } from './types';
 import { rankedIdeas, STATUS_LABELS } from './types';
+import { INITIAL_PROJECT_ID, projectIdeas } from './projects';
 
 /**
  * The viewer-facing snapshot published to GitHub Pages. It is public by design and contains only
@@ -18,7 +19,7 @@ export interface PublicContributor {
   badges: Array<{ id: BadgeId; title: string; description: string; earned: boolean; current: number; threshold: number }>;
 }
 export interface PublicBoard {
-  format: 'coforge-public-board/v1'; generatedAt: string; project: string;
+  format: 'coforge-public-board/v1'; generatedAt: string; project: string; projectId: string;
   columns: PublicColumn[]; awaitingScreening: number;
   leaderboards: { votes: PublicContributor[]; ideas: PublicContributor[]; implementations: PublicContributor[] };
   contributors: PublicContributor[];
@@ -34,14 +35,15 @@ const LEADERBOARD_SIZE = 10;
 
 const isPublic = (idea: Idea) => idea.screening?.verdict === 'clear' && COLUMNS.some(column => column.statuses.includes(idea.status));
 
-export function buildPublicBoard(state: Pick<AppState, 'ideas' | 'contributors' | 'settings'>, now = new Date()): PublicBoard {
+export function buildPublicBoard(state: Pick<AppState, 'ideas' | 'contributors' | 'settings' | 'activeProjectId'>, now = new Date()): PublicBoard {
   const names = new Map(state.contributors.map(person => [person.id, person.name]));
   const toPublic = (idea: Idea, column: PublicColumnId): PublicIdea => ({
     id: idea.id, title: idea.title, description: idea.description, category: idea.category, status: STATUS_LABELS[idea.status], column,
     votes: new Set(idea.voters).size, rice: idea.rice?.score ?? null, author: names.get(idea.authorId) ?? 'Community member',
     plan: idea.plan ? { summary: idea.plan.summary, steps: [...idea.plan.steps] } : null,
   });
-  const ranked = rankedIdeas(state.ideas.filter(isPublic));
+  const ideas = projectIdeas(state);
+  const ranked = rankedIdeas(ideas.filter(isPublic));
   const columns = COLUMNS.map(({ statuses, ...column }) => ({
     ...column, ideas: ranked.filter(idea => statuses.includes(idea.status)).map(idea => toPublic(idea, column.id)),
   }));
@@ -55,8 +57,8 @@ export function buildPublicBoard(state: Pick<AppState, 'ideas' | 'contributors' 
   const top = (metric: (person: PublicContributor) => number) => contributors.filter(person => metric(person) > 0)
     .sort((a, b) => metric(b) - metric(a) || a.name.localeCompare(b.name)).slice(0, LEADERBOARD_SIZE);
   return {
-    format: 'coforge-public-board/v1', generatedAt: now.toISOString(), project: state.settings.projectName, columns,
-    awaitingScreening: state.ideas.filter(idea => idea.status === 'inbox').length,
+    format: 'coforge-public-board/v1', generatedAt: now.toISOString(), project: state.settings.projectName, projectId: state.activeProjectId ?? INITIAL_PROJECT_ID, columns,
+    awaitingScreening: ideas.filter(idea => idea.status === 'inbox').length,
     leaderboards: { votes: top(p => p.votesReceived), ideas: top(p => p.ideas), implementations: top(p => p.implementations) },
     contributors: contributors.filter(person => person.badges.some(badge => badge.earned)).sort((a, b) => a.name.localeCompare(b.name)),
   };

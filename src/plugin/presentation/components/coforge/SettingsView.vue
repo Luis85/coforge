@@ -5,6 +5,7 @@ import SettingsDataSection from './SettingsDataSection.vue';
 import SettingsNumberSection from './SettingsNumberSection.vue';
 import SettingsProviderSection from './SettingsProviderSection.vue';
 import SettingsRuntimeSection from './SettingsRuntimeSection.vue';
+import SettingsRepositorySection from './SettingsRepositorySection.vue';
 
 const model = useSettings();
 </script>
@@ -12,8 +13,8 @@ const model = useSettings();
   <div class="cf-settings-page">
     <header class="cf-page-heading">
       <div>
-        <h1>Studio settings</h1>
-        <p>Give your agents context and set the pace of your community build.</p>
+        <h1>Project settings</h1>
+        <p>Configure {{ model.draft.projectName }}. Each project keeps its own brief, workspace and workflow.</p>
       </div>
       <span class="cf-settings-local-label"><CfIcon name="shield-check" size="sm" /> Local workspace</span>
     </header>
@@ -33,7 +34,7 @@ const model = useSettings();
             <input v-model="model.draft.projectName" type="text" maxlength="80" required placeholder="Mosslight">
           </label>
           <label class="cf-field">
-            <span>Project brief</span>
+            <span>Description</span>
             <textarea
               v-model="model.draft.projectBrief" minlength="10" maxlength="8000" rows="5" required
               placeholder="Describe the game, its audience, mechanics, and what you are building next."
@@ -44,6 +45,7 @@ const model = useSettings();
         </div>
       </section>
       <SettingsProviderSection />
+      <SettingsRepositorySection />
       <SettingsNumberSection
         :fields="model.rhythm" icon="sliders-horizontal" heading="Workflow rhythm"
         text="Stage automation switches are on the Agent workflow screen. These limits apply to the queue."
@@ -65,9 +67,10 @@ const model = useSettings();
           <template v-else-if="model.status === 'dirty'">You have unsaved changes.</template>
           <template v-else>All changes saved in this vault.</template>
         </span>
-        <button class="cf-btn cf-btn-primary" type="submit" :disabled="model.store.busy || !model.dirty">
-          <CfIcon name="save" size="sm" /> Save settings
-        </button>
+        <div class="cf-settings-actions">
+          <button class="cf-btn cf-btn-secondary" type="button" :disabled="model.store.busy || !model.dirty" @click="model.discard()">Discard changes</button>
+          <button class="cf-btn cf-btn-primary" type="submit" :disabled="model.store.busy || !model.dirty"><CfIcon name="save" size="sm" /> Save settings</button>
+        </div>
       </div>
     </form>
     <SettingsRuntimeSection />

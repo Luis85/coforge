@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import type { AppState } from '../../features/coforge/domain/types';
+import { projectIdeas as scopedIdeas } from '../../features/coforge/domain/projects';
 
-export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings';
+export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects';
 export interface Toast { id: number; message: string; error: boolean }
 
 /** Per-view projection of the studio state plus view-local navigation, overlays and feedback. */
@@ -13,13 +14,18 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   const creating = ref(false);
   const help = ref(false);
   const activityOpen = ref(false);
+  const dirtySettings = ref(false);
   const pending = ref(0);
   const toasts = ref<Toast[]>([]);
   const timers = new Set<number>();
   let toastId = 0;
 
   const busy = computed(() => pending.value > 0);
-  const activeJob = computed(() => state.value?.jobs.find(j => j.status === 'running') ?? state.value?.jobs.find(j => j.status === 'queued'));
+  const activeProject = computed(() => state.value?.projects?.find(project => project.id === state.value?.activeProjectId));
+  const projectIdeas = computed(() => state.value ? scopedIdeas(state.value) : []);
+  const projectJobs = computed(() => state.value?.jobs.filter(job => job.projectId === state.value?.activeProjectId) ?? []);
+  const activeJob = computed(() => projectJobs.value.find(j => j.status === 'running') ?? projectJobs.value.find(j => j.status === 'queued'));
+  const backgroundJobs = computed(() => state.value?.jobs.filter(job => job.projectId !== state.value?.activeProjectId && (job.status === 'running' || job.status === 'queued')).length ?? 0);
   const selectedIdea = computed(() => state.value?.ideas.find(i => i.id === selected.value));
 
   function dismiss(id: number) { toasts.value = toasts.value.filter(toast => toast.id !== id); }
@@ -47,5 +53,6 @@ export const useStudioStore = defineStore('coforge-studio', () => {
     } finally { pending.value = Math.max(0, pending.value - 1); }
   }
 
-  return { state, view, selected, creating, help, activityOpen, pending, toasts, busy, activeJob, selectedIdea, notify, dismiss, navigate, select, mutate, dispose };
+  return { state, view, selected, creating, help, activityOpen, dirtySettings, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
+    activeJob, selectedIdea, notify, dismiss, navigate, select, mutate, dispose };
 });

@@ -11,11 +11,11 @@ const model = useStudioShell();
       <BrandMark />
       <span>CoForge</span>
     </button>
-    <button type="button" class="cf-project-switcher" title="Project settings" @click="model.store.navigate('settings')">
+    <button type="button" class="cf-project-switcher" title="Manage projects" @click="model.manageProjects()">
       <span class="cf-project-icon"><CfIcon name="gamepad-2" /></span>
       <span>
         <strong>{{ model.state?.settings.projectName }}</strong>
-        <small>Community game project</small>
+        <small>Community game project · {{ model.store.activeProject?.id }}</small>
       </span>
       <CfIcon name="chevron-right" size="xs" />
     </button>

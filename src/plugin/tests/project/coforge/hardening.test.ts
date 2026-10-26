@@ -43,7 +43,7 @@ describe('frontmatter defanging', () => {
 
   it('writes defanged properties to idea notes and restores the text in the studio', async () => {
     const { kit, studio } = await vault();
-    await studio.sendChat('River', '!request Lantern <%* tp.system.prompt() %> near [[Secret note]]');
+    await studio.sendChat('River', '!request CFP-001 Lantern <%* tp.system.prompt() %> near [[Secret note]]');
     const yaml = splitNote(kit.read(noteOf(kit).path)).yaml ?? '';
     expect(yaml).not.toMatch(/<%|\[\[/);
     expect(studio.state().ideas[0]?.title).toBe('Lantern <%* tp.system.prompt() %> near [[Secret note]]');
@@ -54,7 +54,7 @@ describe('frontmatter defanging', () => {
 describe('integrity of notes changed outside CoForge', () => {
   it('returns a screened idea to the inbox when its text is edited in the vault', async () => {
     const { kit, studio } = await vault();
-    await studio.sendChat('River', '!request Add a garden behind the camp');
+    await studio.sendChat('River', '!request CFP-001 Add a garden behind the camp');
     await studio.act('CF-101', 'screen');
     await studio.engine.waitUntilIdle();
     expect(studio.state().ideas[0]?.status).toBe('screened');
@@ -100,18 +100,18 @@ describe('chat intake limits', () => {
   it('limits pending ideas per viewer and new ideas per minute, and rejects empty requests', async () => {
     const { store } = await emptyStore();
     await store.transaction(state => { state.settings.requestCooldownSeconds = 0; });
-    for (let n = 0; n < INTAKE_LIMITS.pendingPerViewer; n++) await ingestChat(store, { username: 'River', text: `!request Idea number ${n} for the camp` });
-    expect(await ingestChat(store, { username: 'River', text: '!request One more idea for the camp' })).toMatchObject({ ok: false });
-    for (let n = 0; n < INTAKE_LIMITS.perMinute; n++) await ingestChat(store, { username: `viewer${n}`, text: `!request Another idea ${n} for the forest` });
+    for (let n = 0; n < INTAKE_LIMITS.pendingPerViewer; n++) await ingestChat(store, { username: 'River', text: `!request CFP-001 Idea number ${n} for the camp` });
+    expect(await ingestChat(store, { username: 'River', text: '!request CFP-001 One more idea for the camp' })).toMatchObject({ ok: false });
+    for (let n = 0; n < INTAKE_LIMITS.perMinute; n++) await ingestChat(store, { username: `viewer${n}`, text: `!request CFP-001 Another idea ${n} for the forest` });
     expect(store.snapshot().ideas).toHaveLength(INTAKE_LIMITS.perMinute);
-    expect((await ingestChat(store, { username: 'late', text: '!request A very late idea' })).message).toContain('in a minute');
-    expect(await ingestChat(store, { username: 'Pat', text: '!request !!!!! ????' })).toMatchObject({ ok: false });
+    expect((await ingestChat(store, { username: 'late', text: '!request CFP-001 A very late idea' })).message).toContain('in a minute');
+    expect(await ingestChat(store, { username: 'Pat', text: '!request CFP-001 !!!!! ????' })).toMatchObject({ ok: false });
   });
 
   it('detects duplicates despite case, punctuation and spacing, and keeps viewers from posing as the bot', async () => {
     const { store } = await emptyStore();
-    await ingestChat(store, { username: 'River', text: '!request Add a garden behind the camp' });
-    expect(await ingestChat(store, { username: 'Alice', text: '!request add a GARDEN, behind the camp!!' })).toMatchObject({ duplicate: true, ideaId: 'CF-001' });
+    await ingestChat(store, { username: 'River', text: '!request CFP-001 Add a garden behind the camp' });
+    expect(await ingestChat(store, { username: 'Alice', text: '!request CFP-001 add a GARDEN, behind the camp!!' })).toMatchObject({ duplicate: true, ideaId: 'CF-001' });
     await ingestChat(store, { username: 'Co Forge', userId: '99', source: 'twitch', text: 'hello' });
     expect(store.snapshot().contributors.find(person => person.id === 'twitch:99')?.name).toBe('Co Forge (viewer)');
     expect(displayName('Streamer')).toBe('Streamer (viewer)');

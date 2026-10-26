@@ -27,6 +27,7 @@ const model = useIdeaDrawerContext();
     <div class="cf-idea-inline cf-idea-wrap">
       <span class="cf-badge" :class="`cf-status-${idea.status}`">{{ STATUS_LABELS[idea.status] }}</span>
       <span class="cf-idea-category">{{ idea.category }}</span>
+      <span v-if="idea.projectId" class="cf-badge">Project {{ idea.projectId }}</span>
       <span class="cf-idea-source"><CfIcon name="message-square" size="xs" /> {{ model.sourceLabel }}</span>
     </div>
     <h2 id="cf-idea-drawer-title">{{ idea.title }}</h2>

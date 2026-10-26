@@ -27,7 +27,7 @@ const STAGE_COPY: Record<AgentStage, StageCopy> = {
 };
 const HISTORY_PREVIEW = 8;
 const FAILURE = 'The workflow could not be updated.';
-const SETTINGS_LOCATION = 'Settings → Community plugins → CoForge';
+const SETTINGS_LOCATION = 'Studio settings → Agent workspace';
 
 const historyRow = (job: AgentJob) => ({
   id: job.id, ideaId: job.ideaId, status: job.status, stageLabel: STAGE_LABELS[job.stage],
@@ -47,11 +47,11 @@ export function useWorkflow() {
   const settings = computed<Settings | undefined>(() => store.state?.settings);
   const paused = computed(() => settings.value?.paused ?? true);
   const isDemo = computed(() => settings.value?.provider !== 'claude');
-  const running = computed(() => store.state?.jobs.find(job => job.status === 'running'));
-  const queuedCount = computed(() => store.state?.jobs.filter(job => job.status === 'queued').length ?? 0);
+  const running = computed(() => store.projectJobs.find(job => job.status === 'running'));
+  const queuedCount = computed(() => store.projectJobs.filter(job => job.status === 'queued').length);
   const enabledCount = computed(() => STAGES.filter(stage => settings.value?.automation[stage]).length);
   const implementationBlocked = computed(() => !isDemo.value && !store.state?.runtime.allowImplementation);
-  const rows = computed(() => [...(store.state?.jobs ?? [])].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).map(historyRow));
+  const rows = computed(() => [...store.projectJobs].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).map(historyRow));
 
   /** Runs one workflow request; a failure is already toasted by the store and is also kept inline. */
   function perform(work: () => Promise<boolean>): void {
@@ -61,7 +61,7 @@ export function useWorkflow() {
 
   return reactive({
     store, error, expanded, paused, isDemo, enabledCount,
-    blockedText: `Local implementation permission is required. Enable it in the CoForge plugin settings (${SETTINGS_LOCATION}).`,
+    blockedText: `Implementation permission is required for this project. Enable it in ${SETTINGS_LOCATION}.`,
     canRunNext: computed(() => !store.busy && !running.value && queuedCount.value === 0),
     summaryLabel: computed(() => paused.value ? 'Automation paused' : enabledCount.value ? 'Automation is running' : 'Manual workflow'),
     intervalSeconds: computed(() => settings.value?.intervalSeconds ?? 0),

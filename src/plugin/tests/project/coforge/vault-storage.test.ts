@@ -37,7 +37,7 @@ describe('idea notes in the vault', () => {
 
   it('creates one note per idea and keeps votes and increments in plugin data', async () => {
     const { kit, studio } = await open();
-    await studio.sendChat('River', '!request Add a garden behind the camp');
+    await studio.sendChat('River', '!request CFP-001 Add a garden behind the camp');
     await studio.sendChat('Alice', '!vote CF-101');
     const [file] = ideaNotes(kit);
     expect(file?.path).toBe('CoForge/Ideas/CF-101 Add a garden behind the camp.md');
@@ -51,7 +51,7 @@ describe('idea notes in the vault', () => {
 
   it('restores ideas with their votes after a restart and keeps the body and unrelated properties', async () => {
     const first = await open();
-    await first.studio.sendChat('River', '!request Add a garden behind the camp');
+    await first.studio.sendChat('River', '!request CFP-001 Add a garden behind the camp');
     await first.studio.vote('CF-101');
     const [file] = ideaNotes(first.kit);
     await first.kit.app.vault.process(file!, data => data.replace('## Notes\n\n', '## Notes\n\nPlaytest on Friday.\n'));
@@ -70,7 +70,7 @@ describe('idea notes in the vault', () => {
 
   it('applies edits and deletions made directly in the vault', async () => {
     const { kit, studio } = await open();
-    await studio.sendChat('River', '!request Add a garden behind the camp');
+    await studio.sendChat('River', '!request CFP-001 Add a garden behind the camp');
     const [file] = ideaNotes(kit);
     await kit.app.fileManager.processFrontMatter(file!, frontmatter => { frontmatter.category = 'World'; });
     await flushObsidian();
@@ -82,7 +82,7 @@ describe('idea notes in the vault', () => {
 
   it('loads the sample workspace as notes and moves replaced notes to the trash', async () => {
     const { kit, studio } = await open();
-    await studio.sendChat('River', '!request Add a garden behind the camp');
+    await studio.sendChat('River', '!request CFP-001 Add a garden behind the camp');
     await studio.loadSample();
     expect(studio.state().ideas).toHaveLength(15);
     expect(ideaNotes(kit)).toHaveLength(15);
@@ -91,9 +91,11 @@ describe('idea notes in the vault', () => {
 
   it('moves idea notes when the ideas folder changes', async () => {
     const { kit, studio } = await open();
-    await studio.sendChat('River', '!request Add a garden behind the camp');
+    await studio.sendChat('River', '!request CFP-001 Add a garden behind the camp');
     await studio.updateIntegration({ ideasFolder: 'Games/Mosslight/Ideas' });
-    expect(kit.app.vault.getMarkdownFiles().map(file => file.path)).toEqual(['Games/Mosslight/Ideas/CF-101 Add a garden behind the camp.md']);
+    expect(kit.app.vault.getMarkdownFiles().map(file => file.path)).toEqual([
+      'CoForge/Projects/CFP-001 Community game.md', 'Games/Mosslight/Ideas/CF-101 Add a garden behind the camp.md',
+    ]);
     expect(studio.state().ideas).toHaveLength(1);
   });
 });
