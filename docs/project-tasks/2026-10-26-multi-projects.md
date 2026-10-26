@@ -1,6 +1,6 @@
 # Task: Manage multiple vault-backed projects from one stream studio
 
-- Status: in progress
+- Status: done
 - Journey in `BRIEF.md`: add and switch projects, route viewer requests by explicit parent-project ID, and process projects in the background.
 
 ## Why
@@ -41,7 +41,8 @@ Project deletion, automatic commits/merges of game repositories, and posting to 
 
 ## Evidence
 
-Implementation complete. Owner decisions are recorded in BRIEF.md; final CI and merge are pending.
+Implementation and feature validation are complete. Owner decisions are recorded in BRIEF.md;
+the final CI and merge condition are tracked in [PR #9](https://github.com/Luis85/coforge/pull/9).
 
 - Project/application and canonical-note tests cover explicit project routing, missing IDs, shared chat, background context isolation, failed-save recovery and legacy migration with exact body preservation.
 - `npm run test:e2e`: 14 passed, including both-theme accessibility and narrow project management.
