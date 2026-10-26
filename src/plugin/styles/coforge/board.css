@@ -18,8 +18,7 @@
 .cf-studio .cf-board-search input {
   border: 0; background: transparent; box-shadow: none; outline: 0; font-size: 12px; min-width: 70px; width: 100%; padding: 6px 0; height: auto; color: var(--cf-text);
 }
-.cf-studio .cf-board-search input:focus, .cf-studio .cf-board-search input:focus-visible { box-shadow: none; outline: 0; }
-.cf-board-search:focus-within { outline: 1px solid var(--cf-border-strong); outline-offset: 4px; border-radius: var(--radius-s); }
+.cf-studio .cf-board-search input:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: 4px; border-radius: var(--radius-s); }
 .cf-board-filters { display: flex; align-items: center; gap: 11px; }
 .cf-compact-select { position: relative; display: flex; align-items: center; gap: 3px; font-size: 11px; white-space: nowrap; }
 .cf-studio .cf-compact-select select {

@@ -153,7 +153,7 @@
 .cf-plugin-settings-runtime { display: flex; align-items: center; gap: 6px; margin-bottom: var(--size-4-1); color: var(--cf-text); }
 .cf-plugin-settings-warning { display: block; margin-top: var(--size-4-1); color: var(--cf-orange); }
 .cf-setting-row-description .cf-inline-error { display: block; margin-top: var(--size-4-1); }
-.cf-plugin-settings-token { display: flex; align-items: center; gap: var(--size-4-2); }
+.cf-plugin-settings-token { display: flex; align-items: center; flex-wrap: wrap; gap: var(--size-4-2); min-width: 0; max-width: 100%; }
 .cf-plugin-settings-token > input { width: min(240px, 100%); }
 
 /* Switch styled after Obsidian's toggle; the native checkbox stays in the tab order. */

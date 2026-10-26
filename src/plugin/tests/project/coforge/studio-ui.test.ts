@@ -38,7 +38,7 @@ async function render(seed = true) {
   await flushPromises();
   return { wrapper, studio, errors };
 }
-const nav = (wrapper: VueWrapper, label: string) => wrapper.get(`.cf-sidebar button[aria-label="${label}"]`);
+const nav = (wrapper: VueWrapper, label: string) => wrapper.get(`.cf-sidebar button[title="${label}"]`);
 
 describe('CoForge studio view', () => {
   it('renders the board with the sample workspace and every studio view without errors', async () => {

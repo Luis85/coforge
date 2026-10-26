@@ -11,7 +11,7 @@ const model = useStudioShell();
       <BrandMark />
       <span>CoForge</span>
     </button>
-    <button type="button" class="cf-project-switcher" aria-label="Project settings" @click="model.store.navigate('settings')">
+    <button type="button" class="cf-project-switcher" title="Project settings" @click="model.store.navigate('settings')">
       <span class="cf-project-icon"><CfIcon name="gamepad-2" /></span>
       <span>
         <strong>{{ model.state?.settings.projectName }}</strong>
@@ -23,7 +23,7 @@ const model = useStudioShell();
     <nav aria-label="CoForge navigation">
       <button
         v-for="item in model.nav" :key="item.view" type="button" class="cf-nav-item" :class="{ 'is-active': item.active }"
-        :aria-current="item.active ? 'page' : undefined" :aria-label="item.label" :title="item.label" @click="model.store.navigate(item.view)"
+        :aria-current="item.active ? 'page' : undefined" :title="item.label" @click="model.store.navigate(item.view)"
       >
         <CfIcon :name="item.icon" />
         <span>{{ item.label }}</span>
