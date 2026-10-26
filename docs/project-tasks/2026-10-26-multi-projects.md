@@ -25,6 +25,8 @@ will be covered by project, vault-storage, scheduler and browser regression test
 - Existing single-project data becomes the initial project without changing request IDs, votes, note bodies or saved increments.
 - Invalid or failed writes preserve the current project and the user's form draft; no success event precedes a successful write.
 - Outside-vault project repositories remain supported; build work stays in separate Git worktrees.
+- The native Obsidian header is hidden for CoForge views; ordinary note headers remain visible.
+- `npm run build:local` installs directly into the repository-root `.obsidian/plugins/coforge/`, without creating `.test-vault`.
 
 ## Plan
 

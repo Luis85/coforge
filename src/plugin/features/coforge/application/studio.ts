@@ -128,8 +128,10 @@ export class StudioService {
 
   /** Checks the native Claude Code executable. No model request is made. */
   async refreshRuntime(): Promise<AppState['runtime']> {
-    const runtime = await this.host.probeRuntime(this.integration());
-    await this.store.updateRuntime(runtime);
+    const integration = this.integration();
+    const runtime = await this.host.probeRuntime(integration);
+    const cliAvailable = integration.claudeBin === this.integration().claudeBin && runtime.cliAvailable;
+    await this.store.updateRuntime({ cliAvailable, ...this.runtimeConfig() });
     return this.state().runtime;
   }
 

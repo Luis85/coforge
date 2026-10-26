@@ -25,6 +25,11 @@ rebuilt on the [obsidian-plugin-shell](https://github.com/Luis85/obsidian-plugin
    inspect the plan and increment, then accept it. Enable stages in **Agent workflow**
    and resume automation for automatic progression (automation always starts paused).
 
+For local development, `npm run build:local` builds and installs the plugin into this
+repository's `.obsidian/plugins/coforge/`. It does not use or create `.test-vault`.
+The `.obsidian` output is ignored by Git. Contained automated Obsidian tests continue
+to use their separate sandbox vaults.
+
 Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume automation**,
 **Publish the viewer board**, **Set up the viewer website**.
 

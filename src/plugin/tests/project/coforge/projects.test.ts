@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { StudioService } from '../../../features/coforge/application/studio';
-import type { StageInput, StageRunner } from '../../../features/coforge/application/ports';
+import type { StageInput, StageRunner, StudioHost } from '../../../features/coforge/application/ports';
 import { createSeed } from '../../../features/coforge/domain/seed';
 import { MemoryStorage, nodeTimers } from './memory-storage';
 
@@ -9,11 +9,11 @@ afterEach(async () => { await Promise.all(services.splice(0).map(service => serv
 
 async function setup(runner: StageRunner = async () => ({ screening: {
   verdict: 'clear', reason: 'Fixture', signals: [], checkedAt: new Date().toISOString(), provider: 'demo',
-} })) {
+} }), probeRuntime: StudioHost['probeRuntime'] = () => Promise.resolve({ cliAvailable: true, projectPath: null, allowImplementation: false })) {
   const storage = new MemoryStorage(createSeed());
   const studio = new StudioService(storage, {
     runners: { demo: runner, claude: runner }, timers: nodeTimers(),
-    probeRuntime: () => Promise.resolve({ cliAvailable: true, projectPath: null, allowImplementation: false }),
+    probeRuntime,
   });
   services.push(studio);
   await studio.start();
@@ -75,6 +75,21 @@ describe('multiple projects in one studio', () => {
     expect(studio.state().activeProjectId).toBe(other.id);
     expect(studio.state().ideas.find(idea => idea.id === 'CF-107')?.status).toBe('screened');
     expect(studio.state().settings.projectName).toBe('Moon orchard');
+  });
+
+  it('does not overwrite the selected workspace when an earlier project’s CLI probe completes', async () => {
+    let finish: ((value: Awaited<ReturnType<StudioHost['probeRuntime']>>) => void) | undefined;
+    const probe = new Promise<Awaited<ReturnType<StudioHost['probeRuntime']>>>(resolve => { finish = resolve; });
+    const { studio } = await setup(undefined, () => probe);
+    await studio.updateIntegration({ projectPath: '/games/mosslight' });
+    const initial = studio.state().activeProjectId!;
+    const other = await studio.createProject({ projectName: 'Moon orchard', projectBrief: 'An orchard on a distant moon.', projectPath: '/games/moon' });
+    await studio.selectProject(initial);
+    const checking = studio.refreshRuntime();
+    await studio.selectProject(other.id);
+    finish?.({ cliAvailable: true, projectPath: '/games/mosslight', allowImplementation: true });
+    await checking;
+    expect(studio.state().runtime).toMatchObject({ projectPath: '/games/moon', allowImplementation: false, cliAvailable: true });
   });
 
   it('keeps the selected project unchanged when a project write fails', async () => {
