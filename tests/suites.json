@@ -1267,7 +1267,8 @@
       },
       "include": [
         "src/plugin/tests/e2e/*.spec.ts",
-        "tests/e2e/ui-quality.spec.ts"
+        "tests/e2e/ui-quality.spec.ts",
+        "tests/e2e/journeys/**/*.spec.ts"
       ],
       "prerequisites": [
         "chromium",
