@@ -41,7 +41,17 @@ Project deletion, automatic commits/merges of game repositories, and posting to 
 
 ## Evidence
 
-Owner decisions recorded in BRIEF.md; implementation and verification pending.
+Implementation complete. Owner decisions are recorded in BRIEF.md; final CI and merge are pending.
+
+- Project/application and canonical-note tests cover explicit project routing, missing IDs, shared chat, background context isolation, failed-save recovery and legacy migration with exact body preservation.
+- `npm run test:e2e`: 14 passed, including both-theme accessibility and narrow project management.
+- `npm run test:ui-quality`: 8 passed; `npm run ui:gallery`: 40 captures, no capture failures; reviewed gallery and project-management screenshots.
+- `npm run check:security`: found 0 vulnerabilities.
+- Contained Obsidian validation: 6 passed, 0 failed, including project-note creation, request parenting and native-header isolation. Reviewed the real-host header screenshot.
+- `npm run build:local`: installed into repository-root `.obsidian/plugins/coforge`; SHA-256 matched all three `dist` assets; no `.test-vault` was created.
+- Self-review guard and Impeccable detector: no findings; `git diff --check`: no output.
+- One full local gate passed before final follow-up changes. The final Windows rerun encountered workstation resource timeouts (ESLint and Vitest worker startup). The same checks and build passed in CI; CI now runs the canonical `npm run verify:project` and checks local-install bytes explicitly.
+- Existing generated/design skips are not acceptance evidence for this feature. No new test is skipped.
 
 Maker preview reviewed: entity `coforge-project`, Markdown backend, plan hash
 `0c9291d87146a9987d3379faa3cd10a6f3d50f26fd33fb44fe1a20e1c1b8f332`.
