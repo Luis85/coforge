@@ -140,6 +140,9 @@
   "overrides": {
     "fontless@0.2.1": {
       "esbuild": "0.28.2"
+    },
+    "obsidian@1.12.3": {
+      "moment": "2.31.0"
     }
   },
   "packageManager": "npm@11.19.1",
