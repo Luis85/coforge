@@ -127,6 +127,9 @@
   .cf-brand { padding: 0; gap: 0; }
   .cf-brand > span:last-child, .cf-sidebar-label, .cf-sidebar-community, .cf-project-switcher > span:not(.cf-project-icon), .cf-project-switcher > .cf-icon:last-child,
   .cf-nav-item > span:not(.cf-icon), .cf-streamer-profile > div, .cf-version-tag { display: none; }
+  .cf-project-switcher > span:nth-child(2), .cf-sidebar nav .cf-nav-item > span:nth-child(2) {
+    display: block; position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
   .cf-project-switcher { width: auto; padding: 6px; justify-content: center; }
   .cf-nav-item { justify-content: center; padding: 10px; }
   .cf-streamer-profile { margin: 14px -8px 0; justify-content: center; padding: 14px 8px; }
