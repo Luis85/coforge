@@ -8,7 +8,7 @@ const model = useIdeaCard(props);
 </script>
 <template>
   <article class="cf-idea-card" :class="{ 'is-flagged': model.flagged, 'is-review': model.review }">
-    <button type="button" class="cf-idea-open" :aria-label="model.openLabel" @click="model.open()">
+    <button type="button" class="cf-idea-open" :title="model.openLabel" @click="model.open()">
       <div class="cf-idea-card-top">
         <span class="cf-idea-id">{{ model.idea.id }}</span>
         <span class="cf-category-dot" :class="model.categoryClass" :title="model.idea.category" />

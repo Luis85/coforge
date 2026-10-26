@@ -11,7 +11,10 @@ const model = useStudioShell();
       <BrandMark />
       <span>CoForge</span>
     </button>
-    <button type="button" class="cf-project-switcher" aria-label="Project settings" @click="model.store.navigate('settings')">
+    <button
+      type="button" class="cf-project-switcher"
+      :aria-label="`${model.state?.settings.projectName ?? 'Project'} Community game project settings`" @click="model.store.navigate('settings')"
+    >
       <span class="cf-project-icon"><CfIcon name="gamepad-2" /></span>
       <span>
         <strong>{{ model.state?.settings.projectName }}</strong>
@@ -23,11 +26,13 @@ const model = useStudioShell();
     <nav aria-label="CoForge navigation">
       <button
         v-for="item in model.nav" :key="item.view" type="button" class="cf-nav-item" :class="{ 'is-active': item.active }"
-        :aria-current="item.active ? 'page' : undefined" :aria-label="item.label" :title="item.label" @click="model.store.navigate(item.view)"
+        :aria-current="item.active ? 'page' : undefined" :aria-label="item.label"
+        :aria-labelledby="`cf-nav-${item.view}${item.count !== undefined ? ` cf-nav-${item.view}-count` : ''}`"
+        :title="item.label" @click="model.store.navigate(item.view)"
       >
         <CfIcon :name="item.icon" />
-        <span>{{ item.label }}</span>
-        <span v-if="item.count !== undefined" class="cf-nav-count">{{ item.count }}</span>
+        <span :id="`cf-nav-${item.view}`">{{ item.label }}</span>
+        <span v-if="item.count !== undefined" :id="`cf-nav-${item.view}-count`" class="cf-nav-count">{{ item.count }}</span>
         <span v-if="item.working" class="cf-nav-working-dot" />
       </button>
     </nav>

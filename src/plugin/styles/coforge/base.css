@@ -55,7 +55,7 @@
   white-space: nowrap; transition: background 0.15s, transform 0.15s;
 }
 .cf-btn:active:not(:disabled) { transform: translateY(1px); }
-.cf-btn-primary { background: var(--cf-accent); color: var(--cf-accent-text); }
+.cf-studio .cf-btn-primary, .cf-plugin-settings .cf-btn-primary { background: var(--cf-accent); color: var(--cf-accent-text); }
 .cf-btn-primary:hover:not(:disabled) { background: var(--interactive-accent-hover); }
 .cf-btn-secondary { background: var(--interactive-normal); border-color: var(--cf-border); color: var(--cf-text); }
 .cf-btn-secondary:hover:not(:disabled) { background: var(--interactive-hover); }
@@ -88,7 +88,8 @@
 .cf-status-dot.is-error { background: var(--cf-danger); }
 .cf-avatar {
   --cf-avatar: var(--color-purple);
-  display: inline-flex; align-items: center; justify-content: center; font-weight: 800; color: var(--cf-avatar);
+  display: inline-flex; align-items: center; justify-content: center; font-weight: 800;
+  color: color-mix(in srgb, var(--cf-avatar) 80%, var(--cf-text));
   background: color-mix(in srgb, var(--cf-avatar) 18%, transparent); width: 32px; height: 32px; font-size: 11px; border-radius: 50%; flex-shrink: 0;
 }
 .cf-avatar-sm { width: 21px; height: 21px; font-size: 8px; }
