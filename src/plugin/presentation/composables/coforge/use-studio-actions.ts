@@ -3,6 +3,7 @@ import type { AgentJob, Category, IdeaAction, IntegrationSettings, RiceScore, Se
 import { STAGE_LABELS } from '../../../features/coforge/domain/types';
 import { useCoforge } from '../../context/coforge-context';
 import { useStudioStore } from '../../stores/coforge-studio';
+import { ideaProjectId } from '../../../features/coforge/domain/projects';
 
 const ACTION_MESSAGES: Partial<Record<IdeaAction, string>> = {
   approve: 'Increment accepted. The contributor’s recognition has been updated.',
@@ -20,7 +21,21 @@ export function useStudioActions() {
   const store = useStudioStore();
   const attempt = <T>(work: () => Promise<T>, success?: string | ((result: T) => string)): Promise<boolean> =>
     store.mutate(work, success).then(() => true, () => false);
+  const selectProject = async (id: string): Promise<boolean> => {
+    if (store.dirtySettings) { store.notify('Save or discard your project settings before switching projects.', true); return false; }
+    const done = await attempt(() => studio.selectProject(id));
+    if (done) { store.select(null); store.creating = false; store.navigate('board'); }
+    return done;
+  };
   return {
+    selectProject,
+    createProject: (input: unknown) => attempt(() => studio.createProject(input), 'Project added. Its automation starts paused.'),
+    changeProject: (input: unknown, id?: string) => attempt(() => studio.updateProject(input, id), 'Project settings saved.'),
+    openIdea: async (id: string) => {
+      const idea = store.state?.ideas.find(item => item.id === id);
+      if (idea && ideaProjectId(idea) !== store.state?.activeProjectId && !(await selectProject(ideaProjectId(idea)))) return false;
+      store.select(id); return true;
+    },
     changeSettings: (patch: Partial<Settings>) => attempt(() => studio.updateSettings(patch)),
     takeAction: (id: string, action: IdeaAction, note?: string) =>
       attempt(() => studio.act(id, action, note), ACTION_MESSAGES[action] ?? `${STAGE_LABELS[action as keyof typeof STAGE_LABELS]} job queued.`),
@@ -30,7 +45,11 @@ export function useStudioActions() {
       ? `${STAGE_LABELS[job.stage]} queued for ${job.ideaId}.`
       : 'No eligible step right now. Check stage toggles, vote threshold, and active jobs.'),
     cancelJob: (id: string) => attempt(() => studio.cancel(id), 'Cancellation requested.'),
-    sendChat: (username: string, text: string) => attempt(() => studio.sendChat(username, text)),
+    sendChat: (username: string, text: string) => attempt(async () => {
+      const result = await studio.sendChat(username, text);
+      if (!result.ok) throw new Error(result.message);
+      return result;
+    }),
     simulate: () => attempt(() => studio.simulate()),
     createIdea: (data: { title: string; description: string; category: Category; username: string }) =>
       attempt(() => studio.createIdea(data), outcome => outcome.message),

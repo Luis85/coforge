@@ -2,6 +2,7 @@ import { computed, reactive, ref } from 'vue';
 import { STATUS_LABELS } from '../../../features/coforge/domain/types';
 import { buildCommunity, type BadgeId, type BadgeProgress, type CommunityProfile } from '../../../features/coforge/domain/recognition';
 import { useStudioStore } from '../../stores/coforge-studio';
+import { useStudioActions } from './use-studio-actions';
 import { avatarStyle, initials } from './format';
 
 type Metric = 'votesReceived' | 'ideas' | 'implementations';
@@ -29,6 +30,7 @@ const person = (profile: CommunityProfile) => ({
 /** View model of the community page: leaderboards, a selected contributor's profile and badges, and accepted ideas. */
 export function useCommunity() {
   const store = useStudioStore();
+  const actions = useStudioActions();
   const metric = ref<Metric>('votesReceived');
   const showAll = ref(false);
   const selectedId = ref<string | null>(null);
@@ -83,7 +85,7 @@ export function useCommunity() {
     setMetric: (next: Metric) => { metric.value = next; },
     toggleShowAll: () => { showAll.value = !showAll.value; },
     selectContributor: (id: string) => { selectedId.value = id; },
-    openIdea: (id: string) => store.select(id),
+    openIdea: (id: string) => { void actions.openIdea(id); },
   });
 }
 export type CommunityModel = ReturnType<typeof useCommunity>;

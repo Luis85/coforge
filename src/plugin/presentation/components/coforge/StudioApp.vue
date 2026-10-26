@@ -18,6 +18,7 @@ import StudioStatusbar from './StudioStatusbar.vue';
 import StudioTopbar from './StudioTopbar.vue';
 import ToastStack from './ToastStack.vue';
 import WorkflowView from './WorkflowView.vue';
+import ProjectsView from './ProjectsView.vue';
 
 const model = useStudioApp();
 </script>
@@ -47,6 +48,7 @@ const model = useStudioApp();
             </template>
             <StreamPage v-else-if="model.shell.store.view === 'stream'" />
             <WorkflowView v-else-if="model.shell.store.view === 'workflow'" />
+            <ProjectsView v-else-if="model.shell.store.view === 'projects'" />
             <CommunityView v-else-if="model.shell.store.view === 'community'" />
             <SettingsView v-else />
           </main>

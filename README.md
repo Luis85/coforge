@@ -1,7 +1,7 @@
 # CoForge
 
 **A community game studio inside Obsidian.** Streamers build a game with their viewers and
-AI agents: viewers pitch ideas with `!request` and support them with `!vote`; every idea
+AI agents across multiple projects: viewers pitch ideas with `!request <project-id> <idea>` and support them with `!vote`; every idea
 gets a stable ID (`CF-101`), its own Markdown note, a screening verdict, an explained RICE
 score, an implementation plan, a reviewable increment and mandatory streamer review.
 Accepted work earns the author community recognition and badges.
@@ -18,7 +18,9 @@ rebuilt on the [obsidian-plugin-shell](https://github.com/Luis85/obsidian-plugin
 3. On the empty board choose **Load sample workspace** to explore the illustrative
    *Mosslight* project, or **New idea** to start your own. Ideas are written to
    `CoForge/Ideas` (configurable).
-4. Try the loop: send `!request Add a lantern` in the chat simulator, vote as another
+4. Open the project button in the sidebar to add projects, their workspace paths, repository and website links, and descriptions.
+   Each has a stable project ID (`CFP-001`) and its own backlog, saved as Markdown notes in the vault.
+5. Try the loop: send `!request CFP-001 Add a lantern` in the chat simulator, vote as another
    viewer, open the idea and run **Screen → Score → Plan → Build** with the demo agents,
    inspect the plan and increment, then accept it. Enable stages in **Agent workflow**
    and resume automation for automatic progression (automation always starts paused).
@@ -29,6 +31,7 @@ Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume au
 | Area | Behaviour |
 | --- | --- |
 | Chat intake | `!request`, `!vote`, `!status`, `!me`, `!help`; local acknowledgements; chat simulator; receive-only Twitch EventSub |
+| Projects | Vault-backed project notes, separate backlogs and workspace paths (including outside the vault), metadata links and descriptions; requests require their parent project ID |
 | Ideas | One note per idea with properties for status, screening, RICE and plan; edits and deletions in the vault flow back into the studio |
 | Workflow | Screen → Score → Plan → Build, single worker, queue, pause/resume, run next, cancel, vote threshold, failure holds |
 | Agents | Clearly labelled demo agents, or the native Claude Code CLI (no tools for screening/scoring, read-only planning, builds in a separate Git worktree) |
@@ -37,6 +40,7 @@ Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume au
 | Viewer website | Read-only, script-free board, leaderboards and badges in a vault folder, deployed to GitHub Pages from `main` by a workflow CoForge writes once |
 
 Integration setup, the viewer website and safety boundaries: [docs/coforge/INTEGRATIONS.md](docs/coforge/INTEGRATIONS.md).
+Projects, request routing and project-note properties: [docs/coforge/PROJECTS.md](docs/coforge/PROJECTS.md).
 Product brief: [BRIEF.md](BRIEF.md).
 
 ### Source map

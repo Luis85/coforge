@@ -2,7 +2,6 @@ import { StudioError } from '../domain/errors';
 import { omit } from '../domain/objects';
 import { cleanLine, cleanText } from '../domain/sanitize';
 import { integrationPatch, newIdeaInput, riceInput, settingsPatch } from '../domain/inputs';
-import { createSeed } from '../domain/seed';
 import type { AgentJob, AppState, IdeaAction, IntegrationSettings, Settings } from '../domain/types';
 import { isActiveJob } from '../domain/workflow';
 import { addVote, createIdea, ingestChat, simulateMessage, type ChatInput, type ChatResult } from './chat';
@@ -10,6 +9,10 @@ import { WorkflowEngine } from './engine';
 import type { ExternalNoteChange, StudioHost, StudioStorage } from './ports';
 import { adjustRice } from './review';
 import { addEvent, mergeNote, StudioStore } from './studio-store';
+import { addProject, editProject } from './projects';
+import { copySettings, projectPaths, selectProjectState } from '../domain/projects';
+import type { StudioProject } from '../domain/types';
+import { loadProjectSample } from './sample-project';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -25,7 +28,7 @@ export class StudioService {
 
   async start(): Promise<{ invalidNotes: string[] }> {
     const loaded = await this.store.init();
-    if (this.store.snapshot().settings.provider === 'claude') await this.refreshRuntime();
+    if (this.store.snapshot().projects?.some(project => project.settings.provider === 'claude')) await this.refreshRuntime();
     else await this.store.updateRuntime(this.runtimeConfig());
     this.engine.start();
     return loaded;
@@ -43,6 +46,34 @@ export class StudioService {
   sendChat(username: string, text: string): Promise<ChatResult> { return ingestChat(this.store, { username, text, source: 'simulator' }); }
   ingest(input: ChatInput): Promise<ChatResult> { return ingestChat(this.store, input); }
   simulate(): Promise<ChatResult> { return simulateMessage(this.store); }
+
+  createProject(input: unknown): Promise<StudioProject> { return addProject(this.store, input); }
+  async updateProject(input: unknown, id = this.state().activeProjectId!): Promise<StudioProject> {
+    const project = await editProject(this.store, id, input);
+    if (project.settings.provider === 'claude') await this.refreshRuntime();
+    await this.store.updateRuntime(this.runtimeConfig());
+    return project;
+  }
+  async selectProject(id: string): Promise<void> {
+    await this.store.transaction(state => { selectProjectState(state, id); });
+  }
+
+  async applyProjectNoteChange(change: { kind: 'upsert'; project: StudioProject } | { kind: 'remove'; id: string }): Promise<void> {
+    const id = change.kind === 'upsert' ? change.project.id : change.id;
+    const current = this.store.internalSnapshot().projects.find(project => project.id === id);
+    if (change.kind === 'upsert' && JSON.stringify(current) === JSON.stringify(change.project)) return;
+    for (const job of this.state().jobs.filter(job => job.projectId === id && isActiveJob(job))) await this.engine.cancel(job.id);
+    await this.store.transaction(state => {
+      const next = change.kind === 'upsert' ? { ...change.project, settings: { ...change.project.settings, paused: true } }
+        : current ? { ...current, unavailable: true, projectPath: '', allowImplementation: false, settings: { ...current.settings, paused: true } } : null;
+      if (!next) return;
+      const index = state.projects.findIndex(project => project.id === id);
+      if (index === -1) state.projects.push(next); else state.projects[index] = next;
+      state.nextProjectNumber = Math.max(state.nextProjectNumber, Number(id.match(/^CFP-(\d+)$/)?.[1] ?? 0) + 1);
+      if (state.activeProjectId === id) { state.settings = copySettings(next.settings); Object.assign(state.integration, projectPaths(next)); }
+      addEvent(state, 'system', change.kind === 'upsert' ? `Project “${next.settings.projectName}” changed in the vault. Automation is paused for review.` : 'A project note is missing. Restore it before running more work.');
+    });
+  }
 
   async createIdea(input: unknown): Promise<ActionOutcome> {
     const values = newIdeaInput(input);
@@ -67,7 +98,7 @@ export class StudioService {
       ...(parsed.projectBrief === undefined ? {} : { projectBrief: cleanText(parsed.projectBrief, 8000) }),
     };
     const settings = await this.store.transaction(state => {
-      if (patch.provider && patch.provider !== state.settings.provider && state.jobs.some(isActiveJob))
+      if (patch.provider && patch.provider !== state.settings.provider && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
         throw new StudioError('Finish or cancel queued runs before changing the agent provider.', 409);
       state.settings = { ...state.settings, ...patch, automation: { ...state.settings.automation, ...patch.automation } };
       addEvent(state, 'system', patch.paused !== undefined ? `Automation ${patch.paused ? 'paused' : 'resumed'}.` : 'Project settings updated.');
@@ -80,6 +111,11 @@ export class StudioService {
   async updateIntegration(input: unknown): Promise<IntegrationSettings> {
     const patch = integrationPatch(input);
     const integration = await this.store.transaction(state => {
+      if (patch.claudeBin && patch.claudeBin !== state.integration.claudeBin && state.jobs.some(isActiveJob))
+        throw new StudioError('Finish or cancel all project runs before changing the Claude executable.', 409);
+      if ((patch.projectPath !== undefined || patch.worktreeFolder !== undefined || patch.allowImplementation !== undefined)
+        && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
+        throw new StudioError('Finish or cancel this project’s queued runs before editing its repository configuration.', 409);
       if (patch.ideasFolder && patch.ideasFolder !== state.integration.ideasFolder && state.jobs.some(isActiveJob))
         throw new StudioError('Finish or cancel queued runs before moving the ideas folder.', 409);
       state.integration = { ...state.integration, ...patch };
@@ -99,12 +135,8 @@ export class StudioService {
 
   /** Replaces the project with the illustrative sample workspace. Existing idea notes go to the vault trash. */
   async loadSample(): Promise<void> {
-    await this.store.transaction(state => {
-      if (state.jobs.some(isActiveJob)) throw new StudioError('Cancel or finish active and queued jobs before resetting.', 409);
-      const { runtime, integration } = state;
-      Object.assign(state, createSeed(), { runtime, integration, ingestMeta: { processedMessages: [], lastRequests: {} }, manualHolds: [] });
-      delete state.runtime.activeJobId;
-    }, { replaceAll: true });
+    const projectId = this.state().activeProjectId;
+    await this.store.transaction(state => { loadProjectSample(state); }, { replaceAll: true, replaceProjectId: projectId });
   }
 
   /** A readable private snapshot. Increments can contain source code and local paths. */

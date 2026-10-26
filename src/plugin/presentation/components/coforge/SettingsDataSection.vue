@@ -9,7 +9,7 @@ const model = useSettingsForm();
     <div>
       <h2 id="cf-settings-data"><CfIcon name="settings-2" /> Project data</h2>
       <p class="cf-settings-help">
-        Export a snapshot of your ideas, plans, settings, and activity. The JSON file is written to the CoForge plugin folder.
+        Export a private studio backup of all projects, ideas, plans, settings and activity. The JSON file is written to the CoForge plugin folder.
       </p>
     </div>
     <div class="cf-settings-actions">
@@ -30,10 +30,10 @@ const model = useSettingsForm();
       <div>
         <CfIcon name="triangle-alert" size="lg" />
         <span>
-          <strong id="cf-settings-reset-title">Replace the current studio data with the sample workspace?</strong>
+          <strong id="cf-settings-reset-title">Replace this project’s requests with the sample workspace?</strong>
           <p>
             Your current ideas, votes, plans, and run history will be replaced by the illustrative Mosslight project. Existing idea
-            notes are moved to the vault trash, and automation is paused. Export a snapshot first if you want to keep them.
+            notes for this project are moved to the vault trash, and its automation is paused. Other projects and shared chat are kept.
           </p>
         </span>
       </div>

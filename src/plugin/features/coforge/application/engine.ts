@@ -5,14 +5,18 @@ import { assertStage, heuristicSignals, isActiveJob, nextEligible, statusDuring 
 import type { InternalState, StageResult, StageRunner, Timers } from './ports';
 import { applyReview } from './review';
 import { addEvent, type StudioStore } from './studio-store';
+import { findProject, ideaProjectId, projectIdeas, projectPaths, projectSettings } from '../domain/projects';
+import { ideaFingerprint } from '../domain/integrity';
 
-function assertRuntime(state: InternalState, stage: AgentStage): void {
-  if (state.settings.provider !== 'claude') return;
+function assertRuntime(state: InternalState, stage: AgentStage, projectId: string): void {
+  const project = findProject(state, projectId);
+  if (project.unavailable) throw new StudioError('Restore this project note before running agents.', 409);
+  if (projectSettings(state, projectId).provider !== 'claude') return;
   if (!state.runtime.cliAvailable) throw new StudioError('Claude Code CLI is not available. Install it, sign in locally, then check the runtime in CoForge settings.', 409);
-  if (!state.runtime.projectPath && (stage === 'plan' || stage === 'implement'))
-    throw new StudioError('Set the game repository path in the CoForge plugin settings before planning or building.', 409);
-  if (stage === 'implement' && !state.runtime.allowImplementation)
-    throw new StudioError('Real implementation is disabled. Enable it in the CoForge plugin settings after reviewing the integration guide.', 409);
+  if (!project.projectPath && (stage === 'plan' || stage === 'implement'))
+    throw new StudioError('Set this project’s repository path in Project settings before planning or building.', 409);
+  if (stage === 'implement' && !project.allowImplementation)
+    throw new StudioError('Real implementation is disabled. Enable it for this project in Project settings after reviewing the integration guide.', 409);
 }
 
 /** Writes a successful stage result onto the idea. Local injection heuristics always apply to screening. */
@@ -58,7 +62,8 @@ export class WorkflowEngine {
   private controller: AbortController | null = null;
   private activeId: string | null = null;
   private timer: number | null = null;
-  private lastAutomaticTick = 0;
+  private readonly lastAutomaticTick = new Map<string, number>();
+  private lastProjectId: string | null = null;
   private stopped = false;
   constructor(readonly store: StudioStore, private readonly options: EngineOptions) {}
 
@@ -66,9 +71,7 @@ export class WorkflowEngine {
     this.stopped = false;
     if (this.timer) return;
     this.timer = this.options.timers.setInterval(() => {
-      const state = this.store.snapshot();
-      if (state.settings.paused || this.drainPromise || Date.now() - this.lastAutomaticTick < state.settings.intervalSeconds * 1000) return;
-      this.lastAutomaticTick = Date.now();
+      if (this.drainPromise) return;
       void this.tick(false).catch(error => this.report(error));
     }, 750);
   }
@@ -84,18 +87,20 @@ export class WorkflowEngine {
 
   async submit(ideaId: string, stage: AgentStage, automatic = false): Promise<AgentJob> {
     const job = await this.store.transaction(state => {
-      if (automatic && state.settings.paused) throw new StudioError('Automation is paused.', 409);
       const idea = state.ideas.find(i => i.id === ideaId);
       if (!idea) throw new StudioError('Idea not found.', 404);
+      const projectId = ideaProjectId(idea);
+      const settings = projectSettings(state, projectId);
+      if (automatic && settings.paused) throw new StudioError('Automation is paused.', 409);
       assertStage(idea, stage);
       if (state.jobs.some(j => j.ideaId === ideaId && isActiveJob(j))) throw new StudioError('This idea already has a queued or running job.', 409);
       if (state.jobs.filter(j => j.status === 'queued').length >= 50) throw new StudioError('The queue is full. Wait for current work to finish.', 409);
-      assertRuntime(state, stage);
+      assertRuntime(state, stage, projectId);
       delete idea.lastError;
       state.manualHolds = state.manualHolds.filter(id => id !== ideaId);
       const queued: AgentJob = {
-        id: crypto.randomUUID(), ideaId, stage, status: 'queued', provider: state.settings.provider, startedAt: new Date().toISOString(),
-        logs: [`${STAGE_LABELS[stage]} queued for ${ideaId} (${state.settings.provider}).`],
+        id: crypto.randomUUID(), ideaId, projectId, stage, status: 'queued', provider: settings.provider, startedAt: new Date().toISOString(),
+        logs: [`${STAGE_LABELS[stage]} queued for ${ideaId} (${settings.provider}).`],
       };
       state.jobs.push(queued);
       addEvent(state, 'agent', `${STAGE_LABELS[stage]} queued for ${ideaId}.`, ideaId);
@@ -107,9 +112,20 @@ export class WorkflowEngine {
 
   async tick(manual = true): Promise<AgentJob | null> {
     const state = this.store.internalSnapshot();
-    if ((!manual && state.settings.paused) || state.jobs.some(isActiveJob)) return null;
-    const next = nextEligible(state);
-    return next ? this.submit(next.idea.id, next.stage, !manual) : null;
+    if (state.jobs.some(job => isActiveJob(job) && (!manual || job.projectId === state.activeProjectId))) return null;
+    const index = state.projects.findIndex(project => project.id === this.lastProjectId);
+    const projects = manual ? state.projects.filter(project => project.id === state.activeProjectId)
+      : [...state.projects.slice(index + 1), ...state.projects.slice(0, index + 1)];
+    for (const project of projects) {
+      const settings = projectSettings(state, project.id);
+      if (project.unavailable || (!manual && (settings.paused || Date.now() - (this.lastAutomaticTick.get(project.id) ?? 0) < settings.intervalSeconds * 1000))) continue;
+      const next = nextEligible({ ...state, ideas: projectIdeas(state, project.id), settings, jobs: state.jobs.filter(job => job.projectId === project.id) });
+      if (!next) continue;
+      this.lastAutomaticTick.set(project.id, Date.now());
+      this.lastProjectId = project.id;
+      return this.submit(next.idea.id, next.stage, !manual);
+    }
+    return null;
   }
 
   async action(ideaId: string, action: IdeaAction, note = ''): Promise<unknown> {
@@ -161,14 +177,19 @@ export class WorkflowEngine {
       const idea = state.ideas.find(i => i.id === next.ideaId);
       if (!job || job.status !== 'queued') return null;
       if (!idea) throw new Error('The idea was removed before its run started.');
+      const projectId = next.projectId ?? ideaProjectId(idea);
+      if (ideaProjectId(idea) !== projectId) throw new Error('The idea moved to another project before its run started.');
+      assertRuntime(state, job.stage, projectId);
       assertStage(idea, job.stage);
       job.status = 'running'; job.startedAt = new Date().toISOString();
       state.runtime.activeJobId = job.id;
       if (job.stage === 'implement') idea.status = 'building';
       idea.updatedAt = job.startedAt;
-      return { idea: structuredClone(idea), settings: { ...state.settings, provider: job.provider }, integration: { ...state.integration } };
+      return { idea: structuredClone(idea), settings: { ...projectSettings(state, projectId), automation: { ...projectSettings(state, projectId).automation }, provider: job.provider },
+        integration: { ...state.integration, ...projectPaths(findProject(state, projectId)) } };
     });
     if (!snapshot) return;
+    const fingerprint = ideaFingerprint(snapshot.idea);
     const runner = this.options.runners[next.provider];
     const result = await runner({
       stage: next.stage, ...snapshot, signal: controller.signal,
@@ -183,6 +204,8 @@ export class WorkflowEngine {
     await this.store.transaction(state => {
       const job = state.jobs.find(j => j.id === next.id);
       if (!job) throw new Error('The run record disappeared before its result was saved.');
+      const idea = state.ideas.find(item => item.id === job.ideaId);
+      if (!idea || ideaFingerprint(idea) !== fingerprint) throw new Error('The request or its project changed while the run was active. Its result was discarded.');
       applyResult(state, job, result);
     });
   }

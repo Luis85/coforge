@@ -10,7 +10,7 @@ import { CATEGORIES, IDEA_STATUSES, planMarkdown } from './types';
  */
 export const IDEA_MARKER = 'coforge-idea';
 export const OWNED_PROPERTIES = [
-  'type', 'id', 'title', 'category', 'status', 'author', 'author-name', 'votes', 'created', 'updated',
+  'type', 'id', 'coforge-project', 'title', 'category', 'status', 'author', 'author-name', 'votes', 'created', 'updated',
   'screening', 'screening-reason', 'screening-signals', 'screening-checked', 'screening-provider',
   'rice-reach', 'rice-impact', 'rice-confidence', 'rice-effort', 'rice-score', 'rice-rationale',
   'plan-summary', 'plan-steps', 'plan-acceptance', 'plan-risks', 'plan-created', 'review-note', 'last-error',
@@ -22,6 +22,7 @@ export function ideaProperties(idea: Idea, authorName: string): Partial<Record<O
     type: IDEA_MARKER, id: idea.id, title: idea.title, category: idea.category, status: idea.status,
     author: idea.authorId, 'author-name': authorName, votes: idea.voters.length, created: idea.createdAt, updated: idea.updatedAt,
   };
+  if (idea.projectId) p['coforge-project'] = idea.projectId;
   if (idea.screening) Object.assign(p, {
     screening: idea.screening.verdict, 'screening-reason': idea.screening.reason, 'screening-signals': idea.screening.signals,
     'screening-checked': idea.screening.checkedAt, 'screening-provider': idea.screening.provider,
@@ -80,6 +81,7 @@ const items = (max: number) => optional(nullable(list(item, { max })));
 const provider = oneOf(['demo', 'claude'] as const);
 const noteShape = shape({
   type: oneOf([IDEA_MARKER] as const), id: text({ pattern: /^CF-\d{3,7}$/ }), title: text({ trim: true, min: 1, max: 200 }),
+  'coforge-project': optional(text({ min: 1, max: 80, pattern: /^CFP-\d{3,7}$/ })),
   category: oneOf(CATEGORIES), status: oneOf(IDEA_STATUSES), author: text({ min: 3, max: 120, pattern: /^[a-z]+:\S/ }), created: timestamp, updated: timestamp,
   screening: optional(oneOf(['clear', 'flagged'] as const)), 'screening-reason': optional(str), 'screening-signals': items(20),
   'screening-checked': optional(timestamp), 'screening-provider': optional(provider),
@@ -100,6 +102,7 @@ export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'v
     id: p.id, number: Number(p.id.slice(3)), title: cleanLine(p.title, 200) || p.id, description: descriptionFromBody(body, cleanLine(p.title, 200) || p.id), authorId: p.author,
     category: p.category, status: p.status, createdAt: p.created, updatedAt: p.updated,
   };
+  if (p['coforge-project']) idea.projectId = p['coforge-project'];
   if (p.screening) idea.screening = {
     verdict: p.screening, reason: p['screening-reason'] ?? '', signals: p['screening-signals'] ?? [],
     checkedAt: p['screening-checked'] ?? p.updated, provider: p['screening-provider'] ?? 'demo',

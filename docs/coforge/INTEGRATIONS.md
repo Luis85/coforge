@@ -6,8 +6,11 @@ not modify a game. The **Demo agents** / **Claude Code CLI** indicator in the st
 bar shows which provider is selected; every saved increment also records whether it was
 simulated.
 
-All integration settings live in **Settings → Community plugins → CoForge** (the
-prototype's `.env` file). They take effect immediately; no restart is needed.
+Shared integration settings (native CLI executable, Twitch and publishing) live in
+**Settings → Community plugins → CoForge**. Each project's description, repository/worktree
+paths, links and agent configuration live in its **Project settings** in the studio and its
+vault-backed project note. Changes take effect immediately; no restart is needed.
+See [Projects](PROJECTS.md) for IDs and the required `!request <project-id> <idea>` syntax.
 
 ## 1. Connect Claude Code
 
@@ -21,12 +24,13 @@ prototype's `.env` file). They take effect immediately; no restart is needed.
    started with). CLI/provider terms and usage limits apply.
 3. In the CoForge settings tab set **Claude Code executable** (default `claude`; on
    Windows use the native `claude.exe`, not an npm `.cmd` wrapper — CoForge never starts
-   a shell) and **Game repository** (absolute path to a trusted local Git repository).
-4. In **Studio settings** inside the studio, choose **Claude Code** and save, or press
+   a shell). Set the project's absolute workspace path under **Project settings → Agent workspace**.
+   It may be outside the vault. A repository URL is a metadata link, not a clone or initialization action.
+4. In the project's **Studio settings**, choose **Claude Code** and save, or press
    **Check Claude Code**. The check only probes the CLI version; it makes no model call.
 5. Run screening/scoring manually on a harmless idea first. These stages have no tools
    and run in an empty temporary folder. Planning reads the repository.
-6. To allow real game edits, enable **Allow real implementation**. The game must be a
+6. To allow real game edits, enable **Allow real implementation for this project**. The game must be a
    Git repository with at least one commit and a clean working tree.
 
 | Stage  | Filesystem/tool access                                        | Saved result |

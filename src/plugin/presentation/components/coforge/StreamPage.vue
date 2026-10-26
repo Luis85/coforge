@@ -20,7 +20,7 @@ const model = useStreamPage();
         <h2 id="cf-stream-reference-title">Give chat a part in the story.</h2>
         <p>Every contribution has an identity, a history, and a place in the build.</p>
         <div class="cf-command-reference">
-          <code>!request Add a day / night cycle</code>
+          <code>!request &lt;project-id&gt; Add a day / night cycle</code>
           <span>Pitch a feature. Receive an idea ID.</span>
           <code>!vote CF-101</code>
           <span>Support an idea. One vote per viewer.</span>

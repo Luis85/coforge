@@ -36,14 +36,14 @@ describe('chat text sanitizing', () => {
 
   it('applies to chat commands, stored messages, usernames and duplicate detection', async () => {
     const { store } = await emptyStore();
-    expect(await ingestChat(store, { username: 'Ri​ver‮', text: '!re​quest Add a garden​ behind the camp' })).toMatchObject({ ok: true, ideaId: 'CF-001' });
+    expect(await ingestChat(store, { username: 'Ri​ver‮', text: '!re​quest CFP-001 Add a garden​ behind the camp' })).toMatchObject({ ok: true, ideaId: 'CF-001' });
     const [idea] = store.snapshot().ideas;
     expect(idea).toMatchObject({ title: 'Add a garden behind the camp', description: 'Add a garden behind the camp', authorId: 'simulator:river' });
     expect(store.snapshot().contributors.map(person => person.name)).toEqual(['River']);
-    expect(store.snapshot().chat[0]?.text).toBe('!request Add a garden behind the camp');
+    expect(store.snapshot().chat[0]?.text).toBe('!request CFP-001 Add a garden behind the camp');
     expect(store.snapshot().chat[1]?.text).toContain('Hidden or invisible characters were removed');
     expect(await ingestChat(store, { username: 'Alice', text: '!vo‌te CF-001' })).toMatchObject({ ok: true, ideaId: 'CF-001' });
-    expect(await ingestChat(store, { username: 'Bob', text: `!request Add a garden behind the camp${smuggle('hidden')}` })).toMatchObject({ duplicate: true, ideaId: 'CF-001' });
+    expect(await ingestChat(store, { username: 'Bob', text: `!request CFP-001 Add a garden behind the camp${smuggle('hidden')}` })).toMatchObject({ duplicate: true, ideaId: 'CF-001' });
     await expect(ingestChat(store, { username: '​​', text: 'hello' })).rejects.toThrow('username');
     await expect(ingestChat(store, { username: 'Eve', text: '​⁠﻿' })).rejects.toThrow('1–2,000 characters');
   });

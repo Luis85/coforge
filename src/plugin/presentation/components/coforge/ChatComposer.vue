@@ -25,7 +25,7 @@ const model = useChatComposer(emit);
         <input v-model="model.username" aria-label="Simulated viewer name" maxlength="30" required>
       </label>
       <textarea
-        v-model="model.text" aria-label="Chat message" rows="2" placeholder="!request Your next big idea…" maxlength="1200"
+        v-model="model.text" aria-label="Chat message" rows="2" :placeholder="model.requestPlaceholder" maxlength="1800"
         @keydown="model.keydown($event)"
       />
       <div class="cf-chat-composer-footer">

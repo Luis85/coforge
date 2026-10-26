@@ -82,7 +82,7 @@ async function captureIncrement(worktree: string, branch: string, summary: strin
 
 async function prepareWorktree(input: StageInput, root: string, onLog: (message: string) => void): Promise<{ cwd: string; branch: string; pointer: Buffer }> {
   const { idea, integration, signal } = input;
-  if (!integration.allowImplementation) throw new Error('Real implementation is disabled. Enable it in the CoForge plugin settings after reviewing the integration guide.');
+  if (!integration.allowImplementation) throw new Error('Real implementation is disabled. Enable it for this project in Project settings after reviewing the integration guide.');
   if (!idea.plan) throw new Error('An implementation plan is required before building.');
   const top = await realpath((await git(root, ['rev-parse', '--show-toplevel'], signal)).trim());
   await git(top, ['rev-parse', '--verify', 'HEAD'], signal);

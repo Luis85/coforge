@@ -6,12 +6,9 @@ import { cleanText } from '../../features/coforge/domain/sanitize';
 import { parsePersistedStudio, type PersistedStudio } from '../../features/coforge/domain/persisted';
 import { defaultIntegration } from '../../features/coforge/domain/seed';
 import type { Idea } from '../../features/coforge/domain/types';
-
-/** Splits a Markdown note into its YAML frontmatter and body. */
-export function splitNote(content: string): { yaml: string | null; body: string } {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(content);
-  return match ? { yaml: match[1] ?? '', body: content.slice(match[0].length) } : { yaml: null, body: content };
-}
+import { splitNote } from './markdown';
+import { VaultProjects, type ProjectNoteChange } from './vault-projects';
+export { splitNote } from './markdown';
 
 /** Reads an idea from note text, or returns null for notes that are not CoForge ideas. Throws for invalid idea notes. */
 export function readIdeaNote(content: string): NoteIdea | null {
@@ -38,7 +35,11 @@ export class VaultStudioStorage implements StudioStorage {
   /** Fingerprints of note writes not yet echoed back by the metadata cache, per note path. */
   private readonly echoes = new Map<string, string[]>();
   private folder = defaultIntegration().ideasFolder;
-  constructor(private readonly plugin: Plugin) {}
+  private readonly projects: VaultProjects;
+  constructor(private readonly plugin: Plugin) { this.projects = new VaultProjects(plugin); }
+
+  projectFile(id: string): TFile | null { return this.projects.file(id); }
+  watchProjects(onChange: (change: ProjectNoteChange) => void, onInvalid: (path: string) => void): void { this.projects.watch(onChange, onInvalid); }
 
   get dataPath(): string {
     const { manifest, app } = this.plugin;
@@ -58,13 +59,14 @@ export class VaultStudioStorage implements StudioStorage {
         notes.push(idea); this.paths.set(idea.id, file.path);
       } catch { invalidNotes.push(file.path); }
     }
-    return { data, notes, invalidNotes };
+    const { projects, invalid } = await this.projects.load();
+    return { data, notes, projects, invalidNotes: [...invalidNotes, ...invalid] };
   }
 
   async save(next: InternalState, previous: InternalState | null, options: SaveOptions = {}): Promise<void> {
     if (next.integration.ideasFolder !== this.folder) await this.moveFolder(next.integration.ideasFolder);
     const external = new Set(options.fromNotes ?? []);
-    if (options.replaceAll) await this.retireAll();
+    if (options.replaceAll) await this.retireAll(options.replaceProjectId ? previous?.ideas.filter(idea => idea.projectId === options.replaceProjectId).map(idea => idea.id) : undefined);
     const authors = new Map(next.contributors.map(c => [c.id, c.name]));
     for (const idea of next.ideas) {
       if (external.has(idea.id)) continue;
@@ -79,7 +81,9 @@ export class VaultStudioStorage implements StudioStorage {
       if (file) await this.plugin.app.fileManager.trashFile(file);
       this.paths.delete(idea.id);
     }
-    await this.plugin.app.vault.adapter.write(this.dataPath, JSON.stringify(this.persisted(next), null, 2));
+    const rollback = await this.projects.save(next.projects);
+    try { await this.plugin.app.vault.adapter.write(this.dataPath, JSON.stringify(this.persisted(next), null, 2)); }
+    catch (error) { await rollback(); throw error; }
   }
 
   /** Reports edits, deletions and renames of idea notes made in the vault. */
@@ -117,7 +121,7 @@ export class VaultStudioStorage implements StudioStorage {
   private persisted(state: InternalState): PersistedStudio {
     const { ideas } = state;
     return {
-      ...omit(state, 'ideas', 'runtime'),
+      ...omit(state, 'ideas', 'runtime', 'projects'),
       votes: Object.fromEntries(ideas.filter(i => i.voters.length).map(i => [i.id, i.voters])),
       increments: Object.fromEntries(ideas.flatMap(i => i.increment ? [[i.id, i.increment] as const] : [])),
     };
@@ -155,8 +159,8 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   /** Moves every known idea note to the vault trash (reversible). */
-  private async retireAll(): Promise<void> {
-    for (const id of this.paths.keys()) {
+  private async retireAll(ids?: readonly string[]): Promise<void> {
+    for (const id of ids ?? this.paths.keys()) {
       const file = this.file(id);
       this.paths.delete(id);
       if (file) await this.plugin.app.fileManager.trashFile(file);

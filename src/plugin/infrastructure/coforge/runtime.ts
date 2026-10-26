@@ -102,6 +102,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
         change => { void studio.applyNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },
         path => notify(`CoForge ignored an idea note with invalid or duplicate properties: ${path}`, true),
       );
+      storage.watchProjects(
+        change => { void studio.applyProjectNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },
+        path => notify(`CoForge ignored a project note with invalid or duplicate properties: ${path}`, true),
+      );
       stopListening = studio.onIntegrationChange(connectTwitch);
       stopPublishing = syncPublicBoard(studio, publisher, error => { report('coforge.public'); notify(`The viewer board could not be written: ${errorMessage(error)}`, true); });
       connectTwitch(studio.integration());

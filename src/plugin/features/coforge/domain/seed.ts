@@ -75,7 +75,7 @@ const NAMES = ['luna_loop', 'pixelpirate', 'fernfriend', 'bytebloom', 'cozycoder
 const CHAT: Array<{ user: number; text: string; kind: 'message' | 'vote' | 'request'; ideaId?: string }> = [
   { user: 0, text: 'The fox idea is still my favorite. Imagine the little tail wag.', kind: 'message' },
   { user: 2, text: '!vote CF-101', kind: 'vote', ideaId: 'CF-101' },
-  { user: 7, text: '!request Mushrooms that glow at night', kind: 'request', ideaId: 'CF-108' },
+  { user: 7, text: '!request CFP-001 Mushrooms that glow at night', kind: 'request', ideaId: 'CF-108' },
   { user: 5, text: 'Rain ambience + campfire sounds = instant cozy.', kind: 'message' },
   { user: 10, text: '!vote CF-105', kind: 'vote', ideaId: 'CF-105' },
   { user: 1, text: 'Chat, we are actually making a game together.', kind: 'message' },

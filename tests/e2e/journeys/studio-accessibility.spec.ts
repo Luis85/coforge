@@ -14,5 +14,7 @@ test('collapsed studio navigation keeps its visible labels available to assistiv
   const project = sidebar.getByRole('button', { name: /Mosslight.*Community game project/ });
   await expect(project).toBeVisible();
   await project.click();
+  await expect(page.locator('.cf-topbar strong')).toHaveText('Projects');
+  await page.getByRole('button', { name: 'Settings for Mosslight', exact: true }).click();
   await expect(page.locator('.cf-topbar strong')).toHaveText('Settings');
 });

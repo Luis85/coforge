@@ -6,7 +6,7 @@ import { CONTRIBUTOR_COLORS } from './types';
 
 export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: string }>; lastRequests: Record<string, string> }
 /** Everything except the idea notes. Stored as one JSON file in the plugin folder. */
-export interface PersistedStudio extends Omit<AppState, 'ideas' | 'runtime'> {
+export interface PersistedStudio extends Omit<AppState, 'ideas' | 'runtime' | 'projects'> {
   integration: IntegrationSettings; votes: Record<string, string[]>; increments: Record<string, Increment>;
   ingestMeta: IngestMeta; manualHolds: string[]; integrity: Record<string, string>;
 }
@@ -26,8 +26,9 @@ const increment = shape({
 const job: Check<AgentJob> = shape({
   id: str, ideaId: str, stage, status: oneOf(['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const), provider,
   startedAt: timestamp, finishedAt: optional(timestamp), logs: list(str), error: optional(str), costUsd: optional(number({ min: 0 })),
+  projectId: optional(str),
 });
-const settings: Check<Settings> = shape({
+export const settingsCheck: Check<Settings> = shape({
   projectName: str, projectBrief: str, provider,
   automation: shape({ screen: boolean, score: boolean, plan: boolean, implement: boolean }), paused: boolean,
   intervalSeconds: number({ gt: 0 }), minVotes: number({ min: 0 }), maxTurns: number({ gt: 0 }), maxBudgetUsd: number({ gt: 0 }),
@@ -40,6 +41,8 @@ const integration: Check<IntegrationSettings> = shape({
 });
 const persisted: Check<PersistedStudio> = shape({
   version: oneOf([1] as const), nextIdeaNumber: number({ integer: true, gt: 0 }),
+  activeProjectId: optional(str),
+  nextProjectNumber: optional(number({ integer: true, gt: 0 })),
   contributors: list(shape({ id: str, name: str, color: oneOf(CONTRIBUTOR_COLORS), joinedAt: timestamp })),
   chat: list(shape({
     id: str, userId: str, username: str, text: str, createdAt: timestamp, kind: oneOf(['message', 'request', 'vote', 'system', 'error'] as const),
@@ -47,7 +50,7 @@ const persisted: Check<PersistedStudio> = shape({
   })),
   jobs: list(job),
   events: list(shape({ id: str, ideaId: optional(str), type: oneOf(['idea', 'vote', 'agent', 'review', 'system'] as const), text: str, createdAt: timestamp })),
-  settings, integration, votes: dictionary(list(str)), increments: dictionary(increment),
+  settings: settingsCheck, integration, votes: dictionary(list(str)), increments: dictionary(increment),
   ingestMeta: shape({ processedMessages: list(shape({ id: str, ideaId: optional(str) })), lastRequests: dictionary(timestamp) }),
   manualHolds: list(str), integrity: dictionary(str),
 });

@@ -1,10 +1,14 @@
-import { computed, inject, provide, reactive, ref, watch, type InjectionKey } from 'vue';
+import { computed, inject, onBeforeUnmount, provide, reactive, ref, watch, type InjectionKey } from 'vue';
 import { defaultSettings } from '../../../features/coforge/domain/seed';
 import type { Provider, Settings } from '../../../features/coforge/domain/types';
+import type { StudioProject } from '../../../features/coforge/domain/types';
 import { useStudioShell } from './use-studio-app';
+import type { ProjectPaths } from '../../../features/coforge/domain/projects';
+import { validateProjectPath, validateProjectUrl } from '../../../features/coforge/domain/project-note';
 
 /** The studio settings the form edits. Automation switches and pause live on other screens. */
-type SettingsDraft = Pick<Settings, 'projectName' | 'projectBrief' | 'provider' | 'model' | NumberKey>;
+type ProjectLinks = Pick<StudioProject, 'repositoryUrl' | 'websiteUrl'>;
+type SettingsDraft = Pick<Settings, 'projectName' | 'projectBrief' | 'provider' | 'model' | NumberKey> & ProjectPaths & ProjectLinks;
 type NumberKey = 'intervalSeconds' | 'minVotes' | 'requestCooldownSeconds' | 'maxTurns' | 'maxBudgetUsd' | 'timeoutSeconds';
 interface NumberField { key: NumberKey; label: string; min: number; max: number; step: number; integer: boolean; help?: string }
 
@@ -25,7 +29,7 @@ const PROVIDERS: Array<{ value: Provider; icon: string; title: string; text: str
   { value: 'claude', icon: 'bot', title: 'Claude Code CLI', text: 'Real local agent runs using your configured Claude account.' },
 ];
 
-const pick = (settings: Settings): SettingsDraft => ({
+const pick = (settings: Settings): Omit<SettingsDraft, keyof ProjectPaths | keyof ProjectLinks> => ({
   projectName: settings.projectName, projectBrief: settings.projectBrief, provider: settings.provider, model: settings.model,
   intervalSeconds: settings.intervalSeconds, minVotes: settings.minVotes, requestCooldownSeconds: settings.requestCooldownSeconds,
   maxTurns: settings.maxTurns, maxBudgetUsd: settings.maxBudgetUsd, timeoutSeconds: settings.timeoutSeconds,
@@ -41,6 +45,9 @@ function invalidNumber(draft: SettingsDraft): string | null {
 }
 
 function validate(draft: SettingsDraft): string | null {
+  try { validateProjectPath(draft.projectPath); validateProjectPath(draft.worktreeFolder); validateProjectUrl(draft.repositoryUrl, true); validateProjectUrl(draft.websiteUrl); }
+  catch (error) { return error instanceof Error ? error.message : 'Use absolute project paths.'; }
+  if (draft.allowImplementation && !draft.projectPath) return 'Set the project repository before allowing real implementation.';
   if (!draft.projectName.trim() || draft.projectBrief.trim().length < 10 || !draft.model.trim())
     return 'Add a project name, a brief of at least 10 characters, and a Claude model.';
   if (!MODEL_PATTERN.test(draft.model.trim()))
@@ -51,7 +58,10 @@ function validate(draft: SettingsDraft): string | null {
 function createSettings() {
   const shell = useStudioShell();
   const { store, actions } = shell;
-  const persisted = computed(() => pick(store.state?.settings ?? defaultSettings()));
+  const persisted = computed<SettingsDraft>(() => ({ ...pick(store.state?.settings ?? defaultSettings()),
+    projectPath: store.activeProject?.projectPath ?? '', worktreeFolder: store.activeProject?.worktreeFolder ?? '',
+    repositoryUrl: store.activeProject?.repositoryUrl ?? '', websiteUrl: store.activeProject?.websiteUrl ?? '',
+    allowImplementation: store.activeProject?.allowImplementation ?? false }));
   const persistedKey = computed(() => JSON.stringify(persisted.value));
   const draft = reactive<SettingsDraft>({ ...persisted.value });
   const error = ref('');
@@ -61,8 +71,9 @@ function createSettings() {
   watch(persistedKey, () => { Object.assign(draft, persisted.value); });
 
   const dirty = computed(() => JSON.stringify(draft) !== persistedKey.value);
-  watch(dirty, isDirty => { if (isDirty) saved.value = false; });
-  const pending = computed(() => (store.state?.jobs ?? []).some(job => job.status === 'running' || job.status === 'queued'));
+  watch(dirty, isDirty => { store.dirtySettings = isDirty; if (isDirty) saved.value = false; }, { immediate: true });
+  onBeforeUnmount(() => { store.dirtySettings = false; });
+  const pending = computed(() => store.projectJobs.some(job => job.status === 'running' || job.status === 'queued'));
   const runtime = computed(() => store.state?.runtime);
   const lastError = (fallback: string): string => {
     const toast = store.toasts[store.toasts.length - 1];
@@ -74,7 +85,7 @@ function createSettings() {
     const problem = validate(draft);
     if (problem) { error.value = problem; return; }
     const patch: SettingsDraft = { ...draft, projectName: draft.projectName.trim(), projectBrief: draft.projectBrief.trim(), model: draft.model.trim() };
-    if (await actions.changeSettings(patch)) saved.value = true;
+    if (await actions.changeProject(patch, store.state?.activeProjectId)) saved.value = true;
     else error.value = lastError('Settings could not be saved.');
   }
   async function loadSample(): Promise<void> {
@@ -92,6 +103,7 @@ function createSettings() {
     providers: PROVIDERS, rhythm: RHYTHM, limits: LIMITS,
     status: computed(() => saved.value && !dirty.value ? 'saved' : dirty.value ? 'dirty' : 'clean'),
     submit: (event: Event) => { event.preventDefault(); void save(); },
+    discard: () => { Object.assign(draft, persisted.value); error.value = ''; saved.value = false; },
     exportProject: () => { void actions.exportProject(); },
     toggleReset: () => { resetConfirm.value = !resetConfirm.value; },
     keepData: () => { resetConfirm.value = false; },

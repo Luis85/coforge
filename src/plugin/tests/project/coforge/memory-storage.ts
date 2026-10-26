@@ -13,13 +13,15 @@ export function toLoaded(state: AppState | InternalState): LoadedStudio {
   const data: PersistedStudio = {
     version: 1, nextIdeaNumber: state.nextIdeaNumber, contributors: state.contributors, chat: state.chat, jobs: state.jobs, events: state.events,
     settings: state.settings, integration: internal.integration ?? defaultIntegration(),
+    ...(state.activeProjectId ? { activeProjectId: state.activeProjectId } : {}),
+    ...(state.nextProjectNumber ? { nextProjectNumber: state.nextProjectNumber } : {}),
     votes: Object.fromEntries(state.ideas.map(idea => [idea.id, idea.voters])),
     increments: Object.fromEntries(state.ideas.flatMap(idea => idea.increment ? [[idea.id, idea.increment] as const] : [])),
     ingestMeta: internal.ingestMeta ?? { processedMessages: [], lastRequests: {} }, manualHolds: internal.manualHolds ?? [],
     // A seeded state counts as written by CoForge, so its ideas are trusted.
     integrity: internal.integrity ?? Object.fromEntries(state.ideas.map(idea => [idea.id, ideaFingerprint(idea)])),
   };
-  return structuredClone({ data, notes, invalidNotes: [] });
+  return structuredClone({ data, notes, invalidNotes: [], ...(state.projects ? { projects: state.projects } : {}) });
 }
 
 /** In-memory canonical storage for application tests; `reload()` simulates a plugin restart. */

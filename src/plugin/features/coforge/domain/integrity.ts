@@ -20,12 +20,12 @@ function hash(text: string): string {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
 
-export function ideaFingerprint(idea: Pick<Idea, 'title' | 'description' | 'category' | 'status' | 'screening' | 'rice' | 'plan' | 'reviewNote'>): string {
+export function ideaFingerprint(idea: Pick<Idea, 'title' | 'description' | 'category' | 'status' | 'screening' | 'rice' | 'plan' | 'reviewNote' | 'projectId'>): string {
   return hash(JSON.stringify([
     idea.title, idea.description, idea.category, idea.status, idea.screening?.verdict ?? null,
     idea.rice ? [idea.rice.reach, idea.rice.impact, idea.rice.confidence, idea.rice.effort] : null,
     idea.plan ? [idea.plan.summary, idea.plan.steps, idea.plan.acceptanceCriteria, idea.plan.risks] : null,
-    idea.reviewNote ?? null,
+    idea.reviewNote ?? null, ...(idea.projectId ? [idea.projectId] : []),
   ]));
 }
 

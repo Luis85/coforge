@@ -19,7 +19,7 @@ const model = useHelpDialog();
           <span>1</span>
           <div>
             <strong>Let the community pitch.</strong>
-            <p>Use the chat simulator to send <code>!request Add fishing</code>. The idea gets a stable ID, a contributor and its own note.</p>
+            <p>Use the chat simulator to send <code>!request CFP-001 Add fishing</code>, using the project ID shown in Projects. The request keeps that project as its parent.</p>
           </div>
         </li>
         <li>

@@ -1,22 +1,25 @@
 import type { IngestMeta, PersistedStudio } from '../domain/persisted';
 import type {
-  AgentStage, AppState, Idea, ImplementationPlan, Increment, IntegrationSettings, RiceScore, RuntimeInfo, Screening, Settings,
+  AgentStage, AppState, Idea, ImplementationPlan, Increment, IntegrationSettings, RiceScore, RuntimeInfo, Screening, Settings, StudioProject,
 } from '../domain/types';
 
 /** Full in-memory studio state. Only `AppState` is exposed to views. */
 export interface InternalState extends AppState {
+  projects: StudioProject[]; activeProjectId: string; nextProjectNumber: number;
   integration: IntegrationSettings; ingestMeta: IngestMeta; manualHolds: string[];
   /** Fingerprints of the trusted idea content CoForge last wrote (see domain/integrity.ts). */
   integrity: Record<string, string>;
 }
 export type NoteIdea = Omit<Idea, 'voters' | 'increment'>;
 
-export interface LoadedStudio { data: PersistedStudio | null; notes: NoteIdea[]; invalidNotes: string[] }
+export interface LoadedStudio { data: PersistedStudio | null; notes: NoteIdea[]; invalidNotes: string[]; projects?: StudioProject[] }
 export interface SaveOptions {
   /** Ideas whose note already holds the new values (external edits): do not write them back. */
   fromNotes?: readonly string[];
   /** Every idea was replaced (sample workspace): retire all previous notes, even when an ID is reused. */
   replaceAll?: boolean;
+  replaceProjectId?: string;
+  fromProjects?: readonly string[];
 }
 
 /**
