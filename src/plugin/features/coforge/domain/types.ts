@@ -16,6 +16,7 @@ export interface Increment {
   branch?: string; worktree?: string; commit?: string; createdAt: string; simulated: boolean;
 }
 export interface Idea {
+  contexts?: import('./idea-context').IdeaContext[];
   id: string; number: number; title: string; description: string; authorId: string; category: Category; status: IdeaStatus;
   /** Absent only on legacy notes, which migrate to the initial project. */
   projectId?: string;
@@ -27,18 +28,20 @@ export interface Contributor { id: string; name: string; color: ContributorColor
 export type ChatSource = 'simulator' | 'twitch' | 'api';
 export interface ChatMessage {
   id: string; userId: string; username: string; text: string; createdAt: string;
-  kind: 'message' | 'request' | 'vote' | 'system' | 'error'; ideaId?: string; source: ChatSource;
+  kind: 'message' | 'request' | 'context' | 'vote' | 'system' | 'error'; ideaId?: string; source: ChatSource;
   externalId?: string;
   twitchChannelId?: string;
 }
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
+  model?: string;
   id: string; ideaId: string; stage: AgentStage; status: JobStatus; provider: Provider;
   projectId?: string;
   startedAt: string; finishedAt?: string; logs: string[]; error?: string; costUsd?: number;
 }
 export interface Activity { id: string; ideaId?: string; type: 'idea' | 'vote' | 'agent' | 'review' | 'system'; text: string; createdAt: string }
 export interface Settings {
+  stagePrompts?: import('./stage-prompts').StagePrompts;
   agentPrompt: string;
   projectName: string; projectBrief: string; provider: Provider; automation: Record<AgentStage, boolean>; paused: boolean;
   intervalSeconds: number; minVotes: number; maxTurns: number; maxBudgetUsd: number; timeoutSeconds: number; model: string;

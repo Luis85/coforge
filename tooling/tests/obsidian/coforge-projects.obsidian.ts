@@ -94,7 +94,7 @@ describe('CoForge projects in the contained vault', () => {
     expect(id).toBeDefined();
     expect(notes.find(note => note.path.startsWith('CoForge/Ideas/'))?.content).toContain(`coforge-project: ${id}`);
     expect(notes.find(note => note.content.includes('The lunar gate crashes'))?.content).toContain('coforge-kind: bug');
-    await view.getByRole('button', { name: 'Players', exact: true }).click();
+    await view.getByRole('button', { name: 'Viewers', exact: true }).click();
     await view.getByRole('button', { name: /Bug reporter.*simulator:bug reporter/ }).click();
     await browserExpect(view.getByRole('complementary', { name: 'Player details' })).toContainText('Chat-presence minutes');
     await view.getByRole('button', { name: 'Block participation', exact: true }).click();
@@ -120,7 +120,7 @@ describe('CoForge projects in the contained vault', () => {
       streamMessages: [expect.objectContaining({ text: 'Join The Hood with !register', active: false, intervalMinutes: 5 })] });
     await obsidian.reloadPlugin();
     const restored = await obsidian.openView(type!);
-    await restored.getByRole('button', { name: 'Players', exact: true }).click();
+    await restored.getByRole('button', { name: 'Viewers', exact: true }).click();
     await restored.getByRole('button', { name: /Bug reporter.*simulator:bug reporter/ }).click();
     await browserExpect(restored.getByRole('button', { name: 'Unblock participation', exact: true })).toBeVisible();
     await browserExpect(restored.getByRole('complementary', { name: 'Player details' })).toContainText('credits');

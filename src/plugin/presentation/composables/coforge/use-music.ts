@@ -68,6 +68,8 @@ export function useMusic() {
   return reactive({
     store,
     playback,
+    preparedPlaylist: computed(() => store.state.library.playlists.find(item => item.id === store.state.selectedPlaylistId)),
+    playPrepared: () => { const id = store.state.selectedPlaylistId; if (id) void run(service => service.playPlaylist(id)); },
     current,
     title,
     time,

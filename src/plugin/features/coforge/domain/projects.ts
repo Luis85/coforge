@@ -7,7 +7,7 @@ export const PROJECTS_FOLDER = 'CoForge/Projects';
 export type ProjectPaths = Pick<IntegrationSettings, 'projectPath' | 'worktreeFolder' | 'allowImplementation'>;
 export interface ProjectState extends AppState { projects: StudioProject[]; activeProjectId: string; integration: IntegrationSettings }
 
-export const copySettings = (settings: Settings): Settings => ({ ...settings, automation: { ...settings.automation } });
+export const copySettings = (settings: Settings): Settings => ({ ...settings, automation: { ...settings.automation }, ...(settings.stagePrompts ? { stagePrompts: { ...settings.stagePrompts } } : {}) });
 export const projectPaths = (project: ProjectPaths): ProjectPaths => ({
   projectPath: project.projectPath, worktreeFolder: project.worktreeFolder, allowImplementation: project.allowImplementation,
 });

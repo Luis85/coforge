@@ -10,6 +10,7 @@ import { INITIAL_PROJECT_ID, projectIdeas } from './projects';
  */
 export type PublicColumnId = 'inbox' | 'next' | 'progress' | 'done';
 export interface PublicIdea {
+  contexts?: Array<{ author: string; text: string }>;
   id: string; title: string; description: string; category: Category; status: string; column: PublicColumnId;
   votes: number; rice: number | null; author: string; plan: { summary: string; steps: string[] } | null;
 }
@@ -38,6 +39,7 @@ const isPublic = (idea: Idea) => idea.screening?.verdict === 'clear' && COLUMNS.
 export function buildPublicBoard(state: Pick<AppState, 'ideas' | 'contributors' | 'settings' | 'activeProjectId'>, now = new Date()): PublicBoard {
   const names = new Map(state.contributors.map(person => [person.id, person.name]));
   const toPublic = (idea: Idea, column: PublicColumnId): PublicIdea => ({
+    ...(idea.contexts?.length ? { contexts: idea.contexts.map(context => ({ author: context.authorName, text: context.text })) } : {}),
     id: idea.id, title: idea.title, description: idea.description, category: idea.category, status: STATUS_LABELS[idea.status], column,
     votes: new Set(idea.voters).size, rice: idea.rice?.score ?? null, author: names.get(idea.authorId) ?? 'Community member',
     plan: idea.plan ? { summary: idea.plan.summary, steps: [...idea.plan.steps] } : null,

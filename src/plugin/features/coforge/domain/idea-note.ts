@@ -2,6 +2,7 @@ import { CheckError, list, noteTimestamp as timestamp, nullable, number, oneOf, 
 import { cleanDeep, cleanLine, cleanText, defangProperty, escapeMarkdown, unescapeMarkdown } from './sanitize';
 import type { Idea } from './types';
 import { CATEGORIES, IDEA_STATUSES, planMarkdown } from './types';
+import { ideaContextsCheck, contextProperties } from './idea-context';
 
 /**
  * An idea note is canonical for the idea itself: identity, text, category, status and the saved
@@ -10,6 +11,7 @@ import { CATEGORIES, IDEA_STATUSES, planMarkdown } from './types';
  */
 export const IDEA_MARKER = 'coforge-idea';
 export const OWNED_PROPERTIES = [
+  'contexts',
   'type', 'id', 'coforge-project', 'coforge-kind', 'title', 'category', 'status', 'author', 'author-name', 'votes', 'created', 'updated',
   'screening', 'screening-reason', 'screening-signals', 'screening-checked', 'screening-provider',
   'rice-reach', 'rice-impact', 'rice-confidence', 'rice-effort', 'rice-score', 'rice-rationale',
@@ -24,6 +26,7 @@ export function ideaProperties(idea: Idea, authorName: string): Partial<Record<O
   };
   if (idea.projectId) p['coforge-project'] = idea.projectId;
   if (idea.requestKind) p['coforge-kind'] = idea.requestKind;
+  if (idea.contexts?.length) p.contexts = contextProperties(idea.contexts);
   if (idea.screening) Object.assign(p, {
     screening: idea.screening.verdict, 'screening-reason': idea.screening.reason, 'screening-signals': idea.screening.signals,
     'screening-checked': idea.screening.checkedAt, 'screening-provider': idea.screening.provider,
@@ -81,6 +84,7 @@ const item = text({ max: 2000 });
 const items = (max: number) => optional(nullable(list(item, { max })));
 const provider = oneOf(['demo', 'claude'] as const);
 const noteShape = shape({
+  contexts: optional(ideaContextsCheck),
   type: oneOf([IDEA_MARKER] as const), id: text({ pattern: /^CF-\d{3,7}$/ }), title: text({ trim: true, min: 1, max: 200 }),
   'coforge-project': optional(text({ min: 1, max: 80, pattern: /^CFP-\d{3,7}$/ })),
   'coforge-kind': optional(oneOf(['feature', 'bug'] as const)),
@@ -106,6 +110,7 @@ export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'v
   };
   if (p['coforge-project']) idea.projectId = p['coforge-project'];
   if (p['coforge-kind']) idea.requestKind = p['coforge-kind'];
+  if (p.contexts?.length) idea.contexts = p.contexts;
   if (p.screening) idea.screening = {
     verdict: p.screening, reason: p['screening-reason'] ?? '', signals: p['screening-signals'] ?? [],
     checkedAt: p['screening-checked'] ?? p.updated, provider: p['screening-provider'] ?? 'demo',

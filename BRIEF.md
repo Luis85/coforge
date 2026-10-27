@@ -61,6 +61,42 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ## Surfaces (from the design)
 
+### Streaming workspace increment (owner decisions, 2026-10-27)
+
+- Four read-only stream views (Kanban, Twitch chat, leaderboards, community) each have a ribbon icon that
+  opens a detached Obsidian window. Window names remain stable for OBS capture. They expose only an explicit
+  public projection, without private notes, prompts, paths, account IDs, logs, moderation controls or finances.
+  Chat includes live Twitch chat only, never local simulation or private bot diagnostics.
+- AI cost analytics use native USD, separate from the manual EUR finance ledger. Show costs per feature and
+  every task/attempt, retain failures/retries, and distinguish reported, manual and unavailable amounts.
+  Tasks without a reliable provider cost (including Herdr) allow clearly labelled manual entry. Usage cost is
+  not an inferred cash payment, and missing cost is not zero.
+- Each project can edit its Screen/Score/Plan/Build task prompts, starting from defaults, reset individual
+  prompts and preview the assembled dispatch. Store them in the project note alongside the general prompt.
+  Existing tool/output/review execution gates remain authoritative.
+- The stream schedule stays local to CoForge. Each planned stream has an Obsidian-compatible Markdown note
+  for topics, scripts and storyboards, plus date/time, project, Twitch metadata, OBS scene choices and a music
+  playlist. Preparation is explicit; planning never automatically updates a live channel or starts playback/a stream.
+- Render authored Markdown in requests, plans and appropriate long-form fields. Logs, configuration editors
+  and diffs retain their source/code formatting. Rendering must not execute HTML, transclude vault notes or
+  automatically load external media, especially in capture views.
+- `!context CF-123 <details>` lets registered, unrestricted viewers add context to an open request. Context
+  retains author/time, appends without deleting the original request, invalidates previous screening/planning
+  and returns the request to screening automatically. In-flight results for an older request revision cannot apply.
+- `!help` explains the viewer journey, with short follow-up topics for requests, progress and community rules.
+  It is available before registration and respects Twitch's message length limit and configured actor/currency names.
+- Every viewer observed through chat or available chat-presence data receives a private Markdown CRM profile,
+  regardless of game registration. Preserve human annotations/unknown properties; observed fields and game
+  statistics are maintained from their authoritative services. This does not identify anonymous video viewers.
+  Protect private profiles, raw requests/projects, scripts, stream histories, costs/finances and plugin data from
+  accidental Git publication; only the explicitly public export folder is intended for publication.
+- The private studio has independent left-navigation and right-chat collapse controls, with reachable reopen
+  controls and preserved drafts. CoForge's status indicators live in Obsidian's native status bar, not a studio footer.
+- Private Kanban cards provide a keyboard-accessible context menu with currently valid actions. Backend gates
+  remain authoritative; mandatory streamer review is not bypassed. Public capture views remain read-only.
+- After implementation, perform a comprehensive product/UX/accessibility/privacy/reliability/maintenance
+  review, address concrete findings in an improvement/polishing pass, and merge only after checks are green.
+
 - CoForge studio (view, entry): idea board, stream chat, agent workflow, community, studio settings.
 - CoForge settings (native settings tab): ideas folder, Claude Code, Twitch and viewer website.
 - First milestone: reliable Twitch connection, chatbot request/bug intake and replies, channel title/category controls,

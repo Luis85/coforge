@@ -1,0 +1,77 @@
+.ps--coforge .cf-stream-schedule-page {
+  max-width: 1440px;
+}
+.ps--coforge .cf-schedule-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  gap: 32px;
+}
+.ps--coforge .cf-schedule-item {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  width: 100%;
+  height: auto;
+  text-align: start;
+  white-space: normal;
+  border: 1px solid var(--cf-border);
+  background: transparent;
+  border-radius: 10px;
+}
+.ps--coforge .cf-schedule-item[aria-current] {
+  border-color: var(--cf-accent);
+  background: var(--cf-accent-soft);
+}
+.ps--coforge .cf-schedule-item :is(span, small) {
+  color: var(--cf-muted);
+}
+.ps--coforge .cf-schedule-form {
+  display: grid;
+  gap: 20px;
+}
+.ps--coforge .cf-schedule-form :is(h2, h3) {
+  margin: 0;
+}
+.ps--coforge .cf-schedule-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+}
+.ps--coforge .cf-schedule-form small {
+  font-weight: 400;
+  color: var(--cf-muted);
+}
+.ps--coforge .cf-schedule-form :is(input, select) {
+  min-width: 0;
+  width: 100%;
+}
+.ps--coforge .cf-schedule-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.ps--coforge :is(.cf-schedule-script, .cf-schedule-prepare) {
+  margin-top: 32px;
+  border-top: 1px solid var(--cf-border);
+  padding-top: 24px;
+}
+.ps--coforge .cf-schedule-prepare dl {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  overflow-wrap: anywhere;
+}
+.ps--coforge .cf-schedule-prepare dd {
+  margin: 0;
+}
+@container plugin-shell-leaf (max-width: 850px) {
+  .ps--coforge .cf-schedule-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@container plugin-shell-leaf (max-width: 500px) {
+  .ps--coforge .cf-schedule-fields {
+    grid-template-columns: 1fr;
+  }
+}

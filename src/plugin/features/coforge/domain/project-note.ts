@@ -4,6 +4,7 @@ import { defaultSettings } from './seed';
 import { cleanLine, cleanText, defangProperty, escapeMarkdown } from './sanitize';
 import { STAGES, type Settings, type StudioProject } from './types';
 import { settingsPatch } from './inputs';
+import { normalizeStagePrompts } from './stage-prompts';
 
 export const PROJECT_MARKER = 'coforge-project';
 const FIELDS = {
@@ -15,6 +16,7 @@ const FIELDS = {
 export const PROJECT_PROPERTIES = [
   'type', 'id', 'created', 'updated', 'project-path', 'repository-url', 'website-url', 'worktree-folder', 'allow-implementation', ...Object.values(FIELDS),
   ...STAGES.map(stage => `automation-${stage}`),
+  ...STAGES.map(stage => `agent-prompt-${stage}`),
 ];
 const projectId = text({ min: 1, max: 80, pattern: /^CFP-\d{3,7}$/ });
 const path = text({ trim: true, max: 1000 });
@@ -45,11 +47,13 @@ export function projectProperties(project: StudioProject): Record<string, unknow
     result[property] = typeof value === 'string' ? defangProperty(value) : value;
   }
   for (const stage of STAGES) result[`automation-${stage}`] = project.settings.automation[stage];
+  for (const stage of STAGES) if (project.settings.stagePrompts?.[stage]) result[`agent-prompt-${stage}`] = defangProperty(project.settings.stagePrompts[stage] ?? '');
   return result;
 }
 
 export function applyProjectProperties(frontmatter: Record<string, unknown>, project: StudioProject): void {
-  Object.assign(frontmatter, projectProperties(project));
+  const next = projectProperties(project);
+  for (const key of PROJECT_PROPERTIES) { if (key in next) frontmatter[key] = next[key]; else delete frontmatter[key]; }
 }
 
 export function parseProjectNote(value: unknown): StudioProject | null {
@@ -59,8 +63,11 @@ export function parseProjectNote(value: unknown): StudioProject | null {
   const values: Record<string, unknown> = { ...defaults };
   for (const [key, property] of Object.entries(FIELDS)) if (properties[property] !== undefined) values[key] = properties[property];
   values.projectName = cleanLine(text({ min: 1, max: 80 })(values.projectName), 80);
-  values.projectBrief = cleanText(text({ max: 8000 })(values.projectBrief), 8000);
-  values.agentPrompt = cleanText(text({ max: 8000 })(values.agentPrompt), 8000);
+  values.projectBrief = text({ max: 8000 })(cleanText(text({ max: 40000 })(values.projectBrief)));
+  values.agentPrompt = text({ max: 8000 })(cleanText(text({ max: 40000 })(values.agentPrompt)));
+  const prompts: NonNullable<Settings['stagePrompts']> = {};
+  for (const stage of STAGES) { const value = properties[`agent-prompt-${stage}`]; if (value != null) prompts[stage] = text({ max: 8000 })(cleanText(text({ max: 40000 })(value), 8001)); }
+  values.stagePrompts = normalizeStagePrompts(prompts);
   const automation: Record<string, unknown> = { ...defaults.automation };
   for (const stage of STAGES) if (properties[`automation-${stage}`] !== undefined) automation[stage] = properties[`automation-${stage}`];
   const settings: Settings = settingsCheck({ ...values, automation });

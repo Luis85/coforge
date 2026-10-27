@@ -6,6 +6,7 @@ import StreamHistoryPanel from './StreamHistoryPanel.vue';
 import LiveStudioPanel from './LiveStudioPanel.vue';
 import ObsSceneManager from './ObsSceneManager.vue';
 import StreamMusic from './StreamMusic.vue';
+import StreamDisplaysPanel from './StreamDisplaysPanel.vue';
 const model = useBroadcast();
 </script>
 <template>
@@ -106,6 +107,7 @@ const model = useBroadcast();
     <LiveStudioPanel />
     <ObsSceneManager />
     <StreamMusic />
+    <StreamDisplaysPanel />
     <div class="cf-broadcast-preparation">
       <section aria-label="Stream readiness">
         <h2>Readiness</h2>

@@ -3,6 +3,8 @@ import type { ExternalNoteChange, InternalState, LoadedStudio, NoteIdea, SaveOpt
 import { applyIdeaProperties, descriptionFromBody, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, OWNED_PROPERTIES, parseIdeaNote } from '../../features/coforge/domain/idea-note';
 import { omit } from '../../features/coforge/domain/objects';
 import { cleanText } from '../../features/coforge/domain/sanitize';
+import { record } from '../../features/coforge/domain/check';
+import { appendContextBody } from '../../features/coforge/domain/idea-context';
 import { parsePersistedStudio, type PersistedStudio } from '../../features/coforge/domain/persisted';
 import { defaultIntegration } from '../../features/coforge/domain/seed';
 import type { Idea } from '../../features/coforge/domain/types';
@@ -149,12 +151,19 @@ export class VaultStudioStorage implements StudioStorage {
   private async writeIdea(idea: Idea, author: string): Promise<void> {
     const file = this.file(idea.id);
     if (file) this.remember(file.path, idea, author);
+    if (file && idea.contexts?.length) {
+      await this.plugin.app.vault.process(file, current => {
+        const { yaml, body } = splitNote(current); const frontmatter = record(parseYaml(yaml ?? ''));
+        applyIdeaProperties(frontmatter, idea, author);
+        return `---\n${stringifyYaml(frontmatter)}---\n${appendContextBody(body, idea.contexts ?? [])}`;
+      }); return;
+    }
     if (file) { await this.plugin.app.fileManager.processFrontMatter(file, frontmatter => { applyIdeaProperties(frontmatter as Record<string, unknown>, idea, author); }); return; }
     await this.ensureFolder(this.folder);
     let path = normalizePath(`${this.folder}/${ideaFileName(idea)}`);
     for (let n = 2; this.plugin.app.vault.getAbstractFileByPath(path); n++) path = normalizePath(`${this.folder}/${ideaFileName(idea).replace(/\.md$/, ` ${n}.md`)}`);
     this.remember(path, idea, author);
-    const created = await this.plugin.app.vault.create(path, `---\n${stringifyYaml(ideaProperties(idea, author))}---\n${ideaBody(idea)}`);
+    const created = await this.plugin.app.vault.create(path, `---\n${stringifyYaml(ideaProperties(idea, author))}---\n${appendContextBody(ideaBody(idea), idea.contexts ?? [])}`);
     this.paths.set(idea.id, created.path);
   }
 

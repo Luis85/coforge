@@ -11,11 +11,13 @@ import type { StudioProject } from '../domain/types';
 import type { StudioStore } from './studio-store';
 import { addEvent } from './studio-store';
 import { recordOperation } from './population';
+import { normalizeStagePrompts } from '../domain/stage-prompts';
 
 function values(input: unknown) {
   const source = record(input);
   const settings = settingsPatch(omit(source, 'projectPath', 'worktreeFolder', 'allowImplementation', 'repositoryUrl', 'websiteUrl'));
   if (settings.agentPrompt !== undefined) settings.agentPrompt = cleanText(settings.agentPrompt, 8000);
+  if (settings.stagePrompts !== undefined) settings.stagePrompts = normalizeStagePrompts(settings.stagePrompts);
   const paths = {
     ...(source.projectPath === undefined ? {} : { projectPath: validateProjectPath(source.projectPath) }),
     ...(source.worktreeFolder === undefined ? {} : { worktreeFolder: validateProjectPath(source.worktreeFolder) }),
@@ -58,6 +60,7 @@ export async function editProject(store: StudioStore, id: string, input: unknown
   return store.transaction(state => {
     const project = findProject(state, id);
     const previousPrompt = project.settings.agentPrompt;
+    const previousStages = JSON.stringify(project.settings.stagePrompts ?? {});
     if (project.unavailable) throw new StudioError('Restore this project note before editing it.', 409);
     if (state.jobs.some(job => job.projectId === id && isActiveJob(job))) throw new StudioError('Finish or cancel this project’s queued runs before editing its configuration.', 409);
     const settings = { ...project.settings, ...patch.settings, automation: { ...project.settings.automation, ...patch.settings.automation } };
@@ -65,6 +68,7 @@ export async function editProject(store: StudioStore, id: string, input: unknown
     settings.projectBrief = cleanText(settings.projectBrief, 8000);
     Object.assign(project, patch.paths, { settings, updatedAt: new Date().toISOString() });
     if (previousPrompt !== settings.agentPrompt) recordOperation(state, 'project-prompt-updated', 'committed', undefined, 1, project.id);
+    if (previousStages !== JSON.stringify(settings.stagePrompts ?? {})) recordOperation(state, 'project-stage-prompts-updated', 'committed', undefined, 1, project.id);
     if (project.allowImplementation && !project.projectPath) throw new StudioError('Set the project repository before allowing real implementation.');
     if (id === state.activeProjectId) { state.settings = copySettings(project.settings); Object.assign(state.integration, projectPaths(project)); }
     addEvent(state, 'system', `Project “${project.settings.projectName}” updated.`);

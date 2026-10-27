@@ -25,6 +25,24 @@ async function setup(runner: StageRunner = fixture) {
 afterEach(async () => { await Promise.all(engines.splice(0).map(engine => engine.stop())); });
 
 describe('workflow gates and durable execution', () => {
+  it('keeps reported usage cost when a task fails after spending tokens', async () => {
+    const { engine, store } = await setup(async input => { await input.onUsage?.(0.025); throw new Error('Structured output was invalid'); });
+    await engine.submit('CF-107', 'screen'); await engine.waitUntilIdle();
+    expect(store.snapshot().jobs.at(-1)).toMatchObject({ status: 'failed', costUsd: 0.025 });
+  });
+  it('discards a screening result when viewer context changes an already-inbox request', async () => {
+    let finish!: (value: StageResult) => void; let begin!: () => void;
+    const started = new Promise<void>(resolve => { begin = resolve; });
+    const pending = new Promise<StageResult>(resolve => { finish = resolve; });
+    const { store, engine, idea } = await setup(async () => { begin(); return pending; });
+    await registerTestViewers(store, [{ username: 'Context viewer' }]);
+    await engine.submit('CF-107', 'screen'); await started;
+    await ingestChat(store, { username: 'Context viewer', text: '!context CF-107 Add controller support' });
+    finish({ screening: { verdict: 'clear', reason: 'Old request', signals: [], checkedAt: new Date().toISOString(), provider: 'demo' } });
+    await engine.waitUntilIdle();
+    expect(idea('CF-107')?.status).toBe('inbox'); expect(idea('CF-107')?.screening).toBeUndefined();
+    expect(store.snapshot().jobs.at(-1)?.status).toBe('failed');
+  });
   it('cannot skip screening, planning or the final human review', async () => {
     const { engine, idea } = await setup();
     await expect(engine.submit('CF-107', 'implement')).rejects.toThrow('requires');

@@ -4,6 +4,7 @@ export interface TwitchChannel { id: string; login: string; name: string; title:
 export interface TwitchChannelUpdate { title: string; categoryId: string; tags?: string[]; language?: string }
 export interface TwitchAuthorization { role: TwitchRole; userCode: string; verificationUri: string; expiresAt: string }
 export interface TwitchState {
+  connectedAt?: string;
   phase: 'disabled' | 'setup' | 'connecting' | 'connected' | 'reconnecting' | 'error';
   message: string; channel?: TwitchChannel; streamer?: TwitchIdentity; bot?: TwitchIdentity;
   authorization?: TwitchAuthorization; lastError?: string;

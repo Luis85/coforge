@@ -1,7 +1,8 @@
 import type { Timers } from '../../features/coforge/application/ports';
 import { object, assertResponse, TwitchError, type HttpRequest } from './twitch-http';
+import type { ChatRemoval } from '../../features/coforge/domain/chat-removal';
 export type { HttpRequest } from './twitch-http';
-export interface TwitchChatInput { username: string; userId: string; text: string; source: 'twitch'; messageId: string }
+export interface TwitchChatInput { username: string; userId: string; text: string; source: 'twitch'; messageId: string; sentAt?: string }
 export interface TwitchConfig { clientId: string; botUserId: string; broadcasterId: string }
 export interface TwitchSocket {
   onmessage: ((event: MessageEvent) => unknown) | null;
@@ -9,16 +10,18 @@ export interface TwitchSocket {
   onerror: ((event: Event) => unknown) | null;
   close(): void;
 }
-export interface TwitchTransport { request: HttpRequest; socket: (url: string) => TwitchSocket; token: () => Promise<string>; timers: Timers; random?: () => number; onIntakeError?: () => void }
-export interface TwitchConnectionStatus { phase: 'connecting' | 'connected' | 'reconnecting' | 'error'; message: string }
+export interface TwitchTransport { request: HttpRequest; socket: (url: string) => TwitchSocket; token: () => Promise<string>; timers: Timers; random?: () => number; onIntakeError?: () => void; onRemoval?(input: ChatRemoval): Promise<void>; onOwnMessage?(input: TwitchChatInput): Promise<void> }
+export interface TwitchConnectionStatus { phase: 'connecting' | 'connected' | 'reconnecting' | 'error'; message: string; transferred?: boolean }
 const EVENTSUB = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30';
+const CHAT_SUBSCRIPTIONS = ['channel.chat.message', 'channel.chat.message_delete', 'channel.chat.clear_user_messages', 'channel.chat.clear'] as const;
 
 export function parseTwitchNotification(value: unknown): TwitchChatInput | null {
   const frame = object(value); const payload = object(frame.payload); const event = object(payload.event); const message = object(event.message);
   if (object(frame.metadata).message_type !== 'notification' || object(payload.subscription).type !== 'channel.chat.message'
     || typeof event.chatter_user_id !== 'string' || !/^\d+$/.test(event.chatter_user_id) || typeof event.chatter_user_name !== 'string'
     || typeof event.message_id !== 'string' || !event.message_id || typeof message.text !== 'string') return null;
-  return { userId: 'twitch:' + event.chatter_user_id, username: event.chatter_user_name.slice(0, 80), text: message.text.slice(0, 4000), source: 'twitch', messageId: event.message_id.slice(0, 200) };
+  const sentAt = object(frame.metadata).message_timestamp;
+  return { userId: 'twitch:' + event.chatter_user_id, username: event.chatter_user_name.slice(0, 80), text: message.text.slice(0, 4000), source: 'twitch', messageId: event.message_id.slice(0, 200), ...(typeof sentAt === 'string' && Number.isFinite(Date.parse(sentAt)) ? { sentAt } : {}) };
 }
 function reconnectUrl(raw: unknown): string | null {
   if (typeof raw !== 'string') return null;
@@ -34,7 +37,7 @@ export function startTwitch(config: TwitchConfig, transport: TwitchTransport, on
   const closing = new WeakSet<TwitchSocket>();
   const clear = (connection?: Connection) => { if (connection?.timer !== undefined) transport.timers.clearTimeout(connection.timer); };
   const close = (connection?: Connection) => { if (!connection) return; clear(connection); closing.add(connection.ws); try { connection.ws.close(); } catch { /* Already closed. */ } };
-  const status = (phase: TwitchConnectionStatus['phase'], message: string) => { if (!stopped) onStatus({ phase, message }); };
+  const status = (phase: TwitchConnectionStatus['phase'], message: string, transferred?: boolean) => { if (!stopped) onStatus({ phase, message, ...(transferred ? { transferred } : {}) }); };
   function stop() {
     stopped = true; generation++;
     if (retryTimer !== undefined) transport.timers.clearTimeout(retryTimer);
@@ -92,24 +95,35 @@ export function startTwitch(config: TwitchConfig, transport: TwitchTransport, on
         keepalive = Math.max(10, Math.min(600, typeof session.keepalive_timeout_seconds === 'number' ? session.keepalive_timeout_seconds : 30)) * 1000;
         arm(keepalive + 1500);
         if (!transferred) {
+          for (const type of CHAT_SUBSCRIPTIONS) {
           const response = await transport.request({ url: 'https://api.twitch.tv/helix/eventsub/subscriptions', method: 'POST',
             headers: { Authorization: 'Bearer ' + token, 'Client-Id': config.clientId, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'channel.chat.message', version: '1', condition: { broadcaster_user_id: config.broadcasterId, user_id: config.botUserId }, transport: { method: 'websocket', session_id: session.id } }) });
+            body: JSON.stringify({ type, version: '1', condition: { broadcaster_user_id: config.broadcasterId, user_id: config.botUserId }, transport: { method: 'websocket', session_id: session.id } }) });
           assertResponse(response);
           if (!current()) return;
           const subscriptions = object(response.json).data;
           const subscription = object(Array.isArray(subscriptions) ? subscriptions[0] : undefined);
           if (typeof subscription.id !== 'string' || !subscription.id || subscription.status !== 'enabled')
             throw new TwitchError('service', 'Twitch did not confirm the chat subscription.');
+          }
         } else { const old = active; active = connection; replacement = undefined; close(old); }
-        attempts = 0; status('connected', 'Twitch chat connected');
+        attempts = 0; status('connected', 'Twitch chat connected', transferred);
       } else if (kind === 'session_keepalive') { if (connection.welcomed) arm(keepalive + 1500); }
       else if (kind === 'notification' && connection.welcomed) {
         arm(keepalive + 1500);
         const input = parseTwitchNotification(parsed);
         const condition = object(object(payload.subscription).condition);
-        if (input && object(payload.event).broadcaster_user_id === config.broadcasterId
-          && (!condition.user_id || condition.user_id === config.botUserId) && input.userId !== 'twitch:' + config.botUserId) await onMessage(input).catch(() => transport.onIntakeError?.());
+        const event = object(payload.event); const type = object(payload.subscription).type;
+        if (event.broadcaster_user_id === config.broadcasterId && (!condition.user_id || condition.user_id === config.botUserId) && transport.onRemoval && type !== 'channel.chat.message') {
+          const messageId = typeof event.message_id === 'string' && /^[a-z0-9-]{1,200}$/i.test(event.message_id) ? event.message_id : undefined;
+          const userId = typeof event.target_user_id === 'string' && /^\d+$/.test(event.target_user_id) ? event.target_user_id : undefined;
+          if (type === 'channel.chat.clear' || type === 'channel.chat.message_delete' && messageId || type === 'channel.chat.clear_user_messages' && userId)
+            await transport.onRemoval({ channelId: config.broadcasterId, type: type === 'channel.chat.clear' ? 'all' : type === 'channel.chat.message_delete' ? 'message' : 'user', ...(messageId ? { messageId } : {}), ...(userId ? { userId } : {}), ...(typeof object(frame.metadata).message_timestamp === 'string' ? { at: String(object(frame.metadata).message_timestamp) } : {}) }).catch(() => { transport.onIntakeError?.(); throw new TwitchError('service', 'Chat moderation could not be saved. Public chat is paused until the connection recovers.'); });
+        }
+        if (input && object(payload.event).broadcaster_user_id === config.broadcasterId && (!condition.user_id || condition.user_id === config.botUserId)) {
+          if (input.userId === 'twitch:' + config.botUserId) await transport.onOwnMessage?.(input).catch(() => transport.onIntakeError?.());
+          else await onMessage(input).catch(() => transport.onIntakeError?.());
+        }
       } else if (kind === 'session_reconnect' && connection === active && !replacement) {
         const next = reconnectUrl(session.reconnect_url);
         if (!next) { retry(); return; }

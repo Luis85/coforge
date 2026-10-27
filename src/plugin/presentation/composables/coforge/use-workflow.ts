@@ -109,6 +109,7 @@ export function useWorkflow() {
     },
     cancel: (jobId: string) => perform(() => actions.cancelJob(jobId)),
     openIdea: (ideaId: string) => store.select(ideaId),
+    editPrompt: (stage: AgentStage) => { store.promptStage = stage; store.navigate('settings'); },
     toggleExpanded: () => { expanded.value = !expanded.value; },
   });
 }

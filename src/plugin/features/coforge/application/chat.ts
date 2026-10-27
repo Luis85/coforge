@@ -1,4 +1,5 @@
-import { HELP_TEXT, identity, parseCommand } from '../domain/commands';
+import { identity, parseCommand } from '../domain/commands';
+import { viewerHelp } from '../domain/viewer-help';
 import { StudioError } from '../domain/errors';
 import { buildCommunity } from '../domain/recognition';
 import { cleanLine, cleanText, comparable, displayName, meaningful, sanitizeText } from '../domain/sanitize';
@@ -10,8 +11,10 @@ import { findProject, projectIdeas } from '../domain/projects';
 import { observePlayer, participationProblem, recordOperation, registerPlayer } from './population';
 import { playerRank, playerRestricted } from '../domain/population';
 import { achievedRank } from '../domain/community-environment';
+import { addRequestContext } from './request-context';
+import { contextEventId } from '../domain/integrity';
 
-export interface ChatInput { username: string; userId?: string; text: string; source?: ChatSource; messageId?: string; channelId?: string }
+export interface ChatInput { username: string; userId?: string; text: string; source?: ChatSource; messageId?: string; channelId?: string; sentAt?: string }
 export interface ChatResult { ok: boolean; message: string; ideaId?: string; duplicate?: boolean }
 type Person = Pick<ChatInput, 'username' | 'userId' | 'source'>;
 
@@ -127,6 +130,13 @@ export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<Ch
     if (source === 'twitch' && input.channelId && input.channelId !== state.integration.twitchBroadcasterId)
       return { ok: false, message: 'The channel changed before this event was processed.' };
     const messageKey = input.messageId ? `${source}:${input.messageId}` : undefined;
+    const removals = state.ingestMeta.chatRemovals;
+    if (source === 'twitch' && removals && removals.channelId === input.channelId) {
+      const sentAt = input.sentAt && Number.isFinite(Date.parse(input.sentAt)) ? Date.parse(input.sentAt) : Date.now();
+      const viewer = (input.userId ?? '').replace(/^twitch:/, ''); const userClear = removals.users.find(user => user.id === viewer)?.at;
+      if (input.messageId && removals.messages.includes(input.messageId) || removals.clearAt && sentAt <= Date.parse(removals.clearAt) || userClear && sentAt <= Date.parse(userClear))
+        return { ok: true, duplicate: true, message: 'A removed Twitch message was not replayed.' };
+    }
     const seen = messageKey ? state.ingestMeta.processedMessages.find(m => m.id === messageKey) : undefined;
     if (seen) { recordOperation(state, 'duplicate-event', 'none'); return { ok: true, duplicate: true, ...(seen.ideaId ? { ideaId: seen.ideaId } : {}), message: 'This chat event was already processed.' }; }
     const userId = ensureContributor(state, { ...input, source });
@@ -141,13 +151,14 @@ export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<Ch
     recordOperation(state, 'message-observed', 'committed', userId);
     const chat: ChatMessage = { id: crypto.randomUUID(), userId, username: input.username.trim(), text, createdAt: now, kind: 'message', source };
     let result: ChatResult = { ok: true, message: 'Message received.' };
-    const problem = ['request', 'bug', 'vote'].includes(parsed.type) ? participationProblem(state, userId) : null;
+    const problem = ['request', 'bug', 'context', 'vote'].includes(parsed.type) ? participationProblem(state, userId) : null;
     if (parsed.type === 'register') result = registerPlayer(state, userId, now);
     else if (problem) { result = { ok: false, message: problem }; chat.kind = 'error'; recordOperation(state, 'participation-rejected', 'none', userId); }
     else if (parsed.type === 'request' || parsed.type === 'bug') { result = request(state, { ...input, source }, userId, parsed.projectId, parsed.text, now, parsed.type === 'bug' ? 'bug' : 'feature'); chat.kind = result.ok ? 'request' : 'error'; }
     else if (parsed.type === 'vote') { result = addVote(state, parsed.ideaId, { ...input, source }); chat.kind = result.ok ? 'vote' : 'error'; if (result.ok && !result.duplicate) recordOperation(state, 'vote-counted', 'committed', userId); }
+    else if (parsed.type === 'context') { result = addRequestContext(state, parsed.ideaId, parsed.text, userId, username, now, messageKey ? contextEventId(messageKey) : undefined); chat.kind = result.ok ? 'context' : 'error'; }
     else if (parsed.type === 'invalid') { result = { ok: false, message: parsed.message }; chat.kind = 'error'; }
-    else if (parsed.type === 'help') result.message = HELP_TEXT;
+    else if (parsed.type === 'help') result.message = viewerHelp(parsed.topic ?? 'start', state.population.environment, state.population.rules);
     else if (parsed.type === 'status') result = status(state, parsed.ideaId);
     else if (parsed.type === 'me') result.message = me(state, userId, input.username);
     else if (parsed.type === 'ranks') {

@@ -6,7 +6,6 @@ function escape(value) { return value.replaceAll('&', '&amp;').replaceAll('<', '
 export function assemble({ javascript, css, projectBytes, title }) {
   if (!javascript.trim()) throw new Error('Compiled JavaScript is empty');
   if (!title || title.length > 160 || /[\r\n]/.test(title)) throw new Error('Use a single-line title of at most 160 characters');
-  if (javascript.includes('<!--')) throw new Error('Escape/remove HTML comment sequences from compiled JavaScript');
   new vm.Script(javascript, { filename: 'compiled-prototype.js' }); // syntax only; no execution
   if (/\bimport\s*\(/.test(javascript)) throw new Error('Dynamic imports must be inlined');
   if (/sourceMappingURL\s*=/.test(javascript)) throw new Error('Remove sourceMappingURL from delivery JS');
@@ -21,10 +20,14 @@ export function assemble({ javascript, css, projectBytes, title }) {
   const cssIssues = checkCss(css);
   if (cssIssues.length) throw new Error(cssIssues.join('; '));
   if (/<\/style/i.test(css)) throw new Error('CSS contains an HTML style closing sequence');
-  const js = javascript.replace(/<\/script/gi, '<\\/script');
+  // HTML's script tokenizer treats comment/script tokens inside JS literals specially. Keep the trusted
+  // bundle out of that tokenizer entirely; a tiny hashed bootstrap installs its exact decoded text via DOM.
+  // Both scripts remain individually hash-authorized. No eval, script src, unsafe-inline or extra origin is allowed.
+  const encoded = Buffer.from(javascript, 'utf8').toString('base64');
+  const js = `(()=>{const b=atob("${encoded}");const s=document.createElement("script");s.textContent=new TextDecoder().decode(Uint8Array.from(b,c=>c.charCodeAt(0)));document.body.appendChild(s)})();`;
   new vm.Script(js);
-  const scriptHash = Buffer.from(sha256(js), 'hex').toString('base64');
-  const policy = `default-src 'none'; script-src 'sha256-${scriptHash}'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`;
+  const scriptHashes = [js, javascript].map(code => `'sha256-${Buffer.from(sha256(code), 'hex').toString('base64')}'`).join(' ');
+  const policy = `default-src 'none'; script-src ${scriptHashes}; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src 'none'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`;
   const data = JSON.stringify({ encoding: 'base64', sha256: sha256(projectBytes), content: projectBytes.toString('base64') });
   const html = `<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="Content-Security-Policy" content="${escape(policy)}"><title>${escape(title)}</title><style>${css}</style></head><body><div id="prototype-app"${owner}></div><script id="prototype-project-data" type="application/json">${data}</script><script>${js}</script></body></html>\n`;
   const issues = checkHtml(html);

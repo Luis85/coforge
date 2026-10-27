@@ -3,6 +3,7 @@ import type { Idea } from '../../../features/coforge/domain/types';
 import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
 import { useIdeaPlan } from '../../composables/coforge/use-idea-plan';
 import CfIcon from './CfIcon.vue';
+import MarkdownBody from './MarkdownBody.vue';
 
 const props = defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
@@ -20,11 +21,11 @@ const plan = useIdeaPlan(props);
           <CfIcon name="copy" size="sm" /> Copy Markdown
         </button>
       </div>
-      <p class="cf-idea-body">{{ idea.plan.summary }}</p>
+      <MarkdownBody class="cf-idea-body" :source="idea.plan.summary" />
       <ol class="cf-idea-plan-steps">
         <li v-for="(step, index) in idea.plan.steps" :key="index">
           <span>{{ index + 1 }}</span>
-          <p>{{ step }}</p>
+          <MarkdownBody :source="step" />
         </li>
       </ol>
     </section>
@@ -33,14 +34,14 @@ const plan = useIdeaPlan(props);
       <ul class="cf-idea-check-list">
         <li v-for="(criterion, index) in idea.plan.acceptanceCriteria" :key="index">
           <span class="cf-idea-check-box" aria-hidden="true" />
-          <span>{{ criterion }}</span>
+          <MarkdownBody :source="criterion" />
         </li>
       </ul>
     </section>
     <section v-if="idea.plan.risks.length > 0" class="cf-idea-section">
       <h3><CfIcon name="circle-alert" /> Assumptions & risks</h3>
       <ul class="cf-idea-list">
-        <li v-for="(risk, index) in idea.plan.risks" :key="index">{{ risk }}</li>
+        <li v-for="(risk, index) in idea.plan.risks" :key="index"><MarkdownBody :source="risk" /></li>
       </ul>
     </section>
     <p class="cf-idea-help">{{ plan.savedLabel }}</p>

@@ -40,6 +40,7 @@
   "dependencies": {
     "@faker-js/faker": "10.6.0",
     "@nuxt/ui": "4.12.0",
+    "marked": "17.0.6",
     "pinia": "4.1.0",
     "vue": "3.5.44",
     "vue-i18n": "11.4.16",
@@ -129,7 +130,8 @@
     "test:e2e:framework": "playwright test --config configs/testing/playwright.config.ts",
     "test:ui-quality": "playwright test tests/e2e/ui-quality.spec.ts",
     "test:project": "node tooling/testing/suites.mjs project && npm run test:ui-effects",
-    "verify:artifacts": "npm run build && npm run test:ui-effects",
+    "verify:artifacts": "npm run build && npm run test:ui-effects && npm run test:prototype-embedding",
+    "test:prototype-embedding": "node --test tests/clickdummy-embedding.test.mjs",
     "verify:project": "npm run check && npm run verify:artifacts"
   },
   "allowScripts": {

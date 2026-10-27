@@ -1,15 +1,17 @@
 import type { ChatSource } from './types';
 import { ideaIdFor } from './types';
+import { helpTopic, type ViewerHelpTopic } from './viewer-help';
 
 export type ParsedCommand =
   | { type: 'request' | 'bug'; projectId: string; text: string }
   | { type: 'projects'; page: number }
   | { type: 'ranks'; page: number }
   | { type: 'vote'; ideaId: string }
+  | { type: 'context'; ideaId: string; text: string }
   | { type: 'status'; ideaId: string }
   | { type: 'me' }
   | { type: 'register' }
-  | { type: 'help' }
+  | { type: 'help'; topic?: ViewerHelpTopic }
   | { type: 'message' }
   | { type: 'invalid'; message: string };
 
@@ -24,6 +26,11 @@ function ideaReference(value: string): string | null {
 export function parseCommand(text: string): ParsedCommand {
   const value = text.trim();
   if (/^!register\s*$/i.test(value)) return { type: 'register' };
+  if (/^!context(?:\s|$)/i.test(value)) {
+    const match = /^!context\s+(\S+)\s+([\s\S]+)$/i.exec(value);
+    const ideaId = match?.[1] ? ideaReference(match[1]) : null; const context = match?.[2]?.trim() ?? '';
+    return ideaId && context.length >= 3 && context.length <= 1500 ? { type: 'context', ideaId, text: context } : { type: 'invalid', message: 'Use !context CF-101 Your extra details (3–1,500 characters).' };
+  }
   if (/^!ranks(?:\s|$)/i.test(value)) {
     const match = /^!ranks(?:\s+([1-9]\d?))?$/i.exec(value);
     return match ? { type: 'ranks', page: Number(match[1] ?? 1) } : { type: 'invalid', message: 'Use !ranks or !ranks 2 for another page.' };
@@ -44,7 +51,12 @@ export function parseCommand(text: string): ParsedCommand {
     const ideaId = ideaReference(value.replace(/^!vote\s*/i, ''));
     return ideaId ? { type: 'vote', ideaId } : { type: 'invalid', message: 'Use !vote CF-101 (one idea ID per vote).' };
   }
-  if (/^!help\s*$/i.test(value)) return { type: 'help' };
+  if (/^!help(?:\s|$)/i.test(value)) {
+    const match = /^!help(?:\s+(\S+))?\s*$/i.exec(value);
+    if (match && !match[1]) return { type: 'help' };
+    const topic = match?.[1] ? helpTopic(match[1]) : null;
+    return topic ? { type: 'help', topic } : { type: 'invalid', message: 'Use !help, !help requests, !help progress or !help community (also !help 1–4).' };
+  }
   if (/^!me\s*$/i.test(value)) return { type: 'me' };
   if (/^!status(?:\s|$)/i.test(value)) {
     const ideaId = ideaReference(value.replace(/^!status\s*/i, ''));
@@ -60,5 +72,3 @@ export function identity(input: { username: string; userId?: string; source?: Ch
   const cleanId = id.startsWith(`${source}:`) ? id.slice(source.length + 1) : id;
   return `${source}:${source === 'simulator' ? cleanId.toLocaleLowerCase('en-US') : cleanId}`;
 }
-
-export const HELP_TEXT = '!register: join The Hood · !projects: project IDs · !request CFP-001 Your feature idea (5-minute cooldown) · !bug CFP-001 Describe the bug · !vote CF-101 · !status CF-101 · !me: player stats · !ranks: rank ladder. Register before requests, bugs or votes.';

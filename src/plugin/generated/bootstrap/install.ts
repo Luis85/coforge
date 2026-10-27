@@ -17,10 +17,12 @@ import { configureSourceProviders } from './source-providers.ts';
 import { mountProject } from './mount.ts';
 import { createCoforgeRuntime } from '../../infrastructure/coforge/runtime.ts';
 import { registerCoforgeCommands } from '../../infrastructure/coforge/commands.ts';
-export async function initializeProject(plugin: Plugin) {
+export async function initializeProject(plugin: Plugin, isCurrent: () => boolean = () => true) {
   const shell = await createServices(nativeAdapters(plugin));
+  if (!isCurrent()) { shell.dispose(); return { dispose: shell.dispose }; }
   // The CoForge studio supplies its own header; use the host adapter's owned-view preference.
   if (!shell.preferences.current.hideObsidianViewHeader) await shell.preferences.update({ hideObsidianViewHeader: true });
+  if (!isCurrent()) { shell.dispose(); return { dispose: shell.dispose }; }
   const coforge = createCoforgeRuntime(plugin, code => shell.diagnostics.report(code, 'coforge.runtime'), shell.logger);
   let sources: ReturnType<typeof createSources>;
   let providers: ReturnType<typeof configureSourceProviders> | undefined;
@@ -91,7 +93,7 @@ export async function initializeProject(plugin: Plugin) {
     stopCommands = bindCommands(plugin,debugCommands,key=>shell.i18n.global.t(key),shell.diagnostics);
     stopEvents = bindHostEvents(plugin,shell.hostEvents,shell.diagnostics,shell.scheduler);
     registerCoforgeCommands(plugin, coforge.studio, coforge.host);
-    plugin.app.workspace.onLayoutReady(() => { void coforge.start().catch(() => shell.diagnostics.report('coforge.start','studio.start')); });
+    plugin.app.workspace.onLayoutReady(() => { if (!disposed && isCurrent()) void coforge.start().catch(() => shell.diagnostics.report('coforge.start','studio.start')); });
     return {dispose};
   } catch (error) { dispose(); throw error; }
 }

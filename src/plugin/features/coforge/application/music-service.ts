@@ -154,6 +154,16 @@ export class MusicService implements MusicActions {
       await this.playCurrent();
     });
   }
+  selectPlaylist(id: string): Promise<void> {
+    return this.command(async () => {
+      await this.read();
+      const playlist = this.state.library.playlists.find(item => item.id === id);
+      if (!playlist?.tracks.length || playlist.tracks.some(id => !this.state.library.tracks.some(track => track.id === id)))
+        throw new Error('Choose a saved playlist with available tracks.');
+      this.state.selectedPlaylistId = id;
+      await this.event('music-playlist-selected');
+    });
+  }
   private async playCurrent(): Promise<void> {
     const id = this.state.playback.queue[this.state.playback.index];
     if (!id || !this.state.library.tracks.some((track) => track.id === id))

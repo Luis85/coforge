@@ -61,21 +61,20 @@ export function usePopulation() {
     }
     const names = new Map(state?.contributors.map((person) => [person.id, person.name]));
     return (state?.population?.players ?? [])
-      .filter((player) => player.registeredAt)
       .map((player) => {
         const rank = achievedRank(player.xp, environment);
         return {
           ...player,
           name: names.get(player.id) ?? player.id,
           rank: rank.position,
-          rankName: rank.name,
+          rankName: player.registeredAt ? rank.name : 'Not registered',
           rankProgress: rank.next
             ? `${Math.max(0, rank.next.minimumXp - player.xp)} XP to ${rank.next.name}`
             : "Highest configured rank",
           twitchId: /^twitch:\d+$/.test(player.id) ? player.id.slice(7) : "",
           minutes: Math.floor(player.presenceSeconds / 60),
           lastSeen: new Date(player.lastSeenAt).toLocaleString(),
-          registered: new Date(player.registeredAt!).toLocaleString(),
+          registered: player.registeredAt ? new Date(player.registeredAt).toLocaleString() : 'Not registered',
           ...(stats.get(player.id) ?? { features: 0, bugs: 0, votes: 0, accepted: 0 }),
         };
       })
@@ -104,7 +103,7 @@ export function usePopulation() {
               ? "Twitch muted"
               : player.twitchId && !restriction
                 ? "Twitch unchecked"
-                : "Active",
+                : player.registeredAt ? "Active" : 'Unregistered',
       restrictionChecked: restriction ? new Date(restriction.checkedAt).toLocaleString() : "Not checked",
     };
   };
@@ -112,6 +111,8 @@ export function usePopulation() {
     profiles.value.filter((player) => {
       if (!`${player.name} ${player.id}`.toLowerCase().includes(query.value.toLowerCase())) return false;
       if (filter.value === "all") return true;
+      if (filter.value === 'registered') return Boolean(player.registeredAt);
+      if (filter.value === 'unregistered') return !player.registeredAt;
       const current = timed(player);
       return filter.value === "blocked"
         ? player.blocked
@@ -231,6 +232,12 @@ export function usePopulation() {
     confirmation,
     rows: computed(() => filtered.value.slice(page.value * 50, page.value * 50 + 50).map(timed)),
     total: computed(() => profiles.value.length),
+    registeredTotal: computed(() => profiles.value.filter(player => player.registeredAt).length),
+    canOpenNote: computed(() => Boolean(host.viewerNotes && selected.value?.twitchId)),
+    openNote: () => { if (selected.value && host.viewerNotes) void run(() => host.viewerNotes!.open(selected.value!.id)); },
+    refreshNotes: () => { if (host.viewerNotes) void run(() => host.viewerNotes!.refresh(), 'Private viewer note sync requested.'); },
+    notesStatus: computed(() => { void now.value; return host.viewerNotes?.status(); }),
+    notesAvailable: Boolean(host.viewerNotes),
     matching: computed(() => filtered.value.length),
     pages: computed(() => Math.max(1, Math.ceil(filtered.value.length / 50))),
     coins: computed(() => profiles.value.reduce((total, player) => total + player.coins, 0)),

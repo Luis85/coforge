@@ -12,6 +12,8 @@ import CommunitySettingsView from './CommunitySettingsView.vue';
 import BroadcastView from './BroadcastView.vue';
 import StreamStatisticsView from './StreamStatisticsView.vue';
 import FinanceView from './FinanceView.vue';
+import AICostsView from './AICostsView.vue';
+import ScheduleView from './ScheduleView.vue';
 import HelpDialog from './HelpDialog.vue';
 import IdeaBoard from './IdeaBoard.vue';
 import IdeaDrawer from './IdeaDrawer.vue';
@@ -20,7 +22,6 @@ import PipelineStrip from './PipelineStrip.vue';
 import SettingsView from './SettingsView.vue';
 import StreamPage from './StreamPage.vue';
 import StudioSidebar from './StudioSidebar.vue';
-import StudioStatusbar from './StudioStatusbar.vue';
 import StudioTopbar from './StudioTopbar.vue';
 import ToastStack from './ToastStack.vue';
 import WorkflowView from './WorkflowView.vue';
@@ -29,7 +30,7 @@ import ProjectsView from './ProjectsView.vue';
 const model = useStudioApp();
 </script>
 <template>
-  <div class="cf-studio" :class="`cf-view-${model.shell.store.view}`">
+  <div :ref="model.bindRoot" class="cf-studio" :class="[`cf-view-${model.shell.store.view}`, { 'is-navigation-collapsed': model.shell.store.leftPanelCollapsed, 'is-chat-expanded': model.shell.store.view === 'board' && !model.shell.store.rightPanelCollapsed }]">
     <div v-if="!model.shell.state" class="cf-startup-screen" role="status">
       <BrandMark />
       <h1>CoForge</h1>
@@ -43,7 +44,7 @@ const model = useStudioApp();
       </template>
     </div>
     <template v-else>
-      <StudioSidebar />
+      <StudioSidebar :id="`${model.shell.store.layoutId}-navigation`" v-show="!model.shell.store.leftPanelCollapsed" />
       <div class="cf-main">
         <StudioTopbar />
         <div class="cf-workspace-body">
@@ -56,6 +57,8 @@ const model = useStudioApp();
             <BroadcastView v-else-if="model.shell.store.view === 'broadcast'" />
             <StreamStatisticsView v-else-if="model.shell.store.view === 'statistics'" />
             <FinanceView v-else-if="model.shell.store.view === 'finance'" />
+            <AICostsView v-else-if="model.shell.store.view === 'ai-costs'" />
+            <ScheduleView v-else-if="model.shell.store.view === 'schedule'" />
             <WorkflowView v-else-if="model.shell.store.view === 'workflow'" />
             <ProjectsView v-else-if="model.shell.store.view === 'projects'" />
             <CommunityView v-else-if="model.shell.store.view === 'community'" />
@@ -64,9 +67,8 @@ const model = useStudioApp();
             <CommunitySettingsView v-else-if="model.shell.store.view === 'community-settings'" />
             <SettingsView v-else />
           </main>
-          <ChatPanel v-if="model.shell.store.view === 'board'" />
+          <ChatPanel v-if="model.shell.store.view === 'board'" :id="`${model.shell.store.layoutId}-chat`" :full="model.shell.store.narrowLayout" v-show="!model.shell.store.rightPanelCollapsed" />
         </div>
-        <StudioStatusbar />
       </div>
       <ActiveJobDock v-if="model.shell.store.activeJob && model.shell.store.view === 'board'" />
       <ActivityPopover v-if="model.shell.store.activityOpen" />

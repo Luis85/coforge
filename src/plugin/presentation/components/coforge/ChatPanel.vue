@@ -47,6 +47,8 @@ const model = useChatPanel();
       <p><code>{{ model.requestExample }}</code></p>
       <p><code>!bug &lt;project-id&gt; Describe the bug</code></p>
       <p><code>!vote CF-101</code></p>
+      <p><code>!context CF-101 Extra details</code> appends context and returns an open request to screening.</p>
+      <p><code>!help</code> explains the system; add <code>requests</code>, <code>progress</code> or <code>community</code> for more.</p>
       <p><code>!status CF-101</code> · <code>!me</code></p>
       <p>
         Project IDs are required for requests and bugs. Twitch uses each viewer’s account ID; duplicate events are ignored.

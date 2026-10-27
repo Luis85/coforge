@@ -2,6 +2,7 @@
 import type { Idea } from '../../../features/coforge/domain/types';
 import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
 import CfIcon from './CfIcon.vue';
+import MarkdownBody from './MarkdownBody.vue';
 
 defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
@@ -20,7 +21,7 @@ const drawer = useIdeaDrawerContext();
         <CfIcon name="code" /> What changed
         <span v-if="idea.increment.simulated" class="cf-badge">Demo</span>
       </h3>
-      <p class="cf-idea-body">{{ idea.increment.summary }}</p>
+      <MarkdownBody class="cf-idea-body" :source="idea.increment.summary" />
       <div v-if="idea.increment.branch" class="cf-idea-code-meta" title="Branch">
         <CfIcon name="git-branch" size="sm" />
         <span class="cf-sr-only">Branch</span>
@@ -43,7 +44,7 @@ const drawer = useIdeaDrawerContext();
     <section class="cf-idea-section">
       <h3><CfIcon name="flask-conical" /> Verification notes</h3>
       <ul v-if="idea.increment.tests.length" class="cf-idea-list">
-        <li v-for="(test, index) in idea.increment.tests" :key="index">{{ test }}</li>
+          <li v-for="(test, index) in idea.increment.tests" :key="index"><MarkdownBody :source="test" /></li>
       </ul>
       <p v-else class="cf-idea-help">No test results were reported. Verify the increment in the game project before accepting it.</p>
     </section>

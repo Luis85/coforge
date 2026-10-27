@@ -1,5 +1,6 @@
 import { boolean, number, oneOf, optional, shape, text } from './check';
 import { CATEGORIES } from './types';
+import { stagePromptsCheck } from './stage-prompts';
 
 const username = text({ trim: true, min: 1, max: 50 });
 
@@ -20,6 +21,7 @@ export const riceInput = shape({
 }, { strict: true });
 
 export const settingsPatch = shape({
+  stagePrompts: optional(stagePromptsCheck),
   agentPrompt: optional(text({ trim: true, max: 8000 })),
   projectName: optional(text({ trim: true, min: 1, max: 80 })), projectBrief: optional(text({ trim: true, min: 10, max: 8000 })),
   provider: optional(oneOf(['demo', 'claude'] as const)),

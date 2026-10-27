@@ -2,7 +2,7 @@ import type { ChatResult } from '../../../features/coforge/application/chat';
 import type { AgentJob, Category, IdeaAction, IntegrationSettings, RiceScore, Settings } from '../../../features/coforge/domain/types';
 import { STAGE_LABELS } from '../../../features/coforge/domain/types';
 import { useCoforge } from '../../context/coforge-context';
-import { useStudioStore } from '../../stores/coforge-studio';
+import { useStudioStore, type IdeaDrawerTab } from '../../stores/coforge-studio';
 import { ideaProjectId } from '../../../features/coforge/domain/projects';
 
 const ACTION_MESSAGES: Partial<Record<IdeaAction, string>> = {
@@ -31,10 +31,10 @@ export function useStudioActions() {
     selectProject,
     createProject: (input: unknown) => attempt(() => studio.createProject(input), 'Project added. Its automation starts paused.'),
     changeProject: (input: unknown, id?: string) => attempt(() => studio.updateProject(input, id), 'Project settings saved.'),
-    openIdea: async (id: string) => {
+    openIdea: async (id: string, tab: IdeaDrawerTab = 'overview') => {
       const idea = store.state?.ideas.find(item => item.id === id);
       if (idea && ideaProjectId(idea) !== store.state?.activeProjectId && !(await selectProject(ideaProjectId(idea)))) return false;
-      store.select(id); return true;
+      store.select(id, tab); return true;
     },
     changeSettings: (patch: Partial<Settings>) => attempt(() => studio.updateSettings(patch)),
     takeAction: (id: string, action: IdeaAction, note?: string) =>

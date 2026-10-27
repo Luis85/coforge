@@ -73,14 +73,14 @@ export function registerPlayer(
 }
 export function participationProblem(state: InternalState, id: string): string | null {
   const player = state.population.players.find((player) => player.id === id);
-  if (!player?.registeredAt) return "Register with !register before requesting features, reporting bugs or voting.";
+  if (!player?.registeredAt) return "Register with !register before requesting features, adding context, reporting bugs or voting. Use !help to learn how The Hood works.";
   return playerRestricted(player, state.integration.twitchBroadcasterId)
     ? "Your participation is restricted. Contact the streamer."
     : null;
 }
 export function blockPlayer(state: InternalState, id: string, blocked: boolean): void {
-  const player = state.population.players.find((player) => player.id === id && player.registeredAt);
-  if (!player) throw new StudioError("Registered player not found.");
+  const player = state.population.players.find((player) => player.id === id);
+  if (!player) throw new StudioError("Observed viewer not found.");
   if (player.blocked === blocked) return;
   player.blocked = blocked;
   recordOperation(state, blocked ? "blocked" : "unblocked", "committed", id);

@@ -28,6 +28,7 @@ export interface MusicActions {
   savePlaylist(playlist: MusicPlaylist): Promise<void>;
   openMetadata(trackId: string): Promise<void>;
   playPlaylist(id: string): Promise<void>;
+  selectPlaylist?(id: string): Promise<void>;
   pause(): Promise<void>;
   resume(): Promise<void>;
   stop(): Promise<void>;
