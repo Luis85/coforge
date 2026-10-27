@@ -7,19 +7,23 @@ const model = usePopulation();
   <div class="cf-population-page">
     <header class="cf-page-heading">
       <div>
-        <h1>Players</h1>
-        <p>{{ model.total }} registered · {{ model.coins.toLocaleString() }} {{ model.currencyName }} in circulation</p>
+        <h1>Viewers and players</h1>
+        <p>{{ model.total }} observed · {{ model.registeredTotal }} registered · {{ model.coins.toLocaleString() }} {{ model.currencyName }} in circulation</p>
       </div>
+      <button v-if="model.notesAvailable" type="button" class="cf-btn cf-btn-secondary" :disabled="model.working" @click="model.refreshNotes()">Refresh viewer notes</button>
     </header>
     <p class="cf-population-tracking" role="status">{{ model.tracking }}</p>
+    <p v-if="model.notesStatus" class="cf-population-tracking">Private notes: {{ model.notesStatus.saved }} synced · {{ model.notesStatus.pending }} pending<span v-if="model.notesStatus.failed"> · sync needs attention; review vault access or duplicate identities, then refresh</span>.</p>
     <div class="cf-population-toolbar">
       <label class="cf-field"
-        ><span>Find a player</span><input v-model="model.query" type="search" placeholder="Name or player ID"
+        ><span>Find a viewer</span><input v-model="model.query" type="search" placeholder="Name or viewer ID"
       /></label>
       <label class="cf-field"
-        ><span>Player status</span
+        ><span>Viewer status</span
         ><select v-model="model.filter">
-          <option value="all">All registered players</option>
+          <option value="all">All observed viewers</option>
+          <option value="registered">Registered players</option>
+          <option value="unregistered">Not registered</option>
           <option value="active">Active</option>
           <option value="blocked">CoForge blocked</option>
           <option value="muted">Twitch muted</option>
@@ -28,11 +32,10 @@ const model = usePopulation();
       >
     </div>
     <p v-if="!model.total" class="cf-population-empty">
-      No registered players yet. Viewers join with <code>!register</code>. Existing contributors keep their history and
-      register explicitly.
+      No viewers have been observed yet. Twitch chat and available chat-presence data populate this directory. Viewers join the game with <code>!register</code>.
     </p>
     <div v-else class="cf-population-layout">
-      <section class="cf-player-list" aria-label="Registered players">
+      <section class="cf-player-list" aria-label="Viewer directory">
         <div class="cf-data-scroll" tabindex="0" role="region" aria-label="Player table">
           <table class="cf-idea-table">
             <thead>

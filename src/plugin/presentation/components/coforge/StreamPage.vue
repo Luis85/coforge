@@ -13,11 +13,13 @@ const model = useStreamPage();
       <ChatPanel full />
       <div class="cf-stream-reference"><TwitchChannelControls />
         <details class="cf-command-reference"><summary>Viewer commands</summary>
+          <code>!help</code><span>Learn how The Hood works. Topics: requests, progress and community.</span>
           <code>!projects</code><span>List project IDs.</span>
           <code>!register</code><span>Join The Hood before requesting, reporting bugs or voting.</span>
           <code>!ranks</code><span>See named ranks and their XP thresholds.</span>
           <code>!request &lt;project-id&gt; Describe the feature</code><span>Create a feature request.</span>
           <code>!bug &lt;project-id&gt; Describe the bug</code><span>Report a bug.</span>
+          <code>!context CF-101 Extra details</code><span>Add context and return an open request to screening.</span>
           <code>!vote CF-101</code><span>One vote per viewer and request.</span>
           <code>!status CF-101</code><span>Check a request.</span><code>!me</code><span>Check your contributions.</span>
         </details>

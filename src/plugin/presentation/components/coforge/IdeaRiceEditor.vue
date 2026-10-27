@@ -3,6 +3,7 @@ import type { Idea } from '../../../features/coforge/domain/types';
 import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
 import { useIdeaRiceEditor } from '../../composables/coforge/use-idea-rice-editor';
 import CfIcon from './CfIcon.vue';
+import MarkdownBody from './MarkdownBody.vue';
 
 const props = defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
@@ -31,7 +32,7 @@ const rice = useIdeaRiceEditor(props);
       <b aria-hidden="true">=</b>
       <div class="cf-idea-rice-total"><strong>{{ rice.score }}</strong><span>RICE</span></div>
     </div>
-    <p class="cf-idea-rationale">{{ idea.rice.rationale }}</p>
+    <MarkdownBody class="cf-idea-rationale" :source="idea.rice.rationale" />
     <p class="cf-idea-help">
       Reach estimates distinct players over 30 days. Effort is in person-days. Votes express community interest; they do not
       replace the reach estimate.

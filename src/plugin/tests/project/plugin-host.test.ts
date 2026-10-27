@@ -24,11 +24,14 @@ it('loads in Obsidian, opens its workbench, toggles debug logging and unloads wi
   await vi.waitFor(() => expect(app.workspace.getLeavesOfType(`${manifest.id}-view-project-workbench`)).toHaveLength(1));
   const [leaf] = app.workspace.getLeavesOfType(`${manifest.id}-view-project-workbench`);
   await vi.waitFor(() => expect(leaf?.view.containerEl.querySelector('.generated-workbench')).not.toBeNull());
+  expect(leaf?.view.containerEl.querySelector('.cf-statusbar')).toBeNull();
+  expect(kit.app.statusBarEl.querySelectorAll('.coforge-native-statusbar')).toHaveLength(1);
 
   expect(await kit.runCommand('debug-toggle')).toBe(true);
   expect(kit.notices.map(notice => notice.message)).toContain('Debug logging enabled for this session.');
 
   await kit.unloadPlugin(plugin);
+  expect(kit.app.statusBarEl.querySelectorAll('.coforge-native-statusbar')).toHaveLength(0);
   expect(kit.commands()).toEqual([]);
   for (const [path, content] of Object.entries(files)) expect(kit.read(path)).toBe(content);
   expect(kit.errors).toEqual([]);

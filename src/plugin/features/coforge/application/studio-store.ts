@@ -7,6 +7,10 @@ import { assemble, enforceIntegrity } from './studio-state';
 import { prepareStudioCommit } from './commit-policies';
 import { StudioEvents, type StudioEventListener, type StudioEventSink } from './studio-events';
 import { defaultObsSettings } from '../domain/obs';
+import { streamSurfaceSnapshot } from '../domain/stream-surfaces';
+import { viewerNoteProfiles } from '../domain/viewer-notes';
+import { collectCostTasks } from '../domain/ai-cost-snapshot';
+import type { HerdrRecord } from '../domain/herdr';
 export { addEvent, assemble, enforceIntegrity, mergeNote } from './studio-state';
 type Listener = (state: AppState) => void | Promise<void>;
 
@@ -15,11 +19,17 @@ export class StudioStore {
   private state: InternalState | null = null;
   private pending: Promise<unknown> = Promise.resolve();
   private readonly listeners = new Set<Listener>();
+  private readonly changeListeners = new Set<() => void>();
   private revision = 0;
   private readonly events: StudioEvents;
   constructor(private readonly storage: StudioStorage, sink?: StudioEventSink, private readonly observerFailed: () => void = () => {}) { this.events = new StudioEvents(sink, observerFailed); }
   subscribeEvents(listener: StudioEventListener): () => void { return this.events.subscribe(listener); }
-  disposeObservers(): void { this.events.dispose(); this.listeners.clear(); }
+  disposeObservers(): void { this.events.dispose(); this.listeners.clear(); this.changeListeners.clear(); }
+  subscribeChanges(listener: () => void): () => void { this.changeListeners.add(listener); return () => { this.changeListeners.delete(listener); }; }
+  streamSurfaceSnapshot(liveSince: number, projectId?: string) { return streamSurfaceSnapshot(this.current(), { channelId: this.current().integration.twitchBroadcasterId, liveSince, projectId }); }
+  nativeStatusSnapshot() { const state = this.current(); return { twitch: state.runtime.twitch?.phase, running: state.jobs.filter(job => job.status === 'running').length, queued: state.jobs.filter(job => job.status === 'queued').length }; }
+  viewerNotesSnapshot(ids?: ReadonlySet<string>) { return viewerNoteProfiles(this.current(), ids); }
+  aiCostSnapshot(records: readonly HerdrRecord[]) { return collectCostTasks(this.current(), records); }
 
   async init(): Promise<{ invalidNotes: string[] }> {
     let loaded: LoadedStudio;
@@ -55,7 +65,7 @@ export class StudioStore {
   internalSnapshot(): InternalState { return structuredClone(this.current()); }
   integrationSnapshot(): InternalState['integration'] { return { ...this.current().integration }; }
   liveChatSnapshot() {
-    const state = this.current(); return { phase: state.runtime.twitch?.phase,
+    const state = this.current(); return { phase: state.runtime.twitch?.phase, connectedAt: state.runtime.twitch?.connectedAt,
       messages: state.population.counters['twitch-message-observed'] ?? 0,
       commands: state.population.counters['twitch-command-observed'] ?? 0 };
   }
@@ -110,8 +120,7 @@ export class StudioStore {
     try { const result = listener(snapshot); if (result) void result.catch(() => this.reportObserverFailure()); } catch { this.reportObserverFailure(); }
   }
   private emit(): void {
-    if (!this.listeners.size) return;
-    const snapshot = this.snapshot();
-    for (const listener of this.listeners) this.deliverState(listener, snapshot);
+    if (this.listeners.size) { const snapshot = this.snapshot(); for (const listener of this.listeners) this.deliverState(listener, snapshot); }
+    for (const listener of this.changeListeners) { try { listener(); } catch { this.reportObserverFailure(); } }
   }
 }

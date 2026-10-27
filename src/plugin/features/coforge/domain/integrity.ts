@@ -19,13 +19,16 @@ function hash(text: string): string {
   h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
+/** Stable event identity for idempotent note appends, including a retry after a partial storage failure. */
+export const contextEventId = (key: string): string => `ctx-${hash(key)}`;
 
-export function ideaFingerprint(idea: Pick<Idea, 'title' | 'description' | 'category' | 'status' | 'screening' | 'rice' | 'plan' | 'reviewNote' | 'projectId' | 'requestKind'>): string {
+export function ideaFingerprint(idea: Pick<Idea, 'title' | 'description' | 'category' | 'status' | 'screening' | 'rice' | 'plan' | 'reviewNote' | 'projectId' | 'requestKind' | 'contexts'>): string {
   return hash(JSON.stringify([
     idea.title, idea.description, idea.category, idea.status, idea.screening?.verdict ?? null,
     idea.rice ? [idea.rice.reach, idea.rice.impact, idea.rice.confidence, idea.rice.effort] : null,
     idea.plan ? [idea.plan.summary, idea.plan.steps, idea.plan.acceptanceCriteria, idea.plan.risks] : null,
     idea.reviewNote ?? null, ...(idea.projectId ? [idea.projectId] : []), ...(idea.requestKind === 'bug' ? ['bug'] : []),
+    ...(idea.contexts?.length ? [idea.contexts] : []),
   ]));
 }
 

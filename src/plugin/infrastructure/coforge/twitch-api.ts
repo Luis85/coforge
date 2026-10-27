@@ -153,12 +153,15 @@ export class TwitchApi implements ChatSenderPort, PlayerModerationPort, LivePres
     return { id: stream.id, startedAt: stream.started_at };
   }
   async chatters(): Promise<string[]> {
-    const channel = this.config().twitchBroadcasterId; const users = new Set<string>(); let after = '';
+    return (await this.chattersProfiles()).map(profile => profile.id);
+  }
+  async chattersProfiles(): Promise<Array<{ id: string; name: string }>> {
+    const channel = this.config().twitchBroadcasterId; const users = new Map<string, string>(); let after = '';
     for (let page = 0; page < 20; page++) {
       const response = await this.call('streamer', ['moderator:read:chatters'], 'GET', 'chat/chatters', { broadcaster_id: channel, moderator_id: channel, first: '1000', ...(after ? { after } : {}) });
-      for (const value of snapshot(response)) { const id = object(value).user_id; if (typeof id !== 'string' || !numeric(id)) throw new TwitchError('service', 'Twitch returned an incomplete chat-presence snapshot.'); users.add(`twitch:${id}`); }
+      for (const value of snapshot(response)) { const row = object(value); const id = row.user_id; if (typeof id !== 'string' || !numeric(id)) throw new TwitchError('service', 'Twitch returned an incomplete chat-presence snapshot.'); users.set(`twitch:${id}`, typeof row.user_name === 'string' ? row.user_name : typeof row.user_login === 'string' ? row.user_login : 'Twitch viewer'); }
       const cursor = object(object(response.json).pagination).cursor;
-      if (typeof cursor !== 'string' || !cursor) return [...users];
+      if (typeof cursor !== 'string' || !cursor) return [...users].map(([id, name]) => ({ id, name }));
       if (cursor === after) break; after = cursor;
     }
     throw new TwitchError('service', 'Chat-presence snapshot exceeds the supported page limit. No time was credited.');

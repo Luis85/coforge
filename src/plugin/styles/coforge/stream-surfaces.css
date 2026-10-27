@@ -1,0 +1,155 @@
+.cf-stream-surface {
+  --cf-border: var(--background-modifier-border);
+  --cf-surface: var(--background-secondary);
+  --cf-muted: var(--text-muted);
+  color: var(--text-normal);
+  background: var(--background-primary);
+  font: 16px/1.55 var(--font-interface);
+  padding: 24px;
+  min-height: 100%;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+  container: coforge-stream / inline-size;
+}
+.cf-stream-surface header {
+  margin-block-end: 24px;
+}
+.cf-stream-surface h1 {
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+.cf-stream-surface h2 {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+.cf-stream-surface h3 {
+  font-size: 18px;
+  margin: 12px 0;
+}
+.cf-stream-surface p {
+  margin: 8px 0;
+}
+.cf-stream-kanban {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+.cf-stream-kanban > section {
+  min-width: 0;
+}
+.cf-stream-kanban article {
+  padding: 16px;
+  border: 1px solid var(--cf-border);
+  border-radius: var(--radius-m);
+  margin-block-end: 14px;
+}
+.cf-stream-kanban article > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cf-stream-chat {
+  list-style: none;
+  padding: 0;
+}
+.cf-stream-chat li {
+  padding-block: 12px;
+  border-block-end: 1px solid var(--cf-border);
+}
+.cf-stream-chat p {
+  white-space: pre-wrap;
+}
+.cf-stream-leaders {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.cf-stream-leaders ol {
+  padding-inline-start: 1.5em;
+}
+.cf-stream-leaders li {
+  padding: 10px 0;
+}
+.cf-stream-leaders li span {
+  display: block;
+}
+.cf-stream-community {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 0;
+  list-style: none;
+}
+.coforge-stream-window .view-header,
+.coforge-stream-window .workspace-tab-header-container,
+.coforge-stream-window .workspace-ribbon,
+.coforge-stream-window .status-bar,
+.coforge-stream-window .titlebar-text {
+  display: none !important;
+}
+.coforge-stream-window.coforge-stream-blocked > :not(.cf-stream-curtain) {
+  display: none !important;
+}
+.cf-stream-curtain {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  padding: 32px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  z-index: 2147483647;
+  font: 18px/1.6 var(--font-interface);
+}
+.cf-stream-curtain[hidden] {
+  display: none;
+}
+.cf-stream-view-content {
+  padding: 0;
+  overflow: auto;
+}
+.cf-stream-displays {
+  padding-block: 24px;
+  border-block: 1px solid var(--cf-border);
+  margin-block: 24px;
+}
+.cf-stream-displays > summary {
+  font-size: 17px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.cf-stream-displays:not([open]) > :not(summary) {
+  display: none;
+}
+.cf-stream-display-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-block: 20px;
+}
+.cf-stream-display-list code {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-block: 8px;
+}
+.cf-stream-display-preview {
+  padding-top: 20px;
+  border-top: 1px solid var(--cf-border);
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-stream-display-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@container coforge-stream (max-width: 850px) {
+  .cf-stream-kanban,
+  .cf-stream-leaders {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container coforge-stream (max-width: 450px) {
+  .cf-stream-kanban,
+  .cf-stream-leaders {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

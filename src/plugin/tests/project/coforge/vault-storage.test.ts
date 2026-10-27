@@ -30,6 +30,26 @@ async function open(existing?: { kit: TestApp; app: App }, files: Record<string,
 const ideaNotes = (kit: TestApp) => kit.app.vault.getMarkdownFiles().filter(file => file.path.startsWith('CoForge/Ideas/'));
 
 describe('idea notes in the vault', () => {
+  it('appends viewer context once while keeping original request/body bytes and unrelated properties', async () => {
+    const { kit, app, studio } = await open();
+    await studio.sendChat('River', '!request CFP-001 Add a garden behind the camp');
+    const file = ideaNotes(kit)[0]!;
+    await kit.app.vault.process(file, value => value + 'My storyboard stays here.\r\n');
+    await kit.app.fileManager.processFrontMatter(file, properties => { properties.custom = 'keep'; });
+    await flushObsidian();
+    const before = splitNote(kit.read(file.path)).body;
+    await studio.sendChat('Alice', '!context CF-101 Add **controller** support');
+    await flushObsidian();
+    const after = splitNote(kit.read(file.path)).body;
+    expect(after.startsWith(before)).toBe(true); expect(after).toContain('Context from Alice');
+    expect(readIdeaNote(kit.read(file.path))?.contexts).toMatchObject([{ authorName: 'Alice', text: 'Add **controller** support' }]);
+    await studio.vote('CF-101'); await flushObsidian();
+    expect(kit.read(file.path).match(/<!-- coforge-context:/g)).toHaveLength(1);
+    expect(kit.read(file.path)).toContain('custom: keep');
+    await studio.stop(); const restarted = await open({ app, kit });
+    expect(restarted.studio.state().ideas[0]?.contexts).toHaveLength(1);
+    expect(splitNote(kit.read(file.path)).body.startsWith(before)).toBe(true);
+  });
   it('starts empty and writes nothing to the vault until an idea exists', async () => {
     const { kit, studio } = await open(undefined, { 'Welcome.md': '# Hello\n' });
     expect(studio.state().ideas).toEqual([]);

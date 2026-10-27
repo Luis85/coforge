@@ -39,7 +39,7 @@ for (const theme of ['dark', 'light']) {
     await send(page, '!request CFP-001 A lantern by the new bridge'); await expect(page.getByLabel('Chat message', { exact: true })).toHaveValue('');
     await send(page, '!request CFP-001 A little garden by the new bridge');
     await expect(page.getByLabel('Chat message', { exact: true })).toHaveValue('!request CFP-001 A little garden by the new bridge');
-    await page.getByRole('button', { name: 'Players', exact: true }).click();
+    await page.getByRole('button', { name: 'Viewers', exact: true }).click();
     await page.getByRole('button', { name: /Riley.*simulator:riley/ }).click();
     await expect(page.getByRole('complementary', { name: 'Player details' })).toContainText('Feature cooldown:');
     await page.getByRole('button', { name: 'Block participation', exact: true }).click();

@@ -25,6 +25,17 @@ import { LocalHerdrGateway } from './herdr-gateway';
 import { HerdrStateStorage } from './herdr-storage';
 import { FinanceService } from '../../features/coforge/application/finance-service';
 import { VaultFinance } from './finance-storage';
+import { PublicStreamSource } from '../../features/coforge/application/stream-surface-source';
+import { registerStreamViews } from './stream-views';
+import { mountNativeStatusbar } from './native-statusbar';
+import { protectPrivateData } from './private-data-guard';
+import { ViewerNoteRecorder } from '../../features/coforge/application/viewer-note-recorder';
+import { VaultViewerNotes } from './vault-viewer-notes';
+import { AICostService } from '../../features/coforge/application/ai-cost-service';
+import { ScheduleService } from '../../features/coforge/application/schedule-service';
+import { StreamPlanPreparation } from '../../features/coforge/application/schedule-preparation';
+import { VaultSchedule } from './vault-schedule';
+import { VaultAICosts } from './ai-cost-storage';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -61,6 +72,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
   const publisher = new PublicSitePublisher(plugin);
+  const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
+  const stopStatusbar = mountNativeStatusbar(plugin, studio.store, () => notify('CoForge could not open its studio view.', true));
+  const streamSource = new PublicStreamSource(studio.store);
+  const streamViews = registerStreamViews(plugin, projectId => { const scoped = new PublicStreamSource(studio.store, projectId); scoped.start(); return { source: scoped.asPort(), dispose: () => scoped.dispose() }; }, () => studio.store.ready ? studio.state().activeProjectId ?? '' : '', (kind, surface) => studio.store.transaction(state => recordOperation(state, kind, 'committed', undefined, 1, surface)), () => notify('A public stream window could not be opened. Use desktop Obsidian and check its workspace.', true));
   const twitch = new TwitchModule(studio, {
     getSecret: name => secrets(plugin.app)?.getSecret(name) ?? null,
     setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
@@ -72,6 +87,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const obs = new ObsWorkflow(studio.store, obsAdapter);
   const music = new MusicService(new VaultMusic(plugin), new LocalMusicPlayer(plugin.app.vault), code => studio.store.transaction(state => recordOperation(state, code)));
   const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers);
+  const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => studio.store.aiCostSnapshot(herdr.snapshot().records), timers);
   const liveMonitor = new LiveStudioMonitor(studio.store, { obs: () => obsAdapter.metrics(), twitch: () => twitch.liveViewers() }, timers);
   const streamHistory = new StreamHistoryStorage(plugin.app.vault.adapter);
   const recorder = new StreamRecorder(studio.store, streamHistory, { capture: async () => {
@@ -96,6 +112,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    schedule: new ScheduleService(new VaultSchedule(plugin), new StreamPlanPreparation(studio, twitch.actions, obs, music), studio.store),
+    aiCosts,
+    viewerNotes,
+    streamViews: streamViews.actions, streamSource: streamSource.asPort(),
     finance: new FinanceService(new VaultFinance(plugin), studio.store),
     music,
     herdr,
@@ -137,7 +157,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     startupError: () => failure,
     async start() {
       let invalidNotes: string[];
-      try { ({ invalidNotes } = await studio.start()); }
+      try { await protectPrivateData(plugin); ({ invalidNotes } = await studio.start()); }
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
       if (disposed) { await studio.stop(); return; }
       for (const path of invalidNotes) notify(`CoForge skipped an idea note with invalid properties: ${path}`, true);
@@ -152,22 +172,28 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       stopListening = studio.onIntegrationChange(integration => twitch.configure(integration));
       stopPublishing = syncPublicBoard(studio, publisher, error => { report('coforge.public'); notify(`The viewer board could not be written: ${errorMessage(error)}`, true); });
       twitch.start();
+      streamSource.start();
+      viewerNotes.start();
       obs.start();
       void music.refresh().catch(() => undefined);
-      void herdr.start().catch(() => notify('Herdr settings could not be loaded. Check the saved recovery records before reconnecting.', true));
+      void (async () => { try { await herdr.start(); } catch { if (!disposed) notify('Herdr settings could not be loaded. Check the saved recovery records before reconnecting.', true); } if (disposed) return; try { await aiCosts.start(); } catch { if (!disposed) notify('AI cost history could not be loaded. Review the cost dashboard before relying on its totals.', true); } })();
       liveMonitor.start();
       void recorder.start();
     },
     async dispose() {
       disposed = true;
+      stopStatusbar();
+      streamViews.dispose(); streamSource.dispose();
       await music.dispose();
       await herdr.dispose();
       await liveMonitor.stop();
       await recorder.stop();
       obs.dispose();
       stopListening(); stopPublishing(); await twitch.dispose();
+      await viewerNotes.dispose();
       listeners.clear();
       await studio.stop();
+      await aiCosts.dispose();
     },
   };
 }

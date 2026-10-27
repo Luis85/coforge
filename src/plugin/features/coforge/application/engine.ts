@@ -6,7 +6,7 @@ import { assertStage, heuristicSignals, isActiveJob, nextEligible, statusDuring 
 import type { InternalState, StageResult, StageRunner, Timers } from './ports';
 import { applyReview } from './review';
 import { addEvent, type StudioStore } from './studio-store';
-import { findProject, ideaProjectId, projectIdeas, projectPaths, projectSettings } from '../domain/projects';
+import { copySettings, findProject, ideaProjectId, projectIdeas, projectPaths, projectSettings } from '../domain/projects';
 import { ideaFingerprint } from '../domain/integrity';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string): void {
@@ -28,7 +28,7 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   if (idea.status !== statusDuring(job.stage)) throw new Error(`${idea.id} changed while the run was active (now ${idea.status}). The result was discarded.`);
   if (job.stage === 'screen') {
     if (!result.screening) throw new Error('The screening agent returned no valid screening result.');
-    const signals = heuristicSignals(`${idea.title}\n${idea.description}`);
+    const signals = heuristicSignals(`${idea.title}\n${idea.description}\n${idea.contexts?.map(context => context.text).join('\n') ?? ''}`);
     idea.screening = { ...result.screening, provider: job.provider };
     if (signals.length) {
       idea.screening.verdict = 'flagged';
@@ -105,6 +105,7 @@ export class WorkflowEngine {
         logs: [`${STAGE_LABELS[stage]} queued for ${ideaId} (${settings.provider}).`],
       };
       state.jobs.push(queued);
+      recordOperation(state, 'job-queued', 'none', undefined, 1, queued.id);
       addEvent(state, 'agent', `${STAGE_LABELS[stage]} queued for ${ideaId}.`, ideaId);
       return queued;
     });
@@ -185,11 +186,12 @@ export class WorkflowEngine {
       assertRuntime(state, job.stage, projectId);
       assertStage(idea, job.stage);
       job.status = 'running'; job.startedAt = new Date().toISOString();
+      job.model = projectSettings(state, projectId).model;
       recordOperation(state, 'job-started');
       state.runtime.activeJobId = job.id;
       if (job.stage === 'implement') idea.status = 'building';
       idea.updatedAt = job.startedAt;
-      return { idea: structuredClone(idea), settings: { ...projectSettings(state, projectId), automation: { ...projectSettings(state, projectId).automation }, provider: job.provider },
+      return { idea: structuredClone(idea), settings: { ...copySettings(projectSettings(state, projectId)), provider: job.provider },
         integration: { ...state.integration, ...projectPaths(findProject(state, projectId)) } };
     });
     if (!snapshot) return;
@@ -197,6 +199,7 @@ export class WorkflowEngine {
     const runner = this.options.runners[next.provider];
     const result = await runner({
       stage: next.stage, ...snapshot, signal: controller.signal,
+      onUsage: cost => this.recordCost(next.id, cost),
       onLog: message => {
         void this.store.transaction(state => {
           const job = state.jobs.find(j => j.id === next.id);
@@ -204,6 +207,7 @@ export class WorkflowEngine {
         }).catch(error => this.report(error));
       },
     });
+    if (result.costUsd !== undefined) await this.recordCost(next.id, result.costUsd);
     controller.signal.throwIfAborted();
     await this.store.transaction(state => {
       const job = state.jobs.find(j => j.id === next.id);
@@ -225,6 +229,10 @@ export class WorkflowEngine {
       delete state.runtime.activeJobId;
       addEvent(state, 'agent', `${STAGE_LABELS[next.stage]} ${cancelled ? 'cancelled' : 'failed'} for ${next.ideaId}. Manual retry required.`, next.ideaId);
     });
+  }
+  private async recordCost(id: string, cost: number): Promise<void> {
+    if (!Number.isFinite(cost) || cost < 0 || cost > 1000000000) throw new Error('The provider returned invalid usage cost. No amount was inferred.');
+    await this.store.transaction(state => { const job = state.jobs.find(job => job.id === id); if (!job) throw new Error('The task disappeared before its usage cost was saved.'); if (job.costUsd !== cost) { job.costUsd = cost; recordOperation(state, 'ai-cost-reported', 'committed', undefined, 1, id); } });
   }
 
   private report(error: unknown): void {

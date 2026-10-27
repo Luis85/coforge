@@ -27,7 +27,7 @@ export function buildClaudeArgs(stage: AgentStage, settings: Settings): string[]
     '--permission-mode', stage === 'implement' ? 'acceptEdits' : 'dontAsk', '--permission-prompts', 'none',
     ...(tools ? ['--allowedTools', tools] : []),
     '--max-turns', String(settings.maxTurns), '--max-budget-usd', String(settings.maxBudgetUsd), '--model', settings.model,
-    '--system-prompt', stageSystemPrompt(stage),
+    '--system-prompt', stageSystemPrompt(stage, settings),
   ];
 }
 
@@ -47,4 +47,12 @@ export function parseClaudeEnvelope(raw: string): { output: unknown; costUsd?: n
     throw new Error('Claude did not return structured_output. Update Claude Code or inspect the configured model; the idea was not advanced.');
   const cost = envelope.total_cost_usd;
   return { output: envelope.structured_output, ...(typeof cost === 'number' ? { costUsd: cost } : {}) };
+}
+/** Usage may be present on failed SDK envelopes or before structured-output interpretation fails. */
+export function reportedClaudeCost(raw: string): number | undefined {
+  try {
+    const envelope = record(JSON.parse(raw));
+    if (envelope.type !== 'result' || typeof envelope.is_error !== 'boolean' || typeof envelope.subtype !== 'string' || envelope.total_cost_usd === undefined) return undefined;
+    return number({ min: 0, max: 1000000000 })(envelope.total_cost_usd);
+  } catch { return undefined; }
 }

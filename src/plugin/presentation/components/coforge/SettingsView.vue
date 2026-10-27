@@ -6,6 +6,7 @@ import SettingsNumberSection from './SettingsNumberSection.vue';
 import SettingsProviderSection from './SettingsProviderSection.vue';
 import SettingsRuntimeSection from './SettingsRuntimeSection.vue';
 import SettingsRepositorySection from './SettingsRepositorySection.vue';
+import SettingsStagePrompts from './SettingsStagePrompts.vue';
 
 const model = useSettings();
 </script>
@@ -46,6 +47,7 @@ const model = useSettings();
         </div>
       </section>
       <SettingsProviderSection />
+      <SettingsStagePrompts />
       <SettingsRepositorySection />
       <p class="cf-settings-help">Viewer feature requests have a fixed 5-minute cooldown across all projects. Registration and earning rules are managed under Players and Operations.</p>
       <SettingsNumberSection

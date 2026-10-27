@@ -1,4 +1,5 @@
 import type { PublicBoard, PublicContributor, PublicIdea } from './public-board';
+import { markdownHtml } from './markdown-html';
 
 /** Every value from the board is untrusted community text and is escaped before it reaches HTML. */
 export function escapeHtml(value: string | number): string {
@@ -11,14 +12,14 @@ const initial = (name: string) => e(name.replace(/[^\p{L}\p{N}]/gu, '').slice(0,
 function card(idea: PublicIdea): string {
   const plan = idea.plan ? `
         <details class="plan"><summary>Implementation plan</summary>
-          <p>${e(idea.plan.summary)}</p>
-          <ol>${idea.plan.steps.map(step => `<li>${e(step)}</li>`).join('')}</ol>
+          <div class="cf-markdown">${markdownHtml(idea.plan.summary)}</div>
+          <ol>${idea.plan.steps.map(step => `<li class="cf-markdown">${markdownHtml(step)}</li>`).join('')}</ol>
         </details>` : '';
   return `
       <article class="card" aria-labelledby="${e(idea.id)}-title">
         <header><span class="id">${e(idea.id)}</span><span class="category ${categoryClass(idea.category)}">${e(idea.category)}</span></header>
         <h3 id="${e(idea.id)}-title">${e(idea.title)}</h3>
-        <p class="description">${e(idea.description)}</p>${plan}
+        <div class="description cf-markdown">${markdownHtml(idea.description)}</div>${idea.contexts?.length ? `<details><summary>Community context (${idea.contexts.length})</summary>${idea.contexts.map(context => `<p><strong>${e(context.author)}</strong></p><div class="cf-markdown">${markdownHtml(context.text)}</div>`).join('')}</details>` : ''}${plan}
         <footer>
           <span class="author">by ${e(idea.author)}</span>
           <span class="status">${e(idea.status)}</span>

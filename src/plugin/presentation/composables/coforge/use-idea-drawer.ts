@@ -36,7 +36,7 @@ const jobLog = (job: AgentJob): string => {
 function createIdeaDrawer() {
   const store = useStudioStore();
   const actions = useStudioActions();
-  const tab = ref<IdeaDrawerTab>('overview');
+  const tab = computed({ get: () => store.drawerTab, set: (value: IdeaDrawerTab) => { store.drawerTab = value; } });
   const note = ref('');
   const error = ref('');
   const pending = ref('');
@@ -53,7 +53,7 @@ function createIdeaDrawer() {
   const blockedBuild = computed(() => nextAction.value?.action === 'implement'
     && state.value?.settings.provider === 'claude' && !state.value.runtime.allowImplementation);
 
-  watch(() => store.selected, () => { tab.value = 'overview'; note.value = ''; error.value = ''; });
+  watch(() => store.selected, () => { note.value = ''; error.value = ''; });
 
   /** Runs one drawer request at a time; resolves `true` only when the studio accepted it. */
   async function perform(key: string, operation: () => Promise<boolean>): Promise<boolean> {

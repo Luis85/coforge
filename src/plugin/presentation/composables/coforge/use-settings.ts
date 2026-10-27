@@ -1,6 +1,9 @@
 import { computed, inject, onBeforeUnmount, provide, reactive, ref, watch, type InjectionKey } from 'vue';
 import { defaultSettings } from '../../../features/coforge/domain/seed';
-import type { Provider, Settings } from '../../../features/coforge/domain/types';
+import type { AgentStage, Provider, Settings } from '../../../features/coforge/domain/types';
+import { STAGES, STAGE_LABELS } from '../../../features/coforge/domain/types';
+import { defaultStagePrompt, normalizeStagePrompts, resolvedStagePrompts } from '../../../features/coforge/domain/stage-prompts';
+import { stageInput, stageSystemPrompt } from '../../../features/coforge/application/agent-prompts';
 import type { StudioProject } from '../../../features/coforge/domain/types';
 import { useStudioShell } from './use-studio-app';
 import type { ProjectPaths } from '../../../features/coforge/domain/projects';
@@ -8,7 +11,7 @@ import { validateProjectPath, validateProjectUrl } from '../../../features/cofor
 
 /** The studio settings the form edits. Automation switches and pause live on other screens. */
 type ProjectLinks = Pick<StudioProject, 'repositoryUrl' | 'websiteUrl'>;
-type SettingsDraft = Pick<Settings, 'projectName' | 'projectBrief' | 'agentPrompt' | 'provider' | 'model' | NumberKey> & ProjectPaths & ProjectLinks;
+type SettingsDraft = Pick<Settings, 'projectName' | 'projectBrief' | 'agentPrompt' | 'provider' | 'model' | NumberKey> & ProjectPaths & ProjectLinks & { stagePrompts: Record<AgentStage, string> };
 type NumberKey = 'intervalSeconds' | 'minVotes' | 'requestCooldownSeconds' | 'maxTurns' | 'maxBudgetUsd' | 'timeoutSeconds';
 interface NumberField { key: NumberKey; label: string; min: number; max: number; step: number; integer: boolean; help?: string }
 
@@ -30,6 +33,7 @@ const PROVIDERS: Array<{ value: Provider; icon: string; title: string; text: str
 
 const pick = (settings: Settings): Omit<SettingsDraft, keyof ProjectPaths | keyof ProjectLinks> => ({
   agentPrompt: settings.agentPrompt,
+  stagePrompts: resolvedStagePrompts(settings.stagePrompts),
   projectName: settings.projectName, projectBrief: settings.projectBrief, provider: settings.provider, model: settings.model,
   intervalSeconds: settings.intervalSeconds, minVotes: settings.minVotes, requestCooldownSeconds: settings.requestCooldownSeconds,
   maxTurns: settings.maxTurns, maxBudgetUsd: settings.maxBudgetUsd, timeoutSeconds: settings.timeoutSeconds,
@@ -63,12 +67,13 @@ function createSettings() {
     repositoryUrl: store.activeProject?.repositoryUrl ?? '', websiteUrl: store.activeProject?.websiteUrl ?? '',
     allowImplementation: store.activeProject?.allowImplementation ?? false }));
   const persistedKey = computed(() => JSON.stringify(persisted.value));
-  const draft = reactive<SettingsDraft>({ ...persisted.value });
+  const copyDraft = (value: SettingsDraft): SettingsDraft => ({ ...value, stagePrompts: { ...value.stagePrompts } });
+  const draft = reactive<SettingsDraft>(copyDraft(persisted.value));
   const error = ref('');
   const saved = ref(false);
   const resetConfirm = ref(false);
   const checking = ref(false);
-  watch(persistedKey, () => { Object.assign(draft, persisted.value); });
+  watch(persistedKey, () => { Object.assign(draft, copyDraft(persisted.value)); });
 
   const dirty = computed(() => JSON.stringify(draft) !== persistedKey.value);
   watch(dirty, isDirty => { store.dirtySettings = isDirty; if (isDirty) saved.value = false; }, { immediate: true });
@@ -84,7 +89,7 @@ function createSettings() {
     error.value = '';
     const problem = validate(draft);
     if (problem) { error.value = problem; return; }
-    const patch: SettingsDraft = { ...draft, projectName: draft.projectName.trim(), projectBrief: draft.projectBrief.trim(), model: draft.model.trim() };
+    const patch = { ...draft, stagePrompts: normalizeStagePrompts(draft.stagePrompts), projectName: draft.projectName.trim(), projectBrief: draft.projectBrief.trim(), model: draft.model.trim() };
     if (await actions.changeProject(patch, store.state?.activeProjectId)) saved.value = true;
     else error.value = lastError('Settings could not be saved.');
   }
@@ -100,10 +105,15 @@ function createSettings() {
 
   return reactive({
     store, draft, error, saved, resetConfirm, checking, dirty, pending, runtime,
+    promptStages: STAGES.map(stage => ({ id: stage, label: STAGE_LABELS[stage] })),
+    promptOrigin: computed(() => normalizeStagePrompts(draft.stagePrompts)[store.promptStage] ? 'Project override' : 'Default prompt'),
+    promptSystem: computed(() => stageSystemPrompt(store.promptStage, draft)),
+    promptPayload: computed(() => { const idea = store.projectIdeas.find(idea => idea.id === store.promptPreviewIdea); return idea ? stageInput(store.promptStage, idea, { ...(store.state?.settings ?? defaultSettings()), ...draft }) : draft.agentPrompt || 'Choose a request to preview its full dispatch payload.'; }),
+    resetStagePrompt: () => { draft.stagePrompts[store.promptStage] = defaultStagePrompt(store.promptStage); },
     providers: PROVIDERS, rhythm: RHYTHM, limits: LIMITS,
     status: computed(() => saved.value && !dirty.value ? 'saved' : dirty.value ? 'dirty' : 'clean'),
     submit: (event: Event) => { event.preventDefault(); void save(); },
-    discard: () => { Object.assign(draft, persisted.value); error.value = ''; saved.value = false; },
+    discard: () => { Object.assign(draft, copyDraft(persisted.value)); error.value = ''; saved.value = false; },
     exportProject: () => { void actions.exportProject(); },
     toggleReset: () => { resetConfirm.value = !resetConfirm.value; },
     keepData: () => { resetConfirm.value = false; },

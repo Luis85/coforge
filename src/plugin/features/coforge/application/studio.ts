@@ -18,6 +18,7 @@ import { activateStreamMessage, removeStreamMessage, saveStreamMessage } from '.
 import { streamSetupProgress } from '../domain/stream-setup';
 import { defaultObsSettings, emptyObsState } from '../domain/obs';
 import { disconnectedTwitch } from '../domain/twitch';
+import { normalizeStagePrompts } from '../domain/stage-prompts';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -118,10 +119,13 @@ export class StudioService {
     const parsed = settingsPatch(input);
     const patch = {
       ...parsed,
+        ...(parsed.stagePrompts === undefined ? {} : { stagePrompts: normalizeStagePrompts(parsed.stagePrompts) }),
       ...(parsed.agentPrompt === undefined ? {} : { agentPrompt: cleanText(parsed.agentPrompt, 8000) }), ...(parsed.projectName === undefined ? {} : { projectName: cleanLine(parsed.projectName, 80) }),
       ...(parsed.projectBrief === undefined ? {} : { projectBrief: cleanText(parsed.projectBrief, 8000) }),
     };
     const settings = await this.store.transaction(state => {
+        if ((patch.stagePrompts !== undefined || patch.agentPrompt !== undefined) && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
+          throw new StudioError('Finish or cancel queued runs before changing project prompts.', 409);
       if (patch.provider && patch.provider !== state.settings.provider && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
         throw new StudioError('Finish or cancel queued runs before changing the agent provider.', 409);
       state.settings = { ...state.settings, ...patch, automation: { ...state.settings.automation, ...patch.automation } };

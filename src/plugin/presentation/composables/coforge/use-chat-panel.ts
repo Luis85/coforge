@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, toRefs } from 'vue';
 import type { ChatMessage, Contributor } from '../../../features/coforge/domain/types';
 import { useStudioStore } from '../../stores/coforge-studio';
 import { avatarStyle, initials } from './format';
@@ -20,7 +20,7 @@ function messageView(message: ChatMessage, contributors: readonly Contributor[])
   const bot = message.userId === BOT_ID;
   const color = contributors.find(person => person.id === message.userId)?.color;
   return {
-    id: message.id, bot, error: message.kind === 'error', command: message.kind === 'request' || message.kind === 'vote',
+    id: message.id, bot, error: message.kind === 'error', command: ['request', 'context', 'vote'].includes(message.kind),
     author: message.username, initials: initials(message.username), text: message.text,
     source: bot && message.source === 'twitch' ? message.externalId ? 'Sent' : 'Local result' : SOURCE_LABELS[message.source], dateTime: message.createdAt,
     time: new Date(message.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
@@ -69,11 +69,7 @@ export function useChatPanel() {
 export function useChatComposer(emit: (event: 'sent') => void) {
   const store = useStudioStore();
   const actions = useStudioActions();
-  const username = ref('Local tester');
-  const text = ref('');
-  const sending = ref(false);
-  const error = ref('');
-  const testing = ref(false);
+  const { username, text, sending, error, testing } = toRefs(store.chatDraft);
   const live = computed(() => store.state?.runtime.twitch?.phase === 'connected' && store.state.runtime.twitch.canChat);
   const submit = async () => {
     if (!text.value.trim() || !username.value.trim() || sending.value) return;

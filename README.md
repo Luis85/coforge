@@ -12,10 +12,13 @@ rebuilt on the [obsidian-plugin-shell](https://github.com/Luis85/obsidian-plugin
 
 ## Use it
 
+See [Streaming workspace](docs/STREAMING-WORKSPACE.md) for public capture windows,
+project stage prompts, viewer context/CRM notes, AI costs and stream planning.
+
 1. Build (`npm ci`, `npm run build`) and copy `dist/main.js`, `dist/styles.css` and
    `manifest.json` into `<vault>/.obsidian/plugins/coforge/`, then enable **CoForge**.
 2. Click the gamepad ribbon icon or run **CoForge: Open CoForge**.
-3. Fresh installations open Stream chat. Connect Twitch there, or open **Projects** and choose
+3. Fresh installations open Stream studio. Use **Guided setup** to connect OBS and Twitch, or open **Projects** and choose
    **Load sample workspace** to explore the illustrative *Mosslight* project. Requests are written
    to `CoForge/Ideas` (configurable).
 4. Open the project button in the sidebar to add projects, their workspace paths, repository and website links, and descriptions.

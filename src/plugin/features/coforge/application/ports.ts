@@ -37,7 +37,7 @@ export interface StudioStorage {
 export type ExternalNoteChange = { kind: 'upsert'; idea: NoteIdea } | { kind: 'remove'; id: string };
 
 export interface StageResult { screening?: Screening; rice?: RiceScore; plan?: ImplementationPlan; increment?: Increment; costUsd?: number }
-export interface StageInput { stage: AgentStage; idea: Idea; settings: Settings; integration: IntegrationSettings; signal?: AbortSignal; onLog?: (message: string) => void }
+export interface StageInput { stage: AgentStage; idea: Idea; settings: Settings; integration: IntegrationSettings; signal?: AbortSignal; onLog?: (message: string) => void; onUsage?: (costUsd: number) => Promise<void> }
 export type StageRunner = (input: StageInput) => Promise<StageResult>;
 
 /** Host timers (Obsidian window timers in the plugin) keep pure code popout-safe and testable. */
@@ -60,6 +60,13 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  schedule?: import('./schedule-ports').ScheduleActions;
+  previewSchedule?(): import('./schedule-ports').ScheduleActions;
+  aiCosts?: import('./ai-cost-ports').AICostActions;
+  previewAiCosts?(): import('./ai-cost-ports').AICostActions;
+  viewerNotes?: import('./viewer-note-ports').ViewerNoteActions;
+  streamViews?: import('./stream-surface-ports').StreamViewActions;
+  streamSource?: import('./stream-surface-ports').StreamSurfaceSource;
   finance?: import('./finance-ports').FinanceActions;
   previewFinance?(): import('./finance-ports').FinanceActions;
   herdr?: import('./herdr-ports').HerdrActions;

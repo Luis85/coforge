@@ -1,0 +1,71 @@
+.cf-markdown {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+.cf-markdown > :first-child {
+  margin-block-start: 0;
+}
+.cf-markdown > :last-child {
+  margin-block-end: 0;
+}
+.cf-markdown p {
+  margin-block: 0 0.8em;
+}
+.cf-markdown :is(h1, h2, h3, h4, h5, h6) {
+  margin-block: 1.2em 0.5em;
+  line-height: 1.35;
+}
+.cf-markdown :is(ul, ol) {
+  padding-inline-start: 1.5em;
+  margin-block: 0.6em;
+}
+.cf-markdown li > p {
+  margin-block: 0.25em;
+}
+.cf-markdown blockquote {
+  margin-inline: 0;
+  padding-inline-start: 1em;
+  border-inline-start: 1px solid
+    var(--cf-border, var(--background-modifier-border));
+}
+.cf-markdown pre {
+  max-width: 100%;
+  overflow: auto;
+  white-space: pre;
+  padding: 12px;
+  background: var(--cf-surface, var(--background-secondary));
+  border-radius: var(--radius-s);
+}
+.cf-markdown code {
+  font-family: var(--font-monospace);
+  white-space: break-spaces;
+}
+.cf-markdown pre code {
+  white-space: pre;
+}
+.cf-markdown-table {
+  max-width: 100%;
+  overflow: auto;
+}
+.cf-markdown :is(th, td) {
+  padding: 8px 10px;
+  border: 1px solid var(--cf-border, var(--background-modifier-border));
+  text-align: start;
+}
+.cf-markdown table {
+  border-collapse: collapse;
+}
+.cf-markdown a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+.cf-markdown-media {
+  color: var(--cf-muted, var(--text-muted));
+}
+.cf-markdown.is-compact {
+  white-space: normal;
+}
+.cf-markdown input[type="checkbox"] {
+  margin-inline-end: 0.5em;
+}

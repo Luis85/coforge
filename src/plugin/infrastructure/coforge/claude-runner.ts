@@ -2,13 +2,13 @@ import { lstat, mkdir, mkdtemp, readFile, realpath, rm, stat } from 'fs/promises
 import { tmpdir } from 'os';
 import { basename, dirname, join, resolve, sep } from 'path';
 import { implementationOutput, planOutput, scoreOutput, screeningOutput, stageInput } from '../../features/coforge/application/agent-prompts';
-import { buildClaudeArgs, parseClaudeEnvelope, supportsRequiredVersion } from '../../features/coforge/application/claude-protocol';
+import { buildClaudeArgs, parseClaudeEnvelope, reportedClaudeCost, supportsRequiredVersion } from '../../features/coforge/application/claude-protocol';
 import type { StageInput, StageResult } from '../../features/coforge/application/ports';
 import { CheckError } from '../../features/coforge/domain/check';
 import { cleanDeep } from '../../features/coforge/domain/sanitize';
 import type { FileChange, Increment, IntegrationSettings } from '../../features/coforge/domain/types';
 import { planMarkdown, riceValue } from '../../features/coforge/domain/types';
-import { captureProcess } from './process';
+import { captureProcess, ProcessFailure } from './process';
 
 const OUTPUT_LIMIT = 2 * 1024 * 1024;
 const DIFF_LIMIT = 160_000;
@@ -130,10 +130,12 @@ export async function runClaudeStage(input: StageInput): Promise<StageResult> {
     const raw = await captureProcess(executable(integration), buildClaudeArgs(stage, settings), {
       cwd, input: stageInput(stage, idea, settings), timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
     });
+    const usage = reportedClaudeCost(raw); if (usage !== undefined) await input.onUsage?.(usage);
     const envelope = parseClaudeEnvelope(raw);
     // Model output is saved to notes and shown to viewers: it gets the same sanitizing as chat before validation.
     return await interpret(input, cleanDeep(envelope.output), envelope.costUsd, worktree, onLog);
   } catch (error) {
+    if (error instanceof ProcessFailure) { const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage); throw new Error(error.message); }
     if (error instanceof CheckError) throw new Error('Claude output failed schema validation. The idea was not advanced.');
     if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))
       throw new Error(`Update native Claude Code to the current release; required restricted/safe-mode/structured-output flags are not supported. No permissive fallback is used. ${error.message}`);

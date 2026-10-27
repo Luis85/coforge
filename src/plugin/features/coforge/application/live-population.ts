@@ -7,6 +7,7 @@ import { recordOperation } from "./population";
 import { restrictionLease, syncRestrictions } from "./player-moderation";
 import type { LivePresencePort } from "./integration-ports";
 import { IntegrationFailure } from "../domain/integration-failure";
+import { observeChatters } from './observe-chatters';
 
 /** Owned live polling: complete snapshots only, no offline/restart credit and no missed announcement replay. */
 export class LivePopulationTracker {
@@ -86,7 +87,8 @@ export class LivePopulationTracker {
           });
         } else {
           try {
-            const users = new Set(await this.api.chatters());
+            const profiles = this.api.chattersProfiles ? await this.api.chattersProfiles() : null;
+            const users = new Set(profiles ? profiles.map(profile => profile.id) : await this.api.chatters());
             if (!current()) return;
             const registered =
               this.studio
@@ -107,6 +109,7 @@ export class LivePopulationTracker {
             const previous = this.previous;
             await this.studio.store.transaction((state) => {
               if (!current()) return;
+              if (profiles) observeChatters(state, profiles, new Date(at).toISOString());
               syncRestrictions(state, channelId, registered, banned, lease);
               if (previous?.streamId === stream.id)
                 creditPresence(state, {

@@ -29,6 +29,7 @@ export interface MusicPlayback {
   volume: number;
 }
 export interface MusicState {
+  selectedPlaylistId?: string;
   library: MusicLibrary;
   playback: MusicPlayback;
   busy: boolean;
@@ -49,6 +50,7 @@ export const emptyMusic = (): MusicState => ({
   error: "",
 });
 export const MUSIC_OPERATION_CODES = [
+  "music-playlist-selected",
   "music-library-refreshed",
   "music-settings-saved",
   "music-playlist-saved",

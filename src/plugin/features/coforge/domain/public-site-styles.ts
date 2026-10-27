@@ -66,6 +66,12 @@ h1, h2, h3, p { margin: 0; }
 .badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .badge { font-size: 12px; border-radius: 999px; padding: 2px 10px; background: var(--raised); color: var(--green); border: 1px solid var(--border); }
 .site-footer { padding-top: 32px; padding-bottom: 40px; color: var(--muted); font-size: 13px; }
+.cf-markdown { overflow-wrap: anywhere; line-height: 1.7; }
+.cf-markdown p + p { margin-top: 0.8em; }
+.cf-markdown :is(h1,h2,h3,h4,h5,h6) { font-size: 1.05em; margin-block: 1em 0.5em; }
+.cf-markdown pre { max-width: 100%; overflow-x: auto; padding: 12px; background: var(--raised); }
+.cf-markdown :is(th,td) { border: 1px solid var(--border); padding: 6px 8px; text-align: left; }
+.cf-markdown-table { max-width: 100%; overflow-x: auto; }
 @media (max-width: 1100px) { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .board, .leaderboards { grid-template-columns: minmax(0, 1fr); } }
 `;

@@ -7,6 +7,7 @@ const model = useStudioShell();
 <template>
   <header class="cf-topbar">
     <div class="cf-breadcrumb">
+      <button type="button" class="cf-icon-button cf-panel-toggle" :aria-label="model.store.leftPanelCollapsed ? 'Expand navigation panel' : 'Collapse navigation panel'" :aria-expanded="!model.store.leftPanelCollapsed" :aria-controls="`${model.store.layoutId}-navigation`" @click="model.store.leftPanelCollapsed = !model.store.leftPanelCollapsed"><CfIcon :name="model.store.leftPanelCollapsed ? 'panel-left-open' : 'panel-left-close'" /></button>
       <CfIcon name="gamepad-2" size="sm" />
       <span>{{ model.store.activeProject ? model.state?.settings.projectName : 'CoForge' }}</span>
       <button v-if="model.store.activeProject" type="button" class="cf-project-id-copy" :aria-label="`Copy project ID ${model.store.activeProject.id}`" @click="model.copyProjectId()"><code>{{ model.store.activeProject.id }}</code><CfIcon name="copy" size="xs" /></button>
@@ -14,6 +15,7 @@ const model = useStudioShell();
       <strong>{{ model.viewLabel }}</strong>
     </div>
     <div class="cf-topbar-actions">
+      <button v-if="model.store.view === 'board'" type="button" class="cf-icon-button cf-panel-toggle" :aria-label="model.store.rightPanelCollapsed ? 'Expand chat panel' : 'Collapse chat panel'" :aria-expanded="!model.store.rightPanelCollapsed" :aria-controls="`${model.store.layoutId}-chat`" @click="model.toggleRightPanel()"><CfIcon :name="model.store.rightPanelCollapsed ? 'panel-right-open' : 'panel-right-close'" /></button>
       <span v-if="model.store.activeProject" class="cf-provider-pill" :class="{ 'is-demo': model.isDemo }"><span />{{ model.isDemo ? 'Demo agents' : 'Claude Code CLI' }}</span>
       <span class="cf-topbar-divider" />
       <button

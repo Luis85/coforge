@@ -3,10 +3,11 @@ import { boolean, list, number, oneOf, optional, record, shape, text, timestamp 
 import { defaultIntegration, defaultSettings } from './seed';
 import { obsSettingsCheck, obsCommandCheck } from './obs-check';
 import { populationCheck } from './population-check';
+import { stagePromptsCheck } from './stage-prompts';
 import type { AgentJob, AppState, Increment, IntegrationSettings, Settings } from './types';
 import { CONTRIBUTOR_COLORS } from './types';
 
-export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: string }>; lastRequests: Record<string, string> }
+export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: string }>; lastRequests: Record<string, string>; chatRemovals?: import('./chat-removal').ChatRemovalHistory }
 /** Everything except the idea notes. Stored as one JSON file in the plugin folder. */
 export interface PersistedStudio extends Omit<AppState, 'ideas' | 'runtime' | 'projects'> {
   integration: IntegrationSettings; votes: Record<string, string[]>; increments: Record<string, Increment>;
@@ -26,11 +27,13 @@ const increment = shape({
   branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
 });
 const job: Check<AgentJob> = shape({
+  model: optional(text({ max: 100 })),
   id: str, ideaId: str, stage, status: oneOf(['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const), provider,
   startedAt: timestamp, finishedAt: optional(timestamp), logs: list(str), error: optional(str), costUsd: optional(number({ min: 0 })),
   projectId: optional(str),
 });
 export const settingsCheck: Check<Settings> = shape({
+  stagePrompts: optional(stagePromptsCheck),
   agentPrompt: text({ max: 8000 }),
   projectName: str, projectBrief: str, provider,
   automation: shape({ screen: boolean, score: boolean, plan: boolean, implement: boolean }), paused: boolean,
@@ -54,7 +57,7 @@ const persisted: Check<PersistedStudio> = shape({
   nextProjectNumber: optional(number({ integer: true, gt: 0 })),
   contributors: list(shape({ id: str, name: str, color: oneOf(CONTRIBUTOR_COLORS), joinedAt: timestamp })),
   chat: list(shape({
-    id: str, userId: str, username: str, text: str, createdAt: timestamp, kind: oneOf(['message', 'request', 'vote', 'system', 'error'] as const),
+    id: str, userId: str, username: str, text: str, createdAt: timestamp, kind: oneOf(['message', 'request', 'context', 'vote', 'system', 'error'] as const),
     ideaId: optional(str), source: oneOf(['simulator', 'twitch', 'api'] as const),
     externalId: optional(str),
     twitchChannelId: optional(str),
@@ -65,7 +68,7 @@ const persisted: Check<PersistedStudio> = shape({
   botReplies: optional(list(shape({ id: str, parentMessageId: optional(str), channelId: str, senderId: str, text: str, createdAt: timestamp, streamMessageId: optional(str), streamKey: optional(str),
     reviewedAt: optional(timestamp), greetingPlayerId: optional(str),
     status: oneOf(['pending', 'sending', 'sent', 'failed', 'uncertain', 'cancelled'] as const), messageId: optional(str), error: optional(str) }))),
-  ingestMeta: shape({ processedMessages: list(shape({ id: str, ideaId: optional(str) })), lastRequests: dictionary(timestamp) }),
+  ingestMeta: shape({ processedMessages: list(shape({ id: str, ideaId: optional(str) })), lastRequests: dictionary(timestamp), chatRemovals: optional(shape({ channelId: str, messages: list(str, { max: 1000 }), clearAt: optional(timestamp), users: list(shape({ id: str, at: timestamp }), { max: 1000 }) })) }),
   manualHolds: list(str), integrity: dictionary(str),
 });
 

@@ -25,13 +25,19 @@ export function isRecognitionEligible(idea: Idea): boolean {
 /** Recognition is a projection of current evidence, never a client-writable counter. */
 export function buildCommunity(state: Pick<AppState, 'ideas' | 'contributors'>): CommunityProfile[] {
   const eligible = state.ideas.filter(isRecognitionEligible);
+  const authored = new Map<string, Idea[]>(); const cast = new Map<string, number>(); const voteCounts = new Map<string, number>();
+  for (const idea of eligible) {
+    const group = authored.get(idea.authorId) ?? []; group.push(idea); authored.set(idea.authorId, group);
+    const voters = new Set(idea.voters); voteCounts.set(idea.id, voters.size);
+    for (const voter of voters) if (voter !== idea.authorId) cast.set(voter, (cast.get(voter) ?? 0) + 1);
+  }
   return state.contributors.map(contributor => {
-    const ideasList = eligible.filter(idea => idea.authorId === contributor.id);
+    const ideasList = authored.get(contributor.id) ?? [];
     const ideas = ideasList.length;
-    const votesReceived = ideasList.reduce((sum, idea) => sum + new Set(idea.voters).size, 0);
-    const votesCast = eligible.filter(idea => idea.authorId !== contributor.id && idea.voters.includes(contributor.id)).length;
+    const votesReceived = ideasList.reduce((sum, idea) => sum + (voteCounts.get(idea.id) ?? 0), 0);
+    const votesCast = cast.get(contributor.id) ?? 0;
     const implementations = ideasList.filter(idea => idea.status === 'shipped').length;
-    const maxVotes = Math.max(0, ...ideasList.map(idea => new Set(idea.voters).size));
+    const maxVotes = ideasList.reduce((max, idea) => Math.max(max, voteCounts.get(idea.id) ?? 0), 0);
     const metrics: Record<BadgeId, number> = {
       'first-spark': ideas, 'idea-maker': ideas, 'community-favorite': maxVotes, 'crowd-favorite': maxVotes,
       backer: votesCast, 'co-creator': implementations, 'world-builder': implementations,

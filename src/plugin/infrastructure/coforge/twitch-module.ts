@@ -17,6 +17,8 @@ import { sendOperatorMessage } from '../../features/coforge/application/send-mes
 import type { TwitchChannelUpdate } from '../../features/coforge/domain/twitch';
 import { recordOperation } from '../../features/coforge/application/population';
 import { readTwitchMetrics, unavailableTwitchMetrics } from './twitch-metrics';
+import { removeTwitchChat } from '../../features/coforge/application/chat-removal';
+import { observeBotChat } from '../../features/coforge/application/observe-bot-chat';
 
 const fingerprint = (config: IntegrationSettings) => JSON.stringify([
   config.twitchEnabled, config.twitchClientId, config.twitchBroadcasterId, config.twitchBotUserId,
@@ -124,6 +126,8 @@ export class TwitchModule {
     const config = { clientId: this.config.twitchClientId, broadcasterId: channelId, botUserId: botId };
     this.stopConnection = startTwitch(config, {
       request: this.http, socket: this.socket, timers: this.timers,
+      onRemoval: input => generation === this.generation && !this.closed ? removeTwitchChat(this.studio.store, input) : Promise.resolve(),
+      onOwnMessage: input => generation === this.generation && !this.closed ? observeBotChat(this.studio.store, { ...input, channelId }) : Promise.resolve(),
       token: async () => { const value = await this.accounts.token('bot', this.config.twitchBotReplies ? BOT_SCOPES : ['user:read:chat']); this.identities(); return value; },
     }, async input => {
       if (generation !== this.generation || this.closed) return;
@@ -132,6 +136,7 @@ export class TwitchModule {
     }, status => {
       if (generation !== this.generation || this.closed) return;
       const previous = this.state.phase;
+      if (status.phase === 'connected' && (!status.transferred || !this.state.connectedAt)) this.state.connectedAt = new Date().toISOString();
       this.state.phase = status.phase; this.state.message = status.message; this.identities(); this.publish();
       if (previous === 'connected' && status.phase !== 'connected') { this.population.reset(); this.scheduler.reset(); }
       if (previous !== status.phase && (status.phase === 'connected' || previous === 'connected'))

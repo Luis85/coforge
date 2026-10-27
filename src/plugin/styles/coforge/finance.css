@@ -1,11 +1,14 @@
 .ps--coforge .cf-finance {
-  max-width: 1250px;
+  max-width: 1440px;
   margin-inline: auto;
 }
+.ps--coforge .cf-finance p { margin-block: 10px; font-size: 12px; line-height: 1.7; color: var(--cf-muted); max-width: 80ch; }
+.ps--coforge .cf-finance h2 { font-size: 18px; margin-bottom: 20px; }
+.ps--coforge .cf-finance .cf-page-heading { align-items: flex-start; gap: 16px; flex-wrap: wrap; }
 .ps--coforge .cf-finance-filters {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(160px, 0.55fr) minmax(0, 1fr);
+  gap: 16px;
   margin-block: 24px;
 }
 .ps--coforge .cf-finance-filters .cf-field {
@@ -32,9 +35,12 @@
   gap: 32px;
   margin-block: 28px;
 }
+.ps--coforge .cf-finance-workspace > section { min-width: 0; }
+.ps--coforge .cf-finance-workspace form { display: grid; gap: 18px; }
 .ps--coforge .cf-finance .cf-field {
-  margin-block: 16px;
+  margin: 0;
 }
+.ps--coforge .cf-finance .cf-field small { font-size: 11px; line-height: 1.65; color: var(--cf-muted); }
 .ps--coforge .cf-finance .cf-field :is(input, select) {
   width: 100%;
   min-width: 0;
@@ -54,6 +60,7 @@
   padding-block: 18px;
   border-block-end: 1px solid var(--cf-border);
 }
+.ps--coforge .cf-finance-list > li:first-child { padding-block-start: 0; }
 .ps--coforge .cf-finance p,
 .ps--coforge .cf-finance strong,
 .ps--coforge .cf-finance dd {
@@ -71,4 +78,8 @@
   .ps--coforge .cf-finance-totals {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .ps--coforge .cf-finance-filters { grid-template-columns: minmax(0, 1fr); }
+  .ps--coforge .cf-finance .cf-page-heading { flex-direction: column; }
 }

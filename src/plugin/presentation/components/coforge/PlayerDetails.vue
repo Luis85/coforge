@@ -8,6 +8,7 @@ defineProps<{ model: PopulationModel }>();
       <h2>{{ model.selected.name }}</h2>
       <code>{{ model.selected.id }}</code>
       <p>{{ model.actorName }} · {{ model.selected.status }}</p>
+      <button v-if="model.canOpenNote" type="button" class="cf-btn cf-btn-secondary" :disabled="model.working" @click="model.openNote()">Open private viewer note</button>
     </header>
     <section class="cf-player-actions" aria-label="CoForge participation">
       <h3>Participation</h3>
@@ -21,7 +22,7 @@ defineProps<{ model: PopulationModel }>();
           {{ model.selected.blocked ? "Unblock participation" : "Block participation" }}
         </button>
       </div>
-      <p>Blocks requests, bugs, votes and rewards; keeps history and balances.</p>
+      <p>Blocks requests, bugs, context, votes and rewards; keeps history and balances.</p>
     </section>
     <section v-if="model.selected.twitchId" class="cf-player-actions" aria-label="Twitch player moderation">
       <h3>Twitch moderation</h3>

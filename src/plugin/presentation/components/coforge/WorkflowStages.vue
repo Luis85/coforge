@@ -17,6 +17,7 @@ defineProps<{ model: WorkflowModel }>();
       <div class="cf-workflow-stage-body">
         <div class="cf-workflow-stage-heading">
           <h3>{{ stage.title }}</h3>
+          <button type="button" class="cf-btn cf-btn-ghost" :aria-label="`Edit prompt: ${stage.title}`" @click="model.editPrompt(stage.id)">Edit prompt</button>
           <label class="cf-workflow-toggle">
             <span>{{ stage.automated ? 'Auto' : 'Manual' }}</span>
             <input

@@ -31,6 +31,7 @@ const model = useMusic();
       Add your music and manage playlists inside Obsidian.
     </p>
     <template v-else>
+      <p v-if="model.preparedPlaylist">Prepared for the stream: {{ model.preparedPlaylist.name }} <button type="button" class="cf-btn" :disabled="model.store.state.busy" @click="model.playPrepared">Play prepared playlist</button></p>
       <section aria-label="Music playback" class="cf-music-playback">
         <h3>{{ model.current?.title ?? "No track selected" }}</h3>
         <p>

@@ -3,6 +3,7 @@ import type { Idea } from '../../../features/coforge/domain/types';
 import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
 import CfIcon from './CfIcon.vue';
 import IdeaRiceEditor from './IdeaRiceEditor.vue';
+import MarkdownBody from './MarkdownBody.vue';
 
 defineProps<{ idea: Idea }>();
 const model = useIdeaDrawerContext();
@@ -10,7 +11,11 @@ const model = useIdeaDrawerContext();
 <template>
   <section class="cf-idea-section">
     <h3><CfIcon name="message-square" /> The community request</h3>
-    <p class="cf-idea-request">{{ idea.description }}</p>
+    <MarkdownBody class="cf-idea-request" :source="idea.description" />
+    <section v-if="idea.contexts?.length" class="cf-request-context" aria-label="Community context">
+      <h4>Community context</h4>
+      <article v-for="context in idea.contexts" :key="context.id"><p><strong>{{ context.authorName }}</strong> · {{ new Date(context.createdAt).toLocaleString() }}</p><MarkdownBody :source="context.text" /></article>
+    </section>
     <div class="cf-idea-vote-row">
       <div>
         <strong>{{ idea.voters.length.toLocaleString() }} votes</strong>
@@ -35,7 +40,7 @@ const model = useIdeaDrawerContext();
         </span>
         <span class="cf-muted">{{ idea.screening.provider === 'demo' ? 'Simulated screening' : 'Claude screening' }}</span>
       </div>
-      <p>{{ idea.screening.reason }}</p>
+      <MarkdownBody :source="idea.screening.reason" />
       <ul v-if="idea.screening.signals.length > 0" class="cf-idea-list">
         <li v-for="(signal, index) in idea.screening.signals" :key="index">{{ signal }}</li>
       </ul>
@@ -66,7 +71,7 @@ const model = useIdeaDrawerContext();
 
   <section v-if="idea.reviewNote" class="cf-idea-section">
     <h3><CfIcon name="message-square" /> Streamer’s review note</h3>
-    <p class="cf-idea-request">{{ idea.reviewNote }}</p>
+    <MarkdownBody class="cf-idea-request" :source="idea.reviewNote" />
   </section>
 
   <div v-if="idea.status === 'shipped'" class="cf-idea-alert is-success">

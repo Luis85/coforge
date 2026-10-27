@@ -1,5 +1,22 @@
 .obsidian
 
+# Private vault records and runtime data. Publish only the explicit viewer export.
+/CoForge/*
+!/CoForge/Public/
+!/CoForge/Public/**
+/coforge-state*.json
+/coforge-herdr*.json
+/coforge-music*.json
+
+# Local credentials; reviewed templates may remain in source control.
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.p12
+*.pfx
+
 node_modules
 reports/
 coverage/

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useProjects } from '../../composables/coforge/use-projects';
 import CfIcon from './CfIcon.vue';
+import MarkdownBody from './MarkdownBody.vue';
 const model = useProjects();
 </script>
 <template>
@@ -35,7 +36,7 @@ const model = useProjects();
       <article v-for="project in model.rows" :key="project.id" class="cf-project-row" :class="{ 'is-selected': project.selected }">
         <div class="cf-project-row-content">
           <div class="cf-project-row-title"><h2>{{ project.name }}</h2><code class="cf-readable-project-id">{{ project.id }}</code><span v-if="project.selected" class="cf-badge">Selected</span></div>
-          <p>{{ project.brief }}</p>
+          <MarkdownBody :source="project.brief" compact :links="false" />
           <code>{{ project.path || 'Repository not configured' }}</code>
           <div v-if="project.repositoryUrl || project.websiteUrl" class="cf-project-links">
             <a v-if="project.repositoryHref" :href="project.repositoryHref" target="_blank" rel="noopener noreferrer">Git repository</a>
