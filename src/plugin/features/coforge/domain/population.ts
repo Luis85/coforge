@@ -1,5 +1,7 @@
 import { achievedRank, defaultCommunityEnvironment, type CommunityEnvironment } from "./community-environment";
 import { OBS_OPERATION_CODES } from './obs';
+import { MUSIC_OPERATION_CODES } from './music';
+import { HERDR_OPERATION_CODES } from './herdr';
 export interface EconomyRules {
   coinsPerMinute: number;
   xpPerMinute: number;
@@ -32,9 +34,12 @@ export interface Player {
   rewardClaims: string[];
 }
 export const OPERATION_CODES = [
+  'finance-refreshed', 'finance-entry-saved', 'finance-entry-deleted',
   'stream-snapshot-saved', 'stream-history-ended', 'twitch-message-observed', 'twitch-command-observed',
   'stream-setup-opened', 'stream-setup-dismissed', 'stream-setup-completed',
   ...OBS_OPERATION_CODES,
+  ...MUSIC_OPERATION_CODES,
+  ...HERDR_OPERATION_CODES,
   "registered",
   "greeted",
   "message-observed",
@@ -71,6 +76,7 @@ export const OPERATION_CODES = [
 ] as const;
 export type OperationCode = (typeof OPERATION_CODES)[number];
 export interface OperationRecord {
+  action?: import('./obs-scenes').ObsSceneKind;
   entityId?: string;
   sequence: number;
   at: string;

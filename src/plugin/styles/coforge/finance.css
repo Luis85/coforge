@@ -1,0 +1,74 @@
+.ps--coforge .cf-finance {
+  max-width: 1250px;
+  margin-inline: auto;
+}
+.ps--coforge .cf-finance-filters {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-block: 24px;
+}
+.ps--coforge .cf-finance-filters .cf-field {
+  flex: 1 1 200px;
+}
+.ps--coforge .cf-finance-totals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  padding-block: 20px;
+  border-block: 1px solid var(--cf-border);
+}
+.ps--coforge .cf-finance-totals dt {
+  color: var(--cf-muted);
+}
+.ps--coforge .cf-finance-totals dd {
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.ps--coforge .cf-finance-workspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1fr);
+  gap: 32px;
+  margin-block: 28px;
+}
+.ps--coforge .cf-finance .cf-field {
+  margin-block: 16px;
+}
+.ps--coforge .cf-finance .cf-field :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  min-height: 38px;
+  background: var(--cf-surface);
+  color: var(--cf-text);
+  border: 1px solid var(--cf-border-strong);
+  border-radius: var(--radius-s);
+}
+.ps--coforge .cf-finance-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ps--coforge .cf-finance-list li {
+  padding-block: 18px;
+  border-block-end: 1px solid var(--cf-border);
+}
+.ps--coforge .cf-finance p,
+.ps--coforge .cf-finance strong,
+.ps--coforge .cf-finance dd {
+  overflow-wrap: anywhere;
+}
+.ps--coforge .cf-finance-confirm {
+  padding: 20px;
+  border: 1px solid var(--cf-danger);
+  border-radius: var(--radius-m);
+}
+@container plugin-shell-leaf (max-width: 800px) {
+  .ps--coforge .cf-finance-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ps--coforge .cf-finance-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

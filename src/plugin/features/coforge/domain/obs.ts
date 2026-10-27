@@ -11,6 +11,9 @@ export interface ObsScene {
   name: string;
 }
 export interface ObsSnapshot {
+  sceneVersion?: number;
+  sceneCollectionVersion?: number;
+  previewSceneId?: string | null;
   health?: Record<string, number | null>;
   epoch: number;
   revision: number;
@@ -39,7 +42,7 @@ export interface ObsPublicState extends ObsObservation {
 export type ObsCommandKind = "prepare" | "go-live" | "pause" | "resume" | "stop";
 export interface ObsCommand {
   id: string;
-  kind: ObsCommandKind;
+  kind: ObsCommandKind | import('./obs-scenes').ObsSceneKind;
   at: string;
   status: "pending" | "confirmed" | "failed" | "uncertain" | "reconciled";
 }
@@ -73,6 +76,7 @@ export const emptyObsState = (): ObsPublicState => ({
   uncertain: false,
 });
 export const OBS_OPERATION_CODES = [
+  'obs-scene-action-requested', 'obs-scene-action-confirmed', 'obs-scene-action-failed', 'obs-scene-action-uncertain',
   "obs-detection-requested",
   "obs-detected",
   "stream-studio-opened",

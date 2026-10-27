@@ -12,7 +12,7 @@ export function operationsLog(logger?: Pick<StructuredLogger, "registerCatalog" 
   return {
     record(record: OperationRecord): void {
       const correlation = logger?.correlation();
-      const metadata = { count: record.count, effect: record.effect, ...(correlation ? { correlation } : {}) };
+      const metadata = { count: record.count, effect: record.effect, ...(record.action ? { action: record.action } : {}), ...(correlation ? { correlation } : {}) };
       const operation = record.code.startsWith('obs-') || record.code.startsWith('stream-') || record.code.startsWith('twitch-channel-') ? 'broadcast' : record.code.startsWith('project-') ? 'workflow' : record.code.startsWith("job-")
         ? "workflow"
         : record.code.startsWith("moderation")

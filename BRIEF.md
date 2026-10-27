@@ -27,6 +27,38 @@ A streamer operating a second-screen studio while on air. The studio must be
 understandable at a glance, work without credentials in a clearly labelled demo, and
 connect to the local Claude Code CLI. Viewers interact only through chat.
 
+### Stream finances (owner decision, 2026-10-27)
+
+- First increment uses EUR and manual income/expense entry, with description, category, date and optional recorded-stream attribution.
+- Recurring subscriptions/expenses are planned commitments with weekly/monthly/yearly cadence and active/paused state.
+  They do not generate actual payments. Show their estimated monthly equivalent separately from actual totals.
+- Provide create/edit/delete, month and stream filtering, and actual income, expenses and balance. Financial data stays
+  private in the vault and is excluded from the public viewer board. No bank/payment API or automatic Twitch revenue import.
+
+### Herdr integration (owner decision, 2026-10-27)
+
+- Follow the local Herdr Companion approach: native executable/session configuration,
+  workspace and agent controls/status, and explicit dispatch of CoForge requests to ready agents.
+- This increment integrates request dispatch and workspace/agent controls, not the Companion's full
+  terminal or folder-worker UI. CoForge's existing screening, automation and review remain authoritative.
+- A reviewed dispatch prefixes the project's general agent prompt and includes the selected screened
+  request. Verify the target agent identity and project directory before sending. Delivery is not completion.
+- Persist intent before mutations; hold pending/uncertain actions across reload without replay.
+  The streamer refreshes, inspects Herdr and explicitly acknowledges recovery before another mutation.
+
+### Local stream music (owner decision, 2026-10-27)
+
+- A configurable folder inside the vault (default `CoForge/Music`) contains local MP3 files.
+  A same-basename Markdown companion stores title, artist, license, origin and attribution.
+  The streamer supplies and reviews the rights; CoForge does not infer a license.
+- Saved playlists are Obsidian-compatible frontmatter plus Markdown notes in the music folder's
+  `Playlists` subfolder. Track references are vault-relative paths; refresh detects missing files.
+- Playback runs inside Obsidian, continues while navigating CoForge and stops on plugin unload.
+  OBS must capture Obsidian/application or desktop audio; include setup guidance. No automatic
+  playback on startup or go-live. Provide play/pause/stop, previous/next, seeking and volume.
+- Playlist editing preserves unrelated frontmatter and Markdown body bytes. Metadata can be opened
+  or created from the library. External edits require refresh and must not be silently overwritten.
+
 ## Surfaces (from the design)
 
 - CoForge studio (view, entry): idea board, stream chat, agent workflow, community, studio settings.
@@ -153,3 +185,9 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - Stream statistics selects a saved stream, plots recorded metrics over elapsed stream time, and compares it
   with up to three earlier completed streams from the same channel. Charts preserve missing-data gaps and
   provide exact sample values. Audience metrics lead by default; engagement and OBS health remain selectable.
+- Stream studio monitors live viewers, observed chat activity and OBS health with explicit source age/status.
+  Live monitoring does not increase the one-sample-per-minute archive cadence.
+- Manage OBS scenes from the plugin: create, rename, duplicate, delete and switch; manage existing sources'
+  scene-item visibility, order and membership. Scene copies share existing sources. Source properties, capture
+  devices and audio configuration remain in OBS. Mutations share stream-control serialization and durable
+  intent/recovery; unknown effects are not replayed. Destructive actions show the exact target for confirmation.

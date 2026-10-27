@@ -3,9 +3,10 @@ import type { Timers } from "../../features/coforge/application/ports";
 import type { ObsConnection } from "../../features/coforge/domain/obs";
 import { record } from "../../features/coforge/domain/check";
 import { IntegrationFailure } from "../../features/coforge/domain/integration-failure";
+import type { ObsSceneRequest } from './obs-scenes-data';
 
 export type ObsRequest =
-  "GetVersion" | "GetSceneList" | "GetStreamStatus" | "GetStats" | "SetCurrentProgramScene" | "StartStream" | "StopStream";
+  "GetVersion" | "GetSceneList" | "GetStreamStatus" | "GetStats" | "SetCurrentProgramScene" | "StartStream" | "StopStream" | ObsSceneRequest;
 export interface ObsSocket {
   onmessage: ((event: MessageEvent) => unknown) | null;
   onclose: ((event: CloseEvent) => unknown) | null;
@@ -193,7 +194,7 @@ export class ObsClient {
       this.socket?.send(
         JSON.stringify({
           op: 1,
-          d: { rpcVersion: 1, eventSubscriptions: 71, ...(authentication ? { authentication } : {}) },
+          d: { rpcVersion: 1, eventSubscriptions: 207, ...(authentication ? { authentication } : {}) },
         }),
       );
     } else if (frame.op === 2 && !this.ready) {

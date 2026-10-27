@@ -54,6 +54,11 @@ export class StudioStore {
   }
   internalSnapshot(): InternalState { return structuredClone(this.current()); }
   integrationSnapshot(): InternalState['integration'] { return { ...this.current().integration }; }
+  liveChatSnapshot() {
+    const state = this.current(); return { phase: state.runtime.twitch?.phase,
+      messages: state.population.counters['twitch-message-observed'] ?? 0,
+      commands: state.population.counters['twitch-command-observed'] ?? 0 };
+  }
   obsContext() {
     const state = this.current(); return { settings: structuredClone(state.obsSettings ?? defaultObsSettings()), command: state.obsCommand ? { ...state.obsCommand } : undefined, resumeSceneId: state.obsResumeSceneId };
   }

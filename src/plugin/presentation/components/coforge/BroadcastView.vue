@@ -3,6 +3,9 @@ import { useBroadcast } from "../../composables/coforge/use-broadcast";
 import TwitchChannelEditor from "./TwitchChannelEditor.vue";
 import GuidedStreamSetup from './GuidedStreamSetup.vue';
 import StreamHistoryPanel from './StreamHistoryPanel.vue';
+import LiveStudioPanel from './LiveStudioPanel.vue';
+import ObsSceneManager from './ObsSceneManager.vue';
+import StreamMusic from './StreamMusic.vue';
 const model = useBroadcast();
 </script>
 <template>
@@ -100,6 +103,9 @@ const model = useBroadcast();
       {{ model.error || model.state.lastError }}
     </p>
     <p v-if="model.notice" role="status">{{ model.notice }}</p>
+    <LiveStudioPanel />
+    <ObsSceneManager />
+    <StreamMusic />
     <div class="cf-broadcast-preparation">
       <section aria-label="Stream readiness">
         <h2>Readiness</h2>

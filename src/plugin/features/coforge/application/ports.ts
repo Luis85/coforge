@@ -60,6 +60,14 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  finance?: import('./finance-ports').FinanceActions;
+  previewFinance?(): import('./finance-ports').FinanceActions;
+  herdr?: import('./herdr-ports').HerdrActions;
+  previewHerdr?(): import('./herdr-ports').HerdrActions;
+  previewMusic?(): import('./music-ports').MusicActions;
+  music?: import('./music-ports').MusicActions;
+  previewLiveStudio?(): import('./studio-example').StudioExample;
+  obsScenes?: import('../domain/obs-scenes').ObsSceneActions;
   previewStreamStatistics?(): import('../domain/stream-metrics').StreamHistory[];
   streamHistory?: import('./stream-metrics-ports').StreamHistoryActions;
   obs?: import('../domain/obs').ObsActions;

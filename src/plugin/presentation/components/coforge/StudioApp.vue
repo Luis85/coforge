@@ -11,6 +11,7 @@ import OperationsView from './OperationsView.vue';
 import CommunitySettingsView from './CommunitySettingsView.vue';
 import BroadcastView from './BroadcastView.vue';
 import StreamStatisticsView from './StreamStatisticsView.vue';
+import FinanceView from './FinanceView.vue';
 import HelpDialog from './HelpDialog.vue';
 import IdeaBoard from './IdeaBoard.vue';
 import IdeaDrawer from './IdeaDrawer.vue';
@@ -54,6 +55,7 @@ const model = useStudioApp();
             <StreamPage v-else-if="model.shell.store.view === 'stream'" />
             <BroadcastView v-else-if="model.shell.store.view === 'broadcast'" />
             <StreamStatisticsView v-else-if="model.shell.store.view === 'statistics'" />
+            <FinanceView v-else-if="model.shell.store.view === 'finance'" />
             <WorkflowView v-else-if="model.shell.store.view === 'workflow'" />
             <ProjectsView v-else-if="model.shell.store.view === 'projects'" />
             <CommunityView v-else-if="model.shell.store.view === 'community'" />
