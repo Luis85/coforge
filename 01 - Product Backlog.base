@@ -1,0 +1,37 @@
+filters:
+  and:
+    - file.inFolder("docs")
+views:
+  - type: product-backlog
+    name: Backlog
+    openIn: split
+    stateProperty: note.status
+    startedDateProperty: note.started
+    finishedDateProperty: note.finished
+    horizonProperty: note.horizon
+    startProperty: note.start
+    targetProperty: note.due
+    riskProperty: note.risk
+    priorityProperty: note.priority
+    assigneeProperty: note.assignee
+    dependsOnProperty: note.dependsOn
+    iterationProperty: note.iteration
+    iterationGoalProperty: note.goal
+    releaseProperty: note.release
+  - type: product-release
+    name: Releases
+    membershipProperty: note.release
+    versionProperty: note.version
+    targetDateProperty: note.target-date
+    releasedDateProperty: note.released
+    descriptionProperty: note.description
+    estimateProperty: note.effort
+    capacityProperty: note.capacity
+    dependsOnProperty: note.dependsOn
+    riskProperty: note.risk
+    releaseStatusProperty: note.status
+    stateProperty: note.status
+    releaseNotesFolder: docs/release-notes
+    releasedStatusValues: Released
+    releasedTransitionValue: Released
+    capacityUnit: points
