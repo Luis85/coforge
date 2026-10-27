@@ -1,6 +1,6 @@
 # Task: Player onboarding, population, economy and operations
 
-- Status: in progress
+- Status: done
 - Journey: a viewer is greeted, registers, participates within intake limits, earns evidenced rewards,
   and can be managed by the streamer from the plugin.
 
@@ -54,5 +54,10 @@ and finished in 4.59s. Product tests: 145 passed, five existing Windows-only ski
 `npm run test:ui-quality`: 8 passed (1.6m). `npm run ui:gallery`: 40 captures generated and representative views reviewed.
 Static design detector: `[]`; `git diff --check` and changed-file size checks found no violations. The narrowed consumer
 facade received an additional successful typecheck. Local Obsidian is not provisioned; nothing was downloaded/launched.
-Contained native CI is pending. Live-channel acceptance remains user-operated.
+Final product suite: 147 passed, five existing Windows-only skips. Code head `e82876d` passed CI: all five project gates
+in 80.4s, all 24 browser checks in 38.9s, root-install byte checks and the community-review mirror (16 pass, 0 warn, 0 fail).
+Contained Obsidian: six tests passed across five files; reload/dev loop status passed with zero plugin errors/console entries.
+The dev loop's optional view probe reports the existing empty-tab-group host diagnostic; separate native tests verify
+actual view rendering and reload. CI evidence and final-head results are linked from PR #11.
+Live-channel acceptance remains user-operated.
 The review and concrete follow-up changes are recorded in `2026-10-27-player-foundations-review.md`.

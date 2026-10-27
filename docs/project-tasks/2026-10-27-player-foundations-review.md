@@ -1,6 +1,6 @@
 # Player foundations: product review and improvement pass
 
-Status: product and technical review captured; improvement pass implemented; final verification in progress.
+Status: product and technical review complete; improvement pass implemented and verified.
 
 ## Evidence and scope
 
@@ -76,10 +76,12 @@ Reviewed the final player desktop, named-rank narrow, grouped-operations desktop
 narrow captures after the improvement pass. Actions are adjacent to identity, unavailable test controls are
 removed, metrics are grouped, and currency/rank labels use the community configuration. No further visual
 changes were needed. The static detector returned `[]`. Browser checks passed in both themes, including
-narrow reflow, keyboard focus and added-rank focus. These findings are resolved; native CI is the remaining host gate.
+narrow reflow, keyboard focus and added-rank focus. These findings are resolved; contained native CI verifies host rendering, persistence and reload.
 
 Architecture and extension guidance: `docs/coforge/FOUNDATIONS.md`. Operator guide: `docs/coforge/COMMUNITY.md`.
 Final local checks: five project gates and build passed; 145 product tests passed (five existing Windows skips), all
 24 browser tests passed, the standalone UI-quality gate passed 8/8, and 40 gallery captures were generated. The narrowed
-public facade also typechecked. No source/test limits or dependencies were weakened. Contained native CI is pending.
+public facade also typechecked. No source/test limits or dependencies were weakened. Contained native CI passed six tests across five files; the dev loop reports passed with zero plugin errors and console entries. Its optional empty-tab-group view probe remains a host diagnostic; separate native tests verify view rendering.
 Screenshot evidence is not an accessibility-compliance certification. Live Twitch operations remain user-operated.
+
+Exact-code CI on e82876d passed all five project gates (80.4s), all 24 browser checks (38.9s), root installation and community review (16 pass, 0 warn, 0 fail). Final local product tests: 147 passed, five existing Windows skips. See PR #11 for current-head checks and evidence links.
