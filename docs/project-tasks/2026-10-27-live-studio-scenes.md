@@ -1,6 +1,6 @@
 # Task: Monitor a live stream and maintain OBS scenes
 
-- Status: in progress
+- Status: implemented; final validation and merge tracked in [PR #20](https://github.com/Luis85/coforge/pull/20)
 - Owner scope: scene CRUD/switching plus existing-source visibility, order and membership; no source/device/audio property editor.
 - Traceability: BRIEF and owner request; no generated req-/vi-* IDs exist.
 

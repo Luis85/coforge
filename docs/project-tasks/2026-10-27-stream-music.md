@@ -1,6 +1,6 @@
 # Task: Local music library and stream playlists
 
-- Status: in progress
+- Status: implemented; final validation and merge tracked in [PR #20](https://github.com/Luis85/coforge/pull/20)
 - Traceability: owner request and BRIEF local stream music; generated requirement/interaction arrays are empty.
 - Maker preview: music/track scaffolds an unrelated workspace; extend existing CoForge ports and stream studio.
 
