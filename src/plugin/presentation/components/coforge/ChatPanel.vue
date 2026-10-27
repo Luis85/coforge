@@ -32,7 +32,7 @@ const model = useChatPanel();
       <CfIcon name="sparkles" size="sm" />
       <div>
         <strong>Viewer commands</strong>
-        <p><code>!projects</code> lists project IDs.<br><code>!request</code> or <code>!bug</code> submits to a project.</p>
+        <p><code>!register</code> joins The Hood.<br><code>!projects</code> lists project IDs.<br><code>!request</code> or <code>!bug</code> submits to a project.</p>
       </div>
       <button
         type="button" class="cf-icon-button" aria-label="Show chat command help" :aria-expanded="model.showHelp"
@@ -43,6 +43,7 @@ const model = useChatPanel();
     </div>
     <div v-if="model.showHelp" class="cf-chat-help">
       <strong>Chat commands</strong>
+      <p><code>!register</code> before requests, bugs and votes. Features have a 5-minute cooldown.</p>
       <p><code>{{ model.requestExample }}</code></p>
       <p><code>!bug &lt;project-id&gt; Describe the bug</code></p>
       <p><code>!vote CF-101</code></p>

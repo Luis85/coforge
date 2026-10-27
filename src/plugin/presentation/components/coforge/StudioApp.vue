@@ -6,6 +6,9 @@ import BrandMark from './BrandMark.vue';
 import CfIcon from './CfIcon.vue';
 import ChatPanel from './ChatPanel.vue';
 import CommunityView from './CommunityView.vue';
+import PopulationView from './PopulationView.vue';
+import OperationsView from './OperationsView.vue';
+import CommunitySettingsView from './CommunitySettingsView.vue';
 import HelpDialog from './HelpDialog.vue';
 import IdeaBoard from './IdeaBoard.vue';
 import IdeaDrawer from './IdeaDrawer.vue';
@@ -50,6 +53,9 @@ const model = useStudioApp();
             <WorkflowView v-else-if="model.shell.store.view === 'workflow'" />
             <ProjectsView v-else-if="model.shell.store.view === 'projects'" />
             <CommunityView v-else-if="model.shell.store.view === 'community'" />
+            <PopulationView v-else-if="model.shell.store.view === 'population'" />
+            <OperationsView v-else-if="model.shell.store.view === 'operations'" />
+            <CommunitySettingsView v-else-if="model.shell.store.view === 'community-settings'" />
             <SettingsView v-else />
           </main>
           <ChatPanel v-if="model.shell.store.view === 'board'" />

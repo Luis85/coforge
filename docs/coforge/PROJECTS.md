@@ -11,7 +11,8 @@ description, workspace, links, provider, model, workflow and run limits.
 
 ## Viewer requests name their parent project
 
-Use `!request CFP-002 Add a lantern beside the moon gate`. A project ID is mandatory.
+Viewers first use `!register`, then `!request CFP-002 Add a lantern beside the moon gate`.
+A project ID is mandatory. Feature requests have a five-minute cooldown across projects.
 Missing, invalid and unknown project IDs create no request and do not consume request IDs.
 The named project receives the request even while the streamer is viewing another board.
 `!vote CF-116` and `!status CF-116` continue to use globally unique request IDs.

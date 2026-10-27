@@ -3,7 +3,7 @@ import type { TwitchIdentity, TwitchRole } from '../../features/coforge/domain/t
 import { assertResponse, object, strings, TwitchError, type HttpRequest } from './twitch-http';
 
 export const BOT_SCOPES = ['user:read:chat', 'user:write:chat'];
-export const STREAMER_SCOPES = ['channel:manage:broadcast', 'moderator:manage:chat_messages', 'moderator:manage:banned_users'];
+export const STREAMER_SCOPES = ['channel:manage:broadcast', 'moderator:manage:chat_messages', 'moderator:manage:banned_users', 'moderator:read:chatters'];
 export interface TwitchSecrets { getSecret(name: string): string | null; setSecret(name: string, value: string): void }
 interface Credentials { accessToken: string; refreshToken?: string; expiresAt?: number }
 interface Account { credentials: Credentials; identity: TwitchIdentity; checkedAt: number; clientId: string; secretName: string }
@@ -36,7 +36,11 @@ export class TwitchAccounts {
         pending = this.load(actual, forceRefresh).finally(() => { this.pending.delete(actual); });
         this.pending.set(actual, pending);
       }
-      try { account = await pending; } catch (error) { if (error instanceof TwitchError && error.kind === 'authorization') this.accounts.delete(actual); throw error; }
+      try { account = await pending; } catch (error) {
+        const latest = this.accounts.get(actual);
+        if (latest && latest !== cached && this.current(latest, role)) account = latest;
+        else { if (error instanceof TwitchError && error.kind === 'authorization' && latest === cached) this.accounts.delete(actual); throw error; }
+      }
     }
     if (!this.current(account, role)) throw new TwitchError('authorization', 'The Twitch account configuration changed. Reconnect before continuing.');
     const missing = required.filter(scope => !account.identity.scopes.includes(scope));
@@ -80,27 +84,33 @@ export class TwitchAccounts {
   }
   private async load(role: TwitchRole, force: boolean): Promise<Account> {
     const clientId = this.config().twitchClientId; const secretName = this.secretName(role);
+    let secretLease = this.secrets.getSecret(secretName);
     let credentials = this.read(role);
-    if (force || (credentials.expiresAt && credentials.expiresAt <= Date.now() + 60_000)) credentials = await this.refresh(role, credentials);
+    if (force || (credentials.expiresAt && credentials.expiresAt <= Date.now() + 60_000)) { credentials = await this.refresh(role, credentials); secretLease = JSON.stringify(credentials); }
     let identity: TwitchIdentity;
     try { identity = await this.validate(credentials.accessToken); }
     catch (error) {
       if (!(error instanceof TwitchError) || error.kind !== 'authorization' || force || !credentials.refreshToken) throw error;
-      credentials = await this.refresh(role, credentials); identity = await this.validate(credentials.accessToken);
+      credentials = await this.refresh(role, credentials); secretLease = JSON.stringify(credentials); identity = await this.validate(credentials.accessToken);
     }
     const expected = role === 'streamer' ? this.config().twitchBroadcasterId : this.config().twitchBotUserId;
     if (expected && expected !== identity.id) throw new TwitchError('authorization', `The stored ${role} token belongs to a different Twitch user. Reconnect the intended account.`);
+    if (secretLease !== this.secrets.getSecret(secretName) || clientId !== this.config().twitchClientId || secretName !== this.secretName(role))
+      throw new TwitchError('authorization', 'Twitch credentials changed while authorization was checked. Use the newly connected account.');
     const account = { credentials, identity, checkedAt: Date.now(), clientId, secretName };
     this.accounts.set(role, account); return account;
   }
   private async refresh(role: TwitchRole, previous: Credentials): Promise<Credentials> {
     const clientId = this.config().twitchClientId; const secretName = this.secretName(role);
+    const secretLease = this.secrets.getSecret(secretName);
     if (!previous.refreshToken) throw new TwitchError('authorization', 'This manual token cannot refresh automatically. Connect the account with Twitch authorization.');
     const response = await this.request({ url: 'https://id.twitch.tv/oauth2/token', method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: previous.refreshToken, client_id: this.config().twitchClientId }).toString() });
+    if (response.status === 400 || response.status === 401) throw new TwitchError('authorization', 'Twitch authorization expired or was revoked. Reconnect this account.');
     assertResponse(response);
-    if (clientId !== this.config().twitchClientId || secretName !== this.secretName(role)) throw new TwitchError('authorization', 'Twitch settings changed while credentials refreshed. Reconnect the account.');
+    if (clientId !== this.config().twitchClientId || secretName !== this.secretName(role) || secretLease !== this.secrets.getSecret(secretName))
+      throw new TwitchError('authorization', 'Twitch credentials changed while refreshing. Use the newly connected account.');
     const next = this.credentials(response.json);
     this.save(role, next); // Public-client refresh tokens rotate: save the pair atomically before further use.
     return next;

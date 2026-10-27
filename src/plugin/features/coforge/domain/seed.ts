@@ -7,7 +7,7 @@ export const defaultSettings = (): Settings => ({
   projectName: 'Community game',
   projectBrief: 'Describe your game, its audience and what each small increment should respect.',
   provider: 'demo', automation: { screen: true, score: true, plan: true, implement: false }, paused: true,
-  intervalSeconds: 5, minVotes: 3, maxTurns: 12, maxBudgetUsd: 1, timeoutSeconds: 180, model: 'sonnet', requestCooldownSeconds: 15,
+  intervalSeconds: 5, minVotes: 3, maxTurns: 12, maxBudgetUsd: 1, timeoutSeconds: 180, model: 'sonnet', requestCooldownSeconds: 300,
 });
 
 export const defaultIntegration = (): IntegrationSettings => ({

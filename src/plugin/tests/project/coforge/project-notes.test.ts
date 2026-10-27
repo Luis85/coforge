@@ -5,7 +5,7 @@ import { createTestApp, flushObsidian, type TestApp } from '@test/obsidian';
 import { StudioService } from '../../../features/coforge/application/studio';
 import { createDemoRunner } from '../../../features/coforge/application/demo-agent';
 import { VaultStudioStorage, readIdeaNote, splitNote } from '../../../infrastructure/coforge/vault-storage';
-import { nodeTimers } from './memory-storage';
+import { nodeTimers, registerTestViewers } from './memory-storage';
 import { ideaFingerprint } from '../../../features/coforge/domain/integrity';
 import { parsePersistedStudio } from '../../../features/coforge/domain/persisted';
 
@@ -24,6 +24,7 @@ async function open(existing?: { kit: TestApp; app: App }, initialProject = true
     probeRuntime: () => Promise.resolve({ cliAvailable: false, projectPath: null, allowImplementation: false }) });
   services.push(studio);
   await studio.start();
+  await registerTestViewers(studio.store, [{ username: 'River' }, { username: 'Alice' }]);
   if (initialProject && !studio.state().projects?.length) await studio.createProject({ projectName: 'Community game', projectBrief: 'Fixture community game project.', projectPath: '/synthetic/game' });
   storage.watchProjects(change => { void studio.applyProjectNoteChange(change); }, () => undefined);
   return { app, kit, studio, storage };

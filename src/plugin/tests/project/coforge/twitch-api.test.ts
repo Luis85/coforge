@@ -5,6 +5,19 @@ import type { HttpRequest } from '../../../infrastructure/coforge/twitch-http';
 import { defaultIntegration } from '../../../features/coforge/domain/seed';
 
 describe('Twitch authorization and channel writes', () => {
+  it('does not let a slow old refresh overwrite a newly authorized token pair', async () => {
+    const config = { ...defaultIntegration(), twitchClientId: 'client', twitchBroadcasterId: '123' };
+    const secrets = new Map([[config.twitchStreamerSecret, JSON.stringify({ accessToken: 'old', refreshToken: 'old-refresh', expiresAt: 1 })]]);
+    let finish!: (value: { status: number; json: unknown }) => void;
+    const waiting = new Promise<{ status: number; json: unknown }>(resolve => { finish = resolve; });
+    const request: HttpRequest = async input => input.url.endsWith('/token') ? waiting : { status: 200, json: { client_id: 'client', user_id: '123', login: 'streamer', scopes: [...BOT_SCOPES, ...STREAMER_SCOPES] } };
+    const accounts = new TwitchAccounts(request, { getSecret: key => secrets.get(key) ?? null, setSecret: (key, value) => { secrets.set(key, value); } }, () => config);
+    const pending = accounts.token('streamer');
+    await accounts.accept('streamer', { access_token: 'new-grant', refresh_token: 'new-refresh', expires_in: 3600 });
+    finish({ status: 200, json: { access_token: 'old-rotated', refresh_token: 'old-next', expires_in: 3600 } });
+    expect(await pending).toBe('new-grant');
+    expect(JSON.parse(secrets.get(config.twitchStreamerSecret)!)).toMatchObject({ accessToken: 'new-grant', refreshToken: 'new-refresh' });
+  });
   it('serializes rotating refresh tokens and stores the access/refresh pair together', async () => {
     const config = { ...defaultIntegration(), twitchClientId: 'client', twitchBroadcasterId: '123' };
     const secrets = new Map([[config.twitchStreamerSecret, JSON.stringify({ accessToken: 'old', refreshToken: 'once', expiresAt: 1 })]]);
@@ -47,5 +60,13 @@ describe('Twitch authorization and channel writes', () => {
     const accounts = new TwitchAccounts(request, { getSecret: () => null, setSecret: () => undefined }, () => config);
     const api = new TwitchApi(request, accounts, () => ({ ...config, twitchBroadcasterId: '123' }));
     await expect(api.moderate({ type: 'delete', messageId: '' })).rejects.toThrow('one Twitch message');
+  });
+  it('requires a moderation confirmation for the exact selected broadcaster and viewer', async () => {
+    const config = { ...defaultIntegration(), twitchClientId: 'client', twitchBroadcasterId: '123' };
+    const request: HttpRequest = async input => input.url.endsWith('/validate')
+      ? { status: 200, json: { client_id: 'client', user_id: '123', login: 'streamer', scopes: STREAMER_SCOPES } }
+      : { status: 200, json: { data: [{ broadcaster_id: '123', user_id: 'different-user' }] } };
+    const accounts = new TwitchAccounts(request, { getSecret: () => 'test-token', setSecret: () => undefined }, () => config);
+    await expect(new TwitchApi(request, accounts, () => config).moderate({ type: 'ban', userId: '99', reason: '' })).rejects.toThrow('did not confirm');
   });
 });

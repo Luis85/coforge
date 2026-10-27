@@ -6,7 +6,7 @@ import type { HttpRequest } from '../../../infrastructure/coforge/twitch-http';
 import { BOT_SCOPES, STREAMER_SCOPES } from '../../../infrastructure/coforge/twitch-auth';
 import { StudioService } from '../../../features/coforge/application/studio';
 import { createDemoRunner } from '../../../features/coforge/application/demo-agent';
-import { MemoryStorage, nodeTimers } from './memory-storage';
+import { MemoryStorage, nodeTimers, registerTestViewers } from './memory-storage';
 
 class Socket implements TwitchSocket {
   onmessage: ((event: MessageEvent) => unknown) | null = null;
@@ -20,7 +20,8 @@ afterEach(async () => { for (const stop of stops.splice(0)) await stop(); vi.use
 async function setup(replies = true) {
   vi.useFakeTimers(); const timers = nodeTimers(); const runner = createDemoRunner(timers, [1, 1]); const storage = new MemoryStorage();
   const studio = new StudioService(storage, { timers, runners: { demo: runner, claude: runner }, probeRuntime: async () => ({ cliAvailable: false, projectPath: null, allowImplementation: false }) });
-  await studio.start(); await studio.createProject({ projectName: 'Moon', projectBrief: 'Moon garden', projectPath: '/synthetic/moon' });
+  await studio.start();
+  await registerTestViewers(studio.store, [{ username: 'Viewer', userId: '99', source: 'twitch' }]); await studio.createProject({ projectName: 'Moon', projectBrief: 'Moon garden', projectPath: '/synthetic/moon' });
   await studio.updateIntegration({ twitchEnabled: true, twitchClientId: 'client', twitchBroadcasterId: '123', twitchBotUserId: '123', twitchBotReplies: replies });
   const sockets: Socket[] = []; const sent: unknown[] = [];
   const request: HttpRequest = async input => {

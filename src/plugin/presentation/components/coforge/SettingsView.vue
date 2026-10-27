@@ -46,6 +46,7 @@ const model = useSettings();
       </section>
       <SettingsProviderSection />
       <SettingsRepositorySection />
+      <p class="cf-settings-help">Viewer feature requests have a fixed 5-minute cooldown across all projects. Registration and earning rules are managed under Players and Operations.</p>
       <SettingsNumberSection
         :fields="model.rhythm" icon="sliders-horizontal" heading="Workflow rhythm"
         text="Stage automation switches are on the Agent workflow screen. These limits apply to the queue."

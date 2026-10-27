@@ -4,9 +4,11 @@ import { ideaIdFor } from './types';
 export type ParsedCommand =
   | { type: 'request' | 'bug'; projectId: string; text: string }
   | { type: 'projects'; page: number }
+  | { type: 'ranks'; page: number }
   | { type: 'vote'; ideaId: string }
   | { type: 'status'; ideaId: string }
   | { type: 'me' }
+  | { type: 'register' }
   | { type: 'help' }
   | { type: 'message' }
   | { type: 'invalid'; message: string };
@@ -21,6 +23,11 @@ function ideaReference(value: string): string | null {
 /** Parses project discovery, feature/bug intake, voting and viewer status commands. */
 export function parseCommand(text: string): ParsedCommand {
   const value = text.trim();
+  if (/^!register\s*$/i.test(value)) return { type: 'register' };
+  if (/^!ranks(?:\s|$)/i.test(value)) {
+    const match = /^!ranks(?:\s+([1-9]\d?))?$/i.exec(value);
+    return match ? { type: 'ranks', page: Number(match[1] ?? 1) } : { type: 'invalid', message: 'Use !ranks or !ranks 2 for another page.' };
+  }
   if (/^!(?:request|bug)(?:\s|$)/i.test(value)) {
     const match = /^!(request|bug)\s+(CFP-\d{3,7})\s+([\s\S]+)$/i.exec(value);
     if (!match?.[2] || !match[3] || Number(match[2].slice(4)) < 1) return { type: 'invalid', message: 'Include a project ID: !request CFP-001 Your feature idea, or !bug CFP-001 Describe the bug. Use !projects for IDs.' };
@@ -54,4 +61,4 @@ export function identity(input: { username: string; userId?: string; source?: Ch
   return `${source}:${source === 'simulator' ? cleanId.toLocaleLowerCase('en-US') : cleanId}`;
 }
 
-export const HELP_TEXT = '!projects: project IDs · !request CFP-001 Your feature idea · !bug CFP-001 Describe the bug · !vote CF-101 · !status CF-101 · !me. One vote per viewer and request.';
+export const HELP_TEXT = '!register: join The Hood · !projects: project IDs · !request CFP-001 Your feature idea (5-minute cooldown) · !bug CFP-001 Describe the bug · !vote CF-101 · !status CF-101 · !me: player stats · !ranks: rank ladder. Register before requests, bugs or votes.';

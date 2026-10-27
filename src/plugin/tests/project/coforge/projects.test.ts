@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { StudioService } from '../../../features/coforge/application/studio';
 import type { StageInput, StageRunner, StudioHost } from '../../../features/coforge/application/ports';
 import { createSeed } from '../../../features/coforge/domain/seed';
-import { MemoryStorage, nodeTimers } from './memory-storage';
+import { MemoryStorage, nodeTimers, registerTestViewers } from './memory-storage';
 
 const services: StudioService[] = [];
 afterEach(async () => { await Promise.all(services.splice(0).map(service => service.stop())); });
@@ -17,6 +17,7 @@ async function setup(runner: StageRunner = async () => ({ screening: {
   });
   services.push(studio);
   await studio.start();
+  await registerTestViewers(studio.store, [{ username: 'NewViewer' }, { username: 'Viewer' }]);
   return { studio, storage };
 }
 

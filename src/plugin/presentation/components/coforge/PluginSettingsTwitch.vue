@@ -14,7 +14,7 @@ const model = usePluginSettingsForm();
   <label class="cf-project-repository-toggle"><input v-model="model.draft.twitchBotUsesStreamer" type="checkbox"><span>Use the streamer account as the chatbot</span></label>
   <TwitchAuthorization :client-id="model.draft.twitchClientId" :uses-streamer="model.draft.twitchBotUsesStreamer" />
   <label class="cf-project-repository-toggle"><input v-model="model.draft.twitchEnabled" type="checkbox"><span>Receive Twitch chat</span></label>
-  <label class="cf-project-repository-toggle"><input v-model="model.draft.twitchBotReplies" type="checkbox"><span>Enable automatic chatbot replies to viewer commands</span></label>
+  <label class="cf-project-repository-toggle"><input v-model="model.draft.twitchBotReplies" type="checkbox"><span>Enable automatic bot messages</span></label>
   <p class="cf-settings-help">Save changes to apply these switches. Replies are off by default; connecting an account alone does not enable automatic posts.</p>
   <details class="cf-twitch-advanced"><summary>Advanced: existing user-token configuration</summary>
   <PluginSettingsRow name="Bot user ID" description="Numeric user ID of the account that reads chat — the token’s user." control-id="cf-ps-twitch-bot">

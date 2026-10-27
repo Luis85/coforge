@@ -21,6 +21,9 @@ test('shows honest offline channel controls and explicitly tests project-address
   await test.info().attach('Channel narrow', { body: await page.screenshot({ path: 'reports/twitch-review/after/05-channel-narrow.png', fullPage: true }), contentType: 'image/png' });
   await page.getByRole('button', { name: 'Test commands locally', exact: true }).click();
   await page.getByLabel('Simulated viewer name').fill('Bug reporter');
+  await page.getByLabel('Chat message', { exact: true }).fill('!register');
+  await page.getByRole('button', { name: 'Send chat message', exact: true }).click();
+  await expect(page.getByLabel('Chat message', { exact: true })).toHaveValue('');
   await page.getByLabel('Chat message', { exact: true }).fill('!bug CFP-001 The moon gate crashes the game');
   await page.getByRole('button', { name: 'Send chat message', exact: true }).click();
   await expect(page.getByLabel('Chat message', { exact: true })).toHaveValue('');

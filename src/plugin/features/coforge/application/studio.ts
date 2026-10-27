@@ -13,6 +13,8 @@ import { addProject, editProject } from './projects';
 import { copySettings, projectPaths, selectProjectState } from '../domain/projects';
 import type { StudioProject } from '../domain/types';
 import { loadProjectSample } from './sample-project';
+import { blockPlayer, updateEconomyRules, updateCommunitySettings } from './population';
+import { activateStreamMessage, removeStreamMessage, saveStreamMessage } from './stream-messages';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -22,7 +24,7 @@ export class StudioService {
   readonly engine: WorkflowEngine;
   private readonly integrationListeners = new Set<(integration: IntegrationSettings) => void>();
   constructor(storage: StudioStorage, private readonly host: StudioHost) {
-    this.store = new StudioStore(storage);
+    this.store = new StudioStore(storage, host.events, host.observerFailed);
     this.engine = new WorkflowEngine(this.store, { runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}) });
   }
 
@@ -33,10 +35,12 @@ export class StudioService {
     this.engine.start();
     return loaded;
   }
-  async stop(): Promise<void> { await this.engine.stop(); }
+  async stop(): Promise<void> { await this.engine.stop(); this.store.disposeObservers(); }
+  get ready(): boolean { return this.store.ready; }
 
   state(): AppState { return this.store.snapshot(); }
   subscribe(listener: (state: AppState) => void): () => void { return this.store.subscribe(listener); }
+  onEvent(listener: import('./studio-events').StudioEventListener): () => void { return this.store.subscribeEvents(listener); }
   integration(): IntegrationSettings { return this.store.integrationSnapshot(); }
   onIntegrationChange(listener: (integration: IntegrationSettings) => void): () => void {
     this.integrationListeners.add(listener);
@@ -46,6 +50,12 @@ export class StudioService {
   sendChat(username: string, text: string): Promise<ChatResult> { return ingestChat(this.store, { username, text, source: 'simulator' }); }
   ingest(input: ChatInput): Promise<ChatResult> { return ingestChat(this.store, input); }
   simulate(): Promise<ChatResult> { return simulateMessage(this.store); }
+  blockPlayer(id: string, blocked: boolean): Promise<void> { return this.store.transaction(state => blockPlayer(state, id, blocked)); }
+  updateEconomyRules(input: unknown): Promise<void> { return this.store.transaction(state => updateEconomyRules(state, input)); }
+  updateCommunitySettings(input: unknown): Promise<void> { return this.store.transaction(state => updateCommunitySettings(state, input)); }
+  saveStreamMessage(input: unknown, id?: string): Promise<string> { return this.store.transaction(state => saveStreamMessage(state, input, id)); }
+  activateStreamMessage(id: string, active: boolean): Promise<void> { return this.store.transaction(state => activateStreamMessage(state, id, active)); }
+  removeStreamMessage(id: string): Promise<void> { return this.store.transaction(state => removeStreamMessage(state, id)); }
 
   createProject(input: unknown): Promise<StudioProject> { return addProject(this.store, input); }
   async updateProject(input: unknown, id = this.state().activeProjectId!): Promise<StudioProject> {

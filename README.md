@@ -15,13 +15,14 @@ rebuilt on the [obsidian-plugin-shell](https://github.com/Luis85/obsidian-plugin
 1. Build (`npm ci`, `npm run build`) and copy `dist/main.js`, `dist/styles.css` and
    `manifest.json` into `<vault>/.obsidian/plugins/coforge/`, then enable **CoForge**.
 2. Click the gamepad ribbon icon or run **CoForge: Open CoForge**.
-3. On the empty board choose **Load sample workspace** to explore the illustrative
-   *Mosslight* project, or **New idea** to start your own. Ideas are written to
-   `CoForge/Ideas` (configurable).
+3. Fresh installations open Stream chat. Connect Twitch there, or open **Projects** and choose
+   **Load sample workspace** to explore the illustrative *Mosslight* project. Requests are written
+   to `CoForge/Ideas` (configurable).
 4. Open the project button in the sidebar to add projects, their workspace paths, repository and website links, and descriptions.
    Each has a stable project ID (`CFP-001`) and its own backlog, saved as Markdown notes in the vault.
-5. Try the loop: send `!request CFP-001 Add a lantern` in the chat simulator, vote as another
-   viewer, open the idea and run **Screen → Score → Plan → Build** with the demo agents,
+5. Try the loop: choose **Test commands locally**, send `!register`, then
+   `!request CFP-001 Add a lantern`. Register another test viewer to vote, open the idea and run
+   **Screen → Score → Plan → Build** with the demo agents,
    inspect the plan and increment, then accept it. Enable stages in **Agent workflow**
    and resume automation for automatic progression (automation always starts paused).
 
@@ -35,7 +36,9 @@ Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume au
 
 | Area | Behaviour |
 | --- | --- |
-| Twitch and chat | Project-addressed `!request` / `!bug`, `!projects`, `!vote`, `!status`, `!me`, `!help`; durable opt-in bot replies; device authorization and refresh; channel title/category and confirmed moderation |
+| Twitch and chat | `!register`, project-addressed `!request` / `!bug`, `!projects`, `!vote`, `!status`, `!me`, `!ranks`, `!help`; durable opt-in replies/greetings and recurring messages; channel controls and confirmed moderation |
+| Community | Persistent registered players, five-minute feature cooldown, block/mute/ban controls, XP/reputation/currency, configurable actor/currency names and named XP ranks |
+| Operations | Safe structured diagnostics, cumulative statistics, bounded operational/reward history and explicit delivery outcomes |
 | Projects | Vault-backed project notes, separate backlogs and workspace paths (including outside the vault), metadata links and descriptions; requests require their parent project ID |
 | Ideas | One note per idea with properties for status, screening, RICE and plan; edits and deletions in the vault flow back into the studio |
 | Workflow | Screen → Score → Plan → Build, single worker, queue, pause/resume, run next, cancel, vote threshold, failure holds |
@@ -46,6 +49,8 @@ Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume au
 
 Integration setup, the viewer website and safety boundaries: [docs/coforge/INTEGRATIONS.md](docs/coforge/INTEGRATIONS.md).
 Projects, request routing and project-note properties: [docs/coforge/PROJECTS.md](docs/coforge/PROJECTS.md).
+Community, registration and earning rules: [docs/coforge/COMMUNITY.md](docs/coforge/COMMUNITY.md).
+Application architecture and extension seams: [docs/coforge/FOUNDATIONS.md](docs/coforge/FOUNDATIONS.md).
 Product brief: [BRIEF.md](BRIEF.md).
 
 ### Source map

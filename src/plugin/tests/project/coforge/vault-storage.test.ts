@@ -4,7 +4,7 @@ import { App, Plugin } from 'obsidian';
 import { createTestApp, flushObsidian, type TestApp } from '@test/obsidian';
 import { createDemoRunner } from '../../../features/coforge/application/demo-agent';
 import { StudioService } from '../../../features/coforge/application/studio';
-import { nodeTimers } from './memory-storage';
+import { nodeTimers, registerTestViewers } from './memory-storage';
 import { VaultStudioStorage, readIdeaNote, splitNote } from '../../../infrastructure/coforge/vault-storage';
 
 class TestPlugin extends Plugin {}
@@ -22,6 +22,7 @@ async function open(existing?: { kit: TestApp; app: App }, files: Record<string,
   const studio = new StudioService(storage, { runners: { demo: runner, claude: runner }, timers, probeRuntime: () => Promise.resolve({ cliAvailable: false, projectPath: null, allowImplementation: false }) });
   services.push(studio);
   await studio.start();
+  await registerTestViewers(studio.store, [{ username: 'River' }, { username: 'Alice' }]);
   if (!studio.state().projects?.length) await studio.createProject({ projectName: 'Community game', projectBrief: 'Fixture community game project.', projectPath: '/synthetic/game' });
   storage.watch(change => { void studio.applyNoteChange(change); }, () => undefined);
   return { kit: testKit, app, plugin, storage, studio };

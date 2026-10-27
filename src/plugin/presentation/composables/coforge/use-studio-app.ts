@@ -5,10 +5,11 @@ import { useStudioStore, type StudioView } from '../../stores/coforge-studio';
 import { relativeTime } from './format';
 import { useStudioActions } from './use-studio-actions';
 
-const VIEW_LABELS: Record<StudioView, string> = { board: 'Idea board', stream: 'Stream chat', workflow: 'Agent workflow', community: 'Community', settings: 'Settings', projects: 'Projects' };
+const VIEW_LABELS: Record<StudioView, string> = { board: 'Idea board', stream: 'Stream chat', workflow: 'Agent workflow', community: 'Community', settings: 'Settings', projects: 'Projects', population: 'Players', operations: 'Operations', 'community-settings': 'Community settings' };
 const NAV: Array<{ view: StudioView; label: string; icon: string }> = [
   { view: 'board', label: 'Idea board', icon: 'layout-grid' }, { view: 'stream', label: 'Stream chat', icon: 'message-square' },
   { view: 'workflow', label: 'Agent workflow', icon: 'workflow' }, { view: 'community', label: 'Community', icon: 'trophy' },
+  { view: 'population', label: 'Players', icon: 'users' }, { view: 'operations', label: 'Operations', icon: 'chart-no-axes-combined' },
 ];
 
 /** Derived studio-shell state shared by the frame components (sidebar, top bar, pipeline, dock, activity). */

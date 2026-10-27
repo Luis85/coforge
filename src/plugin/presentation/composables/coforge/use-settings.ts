@@ -16,7 +16,6 @@ interface NumberField { key: NumberKey; label: string; min: number; max: number;
 const RHYTHM: NumberField[] = [
   { key: 'intervalSeconds', label: 'Queue interval · seconds', min: 2, max: 3600, step: 1, integer: true, help: 'How often automatic dispatch checks for work.' },
   { key: 'minVotes', label: 'Votes before planning', min: 0, max: 10000, step: 1, integer: true, help: 'Minimum demand for automatic planning.' },
-  { key: 'requestCooldownSeconds', label: 'Request cooldown · seconds', min: 0, max: 600, step: 1, integer: true, help: 'Wait between requests from the same viewer.' },
 ];
 const LIMITS: NumberField[] = [
   { key: 'maxTurns', label: 'Maximum agent turns', min: 1, max: 50, step: 1, integer: true },

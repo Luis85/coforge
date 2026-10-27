@@ -21,7 +21,7 @@ export async function initializeProject(plugin: Plugin) {
   const shell = await createServices(nativeAdapters(plugin));
   // The CoForge studio supplies its own header; use the host adapter's owned-view preference.
   if (!shell.preferences.current.hideObsidianViewHeader) await shell.preferences.update({ hideObsidianViewHeader: true });
-  const coforge = createCoforgeRuntime(plugin, code => shell.diagnostics.report(code, 'coforge.runtime'));
+  const coforge = createCoforgeRuntime(plugin, code => shell.diagnostics.report(code, 'coforge.runtime'), shell.logger);
   let sources: ReturnType<typeof createSources>;
   let providers: ReturnType<typeof configureSourceProviders> | undefined;
   const views = new Set<ShowcaseView>(); const modals = new Set<Modal>(); const settings = new Set<() => void>();

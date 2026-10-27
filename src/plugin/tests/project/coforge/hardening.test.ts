@@ -11,7 +11,7 @@ import { cleanLine, defangProperty, displayName } from '../../../features/coforg
 import { createSeed } from '../../../features/coforge/domain/seed';
 import { heuristicSignals } from '../../../features/coforge/domain/workflow';
 import { splitNote, VaultStudioStorage } from '../../../infrastructure/coforge/vault-storage';
-import { emptyStore, MemoryStorage, nodeTimers } from './memory-storage';
+import { emptyStore as rawEmptyStore, registerTestViewers, MemoryStorage, nodeTimers } from './memory-storage';
 
 const manifest = { id: 'coforge', name: 'CoForge', version: '0.1.0', minAppVersion: '1.13.7', description: '', author: '' };
 const services: StudioService[] = [];
@@ -27,6 +27,7 @@ async function vault(files: Record<string, string> = {}) {
   const studio = new StudioService(storage, { runners: { demo: runner, claude: runner }, timers, probeRuntime: probe });
   services.push(studio);
   await studio.start();
+  await registerTestViewers(studio.store, [{ username: 'River' }, { username: 'Alice' }]);
   if (!studio.state().projects?.length) await studio.createProject({ projectName: 'Community game', projectBrief: 'Fixture community game project.', projectPath: '/synthetic/game' });
   storage.watch(change => { void studio.applyNoteChange(change); }, () => undefined);
   return { app, kit, studio };
@@ -100,8 +101,11 @@ describe('integrity of notes changed outside CoForge', () => {
 describe('chat intake limits', () => {
   it('limits pending ideas per viewer and new ideas per minute, and rejects empty requests', async () => {
     const { store } = await emptyStore();
-    await store.transaction(state => { state.settings.requestCooldownSeconds = 0; });
-    for (let n = 0; n < INTAKE_LIMITS.pendingPerViewer; n++) await ingestChat(store, { username: 'River', text: `!request CFP-001 Idea number ${n} for the camp` });
+    // Isolate pending/intake gates from the separately tested five-minute cooldown.
+    for (let n = 0; n < INTAKE_LIMITS.pendingPerViewer; n++) {
+      await store.transaction(state => { delete state.population.players.find(player => player.id === 'simulator:river')!.lastFeatureAt; });
+      await ingestChat(store, { username: 'River', text: `!request CFP-001 Idea number ${n} for the camp` });
+    }
     expect(await ingestChat(store, { username: 'River', text: '!request CFP-001 One more idea for the camp' })).toMatchObject({ ok: false });
     for (let n = 0; n < INTAKE_LIMITS.perMinute; n++) await ingestChat(store, { username: `viewer${n}`, text: `!request CFP-001 Another idea ${n} for the forest` });
     expect(store.snapshot().ideas).toHaveLength(INTAKE_LIMITS.perMinute);
@@ -130,3 +134,9 @@ describe('injection heuristics', () => {
     for (const idea of createSeed().ideas.filter(i => i.id !== 'CF-114')) expect(heuristicSignals(`${idea.title}\n${idea.description}`)).toEqual([]);
   });
 });
+
+async function emptyStore() {
+  const fixture = await rawEmptyStore();
+  await registerTestViewers(fixture.store, [{ username: 'River' }, { username: 'Alice' }, { username: 'late' }, { username: 'Pat' }, ...Array.from({ length: 10 }, (_, i) => ({ username: 'viewer' + i }))]);
+  return fixture;
+}

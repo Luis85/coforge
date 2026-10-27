@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseCommand } from '../../../features/coforge/domain/commands';
 import { ingestChat } from '../../../features/coforge/application/chat';
-import { emptyStore } from './memory-storage';
+import { emptyStore as rawEmptyStore, registerTestViewers } from './memory-storage';
 
 describe('project-addressed bug reports', () => {
   it('requires a project and stores bugs separately from feature requests with the same text', async () => {
@@ -25,3 +25,9 @@ describe('project-addressed bug reports', () => {
     expect((await storage.load()).data?.botReplies?.[0]).toMatchObject({ parentMessageId: 'event-1', channelId: '123', status: 'pending' });
   });
 });
+
+async function emptyStore() {
+  const fixture = await rawEmptyStore();
+  await registerTestViewers(fixture.store, [{ username: 'A' }, { username: 'B' }, { username: 'Viewer', userId: '99', source: 'twitch' }]);
+  return fixture;
+}

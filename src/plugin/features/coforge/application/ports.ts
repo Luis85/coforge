@@ -7,6 +7,8 @@ import type {
 export interface InternalState extends AppState {
   projects: StudioProject[]; activeProjectId: string; nextProjectNumber: number;
   botReplies: import('../domain/twitch').BotReply[];
+  population: import('../domain/population').PopulationState;
+  streamMessages: import('../domain/stream-messages').StreamMessage[];
   integration: IntegrationSettings; ingestMeta: IngestMeta; manualHolds: string[];
   /** Fingerprints of the trusted idea content CoForge last wrote (see domain/integrity.ts). */
   integrity: Record<string, string>;
@@ -52,11 +54,14 @@ export interface StudioHost {
   timers: Timers;
   probeRuntime(integration: IntegrationSettings): Promise<Pick<RuntimeInfo, 'cliAvailable' | 'projectPath' | 'allowImplementation'>>;
   report?(error: Error): void;
+  events?: import('./studio-events').StudioEventSink;
+  observerFailed?(): void;
 }
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
   twitch?: import('../domain/twitch').TwitchActions;
+  diagnostics?(): string;
   setSecret(name: string, value: string): boolean;
   hasSecret(name: string): boolean;
   openIdeaNote(id: string): Promise<boolean>;

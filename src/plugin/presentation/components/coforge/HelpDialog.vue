@@ -19,7 +19,7 @@ const model = useHelpDialog();
           <span>1</span>
           <div>
             <strong>Let the community pitch.</strong>
-            <p>Use the chat simulator to send <code>!request CFP-001 Add fishing</code>, using the project ID shown in Projects. The request keeps that project as its parent.</p>
+            <p>In a local command test, send <code>!register</code>, then <code>!request CFP-001 Add fishing</code>, using the project ID shown in Projects. Features have a five-minute cooldown.</p>
           </div>
         </li>
         <li>
