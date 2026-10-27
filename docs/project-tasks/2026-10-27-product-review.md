@@ -36,6 +36,14 @@ persistence, but its unload assertion timed out while reading through a detached
 document. That assertion now observes the actual captured page's close event and
 closed state with the same 15-second deadline. Final native results are in PR #21.
 
+The next native suite passed all 13 tests. Its separate rapid-reload smoke exposed
+a startup/unload race: asynchronous initialization could register seven stale view
+types after disable. A regression test reproduced that failure before the fix.
+The plugin now invalidates its lifecycle generation on unload, checks it after
+asynchronous shell setup and preference writes, and suppresses stale layout-start
+callbacks. The focused host tests then passed 2/2. Final-head CI verifies this fix
+with both the native suite and the reload smoke.
+
 ## Findings and polishing pass
 
 | Perspective | Finding | Improvement / verification |

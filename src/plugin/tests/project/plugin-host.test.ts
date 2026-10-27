@@ -11,6 +11,19 @@ import manifest from "../../../../manifest.json";
 
 afterEach(() => { document.body.replaceChildren(); });
 
+it('does not register stale views when unloaded during asynchronous startup', async () => {
+  const app = new App(); const kit = createTestApp({ app });
+  const stale = new GeneratedPlugin(app, manifest); let release = (_value: boolean) => {};
+  const read = vi.spyOn(kit.app.vault.adapter, 'exists').mockImplementationOnce(() => new Promise(resolve => { release = resolve; }));
+  const loading = kit.loadPlugin(stale); await vi.waitFor(() => expect(read).toHaveBeenCalled());
+  await kit.unloadPlugin(stale); release(false); await loading;
+  expect([...kit.app.viewRegistry.viewByType.keys()].filter(type => type.startsWith('coforge-'))).toEqual([]);
+  expect(kit.app.statusBarEl.querySelectorAll('.coforge-native-statusbar')).toHaveLength(0);
+  const fresh = new GeneratedPlugin(app, manifest); await kit.loadPlugin(fresh);
+  expect(kit.app.viewRegistry.viewByType.has('coforge-view-stream-kanban')).toBe(true);
+  await kit.unloadPlugin(fresh); expect(kit.errors).toEqual([]);
+});
+
 it('loads in Obsidian, opens its workbench, toggles debug logging and unloads without touching notes', async () => {
   // A path, not `new URL(..., import.meta.url)`: Vite rewrites that pattern to http: URLs under happy-dom.
   const files = loadVaultFixtures(join(import.meta.dirname, "../../../../tooling/tests/obsidian/vault"));
