@@ -15,7 +15,9 @@ export function addEvent(state: InternalState, type: Activity['type'], text: str
 export function assemble(loaded: LoadedStudio): InternalState {
   const data: PersistedStudio = loaded.data ?? { ...createEmptyState(), integration: defaultIntegration(), votes: {}, increments: {}, ingestMeta: { processedMessages: [], lastRequests: {} }, manualHolds: [], integrity: {} };
   const projects = [...(loaded.projects ?? [])];
-  if (!data.activeProjectId && !projects.some(project => project.id === INITIAL_PROJECT_ID)) projects.unshift(initialProject(data.settings, data.integration, new Date().toISOString()));
+  const legacy = data.activeProjectId === undefined && data.nextProjectNumber === undefined;
+  if (legacy && (loaded.data || loaded.notes.some(note => !note.projectId)) && !projects.some(project => project.id === INITIAL_PROJECT_ID))
+    projects.unshift(initialProject(data.settings, data.integration, new Date().toISOString()));
   const integrity = { ...data.integrity };
   const ids = new Set<string>();
   const ideas: Idea[] = loaded.notes.map(note => {
@@ -28,17 +30,19 @@ export function assemble(loaded: LoadedStudio): InternalState {
   }).sort((a, b) => a.number - b.number);
   const nextIdeaNumber = Math.max(data.nextIdeaNumber, ...ideas.map(idea => idea.number + 1));
   const rest = omit(data, 'votes', 'increments');
-  const activeProjectId = data.activeProjectId ?? INITIAL_PROJECT_ID;
-  for (const id of new Set([activeProjectId, ...ideas.map(idea => idea.projectId ?? INITIAL_PROJECT_ID)])) {
+  const activeProjectId = data.activeProjectId || projects[0]?.id || '';
+  for (const id of new Set([activeProjectId, ...ideas.map(idea => idea.projectId ?? INITIAL_PROJECT_ID)].filter(Boolean))) {
     if (!projects.some(project => project.id === id)) projects.push({
       ...initialProject({ ...data.settings, projectName: `Missing project note (${id})`, paused: true }, defaultIntegration(), new Date().toISOString()), id, unavailable: true,
     });
   }
-  const selected = projects.find(project => project.id === activeProjectId)!;
-  const nextProjectNumber = Math.max(data.nextProjectNumber ?? 2, ...projects.map(project => Number(project.id.match(/^CFP-(\d+)$/)?.[1] ?? 0) + 1));
+  const selected = projects.find(project => project.id === activeProjectId);
+  const nextProjectNumber = Math.max(data.nextProjectNumber ?? 1, ...projects.map(project => Number(project.id.match(/^CFP-(\d+)$/)?.[1] ?? 0) + 1));
   for (const job of rest.jobs) job.projectId ??= ideas.find(idea => idea.id === job.ideaId)?.projectId ?? INITIAL_PROJECT_ID;
-  return { ...rest, integrity, nextIdeaNumber, nextProjectNumber, ideas, projects, activeProjectId,
-    settings: copySettings(selected.settings), integration: { ...data.integration, ...projectPaths(selected) }, runtime: defaultRuntime() };
+  const botReplies = (data.botReplies ?? []).map(reply => reply.status === 'sending'
+    ? { ...reply, status: 'uncertain' as const, error: 'The previous session ended before delivery was confirmed. This reply will not be resent automatically.' } : reply);
+  return { ...rest, botReplies, integrity, nextIdeaNumber, nextProjectNumber, ideas, projects, activeProjectId,
+    settings: copySettings(selected?.settings ?? data.settings), integration: { ...data.integration, ...(selected ? projectPaths(selected) : {}) }, runtime: defaultRuntime() };
 }
 
 /** Applies an edit made directly to an idea note, keeping plugin-owned votes and increments. */
@@ -120,6 +124,7 @@ export class StudioStore {
     return structuredClone(omit(this.current(), 'integration', 'ingestMeta', 'manualHolds'));
   }
   internalSnapshot(): InternalState { return structuredClone(this.current()); }
+  integrationSnapshot(): InternalState['integration'] { return { ...this.current().integration }; }
 
   transaction<T>(mutate: (state: InternalState) => T, options: SaveOptions = {}): Promise<T> {
     const work = this.pending.then(async () => {
@@ -133,6 +138,8 @@ export class StudioStore {
       next.events = next.events.slice(-500);
       next.chat = next.chat.slice(-250);
       next.jobs = next.jobs.slice(-500);
+      const activeReplies = next.botReplies.filter(reply => reply.status === 'pending' || reply.status === 'sending');
+      next.botReplies = [...next.botReplies.filter(reply => reply.status !== 'pending' && reply.status !== 'sending').slice(-200), ...activeReplies];
       next.ingestMeta.processedMessages = next.ingestMeta.processedMessages.slice(-10000);
       await this.storage.save(next, previous, { ...options, ...(fromNotes ? { fromNotes } : {}) });
       this.state = next;

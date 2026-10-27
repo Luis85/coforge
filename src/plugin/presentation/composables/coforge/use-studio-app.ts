@@ -2,7 +2,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { STAGE_LABELS, STAGES } from '../../../features/coforge/domain/types';
 import { useCoforge } from '../../context/coforge-context';
 import { useStudioStore, type StudioView } from '../../stores/coforge-studio';
-import { avatarStyle, relativeTime } from './format';
+import { relativeTime } from './format';
 import { useStudioActions } from './use-studio-actions';
 
 const VIEW_LABELS: Record<StudioView, string> = { board: 'Idea board', stream: 'Stream chat', workflow: 'Agent workflow', community: 'Community', settings: 'Settings', projects: 'Projects' };
@@ -36,14 +36,17 @@ export function useStudioShell() {
       stage, number: index + 1, label: STAGE_LABELS[stage],
       enabled: Boolean(state.value?.settings.automation[stage]), working: store.activeJob?.stage === stage,
     }))),
-    sidebarPeople: computed(() => (state.value?.contributors ?? []).slice(0, 4).map((person, index) => ({
-      id: person.id, letter: person.name.slice(0, 1).toUpperCase(), style: { ...avatarStyle(person.color), zIndex: String(5 - index) },
-    }))),
     events: computed(() => [...(state.value?.events ?? [])].reverse().slice(0, 30).map(event => ({ ...event, when: relativeTime(event.createdAt) }))),
     openEvent: (ideaId?: string) => { if (ideaId) void actions.openIdea(ideaId); },
     manageProjects: () => {
       if (store.dirtySettings) { store.notify('Save or discard your project settings before switching projects.', true); return; }
       store.navigate('projects');
+    },
+    copyProjectId: () => {
+      const id = store.state?.activeProjectId;
+      if (!id) return;
+      if (!navigator.clipboard?.writeText) { store.notify('Select the project ID to copy it manually.', true); return; }
+      void navigator.clipboard.writeText(id).then(() => store.notify('Project ID copied.'), () => store.notify('Select the project ID to copy it manually.', true));
     },
     togglePause: () => { if (state.value) void actions.changeSettings({ paused: !state.value.settings.paused }); },
     startHelp: () => { store.help = false; store.navigate('workflow'); },
@@ -58,7 +61,7 @@ export function useStudioApp() {
   let stops: Array<() => void> = [];
   onMounted(() => {
     stops = [
-      context.studio.subscribe(state => { shell.store.state = state; }),
+      context.studio.subscribe(state => { const first = shell.store.state === null; shell.store.state = state; if (first && !state.projects?.length) shell.store.navigate('stream'); }),
       context.onNotice(notice => { shell.store.notify(notice.message, notice.error); failure.value = context.startupError(); }),
     ];
   });

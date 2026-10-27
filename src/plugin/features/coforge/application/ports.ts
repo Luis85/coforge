@@ -6,6 +6,7 @@ import type {
 /** Full in-memory studio state. Only `AppState` is exposed to views. */
 export interface InternalState extends AppState {
   projects: StudioProject[]; activeProjectId: string; nextProjectNumber: number;
+  botReplies: import('../domain/twitch').BotReply[];
   integration: IntegrationSettings; ingestMeta: IngestMeta; manualHolds: string[];
   /** Fingerprints of the trusted idea content CoForge last wrote (see domain/integrity.ts). */
   integrity: Record<string, string>;
@@ -55,6 +56,7 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  twitch?: import('../domain/twitch').TwitchActions;
   setSecret(name: string, value: string): boolean;
   hasSecret(name: string): boolean;
   openIdeaNote(id: string): Promise<boolean>;

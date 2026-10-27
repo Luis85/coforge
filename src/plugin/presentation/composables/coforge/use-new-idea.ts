@@ -10,6 +10,7 @@ export function useNewIdeaDrawer() {
   const store = useStudioStore();
   const actions = useStudioActions();
   const title = ref('');
+  const requestKind = ref<'feature' | 'bug'>('feature');
   const description = ref('');
   const category = ref<Category>('Gameplay');
   const username = ref('streamer');
@@ -23,6 +24,7 @@ export function useNewIdeaDrawer() {
     busy.value = true;
     try {
       const created = await actions.createIdea({
+        requestKind: requestKind.value,
         title: title.value.trim(),
         description: description.value.trim() || title.value.trim(),
         category: category.value,
@@ -36,7 +38,7 @@ export function useNewIdeaDrawer() {
   };
 
   return reactive({
-    title, description, category, username, busy, error,
+    title, requestKind, description, category, username, busy, error,
     categories: CATEGORIES,
     canSubmit: computed(() => !busy.value && Boolean(title.value.trim()) && Boolean(username.value.trim())),
     focus: useDialogFocus(close, 'input'),

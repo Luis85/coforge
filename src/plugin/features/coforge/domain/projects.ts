@@ -25,6 +25,7 @@ export const projectIdeas = (state: Pick<AppState, 'ideas' | 'activeProjectId'>,
 
 /** Legacy UI settings remain a projection of the selected note-backed project. */
 export function synchronizeProject(state: ProjectState): void {
+  if (!state.activeProjectId) return;
   const project = findProject(state, state.activeProjectId);
   if (project.unavailable) return;
   const settings = copySettings(state.settings);

@@ -55,6 +55,7 @@ describe('CoForge studio view', () => {
 
   it('offers the sample workspace on an empty board and loads it on confirmation', async () => {
     const { wrapper, studio, errors } = await render(false);
+    await wrapper.get('.cf-project-switcher').trigger('click');
     const load = wrapper.findAll('button').find(button => button.text().includes('Load sample workspace'));
     expect(load).toBeDefined();
     await load!.trigger('click');

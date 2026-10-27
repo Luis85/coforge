@@ -35,7 +35,7 @@ Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume au
 
 | Area | Behaviour |
 | --- | --- |
-| Chat intake | `!request`, `!vote`, `!status`, `!me`, `!help`; local acknowledgements; chat simulator; receive-only Twitch EventSub |
+| Twitch and chat | Project-addressed `!request` / `!bug`, `!projects`, `!vote`, `!status`, `!me`, `!help`; durable opt-in bot replies; device authorization and refresh; channel title/category and confirmed moderation |
 | Projects | Vault-backed project notes, separate backlogs and workspace paths (including outside the vault), metadata links and descriptions; requests require their parent project ID |
 | Ideas | One note per idea with properties for status, screening, RICE and plan; edits and deletions in the vault flow back into the studio |
 | Workflow | Screen → Score → Plan → Build, single worker, queue, pause/resume, run next, cancel, vote threshold, failure holds |

@@ -1,5 +1,5 @@
 import { StudioError } from '../domain/errors';
-import { ideaProjectId, projectIdeas } from '../domain/projects';
+import { ideaProjectId, projectIdeas, initialProject, projectIdFor } from '../domain/projects';
 import { createSeed } from '../domain/seed';
 import { ideaIdFor } from '../domain/types';
 import { isActiveJob } from '../domain/workflow';
@@ -7,6 +7,10 @@ import type { InternalState } from './ports';
 
 /** Replaces only the selected project. Shared chat, contributors and other projects are retained. */
 export function loadProjectSample(state: InternalState): void {
+  if (!state.projects.length) {
+    const sample = initialProject(createSeed().settings, state.integration, new Date().toISOString());
+    sample.id = projectIdFor(state.nextProjectNumber++); state.projects.push(sample); state.activeProjectId = sample.id;
+  }
   const projectId = state.activeProjectId;
   if (state.jobs.some(job => job.projectId === projectId && isActiveJob(job))) throw new StudioError('Cancel or finish this project’s active and queued jobs before resetting.', 409);
   const oldIds = new Set(projectIdeas(state).map(idea => idea.id));

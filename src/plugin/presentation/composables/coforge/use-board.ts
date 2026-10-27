@@ -32,6 +32,7 @@ function createBoard() {
   const category = ref<Category | ''>('');
   const layout = ref<BoardLayout>('board');
   const sort = ref<BoardSort>('rice');
+  const requestKind = ref<'all' | 'feature' | 'bug'>('all');
 
   const ideas = computed(() => store.projectIdeas);
   const contributors = computed(() => store.state?.contributors ?? []);
@@ -41,27 +42,27 @@ function createBoard() {
   const filtered = computed<Idea[]>(() => {
     const needle = query.value.toLowerCase();
     const source = ideas.value.filter(idea => matchesFilter(idea, filter.value)
+      && (requestKind.value === 'all' || (idea.requestKind ?? 'feature') === requestKind.value)
       && (!category.value || idea.category === category.value)
       && (!needle || `${idea.id} ${idea.title} ${idea.description} ${authorOf(idea)}`.toLowerCase().includes(needle)));
     if (sort.value === 'rice') return rankedIdeas(source);
     return source.sort((a, b) => (sort.value === 'votes' ? b.voters.length - a.voters.length : b.createdAt.localeCompare(a.createdAt)));
   });
-  const isFiltered = computed(() => Boolean(query.value) || Boolean(category.value) || filter.value !== 'all');
+  const isFiltered = computed(() => Boolean(query.value) || Boolean(category.value) || filter.value !== 'all' || requestKind.value !== 'all');
 
   const tabs = computed(() => ([
-    { key: 'all', label: 'All ideas', count: ideas.value.filter(idea => idea.status !== 'rejected').length },
+    { key: 'all', label: 'All requests', count: ideas.value.filter(idea => idea.status !== 'rejected').length },
     { key: 'review', label: 'Needs review', count: countOf('review') },
     { key: 'flagged', label: 'Flagged', count: countOf('flagged') },
     { key: 'rejected', label: 'Archived', count: countOf('rejected') },
   ] as const).map(tab => ({ ...tab, selected: filter.value === tab.key, highlight: tab.key === 'review' && tab.count > 0 })));
 
   const columns = computed(() => (filter.value === 'rejected' ? [ARCHIVE_COLUMN] : COLUMNS)
-    .filter(column => filter.value === 'all' || filtered.value.some(idea => column.statuses.includes(idea.status)))
     .map(column => ({
       ...column,
       ideas: filtered.value.filter(idea => column.statuses.includes(idea.status)),
       canAdd: column.title === 'Inbox',
-      emptyText: column.title === 'Accepted' ? 'The next contribution could be yours.' : 'Ideas will land here as they progress.',
+      emptyText: isFiltered.value ? 'No matching requests' : 'No requests',
     })));
 
   const rows = computed(() => filtered.value.map(idea => ({
@@ -70,7 +71,7 @@ function createBoard() {
   })));
 
   return reactive({
-    store, query, filter, category, layout, sort, filtered, isFiltered, tabs, columns, rows,
+    store, query, filter, category, layout, sort, requestKind, filtered, isFiltered, tabs, columns, rows,
     categories: CATEGORIES, sortOptions: SORT_OPTIONS,
     projectEmpty: computed(() => ideas.value.length === 0),
     emptyTitle: computed(() => (isFiltered.value ? 'No ideas match this view.' : 'Your next game starts with an idea.')),
@@ -83,7 +84,7 @@ function createBoard() {
     open: (id: string) => { store.select(id); },
     resolveEmpty: () => {
       if (!isFiltered.value) { store.creating = true; return; }
-      filter.value = 'all'; category.value = ''; query.value = '';
+      filter.value = 'all'; category.value = ''; query.value = ''; requestKind.value = 'all';
     },
   });
 }

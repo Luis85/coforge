@@ -13,7 +13,7 @@ class TestPlugin extends Plugin {}
 const manifest = { id: 'coforge', name: 'CoForge', version: '0.1.0', minAppVersion: '1.13.7', description: '', author: '' };
 const services: StudioService[] = [];
 afterEach(async () => { await Promise.all(services.splice(0).map(service => service.stop())); });
-async function open(existing?: { kit: TestApp; app: App }) {
+async function open(existing?: { kit: TestApp; app: App }, initialProject = true) {
   const app = existing?.app ?? new App();
   const kit = existing?.kit ?? createTestApp({ app, layoutReady: true });
   const plugin = new TestPlugin(app, manifest);
@@ -24,11 +24,17 @@ async function open(existing?: { kit: TestApp; app: App }) {
     probeRuntime: () => Promise.resolve({ cliAvailable: false, projectPath: null, allowImplementation: false }) });
   services.push(studio);
   await studio.start();
+  if (initialProject && !studio.state().projects?.length) await studio.createProject({ projectName: 'Community game', projectBrief: 'Fixture community game project.', projectPath: '/synthetic/game' });
   storage.watchProjects(change => { void studio.applyProjectNoteChange(change); }, () => undefined);
   return { app, kit, studio, storage };
 }
 
 describe('canonical project notes', () => {
+  it('does not invent a project or write a project note on a fresh installation', async () => {
+    const { app, studio } = await open(undefined, false);
+    expect(studio.state().projects).toEqual([]);
+    expect(app.vault.getMarkdownFiles()).toEqual([]);
+  });
   it('stores project paths outside the vault in frontmatter and preserves user body bytes and unrelated properties', async () => {
     const { app, kit, studio } = await open();
     const project = await studio.createProject({ projectName: 'Moon orchard', projectBrief: 'An orchard on a distant moon.', projectPath: 'D:/Games/moon',

@@ -31,6 +31,8 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 - CoForge studio (view, entry): idea board, stream chat, agent workflow, community, studio settings.
 - CoForge settings (native settings tab): ideas folder, Claude Code, Twitch and viewer website.
+- First milestone: reliable Twitch connection, chatbot request/bug intake and replies, channel title/category controls,
+  and explicit streamer moderation actions (single-message deletion, timeouts and bans).
 - Viewer website (GitHub Pages): a read-only, script-free page with the idea board, leaderboards and badges.
 
 ## Data it works with
@@ -46,7 +48,7 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   the vault is the streamer's CoForge command centre, not the game repository.
 - Plugin data (`coforge-state.json` in the plugin folder): votes, increments,
   contributors, chat log, agent runs, activity, settings and integration settings.
-- Obsidian secret storage: the Twitch user access token (referenced by name only).
+- Obsidian secret storage: Twitch access/refresh token pairs for streamer and bot (referenced by name only).
 - Public viewer board (default `CoForge/Public`): `index.html`, `styles.css`, `board.json` with screened ideas,
   vote counts, scores, plans, display names and badges only. Deployed to GitHub Pages from the vault
   repository's `main` by `.github/workflows/coforge-pages.yml`; CoForge writes files, the streamer pushes.
@@ -74,8 +76,8 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 ## Out of scope
 
 - Mobile (desktop-only: the Claude Code and Git adapters run native processes).
-- Posting to Twitch, OAuth onboarding, an interactive viewer portal (the website is read-only),
-  the prototype's HTTP ingestion bridge, commits/merges/pushes of the game or the vault.
+- An interactive viewer portal (the website is read-only), the prototype's HTTP ingestion bridge,
+  commits/merges/pushes of the game or the vault. Twitch chatbot replies and OAuth onboarding are now in scope.
 
 ## Decisions
 
@@ -89,6 +91,11 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   selected-project routing decision. Projects expose a workspace path, optional repository and website URL, and a description.
 - 2026-10-26: Git repository URLs are metadata links only. Adding one does not clone a repository or initialize Git.
 - 2026-10-26: hide the native Obsidian view header inside the CoForge view; CoForge provides its own studio header.
+- 2026-10-27: prioritize Twitch as the first milestone. The chatbot is the primary interface between the plugin and viewers.
+  Include title/category updates, message deletion, timeouts and bans. Add `!bug <project-id> <description>` alongside requests.
+  Remove fictitious channel information and redundant marketing copy; project IDs must remain legible and discoverable.
+- Implementation defaults for the Twitch milestone: fresh installs start without invented projects;
+  sample data and local command testing require explicit actions. Automatic public bot replies are opt-in.
 
 ## Open questions
 

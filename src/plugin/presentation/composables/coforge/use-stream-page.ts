@@ -6,6 +6,6 @@ export function useStreamPage() {
   const store = useStudioStore();
   return reactive({
     store,
-    intakeLabel: computed(() => store.state?.runtime.chatSource === 'twitch' ? 'Twitch intake' : 'Local chat simulator'),
+    intakeLabel: computed(() => store.state?.runtime.twitch?.phase === 'connected' ? 'Twitch connected' : 'Twitch not connected'),
   });
 }

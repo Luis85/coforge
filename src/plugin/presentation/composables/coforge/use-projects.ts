@@ -10,6 +10,7 @@ export function useProjects() {
   const actions = useStudioActions();
   const adding = ref(false);
   const error = ref('');
+  const sampleConfirm = ref(false);
   const draft = reactive({ projectName: '', projectBrief: '', projectPath: '', repositoryUrl: '', websiteUrl: '' });
   const rows = computed(() => (store.state?.projects ?? []).map(project => {
     const ideas = (store.state?.ideas ?? []).filter(idea => ideaProjectId(idea) === project.id);
@@ -35,7 +36,9 @@ export function useProjects() {
     if (await actions.selectProject(id)) store.navigate(settings ? 'settings' : 'board');
   }
   return reactive({
-    store, rows, draft, adding, error,
+    store, rows, draft, adding, error, sampleConfirm,
+    askSample: () => { sampleConfirm.value = true; }, cancelSample: () => { sampleConfirm.value = false; },
+    loadSample: () => { void actions.loadSample().then(done => { if (done) store.navigate('board'); }); },
     add: () => { adding.value = true; error.value = ''; },
     cancel: () => { adding.value = false; error.value = ''; },
     submit: (event: Event) => { event.preventDefault(); void create(); },

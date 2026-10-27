@@ -7,18 +7,16 @@ const model = useBoardWelcome();
 <template>
   <div :ref="model.bind" class="cf-board-empty cf-board-welcome">
     <CfIcon name="lightbulb" />
-    <h2>Your next game starts with an idea.</h2>
+    <h2>No requests for this project</h2>
     <p>
-      Every idea becomes a Markdown note in your vault<template v-if="model.folder"> under <code>{{ model.folder }}</code></template>,
-      with its votes, score, plan and review saved alongside. Add the first one, type <code>!request &lt;project-id&gt; &lt;idea&gt;</code> in the stream chat,
-      or explore the full loop with the sample workspace.
+      Add a request here, or use <code>!request &lt;project-id&gt; &lt;idea&gt;</code> or <code>!bug &lt;project-id&gt; &lt;bug&gt;</code> in chat.
     </p>
     <div v-if="!model.confirming" class="cf-board-welcome-actions">
       <button type="button" class="cf-btn cf-btn-secondary cf-board-sample-ask" :disabled="model.store.busy" @click="model.ask()">
         <CfIcon name="sparkles" /> Load sample workspace
       </button>
       <button type="button" class="cf-btn cf-btn-primary" @click="model.startNew()">
-        <CfIcon name="plus" /> New idea
+        <CfIcon name="plus" /> New request
       </button>
     </div>
     <div v-else class="cf-board-sample-confirm" role="group" aria-labelledby="cf-board-sample-warning">

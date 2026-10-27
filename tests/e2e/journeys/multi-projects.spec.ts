@@ -22,7 +22,7 @@ test('adds a project, keeps boards separate, and edits its external workspace pa
   await page.getByRole('button', { name: 'Create project', exact: true }).click();
   await expect(page.locator('.cf-project-switcher')).toContainText('Moon orchard');
   await expect(page.locator('.cf-idea-card')).toHaveCount(0);
-  await page.getByRole('button', { name: 'New idea', exact: true }).first().click();
+  await page.getByRole('button', { name: 'New request', exact: true }).first().click();
   await page.getByLabel(/^The idea/).fill('A moonlit orchard path');
   await page.getByRole('button', { name: 'Add to the board', exact: true }).click();
   await expect(page.locator('.cf-idea-card')).toContainText('A moonlit orchard path');
@@ -48,6 +48,7 @@ test('viewer requests require a project ID and target that project while another
   await page.locator('.cf-project-switcher').click();
   await page.getByRole('button', { name: 'Open board for Mosslight', exact: true }).click();
   await page.getByRole('button', { name: 'Stream chat', exact: true }).click();
+  await page.getByRole('button', { name: 'Test commands locally', exact: true }).click();
   const message = page.getByLabel('Chat message', { exact: true });
   await message.fill('!request A lantern beside the moon gate');
   await page.getByRole('button', { name: 'Send chat message', exact: true }).click();

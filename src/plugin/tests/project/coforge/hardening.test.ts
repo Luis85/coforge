@@ -27,6 +27,7 @@ async function vault(files: Record<string, string> = {}) {
   const studio = new StudioService(storage, { runners: { demo: runner, claude: runner }, timers, probeRuntime: probe });
   services.push(studio);
   await studio.start();
+  if (!studio.state().projects?.length) await studio.createProject({ projectName: 'Community game', projectBrief: 'Fixture community game project.', projectPath: '/synthetic/game' });
   storage.watch(change => { void studio.applyNoteChange(change); }, () => undefined);
   return { app, kit, studio };
 }

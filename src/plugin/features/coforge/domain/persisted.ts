@@ -37,6 +37,7 @@ export const settingsCheck: Check<Settings> = shape({
 const integration: Check<IntegrationSettings> = shape({
   ideasFolder: text({ min: 1 }), claudeBin: text({ min: 1 }), projectPath: str, allowImplementation: boolean, worktreeFolder: str,
   twitchEnabled: boolean, twitchClientId: str, twitchBotUserId: str, twitchBroadcasterId: str, twitchTokenSecret: str,
+  twitchStreamerSecret: str, twitchBotUsesStreamer: boolean, twitchBotReplies: boolean,
   publicFolder: text({ min: 1 }), publicBoardEnabled: boolean,
 });
 const persisted: Check<PersistedStudio> = shape({
@@ -47,10 +48,14 @@ const persisted: Check<PersistedStudio> = shape({
   chat: list(shape({
     id: str, userId: str, username: str, text: str, createdAt: timestamp, kind: oneOf(['message', 'request', 'vote', 'system', 'error'] as const),
     ideaId: optional(str), source: oneOf(['simulator', 'twitch', 'api'] as const),
+    externalId: optional(str),
+    twitchChannelId: optional(str),
   })),
   jobs: list(job),
   events: list(shape({ id: str, ideaId: optional(str), type: oneOf(['idea', 'vote', 'agent', 'review', 'system'] as const), text: str, createdAt: timestamp })),
   settings: settingsCheck, integration, votes: dictionary(list(str)), increments: dictionary(increment),
+  botReplies: optional(list(shape({ id: str, parentMessageId: str, channelId: str, senderId: str, text: str, createdAt: timestamp,
+    status: oneOf(['pending', 'sending', 'sent', 'failed', 'uncertain'] as const), messageId: optional(str), error: optional(str) }))),
   ingestMeta: shape({ processedMessages: list(shape({ id: str, ideaId: optional(str) })), lastRequests: dictionary(timestamp) }),
   manualHolds: list(str), integrity: dictionary(str),
 });
@@ -61,7 +66,9 @@ export function parsePersistedStudio(value: unknown): PersistedStudio {
   return persisted({
     ...input,
     settings: { ...defaultSettings(), ...record(input.settings ?? {}, 'settings') },
-    integration: { ...defaultIntegration(), ...record(input.integration ?? {}, 'integration') },
+    integration: { ...defaultIntegration(), ...record(input.integration ?? {}, 'integration'),
+      twitchBotUsesStreamer: record(input.integration ?? {}).twitchBotUsesStreamer
+        ?? !(record(input.integration ?? {}).twitchBotUserId && record(input.integration ?? {}).twitchBotUserId !== record(input.integration ?? {}).twitchBroadcasterId) },
     votes: input.votes ?? {}, increments: input.increments ?? {}, manualHolds: input.manualHolds ?? [], integrity: input.integrity ?? {},
     ingestMeta: input.ingestMeta ?? { processedMessages: [], lastRequests: {} },
   });

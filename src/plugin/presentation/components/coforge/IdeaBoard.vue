@@ -12,11 +12,10 @@ const model = useIdeaBoard();
   <section class="cf-board-page">
     <div class="cf-page-heading">
       <div>
-        <h1>Community board<span class="cf-heading-dot">.</span></h1>
-        <p>Good ideas start in chat. Great games get built together.</p>
+        <h1>Backlog</h1>
       </div>
       <button type="button" class="cf-btn cf-btn-primary" @click="model.startNew()">
-        <CfIcon name="plus" /> New idea
+        <CfIcon name="plus" /> New request
       </button>
     </div>
     <BoardWelcome v-if="model.projectEmpty" />
@@ -28,11 +27,11 @@ const model = useIdeaBoard();
         <p>{{ model.emptyText }}</p>
         <button type="button" class="cf-btn cf-btn-secondary" @click="model.resolveEmpty()">{{ model.emptyAction }}</button>
       </div>
-      <BoardTable v-else-if="model.layout === 'list'" />
+      <BoardTable v-else-if="model.layout === 'list' || model.filter === 'rejected'" />
       <BoardKanban v-else />
     </template>
     <div class="cf-board-footnote">
-      <span><CfIcon name="shield-alert" size="sm" /> Every increment comes back to you for review.</span>
+          <span><CfIcon name="shield-alert" size="sm" /> Streamer review required before acceptance.</span>
       <span><CfIcon name="sparkles" size="xs" /> Score = reach × impact × confidence ÷ effort</span>
     </div>
   </section>
