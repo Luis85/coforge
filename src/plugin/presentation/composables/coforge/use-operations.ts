@@ -33,6 +33,7 @@ export function useOperations() {
     error,
     notice,
     working,
+    canExport: Boolean(host.exportDiagnostics),
     codes: OPERATION_CODES.map((code) => ({ id: code, label: code.replaceAll("-", " ") })),
     groups: computed(() => [
       {
@@ -94,8 +95,8 @@ export function useOperations() {
     ),
     exportDiagnostics: () => {
       void run(async () => {
-        if (!host.diagnostics) throw new Error("Safe diagnostic export is available in Obsidian.");
-        await host.saveExport(host.diagnostics());
+          if (!host.exportDiagnostics) throw new Error("Safe diagnostic export is available in Obsidian.");
+          await host.exportDiagnostics();
       }, "Safe diagnostics saved in the plugin configuration folder.");
     },
   });

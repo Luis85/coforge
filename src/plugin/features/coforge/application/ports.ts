@@ -62,6 +62,7 @@ export interface StudioHost {
 export interface StudioHostActions {
   twitch?: import('../domain/twitch').TwitchActions;
   diagnostics?(): string;
+  exportDiagnostics?(): Promise<string>;
   setSecret(name: string, value: string): boolean;
   hasSecret(name: string): boolean;
   openIdeaNote(id: string): Promise<boolean>;

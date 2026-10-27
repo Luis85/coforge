@@ -66,6 +66,8 @@ spawning, purchases and actual video watch verification remain outside this foun
 - A regression reproduced a slow refresh overwriting a newer OAuth login. Credential leases now preserve the newer pair,
   and stale refresh callers reuse the validated newer account. Provider writes require documented success confirmations.
 - Added privacy regression coverage so player economy, moderation and recurring text never leak into public-board output.
+- Final host review reproduced a same-day filename collision between private project exports and diagnostics. Exports now
+  use separate capabilities/namespaces and unique filenames; the regression proves project snapshots remain unchanged.
 - Formatted new modules and kept every runtime/test file within project size limits. No dependency or test threshold changes.
 
 ## Confirmation review

@@ -12,7 +12,7 @@ const model = useOperations();
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
-        :disabled="model.working"
+        :disabled="model.working || !model.canExport"
         @click="model.exportDiagnostics()"
       >
         Export safe diagnostics
