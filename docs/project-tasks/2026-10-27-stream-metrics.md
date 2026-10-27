@@ -1,6 +1,6 @@
 # Task: Retain a JSON history for each stream
 
-- Status: in progress
+- Status: implemented; final CI evidence in [PR #18](https://github.com/Luis85/coforge/pull/18)
 - Owner decision: minute samples while live, including follower/subscriber totals and their additional permissions.
 - Generated requirement/interaction IDs: none declared.
 
@@ -19,3 +19,14 @@ project paths in these metric files. Totals are observations, not revenue or ver
 
 Test fake-clock live/offline/reload and concurrent capture; provider failures/nulls; totals/scopes; atomic file
 failure/recovery; UI export/offline states; real contained Obsidian writes. Complete full checks and review before merge.
+
+- Recorder/storage/provider tests: 3 files, 9 passed (1.48s), then a filename/identity safety regression added.
+- Focused storage/provider final checks: 2 files, 6 passed (4.06s).
+- `npm run verify:project`: 5 passed, 0 failed, 0 skipped (238.3s); 1268 production modules, 3.87s.
+- `npm run test:e2e`: 29 passed (3.1m); `npm run test:ui-quality`: 8 passed (1.3m).
+- UI gallery: 40 captures; dedicated guide and Stream studio evidence reviewed. Native JSON read/export is in
+  contained Obsidian CI; no public OBS stream or live audience data was used in agent QA.
+- Final permission review: only `channel:read:subscriptions` is added. The followers endpoint supplies total
+  counts with existing channel access, so private follower-list permission is not requested.
+
+See [[docs/coforge/STREAM-METRICS]] for the schema, scope, units, missing-data semantics and persistence seams.

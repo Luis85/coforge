@@ -1,6 +1,6 @@
 # Task: Guide a streamer from installation to stream readiness
 
-- Status: in progress
+- Status: implemented; final CI evidence in [PR #18](https://github.com/Luis85/coforge/pull/18)
 - Journey: first-time OBS and Twitch setup, then explicit Prepare / Go live.
 - Traceability: owner request and BRIEF.md; generated requirements/interactions are empty.
 
@@ -30,3 +30,14 @@ No automatic installs, live broadcasts or Twitch writes in agent QA. OBS output 
 output review is explicitly human-confirmed, not falsely reported as API-verified. Twitch authorization and
 public-app registration require the streamer's browser consent. Historical GitGuardian dashboard incident
 state is separate from current repository scans.
+
+## Evidence
+
+- Failing freshness assertion observed before its fix; readiness/storage and full-dashboard interaction tests pass.
+- `npm run verify:project`: 5 passed, 0 failed, 0 skipped (336.2s); guided setup build 1258 modules, 3.43s.
+- Combined metrics increment: full gate 5 passed, 0 failed, 0 skipped (238.3s); build 1268 modules, 3.87s.
+- `npm run test:e2e`: 29 passed (3.1m); `npm run test:ui-quality`: 8 passed (1.3m).
+- `npm run ui:gallery`: 40 captures, plus reviewed light/dark 1280/360 guide evidence in `reports/guided-setup/`.
+- `npm ci --no-fund`: audited 691 packages, found 0 vulnerabilities after dependency merges.
+- Local Obsidian launcher unprovisioned; nothing downloaded. Contained Obsidian CI verifies guide dismissal/reopen,
+  setup persistence, lifecycle and JSON export on the PR. Live OBS output and Twitch consent remain manual acceptance.
