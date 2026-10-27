@@ -50,7 +50,7 @@ export class TwitchDeviceAuthorization {
         if (value.message === 'authorization_pending' || value.error === 'authorization_pending') { this.timer = this.timers.setTimeout(() => { void poll(); }, interval); return; }
         if (value.message === 'slow_down' || value.error === 'slow_down' || result.status === 429) { interval += 5000; this.timer = this.timers.setTimeout(() => { void poll(); }, interval); return; }
         assertResponse(result);
-        const identity = await this.accounts.accept(role, result.json);
+        const identity = await this.accounts.accept(role, result.json, () => generation === this.generation && clientId === this.config().twitchClientId);
         if (generation !== this.generation) return;
         await this.complete(role, identity); this.show();
       } catch (error) { if (generation === this.generation) this.show(undefined, error instanceof TwitchError ? error.message : 'Twitch authorization failed. Connect again.'); }

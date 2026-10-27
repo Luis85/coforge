@@ -12,6 +12,7 @@ interface Account { credentials: Credentials; identity: TwitchIdentity; checkedA
 export class TwitchAccounts {
   private readonly accounts = new Map<TwitchRole, Account>();
   private readonly pending = new Map<TwitchRole, Promise<Account>>();
+  private readonly authorizationSequence = new Map<TwitchRole, number>();
   constructor(private readonly request: HttpRequest, private readonly secrets: TwitchSecrets,
     private readonly config: () => IntegrationSettings) {}
 
@@ -48,10 +49,12 @@ export class TwitchAccounts {
     return account.credentials.accessToken;
   }
 
-  async accept(role: TwitchRole, response: unknown): Promise<TwitchIdentity> {
+  async accept(role: TwitchRole, response: unknown, valid: () => boolean = () => true): Promise<TwitchIdentity> {
     const clientId = this.config().twitchClientId; const secretName = this.secretName(role); const actual = this.role(role);
+    const sequence = (this.authorizationSequence.get(actual) ?? 0) + 1; this.authorizationSequence.set(actual, sequence);
     const credentials = this.credentials(response);
     const identity = await this.validate(credentials.accessToken);
+    if (!valid() || this.authorizationSequence.get(actual) !== sequence) throw new TwitchError('authorization', 'This authorization was cancelled or replaced by a newer connection.');
     if (clientId !== this.config().twitchClientId || secretName !== this.secretName(role) || actual !== this.role(role)) throw new TwitchError('authorization', 'The Twitch configuration changed during authorization. Connect again.');
     const missing = this.scopes(role).filter(scope => !identity.scopes.includes(scope));
     if (missing.length) throw new TwitchError('authorization', 'Twitch did not grant all required permissions. Reconnect and accept the requested permissions.');

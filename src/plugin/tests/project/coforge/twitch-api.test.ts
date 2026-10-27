@@ -5,6 +5,21 @@ import type { HttpRequest } from '../../../infrastructure/coforge/twitch-http';
 import { defaultIntegration } from '../../../features/coforge/domain/seed';
 
 describe('Twitch authorization and channel writes', () => {
+  it('does not save a cancelled authorization or let an older login replace a newer one', async () => {
+    const config = { ...defaultIntegration(), twitchClientId: 'client', twitchBroadcasterId: '123' };
+    const secrets = new Map<string, string>();
+    let finish!: (value: { status: number; json: unknown }) => void;
+    const waiting = new Promise<{ status: number; json: unknown }>(resolve => { finish = resolve; });
+    const identity = { status: 200, json: { client_id: 'client', user_id: '123', login: 'streamer', scopes: [...BOT_SCOPES, ...STREAMER_SCOPES] } };
+    const request: HttpRequest = async input => input.headers.Authorization === 'OAuth older-login' ? waiting : identity;
+    const accounts = new TwitchAccounts(request, { getSecret: key => secrets.get(key) ?? null, setSecret: (key, value) => { secrets.set(key, value); } }, () => config);
+    const old = accounts.accept('streamer', { access_token: 'older-login', refresh_token: 'older-refresh', expires_in: 3600 });
+    const rejected = expect(old).rejects.toThrow('cancelled or replaced');
+    await accounts.accept('streamer', { access_token: 'newer-login', refresh_token: 'newer-refresh', expires_in: 3600 });
+    finish(identity); await rejected;
+    await expect(accounts.accept('streamer', { access_token: 'cancelled-login', refresh_token: 'cancelled-refresh', expires_in: 3600 }, () => false)).rejects.toThrow('cancelled');
+    expect(JSON.parse(secrets.get(config.twitchStreamerSecret)!)).toMatchObject({ accessToken: 'newer-login', refreshToken: 'newer-refresh' });
+  });
   it('does not let a slow old refresh overwrite a newly authorized token pair', async () => {
     const config = { ...defaultIntegration(), twitchClientId: 'client', twitchBroadcasterId: '123' };
     const secrets = new Map([[config.twitchStreamerSecret, JSON.stringify({ accessToken: 'old', refreshToken: 'old-refresh', expiresAt: 1 })]]);
