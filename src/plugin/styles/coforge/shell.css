@@ -51,7 +51,7 @@
 .cf-activity-toggle { position: relative; }
 .cf-notification-dot { position: absolute; top: 4px; right: 5px; width: 5px; height: 5px; background: var(--cf-accent); border-radius: 50%; }
 .cf-workspace-body { flex: 1; display: flex; min-height: 0; min-width: 0; overflow: hidden; }
-.cf-content { flex: 1; min-width: 0; overflow: auto; scrollbar-gutter: stable; }
+.cf-content { flex: 1; min-width: 0; overflow: auto; scrollbar-gutter: auto; }
 
 .cf-pipeline-strip { display: flex; align-items: center; gap: 9px; min-height: 42px; border-bottom: 1px solid var(--cf-border); padding: 0 24px; background: var(--cf-surface); }
 .cf-pipeline-identity { display: flex; align-items: center; gap: 7px; color: var(--cf-muted); font-size: 11px; white-space: nowrap; margin-right: auto; }

@@ -1,7 +1,7 @@
 import type { IntegrationSettings } from '../../features/coforge/domain/types';
-import type { ModerationAction, TwitchChannel, TwitchRole } from '../../features/coforge/domain/twitch';
+import type { ModerationAction, TwitchChannel, TwitchRole, TwitchChannelUpdate } from '../../features/coforge/domain/twitch';
 import { TwitchAccounts, BOT_SCOPES } from './twitch-auth';
-import { assertResponse, object, TwitchError, type HttpRequest, type HttpResponse } from './twitch-http';
+import { assertResponse, object, strings, TwitchError, type HttpRequest, type HttpResponse } from './twitch-http';
 import type { ChatSenderPort, PlayerModerationPort, LivePresencePort, ModerationReceipt } from '../../features/coforge/application/integration-ports';
 
 const HELIX = 'https://api.twitch.tv/helix/';
@@ -45,11 +45,15 @@ export class TwitchApi implements ChatSenderPort, PlayerModerationPort, LivePres
     if (channel.broadcaster_id !== id || typeof channel.broadcaster_login !== 'string' || typeof channel.broadcaster_name !== 'string' || typeof channel.title !== 'string')
       throw new TwitchError('service', 'Twitch did not return the selected channel. Refresh the connection.');
     return { id, login: channel.broadcaster_login, name: channel.broadcaster_name, title: channel.title,
+      tags: strings(channel.tags), language: typeof channel.broadcaster_language === 'string' ? channel.broadcaster_language : '',
       categoryId: typeof channel.game_id === 'string' ? channel.game_id : '', categoryName: typeof channel.game_name === 'string' ? channel.game_name : '' };
   }
-  async updateChannel(input: { title: string; categoryId: string }): Promise<void> {
+  async updateChannel(input: TwitchChannelUpdate): Promise<void> {
     if (!input.title.trim() || [...input.title].length > 140 || (input.categoryId && !numeric(input.categoryId))) throw new TwitchError('validation', 'Enter a title of 1–140 characters and select a Twitch category.');
-    const response = await this.call('streamer', ['channel:manage:broadcast'], 'PATCH', 'channels', { broadcaster_id: this.config().twitchBroadcasterId }, { title: input.title.trim(), game_id: input.categoryId || '0' });
+    const tags = input.tags?.map(tag => tag.normalize('NFKC').trim()); const language = input.language?.trim().toLowerCase();
+    if (tags && (tags.length > 10 || tags.some(tag => !/^[\p{L}\p{N}]{1,25}$/u.test(tag)) || new Set(tags.map(tag => tag.toLocaleLowerCase('en-US'))).size !== tags.length)) throw new TwitchError('validation', 'Use up to 10 unique tags, each 1–25 letters or numbers without spaces.');
+    if (language && !/^(?:[a-z]{2}|other)$/.test(language)) throw new TwitchError('validation', 'Use a two-letter broadcast language code, or other.');
+    const response = await this.call('streamer', ['channel:manage:broadcast'], 'PATCH', 'channels', { broadcaster_id: this.config().twitchBroadcasterId }, { title: input.title.trim(), game_id: input.categoryId || '0', ...(tags ? { tags } : {}), ...(language ? { broadcaster_language: language } : {}) });
     if (response.status !== 204) throw new TwitchError('uncertain', 'Twitch did not confirm the channel update. Refresh channel details before trying again.');
   }
   async categories(query: string): Promise<Array<{ id: string; name: string }>> {

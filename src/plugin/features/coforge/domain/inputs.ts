@@ -20,6 +20,7 @@ export const riceInput = shape({
 }, { strict: true });
 
 export const settingsPatch = shape({
+  agentPrompt: optional(text({ trim: true, max: 8000 })),
   projectName: optional(text({ trim: true, min: 1, max: 80 })), projectBrief: optional(text({ trim: true, min: 10, max: 8000 })),
   provider: optional(oneOf(['demo', 'claude'] as const)),
   automation: optional(shape({ screen: optional(boolean), score: optional(boolean), plan: optional(boolean), implement: optional(boolean) }, { strict: true })),

@@ -5,6 +5,16 @@ import type { HttpRequest } from '../../../infrastructure/coforge/twitch-http';
 import { defaultIntegration } from '../../../features/coforge/domain/seed';
 
 describe('Twitch authorization and channel writes', () => {
+  it('updates tags and language with the broadcaster scope and rejects invalid tag lists', async () => {
+    const config = { ...defaultIntegration(), twitchClientId: 'client', twitchBroadcasterId: '123' }; const bodies: unknown[] = [];
+    const request: HttpRequest = async input => input.url.endsWith('/validate') ? { status: 200, json: { client_id: 'client', user_id: '123', login: 'streamer', scopes: STREAMER_SCOPES } }
+      : (bodies.push(JSON.parse(input.body ?? '{}')), { status: 204, json: null });
+    const accounts = new TwitchAccounts(request, { getSecret: () => 'test-token', setSecret: () => undefined }, () => config); const api = new TwitchApi(request, accounts, () => config);
+    await api.updateChannel({ title: 'Building The Hood', categoryId: '42', tags: ['GameDevelopment', 'Community'], language: 'de' });
+    expect(bodies).toEqual([{ title: 'Building The Hood', game_id: '42', tags: ['GameDevelopment', 'Community'], broadcaster_language: 'de' }]);
+    await expect(api.updateChannel({ title: 'Building', categoryId: '42', tags: ['bad tag'] })).rejects.toThrow('tags');
+    expect(bodies).toHaveLength(1);
+  });
   it('does not save a cancelled authorization or let an older login replace a newer one', async () => {
     const config = { ...defaultIntegration(), twitchClientId: 'client', twitchBroadcasterId: '123' };
     const secrets = new Map<string, string>();

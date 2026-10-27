@@ -7,7 +7,14 @@ describe('CoForge projects in the contained vault', () => {
     const type = obsidian.pluginViewTypes.find(value => value === `${obsidian.pluginId}-view-project-workbench`);
     expect(type).toBeDefined();
     const view = await obsidian.openView(type!);
-    await browserExpect(view.getByText('Twitch chat is not connected.', { exact: true })).toBeVisible();
+    await browserExpect(view.getByRole('heading', { name: 'Stream studio', exact: true })).toBeVisible();
+    await browserExpect(view.getByRole('button', { name: 'Go live', exact: true })).toBeDisabled();
+    await browserExpect(view.getByRole('button', { name: 'Open OBS Studio', exact: true })).toBeEnabled();
+    await view.getByLabel('OBS executable (optional)', { exact: true }).fill('/synthetic/obs');
+    await view.getByRole('button', { name: 'Save OBS setup', exact: true }).click();
+    await browserExpect(view.getByText('OBS connection and scenes saved.', { exact: true })).toBeVisible();
+    const setup: unknown = JSON.parse(await obsidian.eval(({ app, pluginId }) => app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`)));
+    expect(setup).toMatchObject({ obsSettings: { executable: '/synthetic/obs', autoConnect: false } });
     await browserExpect(view.locator('.cf-studio')).toBeVisible();
     await browserExpect(view.locator(':scope > .view-header')).toBeHidden();
     await obsidian.screenshot('studio-without-native-header');
@@ -31,6 +38,10 @@ describe('CoForge projects in the contained vault', () => {
     await view.getByLabel('Description', { exact: true }).fill('A quiet moon garden built with the stream community.');
     await view.getByRole('button', { name: 'Create project', exact: true }).click();
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Obsidian moon');
+    await view.getByRole('button', { name: 'Studio settings', exact: true }).click();
+    await view.getByLabel('General agent prompt', { exact: true }).fill('Use Rust and Bevy. Keep changes small.');
+    await view.getByRole('button', { name: 'Save settings', exact: true }).click();
+    await browserExpect(view.getByLabel('General agent prompt', { exact: true })).toHaveValue('Use Rust and Bevy. Keep changes small.');
     await view.getByRole('button', { name: 'Stream chat', exact: true }).click();
     await view.getByRole('button', { name: 'Test commands locally', exact: true }).click();
     await view.getByLabel('Chat message', { exact: true }).fill('!register');
@@ -51,6 +62,7 @@ describe('CoForge projects in the contained vault', () => {
     const project = notes.find(note => note.content.includes('name: Obsidian moon'));
     expect(project?.path).toMatch(/^CoForge\/Projects\/.*\.md$/);
     expect(project?.content).toContain('/synthetic/games/obsidian-moon');
+    expect(project?.content).toContain('agent-prompt: Use Rust and Bevy. Keep changes small.');
     const id = project?.content.match(/^id: (.+)$/m)?.[1];
     expect(id).toBeDefined();
     expect(notes.find(note => note.path.startsWith('CoForge/Ideas/'))?.content).toContain(`coforge-project: ${id}`);

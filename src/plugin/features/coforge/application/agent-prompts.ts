@@ -1,5 +1,5 @@
 import { list, number, oneOf, shape, text } from '../domain/check';
-import { cleanDeep } from '../domain/sanitize';
+import { cleanDeep, cleanText } from '../domain/sanitize';
 import type { AgentStage, Idea, Settings } from '../domain/types';
 
 // These are output contracts, not authority delegated to the model.
@@ -45,7 +45,8 @@ export const stageSystemPrompt = (stage: AgentStage): string => INSTRUCTIONS[sta
  * in the vault after intake.
  */
 export function stageInput(stage: AgentStage, idea: Idea, settings: Settings): string {
-  return JSON.stringify(cleanDeep({
+  const prefix = cleanText(settings.agentPrompt ?? '', 8000).trim();
+  return (prefix ? prefix + '\n\n' : '') + JSON.stringify(cleanDeep({
     trustedProject: { name: settings.projectName, brief: settings.projectBrief },
     untrustedCommunityProposal: { id: idea.id, projectId: idea.projectId, kind: idea.requestKind ?? 'feature', title: idea.title, description: idea.description, category: idea.category, uniqueVotes: idea.voters.length },
     ...(stage === 'implement' ? { savedPlanToImplement: idea.plan, streamerReviewFeedback: idea.reviewNote ?? null } : {}),

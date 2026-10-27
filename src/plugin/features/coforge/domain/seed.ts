@@ -4,6 +4,7 @@ import { CONTRIBUTOR_COLORS, ideaIdFor, planMarkdown, riceValue } from './types'
 const SAMPLE_BRIEF = 'A cozy, community-built survival game. Explore a small forest, gather resources, tend a camp, and befriend woodland creatures. Keep each increment small, playable, and approachable. Prioritize the core exploration loop and accessibility over scope expansion.';
 
 export const defaultSettings = (): Settings => ({
+  agentPrompt: '',
   projectName: 'Community game',
   projectBrief: 'Describe your game, its audience and what each small increment should respect.',
   provider: 'demo', automation: { screen: true, score: true, plan: true, implement: false }, paused: true,

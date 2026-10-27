@@ -42,6 +42,7 @@ const model = useSettings();
             />
             <small id="cf-settings-brief-help">Include design goals, scope boundaries, and the kind of experience you want to build.</small>
           </label>
+          <label class="cf-field"><span>General agent prompt</span><textarea v-model="model.draft.agentPrompt" aria-label="General agent prompt" maxlength="8000" rows="5" aria-describedby="cf-settings-agent-prompt-help" placeholder="Project conventions and instructions for every agent dispatch" /><small id="cf-settings-agent-prompt-help">Prefixed to every dispatch for this project. Agent tool restrictions and worktree boundaries still apply.</small></label>
         </div>
       </section>
       <SettingsProviderSection />

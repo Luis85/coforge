@@ -13,7 +13,7 @@ import { addProject, editProject } from './projects';
 import { copySettings, projectPaths, selectProjectState } from '../domain/projects';
 import type { StudioProject } from '../domain/types';
 import { loadProjectSample } from './sample-project';
-import { blockPlayer, updateEconomyRules, updateCommunitySettings } from './population';
+import { blockPlayer, updateEconomyRules, updateCommunitySettings, recordOperation } from './population';
 import { activateStreamMessage, removeStreamMessage, saveStreamMessage } from './stream-messages';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
@@ -37,6 +37,8 @@ export class StudioService {
   }
   async stop(): Promise<void> { await this.engine.stop(); this.store.disposeObservers(); }
   get ready(): boolean { return this.store.ready; }
+  openStreamStudio(): Promise<void> { return this.store.transaction(state => recordOperation(state, 'stream-studio-opened')); }
+  openTwitchBranding(): Promise<void> { return this.store.transaction(state => recordOperation(state, 'twitch-branding-opened', 'none')); }
 
   state(): AppState { return this.store.snapshot(); }
   subscribe(listener: (state: AppState) => void): () => void { return this.store.subscribe(listener); }
@@ -104,7 +106,8 @@ export class StudioService {
   async updateSettings(input: unknown): Promise<Settings> {
     const parsed = settingsPatch(input);
     const patch = {
-      ...parsed, ...(parsed.projectName === undefined ? {} : { projectName: cleanLine(parsed.projectName, 80) }),
+      ...parsed,
+      ...(parsed.agentPrompt === undefined ? {} : { agentPrompt: cleanText(parsed.agentPrompt, 8000) }), ...(parsed.projectName === undefined ? {} : { projectName: cleanLine(parsed.projectName, 80) }),
       ...(parsed.projectBrief === undefined ? {} : { projectBrief: cleanText(parsed.projectBrief, 8000) }),
     };
     const settings = await this.store.transaction(state => {

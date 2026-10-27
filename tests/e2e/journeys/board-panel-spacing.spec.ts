@@ -4,6 +4,8 @@ test('wide backlog filters use the space up to the chat panel', async ({ page })
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto('/#surface=node-1');
   await expect(page.locator('html')).toHaveAttribute('data-prototype-ready', 'true');
+  await page.getByRole('navigation', { name: 'CoForge navigation' }).getByRole('button', { name: /^Idea board/ }).click();
+  expect(await page.locator('.cf-content').evaluate(element => getComputedStyle(element).scrollbarGutter)).toBe('auto');
   await mkdir('reports/twitch-review/after', { recursive: true });
   const measurements: Array<{ filter: string; gap: number }> = [];
   for (const name of [/All requests/, /Needs review/]) {

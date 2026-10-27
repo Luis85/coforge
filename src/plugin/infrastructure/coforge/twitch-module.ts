@@ -14,6 +14,7 @@ import { LivePopulationTracker } from '../../features/coforge/application/live-p
 import { PlayerModeration } from '../../features/coforge/application/player-moderation';
 import { StreamMessageScheduler } from '../../features/coforge/application/stream-message-scheduler';
 import { sendOperatorMessage } from '../../features/coforge/application/send-message';
+import type { TwitchChannelUpdate } from '../../features/coforge/domain/twitch';
 import { recordOperation } from '../../features/coforge/application/population';
 
 const fingerprint = (config: IntegrationSettings) => JSON.stringify([
@@ -66,12 +67,7 @@ export class TwitchModule {
       reconnect: () => this.reconnect(), refreshChannel: () => this.perform(() => this.refreshChannel()),
       searchCategories: query => this.perform(() => this.api.categories(query)),
       resolveUser: login => this.perform(() => this.api.resolveUser(login)),
-      updateChannel: input => this.perform(async () => {
-        await this.api.updateChannel(input);
-        if (this.state.channel) this.state.channel = { ...this.state.channel, title: input.title.trim(), categoryId: input.categoryId };
-        this.publish();
-        try { await this.refreshChannel(); } catch { this.error('Channel changes were saved, but Twitch details could not be refreshed.'); }
-      }),
+      updateChannel: input => this.perform(() => this.updateChannel(input)),
       send: text => this.perform(async () => {
         if (this.state.phase !== 'connected') throw new Error('Connect Twitch chat before sending.');
         const bot = this.accounts.identity('bot'); if (!bot) throw new Error('Connect the chatbot before sending.');
@@ -128,6 +124,27 @@ export class TwitchModule {
   }
   async dispose(): Promise<void> {
     this.closed = true; this.generation++; this.population.stop(); this.scheduler.stop(); this.device.cancel(); this.stopConnection(); this.stopStore(); await this.outbox.stop();
+  }
+  private async updateChannel(input: TwitchChannelUpdate): Promise<void> {
+    const channelId = this.config.twitchBroadcasterId; const id = crypto.randomUUID(); let applied = false;
+    await this.studio.store.transaction(state => recordOperation(state, 'twitch-channel-update-requested', 'none', undefined, 1, id));
+    try {
+      await this.api.updateChannel(input); applied = true;
+      const channel = await this.api.channel();
+      if (channelId !== this.config.twitchBroadcasterId) throw new TwitchError('uncertain', 'The connected channel changed during the update. Refresh its details.');
+      this.state.channel = channel; this.publish();
+      const tags = (values: readonly string[]) => values.map(value => value.normalize('NFKC').trim().toLocaleLowerCase('en-US')).sort().join('|');
+      if (channel.title !== input.title.trim() || (channel.categoryId || '0') !== (input.categoryId || '0')
+        || (input.tags !== undefined && tags(channel.tags ?? []) !== tags(input.tags))
+        || (input.language && channel.language !== input.language.trim().toLowerCase()))
+        throw new TwitchError('uncertain', 'Twitch did not apply all requested channel fields. Review the refreshed values before saving again.');
+      await this.studio.store.transaction(state => recordOperation(state, 'twitch-channel-updated', 'committed', undefined, 1, id));
+    } catch (error) {
+      const uncertain = applied || (error instanceof TwitchError && error.kind === 'uncertain');
+      try { await this.studio.store.transaction(state => recordOperation(state, uncertain ? 'twitch-channel-update-uncertain' : 'twitch-channel-update-failed', uncertain ? 'uncertain' : 'none', undefined, 1, id)); } catch { /* Never repeat the external update because its audit write failed. */ }
+      if (applied && !(error instanceof TwitchError && error.kind === 'uncertain')) throw new TwitchError('uncertain', 'Twitch accepted the update but its details could not be verified. Refresh before saving again.');
+      throw error;
+    }
   }
   private identities(): void {
     this.state.streamer = this.accounts.identity('streamer'); this.state.bot = this.accounts.identity('bot');
