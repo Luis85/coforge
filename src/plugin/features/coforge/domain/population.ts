@@ -1,4 +1,5 @@
 import { achievedRank, defaultCommunityEnvironment, type CommunityEnvironment } from "./community-environment";
+import { OBS_OPERATION_CODES } from './obs';
 export interface EconomyRules {
   coinsPerMinute: number;
   xpPerMinute: number;
@@ -31,6 +32,7 @@ export interface Player {
   rewardClaims: string[];
 }
 export const OPERATION_CODES = [
+  ...OBS_OPERATION_CODES,
   "registered",
   "greeted",
   "message-observed",
@@ -63,9 +65,11 @@ export const OPERATION_CODES = [
   "job-failed",
   "job-cancelled",
   "broadcast-skipped",
+  'project-prompt-updated', 'twitch-channel-update-requested', 'twitch-channel-updated', 'twitch-channel-update-failed', 'twitch-channel-update-uncertain', 'twitch-branding-opened',
 ] as const;
 export type OperationCode = (typeof OPERATION_CODES)[number];
 export interface OperationRecord {
+  entityId?: string;
   sequence: number;
   at: string;
   code: OperationCode;

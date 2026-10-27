@@ -6,6 +6,7 @@ import type { InternalState, LoadedStudio, SaveOptions, StudioStorage } from './
 import { assemble, enforceIntegrity } from './studio-state';
 import { prepareStudioCommit } from './commit-policies';
 import { StudioEvents, type StudioEventListener, type StudioEventSink } from './studio-events';
+import { defaultObsSettings } from '../domain/obs';
 export { addEvent, assemble, enforceIntegrity, mergeNote } from './studio-state';
 type Listener = (state: AppState) => void | Promise<void>;
 
@@ -53,6 +54,9 @@ export class StudioStore {
   }
   internalSnapshot(): InternalState { return structuredClone(this.current()); }
   integrationSnapshot(): InternalState['integration'] { return { ...this.current().integration }; }
+  obsContext() {
+    const state = this.current(); return { settings: structuredClone(state.obsSettings ?? defaultObsSettings()), command: state.obsCommand ? { ...state.obsCommand } : undefined, resumeSceneId: state.obsResumeSceneId };
+  }
   pendingBotReply(): InternalState['botReplies'][number] | undefined {
     const reply = this.current().botReplies.find(reply => reply.status === 'pending'); return reply ? structuredClone(reply) : undefined;
   }

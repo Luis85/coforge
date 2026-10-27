@@ -11,11 +11,13 @@ export function recordOperation(
   effect: OperationRecord["effect"] = "committed",
   playerId?: string,
   count = 1,
+  entityId?: string,
 ): void {
   const population = state.population;
   population.counters[code] = (population.counters[code] ?? 0) + count;
   if (code === "message-observed" || code === "command-observed") return;
   population.operations.push({
+    ...(entityId ? { entityId } : {}),
     sequence: population.nextSequence++,
     at: new Date().toISOString(),
     code,

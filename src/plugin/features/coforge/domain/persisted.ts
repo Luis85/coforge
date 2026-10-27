@@ -1,6 +1,7 @@
 import type { Check } from './check';
 import { boolean, list, number, oneOf, optional, record, shape, text, timestamp } from './check';
 import { defaultIntegration, defaultSettings } from './seed';
+import { obsSettingsCheck, obsCommandCheck } from './obs-check';
 import { populationCheck } from './population-check';
 import type { AgentJob, AppState, Increment, IntegrationSettings, Settings } from './types';
 import { CONTRIBUTOR_COLORS } from './types';
@@ -30,6 +31,7 @@ const job: Check<AgentJob> = shape({
   projectId: optional(str),
 });
 export const settingsCheck: Check<Settings> = shape({
+  agentPrompt: text({ max: 8000 }),
   projectName: str, projectBrief: str, provider,
   automation: shape({ screen: boolean, score: boolean, plan: boolean, implement: boolean }), paused: boolean,
   intervalSeconds: number({ gt: 0 }), minVotes: number({ min: 0 }), maxTurns: number({ gt: 0 }), maxBudgetUsd: number({ gt: 0 }),
@@ -42,6 +44,7 @@ const integration: Check<IntegrationSettings> = shape({
   publicFolder: text({ min: 1 }), publicBoardEnabled: boolean,
 });
 const persisted: Check<PersistedStudio> = shape({
+  obsSettings: optional(obsSettingsCheck), obsCommand: optional(obsCommandCheck), obsResumeSceneId: optional(str),
   population: optional(populationCheck),
   streamMessages: optional(list(shape({ id: str, text: str, intervalMinutes: number({ integer: true, min: 1, max: 240 }), active: boolean,
     channelId: str, createdAt: timestamp, updatedAt: timestamp, streamKey: optional(str), nextDueAt: optional(timestamp), lastQueuedAt: optional(timestamp), lastSentAt: optional(timestamp), lastError: optional(str) }))),

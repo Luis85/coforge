@@ -7,6 +7,7 @@ import { settingsPatch } from './inputs';
 
 export const PROJECT_MARKER = 'coforge-project';
 const FIELDS = {
+  agentPrompt: 'agent-prompt',
   projectName: 'name', projectBrief: 'description', provider: 'provider', paused: 'paused', intervalSeconds: 'interval-seconds',
   minVotes: 'min-votes', maxTurns: 'max-turns', maxBudgetUsd: 'max-budget-usd', timeoutSeconds: 'timeout-seconds', model: 'model',
   requestCooldownSeconds: 'request-cooldown-seconds',
@@ -59,6 +60,7 @@ export function parseProjectNote(value: unknown): StudioProject | null {
   for (const [key, property] of Object.entries(FIELDS)) if (properties[property] !== undefined) values[key] = properties[property];
   values.projectName = cleanLine(text({ min: 1, max: 80 })(values.projectName), 80);
   values.projectBrief = cleanText(text({ max: 8000 })(values.projectBrief), 8000);
+  values.agentPrompt = cleanText(text({ max: 8000 })(values.agentPrompt), 8000);
   const automation: Record<string, unknown> = { ...defaults.automation };
   for (const stage of STAGES) if (properties[`automation-${stage}`] !== undefined) automation[stage] = properties[`automation-${stage}`];
   const settings: Settings = settingsCheck({ ...values, automation });

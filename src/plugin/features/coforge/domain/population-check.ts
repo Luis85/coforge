@@ -54,6 +54,7 @@ const population = shape({
   operations: list(
     shape({
       sequence: count,
+      entityId: optional(text({ min: 1, max: 300 })),
       at: timestamp,
       code: oneOf(OPERATION_CODES),
       effect: oneOf(["none", "committed", "uncertain"] as const),

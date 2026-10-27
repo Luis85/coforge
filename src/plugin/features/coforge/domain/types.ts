@@ -39,11 +39,13 @@ export interface AgentJob {
 }
 export interface Activity { id: string; ideaId?: string; type: 'idea' | 'vote' | 'agent' | 'review' | 'system'; text: string; createdAt: string }
 export interface Settings {
+  agentPrompt: string;
   projectName: string; projectBrief: string; provider: Provider; automation: Record<AgentStage, boolean>; paused: boolean;
   intervalSeconds: number; minVotes: number; maxTurns: number; maxBudgetUsd: number; timeoutSeconds: number; model: string;
   requestCooldownSeconds: number;
 }
 export interface RuntimeInfo {
+  obs?: import('./obs').ObsPublicState;
   cliAvailable: boolean; projectPath: string | null; allowImplementation: boolean;
   chatSource: 'simulator' | 'twitch'; chatStatus: string; activeJobId?: string;
   twitch?: import('./twitch').TwitchState;
@@ -56,6 +58,9 @@ export interface StudioProject {
   unavailable?: boolean;
 }
 export interface AppState {
+  obsSettings?: import('./obs').ObsSettings;
+  obsCommand?: import('./obs').ObsCommand;
+  obsResumeSceneId?: string;
   version: 1; nextIdeaNumber: number; ideas: Idea[]; contributors: Contributor[]; chat: ChatMessage[];
   jobs: AgentJob[]; events: Activity[]; settings: Settings; runtime: RuntimeInfo;
   /** Optional on legacy input only. The application store always supplies these fields. */

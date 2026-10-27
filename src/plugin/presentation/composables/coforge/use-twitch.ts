@@ -9,6 +9,7 @@ export function useTwitch() {
   const state = computed(() => store.state?.runtime.twitch ?? disconnectedTwitch());
   const error = ref(''); const notice = ref(''); const checking = ref(false);
   const title = ref(''); const categoryId = ref(''); const categoryQuery = ref('');
+  const tags = ref(''); const language = ref('');
   const categories = ref<Array<{ id: string; name: string }>>([]);
   const moderation = reactive({ action: 'timeout' as 'delete' | 'timeout' | 'ban', login: '', messageId: '', duration: 600, reason: '' });
   const confirmation = ref<{ channelId: string; text: string; action: ModerationAction } | null>(null);
@@ -31,6 +32,8 @@ export function useTwitch() {
     if (!channel) return;
     if (!previous || channel.id !== previous.id || title.value === previous.title) title.value = channel.title;
     if (!previous || channel.id !== previous.id || categoryId.value === previous.categoryId) categoryId.value = channel.categoryId;
+    if (!previous || channel.id !== previous.id || tags.value === (previous.tags ?? []).join(', ')) tags.value = (channel.tags ?? []).join(', ');
+    if (!previous || channel.id !== previous.id || language.value === (previous.language ?? '')) language.value = channel.language ?? '';
   }, { immediate: true });
   async function run(work: () => Promise<unknown>, success = ''): Promise<boolean> {
     error.value = ''; notice.value = ''; checking.value = true;
@@ -68,7 +71,9 @@ export function useTwitch() {
     if (await run(() => actions().moderate(pending.action), 'Moderation action confirmed by Twitch.')) confirmation.value = null;
   }
   return reactive({
-    store, state, connection, supported: Boolean(host.twitch), error, notice, checking, title, categoryId, categoryQuery, categories, moderation, confirmation,
+    store, state, connection, supported: Boolean(host.twitch), error, notice, checking, title, categoryId, categoryQuery, categories, moderation, confirmation, tags, language,
+    brandingUrl: computed(() => { const login = state.value.channel?.login || state.value.streamer?.login; return login ? `https://dashboard.twitch.tv/u/${encodeURIComponent(login)}/settings/channel/brand` : ''; }),
+    openBranding: () => { void studio.openTwitchBranding().catch(() => { error.value = 'The branding editor interaction could not be recorded.'; }); },
     replies: computed(() => (store.state?.botReplies ?? []).filter(reply => ['failed', 'uncertain'].includes(reply.status) && !reply.reviewedAt).slice(-5).reverse()),
     autoReplies: computed(() => store.state ? studio.integration().twitchBotReplies : false),
     authorize: (role: TwitchRole, clientId?: string, usesStreamer?: boolean) => { void authorize(role, clientId, usesStreamer); },
@@ -76,7 +81,7 @@ export function useTwitch() {
     cancelAuthorization: () => host.twitch?.cancelAuthorization(),
     reconnect: () => { void run(() => actions().reconnect()); }, refresh: () => { void run(() => actions().refreshChannel()); },
     search: () => { void search(); },
-    saveChannel: (event: Event) => { event.preventDefault(); void run(() => actions().updateChannel({ title: title.value, categoryId: categoryId.value }), 'Channel updated.'); },
+    saveChannel: (event: Event) => { event.preventDefault(); void run(() => actions().updateChannel({ title: title.value, categoryId: categoryId.value, tags: tags.value.split(',').map(tag => tag.trim()).filter(Boolean), language: language.value.trim() || undefined }), 'Channel updated.'); },
     prepareModeration: (event: Event) => { event.preventDefault(); void prepareModeration(); },
     confirmModeration: () => { void confirmModeration(); }, cancelModeration: () => { confirmation.value = null; },
     openStreamMessages: () => { store.streamTool = 'messages'; store.navigate('stream'); },

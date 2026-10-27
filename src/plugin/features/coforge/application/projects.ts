@@ -10,10 +10,12 @@ import { isActiveJob } from '../domain/workflow';
 import type { StudioProject } from '../domain/types';
 import type { StudioStore } from './studio-store';
 import { addEvent } from './studio-store';
+import { recordOperation } from './population';
 
 function values(input: unknown) {
   const source = record(input);
   const settings = settingsPatch(omit(source, 'projectPath', 'worktreeFolder', 'allowImplementation', 'repositoryUrl', 'websiteUrl'));
+  if (settings.agentPrompt !== undefined) settings.agentPrompt = cleanText(settings.agentPrompt, 8000);
   const paths = {
     ...(source.projectPath === undefined ? {} : { projectPath: validateProjectPath(source.projectPath) }),
     ...(source.worktreeFolder === undefined ? {} : { worktreeFolder: validateProjectPath(source.worktreeFolder) }),
@@ -44,6 +46,7 @@ export async function addProject(store: StudioStore, input: unknown): Promise<St
         automation: { ...defaults.automation, ...patch.settings.automation }, paused: true },
     };
     state.projects.push(project);
+    if (project.settings.agentPrompt) recordOperation(state, 'project-prompt-updated', 'committed', undefined, 1, project.id);
     selectProjectState(state, project.id);
     addEvent(state, 'system', `Project “${project.settings.projectName}” added.`);
     return project;
@@ -54,12 +57,14 @@ export async function editProject(store: StudioStore, id: string, input: unknown
   const patch = values(input);
   return store.transaction(state => {
     const project = findProject(state, id);
+    const previousPrompt = project.settings.agentPrompt;
     if (project.unavailable) throw new StudioError('Restore this project note before editing it.', 409);
     if (state.jobs.some(job => job.projectId === id && isActiveJob(job))) throw new StudioError('Finish or cancel this project’s queued runs before editing its configuration.', 409);
     const settings = { ...project.settings, ...patch.settings, automation: { ...project.settings.automation, ...patch.settings.automation } };
     settings.projectName = cleanLine(settings.projectName, 80);
     settings.projectBrief = cleanText(settings.projectBrief, 8000);
     Object.assign(project, patch.paths, { settings, updatedAt: new Date().toISOString() });
+    if (previousPrompt !== settings.agentPrompt) recordOperation(state, 'project-prompt-updated', 'committed', undefined, 1, project.id);
     if (project.allowImplementation && !project.projectPath) throw new StudioError('Set the project repository before allowing real implementation.');
     if (id === state.activeProjectId) { state.settings = copySettings(project.settings); Object.assign(state.integration, projectPaths(project)); }
     addEvent(state, 'system', `Project “${project.settings.projectName}” updated.`);

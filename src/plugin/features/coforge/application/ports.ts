@@ -60,6 +60,7 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  obs?: import('../domain/obs').ObsActions;
   twitch?: import('../domain/twitch').TwitchActions;
   diagnostics?(): string;
   exportDiagnostics?(): Promise<string>;

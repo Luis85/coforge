@@ -3,13 +3,13 @@ import { computed, ref } from 'vue';
 import type { AppState } from '../../features/coforge/domain/types';
 import { projectIdeas as scopedIdeas } from '../../features/coforge/domain/projects';
 
-export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects' | 'population' | 'operations' | 'community-settings';
+export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects' | 'population' | 'operations' | 'community-settings' | 'broadcast';
 export interface Toast { id: number; message: string; error: boolean }
 
 /** Per-view projection of the studio state plus view-local navigation, overlays and feedback. */
 export const useStudioStore = defineStore('coforge-studio', () => {
   const state = ref<AppState | null>(null);
-  const view = ref<StudioView>('board');
+  const view = ref<StudioView>('broadcast');
   const selected = ref<string | null>(null);
   const creating = ref(false);
   const help = ref(false);

@@ -3,6 +3,7 @@ import { StudioService } from '../../../features/coforge/application/studio';
 import type { StageInput, StageRunner, StudioHost } from '../../../features/coforge/application/ports';
 import { createSeed } from '../../../features/coforge/domain/seed';
 import { MemoryStorage, nodeTimers, registerTestViewers } from './memory-storage';
+import { stageInput } from '../../../features/coforge/application/agent-prompts';
 
 const services: StudioService[] = [];
 afterEach(async () => { await Promise.all(services.splice(0).map(service => service.stop())); });
@@ -22,6 +23,16 @@ async function setup(runner: StageRunner = async () => ({ screening: {
 }
 
 describe('multiple projects in one studio', () => {
+  it('dispatches with the request parent prompt while another project is selected', async () => {
+    const prompts: string[] = [];
+    const { studio } = await setup(async input => { prompts.push(stageInput(input.stage, input.idea, input.settings)); return { screening: { verdict: 'clear', reason: 'Reviewed', signals: [], checkedAt: new Date().toISOString(), provider: 'demo' } }; });
+    const initial = studio.state().activeProjectId!;
+    const project = await studio.createProject({ projectName: 'Rust game', projectBrief: 'A community game using Rust and Bevy.', projectPath: '/synthetic/rust-game', agentPrompt: 'Use Rust and the project conventions.' });
+    const request = await studio.sendChat('NewViewer', `!request ${project.id} Add a small garden`);
+    await studio.selectProject(initial); await studio.act(request.ideaId!, 'screen'); await studio.engine.waitUntilIdle();
+    expect(prompts[0]?.startsWith('Use Rust and the project conventions.\n\n')).toBe(true);
+    expect(studio.state().activeProjectId).toBe(initial);
+  });
   it('migrates the current project, routes requests to their explicit parent and keeps chat shared', async () => {
     const { studio, storage } = await setup();
     const initial = studio.state().activeProjectId;
