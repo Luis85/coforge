@@ -21,6 +21,7 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
   });
   await studio.start();
   const calls: string[] = [];
+  const historyExports: string[] = [];
   const state: ObsSnapshot = {
     epoch: 1,
     revision: 0,
@@ -71,6 +72,8 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
     startupError: () => null,
     onNotice: () => () => undefined,
     host: {
+      streamHistory: { list: async () => [{ id: 'fixture-stream', channelId: '123', startedAt: '2026-10-27T10:00:00Z', endedAt: null, samples: 2, lastSampleAt: '2026-10-27T10:01:00Z', peakObservedViewers: 15, meanObservedViewers: 12 }],
+        export: async id => { historyExports.push(id); return '/private/synthetic-export.json'; } },
       obs,
       setSecret: () => false,
       hasSecret: () => false,
@@ -90,6 +93,9 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
   try {
     await flushPromises();
     expect(wrapper.get("h1").text()).toBe("Stream studio");
+    await button('Export stream JSON').trigger('click');
+    await flushPromises();
+    expect(historyExports).toEqual(['fixture-stream']);
     expect(wrapper.find('[aria-label="Guided stream setup"]').exists()).toBe(true);
     await button("Skip setup for now").trigger("click");
     await flushPromises();
@@ -117,7 +123,7 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
         canManage: true,
         canModerate: true,
         canChat: true,
-        streamer: { id: "channel", login: "streamer", scopes: [] },
+        streamer: { id: "channel", login: "streamer", scopes: ['moderator:read:followers', 'channel:read:subscriptions'] },
         bot: { id: "channel", login: "streamer", scopes: [] },
         channel: {
           id: "channel",

@@ -1,6 +1,7 @@
 import type { ObsPublicState, ObsSettings } from "./obs";
 import type { TwitchState } from "./twitch";
 import type { IntegrationSettings } from "./types";
+import { STREAM_METRIC_SCOPES } from "./stream-metrics";
 
 export interface StreamSetupState {
   dismissed: boolean;
@@ -42,6 +43,7 @@ export function streamSetupProgress({
       (settings.breakSceneId !== settings.liveSceneId &&
         Boolean(obs.snapshot?.scenes.some((scene) => scene.id === settings.breakSceneId))));
   const expectedBot = integration.twitchBotUsesStreamer ? integration.twitchBroadcasterId : integration.twitchBotUserId;
+  const analytics = STREAM_METRIC_SCOPES.every((scope) => twitch.streamer?.scopes.includes(scope));
   const channel =
     integration.twitchEnabled &&
     twitch.phase === "connected" &&
@@ -51,7 +53,8 @@ export function streamSetupProgress({
     twitch.bot?.id === expectedBot &&
     twitch.canManage &&
     twitch.canModerate &&
-    twitch.canChat;
+    twitch.canChat &&
+    analytics;
   const stable =
     connected && !obs.busy && !obs.snapshot?.active && !obs.snapshot?.transitioning && !obs.snapshot?.reconnecting;
   const steps: SetupStep[] = [
@@ -95,9 +98,11 @@ export function streamSetupProgress({
           ? "Authorize the streamer account."
           : !twitch.canManage || !twitch.canModerate || !twitch.canChat
             ? "Authorize the required channel, moderation and chatbot permissions."
-            : !channel
-              ? "Enable chat reception and verify the connected channel."
-              : "Channel permissions and chatbot connection verified.",
+            : !analytics
+              ? "Reconnect the streamer to grant subscriber read permission for stream JSON. Follower totals use existing channel access."
+              : !channel
+                ? "Enable chat reception and verify the connected channel."
+                : "Channel permissions and chatbot connection verified.",
     },
     {
       id: "review",

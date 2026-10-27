@@ -146,3 +146,7 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   launching it, explain missing WebSocket/authentication/scenes and Twitch app/account/permission/chat settings,
   and provide working setup controls. Readiness comes from current connections, not saved fields. Review of OBS
   output destination/audio/video is explicitly human-confirmed; the guide never reads stream keys or goes live.
+- While on air, retain one private JSON history object per stream with a sample each minute, including live
+  viewers/channel metadata, follower and subscriber totals/points, Twitch chat and CoForge community/request/
+  bot/moderation activity, and OBS health. The streamer accepts the additional follower/subscriber read scopes.
+  Unavailable measurements remain null with source status; missed/offline intervals are not invented.

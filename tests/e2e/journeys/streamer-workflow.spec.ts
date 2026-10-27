@@ -8,6 +8,7 @@ for (const theme of ['dark', 'light']) test(`streamer preparation and channel ed
   await expect(page.getByRole('button', { name: 'Go live', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Connect OBS', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Open OBS Studio', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Export stream JSON', exact: true })).toBeDisabled();
   await expect(page.getByLabel('OBS executable (optional)', { exact: true })).toBeVisible();
   await expect(page.getByText('This preview does not connect to OBS. Use these controls inside Obsidian.', { exact: true })).toBeVisible();
   await mkdir('reports/streamer-workflow', { recursive: true });

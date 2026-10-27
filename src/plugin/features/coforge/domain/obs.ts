@@ -11,6 +11,7 @@ export interface ObsScene {
   name: string;
 }
 export interface ObsSnapshot {
+  health?: Record<string, number | null>;
   epoch: number;
   revision: number;
   scenes: ObsScene[];

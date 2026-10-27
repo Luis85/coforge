@@ -18,6 +18,7 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   const dirtyCommunitySettings = ref(false);
   const streamTool = ref<'channel' | 'messages'>('channel');
   const setupStep = ref(0);
+  const historySelection = ref('');
   const setupRequested = ref(false);
   const moderationTarget = ref<{ channelId: string; username: string; userId?: string; messageId?: string } | null>(null);
   const pending = ref(0);
@@ -61,6 +62,6 @@ export const useStudioStore = defineStore('coforge-studio', () => {
     } finally { pending.value = Math.max(0, pending.value - 1); }
   }
 
-  return { state, view, selected, creating, help, activityOpen, dirtySettings, dirtyCommunitySettings, streamTool, setupStep, setupRequested, moderationTarget, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
+  return { state, view, selected, creating, help, activityOpen, dirtySettings, dirtyCommunitySettings, streamTool, setupStep, setupRequested, historySelection, moderationTarget, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
     activeJob, selectedIdea, notify, dismiss, navigate, select, mutate, dispose };
 });

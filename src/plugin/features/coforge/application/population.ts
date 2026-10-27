@@ -15,7 +15,7 @@ export function recordOperation(
 ): void {
   const population = state.population;
   population.counters[code] = (population.counters[code] ?? 0) + count;
-  if (code === "message-observed" || code === "command-observed") return;
+  if (['message-observed', 'command-observed', 'twitch-message-observed', 'twitch-command-observed'].includes(code)) return;
   population.operations.push({
     ...(entityId ? { entityId } : {}),
     sequence: population.nextSequence++,

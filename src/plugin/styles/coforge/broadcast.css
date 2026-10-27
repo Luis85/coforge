@@ -26,6 +26,10 @@
 .cf-twitch-channel-editor p { font-size: 12px; color: var(--cf-muted); line-height: 1.7; }
 .cf-channel-branding { border-top: 1px solid var(--cf-border); padding-top: 16px; margin-top: 20px; }
 .cf-channel-branding h3 { font-size: 14px; }
+.cf-stream-history { padding-top: 24px; border-top: 1px solid var(--cf-border); }
+.cf-stream-history .cf-field { max-width: 600px; margin: 18px 0; }
+.cf-stream-history select { width: 100%; min-width: 0; min-height: 38px; padding: 8px; background: var(--cf-surface); color: var(--cf-text); border: 1px solid var(--cf-border-strong); border-radius: var(--radius-s); }
+.cf-stream-history p { overflow-wrap: anywhere; }
 .cf-channel-branding a { color: var(--text-accent); font-size: 12px; overflow-wrap: anywhere; }
 @container plugin-shell-leaf (max-width: 850px) { .cf-broadcast-preparation { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
 @container plugin-shell-leaf (max-width: 600px) { .cf-broadcast-page { padding: 22px 14px; } .cf-broadcast-console { padding: 16px; } .cf-broadcast-console h2 { font-size: 22px; } .cf-broadcast-page .cf-page-heading { align-items: flex-start; flex-wrap: wrap; gap: 14px; } }

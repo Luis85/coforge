@@ -46,7 +46,7 @@ describe("guided stream setup", () => {
     value.twitch = {
       ...disconnectedTwitch(),
       phase: "connected",
-      streamer: { id: "channel", login: "streamer", scopes: [] },
+      streamer: { id: "channel", login: "streamer", scopes: ['moderator:read:followers', 'channel:read:subscriptions'] },
       bot: { id: "channel", login: "streamer", scopes: [] },
       channel: {
         id: "channel",

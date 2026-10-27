@@ -32,6 +32,7 @@ export interface Player {
   rewardClaims: string[];
 }
 export const OPERATION_CODES = [
+  'stream-snapshot-saved', 'stream-history-ended', 'twitch-message-observed', 'twitch-command-observed',
   'stream-setup-opened', 'stream-setup-dismissed', 'stream-setup-completed',
   ...OBS_OPERATION_CODES,
   "registered",

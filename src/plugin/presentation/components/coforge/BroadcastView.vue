@@ -2,6 +2,7 @@
 import { useBroadcast } from "../../composables/coforge/use-broadcast";
 import TwitchChannelEditor from "./TwitchChannelEditor.vue";
 import GuidedStreamSetup from './GuidedStreamSetup.vue';
+import StreamHistoryPanel from './StreamHistoryPanel.vue';
 const model = useBroadcast();
 </script>
 <template>
@@ -181,5 +182,6 @@ const model = useBroadcast();
       <summary>Twitch channel and branding</summary>
       <TwitchChannelEditor />
     </details>
+    <StreamHistoryPanel />
   </div>
 </template>

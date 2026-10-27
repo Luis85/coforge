@@ -5,7 +5,7 @@ import { record } from "../../features/coforge/domain/check";
 import { IntegrationFailure } from "../../features/coforge/domain/integration-failure";
 
 export type ObsRequest =
-  "GetVersion" | "GetSceneList" | "GetStreamStatus" | "SetCurrentProgramScene" | "StartStream" | "StopStream";
+  "GetVersion" | "GetSceneList" | "GetStreamStatus" | "GetStats" | "SetCurrentProgramScene" | "StartStream" | "StopStream";
 export interface ObsSocket {
   onmessage: ((event: MessageEvent) => unknown) | null;
   onclose: ((event: CloseEvent) => unknown) | null;
