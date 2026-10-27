@@ -33,6 +33,8 @@ export class ObsAdapter implements ObsControlPort {
       timers,
       (key) => secrets.getSecret(key),
       (connection, error) => {
+        // Events from the prior socket cannot describe a transition after reconnect.
+        if (connection === "connected") this.transition = false;
         if (connection === "connected" && this.monitor === undefined)
           this.monitor = timers.setInterval(() => this.refreshSoon(), 15000);
         else if (connection !== "connected" && this.monitor !== undefined) {

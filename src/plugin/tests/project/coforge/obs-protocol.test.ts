@@ -32,11 +32,14 @@ const hello = { op: 0, d: { rpcVersion: 1 } };
 const identified = { op: 2, d: { negotiatedRpcVersion: 1 } };
 describe("OBS WebSocket v5 boundary", () => {
   it("opens local OBS once, waits for its server and reuses it without broadcasting", async () => {
+    vi.useFakeTimers();
     let launches = 0;
     const sent: string[] = [];
+    let currentSocket = new Socket();
     const adapter = new ObsAdapter(
       () => {
         const socket = new Socket();
+        currentSocket = socket;
         socket.reply = (frame) => {
           if (frame.op === 1) {
             socket.frame(identified);
@@ -84,6 +87,14 @@ describe("OBS WebSocket v5 boundary", () => {
     stops.push(() => adapter.dispose());
     const settings = defaultObsSettings();
     expect((await adapter.open(settings)).active).toBe(false);
+    currentSocket.frame({
+      op: 5,
+      d: { eventType: "StreamStateChanged", eventData: { outputState: "OBS_WEBSOCKET_OUTPUT_STARTING" } },
+    });
+    expect((await adapter.snapshot()).transitioning).toBe(true);
+    currentSocket.close();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect((await adapter.snapshot()).transitioning).toBe(false);
     await adapter.open(settings);
     expect(launches).toBe(1);
     expect(sent.every((type) => type.startsWith("Get"))).toBe(true);

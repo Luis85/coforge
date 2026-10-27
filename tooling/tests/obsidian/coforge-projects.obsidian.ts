@@ -9,8 +9,12 @@ describe('CoForge projects in the contained vault', () => {
     const view = await obsidian.openView(type!);
     await browserExpect(view.getByRole('heading', { name: 'Stream studio', exact: true })).toBeVisible();
     await browserExpect(view.getByRole('button', { name: 'Go live', exact: true })).toBeDisabled();
+    await browserExpect(view.getByRole('button', { name: 'Open OBS Studio', exact: true })).toBeEnabled();
+    await view.getByLabel('OBS executable (optional)', { exact: true }).fill('/synthetic/obs');
     await view.getByRole('button', { name: 'Save OBS setup', exact: true }).click();
     await browserExpect(view.getByText('OBS connection and scenes saved.', { exact: true })).toBeVisible();
+    const setup: unknown = JSON.parse(await obsidian.eval(({ app, pluginId }) => app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`)));
+    expect(setup).toMatchObject({ obsSettings: { executable: '/synthetic/obs', autoConnect: false } });
     await browserExpect(view.locator('.cf-studio')).toBeVisible();
     await browserExpect(view.locator(':scope > .view-header')).toBeHidden();
     await obsidian.screenshot('studio-without-native-header');
