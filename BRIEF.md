@@ -150,3 +150,6 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   viewers/channel metadata, follower and subscriber totals/points, Twitch chat and CoForge community/request/
   bot/moderation activity, and OBS health. The streamer accepts the additional follower/subscriber read scopes.
   Unavailable measurements remain null with source status; missed/offline intervals are not invented.
+- Stream statistics selects a saved stream, plots recorded metrics over elapsed stream time, and compares it
+  with up to three earlier completed streams from the same channel. Charts preserve missing-data gaps and
+  provide exact sample values. Audience metrics lead by default; engagement and OBS health remain selectable.

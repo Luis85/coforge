@@ -9,6 +9,7 @@ export interface StreamHistoryPort {
   list(): Promise<StreamSummary[]>;
 }
 export interface StreamHistoryActions {
+  read(id: string): Promise<StreamHistory | null>;
   list(): Promise<StreamSummary[]>;
   export(id: string): Promise<string>;
 }

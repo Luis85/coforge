@@ -48,6 +48,7 @@ export function useStreamHistory() {
     working,
     notice,
     supported: Boolean(host.streamHistory),
+    statistics: () => { store.statisticsStream = store.historySelection; store.navigate('statistics'); },
     message: computed(
       () =>
         store.state?.runtime.streamRecording?.message ??

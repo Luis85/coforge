@@ -60,6 +60,7 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  previewStreamStatistics?(): import('../domain/stream-metrics').StreamHistory[];
   streamHistory?: import('./stream-metrics-ports').StreamHistoryActions;
   obs?: import('../domain/obs').ObsActions;
   twitch?: import('../domain/twitch').TwitchActions;
