@@ -8,6 +8,11 @@ import { noteOnly } from '../../src/plugin/features/coforge/domain/objects.ts';
 import { createSeed, defaultIntegration } from '../../src/plugin/features/coforge/domain/seed.ts';
 import type { CoforgeContext } from '../../src/plugin/presentation/context/coforge-context.ts';
 import { previewStreamStatistics } from './stream-statistics-preview';
+import { createLiveStudioPreview } from './live-studio-preview';
+import type { StudioExample } from '../../src/plugin/features/coforge/application/studio-example';
+import { createMusicPreview } from './music-preview';
+import { createHerdrPreview } from './herdr-preview';
+import { createFinancePreview } from './finance-preview';
 
 /** Browser-only storage: the sample workspace in memory, nothing is persisted. */
 class PreviewStorage implements StudioStorage {
@@ -42,10 +47,18 @@ export function createPreviewCoforge(): CoforgeContext {
     probeRuntime: () => Promise.resolve({ cliAvailable: false, projectPath: null, allowImplementation: false }),
   });
   let failure: string | null = null;
+  const herdrExample = createHerdrPreview(studio.store);
+  const financeExample = createFinancePreview(studio.store);
+  let liveExample: StudioExample | undefined;
+  let musicExample: ReturnType<typeof createMusicPreview> | undefined;
   void studio.start().catch((error: unknown) => { failure = error instanceof Error ? error.message : String(error); });
   return {
     studio, startupError: () => failure, onNotice: () => () => undefined,
     host: {
+      previewFinance: () => financeExample,
+      previewHerdr: () => herdrExample,
+      previewMusic: () => musicExample ??= createMusicPreview(),
+      previewLiveStudio: () => liveExample ??= createLiveStudioPreview(studio.store),
       previewStreamStatistics,
       setSecret: () => false, hasSecret: () => false,
       openIdeaNote: () => Promise.resolve(false), saveExport: () => Promise.resolve('the browser preview (not saved)'),

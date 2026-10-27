@@ -5,6 +5,7 @@ import type { ObsSnapshot, ObsObservation } from "../../../features/coforge/doma
 import { emptyStore } from "./memory-storage";
 import { IntegrationFailure } from "../../../features/coforge/domain/integration-failure";
 import { StudioStore } from "../../../features/coforge/application/studio-store";
+import { sceneContext } from "../../../features/coforge/domain/obs-scenes";
 
 function fakeObs() {
   const snapshot: ObsSnapshot = {
@@ -61,6 +62,32 @@ function fakeObs() {
   };
 }
 describe("streamer OBS workflow", () => {
+  it('shares scene admission with broadcast controls and recovers a saved scene intent without replay', async () => {
+    const { store, storage } = await emptyStore();
+    const obs = fakeObs();
+    let finish!: () => void;
+    const pending = new Promise<void>(resolve => { finish = resolve; });
+    const mutate = vi.fn(async () => { await pending; throw new IntegrationFailure('uncertain', 'Confirmation lost.'); });
+    obs.port.scenes = { inspect: async () => { throw new Error('Not used'); }, execute: mutate };
+    const workflow = new ObsWorkflow(store, obs.port);
+    workflow.start();
+    await workflow.connect();
+    const before = await obs.port.snapshot();
+    const changing = workflow.sceneActions!.execute({ kind: 'scene-create', name: 'Interview copy', expected: sceneContext(before) });
+    await vi.waitFor(() => expect(mutate).toHaveBeenCalledTimes(1));
+    await expect(workflow.stop()).rejects.toThrow('already in progress');
+    expect(obs.calls).toEqual([]);
+    finish();
+    await expect(changing).rejects.toMatchObject({ kind: 'uncertain' });
+    workflow.dispose();
+    const restarted = new StudioStore(storage); await restarted.init();
+    const recovered = new ObsWorkflow(restarted, obs.port); recovered.start();
+    await expect(recovered.sceneActions!.execute({ kind: 'scene-create', name: 'Interview copy', expected: sceneContext(before) })).rejects.toMatchObject({ kind: 'uncertain' });
+    expect(mutate).toHaveBeenCalledTimes(1);
+    await recovered.refresh();
+    expect(restarted.obsContext().command?.status).toBe('reconciled');
+    recovered.dispose();
+  });
   it("clears recovered connection errors after observing a successful reconnect", async () => {
     const { store } = await emptyStore();
     const obs = fakeObs();

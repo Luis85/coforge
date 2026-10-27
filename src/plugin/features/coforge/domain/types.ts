@@ -45,6 +45,7 @@ export interface Settings {
   requestCooldownSeconds: number;
 }
 export interface RuntimeInfo {
+  liveStudio?: import('./live-studio').LiveStudioState;
   streamRecording?: import('./stream-metrics').StreamRecordingState;
   obs?: import('./obs').ObsPublicState;
   cliAvailable: boolean; projectPath: string | null; allowImplementation: boolean;

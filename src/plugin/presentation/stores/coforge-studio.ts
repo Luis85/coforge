@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import type { AppState } from '../../features/coforge/domain/types';
 import { projectIdeas as scopedIdeas } from '../../features/coforge/domain/projects';
 
-export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects' | 'population' | 'operations' | 'community-settings' | 'broadcast' | 'statistics';
+export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects' | 'population' | 'operations' | 'community-settings' | 'broadcast' | 'statistics' | 'finance';
 export interface Toast { id: number; message: string; error: boolean }
 
 /** Per-view projection of the studio state plus view-local navigation, overlays and feedback. */
@@ -24,6 +24,15 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   const statisticsMetric = ref<import('../../features/coforge/domain/statistics-metrics').StatisticsMetricId>('viewers');
   const statisticsCursor = ref(0);
   const statisticsPage = ref(0);
+  const studioExampleEnabled = ref(false);
+  const studioExampleRevision = ref(0);
+  const obsEditorOpen = ref(false);
+  const obsEditorScene = ref('');
+  const obsEditorDetail = ref<import('../../features/coforge/domain/obs-scenes').ObsSceneDetail | null>(null);
+  const obsNewSceneName = ref('');
+  const obsRenameSceneName = ref('');
+  const obsCopySceneName = ref('');
+  const obsExistingSource = ref('');
   const setupRequested = ref(false);
   const moderationTarget = ref<{ channelId: string; username: string; userId?: string; messageId?: string } | null>(null);
   const pending = ref(0);
@@ -68,5 +77,6 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   }
 
   return { state, view, selected, creating, help, activityOpen, dirtySettings, dirtyCommunitySettings, streamTool, setupStep, setupRequested, historySelection, statisticsStream, statisticsComparisons, statisticsMetric, statisticsCursor, statisticsPage, moderationTarget, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
+    studioExampleEnabled, studioExampleRevision, obsEditorOpen, obsEditorScene, obsEditorDetail, obsNewSceneName, obsRenameSceneName, obsCopySceneName, obsExistingSource,
     activeJob, selectedIdea, notify, dismiss, navigate, select, mutate, dispose };
 });

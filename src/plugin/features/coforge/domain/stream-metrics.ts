@@ -13,6 +13,8 @@ export interface TwitchMetrics {
   unavailable: string[];
 }
 export interface ObsMetrics {
+  epoch?: number;
+  observedAt?: string;
   state: MetricSourceState;
   startedAt: string | null;
   scene: string | null;

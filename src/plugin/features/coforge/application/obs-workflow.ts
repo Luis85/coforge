@@ -13,6 +13,7 @@ import { obsSettingsCheck } from "../domain/obs-check";
 import type { OperationCode } from "../domain/population";
 import { recordOperation } from "./population";
 import { executeObsCommand } from "./obs-commands";
+import { ObsSceneWorkflow } from './obs-scene-workflow';
 
 const requested: Record<ObsCommandKind, OperationCode> = {
   prepare: "stream-prepare-requested",
@@ -31,6 +32,7 @@ const confirmed: Record<ObsCommandKind, OperationCode> = {
 
 /** Persists interaction intent before OBS effects. Connections/readiness never start a broadcast. */
 export class ObsWorkflow {
+  readonly sceneActions?: ObsSceneWorkflow;
   private state: ObsPublicState = emptyObsState();
   private closed = false;
   private stopObserving = () => {};
@@ -38,7 +40,14 @@ export class ObsWorkflow {
   constructor(
     private readonly store: StudioStore,
     private readonly obs: ObsControlPort,
-  ) {}
+  ) {
+    if (obs.scenes) this.sceneActions = new ObsSceneWorkflow(store, obs.scenes, {
+      claim: () => this.claim(), release: async () => { this.state.busy = false; await this.publish(); },
+      fresh: () => this.fresh(), accept: snapshot => this.accept(snapshot), uncertain: () => this.state.uncertain,
+      invalidate: () => { this.state.prepared = false; return this.publish(); },
+      failed: (message, uncertain) => { this.state.lastError = message; this.state.uncertain = uncertain; },
+    });
+  }
   start(): void {
     this.state.uncertain =
       this.store.obsContext().command?.status === "pending" || this.store.obsContext().command?.status === "uncertain";

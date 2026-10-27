@@ -87,6 +87,16 @@ export class TwitchModule {
     const result = await readTwitchMetrics(this.api);
     return this.closed || generation !== this.generation ? unavailableTwitchMetrics() : result;
   }
+  async liveViewers(): Promise<import('../../features/coforge/domain/live-studio').LiveViewerReading> {
+    const generation = this.generation;
+    const unavailable = { state: 'unavailable' as const, viewers: null, streamId: null, startedAt: null };
+    if (this.closed || !this.config.twitchClientId || !this.config.twitchBroadcasterId) return unavailable;
+    try {
+      const value = await this.api.metricStream();
+      if (this.closed || generation !== this.generation) return unavailable;
+      return value ? { state: 'live', viewers: value.viewers, streamId: value.id, startedAt: value.startedAt } : { state: 'offline', viewers: null, streamId: null, startedAt: null };
+    } catch { return unavailable; }
+  }
   configure(config: IntegrationSettings): void {
     const changed = fingerprint(config) !== fingerprint(this.config);
     this.config = { ...config };

@@ -1,5 +1,6 @@
 import { boolean, oneOf, optional, shape, text, timestamp } from "./check";
 import type { ObsSettings } from "./obs";
+import { OBS_SCENE_KINDS } from './obs-scenes';
 const settings = shape(
   {
     endpoint: text({ trim: true, min: 1, max: 500 }),
@@ -34,7 +35,7 @@ export function obsSettingsCheck(value: unknown): ObsSettings {
 }
 export const obsCommandCheck = shape({
   id: text({ min: 1, max: 100 }),
-  kind: oneOf(["prepare", "go-live", "pause", "resume", "stop"] as const),
+  kind: oneOf(["prepare", "go-live", "pause", "resume", "stop", ...OBS_SCENE_KINDS] as const),
   at: timestamp,
   status: oneOf(["pending", "confirmed", "failed", "uncertain", "reconciled"] as const),
 });

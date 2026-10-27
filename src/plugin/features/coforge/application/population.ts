@@ -12,11 +12,13 @@ export function recordOperation(
   playerId?: string,
   count = 1,
   entityId?: string,
+  action?: import('../domain/obs-scenes').ObsSceneKind,
 ): void {
   const population = state.population;
   population.counters[code] = (population.counters[code] ?? 0) + count;
   if (['message-observed', 'command-observed', 'twitch-message-observed', 'twitch-command-observed'].includes(code)) return;
   population.operations.push({
+    ...(action ? { action } : {}),
     ...(entityId ? { entityId } : {}),
     sequence: population.nextSequence++,
     at: new Date().toISOString(),

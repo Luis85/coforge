@@ -4,6 +4,7 @@ import CfIcon from './CfIcon.vue';
 import WorkflowHistory from './WorkflowHistory.vue';
 import WorkflowStages from './WorkflowStages.vue';
 import WorkflowWorkbench from './WorkflowWorkbench.vue';
+import HerdrPanel from './HerdrPanel.vue';
 
 const model = useWorkflow();
 </script>
@@ -50,5 +51,6 @@ const model = useWorkflow();
       <WorkflowWorkbench :model="model" />
     </div>
     <WorkflowHistory :model="model" />
+    <HerdrPanel />
   </div>
 </template>

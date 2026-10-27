@@ -66,15 +66,17 @@ channel's About page. CoForge does not upload branding assets.
 Project settings contains **General agent prompt**, separate from the description. It is stored as
 `agent-prompt` in the canonical Markdown project note. Each dispatch prefixes that prompt to the
 request payload using its parent project, including background work on an unselected project.
-It does not expand allowed tools or the project's workspace boundary. It is not included in process
-arguments, public board data, operation metadata or logs.
+It does not expand allowed tools or the project's workspace boundary. Claude dispatch uses standard input.
+The explicit Herdr CLI integration sends the reviewed prompt as one literal process argument, matching its
+Companion workflow; it can be visible to local process-inspection tools. Neither integration includes the
+prompt in public board data, operation metadata or structured logs.
 
 ## Maintenance seams
 
 - `ObsControlPort` is the framework-free application boundary. `ObsWorkflow` owns interaction
   guards, readiness, recovery and a durable command journal. Commands are serialized before effects.
 - `ObsClient` owns v5 authentication, correlation, bounded pending requests, deadlines and reconnects.
-  `ObsAdapter` exposes only status, scene selection and explicit start/stop; it owns polling and cleanup.
+  `ObsAdapter` exposes status, scene controls and explicit start/stop; it owns polling and cleanup.
 - `launchObs` owns native discovery/process admission through an injectable host boundary. It launches
   with an empty argument list, without a shell, and uses the executable directory as its working directory.
   Opening is explicit, limited to local WebSocket addresses and bounded by a 30-second server wait. Closing

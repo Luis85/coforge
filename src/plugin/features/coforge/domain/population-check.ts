@@ -2,6 +2,7 @@ import { boolean, list, number, oneOf, optional, record, shape, text, timestamp 
 import { OPERATION_CODES, type PopulationState } from "./population";
 import { communityEnvironmentCheck, defaultCommunityEnvironment } from "./community-environment";
 import { omit } from "./objects";
+import { OBS_SCENE_KINDS } from './obs-scenes';
 const count = number({ integer: true, min: 0, max: Number.MAX_SAFE_INTEGER });
 const rate = number({ integer: true, min: 0, max: 100_000 });
 export const economyRulesCheck = shape(
@@ -55,6 +56,7 @@ const population = shape({
     shape({
       sequence: count,
       entityId: optional(text({ min: 1, max: 300 })),
+      action: optional(oneOf(OBS_SCENE_KINDS)),
       at: timestamp,
       code: oneOf(OPERATION_CODES),
       effect: oneOf(["none", "committed", "uncertain"] as const),

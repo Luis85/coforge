@@ -15,6 +15,16 @@ import { ObsAdapter } from './obs-adapter';
 import { ObsWorkflow } from '../../features/coforge/application/obs-workflow';
 import { StreamRecorder } from '../../features/coforge/application/stream-recorder';
 import { StreamHistoryStorage } from './stream-history-storage';
+import { LiveStudioMonitor } from '../../features/coforge/application/live-studio-monitor';
+import { MusicService } from '../../features/coforge/application/music-service';
+import { recordOperation } from '../../features/coforge/application/population';
+import { VaultMusic } from './vault-music';
+import { LocalMusicPlayer } from './local-music-player';
+import { HerdrService } from '../../features/coforge/application/herdr-service';
+import { LocalHerdrGateway } from './herdr-gateway';
+import { HerdrStateStorage } from './herdr-storage';
+import { FinanceService } from '../../features/coforge/application/finance-service';
+import { VaultFinance } from './finance-storage';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -60,6 +70,9 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
   });
   const obs = new ObsWorkflow(studio.store, obsAdapter);
+  const music = new MusicService(new VaultMusic(plugin), new LocalMusicPlayer(plugin.app.vault), code => studio.store.transaction(state => recordOperation(state, code)));
+  const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers);
+  const liveMonitor = new LiveStudioMonitor(studio.store, { obs: () => obsAdapter.metrics(), twitch: () => twitch.liveViewers() }, timers);
   const streamHistory = new StreamHistoryStorage(plugin.app.vault.adapter);
   const recorder = new StreamRecorder(studio.store, streamHistory, { capture: async () => {
     const channelId = studio.integration().twitchBroadcasterId || 'local';
@@ -83,12 +96,16 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    finance: new FinanceService(new VaultFinance(plugin), studio.store),
+    music,
+    herdr,
     streamHistory: { list: () => streamHistory.list(), read: id => streamHistory.read(id), export: async id => {
       const history = await streamHistory.read(id);
       if (!history) throw new Error('This stream history is unavailable. Check its JSON file in CoForge/Streams.');
       return saveJson('export', JSON.stringify(history, null, 2));
     } },
     obs,
+    obsScenes: obs.sceneActions,
     diagnostics, exportDiagnostics: () => saveJson('diagnostics', diagnostics()),
     twitch: twitch.actions,
     setSecret(name, value) {
@@ -136,10 +153,16 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       stopPublishing = syncPublicBoard(studio, publisher, error => { report('coforge.public'); notify(`The viewer board could not be written: ${errorMessage(error)}`, true); });
       twitch.start();
       obs.start();
+      void music.refresh().catch(() => undefined);
+      void herdr.start().catch(() => notify('Herdr settings could not be loaded. Check the saved recovery records before reconnecting.', true));
+      liveMonitor.start();
       void recorder.start();
     },
     async dispose() {
       disposed = true;
+      await music.dispose();
+      await herdr.dispose();
+      await liveMonitor.stop();
       await recorder.stop();
       obs.dispose();
       stopListening(); stopPublishing(); await twitch.dispose();

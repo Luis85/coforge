@@ -12,11 +12,18 @@ import { record } from "../../features/coforge/domain/check";
 import { ObsClient, type ObsSocket } from "./obs-client";
 import type { TwitchSecrets } from "./twitch-auth";
 import { launchObs, detectObs } from "./obs-launch";
-import type { ObsMetrics } from '../../features/coforge/domain/stream-metrics';
+import type { ObsMetrics } from "../../features/coforge/domain/stream-metrics";
+import { readObsMetrics } from "./obs-metrics";
+import { ObsScenesAdapter } from "./obs-scenes-adapter";
+import { ObsCapabilities } from "./obs-capabilities";
 
-const REQUIRED = ["GetSceneList", "GetStreamStatus", "SetCurrentProgramScene", "StartStream", "StopStream"];
 /** Only stream/status/scene requests are exposed. Stream-service keys and output credentials are never read. */
 export class ObsAdapter implements ObsControlPort {
+  readonly scenes: ObsScenesAdapter;
+  private readonly capabilities = new ObsCapabilities();
+  private sceneVersion = 0;
+  private collectionVersion = 0;
+  private changingCollection = false;
   private readonly client: ObsClient;
   private readonly listeners = new Set<(value: ObsObservation) => void>();
   private revision = 0;
@@ -41,6 +48,7 @@ export class ObsAdapter implements ObsControlPort {
       timers,
       (key) => secrets.getSecret(key),
       (connection, error) => {
+        if (connection !== "connected") this.capabilities.reset();
         // Events from the prior socket cannot describe a transition after reconnect.
         if (connection === "connected") this.transition = false;
         if (connection === "connected" && this.monitor === undefined)
@@ -54,9 +62,49 @@ export class ObsAdapter implements ObsControlPort {
           ...(this.current.snapshot ? { snapshot: this.current.snapshot } : {}),
           ...(error ? { error } : {}),
         });
-        if (connection === "connected") this.refreshSoon();
+        if (connection === "connected")
+          void this.capabilities
+            .load(this.client)
+            .then(() => {
+              this.sceneVersion++;
+              this.refreshSoon();
+            })
+            .catch((error) => {
+              if (error instanceof IntegrationFailure && error.kind === "validation") this.client.disconnect();
+            });
       },
       (type, data) => {
+        if (type === "CurrentSceneCollectionChanging") {
+          this.collectionVersion++;
+          this.changingCollection = true;
+        }
+        if (type === "CurrentSceneCollectionChanged") {
+          this.collectionVersion++;
+          this.changingCollection = false;
+        }
+        if (
+          [
+            "SceneCreated",
+            "SceneRemoved",
+            "SceneNameChanged",
+            "SceneListChanged",
+            "CurrentProgramSceneChanged",
+            "CurrentPreviewSceneChanged",
+            "CurrentSceneCollectionChanging",
+            "CurrentSceneCollectionChanged",
+            "InputCreated",
+            "InputRemoved",
+            "InputNameChanged",
+            "SceneItemCreated",
+            "SceneItemRemoved",
+            "SceneItemListReindexed",
+            "SceneItemEnableStateChanged",
+            "SceneItemLockStateChanged",
+          ].includes(type)
+        ) {
+          this.sceneVersion++;
+          this.refreshSoon();
+        }
         if (type === "StreamStateChanged")
           this.transition =
             data.outputState === "OBS_WEBSOCKET_OUTPUT_STARTING" ||
@@ -73,6 +121,12 @@ export class ObsAdapter implements ObsControlPort {
         )
           this.refreshSoon();
       },
+    );
+    this.scenes = new ObsScenesAdapter(
+      this.client,
+      () => this.snapshot(),
+      () => this.capabilities.available,
+      () => ({ epoch: this.client.epoch, collection: this.collectionVersion, revision: this.sceneVersion }),
     );
   }
   subscribe(listener: (value: ObsObservation) => void): () => void {
@@ -112,11 +166,11 @@ export class ObsAdapter implements ObsControlPort {
     }
   }
   private async verifiedSnapshot(): Promise<ObsSnapshot> {
-    const version = await this.client.request("GetVersion");
-    const available = version.availableRequests;
-    if (!Array.isArray(available) || REQUIRED.some((type) => !available.includes(type))) {
-      this.client.disconnect();
-      throw new IntegrationFailure("validation", "This OBS server does not provide the required v5 stream controls.");
+    try {
+      await this.capabilities.load(this.client);
+    } catch (error) {
+      if (error instanceof IntegrationFailure && error.kind === "validation") this.client.disconnect();
+      throw error;
     }
     return this.snapshot();
   }
@@ -233,14 +287,24 @@ export class ObsAdapter implements ObsControlPort {
       (scene) => scene.id === list.currentProgramSceneUuid || scene.name === list.currentProgramSceneName,
     );
     const snapshot: ObsSnapshot = {
-      health: Object.fromEntries(['outputBytes', 'outputDuration', 'outputSkippedFrames', 'outputTotalFrames', 'outputCongestion'].map(key => [key, typeof stream[key] === 'number' && Number.isFinite(stream[key]) && stream[key] >= 0 ? stream[key] : null])),
+      sceneVersion: this.sceneVersion,
+      sceneCollectionVersion: this.collectionVersion,
+      previewSceneId:
+        scenes.find((scene) => scene.id === list.currentPreviewSceneUuid || scene.name === list.currentPreviewSceneName)
+          ?.id ?? null,
+      health: Object.fromEntries(
+        ["outputBytes", "outputDuration", "outputSkippedFrames", "outputTotalFrames", "outputCongestion"].map((key) => [
+          key,
+          typeof stream[key] === "number" && Number.isFinite(stream[key]) && stream[key] >= 0 ? stream[key] : null,
+        ]),
+      ),
       epoch,
       revision,
       scenes,
       programSceneId: current?.id ?? null,
       active: stream.outputActive,
       reconnecting: stream.outputReconnecting,
-      transitioning: this.transition,
+      transitioning: this.transition || this.changingCollection,
       timecode: typeof stream.outputTimecode === "string" ? stream.outputTimecode.slice(0, 40) : "",
       observedAt: new Date().toISOString(),
     };
@@ -270,21 +334,11 @@ export class ObsAdapter implements ObsControlPort {
       });
   }
   async metrics(): Promise<ObsMetrics> {
-    const unavailable: ObsMetrics = { state: 'unavailable', startedAt: null, scene: null, health: {} };
-    if (this.closed || !this.client.connected) return unavailable;
-    try {
-      const snapshot = await this.snapshot();
-      const health = { ...snapshot.health };
-      const stats = await this.client.request('GetStats').catch(() => ({}));
-      for (const key of ['cpuUsage', 'memoryUsage', 'availableDiskSpace', 'activeFps', 'averageFrameRenderTime', 'renderSkippedFrames', 'renderTotalFrames', 'outputSkippedFrames', 'outputTotalFrames']) {
-        const value = Reflect.get(stats, key);
-        health['stats_' + key] = typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
-      }
-      if (this.closed || !this.client.connected || snapshot.epoch !== this.client.epoch) return unavailable;
-      const duration = snapshot.health?.outputDuration;
-      return { state: snapshot.active ? 'live' : 'offline', startedAt: snapshot.active && typeof duration === 'number' ? new Date(Date.parse(snapshot.observedAt) - duration).toISOString() : null,
-        scene: snapshot.scenes.find(scene => scene.id === snapshot.programSceneId)?.name ?? null, health };
-    } catch { return unavailable; }
+    return readObsMetrics(
+      this.client,
+      () => this.snapshot(),
+      () => this.closed,
+    );
   }
   async selectScene(id: string): Promise<ObsSnapshot> {
     const before = await this.snapshot();

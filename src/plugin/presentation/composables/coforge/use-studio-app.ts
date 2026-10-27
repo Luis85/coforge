@@ -5,10 +5,11 @@ import { useStudioStore, type StudioView } from '../../stores/coforge-studio';
 import { relativeTime } from './format';
 import { useStudioActions } from './use-studio-actions';
 
-const VIEW_LABELS: Record<StudioView, string> = { board: 'Idea board', stream: 'Stream chat', workflow: 'Agent workflow', community: 'Community', settings: 'Settings', projects: 'Projects', population: 'Players', operations: 'Operations', 'community-settings': 'Community settings', broadcast: 'Stream studio', statistics: 'Statistics' };
+const VIEW_LABELS: Record<StudioView, string> = { board: 'Idea board', stream: 'Stream chat', workflow: 'Agent workflow', community: 'Community', settings: 'Settings', projects: 'Projects', population: 'Players', operations: 'Operations', 'community-settings': 'Community settings', broadcast: 'Stream studio', statistics: 'Statistics', finance: 'Finances' };
 const NAV: Array<{ view: StudioView; label: string; icon: string }> = [
   { view: 'broadcast', label: 'Stream studio', icon: 'radio' },
   { view: 'statistics', label: 'Statistics', icon: 'chart-line' },
+  { view: 'finance', label: 'Finances', icon: 'wallet' },
   { view: 'board', label: 'Idea board', icon: 'layout-grid' }, { view: 'stream', label: 'Stream chat', icon: 'message-square' },
   { view: 'workflow', label: 'Agent workflow', icon: 'workflow' }, { view: 'community', label: 'Community', icon: 'trophy' },
   { view: 'population', label: 'Players', icon: 'users' }, { view: 'operations', label: 'Operations', icon: 'chart-no-axes-combined' },

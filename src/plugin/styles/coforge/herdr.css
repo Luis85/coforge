@@ -1,0 +1,61 @@
+.ps--coforge .cf-herdr {
+  margin-block: 24px;
+  padding-block: 20px;
+  border-block: 1px solid var(--cf-border);
+}
+.ps--coforge .cf-herdr:not([open]) > :not(summary) { display: none; }
+.ps--coforge .cf-herdr > summary {
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 650;
+}
+.ps--coforge .cf-herdr p,
+.ps--coforge .cf-herdr li {
+  overflow-wrap: anywhere;
+}
+.ps--coforge .cf-herdr-connection {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 20px;
+}
+.ps--coforge .cf-herdr-connection .cf-field {
+  flex: 1 1 180px;
+}
+.ps--coforge .cf-herdr-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  margin-block: 24px;
+}
+.ps--coforge .cf-herdr-workspace .cf-field {
+  margin-block: 16px;
+}
+.ps--coforge .cf-herdr pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--cf-surface);
+  border: 1px solid var(--cf-border);
+}
+.ps--coforge
+  :is(.cf-music, .cf-herdr)
+  .cf-field
+  :is(input:not([type="range"]), select) {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 8px 10px;
+  background: var(--cf-surface);
+  color: var(--cf-text);
+  border: 1px solid var(--cf-border-strong);
+  border-radius: var(--radius-s);
+}
+@container plugin-shell-leaf (max-width: 760px) {
+  .ps--coforge .cf-herdr-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
