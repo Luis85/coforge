@@ -1,6 +1,7 @@
-import type { ObsObservation, ObsSettings, ObsSnapshot } from "../domain/obs";
+import type { ObsObservation, ObsSettings, ObsSnapshot, ObsInstallation } from "../domain/obs";
 /** Mutations resolve with observed confirmation. Authentication and protocol frames never enter application/UI code. */
 export interface ObsControlPort {
+  detect(settings: ObsSettings): Promise<ObsInstallation>;
   open(settings: ObsSettings): Promise<ObsSnapshot>;
   connect(settings: ObsSettings): Promise<ObsSnapshot>;
   disconnect(): void;

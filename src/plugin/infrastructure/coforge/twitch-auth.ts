@@ -1,9 +1,10 @@
 import type { IntegrationSettings } from '../../features/coforge/domain/types';
 import type { TwitchIdentity, TwitchRole } from '../../features/coforge/domain/twitch';
 import { assertResponse, object, strings, TwitchError, type HttpRequest } from './twitch-http';
+import { STREAM_METRIC_SCOPES } from '../../features/coforge/domain/stream-metrics';
 
 export const BOT_SCOPES = ['user:read:chat', 'user:write:chat'];
-export const STREAMER_SCOPES = ['channel:manage:broadcast', 'moderator:manage:chat_messages', 'moderator:manage:banned_users', 'moderator:read:chatters'];
+export const STREAMER_SCOPES = ['channel:manage:broadcast', 'moderator:manage:chat_messages', 'moderator:manage:banned_users', 'moderator:read:chatters', ...STREAM_METRIC_SCOPES];
 export interface TwitchSecrets { getSecret(name: string): string | null; setSecret(name: string, value: string): void }
 interface Credentials { accessToken: string; refreshToken?: string; expiresAt?: number }
 interface Account { credentials: Credentials; identity: TwitchIdentity; checkedAt: number; clientId: string; secretName: string }

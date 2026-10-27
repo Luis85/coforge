@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { launchObs, type ObsLaunchHost } from "../../../infrastructure/coforge/obs-launch";
+import { launchObs, detectObs, type ObsLaunchHost } from "../../../infrastructure/coforge/obs-launch";
 
 function host() {
   const calls: Array<{ executable: string; cwd: string }> = [];
@@ -15,6 +15,15 @@ function host() {
   return { value, calls };
 }
 describe("opening installed OBS", () => {
+  it("detects installed and missing tools without starting a process", async () => {
+    const { value, calls } = host();
+    expect(await detectObs("", value)).toMatchObject({ status: "found", running: false });
+    value.isExecutable = async () => false;
+    expect(await detectObs("", value)).toMatchObject({ status: "missing", running: false });
+    value.running = async () => true;
+    expect(await detectObs("", value)).toMatchObject({ status: "running", running: true });
+    expect(calls).toEqual([]);
+  });
   it("cancels a pending discovery when the plugin closes", async () => {
     const { value, calls } = host();
     const abort = new AbortController();

@@ -95,6 +95,7 @@ export class ObsWorkflow {
         recordOperation(state, "obs-settings-saved");
       });
       this.state.prepared = false;
+      if (prior.endpoint !== next.endpoint || prior.executable !== next.executable) delete this.state.installation;
       if (prior.endpoint !== next.endpoint) {
         this.obs.disconnect();
         this.state.connection = "disconnected";
@@ -113,6 +114,7 @@ export class ObsWorkflow {
       if (!value || value.length > 1000)
         throw new IntegrationFailure("validation", "Enter the OBS WebSocket password, up to 1,000 characters.");
       await this.obs.savePassword(this.settings().passwordSecret, value);
+      if (this.state.installation) this.state.installation.passwordSaved = true;
       await this.event("obs-password-saved");
     } finally {
       this.state.busy = false;
@@ -135,6 +137,19 @@ export class ObsWorkflow {
       this.state.connection = "error";
       this.state.lastError = error instanceof IntegrationFailure ? error.message : "OBS could not be connected.";
       throw error;
+    } finally {
+      this.state.busy = false;
+      await this.publish();
+    }
+  }
+  async detect(): Promise<void> {
+    await this.claim();
+    try {
+      await this.event('obs-detection-requested', 'none');
+      const installation = await this.obs.detect(this.settings());
+      this.checkOpen();
+      this.state.installation = installation;
+      await this.event('obs-detected');
     } finally {
       this.state.busy = false;
       await this.publish();

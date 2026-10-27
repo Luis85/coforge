@@ -45,6 +45,7 @@ export interface Settings {
   requestCooldownSeconds: number;
 }
 export interface RuntimeInfo {
+  streamRecording?: import('./stream-metrics').StreamRecordingState;
   obs?: import('./obs').ObsPublicState;
   cliAvailable: boolean; projectPath: string | null; allowImplementation: boolean;
   chatSource: 'simulator' | 'twitch'; chatStatus: string; activeJobId?: string;
@@ -58,6 +59,7 @@ export interface StudioProject {
   unavailable?: boolean;
 }
 export interface AppState {
+  setupGuide?: import('./stream-setup').StreamSetupState;
   obsSettings?: import('./obs').ObsSettings;
   obsCommand?: import('./obs').ObsCommand;
   obsResumeSceneId?: string;

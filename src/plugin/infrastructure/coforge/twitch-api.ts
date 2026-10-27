@@ -48,6 +48,30 @@ export class TwitchApi implements ChatSenderPort, PlayerModerationPort, LivePres
       tags: strings(channel.tags), language: typeof channel.broadcaster_language === 'string' ? channel.broadcaster_language : '',
       categoryId: typeof channel.game_id === 'string' ? channel.game_id : '', categoryName: typeof channel.game_name === 'string' ? channel.game_name : '' };
   }
+  async metricStream(): Promise<{ id: string; startedAt: string; viewers: number } | null> {
+    const response = await this.call('streamer', [], 'GET', 'streams', { user_id: this.config().twitchBroadcasterId });
+    const items = snapshot(response);
+    if (!items.length) return null;
+    const stream = object(items[0]);
+    if (stream.user_id !== this.config().twitchBroadcasterId || typeof stream.id !== 'string' || !stream.id
+      || typeof stream.started_at !== 'string' || !Number.isFinite(Date.parse(stream.started_at))
+      || typeof stream.viewer_count !== 'number' || !Number.isInteger(stream.viewer_count) || stream.viewer_count < 0)
+      throw new TwitchError('service', 'Twitch returned incomplete live metrics.');
+    return { id: stream.id, startedAt: stream.started_at, viewers: stream.viewer_count };
+  }
+  async followerTotal(): Promise<number> {
+    const response = await this.call('streamer', [], 'GET', 'channels/followers', { broadcaster_id: this.config().twitchBroadcasterId, first: '1' });
+    const total = object(response.json).total;
+    if (typeof total !== 'number' || !Number.isInteger(total) || total < 0) throw new TwitchError('service', 'Twitch did not return a follower total.');
+    return total;
+  }
+  async subscriptionTotals(): Promise<{ total: number; points: number }> {
+    const response = await this.call('streamer', ['channel:read:subscriptions'], 'GET', 'subscriptions', { broadcaster_id: this.config().twitchBroadcasterId, first: '1' });
+    const value = object(response.json);
+    if (typeof value.total !== 'number' || !Number.isInteger(value.total) || value.total < 0 || typeof value.points !== 'number' || !Number.isInteger(value.points) || value.points < 0)
+      throw new TwitchError('service', 'Twitch did not return subscription totals.');
+    return { total: value.total, points: value.points };
+  }
   async updateChannel(input: TwitchChannelUpdate): Promise<void> {
     if (!input.title.trim() || [...input.title].length > 140 || (input.categoryId && !numeric(input.categoryId))) throw new TwitchError('validation', 'Enter a title of 1–140 characters and select a Twitch category.');
     const tags = input.tags?.map(tag => tag.normalize('NFKC').trim()); const language = input.language?.trim().toLowerCase();

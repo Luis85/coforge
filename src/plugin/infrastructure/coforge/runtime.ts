@@ -13,6 +13,8 @@ import { operationsLog } from './operations-log';
 import type { StructuredLogger } from '../../application/logging';
 import { ObsAdapter } from './obs-adapter';
 import { ObsWorkflow } from '../../features/coforge/application/obs-workflow';
+import { StreamRecorder } from '../../features/coforge/application/stream-recorder';
+import { StreamHistoryStorage } from './stream-history-storage';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -53,10 +55,17 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     getSecret: name => secrets(plugin.app)?.getSecret(name) ?? null,
     setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
   }, request, timers, url => new WebSocket(url));
-  const obs = new ObsWorkflow(studio.store, new ObsAdapter(url => new WebSocket(url, 'obswebsocket.json'), timers, {
+  const obsAdapter = new ObsAdapter(url => new WebSocket(url, 'obswebsocket.json'), timers, {
     getSecret: name => secrets(plugin.app)?.getSecret(name) ?? null,
     setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
-  }));
+  });
+  const obs = new ObsWorkflow(studio.store, obsAdapter);
+  const streamHistory = new StreamHistoryStorage(plugin.app.vault.adapter);
+  const recorder = new StreamRecorder(studio.store, streamHistory, { capture: async () => {
+    const channelId = studio.integration().twitchBroadcasterId || 'local';
+    const [twitchMetrics, obsMetrics] = await Promise.all([twitch.metrics(), obsAdapter.metrics()]);
+    return { channelId, at: new Date().toISOString(), twitch: twitchMetrics, obs: obsMetrics };
+  } }, timers);
   let stopListening = () => {};
   let stopPublishing = () => {};
   let disposed = false;
@@ -74,6 +83,11 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    streamHistory: { list: () => streamHistory.list(), export: async id => {
+      const history = await streamHistory.read(id);
+      if (!history) throw new Error('This stream history is unavailable. Check its JSON file in CoForge/Streams.');
+      return saveJson('export', JSON.stringify(history, null, 2));
+    } },
     obs,
     diagnostics, exportDiagnostics: () => saveJson('diagnostics', diagnostics()),
     twitch: twitch.actions,
@@ -122,9 +136,11 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       stopPublishing = syncPublicBoard(studio, publisher, error => { report('coforge.public'); notify(`The viewer board could not be written: ${errorMessage(error)}`, true); });
       twitch.start();
       obs.start();
+      void recorder.start();
     },
     async dispose() {
       disposed = true;
+      await recorder.stop();
       obs.dispose();
       stopListening(); stopPublishing(); await twitch.dispose();
       listeners.clear();

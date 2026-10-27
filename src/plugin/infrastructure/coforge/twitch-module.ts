@@ -16,6 +16,7 @@ import { StreamMessageScheduler } from '../../features/coforge/application/strea
 import { sendOperatorMessage } from '../../features/coforge/application/send-message';
 import type { TwitchChannelUpdate } from '../../features/coforge/domain/twitch';
 import { recordOperation } from '../../features/coforge/application/population';
+import { readTwitchMetrics, unavailableTwitchMetrics } from './twitch-metrics';
 
 const fingerprint = (config: IntegrationSettings) => JSON.stringify([
   config.twitchEnabled, config.twitchClientId, config.twitchBroadcasterId, config.twitchBotUserId,
@@ -80,6 +81,12 @@ export class TwitchModule {
   }
 
   start(): void { this.stopStore = this.studio.subscribe(() => this.outbox.wake()); this.configure(this.studio.integration()); this.population.start(); this.scheduler.start(); }
+  async metrics() {
+    const generation = this.generation;
+    if (this.closed || !this.config.twitchClientId || !this.config.twitchBroadcasterId) return unavailableTwitchMetrics();
+    const result = await readTwitchMetrics(this.api);
+    return this.closed || generation !== this.generation ? unavailableTwitchMetrics() : result;
+  }
   configure(config: IntegrationSettings): void {
     const changed = fingerprint(config) !== fingerprint(this.config);
     this.config = { ...config };

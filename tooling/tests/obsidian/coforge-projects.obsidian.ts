@@ -3,11 +3,33 @@ import { describe, expect } from 'vitest';
 import { test } from './support/obsidian-fixture.ts';
 
 describe('CoForge projects in the contained vault', () => {
+  test('exports a private per-stream JSON object from the contained vault', async ({ obsidian }) => {
+    await obsidian.eval(async ({ app }) => {
+      for (const folder of ['CoForge', 'CoForge/Streams']) if (!await app.vault.adapter.exists(folder)) await app.vault.adapter.mkdir(folder);
+      const history = { schemaVersion: 1, id: 'twitch-123-1', channelId: '123', startedAt: '2026-10-27T10:00:00Z', twitchStreamId: '1', obsStartedAt: null,
+        endedAt: '2026-10-27T11:00:00Z', endReason: 'offline', baselineCounters: {}, samples: [] };
+      await app.vault.adapter.write('CoForge/Streams/twitch-123-1.json', JSON.stringify(history));
+      await app.vault.adapter.write('CoForge/Streams/.index.json', JSON.stringify({ activeId: null, streams: [{ id: history.id, channelId: '123', startedAt: history.startedAt, endedAt: history.endedAt, samples: 0, lastSampleAt: history.startedAt, peakObservedViewers: null, meanObservedViewers: null }] }));
+    });
+    const view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await view.getByRole('button', { name: 'Refresh stream history', exact: true }).click();
+    await view.getByLabel('Recorded stream', { exact: true }).selectOption('twitch-123-1');
+    await view.getByRole('button', { name: 'Export stream JSON', exact: true }).click();
+    const notice = view.getByText(/^Stream JSON exported to /);
+    await browserExpect(notice).toBeVisible();
+    const path = (await notice.textContent())?.replace(/^Stream JSON exported to /, '').trim();
+    expect(path).toBeTruthy();
+    const exported: unknown = JSON.parse(await obsidian.eval(({ app }, path) => app.vault.adapter.read(path), path!));
+    expect(exported).toMatchObject({ schemaVersion: 1, id: 'twitch-123-1', samples: [], endReason: 'offline' });
+    expect(obsidian.errors()).toEqual([]);
+  });
   test('hides the native header only inside the CoForge studio', async ({ obsidian }) => {
     const type = obsidian.pluginViewTypes.find(value => value === `${obsidian.pluginId}-view-project-workbench`);
     expect(type).toBeDefined();
     const view = await obsidian.openView(type!);
     await browserExpect(view.getByRole('heading', { name: 'Stream studio', exact: true })).toBeVisible();
+    await browserExpect(view.getByRole('region', { name: 'Guided stream setup', exact: true })).toBeVisible();
+    await view.getByRole('button', { name: 'Skip setup for now', exact: true }).click();
     await browserExpect(view.getByRole('button', { name: 'Go live', exact: true })).toBeDisabled();
     await browserExpect(view.getByRole('button', { name: 'Open OBS Studio', exact: true })).toBeEnabled();
     await view.getByLabel('OBS executable (optional)', { exact: true }).fill('/synthetic/obs');
@@ -24,6 +46,11 @@ describe('CoForge projects in the contained vault', () => {
       await app.workspace.getLeaf('tab').openFile(note);
     });
     await browserExpect(obsidian.page.locator('.workspace-leaf-content[data-type="markdown"]').last().locator(':scope > .view-header')).toBeVisible();
+    await obsidian.reloadPlugin();
+    const restored = await obsidian.openView(type!);
+    await browserExpect(restored.getByRole('region', { name: 'Guided stream setup', exact: true })).toHaveCount(0);
+    await restored.getByRole('button', { name: 'Guided setup', exact: true }).click();
+    await browserExpect(restored.getByRole('region', { name: 'Guided stream setup', exact: true })).toBeVisible();
     expect(obsidian.errors()).toEqual([]);
   });
 

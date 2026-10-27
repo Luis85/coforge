@@ -3,6 +3,7 @@ import { access, stat } from "node:fs/promises";
 import { constants } from "node:fs";
 import { posix, win32 } from "node:path";
 import { IntegrationFailure } from "../../features/coforge/domain/integration-failure";
+import type { ObsInstallation } from "../../features/coforge/domain/obs";
 
 export interface ObsLaunchHost {
   platform: string;
@@ -60,12 +61,12 @@ const nativeHost: ObsLaunchHost = {
   },
 };
 
-/** Opens the native application only: fixed empty argv, no shell, no broadcasting or credential arguments. */
-export async function launchObs(
+/** Read-only installation/process discovery. It never starts OBS or reads its private configuration. */
+export async function detectObs(
   configured: string,
   host: ObsLaunchHost = nativeHost,
   signal?: AbortSignal,
-): Promise<void> {
+): Promise<ObsInstallation> {
   const checkOpen = () => {
     if (signal?.aborted) throw failure("Opening OBS was cancelled because CoForge closed.");
   };
@@ -84,7 +85,7 @@ export async function launchObs(
     );
   const running = await host.running();
   checkOpen();
-  if (running) return;
+  if (running) return { status: "running", running: true, passwordSaved: false };
   const candidates = explicit
     ? [explicit]
     : host.platform === "win32"
@@ -110,7 +111,23 @@ export async function launchObs(
   for (const candidate of candidates) {
     if (!(await host.isExecutable(candidate))) continue;
     checkOpen();
-    await host.spawn(candidate, path.dirname(candidate));
+    return { status: "found", running: false, executable: candidate, passwordSaved: false };
+  }
+  return { status: "missing", running: false, passwordSaved: false };
+}
+
+/** Opens the native application only: fixed empty argv, no shell, no broadcasting or credential arguments. */
+export async function launchObs(
+  configured: string,
+  host: ObsLaunchHost = nativeHost,
+  signal?: AbortSignal,
+): Promise<void> {
+  const installation = await detectObs(configured, host, signal);
+  if (signal?.aborted) throw failure("Opening OBS was cancelled because CoForge closed.");
+  if (installation.running) return;
+  if (installation.executable) {
+    const path = host.platform === "win32" ? win32 : posix;
+    await host.spawn(installation.executable, path.dirname(installation.executable));
     return;
   }
   throw new IntegrationFailure(

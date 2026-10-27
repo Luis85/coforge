@@ -44,6 +44,7 @@ const integration: Check<IntegrationSettings> = shape({
   publicFolder: text({ min: 1 }), publicBoardEnabled: boolean,
 });
 const persisted: Check<PersistedStudio> = shape({
+  setupGuide: optional(shape({ dismissed: boolean, completedAt: optional(timestamp) })),
   obsSettings: optional(obsSettingsCheck), obsCommand: optional(obsCommandCheck), obsResumeSceneId: optional(str),
   population: optional(populationCheck),
   streamMessages: optional(list(shape({ id: str, text: str, intervalMinutes: number({ integer: true, min: 1, max: 240 }), active: boolean,

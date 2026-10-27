@@ -1,11 +1,18 @@
 import type { ObsControlPort } from "../../features/coforge/application/obs-port";
 import type { Timers } from "../../features/coforge/application/ports";
-import type { ObsObservation, ObsSettings, ObsSnapshot, ObsScene } from "../../features/coforge/domain/obs";
+import type {
+  ObsObservation,
+  ObsSettings,
+  ObsSnapshot,
+  ObsScene,
+  ObsInstallation,
+} from "../../features/coforge/domain/obs";
 import { IntegrationFailure } from "../../features/coforge/domain/integration-failure";
 import { record } from "../../features/coforge/domain/check";
 import { ObsClient, type ObsSocket } from "./obs-client";
 import type { TwitchSecrets } from "./twitch-auth";
-import { launchObs } from "./obs-launch";
+import { launchObs, detectObs } from "./obs-launch";
+import type { ObsMetrics } from '../../features/coforge/domain/stream-metrics';
 
 const REQUIRED = ["GetSceneList", "GetStreamStatus", "SetCurrentProgramScene", "StartStream", "StopStream"];
 /** Only stream/status/scene requests are exposed. Stream-service keys and output credentials are never read. */
@@ -27,6 +34,7 @@ export class ObsAdapter implements ObsControlPort {
     private readonly secrets: TwitchSecrets,
     private readonly launch: (executable: string, signal?: AbortSignal) => Promise<void> = (executable, signal) =>
       launchObs(executable, undefined, signal),
+    private readonly detectTool: (executable: string) => Promise<ObsInstallation> = detectObs,
   ) {
     this.client = new ObsClient(
       socket,
@@ -88,6 +96,20 @@ export class ObsAdapter implements ObsControlPort {
     this.transition = false;
     await this.client.connect(settings.endpoint, settings.passwordSecret);
     return this.verifiedSnapshot();
+  }
+  async detect(settings: ObsSettings): Promise<ObsInstallation> {
+    try {
+      const passwordSaved = Boolean(this.secrets.getSecret(settings.passwordSecret));
+      if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(settings.endpoint).hostname))
+        return { status: "remote", running: false, passwordSaved };
+      return { ...(await this.detectTool(settings.executable)), passwordSaved };
+    } catch (error) {
+      if (error instanceof IntegrationFailure) throw error;
+      throw new IntegrationFailure(
+        "service",
+        "OBS detection could not be completed. Check its path and Obsidian secret storage.",
+      );
+    }
   }
   private async verifiedSnapshot(): Promise<ObsSnapshot> {
     const version = await this.client.request("GetVersion");
@@ -211,6 +233,7 @@ export class ObsAdapter implements ObsControlPort {
       (scene) => scene.id === list.currentProgramSceneUuid || scene.name === list.currentProgramSceneName,
     );
     const snapshot: ObsSnapshot = {
+      health: Object.fromEntries(['outputBytes', 'outputDuration', 'outputSkippedFrames', 'outputTotalFrames', 'outputCongestion'].map(key => [key, typeof stream[key] === 'number' && Number.isFinite(stream[key]) && stream[key] >= 0 ? stream[key] : null])),
       epoch,
       revision,
       scenes,
@@ -245,6 +268,23 @@ export class ObsAdapter implements ObsControlPort {
           this.refreshSoon();
         }
       });
+  }
+  async metrics(): Promise<ObsMetrics> {
+    const unavailable: ObsMetrics = { state: 'unavailable', startedAt: null, scene: null, health: {} };
+    if (this.closed || !this.client.connected) return unavailable;
+    try {
+      const snapshot = await this.snapshot();
+      const health = { ...snapshot.health };
+      const stats = await this.client.request('GetStats').catch(() => ({}));
+      for (const key of ['cpuUsage', 'memoryUsage', 'availableDiskSpace', 'activeFps', 'averageFrameRenderTime', 'renderSkippedFrames', 'renderTotalFrames', 'outputSkippedFrames', 'outputTotalFrames']) {
+        const value = Reflect.get(stats, key);
+        health['stats_' + key] = typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+      }
+      if (this.closed || !this.client.connected || snapshot.epoch !== this.client.epoch) return unavailable;
+      const duration = snapshot.health?.outputDuration;
+      return { state: snapshot.active ? 'live' : 'offline', startedAt: snapshot.active && typeof duration === 'number' ? new Date(Date.parse(snapshot.observedAt) - duration).toISOString() : null,
+        scene: snapshot.scenes.find(scene => scene.id === snapshot.programSceneId)?.name ?? null, health };
+    } catch { return unavailable; }
   }
   async selectScene(id: string): Promise<ObsSnapshot> {
     const before = await this.snapshot();

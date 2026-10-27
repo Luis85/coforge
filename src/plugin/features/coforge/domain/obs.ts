@@ -11,6 +11,7 @@ export interface ObsScene {
   name: string;
 }
 export interface ObsSnapshot {
+  health?: Record<string, number | null>;
   epoch: number;
   revision: number;
   scenes: ObsScene[];
@@ -28,6 +29,7 @@ export interface ObsObservation {
   error?: string;
 }
 export interface ObsPublicState extends ObsObservation {
+  installation?: ObsInstallation;
   busy: boolean;
   prepared: boolean;
   onBreak: boolean;
@@ -42,6 +44,7 @@ export interface ObsCommand {
   status: "pending" | "confirmed" | "failed" | "uncertain" | "reconciled";
 }
 export interface ObsActions {
+  detect(): Promise<void>;
   open(): Promise<void>;
   configure(input: unknown): Promise<void>;
   connect(): Promise<void>;
@@ -70,6 +73,8 @@ export const emptyObsState = (): ObsPublicState => ({
   uncertain: false,
 });
 export const OBS_OPERATION_CODES = [
+  "obs-detection-requested",
+  "obs-detected",
   "stream-studio-opened",
   "obs-open-requested",
   "obs-opened",
@@ -101,3 +106,10 @@ export const OBS_OPERATION_CODES = [
   "stream-control-failed",
   "stream-control-uncertain",
 ] as const;
+
+export interface ObsInstallation {
+  status: 'found' | 'running' | 'missing' | 'remote';
+  running: boolean;
+  executable?: string;
+  passwordSaved: boolean;
+}

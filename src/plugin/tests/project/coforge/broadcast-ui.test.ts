@@ -21,6 +21,7 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
   });
   await studio.start();
   const calls: string[] = [];
+  const historyExports: string[] = [];
   const state: ObsSnapshot = {
     epoch: 1,
     revision: 0,
@@ -37,6 +38,7 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
   };
   const snapshot = async () => structuredClone({ ...state, revision: ++state.revision });
   const port: ObsControlPort = {
+    detect: async () => ({ status: "found", running: false, passwordSaved: false }),
     open: async () => {
       calls.push("open");
       return snapshot();
@@ -70,6 +72,8 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
     startupError: () => null,
     onNotice: () => () => undefined,
     host: {
+      streamHistory: { list: async () => [{ id: 'fixture-stream', channelId: '123', startedAt: '2026-10-27T10:00:00Z', endedAt: null, samples: 2, lastSampleAt: '2026-10-27T10:01:00Z', peakObservedViewers: 15, meanObservedViewers: 12 }],
+        export: async id => { historyExports.push(id); return '/private/synthetic-export.json'; } },
       obs,
       setSecret: () => false,
       hasSecret: () => false,
@@ -89,6 +93,15 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
   try {
     await flushPromises();
     expect(wrapper.get("h1").text()).toBe("Stream studio");
+    await button('Export stream JSON').trigger('click');
+    await flushPromises();
+    expect(historyExports).toEqual(['fixture-stream']);
+    expect(wrapper.find('[aria-label="Guided stream setup"]').exists()).toBe(true);
+    await button("Skip setup for now").trigger("click");
+    await flushPromises();
+    expect(studio.state().setupGuide?.dismissed).toBe(true);
+    await button("Guided setup").trigger("click");
+    await flushPromises();
     expect(button("Go live").attributes("disabled")).toBeDefined();
     await button("Open OBS Studio").trigger("click");
     await flushPromises();
@@ -98,6 +111,42 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
     await selects[1]!.setValue("brb");
     await wrapper.get('[aria-label="OBS connection and scenes"] form').trigger("submit");
     await flushPromises();
+    await studio.updateIntegration({
+      twitchEnabled: true,
+      twitchBroadcasterId: "channel",
+      twitchClientId: "fixture-client",
+    });
+    await studio.store.updateRuntime({
+      twitch: {
+        phase: "connected",
+        message: "Connected",
+        canManage: true,
+        canModerate: true,
+        canChat: true,
+        streamer: { id: "channel", login: "streamer", scopes: ['moderator:read:followers', 'channel:read:subscriptions'] },
+        bot: { id: "channel", login: "streamer", scopes: [] },
+        channel: {
+          id: "channel",
+          login: "streamer",
+          name: "Streamer",
+          title: "Game development",
+          categoryId: "1",
+          categoryName: "Development",
+        },
+      },
+    });
+    const reviewStep = wrapper.findAll("button").find((item) => item.text().startsWith("5."));
+    await reviewStep!.trigger("click");
+    await flushPromises();
+    expect(button("Finish setup").attributes("disabled")).toBeDefined();
+    const reviewLabel = wrapper.findAll("label").find((item) => item.text().includes("I reviewed the destination"));
+    await reviewLabel!.get("input").setValue(true);
+    await flushPromises();
+    expect(button("Finish setup").attributes("disabled")).toBeUndefined();
+    await button("Finish setup").trigger("click");
+    await flushPromises();
+    expect(studio.state().setupGuide?.completedAt).toBeTruthy();
+    expect(calls).toEqual(["open"]);
     await button("Prepare stream").trigger("click");
     await flushPromises();
     expect(button("Go live").attributes("disabled")).toBeUndefined();

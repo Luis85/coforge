@@ -132,6 +132,10 @@ export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<Ch
     const userId = ensureContributor(state, { ...input, source });
     const parsed = parseCommand(text);
     if (parsed.type !== 'message') recordOperation(state, 'command-observed');
+    if (source === 'twitch') {
+      recordOperation(state, 'twitch-message-observed');
+      if (parsed.type !== 'message') recordOperation(state, 'twitch-command-observed');
+    }
     const now = new Date().toISOString();
     const player = observePlayer(state, userId, now);
     recordOperation(state, 'message-observed', 'committed', userId);
