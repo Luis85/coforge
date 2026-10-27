@@ -148,6 +148,7 @@ export class ObsWorkflow {
       this.state.connection = "connecting";
       await this.publish();
       await this.accept(await this.obs.open(this.settings()));
+      delete this.state.lastError;
       await this.event("obs-opened");
       await this.reconcile();
     } catch (error) {
@@ -224,6 +225,7 @@ export class ObsWorkflow {
     if (this.closed) return;
     const previous = this.state.connection;
     this.state.connection = value.connection;
+    if (value.connection === "connected" && !this.state.uncertain) delete this.state.lastError;
     if (value.snapshot && value.connection === "connected") await this.accept(value.snapshot);
     else if (value.connection !== "connected") {
       this.state.prepared = false;

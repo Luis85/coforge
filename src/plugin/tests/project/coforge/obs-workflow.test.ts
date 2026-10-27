@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ObsWorkflow } from "../../../features/coforge/application/obs-workflow";
 import type { ObsControlPort } from "../../../features/coforge/application/obs-port";
-import type { ObsSnapshot } from "../../../features/coforge/domain/obs";
+import type { ObsSnapshot, ObsObservation } from "../../../features/coforge/domain/obs";
 import { emptyStore } from "./memory-storage";
 import { IntegrationFailure } from "../../../features/coforge/domain/integration-failure";
 import { StudioStore } from "../../../features/coforge/application/studio-store";
@@ -60,6 +60,23 @@ function fakeObs() {
   };
 }
 describe("streamer OBS workflow", () => {
+  it("clears recovered connection errors after observing a successful reconnect", async () => {
+    const { store } = await emptyStore();
+    const obs = fakeObs();
+    let observe: (value: ObsObservation) => void = () => {};
+    obs.port.subscribe = (listener) => {
+      observe = listener;
+      return () => {};
+    };
+    const workflow = new ObsWorkflow(store, obs.port);
+    workflow.start();
+    observe({ connection: "reconnecting", error: "OBS was not running." });
+    await vi.waitFor(() => expect(store.snapshot().runtime.obs?.lastError).toBe("OBS was not running."));
+    observe({ connection: "connected", snapshot: await obs.port.snapshot() });
+    await vi.waitFor(() => expect(store.snapshot().runtime.obs).toMatchObject({ connection: "connected" }));
+    expect(store.snapshot().runtime.obs?.lastError).toBeUndefined();
+    workflow.dispose();
+  });
   it("records explicit opening without preparing or starting a stream", async () => {
     const { store } = await emptyStore();
     const obs = fakeObs();

@@ -1,6 +1,6 @@
 # Task: Prepare and run a stream from CoForge
 
-- Status: implemented; final CI verification pending
+- Status: implemented; final CI evidence is recorded in [PR #13](https://github.com/Luis85/coforge/pull/13)
 - Owner requirement: OBS Studio Integration (pbl-id 6), streamer workflow and project agent prompt.
 - Generated traceability declares no requirement/vi obligations; no generated acceptance IDs are claimed.
 
@@ -39,14 +39,16 @@ The launch increment uses an injectable native host for discovery/process checks
 the binary's working directory, a bounded server wait and cancellation before spawning on plugin disposal.
 Launcher tests cover Windows/macOS/Linux discovery, existing processes, bad paths and cancellation.
 
-- `npm run verify:project`: 5 passed, 0 failed, 0 skipped; production build 1253 modules, 5.08s.
-- `npm run test:e2e`: 27 passed (2.3m), including dark/light stream studio and editor, 360px reflow and board spacing.
+- `npm run verify:project` before native launch: 5 passed, 0 failed, 0 skipped; production build 1253 modules, 2.83s.
+- `npm run check:fast` with native launch: 5 passed, 0 failed, 0 skipped (319.8s); full product suite selected.
+- `npm run test:e2e` with native launch: 27 passed (3.1m), including dark/light stream studio and editor, 360px reflow and board spacing.
 - `npm run test:ui-quality`: 8 passed (44.5s).
 - `npm run ui:gallery`: captured 40 screenshots; reviewed index and representative studio/settings captures,
   plus dedicated dark desktop/light narrow stream-studio captures in `reports/streamer-workflow/`.
-- Focused final OBS protocol/workflow/dashboard regression suite: 3 files, 10 tests passed (3.73s).
+- Focused OBS launcher/protocol/workflow/dashboard suite: 4 files, 18 tests passed (7.44s), followed by cancellation
+  and successful reconnect regression coverage. Reconnect workflow suite: 7 tests passed (1.24s).
 - Local `dev:obsidian -- --json`: not run successfully; launcher 3.2.1 is not provisioned. Nothing downloaded.
-  Native checks run in the repository's contained Obsidian CI with the PR's e2e label.
+  Native checks passed on the pre-launch head and run again through the PR's e2e label for the final implementation.
 - `git diff --check`: clean. Generated traceability has no req-/vi-* declarations to update.
 
 Live OBS output, real credentials and public Twitch writes are untested by agent QA. See
