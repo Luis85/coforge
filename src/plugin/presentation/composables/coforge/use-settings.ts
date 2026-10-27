@@ -8,7 +8,7 @@ import { validateProjectPath, validateProjectUrl } from '../../../features/cofor
 
 /** The studio settings the form edits. Automation switches and pause live on other screens. */
 type ProjectLinks = Pick<StudioProject, 'repositoryUrl' | 'websiteUrl'>;
-type SettingsDraft = Pick<Settings, 'projectName' | 'projectBrief' | 'provider' | 'model' | NumberKey> & ProjectPaths & ProjectLinks;
+type SettingsDraft = Pick<Settings, 'projectName' | 'projectBrief' | 'agentPrompt' | 'provider' | 'model' | NumberKey> & ProjectPaths & ProjectLinks;
 type NumberKey = 'intervalSeconds' | 'minVotes' | 'requestCooldownSeconds' | 'maxTurns' | 'maxBudgetUsd' | 'timeoutSeconds';
 interface NumberField { key: NumberKey; label: string; min: number; max: number; step: number; integer: boolean; help?: string }
 
@@ -29,6 +29,7 @@ const PROVIDERS: Array<{ value: Provider; icon: string; title: string; text: str
 ];
 
 const pick = (settings: Settings): Omit<SettingsDraft, keyof ProjectPaths | keyof ProjectLinks> => ({
+  agentPrompt: settings.agentPrompt,
   projectName: settings.projectName, projectBrief: settings.projectBrief, provider: settings.provider, model: settings.model,
   intervalSeconds: settings.intervalSeconds, minVotes: settings.minVotes, requestCooldownSeconds: settings.requestCooldownSeconds,
   maxTurns: settings.maxTurns, maxBudgetUsd: settings.maxBudgetUsd, timeoutSeconds: settings.timeoutSeconds,

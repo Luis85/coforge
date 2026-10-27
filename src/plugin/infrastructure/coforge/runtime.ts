@@ -11,6 +11,8 @@ import { TwitchModule } from './twitch-module';
 import { VaultStudioStorage } from './vault-storage';
 import { operationsLog } from './operations-log';
 import type { StructuredLogger } from '../../application/logging';
+import { ObsAdapter } from './obs-adapter';
+import { ObsWorkflow } from '../../features/coforge/application/obs-workflow';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -51,6 +53,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     getSecret: name => secrets(plugin.app)?.getSecret(name) ?? null,
     setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
   }, request, timers, url => new WebSocket(url));
+  const obs = new ObsWorkflow(studio.store, new ObsAdapter(url => new WebSocket(url, 'obswebsocket.json'), timers, {
+    getSecret: name => secrets(plugin.app)?.getSecret(name) ?? null,
+    setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
+  }));
   let stopListening = () => {};
   let stopPublishing = () => {};
   let disposed = false;
@@ -68,6 +74,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    obs,
     diagnostics, exportDiagnostics: () => saveJson('diagnostics', diagnostics()),
     twitch: twitch.actions,
     setSecret(name, value) {
@@ -114,9 +121,11 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       stopListening = studio.onIntegrationChange(integration => twitch.configure(integration));
       stopPublishing = syncPublicBoard(studio, publisher, error => { report('coforge.public'); notify(`The viewer board could not be written: ${errorMessage(error)}`, true); });
       twitch.start();
+      obs.start();
     },
     async dispose() {
       disposed = true;
+      obs.dispose();
       stopListening(); stopPublishing(); await twitch.dispose();
       listeners.clear();
       await studio.stop();

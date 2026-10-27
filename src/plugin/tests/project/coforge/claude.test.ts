@@ -12,6 +12,7 @@ import { captureProcess, childEnvironment } from '../../../infrastructure/coforg
 import { parseTwitchNotification } from '../../../infrastructure/coforge/twitch';
 
 const settings: Settings = {
+  agentPrompt: '',
   projectName: 'Fixture', projectBrief: 'A small test game.', provider: 'claude', automation: { screen: false, score: false, plan: false, implement: false },
   paused: true, intervalSeconds: 5, minVotes: 0, maxTurns: 12, maxBudgetUsd: 1, timeoutSeconds: 30, model: 'sonnet', requestCooldownSeconds: 0,
 };

@@ -20,6 +20,7 @@ export function toLoaded(state: AppState | InternalState): LoadedStudio {
     botReplies: state.botReplies ?? [],
     population: state.population,
     streamMessages: state.streamMessages,
+    obsSettings: state.obsSettings, obsCommand: state.obsCommand, obsResumeSceneId: state.obsResumeSceneId,
     votes: Object.fromEntries(state.ideas.map(idea => [idea.id, idea.voters])),
     increments: Object.fromEntries(state.ideas.flatMap(idea => idea.increment ? [[idea.id, idea.increment] as const] : [])),
     ingestMeta: internal.ingestMeta ?? { processedMessages: [], lastRequests: {} }, manualHolds: internal.manualHolds ?? [],

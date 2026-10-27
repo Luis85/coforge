@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useTwitch } from '../../composables/coforge/use-twitch';
 import TwitchAuthorization from './TwitchAuthorization.vue';
+import TwitchChannelEditor from './TwitchChannelEditor.vue';
 const model = useTwitch();
 </script>
 <template>
@@ -19,15 +20,7 @@ const model = useTwitch();
       <button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.supported || model.checking" @click="model.saveConnection()">Save Twitch connection</button>
     </details>
     <p v-if="!model.state.streamer" class="cf-settings-help">Connect the streamer account in Twitch settings to edit the channel and moderate chat.</p>
-    <form @submit="model.saveChannel">
-      <fieldset :disabled="!model.state.canManage || model.checking">
-        <legend>Channel details</legend>
-        <label class="cf-field"><span>Stream title</span><input v-model="model.title" type="text" maxlength="140" required></label>
-        <div class="cf-twitch-category-search"><label class="cf-field"><span>Find a category</span><input v-model="model.categoryQuery" type="search" maxlength="100"></label><button type="button" class="cf-btn cf-btn-secondary" @click="model.search()">Search categories</button></div>
-        <label class="cf-field"><span>Category</span><select v-model="model.categoryId"><option :value="model.state.channel?.categoryId || ''">{{ model.state.channel?.categoryName || 'No category' }}</option><option v-for="category in model.categories" :key="category.id" :value="category.id">{{ category.name }}</option></select></label>
-        <div class="cf-settings-actions"><button type="button" class="cf-btn cf-btn-secondary" @click="model.refresh()">Refresh channel</button><button type="submit" class="cf-btn cf-btn-primary">Save channel details</button></div>
-      </fieldset>
-    </form>
+    <TwitchChannelEditor />
     <details class="cf-twitch-moderation" :open="Boolean(model.store.moderationTarget)">
       <summary>Moderation</summary>
       <form @submit="model.prepareModeration">

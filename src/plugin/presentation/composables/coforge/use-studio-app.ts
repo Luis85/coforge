@@ -5,8 +5,9 @@ import { useStudioStore, type StudioView } from '../../stores/coforge-studio';
 import { relativeTime } from './format';
 import { useStudioActions } from './use-studio-actions';
 
-const VIEW_LABELS: Record<StudioView, string> = { board: 'Idea board', stream: 'Stream chat', workflow: 'Agent workflow', community: 'Community', settings: 'Settings', projects: 'Projects', population: 'Players', operations: 'Operations', 'community-settings': 'Community settings' };
+const VIEW_LABELS: Record<StudioView, string> = { board: 'Idea board', stream: 'Stream chat', workflow: 'Agent workflow', community: 'Community', settings: 'Settings', projects: 'Projects', population: 'Players', operations: 'Operations', 'community-settings': 'Community settings', broadcast: 'Stream studio' };
 const NAV: Array<{ view: StudioView; label: string; icon: string }> = [
+  { view: 'broadcast', label: 'Stream studio', icon: 'radio' },
   { view: 'board', label: 'Idea board', icon: 'layout-grid' }, { view: 'stream', label: 'Stream chat', icon: 'message-square' },
   { view: 'workflow', label: 'Agent workflow', icon: 'workflow' }, { view: 'community', label: 'Community', icon: 'trophy' },
   { view: 'population', label: 'Players', icon: 'users' }, { view: 'operations', label: 'Operations', icon: 'chart-no-axes-combined' },
@@ -62,7 +63,7 @@ export function useStudioApp() {
   let stops: Array<() => void> = [];
   onMounted(() => {
     stops = [
-      context.studio.subscribe(state => { const first = shell.store.state === null; shell.store.state = state; if (first && !state.projects?.length) shell.store.navigate('stream'); }),
+      context.studio.subscribe(state => { shell.store.state = state; }),
       context.onNotice(notice => { shell.store.notify(notice.message, notice.error); failure.value = context.startupError(); }),
     ];
   });

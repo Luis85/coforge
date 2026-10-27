@@ -31,6 +31,16 @@ async function open(existing?: { kit: TestApp; app: App }, initialProject = true
 }
 
 describe('canonical project notes', () => {
+  it('stores the general agent prompt separately and preserves note body and unrelated fields', async () => {
+    const { app, kit, studio } = await open();
+    const file = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Projects/'))!;
+    await app.vault.process(file, content => content.replace('---\n', '---\ncustom-project-field: keep\n') + '\nMy project notes stay byte-for-byte.\n');
+    const before = splitNote(kit.read(file.path)).body;
+    await studio.updateProject({ agentPrompt: 'Use Rust and Bevy. Keep changes small.' });
+    const text = kit.read(file.path); expect(text).toContain('agent-prompt: Use Rust and Bevy. Keep changes small.');
+    expect(text).toContain('custom-project-field: keep'); expect(splitNote(text).body).toBe(before);
+    expect(studio.state().projects?.[0]?.settings.agentPrompt).toBe('Use Rust and Bevy. Keep changes small.');
+  });
   it('does not invent a project or write a project note on a fresh installation', async () => {
     const { app, studio } = await open(undefined, false);
     expect(studio.state().projects).toEqual([]);

@@ -123,3 +123,22 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 ## Open questions
 
 - None recorded.
+
+## Streamer workflow increment (2026-10-27)
+
+- The plugin opens on a stream-preparation dashboard. The streamer connects an already running OBS Studio
+  through obs-websocket v5, selects a go-live and BRB scene, checks readiness, then explicitly presses Go live.
+- Go live starts broadcasting through OBS. Pause switches to the configured BRB scene while the stream stays
+  live; Resume restores the previous scene. Stop ends the OBS broadcast. Connection/reloads never start a stream.
+- OBS remains responsible for stream-service credentials/output configuration. CoForge stores only the OBS
+  connection profile and a password reference; the password stays in Obsidian secret storage.
+- Every committed workflow interaction publishes a named event, including requested, confirmed, rejected or
+  uncertain outcomes; observed external OBS changes are distinct facts. Failed observers cannot alter effects.
+- Each project has an optional general agent prompt, saved in its canonical project note and prefixed to every
+  agent dispatch for that request's parent project. It does not widen the agent's allowed tools or worktree boundary.
+- Remove the reserved scrollbar gutter between the main content and shared chat panel.
+- The streamer can explicitly open installed OBS from CoForge. Detect standard native installations, allow a full
+  executable path, reuse an existing process and wait for its local WebSocket server. Never launch a second instance
+  or auto-start a broadcast. Initial OBS output and WebSocket/password setup remains required once.
+- Edit Twitch title, category, tags and broadcast language in CoForge. Link to Twitch's branding editor
+  for profile images, banners and accent styling; channel panels remain editable on Twitch.

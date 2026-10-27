@@ -44,6 +44,8 @@ describe('CoForge studio view', () => {
   it('renders the board with the sample workspace and every studio view without errors', async () => {
     const { wrapper, errors } = await render();
     expect(wrapper.find('.cf-sidebar').text()).toContain('Mosslight');
+    expect(wrapper.find('.cf-topbar strong').text()).toBe('Stream studio');
+    await nav(wrapper, 'Idea board').trigger('click'); await flushPromises();
     expect(wrapper.text()).toContain('Let us pet the forest foxes');
     for (const label of ['Stream chat', 'Agent workflow', 'Community', 'Studio settings', 'Idea board']) {
       await nav(wrapper, label).trigger('click');
