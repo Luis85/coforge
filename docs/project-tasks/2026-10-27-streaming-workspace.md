@@ -1,6 +1,6 @@
 # Task: Public streaming workspace, planned streams and AI cost visibility
 
-- Status: in progress
+- Status: implemented; verification and final-head CI/merge evidence tracked in PR #21.
 - Base: PR #20 merged as 5628945; local/product/browser/real-Obsidian/GitGuardian checks passed.
 - Traceability: owner requests and confirmed choices in BRIEF; generated requirement/vi-* arrays empty.
 

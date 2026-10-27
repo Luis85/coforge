@@ -27,6 +27,15 @@ Desktop AI costs and narrow schedule screenshots were inspected directly. Financ
 was rechecked in both themes after the shared-spacing changes. Full gallery and native
 CI evidence are recorded with the PR after the final gates finish.
 
+Local verification: `verify:project` completed all five check steps and the release
+build/embedding check; `test:e2e` passed 46 tests (7.9m), `test:ui-quality` passed
+8 tests (46.4s), and the 40-image gallery was reviewed as a contact sheet with
+enlarged desktop/narrow details. All four public display screenshots were inspected.
+An initial native run passed 12 of 13 cases, including title/privacy and script
+persistence, but its unload assertion timed out while reading through a detached
+document. That assertion now observes the actual captured page's close event and
+closed state with the same 15-second deadline. Final native results are in PR #21.
+
 ## Findings and polishing pass
 
 | Perspective | Finding | Improvement / verification |

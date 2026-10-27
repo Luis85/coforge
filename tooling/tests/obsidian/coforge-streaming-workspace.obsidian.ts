@@ -6,7 +6,11 @@ describe("Streaming workspace in the contained vault", () => {
     obsidian,
   }) => {
     await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    const opened = obsidian.page
+      .context()
+      .waitForEvent("page", { timeout: 15000 });
     await obsidian.runCommand("open-stream-kanban");
+    const capturedWindow = await opened;
     const state = await obsidian.waitFor(({ app, pluginId }) => {
       const leaf = app.workspace
         .getLeavesOfType(`${pluginId}-view-stream-kanban`)
@@ -51,14 +55,10 @@ describe("Streaming workspace in the contained vault", () => {
         return doc?.title;
       }),
     ).toBe("CoForge Stream - Kanban");
+    const closed = capturedWindow.waitForEvent("close", { timeout: 15000 });
     await obsidian.disablePlugin();
-    await obsidian.waitFor(() => {
-      const doc: Document | undefined = Reflect.get(
-        window,
-        "__coforgeTestCaptureDocument",
-      );
-      return doc?.defaultView?.closed === true;
-    });
+    await closed;
+    expect(capturedWindow.isClosed()).toBe(true);
     expect(
       await obsidian.page.locator(".coforge-native-statusbar").count(),
     ).toBe(0);
@@ -141,8 +141,10 @@ describe("Streaming workspace in the contained vault", () => {
       };
     });
     expect(
-      notes.projects.some((note) =>
-        note.includes("agent-prompt-screen:") && note.includes("CONTAINED_POLICY: explain project fit."),
+      notes.projects.some(
+        (note) =>
+          note.includes("agent-prompt-screen:") &&
+          note.includes("CONTAINED_POLICY: explain project fit."),
       ),
     ).toBe(true);
     expect(notes.script).toContain("Human script");
