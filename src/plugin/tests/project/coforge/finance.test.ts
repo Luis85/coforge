@@ -5,6 +5,22 @@ import {
   checkFinanceEntry,
 } from "../../../features/coforge/domain/finance";
 describe("manual stream finances", () => {
+  it("sums recurring estimates as integer twelfths before rounding to cents", () => {
+    const entries = Array.from({ length: 6 }, (_, index) =>
+      checkFinanceEntry({
+        id: String(index),
+        kind: "recurring",
+        name: "Small annual fee",
+        amountCents: 1,
+        date: "2026-10-01",
+        category: "",
+        streamId: "",
+        cadence: "yearly",
+        active: true,
+      }),
+    );
+    expect(financeTotals(entries, "2026-10", "").plannedMonthly).toBe(1);
+  });
   it("uses exact cents, filters actual payments by stream and keeps plans separate", () => {
     expect(financeAmount("10,05")).toBe(1005);
     expect(() => financeAmount("1.005")).toThrow();

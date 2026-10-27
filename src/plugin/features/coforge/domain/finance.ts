@@ -74,25 +74,25 @@ export function financeTotals(
   const expenses = actual
     .filter((entry) => entry.kind === "expense")
     .reduce((sum, entry) => sum + entry.amountCents, 0);
-  const plannedMonthly = Math.round(
-    entries
-      .filter(
-        (entry) =>
-          entry.kind === "recurring" &&
-          entry.active &&
-          entry.date <= month + "-31",
-      )
-      .reduce(
-        (sum, entry) =>
-          sum +
-          entry.amountCents *
-            (entry.cadence === "weekly"
-              ? 52 / 12
-              : entry.cadence === "yearly"
-                ? 1 / 12
-                : 1),
-        0,
-      ),
-  );
+  // Sum integer twelfths before rounding, including half-cent totals from annual plans.
+  const plannedTwelfths = entries
+    .filter(
+      (entry) =>
+        entry.kind === "recurring" &&
+        entry.active &&
+        entry.date <= month + "-31",
+    )
+    .reduce(
+      (sum, entry) =>
+        sum +
+        entry.amountCents *
+          (entry.cadence === "weekly"
+            ? 52
+            : entry.cadence === "yearly"
+              ? 1
+              : 12),
+      0,
+    );
+  const plannedMonthly = Math.round(plannedTwelfths / 12);
   return { income, expenses, balance: income - expenses, plannedMonthly };
 }
