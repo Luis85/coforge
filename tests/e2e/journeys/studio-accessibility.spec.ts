@@ -11,7 +11,7 @@ test('collapsed studio navigation keeps its visible labels available to assistiv
   await navigation.getByRole('button', { name: 'Stream chat', exact: true }).click();
   await expect(page.locator('.cf-topbar strong')).toHaveText('Stream chat');
 
-  const project = sidebar.getByRole('button', { name: /Mosslight.*Community game project/ });
+  const project = sidebar.getByRole('button', { name: /Mosslight.*CFP-001/ });
   await expect(project).toBeVisible();
   await project.click();
   await expect(page.locator('.cf-topbar strong')).toHaveText('Projects');

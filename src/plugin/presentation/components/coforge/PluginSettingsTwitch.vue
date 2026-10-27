@@ -2,38 +2,21 @@
 import { usePluginSettingsForm } from '../../composables/coforge/use-plugin-settings';
 import CfIcon from './CfIcon.vue';
 import PluginSettingsRow from './PluginSettingsRow.vue';
+import TwitchAuthorization from './TwitchAuthorization.vue';
 
 const model = usePluginSettingsForm();
 </script>
 <template>
-  <h3 class="cf-setting-heading"><CfIcon name="radio" size="sm" /> Twitch chat (receive-only)</h3>
-  <p class="cf-plugin-settings-section-intro">
-    CoForge reads chat through Twitch EventSub WebSockets, so no public webhook is needed. It never posts to Twitch: idea IDs and
-    command results appear in the studio’s chat pane and board. Use a <strong>User Access Token</strong> (not an App Access Token) for
-    the account that reads chat, with the <code>user:read:chat</code> scope. Events missed while disconnected are not replayed.
-  </p>
-  <PluginSettingsRow name="Connect Twitch chat" control-id="cf-ps-twitch-enabled">
-    <template #description>
-      <span class="cf-plugin-settings-runtime">
-        <span class="cf-status-dot" :class="{ 'is-active': model.runtime?.chatSource === 'twitch' }" />
-        {{ model.runtime?.chatSource === 'twitch' ? 'Twitch' : 'Simulator' }} · {{ model.runtime?.chatStatus }}
-      </span>
-      When off, the local chat simulator stays available for testing.
-    </template>
-    <label class="cf-plugin-settings-toggle" :class="{ 'is-enabled': model.draft.twitchEnabled }">
-      <input
-        id="cf-ps-twitch-enabled" v-model="model.draft.twitchEnabled" type="checkbox" role="switch"
-        aria-describedby="cf-ps-twitch-enabled-desc"
-      >
-      <span aria-hidden="true" />
-    </label>
+  <h3 class="cf-setting-heading"><CfIcon name="radio" size="sm" /> Twitch</h3>
+  <PluginSettingsRow name="Client ID" description="Your public Twitch application's Client ID." control-id="cf-ps-twitch-client">
+    <input id="cf-ps-twitch-client" v-model="model.draft.twitchClientId" type="text" spellcheck="false" autocomplete="off" maxlength="100" aria-describedby="cf-ps-twitch-client-desc">
   </PluginSettingsRow>
-  <PluginSettingsRow name="Client ID" description="The client ID of your registered Twitch application. It must match the token." control-id="cf-ps-twitch-client">
-    <input
-      id="cf-ps-twitch-client" v-model="model.draft.twitchClientId" type="text" spellcheck="false" autocomplete="off" maxlength="100"
-      aria-describedby="cf-ps-twitch-client-desc"
-    >
-  </PluginSettingsRow>
+  <label class="cf-project-repository-toggle"><input v-model="model.draft.twitchBotUsesStreamer" type="checkbox"><span>Use the streamer account as the chatbot</span></label>
+  <TwitchAuthorization :client-id="model.draft.twitchClientId" :uses-streamer="model.draft.twitchBotUsesStreamer" />
+  <label class="cf-project-repository-toggle"><input v-model="model.draft.twitchEnabled" type="checkbox"><span>Receive Twitch chat</span></label>
+  <label class="cf-project-repository-toggle"><input v-model="model.draft.twitchBotReplies" type="checkbox"><span>Enable automatic chatbot replies to viewer commands</span></label>
+  <p class="cf-settings-help">Save changes to apply these switches. Replies are off by default; connecting an account alone does not enable automatic posts.</p>
+  <details class="cf-twitch-advanced"><summary>Advanced: existing user-token configuration</summary>
   <PluginSettingsRow name="Bot user ID" description="Numeric user ID of the account that reads chat — the token’s user." control-id="cf-ps-twitch-bot">
     <input
       id="cf-ps-twitch-bot" v-model="model.draft.twitchBotUserId" type="text" spellcheck="false" autocomplete="off" maxlength="100"
@@ -75,4 +58,5 @@ const model = usePluginSettingsForm();
       </button>
     </div>
   </PluginSettingsRow>
+  </details>
 </template>

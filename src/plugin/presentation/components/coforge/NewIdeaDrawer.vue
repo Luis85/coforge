@@ -17,10 +17,11 @@ const model = useNewIdeaDrawer();
         </button>
       </header>
       <div class="cf-new-idea-heading">
-        <h2 id="cf-new-idea-title">Every game starts<br>with a what if.</h2>
-        <p>Give the community something to build on. Your idea enters the same pipeline as a chat request.</p>
+        <h2 id="cf-new-idea-title">New request</h2>
+        <p>The request belongs to the selected project.</p>
       </div>
       <form @submit.prevent="model.submit()">
+        <label class="cf-field"><span>Request type</span><select v-model="model.requestKind"><option value="feature">Feature request</option><option value="bug">Bug report</option></select></label>
         <label class="cf-field">
           <span>The idea</span>
           <input

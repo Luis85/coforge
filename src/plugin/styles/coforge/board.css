@@ -1,5 +1,5 @@
 /* CoForge idea board: filter tabs, toolbar, kanban, idea cards, list view, empty states and the new-idea drawer. */
-.cf-board-page { padding: 27px 26px 16px; min-height: calc(100% - 42px); display: flex; flex-direction: column; }
+.cf-board-page { padding: 27px 16px 16px 26px; min-height: calc(100% - 42px); display: flex; flex-direction: column; }
 
 /* Filter tabs */
 .cf-board-tabs { display: flex; align-items: center; gap: 23px; border-bottom: 1px solid var(--cf-border); }
@@ -39,7 +39,6 @@
 .cf-kanban {
   display: grid; grid-template-columns: repeat(4, minmax(190px, 1fr)); gap: 13px; overflow-x: auto; align-items: start; min-height: 300px; padding-bottom: 20px; flex: 1;
 }
-.cf-kanban.is-filtered { grid-template-columns: repeat(auto-fill, minmax(210px, 280px)); justify-content: start; }
 .cf-kanban-column { min-width: 0; }
 .cf-column-header { display: flex; align-items: center; justify-content: space-between; height: 27px; margin-bottom: 4px; }
 .cf-column-header > div { display: flex; align-items: center; gap: 7px; min-width: 0; }
@@ -161,26 +160,25 @@
   .cf-idea-card-footer { padding: 10px 14px; }
   .cf-idea-author, .cf-rice-mini, .cf-idea-category, .cf-idea-card-top { font-size: 11px; }
   .cf-kanban { gap: 18px; }
-  .cf-board-page { padding: 32px; }
+  .cf-board-page { padding: 32px 16px 32px 32px; }
   .cf-board-page .cf-page-heading { margin-bottom: 34px; }
   .cf-column-header h2 { font-size: 13px; }
 }
 @container plugin-shell-leaf (max-width: 1250px) {
-  .cf-board-page { padding: 24px 20px 16px; }
+  .cf-board-page { padding: 24px 16px 16px 20px; }
   .cf-board-toolbar { gap: 10px; }
   .cf-board-filters { gap: 8px; }
-  .cf-board-filters .cf-compact-select:first-child { display: none; }
+  .cf-board-filters .cf-category-filter { display: none; }
   .cf-board-tabs { gap: 16px; }
   .cf-board-page .cf-page-heading h1 { font-size: 25px; }
   .cf-board-page .cf-page-heading p { font-size: 11px; }
   .cf-kanban { grid-template-columns: repeat(4, 205px); gap: 12px; }
-  .cf-kanban.is-filtered { grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); }
   .cf-board-footnote > span:nth-child(2) { display: none; }
 }
 @container plugin-shell-leaf (max-width: 1030px) {
   .cf-kanban { grid-template-columns: repeat(4, minmax(190px, 1fr)); }
   .cf-board-page { padding: 27px 24px 18px; }
-  .cf-board-filters .cf-compact-select:first-child { display: flex; }
+  .cf-board-filters .cf-category-filter { display: flex; }
 }
 @container plugin-shell-leaf (max-width: 800px) {
   .cf-board-page { padding: 24px 20px; }
@@ -188,11 +186,10 @@
   .cf-board-page .cf-page-heading h1 { font-size: 23px; }
   .cf-board-page .cf-page-heading p { font-size: 11px; max-width: 270px; }
   .cf-kanban { grid-template-columns: repeat(4, 213px); }
-  .cf-kanban.is-filtered { grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); }
   .cf-board-tabs { gap: 20px; }
   .cf-board-toolbar { gap: 6px; }
   .cf-studio .cf-board-search input, .cf-studio .cf-compact-select select { font-size: 11px; }
-  .cf-board-filters .cf-compact-select:first-child { display: none; }
+  .cf-board-filters .cf-category-filter { display: none; }
 }
 @container plugin-shell-leaf (max-width: 560px) {
   .cf-board-page { padding: 22px 14px 16px; }
@@ -211,7 +208,6 @@
   .cf-board-filters { margin-left: auto; gap: 9px; }
   .cf-studio .cf-segmented button { width: 26px; height: 25px; }
   .cf-kanban { grid-template-columns: repeat(4, 231px); gap: 12px; }
-  .cf-kanban.is-filtered { grid-template-columns: 1fr; max-width: 350px; overflow-x: visible; }
   .cf-studio .cf-idea-open { padding: 14px; }
   .cf-idea-author, .cf-idea-category { font-size: 11px; }
   .cf-idea-author > span:nth-child(2) { max-width: 95px; }

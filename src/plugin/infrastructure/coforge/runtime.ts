@@ -3,11 +3,11 @@ import { createDemoRunner } from '../../features/coforge/application/demo-agent'
 import type { StudioHostActions, Timers } from '../../features/coforge/application/ports';
 import { StudioService } from '../../features/coforge/application/studio';
 import { errorMessage } from '../../features/coforge/domain/errors';
-import type { IntegrationSettings } from '../../features/coforge/domain/types';
 import { probeClaude, runClaudeStage } from './claude-runner';
 import { syncPublicBoard } from './public-board-sync';
 import { PublicSitePublisher } from './public-site-publisher';
-import { startTwitch, type HttpRequest } from './twitch';
+import type { HttpRequest } from './twitch-http';
+import { TwitchModule } from './twitch-module';
 import { VaultStudioStorage } from './vault-storage';
 
 export type StudioNotice = { message: string; error: boolean };
@@ -22,10 +22,11 @@ type SecretStore = { getSecret(id: string): string | null; setSecret(id: string,
 const secrets = (app: App): SecretStore | null => (app as App & { secretStorage?: SecretStore }).secretStorage ?? null;
 
 const request: HttpRequest = async ({ url, method, headers, body }) => {
-  const response = await requestUrl({ url, method: method ?? 'GET', headers, throw: false, ...(body === undefined ? {} : { body, contentType: 'application/json' }) });
+  const response = await requestUrl({ url, method: method ?? 'GET', headers, throw: false,
+    ...(body === undefined ? {} : { body, contentType: headers['Content-Type'] ?? 'application/json' }) });
   let json: unknown = null;
   try { json = response.json; } catch { json = null; }
-  return { status: response.status, json };
+  return { status: response.status, json, headers: response.headers };
 };
 
 /** Composes CoForge for one plugin instance: vault storage, agent runners, Twitch intake and host actions. */
@@ -42,30 +43,22 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     report: error => { report('coforge.workflow'); notify(error.message, true); },
   });
   const publisher = new PublicSitePublisher(plugin);
-  let stopTwitch = () => {};
+  const twitch = new TwitchModule(studio, {
+    getSecret: name => secrets(plugin.app)?.getSecret(name) ?? null,
+    setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
+  }, request, timers, url => new WebSocket(url));
   let stopListening = () => {};
   let stopPublishing = () => {};
   let disposed = false;
   let failure: string | null = null;
 
-  const connectTwitch = (integration: IntegrationSettings) => {
-    stopTwitch(); stopTwitch = () => {};
-    const status = (chatStatus: string, chatSource: 'simulator' | 'twitch' = 'twitch') => { void studio.store.updateRuntime({ chatSource, chatStatus }).catch(() => report('coforge.twitch')); };
-    if (!integration.twitchEnabled) { status('Simulator ready', 'simulator'); return; }
-    const token = secrets(plugin.app)?.getSecret(integration.twitchTokenSecret)?.trim();
-    const { twitchClientId: clientId, twitchBotUserId: botUserId, twitchBroadcasterId: broadcasterId } = integration;
-    if (!token || !clientId || !botUserId || !broadcasterId) { status('Twitch is enabled but not fully configured', 'simulator'); return; }
-    status('Connecting to Twitch…');
-    stopTwitch = startTwitch({ clientId, token, botUserId, broadcasterId }, { request, socket: url => new WebSocket(url) },
-      input => studio.ingest(input), chatStatus => status(chatStatus));
-  };
-
   const host: StudioHostActions = {
+    twitch: twitch.actions,
     setSecret(name, value) {
       const store = secrets(plugin.app);
       if (!store) return false;
       store.setSecret(name, value);
-      if (studio.store.ready) connectTwitch(studio.integration());
+      if (studio.store.ready) void twitch.reconnect();
       return true;
     },
     hasSecret: name => Boolean(secrets(plugin.app)?.getSecret(name)),
@@ -106,13 +99,13 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
         change => { void studio.applyProjectNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },
         path => notify(`CoForge ignored a project note with invalid or duplicate properties: ${path}`, true),
       );
-      stopListening = studio.onIntegrationChange(connectTwitch);
+      stopListening = studio.onIntegrationChange(integration => twitch.configure(integration));
       stopPublishing = syncPublicBoard(studio, publisher, error => { report('coforge.public'); notify(`The viewer board could not be written: ${errorMessage(error)}`, true); });
-      connectTwitch(studio.integration());
+      twitch.start();
     },
     async dispose() {
       disposed = true;
-      stopListening(); stopTwitch(); stopPublishing();
+      stopListening(); stopPublishing(); await twitch.dispose();
       listeners.clear();
       await studio.stop();
     },

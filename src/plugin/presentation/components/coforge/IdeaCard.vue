@@ -11,6 +11,7 @@ const model = useIdeaCard(props);
     <button type="button" class="cf-idea-open" :title="model.openLabel" @click="model.open()">
       <div class="cf-idea-card-top">
         <span class="cf-idea-id">{{ model.idea.id }}</span>
+        <span v-if="model.idea.requestKind === 'bug'" class="cf-badge">Bug</span>
         <span class="cf-category-dot" :class="model.categoryClass" :title="model.idea.category" />
         <span class="cf-idea-category">{{ model.idea.category }}</span>
       </div>

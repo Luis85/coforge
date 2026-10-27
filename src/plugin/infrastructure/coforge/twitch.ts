@@ -1,148 +1,127 @@
-/** Receive-only Twitch EventSub transport. Credentials never reach the views. Ported from the prototype's server/twitch.ts. */
+import type { Timers } from '../../features/coforge/application/ports';
+import { object, assertResponse, TwitchError, type HttpRequest } from './twitch-http';
+export type { HttpRequest } from './twitch-http';
 export interface TwitchChatInput { username: string; userId: string; text: string; source: 'twitch'; messageId: string }
-export interface TwitchConfig { clientId: string; token: string; botUserId: string; broadcasterId: string }
-export interface HttpResponse { status: number; json: unknown }
-/** Obsidian's `requestUrl` in production: it is not subject to browser CORS rules. */
-export type HttpRequest = (request: { url: string; method?: string; headers: Record<string, string>; body?: string }) => Promise<HttpResponse>;
-interface Transport { request: HttpRequest; socket: (url: string) => WebSocket }
-type Frame = { metadata?: { message_type?: unknown }; payload?: { subscription?: { type?: unknown }; session?: Record<string, unknown>; event?: Record<string, unknown> } };
-
-const EVENTSUB = 'wss://eventsub.wss.twitch.tv/ws';
+export interface TwitchConfig { clientId: string; botUserId: string; broadcasterId: string }
+export interface TwitchSocket {
+  onmessage: ((event: MessageEvent) => unknown) | null;
+  onclose: ((event: CloseEvent) => unknown) | null;
+  onerror: ((event: Event) => unknown) | null;
+  close(): void;
+}
+export interface TwitchTransport { request: HttpRequest; socket: (url: string) => TwitchSocket; token: () => Promise<string>; timers: Timers; random?: () => number; onIntakeError?: () => void }
+export interface TwitchConnectionStatus { phase: 'connecting' | 'connected' | 'reconnecting' | 'error'; message: string }
+const EVENTSUB = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30';
 
 export function parseTwitchNotification(value: unknown): TwitchChatInput | null {
-  if (!value || typeof value !== 'object') return null;
-  const frame = value as Frame;
-  if (frame.metadata?.message_type !== 'notification' || frame.payload?.subscription?.type !== 'channel.chat.message') return null;
-  const event = frame.payload.event;
-  const message = event?.message as { text?: unknown } | undefined;
-  if (!event || !/^\d+$/.test(String(event.chatter_user_id ?? '')) || typeof event.chatter_user_name !== 'string'
-    || typeof message?.text !== 'string' || typeof event.message_id !== 'string') return null;
-  return {
-    userId: `twitch:${String(event.chatter_user_id)}`, username: event.chatter_user_name.slice(0, 80),
-    text: message.text.slice(0, 4000), source: 'twitch', messageId: event.message_id.slice(0, 200),
-  };
+  const frame = object(value); const payload = object(frame.payload); const event = object(payload.event); const message = object(event.message);
+  if (object(frame.metadata).message_type !== 'notification' || object(payload.subscription).type !== 'channel.chat.message'
+    || typeof event.chatter_user_id !== 'string' || !/^\d+$/.test(event.chatter_user_id) || typeof event.chatter_user_name !== 'string'
+    || typeof event.message_id !== 'string' || !event.message_id || typeof message.text !== 'string') return null;
+  return { userId: 'twitch:' + event.chatter_user_id, username: event.chatter_user_name.slice(0, 80), text: message.text.slice(0, 4000), source: 'twitch', messageId: event.message_id.slice(0, 200) };
 }
-
 function reconnectUrl(raw: unknown): string | null {
   if (typeof raw !== 'string') return null;
-  try {
-    const url = new URL(raw);
-    return url.protocol === 'wss:' && url.hostname === 'eventsub.wss.twitch.tv' && !url.username && !url.password ? raw : null;
-  } catch { return null; }
+  try { const url = new URL(raw); return url.protocol === 'wss:' && url.hostname === 'eventsub.wss.twitch.tv' && !url.username && !url.password && !url.port ? url.href : null; }
+  catch { return null; }
 }
+interface Connection { ws: TwitchSocket; timer?: number; welcomed: boolean }
 
-/** Starts asynchronously and returns a stop function. Token refresh stays a host operation. */
-export function startTwitch(config: TwitchConfig, transport: Transport, onMessage: (message: TwitchChatInput) => Promise<unknown>, onStatus: (status: string) => void): () => void {
-  const { clientId, token, botUserId, broadcasterId } = config;
-  let stopped = false; let socket: WebSocket | undefined; let replacement: WebSocket | undefined;
-  let retryTimer: number | undefined; let validationTimer: number | undefined; let attempts = 0;
-  const closing = new WeakSet<WebSocket>(); const timers = new Map<WebSocket, number>();
-
-  function close(ws: WebSocket) {
-    closing.add(ws);
-    const timer = timers.get(ws); if (timer) window.clearTimeout(timer); timers.delete(ws);
-    try { ws.close(); } catch { /* Already closed. */ }
-  }
+/** One EventSub session, guarded reconnect handoff and no duplicate subscriptions on server transfer. */
+export function startTwitch(config: TwitchConfig, transport: TwitchTransport, onMessage: (input: TwitchChatInput) => Promise<unknown>, onStatus: (state: TwitchConnectionStatus) => void): () => void {
+  let stopped = false; let active: Connection | undefined; let replacement: Connection | undefined;
+  let retryTimer: number | undefined; let healthTimer: number | undefined; let attempts = 0; let generation = 0;
+  const closing = new WeakSet<TwitchSocket>();
+  const clear = (connection?: Connection) => { if (connection?.timer !== undefined) transport.timers.clearTimeout(connection.timer); };
+  const close = (connection?: Connection) => { if (!connection) return; clear(connection); closing.add(connection.ws); try { connection.ws.close(); } catch { /* Already closed. */ } };
+  const status = (phase: TwitchConnectionStatus['phase'], message: string) => { if (!stopped) onStatus({ phase, message }); };
   function stop() {
-    stopped = true;
-    if (retryTimer) window.clearTimeout(retryTimer);
-    if (validationTimer) window.clearTimeout(validationTimer);
-    for (const timer of timers.values()) window.clearTimeout(timer);
-    timers.clear();
-    if (socket) close(socket);
-    if (replacement) close(replacement);
+    stopped = true; generation++;
+    if (retryTimer !== undefined) transport.timers.clearTimeout(retryTimer);
+    if (healthTimer !== undefined) transport.timers.clearTimeout(healthTimer);
+    close(active); close(replacement); active = undefined; replacement = undefined;
   }
-  async function validateToken(): Promise<boolean> {
-    const response = await transport.request({ url: 'https://id.twitch.tv/oauth2/validate', headers: { Authorization: `OAuth ${token}` } });
-    if (stopped) return false;
-    if (response.status === 401) { onStatus('Twitch token expired or revoked. Update the token secret and reconnect.'); stop(); return false; }
-    if (response.status < 200 || response.status >= 300) throw new Error('Twitch token validation is temporarily unavailable.');
-    const value = (response.json ?? {}) as { client_id?: string; user_id?: string; scopes?: string[] };
-    if (value.client_id !== clientId || value.user_id !== botUserId || !value.scopes?.includes('user:read:chat')) {
-      onStatus('Twitch configuration mismatch. Use a user token for the bot and Client ID with user:read:chat.'); stop(); return false;
-    }
-    scheduleValidation(55 * 60_000);
-    return true;
-  }
-  function scheduleValidation(delay: number) {
+  function fail(error: unknown) {
     if (stopped) return;
-    if (validationTimer) window.clearTimeout(validationTimer);
-    validationTimer = window.setTimeout(() => {
-      void validateToken().catch(() => { if (!stopped) { onStatus('Twitch token revalidation temporarily unavailable · retrying'); scheduleValidation(60_000); } });
-    }, delay);
+    if (error instanceof TwitchError && (error.kind === 'authorization' || error.kind === 'permission')) { status('error', error.message); stop(); }
+    else retry();
   }
   function retry() {
-    if (stopped || retryTimer) return;
-    if (socket) close(socket);
-    if (replacement) close(replacement);
-    socket = undefined; replacement = undefined;
-    const wait = Math.min(30_000, 1000 * 2 ** Math.min(attempts++, 5));
-    onStatus(`Twitch disconnected · reconnecting in ${Math.ceil(wait / 1000)}s`);
-    retryTimer = window.setTimeout(() => { retryTimer = undefined; void boot(); }, wait);
+    if (stopped || retryTimer !== undefined) return;
+    generation++; close(active); close(replacement); active = undefined; replacement = undefined;
+    const delay = Math.min(30_000, 1000 * 2 ** Math.min(attempts++, 5)) + Math.floor((transport.random?.() ?? Math.random()) * 250);
+    status('reconnecting', 'Twitch connection lost. Reconnecting; messages missed while offline cannot be replayed.');
+    retryTimer = transport.timers.setTimeout(() => { retryTimer = undefined; void boot(); }, delay);
   }
-  async function subscribe(sessionId: string): Promise<boolean> {
-    const response = await transport.request({
-      url: 'https://api.twitch.tv/helix/eventsub/subscriptions', method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Client-Id': clientId, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'channel.chat.message', version: '1', condition: { broadcaster_user_id: broadcasterId, user_id: botUserId }, transport: { method: 'websocket', session_id: sessionId } }),
-    });
-    if (stopped) return false;
-    if (response.status === 401 || response.status === 403) { onStatus('Twitch authorization rejected. Check the user token, chat scope and channel permissions; then reconnect.'); stop(); return false; }
-    if (response.status < 200 || response.status >= 300) throw new Error('Twitch subscription failed.');
-    return true;
-  }
-  function connect(url: string, transfersSubscription: boolean) {
+  function health() {
     if (stopped) return;
-    const previous = socket;
-    let ws: WebSocket;
+    healthTimer = transport.timers.setTimeout(() => {
+      void transport.token().then(health, error => { if (!stopped) { fail(error); if (!stopped) health(); } });
+    }, 55 * 60_000);
+  }
+  function connect(url: string, transferred: boolean, token: string) {
+    if (stopped) return;
+    let ws: TwitchSocket;
     try { ws = transport.socket(url); } catch { retry(); return; }
-    if (transfersSubscription) replacement = ws; else socket = ws;
-    let keepaliveMs = 15_000;
-    const armKeepalive = () => {
-      const old = timers.get(ws); if (old) window.clearTimeout(old);
-      timers.set(ws, window.setTimeout(() => { if (!stopped && !closing.has(ws)) retry(); }, keepaliveMs + 1500));
+    const connection: Connection = { ws, welcomed: false };
+    if (transferred) { replacement = connection; clear(active); } else active = connection;
+    const current = () => !stopped && !closing.has(ws) && (connection === active || connection === replacement);
+    const arm = (delay: number) => {
+      clear(connection);
+      connection.timer = transport.timers.setTimeout(() => { if (current() && !(connection === active && replacement)) retry(); }, delay);
     };
-    armKeepalive();
-    ws.addEventListener('message', event => { void receive(event).catch(() => { if (!stopped) retry(); }); });
-    ws.addEventListener('close', () => {
-      const timer = timers.get(ws); if (timer) window.clearTimeout(timer); timers.delete(ws);
-      if (!stopped && !closing.has(ws)) retry();
-    });
-    ws.addEventListener('error', () => { if (!stopped && !closing.has(ws)) retry(); });
-    async function receive(event: MessageEvent) {
-      if (stopped || closing.has(ws) || typeof event.data !== 'string' || event.data.length > 256_000) return;
-      let frame: Frame;
-      try { frame = JSON.parse(event.data) as Frame; } catch { return; }
-      const kind = frame.metadata?.message_type;
+    arm(10_000);
+    ws.onmessage = event => { if (current()) void receive(event.data).catch(fail); };
+    ws.onerror = () => { if (!current()) return; if (connection === active && replacement) { close(active); active = undefined; } else retry(); };
+    ws.onclose = () => {
+      clear(connection);
+      if (!current()) return;
+      if (connection === active && replacement) { active = undefined; return; }
+      retry();
+    };
+    let keepalive = 30_000;
+    async function receive(raw: unknown) {
+      if (!current() || typeof raw !== 'string' || raw.length > 256_000) return;
+      let parsed: unknown; try { parsed = JSON.parse(raw); } catch { return; }
+      const frame = object(parsed); const payload = object(frame.payload); const session = object(payload.session);
+      const kind = object(frame.metadata).message_type;
       if (kind === 'session_welcome') {
-        const session = frame.payload?.session;
-        if (typeof session?.id !== 'string') throw new Error('Missing session id.');
-        keepaliveMs = Math.max(10, Math.min(600, Number(session.keepalive_timeout_seconds) || 10)) * 1000;
-        armKeepalive();
-        if (!transfersSubscription) { if (!(await subscribe(session.id))) return; }
-        else { socket = ws; replacement = undefined; if (previous && previous !== ws) close(previous); }
-        attempts = 0;
-        onStatus('Twitch connected · receiving chat');
-      } else if (kind === 'session_keepalive') armKeepalive();
-      else if (kind === 'notification') {
-        armKeepalive();
-        const message = parseTwitchNotification(frame);
-        if (message && String(frame.payload?.event?.broadcaster_user_id) === broadcasterId)
-          await onMessage(message).catch(() => onStatus('Twitch connected · one chat event was rejected by intake'));
-      } else if (kind === 'session_reconnect') {
-        const next = reconnectUrl(frame.payload?.session?.reconnect_url);
+        if (connection.welcomed) return;
+        if (typeof session.id !== 'string' || !session.id) throw new TwitchError('service', 'Twitch sent an invalid welcome message.');
+        connection.welcomed = true;
+        keepalive = Math.max(10, Math.min(600, typeof session.keepalive_timeout_seconds === 'number' ? session.keepalive_timeout_seconds : 30)) * 1000;
+        arm(keepalive + 1500);
+        if (!transferred) {
+          const response = await transport.request({ url: 'https://api.twitch.tv/helix/eventsub/subscriptions', method: 'POST',
+            headers: { Authorization: 'Bearer ' + token, 'Client-Id': config.clientId, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'channel.chat.message', version: '1', condition: { broadcaster_user_id: config.broadcasterId, user_id: config.botUserId }, transport: { method: 'websocket', session_id: session.id } }) });
+          assertResponse(response);
+          if (!current()) return;
+          const subscriptions = object(response.json).data;
+          const subscription = object(Array.isArray(subscriptions) ? subscriptions[0] : undefined);
+          if (typeof subscription.id !== 'string' || !subscription.id || subscription.status !== 'enabled')
+            throw new TwitchError('service', 'Twitch did not confirm the chat subscription.');
+        } else { const old = active; active = connection; replacement = undefined; close(old); }
+        attempts = 0; status('connected', 'Twitch chat connected');
+      } else if (kind === 'session_keepalive') { if (connection.welcomed) arm(keepalive + 1500); }
+      else if (kind === 'notification' && connection.welcomed) {
+        arm(keepalive + 1500);
+        const input = parseTwitchNotification(parsed);
+        const condition = object(object(payload.subscription).condition);
+        if (input && object(payload.event).broadcaster_user_id === config.broadcasterId
+          && (!condition.user_id || condition.user_id === config.botUserId) && input.userId !== 'twitch:' + config.botUserId) await onMessage(input).catch(() => transport.onIntakeError?.());
+      } else if (kind === 'session_reconnect' && connection === active && !replacement) {
+        const next = reconnectUrl(session.reconnect_url);
         if (!next) { retry(); return; }
-        if (replacement) return;
-        onStatus('Twitch moving to a new connection');
-        connect(next, true);
-      } else if (kind === 'revocation') { onStatus('Twitch chat subscription revoked. Reauthorize the bot and reconnect.'); stop(); }
+        status('reconnecting', 'Twitch is transferring the chat connection'); connect(next, true, token);
+      } else if (kind === 'revocation') { status('error', 'Twitch revoked the chat subscription. Reconnect the chatbot account.'); stop(); }
     }
   }
   async function boot() {
     if (stopped) return;
-    onStatus('Connecting to Twitch');
-    try { if ((await validateToken()) && !stopped) connect(EVENTSUB, false); } catch { retry(); }
+    const ticket = generation;
+    status('connecting', 'Connecting to Twitch chat');
+    try { const token = await transport.token(); if (!stopped && ticket === generation) connect(EVENTSUB, false, token); } catch (error) { fail(error); }
   }
-  void boot();
-  return stop;
+  health(); void boot(); return stop;
 }

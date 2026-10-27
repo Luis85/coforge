@@ -6,7 +6,7 @@ const model = useProjects();
 <template>
   <div class="cf-projects-page">
     <header class="cf-page-heading">
-      <div><h1>Projects<span class="cf-heading-dot">.</span></h1><p>One stream. A board and an agent workspace for each project.</p></div>
+      <div><h1>Projects</h1><p>Each project has its own backlog and workspace.</p></div>
       <button type="button" class="cf-btn cf-btn-primary" :disabled="model.store.busy" @click="model.add()"><CfIcon name="plus" /> Add project</button>
     </header>
     <p class="cf-projects-context">Each project has its own backlog. Viewers use <code>!request &lt;project-id&gt; &lt;idea&gt;</code> to choose a parent project. Chat and community are shared; other projects can keep processing in the background.</p>
@@ -28,9 +28,13 @@ const model = useProjects();
       <p class="cf-settings-help">Saved as a Markdown project note with a stable project ID. Repository URLs are links only; nothing is cloned or initialized. Automation starts paused.</p>
     </form>
     <div class="cf-project-list" aria-label="Your projects">
+      <div v-if="!model.rows.length" class="cf-project-empty"><h2>No projects yet</h2><p>Add a project to receive feature requests and bug reports for it.</p>
+        <button v-if="!model.sampleConfirm" type="button" class="cf-btn cf-btn-ghost" @click="model.askSample()">Load sample workspace</button>
+        <div v-else role="group" aria-label="Confirm sample workspace"><p>This loads illustrative requests and local chat data. No game files are changed.</p><button type="button" class="cf-btn cf-btn-secondary" @click="model.cancelSample()">Cancel</button><button type="button" class="cf-btn cf-btn-secondary" @click="model.loadSample()">Replace with sample</button></div>
+      </div>
       <article v-for="project in model.rows" :key="project.id" class="cf-project-row" :class="{ 'is-selected': project.selected }">
         <div class="cf-project-row-content">
-          <div class="cf-project-row-title"><h2>{{ project.name }}</h2><span class="cf-badge">{{ project.id }}</span><span v-if="project.selected" class="cf-badge">Selected</span></div>
+          <div class="cf-project-row-title"><h2>{{ project.name }}</h2><code class="cf-readable-project-id">{{ project.id }}</code><span v-if="project.selected" class="cf-badge">Selected</span></div>
           <p>{{ project.brief }}</p>
           <code>{{ project.path || 'Repository not configured' }}</code>
           <div v-if="project.repositoryUrl || project.websiteUrl" class="cf-project-links">

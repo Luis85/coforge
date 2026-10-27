@@ -8,7 +8,7 @@ import type { InternalState } from './ports';
 import { addEvent, type StudioStore } from './studio-store';
 import { findProject, projectIdeas } from '../domain/projects';
 
-export interface ChatInput { username: string; userId?: string; text: string; source?: ChatSource; messageId?: string }
+export interface ChatInput { username: string; userId?: string; text: string; source?: ChatSource; messageId?: string; channelId?: string }
 export interface ChatResult { ok: boolean; message: string; ideaId?: string; duplicate?: boolean }
 type Person = Pick<ChatInput, 'username' | 'userId' | 'source'>;
 
@@ -24,7 +24,7 @@ function ensureContributor(state: InternalState, raw: Person): string {
   return id;
 }
 
-export function createIdea(state: InternalState, input: Person & { title: string; description: string; category?: Category; projectId?: string }): Idea {
+export function createIdea(state: InternalState, input: Person & { title: string; description: string; category?: Category; projectId?: string; requestKind?: 'feature' | 'bug' }): Idea {
   const projectId = input.projectId ?? state.activeProjectId;
   const title = cleanLine(input.title);
   const description = cleanText(input.description);
@@ -37,6 +37,7 @@ export function createIdea(state: InternalState, input: Person & { title: string
   const now = new Date().toISOString();
   const idea: Idea = {
     id: ideaIdFor(number), number, projectId, title, description: description || title, authorId,
+    ...(input.requestKind ? { requestKind: input.requestKind } : {}),
     category: input.category && CATEGORIES.includes(input.category) ? input.category : 'Gameplay',
     status: 'inbox', voters: [], createdAt: now, updatedAt: now,
   };
@@ -61,14 +62,14 @@ export function addVote(state: InternalState, ideaId: string, input: Person): Ch
 /** Every chat request becomes a note in the vault, so intake is bounded per viewer and overall. */
 export const INTAKE_LIMITS = { pendingPerViewer: 3, perMinute: 10 } as const;
 
-function request(state: InternalState, input: ChatInput, userId: string, projectId: string, text: string, now: string): ChatResult {
+function request(state: InternalState, input: ChatInput, userId: string, projectId: string, text: string, now: string, requestKind: 'feature' | 'bug' = 'feature'): ChatResult {
   const project = state.projects.find(project => project.id === projectId && !project.unavailable);
   if (!project) return { ok: false, message: `Project ${projectId} is not available. Use a project ID shown by the streamer.` };
   if (!meaningful(text)) return { ok: false, message: 'Describe the idea in words after !request.' };
   const previous = state.ingestMeta.lastRequests[userId];
   const elapsed = previous ? (Date.now() - Date.parse(previous)) / 1000 : Infinity;
   const key = comparable(text);
-  const duplicate = projectIdeas(state, projectId).find(i => i.status !== 'rejected' && (comparable(i.description) === key || comparable(i.title) === key));
+  const duplicate = projectIdeas(state, projectId).find(i => i.status !== 'rejected' && (i.requestKind ?? 'feature') === requestKind && (comparable(i.description) === key || comparable(i.title) === key));
   if (duplicate) return { ok: true, duplicate: true, ideaId: duplicate.id, message: `That idea already exists as ${duplicate.id}. Use !vote ${duplicate.id} to support it.` };
   if (elapsed < project.settings.requestCooldownSeconds)
     return { ok: false, message: `Please wait ${Math.ceil(project.settings.requestCooldownSeconds - elapsed)} seconds before sending another feature request.` };
@@ -78,7 +79,7 @@ function request(state: InternalState, input: ChatInput, userId: string, project
   const recent = state.ideas.filter(i => Date.now() - Date.parse(i.createdAt) < 60_000).length;
   if (recent >= INTAKE_LIMITS.perMinute) return { ok: false, message: 'Lots of ideas are arriving right now. Please send yours again in a minute.' };
   const title = text.length <= 100 ? text : `${text.slice(0, 97).trimEnd()}…`;
-  const idea = createIdea(state, { title, description: text, projectId, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source: input.source ?? 'simulator' });
+  const idea = createIdea(state, { title, description: text, projectId, requestKind, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source: input.source ?? 'simulator' });
   state.ingestMeta.lastRequests[userId] = now;
   return { ok: true, ideaId: idea.id, message: `Added ${idea.id} to ${projectId} · ${project.settings.projectName}. The community can now !vote ${idea.id}.` };
 }
@@ -111,6 +112,8 @@ export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<Ch
     ...(raw.userId === undefined ? {} : { userId: cleanLine(raw.userId, 100) }), ...(raw.messageId === undefined ? {} : { messageId: cleanLine(raw.messageId, 200) }),
   };
   return store.transaction(state => {
+    if (source === 'twitch' && input.channelId && input.channelId !== state.integration.twitchBroadcasterId)
+      return { ok: false, message: 'The channel changed before this event was processed.' };
     const messageKey = input.messageId ? `${source}:${input.messageId}` : undefined;
     const seen = messageKey ? state.ingestMeta.processedMessages.find(m => m.id === messageKey) : undefined;
     if (seen) return { ok: true, duplicate: true, ...(seen.ideaId ? { ideaId: seen.ideaId } : {}), message: 'This chat event was already processed.' };
@@ -119,16 +122,30 @@ export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<Ch
     const now = new Date().toISOString();
     const chat: ChatMessage = { id: crypto.randomUUID(), userId, username: input.username.trim(), text, createdAt: now, kind: 'message', source };
     let result: ChatResult = { ok: true, message: 'Message received.' };
-    if (parsed.type === 'request') { result = request(state, { ...input, source }, userId, parsed.projectId, parsed.text, now); chat.kind = result.ok ? 'request' : 'error'; }
+    if (parsed.type === 'request' || parsed.type === 'bug') { result = request(state, { ...input, source }, userId, parsed.projectId, parsed.text, now, parsed.type === 'bug' ? 'bug' : 'feature'); chat.kind = result.ok ? 'request' : 'error'; }
     else if (parsed.type === 'vote') { result = addVote(state, parsed.ideaId, { ...input, source }); chat.kind = result.ok ? 'vote' : 'error'; }
     else if (parsed.type === 'invalid') { result = { ok: false, message: parsed.message }; chat.kind = 'error'; }
     else if (parsed.type === 'help') result.message = HELP_TEXT;
     else if (parsed.type === 'status') result = status(state, parsed.ideaId);
     else if (parsed.type === 'me') result.message = me(state, userId, input.username);
+    else if (parsed.type === 'projects') {
+      const projects = state.projects.filter(project => !project.unavailable);
+      const page = Math.min(parsed.page, Math.max(1, Math.ceil(projects.length / 3)));
+      result.message = projects.length ? `Projects ${page}/${Math.ceil(projects.length / 3)}: ${projects.slice((page - 1) * 3, page * 3).map(project => `${project.id}: ${project.settings.projectName}`).join(' · ')}. Use !request <project-id> <idea> or !bug <project-id> <bug>.` : 'No projects are available yet.';
+    }
     if (removed && parsed.type !== 'message') result.message += ' Hidden or invisible characters were removed from the message.';
     if (result.ideaId) chat.ideaId = result.ideaId;
+    if (source === 'twitch' && input.messageId) chat.externalId = input.messageId;
+    if (source === 'twitch' && input.channelId) chat.twitchChannelId = input.channelId;
     state.chat.push(chat);
-    if (parsed.type !== 'message') state.chat.push({
+    const botReply = source === 'twitch' && state.integration.twitchEnabled && state.integration.twitchBotReplies && state.integration.twitchBroadcasterId && input.messageId && parsed.type !== 'message';
+    if (botReply && input.messageId) {
+      const full = state.botReplies.filter(reply => reply.status === 'pending' || reply.status === 'sending').length >= 50;
+      state.botReplies.push({ id: messageKey!, parentMessageId: input.messageId, channelId: state.integration.twitchBroadcasterId,
+        senderId: state.integration.twitchBotUsesStreamer ? state.integration.twitchBroadcasterId : state.integration.twitchBotUserId,
+        text: [...result.message].slice(0, 500).join(''), createdAt: now, status: full ? 'failed' : 'pending', ...(full ? { error: 'Reply queue is full.' } : {}) });
+    }
+    if (parsed.type !== 'message' && !botReply) state.chat.push({
       id: crypto.randomUUID(), userId: 'system:coforge', username: 'CoForge', text: result.message, kind: result.ok ? 'system' : 'error',
       createdAt: now, source, ...(result.ideaId ? { ideaId: result.ideaId } : {}),
     });
