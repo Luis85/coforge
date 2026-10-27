@@ -49,6 +49,9 @@ test('viewer requests require a project ID and target that project while another
   await page.getByRole('button', { name: 'Open board for Mosslight', exact: true }).click();
   await page.getByRole('button', { name: 'Stream chat', exact: true }).click();
   await page.getByRole('button', { name: 'Test commands locally', exact: true }).click();
+  await page.getByLabel('Chat message', { exact: true }).fill('!register');
+  await page.getByRole('button', { name: 'Send chat message', exact: true }).click();
+  await expect(page.getByLabel('Chat message', { exact: true })).toHaveValue('');
   const message = page.getByLabel('Chat message', { exact: true });
   await message.fill('!request A lantern beside the moon gate');
   await page.getByRole('button', { name: 'Send chat message', exact: true }).click();

@@ -107,17 +107,20 @@ it does not need an application secret or a public webhook.
    chatbot, connect that account separately in a browser signed into the intended account.
 2. Enable **Receive Twitch chat** and save the connection. CoForge derives channel and bot
    IDs from validated accounts; the channel identity and connection state come from Twitch.
-3. Opt into **Enable automatic chatbot command replies** when ready for public replies.
+3. Opt into **Enable automatic bot messages** when ready for greetings, public replies and activated recurring messages.
    This is off by default, including upgrades. The live composer sends as the connected bot;
    **Test commands locally** is explicit and never posts to Twitch.
 4. Add projects under **Projects**. Viewers discover them with `!projects` (or `!projects 2`)
    and submit `!request CFP-001 Add a lantern` or `!bug CFP-001 The gate crashes`.
-   Both require a known project ID. `!vote CF-001`, `!status CF-001`, `!me` and `!help`
-   are also supported. The bot ignores messages authored by its own account to prevent loops.
+   Viewers start with `!register`; requests, bugs and votes require registration. Feature requests
+   have a five-minute cooldown across projects. Both request types require a known project ID.
+   `!vote CF-001`, `!status CF-001`, `!me`, `!ranks` and `!help` are also supported.
+   The bot ignores messages authored by its own account to prevent loops.
 
 The bot needs `user:read:chat` and `user:write:chat`. Channel controls use the broadcaster's
 authorization with `channel:manage:broadcast`, `moderator:manage:chat_messages` and
-`moderator:manage:banned_users`. When the streamer also serves as the bot, its authorization
+`moderator:manage:banned_users`. Live chat-presence tracking also needs `moderator:read:chatters`.
+When the streamer also serves as the bot, its authorization
 includes both sets. Missing permissions disable controls and require reconnection.
 Access and rotating refresh tokens are stored together in Obsidian secret storage, never in
 project notes or plugin JSON. Legacy manual user tokens remain available under advanced settings;

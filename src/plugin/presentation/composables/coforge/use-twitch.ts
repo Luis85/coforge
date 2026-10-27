@@ -12,7 +12,7 @@ export function useTwitch() {
   const categories = ref<Array<{ id: string; name: string }>>([]);
   const moderation = reactive({ action: 'timeout' as 'delete' | 'timeout' | 'ban', login: '', messageId: '', duration: 600, reason: '' });
   const confirmation = ref<{ channelId: string; text: string; action: ModerationAction } | null>(null);
-  const savedConnection = ref(studio.store.ready ? studio.integration() : defaultIntegration());
+  const savedConnection = ref(studio.ready ? studio.integration() : defaultIntegration());
   const connection = reactive({ twitchClientId: savedConnection.value.twitchClientId, twitchBotUsesStreamer: savedConnection.value.twitchBotUsesStreamer,
     twitchEnabled: savedConnection.value.twitchEnabled, twitchBotReplies: savedConnection.value.twitchBotReplies });
   watch(() => store.state, () => {
@@ -69,7 +69,7 @@ export function useTwitch() {
   }
   return reactive({
     store, state, connection, supported: Boolean(host.twitch), error, notice, checking, title, categoryId, categoryQuery, categories, moderation, confirmation,
-    replies: computed(() => (store.state?.botReplies ?? []).filter(reply => ['failed', 'uncertain'].includes(reply.status)).slice(-5).reverse()),
+    replies: computed(() => (store.state?.botReplies ?? []).filter(reply => ['failed', 'uncertain'].includes(reply.status) && !reply.reviewedAt).slice(-5).reverse()),
     autoReplies: computed(() => store.state ? studio.integration().twitchBotReplies : false),
     authorize: (role: TwitchRole, clientId?: string, usesStreamer?: boolean) => { void authorize(role, clientId, usesStreamer); },
     saveConnection: () => { void run(() => studio.updateIntegration({ ...connection }), 'Twitch connection settings saved.'); },
@@ -79,6 +79,7 @@ export function useTwitch() {
     saveChannel: (event: Event) => { event.preventDefault(); void run(() => actions().updateChannel({ title: title.value, categoryId: categoryId.value }), 'Channel updated.'); },
     prepareModeration: (event: Event) => { event.preventDefault(); void prepareModeration(); },
     confirmModeration: () => { void confirmModeration(); }, cancelModeration: () => { confirmation.value = null; },
+    openStreamMessages: () => { store.streamTool = 'messages'; store.navigate('stream'); },
     retry: (id: string) => { void run(() => actions().retryReply(id)); },
   });
 }

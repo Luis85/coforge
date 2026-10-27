@@ -8,8 +8,13 @@ import { TwitchDeviceAuthorization } from './twitch-device';
 import { TwitchApi } from './twitch-api';
 import { requestWithDeadline, TwitchError, type HttpRequest } from './twitch-http';
 import type { TwitchSecrets } from './twitch-auth';
-import { TwitchOutbox } from './twitch-outbox';
+import { BotDeliveryWorker } from '../../features/coforge/application/bot-delivery';
 import { startTwitch, type TwitchSocket } from './twitch';
+import { LivePopulationTracker } from '../../features/coforge/application/live-population';
+import { PlayerModeration } from '../../features/coforge/application/player-moderation';
+import { StreamMessageScheduler } from '../../features/coforge/application/stream-message-scheduler';
+import { sendOperatorMessage } from '../../features/coforge/application/send-message';
+import { recordOperation } from '../../features/coforge/application/population';
 
 const fingerprint = (config: IntegrationSettings) => JSON.stringify([
   config.twitchEnabled, config.twitchClientId, config.twitchBroadcasterId, config.twitchBotUserId,
@@ -23,8 +28,11 @@ export class TwitchModule {
   private readonly accounts: TwitchAccounts;
   private readonly device: TwitchDeviceAuthorization;
   private readonly api: TwitchApi;
-  private readonly outbox: TwitchOutbox;
+  private readonly outbox: BotDeliveryWorker;
   private readonly http: HttpRequest;
+  private readonly population: LivePopulationTracker;
+  private readonly moderation: PlayerModeration;
+  private readonly scheduler: StreamMessageScheduler;
   private stopConnection = () => {};
   private stopStore = () => {};
   private generation = 0;
@@ -37,8 +45,12 @@ export class TwitchModule {
     this.http = http;
     this.accounts = new TwitchAccounts(http, secrets, () => this.config);
     this.api = new TwitchApi(http, this.accounts, () => this.config);
-    this.outbox = new TwitchOutbox(studio, this.api, () => this.state.phase === 'connected' && this.state.canChat && this.config.twitchBotReplies,
-      () => this.accounts.identity('bot'), message => this.error(message), timers);
+    this.outbox = new BotDeliveryWorker(studio, this.api, () => this.state.phase === 'connected' && this.state.canChat && this.config.twitchBotReplies,
+      () => this.accounts.identity('bot'), message => this.error(message), timers, () => Boolean(this.population.liveStreamId));
+    this.population = new LivePopulationTracker(studio, this.api, timers, () => this.config,
+      () => this.config.twitchEnabled && Boolean(this.accounts.identity('streamer')), tracking => { this.state.tracking = tracking; this.publish(); this.scheduler.refresh(); });
+    this.scheduler = new StreamMessageScheduler(studio.store, timers, () => this.population.liveStreamId, () => this.state.phase === 'connected' && this.state.canChat && this.config.twitchBotReplies, () => this.error('Stream messages could not be saved. Check vault access.'));
+    this.moderation = new PlayerModeration(studio.store, this.api, () => this.config.twitchBroadcasterId);
     this.device = new TwitchDeviceAuthorization(http, this.accounts, () => this.config, (authorization, error) => {
       this.state.authorization = authorization;
       if (error) this.state.lastError = error;
@@ -62,24 +74,25 @@ export class TwitchModule {
       }),
       send: text => this.perform(async () => {
         if (this.state.phase !== 'connected') throw new Error('Connect Twitch chat before sending.');
-        const channelId = this.config.twitchBroadcasterId;
-        const messageId = await this.api.send(text, undefined, undefined, channelId);
-        await studio.store.transaction(state => { state.chat.push({ id: crypto.randomUUID(), userId: 'system:coforge', username: this.accounts.identity('bot')?.login ?? 'CoForge',
-          text, kind: 'system', source: 'twitch', externalId: messageId, twitchChannelId: channelId, createdAt: new Date().toISOString() }); });
+        const bot = this.accounts.identity('bot'); if (!bot) throw new Error('Connect the chatbot before sending.');
+        await sendOperatorMessage(studio.store, this.api, { text, channelId: this.config.twitchBroadcasterId, senderId: bot.id, senderName: bot.login });
       }),
-      moderate: action => this.perform(() => this.api.moderate(action)), retryReply: id => this.perform(() => this.outbox.retry(id)),
+      moderate: action => this.perform(() => this.moderation.execute(action)), retryReply: id => this.perform(() => this.outbox.retry(id)),
+      refreshPopulation: () => this.perform(() => this.population.refresh()),
+      refreshPlayer: userId => this.perform(() => this.moderation.refresh(userId)),
     };
   }
 
-  start(): void { this.stopStore = this.studio.subscribe(() => this.outbox.wake()); this.configure(this.studio.integration()); }
+  start(): void { this.stopStore = this.studio.subscribe(() => this.outbox.wake()); this.configure(this.studio.integration()); this.population.start(); this.scheduler.start(); }
   configure(config: IntegrationSettings): void {
     const changed = fingerprint(config) !== fingerprint(this.config);
     this.config = { ...config };
-    if (changed) { this.device.cancel(); void this.reconnect(); } else this.publish();
+    if (changed) { this.device.cancel(); this.population.reset(); this.scheduler.reset(); void this.reconnect(); } else this.publish();
   }
   async reconnect(): Promise<void> {
     if (this.closed) return;
     const generation = ++this.generation;
+    this.population.reset(); this.scheduler.reset();
     this.stopConnection(); this.stopConnection = () => {}; this.accounts.reset();
     this.state = { ...disconnectedTwitch(), ...(this.state.channel?.id === this.config.twitchBroadcasterId ? { channel: this.state.channel } : {}) };
     if (!this.config.twitchEnabled) { this.publish(); return; }
@@ -105,12 +118,16 @@ export class TwitchModule {
       catch { this.error('A Twitch command could not be saved. Check vault access; no success reply was sent.'); }
     }, status => {
       if (generation !== this.generation || this.closed) return;
+      const previous = this.state.phase;
       this.state.phase = status.phase; this.state.message = status.message; this.identities(); this.publish();
-      if (status.phase === 'connected') { this.outbox.resume(); if (!this.state.channel) void this.refreshChannel().catch(() => undefined); }
+      if (previous === 'connected' && status.phase !== 'connected') { this.population.reset(); this.scheduler.reset(); }
+      if (previous !== status.phase && (status.phase === 'connected' || previous === 'connected'))
+        void this.studio.store.transaction(state => recordOperation(state, status.phase === 'connected' ? 'connected' : 'disconnected')).catch(() => undefined);
+      if (status.phase === 'connected') { void this.population.refresh(); this.outbox.resume(); if (!this.state.channel) void this.refreshChannel().catch(() => undefined); }
     });
   }
   async dispose(): Promise<void> {
-    this.closed = true; this.generation++; this.device.cancel(); this.stopConnection(); this.stopStore(); await this.outbox.stop();
+    this.closed = true; this.generation++; this.population.stop(); this.scheduler.stop(); this.device.cancel(); this.stopConnection(); this.stopStore(); await this.outbox.stop();
   }
   private identities(): void {
     this.state.streamer = this.accounts.identity('streamer'); this.state.bot = this.accounts.identity('bot');
@@ -130,6 +147,7 @@ export class TwitchModule {
   }
   private async perform<T>(work: () => Promise<T>): Promise<T> {
     if (this.closed) throw new Error('The Twitch session has closed. Reopen CoForge before continuing.');
+    if (this.state.lastError) { delete this.state.lastError; this.publish(); }
     try { return await work(); } catch (error) {
       this.error(error instanceof TwitchError || error instanceof Error ? error.message : 'The Twitch operation could not be completed.');
       throw error;

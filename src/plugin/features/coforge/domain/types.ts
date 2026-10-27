@@ -61,6 +61,8 @@ export interface AppState {
   /** Optional on legacy input only. The application store always supplies these fields. */
   projects?: StudioProject[]; activeProjectId?: string; nextProjectNumber?: number;
   botReplies?: import('./twitch').BotReply[];
+  population?: import('./population').PopulationState;
+  streamMessages?: import('./stream-messages').StreamMessage[];
 }
 /** Host-side configuration that replaced the prototype's .env file. Secrets are referenced by name only. */
 export interface IntegrationSettings {

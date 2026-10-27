@@ -81,7 +81,7 @@ export function useChatComposer(emit: (event: 'sent') => void) {
     error.value = '';
     const sent = live.value && !testing.value ? await actions.sendTwitch(text.value) : await actions.sendChat(username.value, text.value);
     sending.value = false;
-    if (!sent) { error.value = 'Message could not be sent. Your draft is kept.'; return; }
+    if (!sent) { error.value = live.value && !testing.value ? 'Delivery was not confirmed. Check Twitch before sending again; your draft is kept.' : 'The command was not accepted. Your draft is kept.'; return; }
     text.value = '';
     emit('sent');
   };
@@ -89,7 +89,8 @@ export function useChatComposer(emit: (event: 'sent') => void) {
     store, username, text, sending, error, live, testing,
     botName: computed(() => store.state?.runtime.twitch?.bot?.login ?? 'Chatbot'),
     testLocally: () => { testing.value = true; }, stopTesting: () => { testing.value = false; },
-    requestPlaceholder: computed(() => `!request ${store.state?.activeProjectId ?? 'CFP-001'} Your feature idea…`),
+    requestPlaceholder: computed(() => store.state?.population?.players.some(player => player.id === `simulator:${username.value.trim().toLocaleLowerCase('en-US')}` && player.registeredAt)
+      ? `!request ${store.state?.activeProjectId || '<project-id>'} Your feature idea…` : '!register to join The Hood'),
     canSend: computed(() => !sending.value && Boolean(text.value.trim()) && (live.value || testing.value) && Boolean(username.value.trim())),
     sourceNote: computed(() => live.value
       ? testing.value ? 'Local test: nothing is posted to Twitch.' : 'Sends to the connected Twitch channel as the chatbot.'

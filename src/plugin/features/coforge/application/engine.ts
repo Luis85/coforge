@@ -1,4 +1,5 @@
 import { StudioError, errorMessage } from '../domain/errors';
+import { recordOperation } from './population';
 import type { AgentJob, AgentStage, IdeaAction, Provider } from '../domain/types';
 import { riceValue, STAGE_LABELS, STAGES } from '../domain/types';
 import { assertStage, heuristicSignals, isActiveJob, nextEligible, statusDuring } from '../domain/workflow';
@@ -48,6 +49,7 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   delete idea.lastError;
   idea.updatedAt = new Date().toISOString();
   job.status = 'succeeded'; job.finishedAt = idea.updatedAt;
+  recordOperation(state, 'job-completed');
   if (result.costUsd !== undefined) job.costUsd = result.costUsd;
   job.logs.push(`${STAGE_LABELS[job.stage]} finished. ${idea.id} is ${idea.status}.`);
   delete state.runtime.activeJobId;
@@ -140,6 +142,7 @@ export class WorkflowEngine {
       if (!job) throw new StudioError('Job not found.', 404);
       if (job.status !== 'queued') throw new StudioError('Only queued or running jobs can be cancelled.', 409);
       job.status = 'cancelled'; job.finishedAt = new Date().toISOString(); job.logs.push('Cancelled by the streamer.');
+      recordOperation(state, 'job-cancelled');
       const idea = state.ideas.find(i => i.id === job.ideaId);
       if (idea) idea.lastError = 'Run cancelled. Start the stage manually when ready.';
       addEvent(state, 'agent', `Queued ${job.stage} run for ${job.ideaId} cancelled.`, job.ideaId);
@@ -182,6 +185,7 @@ export class WorkflowEngine {
       assertRuntime(state, job.stage, projectId);
       assertStage(idea, job.stage);
       job.status = 'running'; job.startedAt = new Date().toISOString();
+      recordOperation(state, 'job-started');
       state.runtime.activeJobId = job.id;
       if (job.stage === 'implement') idea.status = 'building';
       idea.updatedAt = job.startedAt;
@@ -215,6 +219,7 @@ export class WorkflowEngine {
     await this.store.transaction(state => {
       const job = state.jobs.find(j => j.id === next.id);
       if (job) { job.status = cancelled ? 'cancelled' : 'failed'; job.error = message; job.finishedAt = new Date().toISOString(); job.logs.push(message); }
+      if (job) recordOperation(state, cancelled ? 'job-cancelled' : 'job-failed', cancelled ? 'committed' : 'none');
       const idea = state.ideas.find(i => i.id === next.ideaId);
       if (idea) { idea.lastError = message; idea.updatedAt = new Date().toISOString(); if (idea.status === 'building') idea.status = 'planned'; }
       delete state.runtime.activeJobId;

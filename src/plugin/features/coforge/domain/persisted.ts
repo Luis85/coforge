@@ -1,6 +1,7 @@
 import type { Check } from './check';
 import { boolean, list, number, oneOf, optional, record, shape, text, timestamp } from './check';
 import { defaultIntegration, defaultSettings } from './seed';
+import { populationCheck } from './population-check';
 import type { AgentJob, AppState, Increment, IntegrationSettings, Settings } from './types';
 import { CONTRIBUTOR_COLORS } from './types';
 
@@ -41,6 +42,9 @@ const integration: Check<IntegrationSettings> = shape({
   publicFolder: text({ min: 1 }), publicBoardEnabled: boolean,
 });
 const persisted: Check<PersistedStudio> = shape({
+  population: optional(populationCheck),
+  streamMessages: optional(list(shape({ id: str, text: str, intervalMinutes: number({ integer: true, min: 1, max: 240 }), active: boolean,
+    channelId: str, createdAt: timestamp, updatedAt: timestamp, streamKey: optional(str), nextDueAt: optional(timestamp), lastQueuedAt: optional(timestamp), lastSentAt: optional(timestamp), lastError: optional(str) }))),
   version: oneOf([1] as const), nextIdeaNumber: number({ integer: true, gt: 0 }),
   activeProjectId: optional(str),
   nextProjectNumber: optional(number({ integer: true, gt: 0 })),
@@ -54,8 +58,9 @@ const persisted: Check<PersistedStudio> = shape({
   jobs: list(job),
   events: list(shape({ id: str, ideaId: optional(str), type: oneOf(['idea', 'vote', 'agent', 'review', 'system'] as const), text: str, createdAt: timestamp })),
   settings: settingsCheck, integration, votes: dictionary(list(str)), increments: dictionary(increment),
-  botReplies: optional(list(shape({ id: str, parentMessageId: str, channelId: str, senderId: str, text: str, createdAt: timestamp,
-    status: oneOf(['pending', 'sending', 'sent', 'failed', 'uncertain'] as const), messageId: optional(str), error: optional(str) }))),
+  botReplies: optional(list(shape({ id: str, parentMessageId: optional(str), channelId: str, senderId: str, text: str, createdAt: timestamp, streamMessageId: optional(str), streamKey: optional(str),
+    reviewedAt: optional(timestamp), greetingPlayerId: optional(str),
+    status: oneOf(['pending', 'sending', 'sent', 'failed', 'uncertain', 'cancelled'] as const), messageId: optional(str), error: optional(str) }))),
   ingestMeta: shape({ processedMessages: list(shape({ id: str, ideaId: optional(str) })), lastRequests: dictionary(timestamp) }),
   manualHolds: list(str), integrity: dictionary(str),
 });

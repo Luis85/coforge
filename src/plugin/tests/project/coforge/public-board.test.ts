@@ -6,11 +6,20 @@ import { pagesWorkflow, WORKFLOW_MARKER } from '../../../features/coforge/domain
 import { buildPublicBoard } from '../../../features/coforge/domain/public-board';
 import { escapeHtml, renderPublicSite } from '../../../features/coforge/domain/public-site';
 import { createSeed } from '../../../features/coforge/domain/seed';
+import { emptyPopulation } from '../../../features/coforge/domain/population';
 import { PublicSitePublisher } from '../../../infrastructure/coforge/public-site-publisher';
 
 const now = new Date('2026-10-23T18:00:00Z');
 
 describe('public viewer board', () => {
+  it('excludes private player economy, moderation records and recurring message configuration', () => {
+    const state = createSeed(now.getTime()); state.population = emptyPopulation();
+    state.population.players.push({ id: 'twitch:PRIVATE_PLAYER', firstSeenAt: now.toISOString(), lastSeenAt: now.toISOString(), registeredAt: now.toISOString(), blocked: true,
+      coins: 99999, xp: 500, reputation: 100, presenceSeconds: 600, rewardedMinutes: 10, rewardClaims: ['PRIVATE_CLAIM'] });
+    state.streamMessages = [{ id: 'private-message', text: 'PRIVATE_ANNOUNCEMENT', active: false, intervalMinutes: 5, channelId: '123', createdAt: now.toISOString(), updatedAt: now.toISOString() }];
+    const published = JSON.stringify(buildPublicBoard(state, now));
+    expect(published).not.toContain('PRIVATE_PLAYER'); expect(published).not.toContain('PRIVATE_CLAIM'); expect(published).not.toContain('PRIVATE_ANNOUNCEMENT');
+  });
   it('publishes only screened board ideas and never platform IDs, chat or review data', () => {
     const state = createSeed(now.getTime());
     const board = buildPublicBoard(state, now);

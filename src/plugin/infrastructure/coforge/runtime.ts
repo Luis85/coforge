@@ -9,6 +9,8 @@ import { PublicSitePublisher } from './public-site-publisher';
 import type { HttpRequest } from './twitch-http';
 import { TwitchModule } from './twitch-module';
 import { VaultStudioStorage } from './vault-storage';
+import { operationsLog } from './operations-log';
+import type { StructuredLogger } from '../../application/logging';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -30,8 +32,9 @@ const request: HttpRequest = async ({ url, method, headers, body }) => {
 };
 
 /** Composes CoForge for one plugin instance: vault storage, agent runners, Twitch intake and host actions. */
-export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => void): CoforgeRuntime {
+export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => void, logger?: Pick<StructuredLogger, 'registerCatalog' | 'current' | 'correlation'>): CoforgeRuntime {
   const storage = new VaultStudioStorage(plugin);
+  const log = operationsLog(logger);
   const listeners = new Set<(notice: StudioNotice) => void>();
   const notify = (message: string, error = false) => { for (const listener of listeners) listener({ message, error }); };
   const timers: Timers = {
@@ -41,6 +44,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const studio = new StudioService(storage, {
     runners: { demo: createDemoRunner(timers), claude: runClaudeStage }, timers, probeRuntime: probeClaude,
     report: error => { report('coforge.workflow'); notify(error.message, true); },
+    events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
   const publisher = new PublicSitePublisher(plugin);
   const twitch = new TwitchModule(studio, {
@@ -52,7 +56,19 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   let disposed = false;
   let failure: string | null = null;
 
+  const diagnostics = () => {
+      const population = studio.state().population;
+      return JSON.stringify({ schema: 'coforge-diagnostics/v1', generatedAt: new Date().toISOString(), counters: population?.counters ?? {},
+        retainedOperations: population?.operations.length ?? 0, omittedOperations: population?.droppedOperations ?? 0, retainedRewards: population?.rewards.length ?? 0,
+        omittedRewards: population?.droppedRewards ?? 0, logs: log.snapshot() }, null, 2);
+  };
+  const saveJson = async (kind: 'export' | 'diagnostics', json: string) => {
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const path = `${storage.dataPath.replace(/coforge-state\.json$/, '')}coforge-${kind}-${stamp}-${crypto.randomUUID()}.json`;
+    await plugin.app.vault.adapter.write(path, json); return path;
+  };
   const host: StudioHostActions = {
+    diagnostics, exportDiagnostics: () => saveJson('diagnostics', diagnostics()),
     twitch: twitch.actions,
     setSecret(name, value) {
       const store = secrets(plugin.app);
@@ -68,11 +84,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       await plugin.app.workspace.getLeaf('tab').openFile(file);
       return true;
     },
-    async saveExport(json) {
-      const path = `${storage.dataPath.replace(/coforge-state\.json$/, '')}coforge-export-${new Date().toISOString().slice(0, 10)}.json`;
-      await plugin.app.vault.adapter.write(path, json);
-      return path;
-    },
+    saveExport: json => saveJson('export', json),
     publishBoard: () => publisher.publish(studio.state(), studio.integration().publicFolder),
     async installPagesWorkflow() {
       const result = await publisher.installWorkflow(studio.integration().publicFolder);

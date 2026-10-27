@@ -5,6 +5,8 @@ import { noteOnly } from '../../../features/coforge/domain/objects';
 import type { PersistedStudio } from '../../../features/coforge/domain/persisted';
 import { createEmptyState, createSeed, defaultIntegration } from '../../../features/coforge/domain/seed';
 import type { AppState } from '../../../features/coforge/domain/types';
+import { registerPlayer } from '../../../features/coforge/application/population';
+import { identity } from '../../../features/coforge/domain/commands';
 
 /** Splits a full state into what the vault storage would keep: idea notes plus the plugin-data file. */
 export function toLoaded(state: AppState | InternalState): LoadedStudio {
@@ -16,6 +18,8 @@ export function toLoaded(state: AppState | InternalState): LoadedStudio {
     ...(state.activeProjectId ? { activeProjectId: state.activeProjectId } : {}),
     ...(state.nextProjectNumber ? { nextProjectNumber: state.nextProjectNumber } : {}),
     botReplies: state.botReplies ?? [],
+    population: state.population,
+    streamMessages: state.streamMessages,
     votes: Object.fromEntries(state.ideas.map(idea => [idea.id, idea.voters])),
     increments: Object.fromEntries(state.ideas.flatMap(idea => idea.increment ? [[idea.id, idea.increment] as const] : [])),
     ingestMeta: internal.ingestMeta ?? { processedMessages: [], lastRequests: {} }, manualHolds: internal.manualHolds ?? [],
@@ -48,6 +52,10 @@ export async function seededStore(state: AppState = createSeed()): Promise<{ sto
 
 export async function emptyStore(): Promise<{ store: StudioStore; storage: MemoryStorage }> {
   return seededStore({ ...createEmptyState(), nextIdeaNumber: 1 });
+}
+/** Explicit registered-viewer fixtures for tests of other protocol/host behavior; onboarding tests use the real !register path. */
+export async function registerTestViewers(store: StudioStore, viewers: readonly Parameters<typeof identity>[0][]): Promise<void> {
+  await store.transaction(state => { for (const viewer of viewers) registerPlayer(state, identity(viewer)); });
 }
 
 /** Node timers behind the numeric handles the studio's Timers port uses. */

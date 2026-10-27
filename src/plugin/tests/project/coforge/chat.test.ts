@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ingestChat } from '../../../features/coforge/application/chat';
 import { StudioStore } from '../../../features/coforge/application/studio-store';
 import { identity, parseCommand } from '../../../features/coforge/domain/commands';
-import { emptyStore } from './memory-storage';
+import { emptyStore as rawEmptyStore, registerTestViewers } from './memory-storage';
 
 describe('chat commands and vote identity', () => {
   it('parses case-insensitive commands and normalized stable IDs', () => {
@@ -75,3 +75,9 @@ describe('chat commands and vote identity', () => {
     expect(store.snapshot().nextIdeaNumber).toBe(1);
   });
 });
+
+async function emptyStore() {
+  const fixture = await rawEmptyStore();
+  await registerTestViewers(fixture.store, [{ username: 'Maker' }, { username: 'Friend' }, { username: 'River', userId: '123', source: 'twitch' }, { username: 'Alice', userId: '42', source: 'twitch' }, ...Array.from({ length: 10 }, (_, i) => ({ username: 'Viewer ' + i, userId: String(i), source: 'api' as const }))]);
+  return fixture;
+}

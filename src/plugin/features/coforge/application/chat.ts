@@ -7,6 +7,9 @@ import { CATEGORIES, CONTRIBUTOR_COLORS, ideaIdFor } from '../domain/types';
 import type { InternalState } from './ports';
 import { addEvent, type StudioStore } from './studio-store';
 import { findProject, projectIdeas } from '../domain/projects';
+import { observePlayer, participationProblem, recordOperation, registerPlayer } from './population';
+import { playerRank, playerRestricted } from '../domain/population';
+import { achievedRank } from '../domain/community-environment';
 
 export interface ChatInput { username: string; userId?: string; text: string; source?: ChatSource; messageId?: string; channelId?: string }
 export interface ChatResult { ok: boolean; message: string; ideaId?: string; duplicate?: boolean }
@@ -66,13 +69,17 @@ function request(state: InternalState, input: ChatInput, userId: string, project
   const project = state.projects.find(project => project.id === projectId && !project.unavailable);
   if (!project) return { ok: false, message: `Project ${projectId} is not available. Use a project ID shown by the streamer.` };
   if (!meaningful(text)) return { ok: false, message: 'Describe the idea in words after !request.' };
-  const previous = state.ingestMeta.lastRequests[userId];
+  const player = state.population.players.find(player => player.id === userId);
+  const previous = requestKind === 'feature' ? player?.lastFeatureAt : state.ingestMeta.lastRequests[`bug:${userId}`];
   const elapsed = previous ? (Date.now() - Date.parse(previous)) / 1000 : Infinity;
   const key = comparable(text);
   const duplicate = projectIdeas(state, projectId).find(i => i.status !== 'rejected' && (i.requestKind ?? 'feature') === requestKind && (comparable(i.description) === key || comparable(i.title) === key));
   if (duplicate) return { ok: true, duplicate: true, ideaId: duplicate.id, message: `That idea already exists as ${duplicate.id}. Use !vote ${duplicate.id} to support it.` };
-  if (elapsed < project.settings.requestCooldownSeconds)
-    return { ok: false, message: `Please wait ${Math.ceil(project.settings.requestCooldownSeconds - elapsed)} seconds before sending another feature request.` };
+  const cooldown = requestKind === 'feature' ? 300 : 15;
+  if (elapsed < cooldown) {
+    recordOperation(state, 'cooldown-rejected', 'none', userId);
+    return { ok: false, message: `Please wait ${Math.ceil(cooldown - elapsed)} seconds before sending another ${requestKind === 'feature' ? 'feature request' : 'bug report'}.` };
+  }
   const pending = state.ideas.filter(i => i.authorId === userId && i.status === 'inbox').length;
   if (pending >= INTAKE_LIMITS.pendingPerViewer)
     return { ok: false, message: `You already have ${pending} ideas waiting for screening. Please wait until they are reviewed.` };
@@ -80,7 +87,9 @@ function request(state: InternalState, input: ChatInput, userId: string, project
   if (recent >= INTAKE_LIMITS.perMinute) return { ok: false, message: 'Lots of ideas are arriving right now. Please send yours again in a minute.' };
   const title = text.length <= 100 ? text : `${text.slice(0, 97).trimEnd()}…`;
   const idea = createIdea(state, { title, description: text, projectId, requestKind, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source: input.source ?? 'simulator' });
-  state.ingestMeta.lastRequests[userId] = now;
+  if (requestKind === 'feature' && player) player.lastFeatureAt = now;
+  else state.ingestMeta.lastRequests[`bug:${userId}`] = now;
+  recordOperation(state, requestKind === 'feature' ? 'request-created' : 'bug-created', 'committed', userId);
   return { ok: true, ideaId: idea.id, message: `Added ${idea.id} to ${projectId} · ${project.settings.projectName}. The community can now !vote ${idea.id}.` };
 }
 
@@ -92,10 +101,13 @@ function status(state: InternalState, ideaId: string): ChatResult {
 }
 
 function me(state: InternalState, userId: string, username: string): string {
+  const player = state.population.players.find(player => player.id === userId);
+  if (!player?.registeredAt) return `${username}: register with !register to join The Hood.`;
   const profile = buildCommunity(state).find(p => p.contributor.id === userId);
   if (!profile) return `${username}: no contributions yet.`;
   const badges = profile.earnedBadges.length ? ` (${profile.earnedBadges.map(b => b.title).join(', ')})` : '';
-  return `${username}: ${profile.ideas} screened ideas · ${profile.votesReceived} votes received · ${profile.votesCast} other ideas backed · ${profile.implementations} accepted implementations · ${profile.earnedBadges.length} badges${badges}.`;
+  const environment = state.population.environment;
+  return `${environment.actorName} ${username}: ${achievedRank(player.xp, environment).name} (rank ${playerRank(player, environment)}) · ${player.xp} XP · ${player.coins} ${environment.currencyName} · ${player.reputation} reputation · ${Math.floor(player.presenceSeconds / 60)} tracked chat-presence minutes · ${profile.ideas} screened ideas · ${profile.votesReceived} votes received · ${profile.votesCast} other ideas backed · ${profile.implementations} accepted implementations · ${profile.earnedBadges.length} badges${badges}.`;
 }
 
 /** Applies one chat message: commands, contributor identity, unique votes, cooldowns and event deduplication. */
@@ -116,34 +128,51 @@ export async function ingestChat(store: StudioStore, raw: ChatInput): Promise<Ch
       return { ok: false, message: 'The channel changed before this event was processed.' };
     const messageKey = input.messageId ? `${source}:${input.messageId}` : undefined;
     const seen = messageKey ? state.ingestMeta.processedMessages.find(m => m.id === messageKey) : undefined;
-    if (seen) return { ok: true, duplicate: true, ...(seen.ideaId ? { ideaId: seen.ideaId } : {}), message: 'This chat event was already processed.' };
+    if (seen) { recordOperation(state, 'duplicate-event', 'none'); return { ok: true, duplicate: true, ...(seen.ideaId ? { ideaId: seen.ideaId } : {}), message: 'This chat event was already processed.' }; }
     const userId = ensureContributor(state, { ...input, source });
     const parsed = parseCommand(text);
+    if (parsed.type !== 'message') recordOperation(state, 'command-observed');
     const now = new Date().toISOString();
+    const player = observePlayer(state, userId, now);
+    recordOperation(state, 'message-observed', 'committed', userId);
     const chat: ChatMessage = { id: crypto.randomUUID(), userId, username: input.username.trim(), text, createdAt: now, kind: 'message', source };
     let result: ChatResult = { ok: true, message: 'Message received.' };
-    if (parsed.type === 'request' || parsed.type === 'bug') { result = request(state, { ...input, source }, userId, parsed.projectId, parsed.text, now, parsed.type === 'bug' ? 'bug' : 'feature'); chat.kind = result.ok ? 'request' : 'error'; }
-    else if (parsed.type === 'vote') { result = addVote(state, parsed.ideaId, { ...input, source }); chat.kind = result.ok ? 'vote' : 'error'; }
+    const problem = ['request', 'bug', 'vote'].includes(parsed.type) ? participationProblem(state, userId) : null;
+    if (parsed.type === 'register') result = registerPlayer(state, userId, now);
+    else if (problem) { result = { ok: false, message: problem }; chat.kind = 'error'; recordOperation(state, 'participation-rejected', 'none', userId); }
+    else if (parsed.type === 'request' || parsed.type === 'bug') { result = request(state, { ...input, source }, userId, parsed.projectId, parsed.text, now, parsed.type === 'bug' ? 'bug' : 'feature'); chat.kind = result.ok ? 'request' : 'error'; }
+    else if (parsed.type === 'vote') { result = addVote(state, parsed.ideaId, { ...input, source }); chat.kind = result.ok ? 'vote' : 'error'; if (result.ok && !result.duplicate) recordOperation(state, 'vote-counted', 'committed', userId); }
     else if (parsed.type === 'invalid') { result = { ok: false, message: parsed.message }; chat.kind = 'error'; }
     else if (parsed.type === 'help') result.message = HELP_TEXT;
     else if (parsed.type === 'status') result = status(state, parsed.ideaId);
     else if (parsed.type === 'me') result.message = me(state, userId, input.username);
+    else if (parsed.type === 'ranks') {
+      const ranks = state.population.environment.ranks;
+      const page = Math.min(parsed.page, Math.max(1, Math.ceil(ranks.length / 5)));
+      result.message = `Ranks ${page}/${Math.max(1, Math.ceil(ranks.length / 5))}: ${ranks.slice((page - 1) * 5, page * 5).map(rank => `${rank.name}: ${rank.minimumXp} XP`).join(' · ')}. Use !me for your rank and progress.`;
+    }
     else if (parsed.type === 'projects') {
       const projects = state.projects.filter(project => !project.unavailable);
       const page = Math.min(parsed.page, Math.max(1, Math.ceil(projects.length / 3)));
       result.message = projects.length ? `Projects ${page}/${Math.ceil(projects.length / 3)}: ${projects.slice((page - 1) * 3, page * 3).map(project => `${project.id}: ${project.settings.projectName}`).join(' · ')}. Use !request <project-id> <idea> or !bug <project-id> <bug>.` : 'No projects are available yet.';
     }
+    if (!result.ok && parsed.type !== 'message') recordOperation(state, 'command-rejected', 'none', userId);
     if (removed && parsed.type !== 'message') result.message += ' Hidden or invisible characters were removed from the message.';
     if (result.ideaId) chat.ideaId = result.ideaId;
     if (source === 'twitch' && input.messageId) chat.externalId = input.messageId;
     if (source === 'twitch' && input.channelId) chat.twitchChannelId = input.channelId;
     state.chat.push(chat);
-    const botReply = source === 'twitch' && state.integration.twitchEnabled && state.integration.twitchBotReplies && state.integration.twitchBroadcasterId && input.messageId && parsed.type !== 'message';
+    const greeting = parsed.type === 'message' && source === 'twitch' && state.integration.twitchBotReplies && !player.registeredAt
+      && !playerRestricted(player, state.integration.twitchBroadcasterId) && (!player.greetedAt || Date.now() - Date.parse(player.greetedAt) >= 86_400_000);
+    if (greeting) result.message = `Welcome ${input.username}! Type !register to join The Hood, request features, report bugs and vote. Use !help for commands.`;
+    const botReply = source === 'twitch' && state.integration.twitchEnabled && state.integration.twitchBotReplies && state.integration.twitchBroadcasterId && input.messageId && (parsed.type !== 'message' || greeting);
     if (botReply && input.messageId) {
       const full = state.botReplies.filter(reply => reply.status === 'pending' || reply.status === 'sending').length >= 50;
       state.botReplies.push({ id: messageKey!, parentMessageId: input.messageId, channelId: state.integration.twitchBroadcasterId,
+        ...(greeting ? { greetingPlayerId: userId } : {}),
         senderId: state.integration.twitchBotUsesStreamer ? state.integration.twitchBroadcasterId : state.integration.twitchBotUserId,
         text: [...result.message].slice(0, 500).join(''), createdAt: now, status: full ? 'failed' : 'pending', ...(full ? { error: 'Reply queue is full.' } : {}) });
+      if (greeting && !full) { player.greetedAt = now; recordOperation(state, 'greeted', 'committed', userId); }
     }
     if (parsed.type !== 'message' && !botReply) state.chat.push({
       id: crypto.randomUUID(), userId: 'system:coforge', username: 'CoForge', text: result.message, kind: result.ok ? 'system' : 'error',

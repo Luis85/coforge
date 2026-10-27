@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import type { AppState } from '../../features/coforge/domain/types';
 import { projectIdeas as scopedIdeas } from '../../features/coforge/domain/projects';
 
-export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects';
+export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects' | 'population' | 'operations' | 'community-settings';
 export interface Toast { id: number; message: string; error: boolean }
 
 /** Per-view projection of the studio state plus view-local navigation, overlays and feedback. */
@@ -15,6 +15,8 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   const help = ref(false);
   const activityOpen = ref(false);
   const dirtySettings = ref(false);
+  const dirtyCommunitySettings = ref(false);
+  const streamTool = ref<'channel' | 'messages'>('channel');
   const moderationTarget = ref<{ channelId: string; username: string; userId?: string; messageId?: string } | null>(null);
   const pending = ref(0);
   const toasts = ref<Toast[]>([]);
@@ -36,7 +38,10 @@ export const useStudioStore = defineStore('coforge-studio', () => {
     const timer = window.setTimeout(() => { timers.delete(timer); dismiss(id); }, error ? 8500 : 4500);
     timers.add(timer);
   }
-  function navigate(next: StudioView) { view.value = next; activityOpen.value = false; }
+  function navigate(next: StudioView) {
+    if (dirtyCommunitySettings.value && next !== 'community-settings') { notify('Save or discard your community settings before leaving.', true); return; }
+    view.value = next; activityOpen.value = false;
+  }
   function select(id: string | null) { selected.value = id; activityOpen.value = false; }
   function dispose() { for (const timer of timers) window.clearTimeout(timer); timers.clear(); }
 
@@ -54,6 +59,6 @@ export const useStudioStore = defineStore('coforge-studio', () => {
     } finally { pending.value = Math.max(0, pending.value - 1); }
   }
 
-  return { state, view, selected, creating, help, activityOpen, dirtySettings, moderationTarget, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
+  return { state, view, selected, creating, help, activityOpen, dirtySettings, dirtyCommunitySettings, streamTool, moderationTarget, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
     activeJob, selectedIdea, notify, dismiss, navigate, select, mutate, dispose };
 });

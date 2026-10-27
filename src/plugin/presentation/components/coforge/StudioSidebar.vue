@@ -33,6 +33,7 @@ const model = useStudioShell();
       </button>
     </nav>
     <div class="cf-sidebar-bottom">
+      <button type="button" class="cf-nav-item" :class="{ 'is-active': model.store.view === 'community-settings' }" :aria-current="model.store.view === 'community-settings' ? 'page' : undefined" aria-label="Community settings" title="Community settings" @click="model.store.navigate('community-settings')"><CfIcon name="users-round" /><span>Community settings</span></button>
       <button type="button" class="cf-nav-item" aria-label="How it works" title="How it works" @click="model.store.help = true">
         <CfIcon name="circle-help" />
         <span>How it works</span>

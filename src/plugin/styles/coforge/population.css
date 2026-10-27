@@ -1,0 +1,71 @@
+.cf-population-page, .cf-operations-page { padding: 28px; min-width: 0; }
+.cf-community-settings-page { padding: 28px; min-width: 0; max-width: 1100px; }
+.cf-community-settings-page h2 { font-size: 17px; color: var(--cf-text); }
+.cf-community-settings-page p { font-size: 12px; line-height: 1.7; color: var(--cf-muted); margin: 10px 0; }
+.cf-community-settings-form > section { padding: 22px 0; border-bottom: 1px solid var(--cf-border); }
+.cf-community-settings-form > .cf-settings-actions { margin: 24px 0; }
+.cf-rank-ladder { display: flex; flex-direction: column; gap: 16px; margin: 20px 0; }
+.cf-rank-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(100px, 1fr) auto; gap: 14px; align-items: end; }
+.cf-population-page p, .cf-operations-page p, .cf-stream-messages p { font-size: 12px; line-height: 1.7; color: var(--cf-muted); margin: 10px 0; }
+.cf-population-tracking { padding-bottom: 14px; border-bottom: 1px solid var(--cf-border); }
+.cf-population-toolbar { display: flex; align-items: flex-end; gap: 18px; margin: 22px 0; flex-wrap: wrap; }
+.cf-population-toolbar .cf-field { flex: 1; min-width: 160px; }
+.cf-population-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(290px, 390px); gap: 26px; align-items: start; }
+.cf-player-list, .cf-player-detail, .cf-operations-page section { min-width: 0; }
+.cf-data-scroll { max-width: 100%; overflow: auto; }
+.cf-data-scroll:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: -2px; }
+.cf-data-scroll td { overflow-wrap: anywhere; }
+.cf-studio .cf-player-name { display: flex; align-items: flex-start; flex-direction: column; gap: 5px; text-align: left; height: auto; padding: 4px 0; white-space: normal; background: none; border: 0; color: var(--cf-text); font-size: 13px; }
+.cf-player-name small { font-size: 11px; color: var(--cf-muted); overflow-wrap: anywhere; }
+.cf-player-list tr.is-selected { background: var(--cf-accent-soft); }
+.cf-player-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; font-size: 11px; color: var(--cf-muted); }
+.cf-player-pagination > span { margin-right: auto; }
+.cf-player-detail { border: 1px solid var(--cf-border); border-radius: var(--radius-l); padding: 20px; }
+.cf-player-detail h2 { font-size: 20px; color: var(--cf-text); }
+.cf-player-detail h2, .cf-player-stats dd, .cf-population-toolbar .cf-field > span, .cf-community-settings-page .cf-field > span { overflow-wrap: anywhere; }
+.cf-player-detail code { font-size: 12px; overflow-wrap: anywhere; }
+.cf-player-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; margin: 18px 0; }
+.cf-player-stats > div { padding: 10px 0; border-bottom: 1px solid var(--cf-border); }
+.cf-player-stats dt, .cf-operations-stats dt { font-size: 11px; color: var(--cf-muted); line-height: 1.6; }
+.cf-player-stats dd { margin: 3px 0 0; font-size: 17px; color: var(--cf-text); font-variant-numeric: tabular-nums; }
+.cf-player-actions { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--cf-border); }
+.cf-player-actions h3, .cf-operations-page h2, .cf-stream-messages h2 { font-size: 16px; color: var(--cf-text); }
+.cf-player-actions .cf-field { margin: 12px 0; }
+.cf-player-detail details { padding: 18px 0; }
+.cf-player-detail summary, .cf-economy-settings summary { cursor: pointer; font-size: 13px; color: var(--cf-text); }
+.cf-player-detail details:not([open]) > :not(summary), .cf-economy-settings:not([open]) > :not(summary) { display: none; }
+.cf-reward-list { padding-left: 18px; font-size: 12px; line-height: 1.8; color: var(--cf-muted); }
+.cf-operations-stats { display: flex; flex-wrap: wrap; gap: 18px 30px; margin: 26px 0; padding-bottom: 22px; border-bottom: 1px solid var(--cf-border); }
+.cf-operations-stats > div { flex: 1 1 150px; }
+.cf-operations-stats dd { font-size: 20px; margin: 4px 0 0; color: var(--cf-text); font-variant-numeric: tabular-nums; }
+.cf-operation-groups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 24px 0; }
+.cf-operation-groups h2 { font-size: 15px; }
+.cf-operation-groups .cf-operations-stats { display: block; margin: 14px 0 0; }
+.cf-operation-groups .cf-operations-stats > div { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 6px 0; }
+.cf-operation-groups .cf-operations-stats dd { font-size: 15px; }
+.cf-economy-settings { margin: 24px 0; }
+.cf-economy-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 20px 0; }
+.cf-economy-fields + button { margin-bottom: 14px; }
+.cf-stream-tabs { display: flex; gap: 18px; margin-bottom: 24px; border-bottom: 1px solid var(--cf-border); }
+.cf-studio .cf-stream-tabs button { padding: 10px 0; height: auto; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--cf-muted); }
+.cf-studio .cf-stream-tabs button[aria-selected="true"] { color: var(--cf-text); border-bottom-color: var(--cf-accent); }
+.cf-stream-messages { max-width: 850px; }
+.cf-stream-message-form { display: flex; flex-direction: column; align-items: stretch; gap: 14px; margin: 24px 0 30px; padding: 22px 0; border-block: 1px solid var(--cf-border); }
+.cf-stream-message-form h3 { font-size: 15px; }
+.cf-stream-message-form input { max-width: 180px; }
+.cf-stream-message-list { padding: 0; list-style: none; }
+.cf-stream-message-list > li { padding: 20px 0; border-bottom: 1px solid var(--cf-border); }
+.cf-stream-message-list > li > div:first-child { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--cf-muted); }
+.cf-stream-message-list strong { color: var(--cf-text); }
+.cf-stream-message-text { color: var(--cf-text) !important; white-space: pre-wrap; overflow-wrap: anywhere; }
+@container plugin-shell-leaf (max-width: 1150px) { .cf-population-layout { grid-template-columns: minmax(0, 1fr); } }
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-population-page, .cf-operations-page { padding: 22px 14px; }
+  .cf-community-settings-page { padding: 22px 14px; }
+  .cf-operation-groups { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .cf-rank-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .cf-population-toolbar { gap: 14px; }
+  .cf-player-detail { padding: 14px; }
+  .cf-economy-fields { grid-template-columns: minmax(0, 1fr); }
+  .cf-stream-tabs { gap: 14px; }
+}

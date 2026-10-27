@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { TwitchOutbox } from '../../../infrastructure/coforge/twitch-outbox';
+import { BotDeliveryWorker } from '../../../features/coforge/application/bot-delivery';
 import { TwitchAccounts, BOT_SCOPES } from '../../../infrastructure/coforge/twitch-auth';
 import { TwitchApi } from '../../../infrastructure/coforge/twitch-api';
 import { TwitchError, type HttpRequest } from '../../../infrastructure/coforge/twitch-http';
@@ -22,7 +22,7 @@ async function setup(send: () => Promise<{ status: number; json: unknown }>) {
     ? { status: 200, json: { client_id: 'client', user_id: '123', login: 'streamer', scopes: BOT_SCOPES } } : send();
   const accounts = new TwitchAccounts(request, { getSecret: () => 'test-token', setSecret: () => undefined }, () => config);
   const api = new TwitchApi(request, accounts, () => config); const reports = vi.fn();
-  const outbox = new TwitchOutbox(studio, api, () => true, () => ({ id: '123', login: 'streamer', scopes: BOT_SCOPES }), reports, timers);
+  const outbox = new BotDeliveryWorker(studio, api, () => true, () => ({ id: '123', login: 'streamer', scopes: BOT_SCOPES }), reports, timers);
   cleanup.push(async () => { await outbox.stop(); await studio.stop(); });
   return { outbox, studio, storage, reports };
 }

@@ -6,7 +6,7 @@ import { cleanDeep, escapeMarkdown, sanitizeText, unescapeMarkdown } from '../..
 import { defaultSettings } from '../../../features/coforge/domain/seed';
 import type { Idea } from '../../../features/coforge/domain/types';
 import { heuristicSignals } from '../../../features/coforge/domain/workflow';
-import { emptyStore } from './memory-storage';
+import { emptyStore as rawEmptyStore, registerTestViewers } from './memory-storage';
 
 /** Encodes ASCII as invisible Unicode tag characters ("ASCII smuggling"). */
 const smuggle = (text: string) => [...text].map(character => String.fromCodePoint(0xE0000 + character.charCodeAt(0))).join('');
@@ -80,3 +80,9 @@ describe('idea note bodies', () => {
     expect(ideaFileName({ id: 'CF-101', title: 'A​ rod/../x' })).toBe('CF-101 A rod .. x.md');
   });
 });
+
+async function emptyStore() {
+  const fixture = await rawEmptyStore();
+  await registerTestViewers(fixture.store, [{ username: 'River' }, { username: 'Alice' }, { username: 'Bob' }]);
+  return fixture;
+}

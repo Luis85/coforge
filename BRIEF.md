@@ -47,7 +47,8 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   Each project has its own requests and workflow. A project's repository may be outside the vault;
   the vault is the streamer's CoForge command centre, not the game repository.
 - Plugin data (`coforge-state.json` in the plugin folder): votes, increments,
-  contributors, chat log, agent runs, activity, settings and integration settings.
+  contributors, registered players, community environment/ranks, balances/reward claims,
+  operational counters/history, recurring messages/delivery intents, chat, agent runs and settings.
 - Obsidian secret storage: Twitch access/refresh token pairs for streamer and bot (referenced by name only).
 - Public viewer board (default `CoForge/Public`): `index.html`, `styles.css`, `board.json` with screened ideas,
   vote counts, scores, plans, display names and badges only. Deployed to GitHub Pages from the vault
@@ -55,9 +56,9 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ## Must-have journeys
 
-- The streamer loads the sample workspace, sends `!request CFP-001 Add a lantern` in the chat
+- The streamer loads the sample workspace, sends `!register`, then `!request CFP-001 Add a lantern` in the chat
   simulator, sees `CF-116` acknowledged and a new note `CoForge/Ideas/CF-116 Add a lantern.md`.
-- A second simulated viewer sends `!vote CF-116`; a repeated vote is reported as already counted.
+- A second registered simulated viewer sends `!vote CF-116`; a repeated vote is reported as already counted.
 - The streamer screens, scores, plans and builds the idea from the idea drawer (demo
   agents), inspects plan and increment, and accepts it; the author's badges update.
 - With automation resumed, enabled stages run one at a time; restarting Obsidian pauses automation.
@@ -96,6 +97,28 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   Remove fictitious channel information and redundant marketing copy; project IDs must remain legible and discoverable.
 - Implementation defaults for the Twitch milestone: fresh installs start without invented projects;
   sample data and local command testing require explicit actions. Automatic public bot replies are opt-in.
+- 2026-10-27: `!register` creates one persistent channel-wide player profile. Registration is required
+  for `!request`, `!bug` and `!vote`; existing contributor history is preserved without silently registering people.
+- 2026-10-27: viewers wait five minutes between feature requests across projects. Bug reports retain
+  separate intake protections and do not consume or reset the feature-request cooldown.
+- 2026-10-27: population management lists registered players and their activity/economy. Block restricts
+  CoForge participation; mute is a Twitch timeout; ban is a Twitch channel ban. Actions require explicit targets.
+- 2026-10-27: credit registered, eligible players observed in chat while the stream is live. Label this
+  tracked chat-presence time, not verified video watch time. Do not credit offline, missing-data or disconnected gaps.
+- 2026-10-27: adjustable starting rules are 1 coin and 1 XP per credited minute; 10 reputation and 10 XP
+  per screened feature; 50 reputation and 50 XP per accepted feature; one rank per 100 XP (starting at rank 1).
+  Registration grants no initial balance. Rewards are recorded once per milestone with durable evidence.
+- Greeting implementation: prompt unregistered viewers on their first observed message, with at most
+  one registration greeting per viewer per 24 hours. Public greetings use the existing opt-in chatbot reply setting.
+  Registration creates the player account; spawning an actor in the external game remains a later game-runtime integration.
+- 2026-10-27: maintain recurring stream messages in the plugin, with editable text and intervals plus
+  per-message pause/activate. Post only while live, with automatic bot messages enabled; never replay missed intervals.
+- 2026-10-27: dedicated Community settings name the community actor (default Agent) and currency
+  (default gold), and configure earning rules and named ranks with minimum XP thresholds. This named
+  rank ladder replaces the earlier fixed 100-XP progression decision. The starting rank is Agent at 0 XP;
+  further names/thresholds are configured by the streamer. Existing balances are preserved when labels/ranks change.
+- 2026-10-27: the technical review includes clear application/integration contracts, separated concerns,
+  post-commit events and independent test seams for maintenance and further development.
 
 ## Open questions
 
