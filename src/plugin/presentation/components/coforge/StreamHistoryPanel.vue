@@ -15,7 +15,7 @@ const model = useStreamHistory();
     </p>
     <label class="cf-field"
       ><span>Recorded stream</span
-      ><select v-model="model.store.historySelection" :disabled="!model.entries.length">
+      ><select v-model="model.store.historySelection" aria-label="Recorded stream" :disabled="!model.entries.length">
         <option value="">{{ model.entries.length ? "Choose a stream" : "No streams recorded yet" }}</option>
         <option v-for="stream in model.entries" :key="stream.id" :value="stream.id">{{ model.label(stream) }}</option>
       </select></label
