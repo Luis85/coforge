@@ -177,3 +177,4 @@ export function useFinance() {
   });
 }
 export type FinanceModel = ReturnType<typeof useFinance>;
+export function useFinanceDraft() { return useFinanceStore(); }

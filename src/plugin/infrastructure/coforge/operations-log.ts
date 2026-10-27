@@ -1,19 +1,26 @@
 import { defineLogCatalog } from "../../features/api";
 import type { StructuredLogger } from "../../application/logging";
 import { OPERATION_CODES, type OperationRecord } from "../../features/coforge/domain/population";
+import { OBS_SCENE_KINDS } from '../../features/coforge/domain/obs-scenes';
+
+const toolCodes = new Set(OPERATION_CODES.filter(code => /^(music|herdr|finance)-/.test(code)));
+const operations = ["population", "economy", "twitch", "moderation", "chat", "broadcast", "workflow", ...OBS_SCENE_KINDS.map(kind => `scene.${kind}` as const)] as const;
 
 const catalog = defineLogCatalog("coforge", {
-  codes: OPERATION_CODES,
-  operations: ["population", "economy", "twitch", "moderation", "chat", "broadcast", "workflow"],
+  codes: OPERATION_CODES.filter(code => !toolCodes.has(code)),
+  operations,
 });
+const toolsCatalog = defineLogCatalog('coforge.tools', { codes: OPERATION_CODES.filter(code => toolCodes.has(code)), operations });
 /** Diagnostic records contain only declared codes and aggregate metadata, never player IDs or message text. */
 export function operationsLog(logger?: Pick<StructuredLogger, "registerCatalog" | "current" | "correlation">) {
-  const log = logger?.registerCatalog(catalog);
+  const core = logger?.registerCatalog(catalog);
+  const tools = logger?.registerCatalog(toolsCatalog);
   return {
     record(record: OperationRecord): void {
+      const log = toolCodes.has(record.code) ? tools : core;
       const correlation = logger?.correlation();
-      const metadata = { count: record.count, effect: record.effect, ...(record.action ? { action: record.action } : {}), ...(correlation ? { correlation } : {}) };
-      const operation = record.code.startsWith('obs-') || record.code.startsWith('stream-') || record.code.startsWith('twitch-channel-') ? 'broadcast' : record.code.startsWith('project-') ? 'workflow' : record.code.startsWith("job-")
+      const metadata = { count: record.count, effect: record.effect, ...(correlation ? { correlation } : {}) };
+      const operation = record.action ? `scene.${record.action}` as const : record.code.startsWith('obs-') || record.code.startsWith('stream-') || record.code.startsWith('twitch-channel-') || record.code.startsWith('music-') ? 'broadcast' : record.code.startsWith('finance-') ? 'economy' : record.code.startsWith('herdr-') || record.code.startsWith('project-') ? 'workflow' : record.code.startsWith("job-")
         ? "workflow"
         : record.code.startsWith("moderation")
           ? "moderation"

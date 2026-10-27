@@ -4,9 +4,18 @@ import { recordOperation } from "../../../features/coforge/application/populatio
 import { operationsLog } from "../../../infrastructure/coforge/operations-log";
 import { StructuredLogger } from "../../../application/logging";
 import type { OperationRecord } from "../../../features/coforge/domain/population";
+import { OPERATION_CODES } from '../../../features/coforge/domain/population';
 import { MemoryStorage } from "./memory-storage";
 
 describe("operational evidence", () => {
+  it('admits every declared operation and scene action through bounded safe catalogs', () => {
+    const logger = new StructuredLogger({ report: () => undefined }, () => new Date().toISOString(), { capacity: 1000 });
+    logger.setLevel('debug'); const log = operationsLog(logger);
+    for (const code of OPERATION_CODES) log.record({ sequence: 1, at: new Date().toISOString(), code, count: 1, effect: 'committed', ...(code === 'obs-scene-action-confirmed' ? { action: 'scene-create' as const } : {}) });
+    expect(log.snapshot()).toHaveLength(OPERATION_CODES.length); expect(logger.statistics.rejected).toBe(0);
+    expect(log.snapshot().find(record => record.code === 'coforge.obs-scene-action-confirmed')?.operation).toBe('coforge.scene.scene-create');
+    logger.dispose();
+  });
   it("publishes only after a successful commit and bounds records without losing counters", async () => {
     const storage = new MemoryStorage();
     const observed: OperationRecord[] = [];

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { FinanceModel } from "../../composables/coforge/use-finance";
+import { useFinanceDraft, type FinanceModel } from "../../composables/coforge/use-finance";
 defineProps<{ model: FinanceModel }>();
+const fields = useFinanceDraft();
 </script>
 <template>
   <section aria-label="Finance entry editor">
@@ -8,7 +9,7 @@ defineProps<{ model: FinanceModel }>();
     <form @submit="model.save">
       <label class="cf-field"
         ><span>Entry type</span
-        ><select v-model="model.store.draft.kind" aria-label="Entry type">
+        ><select v-model="fields.draft.kind" aria-label="Entry type">
           <option value="expense">Expense payment</option>
           <option value="income">Income received</option>
           <option value="recurring">Recurring expense plan</option>
@@ -16,12 +17,12 @@ defineProps<{ model: FinanceModel }>();
       >
       <label class="cf-field"
         ><span>Finance description</span
-        ><input v-model="model.store.draft.name" required maxlength="200"
+        ><input v-model="fields.draft.name" required maxlength="200"
       /></label>
       <label class="cf-field"
         ><span>Amount (EUR)</span
         ><input
-          v-model="model.store.amount"
+          v-model="fields.amount"
           aria-label="Amount (EUR)"
           aria-describedby="cf-finance-amount-help"
           inputmode="decimal"
@@ -39,7 +40,7 @@ defineProps<{ model: FinanceModel }>();
             : "Payment date"
         }}</span
         ><input
-          v-model="model.store.draft.date"
+          v-model="fields.draft.date"
           aria-label="Finance date"
           type="date"
           required
@@ -47,7 +48,7 @@ defineProps<{ model: FinanceModel }>();
       <label class="cf-field"
         ><span>Finance category</span
         ><input
-          v-model="model.store.draft.category"
+          v-model="fields.draft.category"
           maxlength="100"
           placeholder="For example: software, tips, sponsorship"
       /></label>
@@ -55,7 +56,7 @@ defineProps<{ model: FinanceModel }>();
         <label class="cf-field"
           ><span>Expense interval</span
           ><select
-            v-model="model.store.draft.cadence"
+            v-model="fields.draft.cadence"
             aria-label="Expense interval"
           >
             <option value="weekly">Weekly</option>
@@ -64,7 +65,7 @@ defineProps<{ model: FinanceModel }>();
           </select></label
         >
         <label class="cf-project-repository-toggle"
-          ><input v-model="model.store.draft.active" type="checkbox" /><span
+          ><input v-model="fields.draft.active" type="checkbox" /><span
             >Recurring plan active</span
           ></label
         >
@@ -76,7 +77,7 @@ defineProps<{ model: FinanceModel }>();
       <label v-else class="cf-field"
         ><span>Attributed stream</span
         ><select
-          v-model="model.store.draft.streamId"
+          v-model="fields.draft.streamId"
           aria-label="Attributed stream"
         >
           <option value="">Not attributed to a stream</option>

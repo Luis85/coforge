@@ -85,9 +85,13 @@ describe("Live studio in the contained vault", () => {
     await browserExpect(
       music.getByRole("region", { name: "Music playback", exact: true }),
     ).toContainText("stopped");
-    await view
-      .getByRole("button", { name: "Agent workflow", exact: true })
-      .click();
+    await view.locator('.cf-project-switcher').click();
+    await view.getByRole('button', { name: 'Add project', exact: true }).click();
+    await view.getByLabel('Project name', { exact: true }).fill('Contained tools project');
+    await view.getByLabel(/^Project path/).fill('/synthetic/game');
+    await view.getByLabel('Description', { exact: true }).fill('Contained host integration checks.');
+    await view.getByRole('button', { name: 'Create project', exact: true }).click();
+    await view.getByRole("button", { name: "Agent workflow", exact: true }).click();
     const herdr = view.locator(".cf-herdr");
     await herdr.locator(":scope > summary").click();
     await browserExpect(herdr).toContainText("start the chosen Herdr session");
