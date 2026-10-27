@@ -15,6 +15,7 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   const help = ref(false);
   const activityOpen = ref(false);
   const dirtySettings = ref(false);
+  const moderationTarget = ref<{ channelId: string; username: string; userId?: string; messageId?: string } | null>(null);
   const pending = ref(0);
   const toasts = ref<Toast[]>([]);
   const timers = new Set<number>();
@@ -53,6 +54,6 @@ export const useStudioStore = defineStore('coforge-studio', () => {
     } finally { pending.value = Math.max(0, pending.value - 1); }
   }
 
-  return { state, view, selected, creating, help, activityOpen, dirtySettings, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
+  return { state, view, selected, creating, help, activityOpen, dirtySettings, moderationTarget, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
     activeJob, selectedIdea, notify, dismiss, navigate, select, mutate, dispose };
 });

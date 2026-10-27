@@ -19,6 +19,7 @@ export interface Idea {
   id: string; number: number; title: string; description: string; authorId: string; category: Category; status: IdeaStatus;
   /** Absent only on legacy notes, which migrate to the initial project. */
   projectId?: string;
+  requestKind?: 'feature' | 'bug';
   voters: string[]; createdAt: string; updatedAt: string;
   screening?: Screening; rice?: RiceScore; plan?: ImplementationPlan; increment?: Increment; reviewNote?: string; lastError?: string;
 }
@@ -27,6 +28,8 @@ export type ChatSource = 'simulator' | 'twitch' | 'api';
 export interface ChatMessage {
   id: string; userId: string; username: string; text: string; createdAt: string;
   kind: 'message' | 'request' | 'vote' | 'system' | 'error'; ideaId?: string; source: ChatSource;
+  externalId?: string;
+  twitchChannelId?: string;
 }
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
@@ -43,6 +46,7 @@ export interface Settings {
 export interface RuntimeInfo {
   cliAvailable: boolean; projectPath: string | null; allowImplementation: boolean;
   chatSource: 'simulator' | 'twitch'; chatStatus: string; activeJobId?: string;
+  twitch?: import('./twitch').TwitchState;
 }
 export interface StudioProject {
   id: string; settings: Settings; projectPath: string; worktreeFolder: string; allowImplementation: boolean;
@@ -56,11 +60,13 @@ export interface AppState {
   jobs: AgentJob[]; events: Activity[]; settings: Settings; runtime: RuntimeInfo;
   /** Optional on legacy input only. The application store always supplies these fields. */
   projects?: StudioProject[]; activeProjectId?: string; nextProjectNumber?: number;
+  botReplies?: import('./twitch').BotReply[];
 }
 /** Host-side configuration that replaced the prototype's .env file. Secrets are referenced by name only. */
 export interface IntegrationSettings {
   ideasFolder: string; claudeBin: string; projectPath: string; allowImplementation: boolean; worktreeFolder: string;
   twitchEnabled: boolean; twitchClientId: string; twitchBotUserId: string; twitchBroadcasterId: string; twitchTokenSecret: string;
+  twitchStreamerSecret: string; twitchBotUsesStreamer: boolean; twitchBotReplies: boolean;
   /** Vault folder for the public viewer board (static site + board.json), deployed to GitHub Pages from main. */
   publicFolder: string; publicBoardEnabled: boolean;
 }

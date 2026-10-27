@@ -13,11 +13,12 @@ export const defaultSettings = (): Settings => ({
 export const defaultIntegration = (): IntegrationSettings => ({
   ideasFolder: 'CoForge/Ideas', claudeBin: 'claude', projectPath: '', allowImplementation: false, worktreeFolder: '',
   twitchEnabled: false, twitchClientId: '', twitchBotUserId: '', twitchBroadcasterId: '', twitchTokenSecret: 'coforge-twitch-token',
+  twitchStreamerSecret: 'coforge-twitch-streamer', twitchBotUsesStreamer: true, twitchBotReplies: false,
   publicFolder: 'CoForge/Public', publicBoardEnabled: false,
 });
 
 export const defaultRuntime = (): RuntimeInfo => ({
-  cliAvailable: false, projectPath: null, allowImplementation: false, chatSource: 'simulator', chatStatus: 'Simulator ready',
+  cliAvailable: false, projectPath: null, allowImplementation: false, chatSource: 'simulator', chatStatus: 'Twitch is not connected',
 });
 
 /** A project with no ideas yet. The sample workspace is loaded only on explicit request. */

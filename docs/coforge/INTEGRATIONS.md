@@ -95,28 +95,52 @@ sandbox.** Use a trusted repository without secrets and review generated code be
 running it. The spend cap is per invocation; automated runs can make repeated billable
 calls, so review automation, interval and budget settings before enabling them.
 
-## 2. Connect Twitch chat (receive-only)
+## 2. Connect Twitch and manage the channel
 
-CoForge receives chat through Twitch EventSub WebSockets; no public webhook is needed.
-It does **not** post to Twitch: IDs and command results appear in the studio chat.
+Open **Stream chat → Connection settings** (also available in the native CoForge settings).
+Register a **public** Twitch application and enter its Client ID. CoForge uses Twitch's
+[device authorization flow](https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#device-code-grant-flow);
+it does not need an application secret or a public webhook.
 
-1. Register an application with Twitch and obtain a **User Access Token** with
-   `user:read:chat` for the account that reads chat (official guide:
-   <https://dev.twitch.tv/docs/chat/authenticating/>).
-2. In the CoForge settings tab enter the **Client ID**, **bot user ID** and
-   **broadcaster ID**, then paste the token into **Twitch token** and press **Save
-   token**. The token is stored in Obsidian's secret storage under the configured
-   secret name — never in the vault or in `coforge-state.json` — and is never shown again.
-3. Enable **Connect Twitch chat**. The status bar shows the connection state.
+1. Choose whether the streamer account also serves as the chatbot. Connect the streamer,
+   open the displayed Twitch activation link and enter the displayed code. For a separate
+   chatbot, connect that account separately in a browser signed into the intended account.
+2. Enable **Receive Twitch chat** and save the connection. CoForge derives channel and bot
+   IDs from validated accounts; the channel identity and connection state come from Twitch.
+3. Opt into **Enable automatic chatbot command replies** when ready for public replies.
+   This is off by default, including upgrades. The live composer sends as the connected bot;
+   **Test commands locally** is explicit and never posts to Twitch.
+4. Add projects under **Projects**. Viewers discover them with `!projects` (or `!projects 2`)
+   and submit `!request CFP-001 Add a lantern` or `!bug CFP-001 The gate crashes`.
+   Both require a known project ID. `!vote CF-001`, `!status CF-001`, `!me` and `!help`
+   are also supported. The bot ignores messages authored by its own account to prevent loops.
 
-The adapter validates the token's client, user and scope at connection time and every
-55 minutes, follows reconnect transfers and revocations, and reconnects with bounded
-backoff. Twitch message IDs deduplicate redelivered events, and stable
-`chatter_user_id` values keep one vote per viewer. Twitch does not replay events missed
-while disconnected. An expired token shows a status message; save a new token to
-reconnect.
+The bot needs `user:read:chat` and `user:write:chat`. Channel controls use the broadcaster's
+authorization with `channel:manage:broadcast`, `moderator:manage:chat_messages` and
+`moderator:manage:banned_users`. When the streamer also serves as the bot, its authorization
+includes both sets. Missing permissions disable controls and require reconnection.
+Access and rotating refresh tokens are stored together in Obsidian secret storage, never in
+project notes or plugin JSON. Legacy manual user tokens remain available under advanced settings;
+they cannot refresh without a refresh token.
 
-The prototype's platform-neutral HTTP ingestion bridge is not part of the plugin.
+Channel controls support title/category updates and explicit single-message deletion, timeouts
+and bans. Select **Moderate** on a current-channel message or enter a target in the moderation
+form. Review the resolved account/message and confirm before the operation is sent. Changing
+the channel invalidates an existing confirmation. There is no clear-all-chat action.
+
+The adapter validates accounts at connection and every 55 minutes, serializes rotating refreshes,
+follows EventSub reconnect transfers, and reconnects with bounded backoff. Stable Twitch message
+and user IDs prevent duplicate requests and votes. Twitch does not replay messages missed while
+disconnected; CoForge shows disconnection rather than inventing activity.
+
+Command intake and outbound acknowledgement are persisted together. A successful HTTP response
+counts as delivery only when Twitch confirms `is_sent` and a message ID. Rate limits back off;
+expired or refused replies appear under **Bot delivery needs attention**. Sends with an unknown
+outcome, including a crash while sending, are held as **Delivery unconfirmed** and are never
+automatically replayed. Check the channel before manually sending a replacement.
+
+Protocol behavior is tested with fake HTTP and sockets. Live account authorization, channel
+permissions and moderation still need streamer-operated acceptance on a test channel.
 
 ## 3. Publish the viewer website (GitHub Pages)
 

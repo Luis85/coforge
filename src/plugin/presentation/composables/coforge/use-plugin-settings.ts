@@ -44,6 +44,8 @@ function changes(draft: IntegrationSettings, saved: IntegrationSettings): Partia
   for (const key of TEXT_KEYS) if (draft[key].trim() !== saved[key]) patch[key] = draft[key].trim();
   if (draft.allowImplementation !== saved.allowImplementation) patch.allowImplementation = draft.allowImplementation;
   if (draft.twitchEnabled !== saved.twitchEnabled) patch.twitchEnabled = draft.twitchEnabled;
+  if (draft.twitchBotUsesStreamer !== saved.twitchBotUsesStreamer) patch.twitchBotUsesStreamer = draft.twitchBotUsesStreamer;
+  if (draft.twitchBotReplies !== saved.twitchBotReplies) patch.twitchBotReplies = draft.twitchBotReplies;
   if (draft.publicBoardEnabled !== saved.publicBoardEnabled) patch.publicBoardEnabled = draft.publicBoardEnabled;
   return patch;
 }
@@ -70,6 +72,13 @@ function createPluginSettings() {
     loaded.value = true;
   };
   watch(() => store.state !== null, ready => { if (ready && !loaded.value) load(); }, { immediate: true });
+  watch(() => store.state, () => {
+    if (!loaded.value || !store.state) return;
+    const next = actions.integration();
+    for (const key of TEXT_KEYS) if (draft[key] === saved.value[key]) draft[key] = next[key];
+    for (const key of ['twitchEnabled', 'twitchBotUsesStreamer', 'twitchBotReplies'] as const) if (draft[key] === saved.value[key]) draft[key] = next[key];
+    saved.value = next;
+  });
 
   const patch = computed(() => changes(draft, saved.value));
   const dirty = computed(() => Object.keys(patch.value).length > 0);

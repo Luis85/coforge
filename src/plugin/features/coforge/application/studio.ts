@@ -37,7 +37,7 @@ export class StudioService {
 
   state(): AppState { return this.store.snapshot(); }
   subscribe(listener: (state: AppState) => void): () => void { return this.store.subscribe(listener); }
-  integration(): IntegrationSettings { return this.store.internalSnapshot().integration; }
+  integration(): IntegrationSettings { return this.store.integrationSnapshot(); }
   onIntegrationChange(listener: (integration: IntegrationSettings) => void): () => void {
     this.integrationListeners.add(listener);
     return () => { this.integrationListeners.delete(listener); };

@@ -15,6 +15,7 @@ export function toLoaded(state: AppState | InternalState): LoadedStudio {
     settings: state.settings, integration: internal.integration ?? defaultIntegration(),
     ...(state.activeProjectId ? { activeProjectId: state.activeProjectId } : {}),
     ...(state.nextProjectNumber ? { nextProjectNumber: state.nextProjectNumber } : {}),
+    botReplies: state.botReplies ?? [],
     votes: Object.fromEntries(state.ideas.map(idea => [idea.id, idea.voters])),
     increments: Object.fromEntries(state.ideas.flatMap(idea => idea.increment ? [[idea.id, idea.increment] as const] : [])),
     ingestMeta: internal.ingestMeta ?? { processedMessages: [], lastRequests: {} }, manualHolds: internal.manualHolds ?? [],

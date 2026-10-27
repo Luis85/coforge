@@ -3,7 +3,6 @@ import type { ChatMessage, Contributor } from '../../../features/coforge/domain/
 import { useStudioStore } from '../../stores/coforge-studio';
 import { avatarStyle, initials } from './format';
 import { useChatAutoScroll } from './use-chat-scroll';
-import { useChatSimulator } from './use-chat-simulator';
 import { useStudioActions } from './use-studio-actions';
 
 const BOT_ID = 'system:coforge';
@@ -14,6 +13,7 @@ export interface ChatMessageView {
   id: string; bot: boolean; error: boolean; command: boolean; author: string; initials: string; text: string;
   source: string; time: string; dateTime: string; ideaId: string | undefined;
   avatar: Record<string, string>; nameStyle: Record<string, string> | undefined;
+  userId?: string; externalId?: string; channelId?: string;
 }
 
 function messageView(message: ChatMessage, contributors: readonly Contributor[]): ChatMessageView {
@@ -21,11 +21,12 @@ function messageView(message: ChatMessage, contributors: readonly Contributor[])
   const color = contributors.find(person => person.id === message.userId)?.color;
   return {
     id: message.id, bot, error: message.kind === 'error', command: message.kind === 'request' || message.kind === 'vote',
-    author: bot ? 'CoForge' : message.username, initials: initials(message.username), text: message.text,
-    source: SOURCE_LABELS[message.source], dateTime: message.createdAt,
+    author: message.username, initials: initials(message.username), text: message.text,
+    source: bot && message.source === 'twitch' ? message.externalId ? 'Sent' : 'Local result' : SOURCE_LABELS[message.source], dateTime: message.createdAt,
     time: new Date(message.createdAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
     ideaId: bot ? message.ideaId : undefined, avatar: avatarStyle(color),
     nameStyle: !bot && color ? { color: `var(--color-${color})` } : undefined,
+    ...(message.userId.startsWith('twitch:') ? { userId: message.userId.slice(7) } : {}), externalId: message.externalId, channelId: message.twitchChannelId,
   };
 }
 
@@ -34,7 +35,7 @@ export function useChatPanel() {
   const store = useStudioStore();
   const actions = useStudioActions();
   const state = computed(() => store.state);
-  const live = computed(() => state.value?.runtime.chatSource === 'twitch');
+  const live = computed(() => state.value?.runtime.twitch?.phase === 'connected');
   const showHelp = ref(false);
   const scroll = useChatAutoScroll(() => {
     const chat = state.value?.chat ?? [];
@@ -42,12 +43,12 @@ export function useChatPanel() {
   });
   return reactive({
     store, live, showHelp,
-    sourceLabel: computed(() => live.value ? 'Twitch' : 'Simulator'),
+    sourceLabel: computed(() => live.value ? 'Twitch' : 'Offline'),
     chatStatus: computed(() => state.value?.runtime.chatStatus ?? ''),
-    channel: computed(() => `${(state.value?.settings.projectName ?? '').toLowerCase().replace(/\s/g, '') || 'community'}-workshop`),
+    channel: computed(() => state.value?.runtime.twitch?.channel?.login ?? 'No Twitch channel connected'),
     people: computed(() => state.value?.contributors.length ?? 0),
     requestExample: computed(() => `!request ${state.value?.activeProjectId ?? 'CFP-001'} Add a fishing minigame`),
-    sessionLabel: computed(() => live.value ? 'Connected chat' : 'Sample community · local demo'),
+    sessionLabel: computed(() => live.value ? 'Channel messages' : 'Local history'),
     empty: computed(() => !state.value?.chat.length),
     messages: computed(() => (state.value?.chat ?? []).slice(-100).map(message => messageView(message, state.value?.contributors ?? []))),
     bindList: scroll.bind,
@@ -55,41 +56,44 @@ export function useChatPanel() {
     stick: scroll.stick,
     toggleHelp: () => { showHelp.value = !showHelp.value; },
     select: (ideaId: string) => { void actions.openIdea(ideaId); },
+    moderate: (message: ChatMessageView) => {
+      if (message.channelId && message.channelId === state.value?.runtime.twitch?.channel?.id) {
+        store.moderationTarget = { channelId: message.channelId, username: message.author, userId: message.userId, messageId: message.externalId };
+        store.navigate('stream');
+      }
+    },
   });
 }
 
-/**
- * Chat composer: sends as a simulated viewer, keeps the draft when sending fails, and drives the
- * sample-chat loop. Twitch is receive-only, so composed messages always stay in this vault.
- */
+/** Explicit local testing or sending as the connected bot; failed drafts are preserved. */
 export function useChatComposer(emit: (event: 'sent') => void) {
   const store = useStudioStore();
   const actions = useStudioActions();
-  const username = ref('pixelpilgrim');
+  const username = ref('Local tester');
   const text = ref('');
   const sending = ref(false);
   const error = ref('');
-  const simulator = useChatSimulator(() => actions.simulate());
-  const live = computed(() => store.state?.runtime.chatSource === 'twitch');
+  const testing = ref(false);
+  const live = computed(() => store.state?.runtime.twitch?.phase === 'connected' && store.state.runtime.twitch.canChat);
   const submit = async () => {
     if (!text.value.trim() || !username.value.trim() || sending.value) return;
     sending.value = true;
     error.value = '';
-    const sent = await actions.sendChat(username.value, text.value);
+    const sent = live.value && !testing.value ? await actions.sendTwitch(text.value) : await actions.sendChat(username.value, text.value);
     sending.value = false;
     if (!sent) { error.value = 'Message could not be sent. Your draft is kept.'; return; }
     text.value = '';
     emit('sent');
   };
   return reactive({
-    username, text, sending, error, live,
+    store, username, text, sending, error, live, testing,
+    botName: computed(() => store.state?.runtime.twitch?.bot?.login ?? 'Chatbot'),
+    testLocally: () => { testing.value = true; }, stopTesting: () => { testing.value = false; },
     requestPlaceholder: computed(() => `!request ${store.state?.activeProjectId ?? 'CFP-001'} Your feature idea…`),
-    simulating: simulator.running,
-    canSend: computed(() => !sending.value && Boolean(text.value.trim()) && Boolean(username.value.trim())),
+    canSend: computed(() => !sending.value && Boolean(text.value.trim()) && (live.value || testing.value) && Boolean(username.value.trim())),
     sourceNote: computed(() => live.value
-      ? 'Incoming messages from Twitch. Composer sends local test messages; replies are not posted to Twitch.'
-      : 'Local simulation · no messages sent to a platform'),
-    toggleSimulation: simulator.toggle,
+      ? testing.value ? 'Local test: nothing is posted to Twitch.' : 'Sends to the connected Twitch channel as the chatbot.'
+      : 'Local test: nothing is posted to Twitch.'),
     submit: () => { void submit(); },
     keydown: (event: KeyboardEvent) => {
       if (event.key !== 'Enter' || event.shiftKey || event.isComposing) return;

@@ -1,0 +1,36 @@
+/* Channel control and connection state use the same theme tokens as the studio. */
+.cf-twitch-controls { min-width: 0; padding-bottom: 20px; }
+.cf-twitch-controls > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.cf-twitch-controls h2 { font-size: 18px; }
+.cf-twitch-controls p { font-size: 12px; line-height: 1.65; margin: 8px 0 !important; overflow-wrap: anywhere; }
+.cf-twitch-controls fieldset { min-width: 0; border: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; margin: 20px 0; }
+.cf-twitch-controls legend { font-size: 13px; font-weight: 650; margin-bottom: 12px; }
+.cf-twitch-category-search { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.cf-twitch-category-search > label { flex: 1; min-width: 120px; }
+.cf-twitch-controls :is(input, select) { min-width: 0; max-width: 100%; }
+.cf-twitch-controls details, .cf-twitch-advanced { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--cf-border); }
+.cf-twitch-controls summary, .cf-twitch-advanced summary { font-size: 13px; cursor: pointer; padding: 5px 0; }
+/* Keep closed disclosure content out of layout measurement and keyboard control inventories. */
+.cf-twitch-controls details:not([open]) > :not(summary), .cf-twitch-advanced:not([open]) > :not(summary) { display: none; }
+.cf-twitch-setup > .cf-field { margin: 14px 0; }
+.cf-twitch-setup > label, .cf-twitch-authorization, .cf-twitch-authorization > .cf-settings-actions { margin: 12px 0; }
+.cf-twitch-authorization { min-width: 0; font-size: 12px; line-height: 1.6; }
+.cf-twitch-device, .cf-twitch-confirmation { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px; border: 1px solid var(--cf-border); border-radius: var(--radius-m); }
+.cf-twitch-device > code { font-size: 22px; font-weight: 700; letter-spacing: 2px; user-select: all; }
+.cf-twitch-device a { color: var(--text-accent); overflow-wrap: anywhere; }
+.cf-twitch-reply { font-size: 12px; padding: 14px 0; border-bottom: 1px solid var(--cf-border); }
+.cf-chat-offline { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px; font-size: 12px; }
+.cf-command-reference code { white-space: normal; overflow-wrap: anywhere; }
+.cf-studio .cf-project-id-copy { display: inline-flex; align-items: center; gap: 8px; height: auto; padding: 4px 8px; background: var(--cf-surface); color: var(--cf-text); border: 1px solid var(--cf-border); border-radius: var(--radius-s); flex-shrink: 0; }
+.cf-project-id-copy code { font-size: 13px; font-weight: 650; user-select: all; }
+.cf-project-selector-id { display: block; font-size: 12px; font-weight: 650; margin-top: 4px; color: var(--cf-text); user-select: all; }
+.cf-project-row .cf-readable-project-id { display: inline-block; font-size: 14px; line-height: 1.4; font-weight: 650; margin: 0; padding: 4px 8px; color: var(--cf-text); background: var(--cf-surface); border: 1px solid var(--cf-border); border-radius: var(--radius-s); user-select: all; }
+.cf-streamer-profile > div { min-width: 0; }
+.cf-streamer-profile small { white-space: normal; overflow-wrap: anywhere; line-height: 1.5; }
+.cf-board-filters { flex-wrap: wrap; min-width: 0; }
+.cf-project-empty { padding: 24px 0; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+@container plugin-shell-leaf (max-width: 650px) {
+  .cf-topbar { height: auto; min-height: 54px; padding-block: 8px; }
+  .cf-breadcrumb { flex-wrap: wrap; gap: 6px; }
+  .cf-breadcrumb > span:not(.cf-icon) { max-width: 105px; }
+}

@@ -22,6 +22,7 @@ async function open(existing?: { kit: TestApp; app: App }, files: Record<string,
   const studio = new StudioService(storage, { runners: { demo: runner, claude: runner }, timers, probeRuntime: () => Promise.resolve({ cliAvailable: false, projectPath: null, allowImplementation: false }) });
   services.push(studio);
   await studio.start();
+  if (!studio.state().projects?.length) await studio.createProject({ projectName: 'Community game', projectBrief: 'Fixture community game project.', projectPath: '/synthetic/game' });
   storage.watch(change => { void studio.applyNoteChange(change); }, () => undefined);
   return { kit: testKit, app, plugin, storage, studio };
 }

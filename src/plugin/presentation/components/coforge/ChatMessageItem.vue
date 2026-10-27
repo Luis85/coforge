@@ -2,8 +2,8 @@
 import type { ChatMessageView } from '../../composables/coforge/use-chat-panel';
 import CfIcon from './CfIcon.vue';
 
-defineProps<{ message: ChatMessageView }>();
-defineEmits<{ select: [ideaId: string] }>();
+defineProps<{ message: ChatMessageView; canModerate?: boolean }>();
+defineEmits<{ select: [ideaId: string]; moderate: [message: ChatMessageView] }>();
 </script>
 <template>
   <div class="cf-chat-message" :class="{ 'is-bot': message.bot, 'is-error': message.error }">
@@ -12,11 +12,12 @@ defineEmits<{ select: [ideaId: string] }>();
     <div class="cf-chat-message-content">
       <div class="cf-chat-message-author">
         <strong :style="message.nameStyle">{{ message.author }}</strong>
-        <span v-if="message.bot" class="cf-chat-bot-tag">BOT</span>
+        <span v-if="message.bot" class="cf-chat-bot-tag">{{ message.source === 'Sent' ? 'BOT · SENT' : 'LOCAL RESULT' }}</span>
         <span v-else class="cf-chat-message-source">{{ message.source }}</span>
         <time :datetime="message.dateTime">{{ message.time }}</time>
       </div>
       <p :class="{ 'cf-chat-command': message.command }">{{ message.text }}</p>
+      <button v-if="canModerate" type="button" class="cf-btn cf-btn-ghost" :aria-label="`Review moderation for ${message.author}`" @click="$emit('moderate', message)">Moderate</button>
       <button v-if="message.ideaId" type="button" class="cf-chat-idea-link" @click="$emit('select', message.ideaId)">
         View {{ message.ideaId }}
         <CfIcon name="arrow-up-right" size="xs" />

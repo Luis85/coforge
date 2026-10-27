@@ -50,8 +50,9 @@ export function useStudioActions() {
       if (!result.ok) throw new Error(result.message);
       return result;
     }),
+    sendTwitch: (text: string) => attempt(async () => { if (!host.twitch) throw new Error('Connect Twitch in the Obsidian plugin.'); await host.twitch.send(text); }),
     simulate: () => attempt(() => studio.simulate()),
-    createIdea: (data: { title: string; description: string; category: Category; username: string }) =>
+    createIdea: (data: { title: string; description: string; category: Category; username: string; requestKind?: 'feature' | 'bug' }) =>
       attempt(() => studio.createIdea(data), outcome => outcome.message),
     loadSample: async () => {
       const done = await attempt(() => studio.loadSample(), 'Sample workspace restored. Automation is paused.');

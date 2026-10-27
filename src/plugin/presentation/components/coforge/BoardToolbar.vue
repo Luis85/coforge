@@ -23,7 +23,8 @@ const model = useBoardView();
       </button>
     </div>
     <div class="cf-board-filters">
-      <label class="cf-compact-select">
+      <label class="cf-compact-select"><span class="cf-sr-only">Request type</span><select v-model="model.requestKind"><option value="all">Features and bugs</option><option value="feature">Features</option><option value="bug">Bugs</option></select><CfIcon name="chevron-down" size="xs" /></label>
+      <label class="cf-compact-select cf-category-filter">
         <span class="cf-sr-only">Filter category</span>
         <select v-model="model.category">
           <option value="">All categories</option>

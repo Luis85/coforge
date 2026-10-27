@@ -9,6 +9,7 @@ export const chatInput = shape({
 });
 
 export const newIdeaInput = shape({
+  requestKind: optional(oneOf(['feature', 'bug'] as const)),
   title: text({ trim: true, min: 5, max: 120 }), description: text({ trim: true, max: 3000 }),
   category: oneOf(CATEGORIES), username,
 });
@@ -38,5 +39,7 @@ export const integrationPatch = shape({
   allowImplementation: optional(boolean), worktreeFolder: optional(pathText), twitchEnabled: optional(boolean),
   twitchClientId: optional(twitchId), twitchBotUserId: optional(twitchId), twitchBroadcasterId: optional(twitchId),
   twitchTokenSecret: optional(text({ trim: true, min: 1, max: 64, pattern: /^[a-z0-9-]+$/ })),
+  twitchStreamerSecret: optional(text({ trim: true, min: 1, max: 64, pattern: /^[a-z0-9-]+$/ })), twitchBotUsesStreamer: optional(boolean),
+  twitchBotReplies: optional(boolean),
   publicFolder: optional(folder), publicBoardEnabled: optional(boolean),
 }, { strict: true });

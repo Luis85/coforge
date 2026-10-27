@@ -7,6 +7,7 @@ describe('CoForge projects in the contained vault', () => {
     const type = obsidian.pluginViewTypes.find(value => value === `${obsidian.pluginId}-view-project-workbench`);
     expect(type).toBeDefined();
     const view = await obsidian.openView(type!);
+    await browserExpect(view.getByText('Twitch chat is not connected.', { exact: true })).toBeVisible();
     await browserExpect(view.locator('.cf-studio')).toBeVisible();
     await browserExpect(view.locator(':scope > .view-header')).toBeHidden();
     await obsidian.screenshot('studio-without-native-header');
@@ -31,9 +32,14 @@ describe('CoForge projects in the contained vault', () => {
     await view.getByRole('button', { name: 'Create project', exact: true }).click();
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Obsidian moon');
     await view.getByRole('button', { name: 'Stream chat', exact: true }).click();
-    await view.getByLabel('Chat message', { exact: true }).fill('!request CFP-002 Build a lunar garden');
+    await view.getByRole('button', { name: 'Test commands locally', exact: true }).click();
+    await view.getByLabel('Chat message', { exact: true }).fill('!request CFP-001 Build a lunar garden');
     await view.getByRole('button', { name: 'Send chat message', exact: true }).click();
     await expect.poll(() => obsidian.eval(({ app }) => app.vault.getMarkdownFiles().filter(file => file.path.startsWith('CoForge/Ideas/')).length)).toBe(1);
+    await view.getByLabel('Simulated viewer name', { exact: true }).fill('Bug reporter');
+    await view.getByLabel('Chat message', { exact: true }).fill('!bug CFP-001 The lunar gate crashes the game');
+    await view.getByRole('button', { name: 'Send chat message', exact: true }).click();
+    await expect.poll(() => obsidian.eval(({ app }) => app.vault.getMarkdownFiles().filter(file => file.path.startsWith('CoForge/Ideas/')).length)).toBe(2);
     const notes = await obsidian.eval(async ({ app }) => Promise.all(app.vault.getMarkdownFiles()
       .filter(file => file.path.startsWith('CoForge/')).map(async file => ({ path: file.path, content: await app.vault.read(file) }))));
     const project = notes.find(note => note.content.includes('name: Obsidian moon'));
@@ -42,6 +48,7 @@ describe('CoForge projects in the contained vault', () => {
     const id = project?.content.match(/^id: (.+)$/m)?.[1];
     expect(id).toBeDefined();
     expect(notes.find(note => note.path.startsWith('CoForge/Ideas/'))?.content).toContain(`coforge-project: ${id}`);
+    expect(notes.find(note => note.content.includes('The lunar gate crashes'))?.content).toContain('coforge-kind: bug');
     await obsidian.screenshot('moon-project-request');
     expect(obsidian.errors()).toEqual([]);
   });

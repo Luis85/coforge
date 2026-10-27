@@ -11,7 +11,7 @@ describe('built plugin in real Obsidian', () => {
       notes: app.vault.getMarkdownFiles().map(file => file.path).sort(),
     }));
     expect(state).toMatchObject({ enabled: true, loaded: true, version: obsidian.manifest.version });
-    expect(state.notes).toEqual(['CoForge/Projects/CFP-001 Community game.md', 'Notes/Example.md', 'Welcome.md']);
+    expect(state.notes).toEqual(['Notes/Example.md', 'Welcome.md']);
     // Late async failures from onload/layout-ready work surface here too.
     await new Promise(ok => setTimeout(ok, 1000));
     expect(obsidian.errors().map(entry => `${entry.text}\n${entry.stack}`)).toEqual([]);
