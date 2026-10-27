@@ -72,7 +72,7 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
     startupError: () => null,
     onNotice: () => () => undefined,
     host: {
-      streamHistory: { list: async () => [{ id: 'fixture-stream', channelId: '123', startedAt: '2026-10-27T10:00:00Z', endedAt: null, samples: 2, lastSampleAt: '2026-10-27T10:01:00Z', peakObservedViewers: 15, meanObservedViewers: 12 }],
+      streamHistory: { read: async () => null, list: async () => [{ id: 'fixture-stream', channelId: '123', startedAt: '2026-10-27T10:00:00Z', endedAt: null, samples: 2, lastSampleAt: '2026-10-27T10:01:00Z', peakObservedViewers: 15, meanObservedViewers: 12 }],
         export: async id => { historyExports.push(id); return '/private/synthetic-export.json'; } },
       obs,
       setSecret: () => false,

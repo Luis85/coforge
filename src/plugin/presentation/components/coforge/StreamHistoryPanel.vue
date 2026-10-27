@@ -5,6 +5,7 @@ const model = useStreamHistory();
 <template>
   <section class="cf-stream-history" aria-label="Stream JSON history">
     <h2>Stream history</h2>
+    <button type="button" class="cf-btn cf-btn-secondary" @click="model.statistics()">View stream statistics</button>
     <p role="status">{{ model.message }}</p>
     <p>
       One JSON object per stream in <code>CoForge/Streams</code>, with a sample each minute while on air. Missing

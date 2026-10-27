@@ -7,6 +7,7 @@ import { ideaFingerprint } from '../../src/plugin/features/coforge/domain/integr
 import { noteOnly } from '../../src/plugin/features/coforge/domain/objects.ts';
 import { createSeed, defaultIntegration } from '../../src/plugin/features/coforge/domain/seed.ts';
 import type { CoforgeContext } from '../../src/plugin/presentation/context/coforge-context.ts';
+import { previewStreamStatistics } from './stream-statistics-preview';
 
 /** Browser-only storage: the sample workspace in memory, nothing is persisted. */
 class PreviewStorage implements StudioStorage {
@@ -45,6 +46,7 @@ export function createPreviewCoforge(): CoforgeContext {
   return {
     studio, startupError: () => failure, onNotice: () => () => undefined,
     host: {
+      previewStreamStatistics,
       setSecret: () => false, hasSecret: () => false,
       openIdeaNote: () => Promise.resolve(false), saveExport: () => Promise.resolve('the browser preview (not saved)'),
       publishBoard: () => Promise.reject(new Error('Publishing needs the Obsidian desktop app.')),

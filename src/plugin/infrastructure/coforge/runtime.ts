@@ -83,7 +83,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
-    streamHistory: { list: () => streamHistory.list(), export: async id => {
+    streamHistory: { list: () => streamHistory.list(), read: id => streamHistory.read(id), export: async id => {
       const history = await streamHistory.read(id);
       if (!history) throw new Error('This stream history is unavailable. Check its JSON file in CoForge/Streams.');
       return saveJson('export', JSON.stringify(history, null, 2));

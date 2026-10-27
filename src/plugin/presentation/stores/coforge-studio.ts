@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import type { AppState } from '../../features/coforge/domain/types';
 import { projectIdeas as scopedIdeas } from '../../features/coforge/domain/projects';
 
-export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects' | 'population' | 'operations' | 'community-settings' | 'broadcast';
+export type StudioView = 'board' | 'stream' | 'workflow' | 'community' | 'settings' | 'projects' | 'population' | 'operations' | 'community-settings' | 'broadcast' | 'statistics';
 export interface Toast { id: number; message: string; error: boolean }
 
 /** Per-view projection of the studio state plus view-local navigation, overlays and feedback. */
@@ -19,6 +19,11 @@ export const useStudioStore = defineStore('coforge-studio', () => {
   const streamTool = ref<'channel' | 'messages'>('channel');
   const setupStep = ref(0);
   const historySelection = ref('');
+  const statisticsStream = ref('');
+  const statisticsComparisons = ref<string[]>([]);
+  const statisticsMetric = ref<import('../../features/coforge/domain/statistics-metrics').StatisticsMetricId>('viewers');
+  const statisticsCursor = ref(0);
+  const statisticsPage = ref(0);
   const setupRequested = ref(false);
   const moderationTarget = ref<{ channelId: string; username: string; userId?: string; messageId?: string } | null>(null);
   const pending = ref(0);
@@ -62,6 +67,6 @@ export const useStudioStore = defineStore('coforge-studio', () => {
     } finally { pending.value = Math.max(0, pending.value - 1); }
   }
 
-  return { state, view, selected, creating, help, activityOpen, dirtySettings, dirtyCommunitySettings, streamTool, setupStep, setupRequested, historySelection, moderationTarget, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
+  return { state, view, selected, creating, help, activityOpen, dirtySettings, dirtyCommunitySettings, streamTool, setupStep, setupRequested, historySelection, statisticsStream, statisticsComparisons, statisticsMetric, statisticsCursor, statisticsPage, moderationTarget, pending, toasts, busy, activeProject, projectIdeas, projectJobs, backgroundJobs,
     activeJob, selectedIdea, notify, dismiss, navigate, select, mutate, dispose };
 });
