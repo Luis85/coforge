@@ -32,6 +32,7 @@ export interface Player {
   rewardClaims: string[];
 }
 export const OPERATION_CODES = [
+  'stream-setup-opened', 'stream-setup-dismissed', 'stream-setup-completed',
   ...OBS_OPERATION_CODES,
   "registered",
   "greeted",

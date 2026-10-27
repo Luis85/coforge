@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBroadcast } from "../../composables/coforge/use-broadcast";
 import TwitchChannelEditor from "./TwitchChannelEditor.vue";
+import GuidedStreamSetup from './GuidedStreamSetup.vue';
 const model = useBroadcast();
 </script>
 <template>
@@ -14,6 +15,7 @@ const model = useBroadcast();
         Open stream chat
       </button>
     </header>
+    <GuidedStreamSetup />
     <section class="cf-broadcast-console" aria-label="Broadcast controls">
       <div>
         <span class="cf-broadcast-state" :class="{ 'is-live': model.active }">{{

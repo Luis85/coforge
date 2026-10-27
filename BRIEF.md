@@ -142,3 +142,7 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   or auto-start a broadcast. Initial OBS output and WebSocket/password setup remains required once.
 - Edit Twitch title, category, tags and broadcast language in CoForge. Link to Twitch's branding editor
   for profile images, banners and accent styling; channel panels remain editable on Twitch.
+- First-time stream setup is guided, optional and reopenable. Detect OBS installation/running state without
+  launching it, explain missing WebSocket/authentication/scenes and Twitch app/account/permission/chat settings,
+  and provide working setup controls. Readiness comes from current connections, not saved fields. Review of OBS
+  output destination/audio/video is explicitly human-confirmed; the guide never reads stream keys or goes live.

@@ -1,11 +1,17 @@
 import type { ObsControlPort } from "../../features/coforge/application/obs-port";
 import type { Timers } from "../../features/coforge/application/ports";
-import type { ObsObservation, ObsSettings, ObsSnapshot, ObsScene } from "../../features/coforge/domain/obs";
+import type {
+  ObsObservation,
+  ObsSettings,
+  ObsSnapshot,
+  ObsScene,
+  ObsInstallation,
+} from "../../features/coforge/domain/obs";
 import { IntegrationFailure } from "../../features/coforge/domain/integration-failure";
 import { record } from "../../features/coforge/domain/check";
 import { ObsClient, type ObsSocket } from "./obs-client";
 import type { TwitchSecrets } from "./twitch-auth";
-import { launchObs } from "./obs-launch";
+import { launchObs, detectObs } from "./obs-launch";
 
 const REQUIRED = ["GetSceneList", "GetStreamStatus", "SetCurrentProgramScene", "StartStream", "StopStream"];
 /** Only stream/status/scene requests are exposed. Stream-service keys and output credentials are never read. */
@@ -27,6 +33,7 @@ export class ObsAdapter implements ObsControlPort {
     private readonly secrets: TwitchSecrets,
     private readonly launch: (executable: string, signal?: AbortSignal) => Promise<void> = (executable, signal) =>
       launchObs(executable, undefined, signal),
+    private readonly detectTool: (executable: string) => Promise<ObsInstallation> = detectObs,
   ) {
     this.client = new ObsClient(
       socket,
@@ -88,6 +95,20 @@ export class ObsAdapter implements ObsControlPort {
     this.transition = false;
     await this.client.connect(settings.endpoint, settings.passwordSecret);
     return this.verifiedSnapshot();
+  }
+  async detect(settings: ObsSettings): Promise<ObsInstallation> {
+    try {
+      const passwordSaved = Boolean(this.secrets.getSecret(settings.passwordSecret));
+      if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(settings.endpoint).hostname))
+        return { status: "remote", running: false, passwordSaved };
+      return { ...(await this.detectTool(settings.executable)), passwordSaved };
+    } catch (error) {
+      if (error instanceof IntegrationFailure) throw error;
+      throw new IntegrationFailure(
+        "service",
+        "OBS detection could not be completed. Check its path and Obsidian secret storage.",
+      );
+    }
   }
   private async verifiedSnapshot(): Promise<ObsSnapshot> {
     const version = await this.client.request("GetVersion");

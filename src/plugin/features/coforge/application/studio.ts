@@ -15,6 +15,9 @@ import type { StudioProject } from '../domain/types';
 import { loadProjectSample } from './sample-project';
 import { blockPlayer, updateEconomyRules, updateCommunitySettings, recordOperation } from './population';
 import { activateStreamMessage, removeStreamMessage, saveStreamMessage } from './stream-messages';
+import { streamSetupProgress } from '../domain/stream-setup';
+import { defaultObsSettings, emptyObsState } from '../domain/obs';
+import { disconnectedTwitch } from '../domain/twitch';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -38,6 +41,14 @@ export class StudioService {
   async stop(): Promise<void> { await this.engine.stop(); this.store.disposeObservers(); }
   get ready(): boolean { return this.store.ready; }
   openStreamStudio(): Promise<void> { return this.store.transaction(state => recordOperation(state, 'stream-studio-opened')); }
+  updateStreamSetup(action: 'open' | 'dismiss' | 'complete', outputReviewed = false): Promise<void> {
+    return this.store.transaction(state => {
+      if (action === 'complete' && !streamSetupProgress({ obs: state.runtime.obs ?? emptyObsState(), settings: state.obsSettings ?? defaultObsSettings(), twitch: state.runtime.twitch ?? disconnectedTwitch(), integration: state.integration, outputReviewed }).ready)
+        throw new StudioError('Finish the missing setup checks before completing the guide.');
+      state.setupGuide = { dismissed: action !== 'open', ...(action === 'complete' ? { completedAt: new Date().toISOString() } : {}) };
+      recordOperation(state, action === 'open' ? 'stream-setup-opened' : action === 'dismiss' ? 'stream-setup-dismissed' : 'stream-setup-completed');
+    });
+  }
   openTwitchBranding(): Promise<void> { return this.store.transaction(state => recordOperation(state, 'twitch-branding-opened', 'none')); }
 
   state(): AppState { return this.store.snapshot(); }

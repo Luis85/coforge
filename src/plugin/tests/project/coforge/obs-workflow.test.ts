@@ -25,6 +25,7 @@ function fakeObs() {
   const calls: string[] = [];
   const read = async () => structuredClone({ ...snapshot, revision: ++snapshot.revision });
   const port: ObsControlPort = {
+    detect: async () => ({ status: 'found', running: false, passwordSaved: false }),
     open: read,
     connect: read,
     disconnect: () => undefined,

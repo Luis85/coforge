@@ -3,14 +3,14 @@ import { useCoforge } from "../../context/coforge-context";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { defaultObsSettings, emptyObsState } from "../../../features/coforge/domain/obs";
 
-export function useBroadcast() {
+export function useBroadcast(trackView = true) {
   const { studio, host } = useCoforge();
   const store = useStudioStore();
   const now = ref(Date.now());
-  const clock = window.setInterval(() => {
+  const clock = trackView ? window.setInterval(() => {
     now.value = Date.now();
-  }, 1000);
-  onBeforeUnmount(() => window.clearInterval(clock));
+  }, 1000) : undefined;
+  onBeforeUnmount(() => { if (clock !== undefined) window.clearInterval(clock); });
   const state = computed(() => store.state?.runtime.obs ?? emptyObsState());
   const settings = computed(() => store.state?.obsSettings ?? defaultObsSettings());
   const draft = reactive(defaultObsSettings());
@@ -33,6 +33,7 @@ export function useBroadcast() {
     { immediate: true },
   );
   onMounted(() => {
+    if (!trackView) return;
     void studio.openStreamStudio().catch(() => {
       error.value = "The stream studio interaction could not be recorded.";
     });
@@ -186,6 +187,12 @@ export function useBroadcast() {
         await obs().configure({ ...draft });
         await obs().connect();
       }, "OBS connected. Review readiness before going live.");
+    },
+    detect: () => {
+      void run(async () => {
+        await obs().configure({ ...draft });
+        await obs().detect();
+      }, 'OBS installation check complete.');
     },
     open: () => {
       void run(async () => {

@@ -8,6 +8,8 @@ describe('CoForge projects in the contained vault', () => {
     expect(type).toBeDefined();
     const view = await obsidian.openView(type!);
     await browserExpect(view.getByRole('heading', { name: 'Stream studio', exact: true })).toBeVisible();
+    await browserExpect(view.getByRole('region', { name: 'Guided stream setup', exact: true })).toBeVisible();
+    await view.getByRole('button', { name: 'Skip setup for now', exact: true }).click();
     await browserExpect(view.getByRole('button', { name: 'Go live', exact: true })).toBeDisabled();
     await browserExpect(view.getByRole('button', { name: 'Open OBS Studio', exact: true })).toBeEnabled();
     await view.getByLabel('OBS executable (optional)', { exact: true }).fill('/synthetic/obs');
@@ -24,6 +26,11 @@ describe('CoForge projects in the contained vault', () => {
       await app.workspace.getLeaf('tab').openFile(note);
     });
     await browserExpect(obsidian.page.locator('.workspace-leaf-content[data-type="markdown"]').last().locator(':scope > .view-header')).toBeVisible();
+    await obsidian.reloadPlugin();
+    const restored = await obsidian.openView(type!);
+    await browserExpect(restored.getByRole('region', { name: 'Guided stream setup', exact: true })).toHaveCount(0);
+    await restored.getByRole('button', { name: 'Guided setup', exact: true }).click();
+    await browserExpect(restored.getByRole('region', { name: 'Guided stream setup', exact: true })).toBeVisible();
     expect(obsidian.errors()).toEqual([]);
   });
 

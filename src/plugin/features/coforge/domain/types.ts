@@ -58,6 +58,7 @@ export interface StudioProject {
   unavailable?: boolean;
 }
 export interface AppState {
+  setupGuide?: import('./stream-setup').StreamSetupState;
   obsSettings?: import('./obs').ObsSettings;
   obsCommand?: import('./obs').ObsCommand;
   obsResumeSceneId?: string;

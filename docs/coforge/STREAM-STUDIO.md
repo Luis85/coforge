@@ -4,6 +4,34 @@ CoForge opens on Stream studio. Install OBS Studio 28 or later, configure its br
 then enable **Tools → WebSocket Server Settings** once. OBS WebSocket v5 normally uses port 4455.
 CoForge does not install OBS or read stream keys.
 
+## First-time setup
+
+The first visit offers **Set up your stream**. Skip it at any time and reopen it with **Guided setup**;
+dismissal and completion survive plugin reloads. The guide uses the same real controls as Stream studio:
+
+1. **Find OBS** checks standard native installations, a custom executable and whether OBS is running.
+   It never launches anything. Remote addresses are checked by connecting to that server instead.
+2. **Connect OBS** explains enabling WebSocket authentication, stores the password securely, and lets you
+   launch/connect or verify an existing server. A saved address or password alone does not count as connected.
+3. **Choose scenes** lists the connected OBS scenes. Save a go-live scene and optional distinct BRB scene.
+4. **Connect Twitch** guides public-app registration, streamer/chatbot authorization, permissions and receiving
+   chat. Twitch email verification/2FA and public app registration happen in its developer console. Paste only
+   the public Client ID; no client secret is requested. Device authorization opens Twitch for consent.
+   Automatic replies/recurring messages remain optional and off until explicitly enabled.
+5. **Review & prepare** asks you to inspect the intended Twitch destination, audio and video in OBS. This is
+   your confirmation, not an API inspection of private OBS output credentials. Completion requires current OBS
+   status (no older than 30 seconds), valid scenes, the expected Twitch accounts/permissions/chat connection
+   and your review. Losing a connection or switching the chatbot makes readiness incomplete again.
+
+**Finish setup never goes live.** After finishing, use Prepare stream and explicitly choose Go live.
+The guide can be explored out of order; incomplete steps stay visible. Browser preview explains the flow
+but cannot detect tools, authorize an account, launch OBS or start a broadcast.
+
+OBS output setup and Twitch consent are necessarily streamer-operated. Git and Claude Code are optional
+for this streaming setup and are configured separately for agent development work.
+
+## Regular stream controls
+
 1. Enter the OBS WebSocket URL. Save its password using **Save OBS password**; this uses
    Obsidian secret storage, not a project note or plugin JSON.
 2. Press **Open OBS Studio** to discover/open the installed application and wait for its local WebSocket
