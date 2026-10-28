@@ -8,11 +8,12 @@ import { applyReview } from './review';
 import { addEvent, type StudioStore } from './studio-store';
 import { copySettings, findProject, ideaProjectId, projectIdeas, projectPaths, projectSettings } from '../domain/projects';
 import { ideaFingerprint } from '../domain/integrity';
+import { agentModelCheck, stageAgent } from '../domain/stage-agents';
 
-function assertRuntime(state: InternalState, stage: AgentStage, projectId: string): void {
+function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
   if (project.unavailable) throw new StudioError('Restore this project note before running agents.', 409);
-  if (projectSettings(state, projectId).provider !== 'claude') return;
+  if (provider !== 'claude') return;
   if (!state.runtime.cliAvailable) throw new StudioError('Claude Code CLI is not available. Install it, sign in locally, then check the runtime in CoForge settings.', 409);
   if (!project.projectPath && (stage === 'plan' || stage === 'implement'))
     throw new StudioError('Set this project’s repository path in Project settings before planning or building.', 409);
@@ -93,16 +94,17 @@ export class WorkflowEngine {
       if (!idea) throw new StudioError('Idea not found.', 404);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
+      const agent = stageAgent(settings, stage);
       if (automatic && settings.paused) throw new StudioError('Automation is paused.', 409);
       assertStage(idea, stage);
       if (state.jobs.some(j => j.ideaId === ideaId && isActiveJob(j))) throw new StudioError('This idea already has a queued or running job.', 409);
       if (state.jobs.filter(j => j.status === 'queued').length >= 50) throw new StudioError('The queue is full. Wait for current work to finish.', 409);
-      assertRuntime(state, stage, projectId);
+      assertRuntime(state, stage, projectId, agent.provider);
       delete idea.lastError;
       state.manualHolds = state.manualHolds.filter(id => id !== ideaId);
       const queued: AgentJob = {
-        id: crypto.randomUUID(), ideaId, projectId, stage, status: 'queued', provider: settings.provider, startedAt: new Date().toISOString(),
-        logs: [`${STAGE_LABELS[stage]} queued for ${ideaId} (${settings.provider}).`],
+        id: crypto.randomUUID(), ideaId, projectId, stage, status: 'queued', provider: agent.provider, ...(agent.provider === 'claude' ? { model: agent.model } : {}), startedAt: new Date().toISOString(),
+        logs: [`${STAGE_LABELS[stage]} queued for ${ideaId} (${agent.provider}).`],
       };
       state.jobs.push(queued);
       recordOperation(state, 'job-queued', 'none', undefined, 1, queued.id);
@@ -183,15 +185,17 @@ export class WorkflowEngine {
       if (!idea) throw new Error('The idea was removed before its run started.');
       const projectId = next.projectId ?? ideaProjectId(idea);
       if (ideaProjectId(idea) !== projectId) throw new Error('The idea moved to another project before its run started.');
-      assertRuntime(state, job.stage, projectId);
+      assertRuntime(state, job.stage, projectId, job.provider);
       assertStage(idea, job.stage);
       job.status = 'running'; job.startedAt = new Date().toISOString();
-      job.model = projectSettings(state, projectId).model;
+      const agent = stageAgent(projectSettings(state, projectId), job.stage);
+      if (job.provider === 'claude') job.model = agentModelCheck(job.model ?? agent.model);
+      else delete job.model;
       recordOperation(state, 'job-started');
       state.runtime.activeJobId = job.id;
       if (job.stage === 'implement') idea.status = 'building';
       idea.updatedAt = job.startedAt;
-      return { idea: structuredClone(idea), settings: { ...copySettings(projectSettings(state, projectId)), provider: job.provider },
+      return { idea: structuredClone(idea), settings: { ...copySettings(projectSettings(state, projectId)), provider: job.provider, model: job.model ?? agent.model },
         integration: { ...state.integration, ...projectPaths(findProject(state, projectId)) } };
     });
     if (!snapshot) return;

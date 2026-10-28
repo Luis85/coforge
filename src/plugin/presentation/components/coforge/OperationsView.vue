@@ -7,7 +7,7 @@ const model = useOperations();
     <header class="cf-page-heading">
       <div>
         <h1>Operations</h1>
-        <p>Population, chatbot delivery and participation statistics.</p>
+        <p>Inspect recorded events, find failed actions and export diagnostics for troubleshooting.</p>
       </div>
       <button
         type="button"
@@ -78,7 +78,7 @@ const model = useOperations();
           </tbody>
         </table>
       </div>
-      <p v-else>No operational records match this view.</p>
+      <div v-else class="cf-intent-empty"><p>No recorded events match this view.</p><button v-if="model.filtered" type="button" class="cf-btn cf-btn-secondary" @click="model.clearFilters()">Clear event filters</button></div>
       <p>
         Technical diagnostics contain declared event codes and safe aggregates. Chat text, credentials, note content and
         player identities are excluded from diagnostic exports.

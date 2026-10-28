@@ -97,13 +97,22 @@ export function useAICosts() {
       group.push(task);
       grouped.set(key, group);
     }
-    return [...grouped.values()].map((group) => ({
-      id: group[0]?.featureId ?? "",
-      project: group[0]?.projectName ?? "",
-      title: group[0]?.featureTitle ?? "",
-      summary: costSummary(group),
-      count: group.length,
-    }));
+    return [...grouped.values()].map((group) => {
+      const summary = costSummary(group);
+      return {
+        id: group[0]?.featureId ?? "",
+        project: group[0]?.projectName ?? "",
+        title: group[0]?.featureTitle ?? "",
+        summary,
+        displayCost:
+          summary.reported + summary.manual > 0
+            ? formatUsd(summary.nanos)
+            : summary.simulations === group.length
+              ? "Simulation"
+              : "Unavailable",
+        count: group.length,
+      };
+    });
   });
   return reactive({
     store,

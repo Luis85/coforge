@@ -4,6 +4,9 @@ import { useCoforge } from '../../context/coforge-context';
 import { useStudioStore, type StudioView } from '../../stores/coforge-studio';
 import { relativeTime } from './format';
 import { useStudioActions } from './use-studio-actions';
+import { defaultSettings } from '../../../features/coforge/domain/seed';
+import { workflowProviderSummary } from './agent-labels';
+import { observeHostStatusInset } from './host-status-inset';
 
 const VIEW_LABELS: Record<StudioView, string> = { board: 'Idea board', stream: 'Stream chat', workflow: 'Agent workflow', community: 'Community', settings: 'Settings', projects: 'Projects', population: 'Viewers', operations: 'Operations', 'community-settings': 'Community settings', broadcast: 'Stream studio', statistics: 'Statistics', finance: 'Finances', 'ai-costs': 'AI costs', schedule: 'Stream schedule' };
 const NAV: Array<{ view: StudioView; label: string; icon: string }> = [
@@ -31,7 +34,8 @@ export function useStudioShell() {
       working: item.view === 'workflow' && Boolean(store.activeJob),
     }))),
     viewLabel: computed(() => VIEW_LABELS[store.view]),
-    isDemo: computed(() => state.value?.settings.provider !== 'claude'),
+    providerSummary: computed(() => workflowProviderSummary(state.value?.settings ?? defaultSettings())),
+    isDemo: computed(() => workflowProviderSummary(state.value?.settings ?? defaultSettings()).mode === 'demo'),
     paused: computed(() => state.value?.settings.paused ?? true),
     reviewCount: computed(() => store.projectIdeas.filter(i => i.status === 'review').length),
     activeIdea: computed(() => state.value?.ideas.find(i => i.id === store.activeJob?.ideaId)),
@@ -64,15 +68,17 @@ export function useStudioShell() {
 export function useStudioApp() {
   const context = useCoforge();
   const shell = useStudioShell();
-  let observed: Element | undefined; let resize: ResizeObserver | undefined;
-  const elementNode = (value: unknown): value is Element => Boolean(value && typeof value === 'object' && Reflect.get(value, 'nodeType') === 1 && typeof Reflect.get(value, 'getBoundingClientRect') === 'function');
+  let observed: HTMLElement | undefined; let resize: ResizeObserver | undefined; let stopInset = () => {};
+  const elementNode = (value: unknown): value is HTMLElement => Boolean(value && typeof value === 'object' && Reflect.get(value, 'nodeType') === 1 && typeof Reflect.get(value, 'getBoundingClientRect') === 'function' && Reflect.get(value, 'style'));
   const bindRoot = (value: unknown) => {
     if (!elementNode(value) || value === observed) return;
-    resize?.disconnect(); observed = value;
+    resize?.disconnect(); stopInset(); observed = value;
     const update = () => { const width = value.getBoundingClientRect().width; if (!width) return; shell.store.narrowLayout = width < 1050; if (!shell.store.rightPanelManual) shell.store.rightPanelCollapsed = shell.store.narrowLayout; };
-    update(); if (typeof ResizeObserver !== 'undefined') { resize = new ResizeObserver(update); resize.observe(value); }
+    stopInset = observeHostStatusInset(value);
+    const Resize = value.ownerDocument.defaultView?.ResizeObserver;
+    update(); if (Resize) { resize = new Resize(update); resize.observe(value); }
   };
-  onBeforeUnmount(() => resize?.disconnect());
+  onBeforeUnmount(() => { resize?.disconnect(); stopInset(); });
   const failure = ref(context.startupError());
   let stops: Array<() => void> = [];
   onMounted(() => {

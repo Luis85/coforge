@@ -1,10 +1,10 @@
 {
 	"nodes":[
-		{"id":"a64512f0fa5b21b6","type":"group","x":-1300,"y":-200,"width":300,"height":260,"label":"Views"},
+		{"id":"a64512f0fa5b21b6","type":"group","x":-1120,"y":500,"width":300,"height":260,"label":"Views"},
 		{
 			"id":"759b71cd665cc8f5",
 			"type":"text",
-			"text":"Coforge",
+			"text":"CoForge",
 			"styleAttributes":{"textAlign":"center"},
 			"x":-700,
 			"y":-180,
@@ -18,36 +18,6 @@
 			"styleAttributes":{"textAlign":"center"},
 			"x":120,
 			"y":-180,
-			"width":260,
-			"height":60
-		},
-		{
-			"id":"0b59e70b0791974a",
-			"type":"text",
-			"text":"Streamer View",
-			"styleAttributes":{"textAlign":"center"},
-			"x":-1280,
-			"y":-180,
-			"width":260,
-			"height":60
-		},
-		{
-			"id":"728df470c549caf4",
-			"type":"text",
-			"text":"Public Leaderboard",
-			"styleAttributes":{"textAlign":"center"},
-			"x":-1280,
-			"y":-100,
-			"width":260,
-			"height":60
-		},
-		{
-			"id":"1000c5c130f6cd97",
-			"type":"text",
-			"text":"Public Kanbanboard",
-			"styleAttributes":{"textAlign":"center"},
-			"x":-1280,
-			"y":-20,
 			"width":260,
 			"height":60
 		},
@@ -74,7 +44,7 @@
 		{
 			"id":"503aa1de9ef5ee8f",
 			"type":"text",
-			"text":"Coforge Worker",
+			"text":"CoForge Worker",
 			"styleAttributes":{"textAlign":"center"},
 			"x":-540,
 			"y":-20,
@@ -84,7 +54,7 @@
 		{
 			"id":"e37369612cb55b1e",
 			"type":"text",
-			"text":"Coforge Twitch Bot",
+			"text":"CoForge Twitch Bot",
 			"styleAttributes":{"textAlign":"center"},
 			"x":-860,
 			"y":-20,
@@ -94,12 +64,52 @@
 		{
 			"id":"af1af6e617d05198",
 			"type":"text",
-			"text":"# The Hood\n\nA community playground in a 3d world, which can be interacted with through twitch chat.\n\nThe Hood is written in Rust and uses Bevy under the hood. It builds on the foundations of the npc-framework.\n\nViewers must `register` through twitch chat to get an own character and be allowed to participate in requesting features for the game.\n\nThe idea is that the hood is the starting point for a new twitch channel, it gives the community a home they can build and improve together.\n\nViewers earn money and reputation. Money by watching the stream and reputation by contributing to the game in the form of  a `!request`. \n\nViewers earn xp and ranks based on their view-time and contributions.\n\nOnce a viewer has registered he gets assigned an actor and can then control the actor via twitch chat with simple commands. Each command costs something. The player can earn money and reputation in participating in the hood.\n\nThe hood has a shop where the player can buy cosmetics from his earned money. \n",
-			"styleAttributes":{},
-			"x":-930,
+			"text":"The Hood",
+			"styleAttributes":{"textAlign":"center"},
+			"x":-860,
 			"y":120,
-			"width":400,
-			"height":840
+			"width":260,
+			"height":60
+		},
+		{
+			"id":"0df55ad63dc470d0",
+			"type":"text",
+			"text":"Obsidian Marketplace",
+			"styleAttributes":{"textAlign":"center"},
+			"x":-1080,
+			"y":-420,
+			"width":260,
+			"height":60
+		},
+		{
+			"id":"0b59e70b0791974a",
+			"type":"text",
+			"text":"Streamer View",
+			"styleAttributes":{"textAlign":"center"},
+			"x":-1100,
+			"y":520,
+			"width":260,
+			"height":60
+		},
+		{
+			"id":"728df470c549caf4",
+			"type":"text",
+			"text":"Public Leaderboard",
+			"styleAttributes":{"textAlign":"center"},
+			"x":-1100,
+			"y":600,
+			"width":260,
+			"height":60
+		},
+		{
+			"id":"1000c5c130f6cd97",
+			"type":"text",
+			"text":"Public Kanbanboard",
+			"styleAttributes":{"textAlign":"center"},
+			"x":-1100,
+			"y":680,
+			"width":260,
+			"height":60
 		}
 	],
 	"edges":[
@@ -167,6 +177,15 @@
 			"fromSide":"bottom",
 			"toNode":"503aa1de9ef5ee8f",
 			"toSide":"top"
+		},
+		{
+			"id":"6422dda4aceecd07",
+			"styleAttributes":{},
+			"toFloating":false,
+			"fromNode":"0df55ad63dc470d0",
+			"fromSide":"bottom",
+			"toNode":"759b71cd665cc8f5",
+			"toSide":"left"
 		}
 	],
 	"metadata":{

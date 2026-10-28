@@ -13,6 +13,7 @@ const model = useIdeaBoard();
     <div class="cf-page-heading">
       <div>
         <h1>Backlog</h1>
+        <p>Prioritize feature requests and bugs, then open a card to move work through the workflow.</p>
       </div>
       <button type="button" class="cf-btn cf-btn-primary" @click="model.startNew()">
         <CfIcon name="plus" /> New request

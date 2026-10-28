@@ -16,7 +16,7 @@ const model = useStudioShell();
     </div>
     <div class="cf-topbar-actions">
       <button v-if="model.store.view === 'board'" type="button" class="cf-icon-button cf-panel-toggle" :aria-label="model.store.rightPanelCollapsed ? 'Expand chat panel' : 'Collapse chat panel'" :aria-expanded="!model.store.rightPanelCollapsed" :aria-controls="`${model.store.layoutId}-chat`" @click="model.toggleRightPanel()"><CfIcon :name="model.store.rightPanelCollapsed ? 'panel-right-open' : 'panel-right-close'" /></button>
-      <span v-if="model.store.activeProject" class="cf-provider-pill" :class="{ 'is-demo': model.isDemo }"><span />{{ model.isDemo ? 'Demo agents' : 'Claude Code CLI' }}</span>
+      <span v-if="model.store.activeProject" class="cf-provider-pill" :class="{ 'is-demo': model.isDemo }" :title="model.providerSummary.title"><span />{{ model.providerSummary.label }}</span>
       <span class="cf-topbar-divider" />
       <button
         type="button" class="cf-icon-button cf-activity-toggle" aria-label="Recent activity" :aria-expanded="model.store.activityOpen"

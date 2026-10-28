@@ -33,6 +33,8 @@ export function useOperations() {
     error,
     notice,
     working,
+    clearFilters: () => { code.value = ''; effect.value = ''; },
+    filtered: computed(() => Boolean(code.value || effect.value)),
     canExport: Boolean(host.exportDiagnostics),
     codes: OPERATION_CODES.map((code) => ({ id: code, label: code.replaceAll("-", " ") })),
     groups: computed(() => [

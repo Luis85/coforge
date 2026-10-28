@@ -37,6 +37,7 @@ export interface Player {
 export const OPERATION_CODES = [
   'job-queued', 'ai-cost-reported', 'ai-cost-manual-updated',
   'project-stage-prompts-updated',
+  'project-stage-agents-updated',
   'twitch-chat-removed',
   'stream-view-opened', 'stream-view-closed', 'stream-view-blocked',
   'request-context-added',

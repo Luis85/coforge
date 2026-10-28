@@ -12,6 +12,10 @@ export function createStreamSurfaceStore(props: {
 
   return {
     state,
+    metric: (value: number, unit: string) => {
+      const singular: Record<string, string> = { votes: 'vote', ideas: 'idea', 'accepted builds': 'accepted build' };
+      return `${value} ${value === 1 ? singular[unit] ?? unit : unit}`;
+    },
     dispose: stop,
     title: computed(
       () =>

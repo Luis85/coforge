@@ -1,0 +1,28 @@
+.ps--coforge .cf-step-agent-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.ps--coforge .cf-step-agent-fields :is(input, select) {
+  width: 100%;
+  min-width: 0;
+}
+.ps--coforge .cf-project-config-fields {
+  display: contents;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.ps--coforge .cf-settings-save {
+  bottom: var(--cf-host-status-inset, 0px);
+}
+.ps--coforge .cf-settings-fields .cf-settings-help,
+.ps--coforge .cf-workflow-help {
+  overflow-wrap: anywhere;
+}
+@container plugin-shell-leaf (max-width: 700px) {
+  .ps--coforge .cf-step-agent-fields {
+    grid-template-columns: 1fr;
+  }
+}

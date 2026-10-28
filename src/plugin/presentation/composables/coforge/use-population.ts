@@ -227,6 +227,8 @@ export function usePopulation() {
     error,
     notice,
     working,
+    openChat: () => store.navigate('stream'),
+    clearFilters: () => { query.value = ''; filter.value = 'all'; page.value = 0; },
     duration,
     reason,
     confirmation,

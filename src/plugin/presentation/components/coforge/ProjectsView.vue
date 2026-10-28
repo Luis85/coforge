@@ -7,7 +7,7 @@ const model = useProjects();
 <template>
   <div class="cf-projects-page">
     <header class="cf-page-heading">
-      <div><h1>Projects</h1><p>Each project has its own backlog and workspace.</p></div>
+      <div><h1>Projects</h1><p>Create projects, set their workspaces and choose a backlog.</p></div>
       <button type="button" class="cf-btn cf-btn-primary" :disabled="model.store.busy" @click="model.add()"><CfIcon name="plus" /> Add project</button>
     </header>
     <p class="cf-projects-context">Each project has its own backlog. Viewers use <code>!request &lt;project-id&gt; &lt;idea&gt;</code> to choose a parent project. Chat and community are shared; other projects can keep processing in the background.</p>

@@ -17,24 +17,25 @@ defineProps<{ model: WorkflowModel }>();
       <div class="cf-workflow-stage-body">
         <div class="cf-workflow-stage-heading">
           <h3>{{ stage.title }}</h3>
-          <button type="button" class="cf-btn cf-btn-ghost" :aria-label="`Edit prompt: ${stage.title}`" @click="model.editPrompt(stage.id)">Edit prompt</button>
+          <button type="button" class="cf-btn cf-btn-ghost" :aria-label="`Configure step: ${stage.title}`" @click="model.editPrompt(stage.id)">Configure step</button>
           <label class="cf-workflow-toggle">
             <span>{{ stage.automated ? 'Auto' : 'Manual' }}</span>
             <input
               type="checkbox" class="cf-workflow-toggle-input" :aria-label="stage.toggleLabel" :checked="stage.automated"
-              :disabled="model.store.busy || stage.blocked" @click.prevent="model.toggleStage(stage.id)"
+              :disabled="model.store.busy || (stage.blocked && !stage.automated)" @click.prevent="model.toggleStage(stage.id)"
             >
             <span class="cf-workflow-toggle-track" />
           </label>
         </div>
         <p>{{ stage.description }}</p>
+        <p class="cf-workflow-help">{{ stage.agentText }}</p>
         <div class="cf-workflow-stage-flow">
           <span>{{ stage.input }}</span>
           <CfIcon name="arrow-right" size="sm" />
           <span>{{ stage.output }}</span>
           <span v-if="stage.isActive" class="cf-workflow-running-label">Running</span>
         </div>
-        <p v-if="stage.blocked" class="cf-workflow-help cf-workflow-stage-limit">{{ model.blockedText }}</p>
+        <p v-if="stage.blocked" class="cf-workflow-help cf-workflow-stage-limit">{{ stage.blockedReason }}</p>
       </div>
     </section>
     <section class="cf-workflow-human-gate">

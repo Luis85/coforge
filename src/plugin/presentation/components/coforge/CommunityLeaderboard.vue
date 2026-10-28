@@ -55,6 +55,7 @@ defineProps<{ model: CommunityModel }>();
       <CfIcon name="users" />
       <h3>A community starts with one idea</h3>
       <p>Submit a request in chat. Contributors appear here after their ideas pass screening or they support eligible ideas.</p>
+      <button type="button" class="cf-btn cf-btn-secondary" @click="model.openChat()">Open Stream chat</button>
     </div>
     <button v-if="model.hasMore" type="button" class="cf-btn cf-btn-ghost cf-community-more" @click="model.toggleShowAll()">
       {{ model.moreLabel }}

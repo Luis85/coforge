@@ -4,57 +4,44 @@ import type { StudioStore } from "../../features/coforge/application/studio-stor
 export function mountNativeStatusbar(
   plugin: Plugin,
   store: StudioStore,
-  failure: () => void,
 ): () => void {
   const item = plugin.addStatusBarItem();
   item.classList.add("coforge-native-statusbar");
-  const button = item.createEl("button", {
-    text: `${plugin.manifest.name}: loading`,
-    attr: {
-      type: "button",
-      "aria-label": "Open studio",
-      title: "Open studio",
-    },
-  });
+  item.textContent = `${plugin.manifest.name}: loading`;
+  item.setAttribute("role", "status");
+  item.setAttribute("aria-live", "polite");
+  item.setAttribute("aria-atomic", "true");
   let closed = false;
   const refresh = () => {
     if (closed || !store.ready) return;
     const status = store.nativeStatusSnapshot();
     const connection =
       status.twitch === "connected"
-        ? "Twitch connected"
+        ? "Chat connected"
         : status.twitch === "error"
-          ? "Twitch needs attention"
-          : "Twitch offline";
+          ? "Chat error"
+          : status.twitch === "connecting" || status.twitch === "reconnecting"
+            ? "Chat connecting"
+            : "Chat offline";
     const agents = status.running
-      ? `${status.running} AI task${status.running === 1 ? "" : "s"} running`
+      ? `${status.running} running${status.queued ? ` / ${status.queued} queued` : ""}`
       : status.queued
-        ? `${status.queued} AI tasks queued`
-        : "Workflow idle";
-    button.textContent = `CoForge · ${connection} · ${agents}`;
+        ? `${status.queued} queued`
+        : "idle";
+    const next = `${plugin.manifest.name} · ${connection} · ${agents}`;
+    if (item.textContent === next) return;
+    item.textContent = next;
+    item.setAttribute(
+      "title",
+      `${plugin.manifest.name} · ${connection.replace(/^Chat/, "Twitch chat")} · ${agents}`,
+    );
   };
-  const open = () => {
-    void (async () => {
-      const type = `${plugin.manifest.id}-view-project-workbench`;
-      const leaf =
-        plugin.app.workspace
-          .getLeavesOfType(type)
-          .find(
-            (leaf) =>
-              leaf.view.containerEl.ownerDocument === item.ownerDocument,
-          ) ?? plugin.app.workspace.getLeaf("tab");
-      await leaf.setViewState({ type, active: true });
-      await plugin.app.workspace.revealLeaf(leaf);
-    })().catch(failure);
-  };
-  button.addEventListener("click", open);
   const stop = store.subscribeChanges(refresh);
   refresh();
   const dispose = () => {
     if (closed) return;
     closed = true;
     stop();
-    button.removeEventListener("click", open);
     item.remove();
   };
   plugin.register(dispose);

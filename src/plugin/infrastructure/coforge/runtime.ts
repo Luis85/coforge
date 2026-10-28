@@ -73,7 +73,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   });
   const publisher = new PublicSitePublisher(plugin);
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
-  const stopStatusbar = mountNativeStatusbar(plugin, studio.store, () => notify('CoForge could not open its studio view.', true));
+  const stopStatusbar = mountNativeStatusbar(plugin, studio.store);
   const streamSource = new PublicStreamSource(studio.store);
   const streamViews = registerStreamViews(plugin, projectId => { const scoped = new PublicStreamSource(studio.store, projectId); scoped.start(); return { source: scoped.asPort(), dispose: () => scoped.dispose() }; }, () => studio.store.ready ? studio.state().activeProjectId ?? '' : '', (kind, surface) => studio.store.transaction(state => recordOperation(state, kind, 'committed', undefined, 1, surface)), () => notify('A public stream window could not be opened. Use desktop Obsidian and check its workspace.', true));
   const twitch = new TwitchModule(studio, {

@@ -1,6 +1,7 @@
 import { boolean, number, oneOf, optional, shape, text } from './check';
 import { CATEGORIES } from './types';
 import { stagePromptsCheck } from './stage-prompts';
+import { agentModelCheck, stageAgentsCheck } from './stage-agents';
 
 const username = text({ trim: true, min: 1, max: 50 });
 
@@ -21,6 +22,7 @@ export const riceInput = shape({
 }, { strict: true });
 
 export const settingsPatch = shape({
+  stageAgents: optional(stageAgentsCheck),
   stagePrompts: optional(stagePromptsCheck),
   agentPrompt: optional(text({ trim: true, max: 8000 })),
   projectName: optional(text({ trim: true, min: 1, max: 80 })), projectBrief: optional(text({ trim: true, min: 10, max: 8000 })),
@@ -29,7 +31,7 @@ export const settingsPatch = shape({
   paused: optional(boolean), intervalSeconds: optional(number({ integer: true, min: 2, max: 3600 })),
   minVotes: optional(number({ integer: true, min: 0, max: 10000 })), maxTurns: optional(number({ integer: true, min: 1, max: 50 })),
   maxBudgetUsd: optional(number({ min: 0.1, max: 20 })), timeoutSeconds: optional(number({ integer: true, min: 15, max: 1800 })),
-  model: optional(text({ trim: true, min: 1, max: 100, pattern: /^[a-zA-Z0-9._:-]+$/ })),
+  model: optional(agentModelCheck),
   requestCooldownSeconds: optional(number({ integer: true, min: 0, max: 600 })),
 }, { strict: true });
 

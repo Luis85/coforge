@@ -41,6 +41,7 @@ export interface AgentJob {
 }
 export interface Activity { id: string; ideaId?: string; type: 'idea' | 'vote' | 'agent' | 'review' | 'system'; text: string; createdAt: string }
 export interface Settings {
+  stageAgents?: import('./stage-agents').StageAgents;
   stagePrompts?: import('./stage-prompts').StagePrompts;
   agentPrompt: string;
   projectName: string; projectBrief: string; provider: Provider; automation: Record<AgentStage, boolean>; paused: boolean;

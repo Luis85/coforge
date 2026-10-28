@@ -1,84 +1,107 @@
-import { computed, inject, onBeforeUnmount, provide, reactive, ref, watch, type InjectionKey } from 'vue';
-import { defaultSettings } from '../../../features/coforge/domain/seed';
-import type { AgentStage, Provider, Settings } from '../../../features/coforge/domain/types';
-import { STAGES, STAGE_LABELS } from '../../../features/coforge/domain/types';
-import { defaultStagePrompt, normalizeStagePrompts, resolvedStagePrompts } from '../../../features/coforge/domain/stage-prompts';
-import { stageInput, stageSystemPrompt } from '../../../features/coforge/application/agent-prompts';
-import type { StudioProject } from '../../../features/coforge/domain/types';
-import { useStudioShell } from './use-studio-app';
-import type { ProjectPaths } from '../../../features/coforge/domain/projects';
-import { validateProjectPath, validateProjectUrl } from '../../../features/coforge/domain/project-note';
-
-/** The studio settings the form edits. Automation switches and pause live on other screens. */
-type ProjectLinks = Pick<StudioProject, 'repositoryUrl' | 'websiteUrl'>;
-type SettingsDraft = Pick<Settings, 'projectName' | 'projectBrief' | 'agentPrompt' | 'provider' | 'model' | NumberKey> & ProjectPaths & ProjectLinks & { stagePrompts: Record<AgentStage, string> };
-type NumberKey = 'intervalSeconds' | 'minVotes' | 'requestCooldownSeconds' | 'maxTurns' | 'maxBudgetUsd' | 'timeoutSeconds';
-interface NumberField { key: NumberKey; label: string; min: number; max: number; step: number; integer: boolean; help?: string }
-
-/** Mirrors `settingsPatch` in domain/inputs.ts so the form explains a rejection before it is sent. */
-const RHYTHM: NumberField[] = [
-  { key: 'intervalSeconds', label: 'Queue interval · seconds', min: 2, max: 3600, step: 1, integer: true, help: 'How often automatic dispatch checks for work.' },
-  { key: 'minVotes', label: 'Votes before planning', min: 0, max: 10000, step: 1, integer: true, help: 'Minimum demand for automatic planning.' },
-];
-const LIMITS: NumberField[] = [
-  { key: 'maxTurns', label: 'Maximum agent turns', min: 1, max: 50, step: 1, integer: true },
-  { key: 'maxBudgetUsd', label: 'Budget cap per run · USD', min: 0.1, max: 20, step: 0.01, integer: false },
-  { key: 'timeoutSeconds', label: 'Timeout · seconds', min: 15, max: 1800, step: 1, integer: true },
-];
-const MODEL_PATTERN = /^[a-zA-Z0-9._:-]+$/;
-const PROVIDERS: Array<{ value: Provider; icon: string; title: string; text: string }> = [
-  { value: 'demo', icon: 'flask-conical', title: 'Simulation', text: 'Illustrative agent results. No CLI or credentials needed.' },
-  { value: 'claude', icon: 'bot', title: 'Claude Code CLI', text: 'Real local agent runs using your configured Claude account.' },
-];
-
-const pick = (settings: Settings): Omit<SettingsDraft, keyof ProjectPaths | keyof ProjectLinks> => ({
-  agentPrompt: settings.agentPrompt,
-  stagePrompts: resolvedStagePrompts(settings.stagePrompts),
-  projectName: settings.projectName, projectBrief: settings.projectBrief, provider: settings.provider, model: settings.model,
-  intervalSeconds: settings.intervalSeconds, minVotes: settings.minVotes, requestCooldownSeconds: settings.requestCooldownSeconds,
-  maxTurns: settings.maxTurns, maxBudgetUsd: settings.maxBudgetUsd, timeoutSeconds: settings.timeoutSeconds,
-});
-
-function invalidNumber(draft: SettingsDraft): string | null {
-  for (const field of [...RHYTHM, ...LIMITS]) {
-    const value: unknown = draft[field.key];
-    const valid = typeof value === 'number' && Number.isFinite(value) && value >= field.min && value <= field.max && (!field.integer || Number.isInteger(value));
-    if (!valid) return `${field.label.split(' · ')[0] ?? field.label} must be ${field.integer ? 'a whole number' : 'a number'} from ${field.min} to ${field.max}.`;
-  }
-  return null;
-}
-
-function validate(draft: SettingsDraft): string | null {
-  try { validateProjectPath(draft.projectPath); validateProjectPath(draft.worktreeFolder); validateProjectUrl(draft.repositoryUrl, true); validateProjectUrl(draft.websiteUrl); }
-  catch (error) { return error instanceof Error ? error.message : 'Use absolute project paths.'; }
-  if (draft.allowImplementation && !draft.projectPath) return 'Set the project repository before allowing real implementation.';
-  if (!draft.projectName.trim() || draft.projectBrief.trim().length < 10 || !draft.model.trim())
-    return 'Add a project name, a brief of at least 10 characters, and a Claude model.';
-  if (!MODEL_PATTERN.test(draft.model.trim()))
-    return 'Use a model name or alias containing letters, numbers, dots, dashes, underscores, or colons.';
-  return invalidNumber(draft);
-}
-
+import {
+  computed,
+  inject,
+  onBeforeUnmount,
+  provide,
+  reactive,
+  ref,
+  watch,
+  type InjectionKey,
+} from "vue";
+import { defaultSettings } from "../../../features/coforge/domain/seed";
+import { STAGES, STAGE_LABELS } from "../../../features/coforge/domain/types";
+import {
+  defaultStagePrompt,
+  normalizeStagePrompts,
+} from "../../../features/coforge/domain/stage-prompts";
+import {
+  stageInput,
+  stageSystemPrompt,
+} from "../../../features/coforge/application/agent-prompts";
+import { projectConfigurationIdentity } from "../../../features/coforge/domain/projects";
+import { useStudioShell } from "./use-studio-app";
+import {
+  copyStageAgentDrafts,
+  stageAgentDraftValues,
+  stageAgentOverrides,
+} from "../../stores/coforge-stage-agent-draft";
+import {
+  PROVIDERS,
+  RHYTHM,
+  LIMITS,
+  pickSettingsDraft,
+  validateSettingsDraft,
+  type SettingsDraft,
+} from "./settings-fields";
 function createSettings() {
   const shell = useStudioShell();
   const { store, actions } = shell;
-  const persisted = computed<SettingsDraft>(() => ({ ...pick(store.state?.settings ?? defaultSettings()),
-    projectPath: store.activeProject?.projectPath ?? '', worktreeFolder: store.activeProject?.worktreeFolder ?? '',
-    repositoryUrl: store.activeProject?.repositoryUrl ?? '', websiteUrl: store.activeProject?.websiteUrl ?? '',
-    allowImplementation: store.activeProject?.allowImplementation ?? false }));
+  const persisted = computed<SettingsDraft>(() => ({
+    ...pickSettingsDraft(store.state?.settings ?? defaultSettings()),
+    projectPath: store.activeProject?.projectPath ?? "",
+    worktreeFolder: store.activeProject?.worktreeFolder ?? "",
+    repositoryUrl: store.activeProject?.repositoryUrl ?? "",
+    websiteUrl: store.activeProject?.websiteUrl ?? "",
+    allowImplementation: store.activeProject?.allowImplementation ?? false,
+  }));
   const persistedKey = computed(() => JSON.stringify(persisted.value));
-  const copyDraft = (value: SettingsDraft): SettingsDraft => ({ ...value, stagePrompts: { ...value.stagePrompts } });
+  const sourceProject = computed(() =>
+    store.activeProject && store.state
+      ? { ...store.activeProject, settings: store.state.settings }
+      : undefined,
+  );
+  const sourceIdentity = computed(() =>
+    sourceProject.value
+      ? projectConfigurationIdentity(sourceProject.value)
+      : "",
+  );
+  const expectedProjectId = ref(sourceProject.value?.id ?? "");
+  const expectedConfiguration = ref(sourceIdentity.value);
+  const expectedKey = ref(persistedKey.value);
+  const copyDraft = (value: SettingsDraft): SettingsDraft => ({
+    ...value,
+    stagePrompts: { ...value.stagePrompts },
+    stageAgents: copyStageAgentDrafts(value.stageAgents),
+  });
   const draft = reactive<SettingsDraft>(copyDraft(persisted.value));
-  const error = ref('');
+  const error = ref("");
   const saved = ref(false);
   const resetConfirm = ref(false);
   const checking = ref(false);
-  watch(persistedKey, () => { Object.assign(draft, copyDraft(persisted.value)); });
+  const saving = ref(false);
 
-  const dirty = computed(() => JSON.stringify(draft) !== persistedKey.value);
-  watch(dirty, isDirty => { store.dirtySettings = isDirty; if (isDirty) saved.value = false; }, { immediate: true });
-  onBeforeUnmount(() => { store.dirtySettings = false; });
-  const pending = computed(() => store.projectJobs.some(job => job.status === 'running' || job.status === 'queued'));
+  const dirty = computed(() => JSON.stringify(draft) !== expectedKey.value);
+  const staleMessage = () =>
+    `Project settings changed outside this form. Your draft for ${expectedProjectId.value || "the original project"} is kept. Copy any edits you want to retain, then discard changes to load the latest settings before saving.`;
+  const loadSource = () => {
+    Object.assign(draft, copyDraft(persisted.value));
+    expectedKey.value = persistedKey.value;
+    expectedProjectId.value = sourceProject.value?.id ?? "";
+    expectedConfiguration.value = sourceIdentity.value;
+  };
+  watch([persistedKey, sourceIdentity], () => {
+    if (saving.value) return;
+    if (!dirty.value) loadSource();
+    else error.value = staleMessage();
+  });
+  watch(
+    dirty,
+    (isDirty) => {
+      store.dirtySettings = isDirty;
+      if (isDirty) saved.value = false;
+    },
+    { immediate: true },
+  );
+  onBeforeUnmount(() => {
+    store.dirtySettings = false;
+  });
+  const pending = computed(
+    () =>
+      saving.value ||
+      store.projectJobs.some(
+        (job) => job.status === "running" || job.status === "queued",
+      ),
+  );
   const runtime = computed(() => store.state?.runtime);
   const lastError = (fallback: string): string => {
     const toast = store.toasts[store.toasts.length - 1];
@@ -86,43 +109,172 @@ function createSettings() {
   };
 
   async function save(): Promise<void> {
-    error.value = '';
-    const problem = validate(draft);
-    if (problem) { error.value = problem; return; }
-    const patch = { ...draft, stagePrompts: normalizeStagePrompts(draft.stagePrompts), projectName: draft.projectName.trim(), projectBrief: draft.projectBrief.trim(), model: draft.model.trim() };
-    if (await actions.changeProject(patch, store.state?.activeProjectId)) saved.value = true;
-    else error.value = lastError('Settings could not be saved.');
+    if (saving.value) return;
+    error.value = "";
+    if (!sourceProject.value || sourceProject.value.unavailable) {
+      error.value =
+        "Choose an available project in Projects before changing its settings.";
+      return;
+    }
+    if (
+      expectedProjectId.value !== sourceProject.value?.id ||
+      expectedConfiguration.value !== sourceIdentity.value ||
+      expectedKey.value !== persistedKey.value
+    ) {
+      error.value = staleMessage();
+      return;
+    }
+    const problem = validateSettingsDraft(draft);
+    if (problem) {
+      error.value = problem;
+      return;
+    }
+    const patch = {
+      ...draft,
+      stageAgents: stageAgentOverrides(draft.stageAgents),
+      stagePrompts: normalizeStagePrompts(draft.stagePrompts),
+      projectName: draft.projectName.trim(),
+      projectBrief: draft.projectBrief.trim(),
+      model: draft.model.trim(),
+    };
+    saving.value = true;
+    try {
+      const written = await actions.saveProjectDraft(
+        patch,
+        expectedProjectId.value,
+        expectedConfiguration.value,
+      );
+      if (!written) error.value = lastError("Settings could not be saved.");
+      else if (
+        written.id !== sourceProject.value?.id ||
+        projectConfigurationIdentity(written) !== sourceIdentity.value
+      )
+        error.value =
+          "Your settings were saved, but the project changed again outside this form. Your draft is kept; discard changes to review the latest source.";
+      else {
+        loadSource();
+        saved.value = true;
+      }
+    } finally {
+      saving.value = false;
+    }
   }
   async function loadSample(): Promise<void> {
-    error.value = '';
-    if (await actions.loadSample()) { resetConfirm.value = false; saved.value = false; }
-    else error.value = lastError('The sample workspace could not be loaded.');
+    error.value = "";
+    if (await actions.loadSample()) {
+      resetConfirm.value = false;
+      saved.value = false;
+    } else error.value = lastError("The sample workspace could not be loaded.");
   }
   async function checkClaude(): Promise<void> {
     checking.value = true;
-    try { await actions.refreshRuntime(); } finally { checking.value = false; }
+    try {
+      await actions.refreshRuntime();
+    } finally {
+      checking.value = false;
+    }
   }
 
   return reactive({
-    store, draft, error, saved, resetConfirm, checking, dirty, pending, runtime,
-    promptStages: STAGES.map(stage => ({ id: stage, label: STAGE_LABELS[stage] })),
-    promptOrigin: computed(() => normalizeStagePrompts(draft.stagePrompts)[store.promptStage] ? 'Project override' : 'Default prompt'),
+    store,
+    draft,
+    error,
+    saved,
+    resetConfirm,
+    checking,
+    dirty,
+    pending,
+    runtime,
+    saving,
+    editingProjectId: expectedProjectId,
+    availableProject: computed(() =>
+      Boolean(store.activeProject && !store.activeProject.unavailable),
+    ),
+    promptStages: STAGES.map((stage) => ({
+      id: stage,
+      label: STAGE_LABELS[stage],
+    })),
+    stepAgent: computed(() => {
+      const entry = draft.stageAgents[store.promptStage];
+      return {
+        provider: entry.provider || draft.provider,
+        model: entry.model.trim() || draft.model.trim(),
+        providerInherited: !entry.provider,
+        modelInherited: !entry.model.trim(),
+      };
+    }),
+    hasClaudeStep: computed(() =>
+      STAGES.some(
+        (stage) =>
+          (draft.stageAgents[stage].provider || draft.provider) === "claude",
+      ),
+    ),
+    defaultProviderLabel: computed(
+      () =>
+        PROVIDERS.find((provider) => provider.value === draft.provider)
+          ?.title ?? "Simulation",
+    ),
+    resetStepAgent: () => {
+      draft.stageAgents[store.promptStage] = { provider: "", model: "" };
+    },
+    promptOrigin: computed(() =>
+      normalizeStagePrompts(draft.stagePrompts)[store.promptStage]
+        ? "Project override"
+        : "Default prompt",
+    ),
     promptSystem: computed(() => stageSystemPrompt(store.promptStage, draft)),
-    promptPayload: computed(() => { const idea = store.projectIdeas.find(idea => idea.id === store.promptPreviewIdea); return idea ? stageInput(store.promptStage, idea, { ...(store.state?.settings ?? defaultSettings()), ...draft }) : draft.agentPrompt || 'Choose a request to preview its full dispatch payload.'; }),
-    resetStagePrompt: () => { draft.stagePrompts[store.promptStage] = defaultStagePrompt(store.promptStage); },
-    providers: PROVIDERS, rhythm: RHYTHM, limits: LIMITS,
-    status: computed(() => saved.value && !dirty.value ? 'saved' : dirty.value ? 'dirty' : 'clean'),
-    submit: (event: Event) => { event.preventDefault(); void save(); },
-    discard: () => { Object.assign(draft, copyDraft(persisted.value)); error.value = ''; saved.value = false; },
-    exportProject: () => { void actions.exportProject(); },
-    toggleReset: () => { resetConfirm.value = !resetConfirm.value; },
-    keepData: () => { resetConfirm.value = false; },
-    confirmReset: () => { void loadSample(); },
-    checkClaude: () => { void checkClaude(); },
+    promptPayload: computed(() => {
+      const idea = store.projectIdeas.find(
+        (idea) => idea.id === store.promptPreviewIdea,
+      );
+      return idea
+        ? stageInput(store.promptStage, idea, {
+            ...(store.state?.settings ?? defaultSettings()),
+            ...draft,
+            stageAgents: stageAgentDraftValues(draft.stageAgents),
+          })
+        : draft.agentPrompt ||
+            "Choose a request to preview its full dispatch payload.";
+    }),
+    resetStagePrompt: () => {
+      draft.stagePrompts[store.promptStage] = defaultStagePrompt(
+        store.promptStage,
+      );
+    },
+    providers: PROVIDERS,
+    rhythm: RHYTHM,
+    limits: LIMITS,
+    status: computed(() =>
+      saved.value && !dirty.value ? "saved" : dirty.value ? "dirty" : "clean",
+    ),
+    submit: (event: Event) => {
+      event.preventDefault();
+      void save();
+    },
+    discard: () => {
+      loadSource();
+      error.value = "";
+      saved.value = false;
+    },
+    exportProject: () => {
+      void actions.exportProject();
+    },
+    toggleReset: () => {
+      resetConfirm.value = !resetConfirm.value;
+    },
+    keepData: () => {
+      resetConfirm.value = false;
+    },
+    confirmReset: () => {
+      void loadSample();
+    },
+    checkClaude: () => {
+      void checkClaude();
+    },
   });
 }
 export type SettingsModel = ReturnType<typeof createSettings>;
-const settingsKey: InjectionKey<SettingsModel> = Symbol('coforge-settings');
+const settingsKey: InjectionKey<SettingsModel> = Symbol("coforge-settings");
 
 /** In-studio "Studio settings": a draft of the project settings plus runtime evidence and project data actions. */
 export function useSettings(): SettingsModel {
@@ -133,6 +285,6 @@ export function useSettings(): SettingsModel {
 /** The settings form shared by the sections of SettingsView. */
 export function useSettingsForm(): SettingsModel {
   const model = inject(settingsKey, null);
-  if (!model) throw new Error('COFORGE_SETTINGS_MISSING');
+  if (!model) throw new Error("COFORGE_SETTINGS_MISSING");
   return model;
 }

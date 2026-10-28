@@ -7,7 +7,7 @@ const model = useStreamPage();
 </script>
 <template>
   <div class="cf-stream-page">
-    <header class="cf-page-heading"><h1>Channel</h1><span class="cf-badge">{{ model.intakeLabel }}</span></header>
+    <header class="cf-page-heading"><div><h1>Stream chat</h1><p>Connect Twitch, talk with viewers and manage your chatbot messages.</p></div><span class="cf-badge">{{ model.intakeLabel }}</span></header>
     <div class="cf-stream-tabs" role="tablist" aria-label="Stream tools"><button id="cf-stream-channel-tab" type="button" role="tab" :tabindex="model.tab === 'channel' ? 0 : -1" @keydown="model.keydown($event)" :aria-selected="model.tab === 'channel'" aria-controls="cf-stream-channel-panel" @click="model.tab = 'channel'">Chat &amp; channel</button><button id="cf-stream-messages-tab" type="button" role="tab" :tabindex="model.tab === 'messages' ? 0 : -1" @keydown="model.keydown($event)" :aria-selected="model.tab === 'messages'" aria-controls="cf-stream-messages-panel" @click="model.tab = 'messages'">Bot messages</button></div>
     <div v-show="model.tab === 'channel'" id="cf-stream-channel-panel" class="cf-stream-layout" role="tabpanel" aria-labelledby="cf-stream-channel-tab">
       <ChatPanel full />

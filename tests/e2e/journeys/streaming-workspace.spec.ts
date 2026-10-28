@@ -12,7 +12,7 @@ test("edits project stage prompts, retains drafts and isolates overrides", async
   await page
     .getByRole("button", { name: "Studio settings", exact: true })
     .click();
-  await page.getByLabel("Prompt stage", { exact: true }).selectOption("screen");
+  await page.getByLabel("Workflow step", { exact: true }).selectOption("screen");
   await page
     .getByLabel("Project stage prompt", { exact: true })
     .fill("PROJECT_SCREEN_POLICY: explain product fit and reject scope creep.");
@@ -33,11 +33,11 @@ test("edits project stage prompts, retains drafts and isolates overrides", async
     .getByRole("button", { name: "Save settings", exact: true })
     .click();
   await expect(page.getByText("Settings saved", { exact: true })).toBeVisible();
-  await page.getByLabel("Prompt stage", { exact: true }).selectOption("plan");
+  await page.getByLabel("Workflow step", { exact: true }).selectOption("plan");
   await expect(
     page.getByLabel("Project stage prompt", { exact: true }),
   ).not.toHaveValue(/PROJECT_SCREEN_POLICY/);
-  await page.getByLabel("Prompt stage", { exact: true }).selectOption("screen");
+  await page.getByLabel("Workflow step", { exact: true }).selectOption("screen");
   await page
     .getByRole("button", { name: "Reset selected stage prompt", exact: true })
     .click();

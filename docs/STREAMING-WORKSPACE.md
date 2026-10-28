@@ -10,6 +10,12 @@ The studio is private. Use the four **CoForge Stream** ribbon icons or the
 | Leaderboards | CoForge Stream - Leaderboards |
 | Community | CoForge Stream - Community |
 
+Each explicit ribbon/Open action opens a fresh native Obsidian window, without
+replacing a tab in the main workspace. Additional windows of the same kind keep
+numbered titles such as `CoForge Stream - Kanban (2)`, so OBS can distinguish them.
+Their window slots survive project retargeting and workspace restoration. Use the
+exact title of the intended window when configuring its OBS source.
+
 In OBS, capture the dedicated window and choose **Window title must match** as
 the window match priority. Avoid capturing your whole desktop or private studio.
 The Kanban window stays on its selected project when you change projects privately.
@@ -44,7 +50,7 @@ right-click or the **Actions** button; review-sensitive actions open the review 
 
 ## Project prompts
 
-Open a project's **Studio settings → Stage prompts**, or **Edit prompt** in its
+Open a project's **Studio settings → Workflow steps**, or **Configure step** in its
 workflow. Select Screen, Score, Plan or Build. Each starts with a default and can
 be overridden independently for that project. Blank/reset restores the default.
 Preview shows the normalized system instructions and an existing request's payload
@@ -55,6 +61,20 @@ The general project prompt prefixes the request payload. Stage instructions defi
 the task; CoForge still supplies execution restrictions, output schemas and mandatory
 streamer review. Overrides live in `agent-prompt-screen`, `agent-prompt-score`,
 `agent-prompt-plan` and `agent-prompt-implement` in the project Markdown note.
+
+Each step also has a provider and model choice. Blank fields inherit the project's
+defaults; explicit overrides remain independent when defaults change. The current
+workflow runners are Claude Code and Simulation. Simulation makes no model call;
+real steps use the configured Claude CLI alias or model identifier. A mixed workflow
+is labelled **Mixed providers**, and each workflow card shows its actual runner/model.
+**Use project defaults for this step** clears only its provider/model overrides,
+leaving its task prompt intact. The project note stores `agent-provider-<stage>` and
+`agent-model-<stage>` fields. Each queued attempt retains its selected provider/model
+for execution, history and AI-cost attribution, even while another project is active.
+
+Configuration edits require that project's queued/running tasks to finish or be
+cancelled. If project settings change outside the form, unsaved drafts stay intact;
+save is blocked until you review the external values using **Discard changes**.
 
 ## Costs and finances
 
@@ -106,6 +126,9 @@ profiles earn no game rewards until registration.
 Navigation and chat have independent collapse/reopen buttons; chat drafts survive
 collapse and navigation. Narrow layouts show either the board or expanded chat.
 The connection/workflow indicator now lives in Obsidian's native status bar.
+It is compact read-only text. Chat controls and sticky project saves reserve only
+the actual overlapping host-bar space. In short board panes, chat context/history
+scrolls independently while connection and message controls remain reachable.
 
 Private CoForge folders and plugin state are ignored by Git, with only
 `CoForge/Public` allowed for publishing. Protection is also installed in new vaults.
