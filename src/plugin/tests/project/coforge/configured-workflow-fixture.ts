@@ -108,4 +108,3 @@ export async function fixture(steps: WorkflowStep[], custom?: StageRunner, guard
     store.snapshot().ideas.find((item) => item.id === idea.id)!;
   return { store, storage, idea, calls, runner, engine, current };
 }
-
