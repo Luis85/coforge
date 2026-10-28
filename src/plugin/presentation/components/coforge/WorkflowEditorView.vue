@@ -18,6 +18,7 @@ const model = useWorkflowEditor();
         </p>
       </div>
     </header>
+    <p>Reuse agents and councils in a proposal process through <button type="button" class="cf-btn cf-btn-ghost" @click="model.store.navigate('council')">The Council</button>.</p>
     <section
       v-if="!model.project || model.project.unavailable"
       class="cf-empty-state"

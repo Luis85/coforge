@@ -1,0 +1,62 @@
+.cf-council,
+.cf-council-section {
+  display: grid;
+  gap: var(--size-4-4);
+  min-width: 0;
+}
+.cf-council {
+  padding: var(--size-4-5);
+}
+.cf-council .cf-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+.cf-council [aria-current="page"] {
+  background: var(--background-modifier-hover);
+  color: var(--text-accent);
+}
+.cf-council pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 32em;
+  overflow: auto;
+}
+.cf-council-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+  align-items: start;
+  overflow-wrap: anywhere;
+}
+.cf-council-choice > label {
+  display: flex;
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+  gap: var(--size-4-2);
+}
+.cf-council > .cf-btn {
+  justify-self: start;
+}
+.cf-council .cf-btn {
+  max-width: 100%;
+  white-space: normal;
+}
+.cf-council-runs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.cf-council-runs > li,
+.cf-council-section article {
+  padding-block: var(--size-4-4);
+  border-bottom: 1px solid var(--background-modifier-border);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 720px) {
+  .cf-council {
+    padding: var(--size-4-3);
+  }
+}

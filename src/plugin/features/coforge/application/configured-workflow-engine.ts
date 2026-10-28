@@ -9,6 +9,7 @@ import type { StageUsage } from '../domain/ai-usage';
 import type { StageInput, StageRunner, InternalState } from './ports';
 import { recordOperation } from './population';
 import type { StudioStore } from './studio-store';
+import { attachWorkflowPlan, type WorkflowPlanHandoff } from './workflow-plan-handoff';
 import { appendWorkflowArtifact, applyConfiguredOutput, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
 
 interface ConfiguredHost {
@@ -69,7 +70,7 @@ export class ConfiguredWorkflowEngine {
     state.jobs.push(job); delete idea.lastError; recordOperation(state, 'job-queued', 'none', undefined, 1, job.id);
     return job;
   }
-  async start(ideaId: string, explicit = true): Promise<WorkflowRun> {
+  async start(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff): Promise<WorkflowRun> {
     await this.store.transaction(state => {
       const idea = configuredIdea(state, ideaId);
       const projectId = ideaProjectId(idea);
@@ -87,6 +88,7 @@ export class ConfiguredWorkflowEngine {
       idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition: workflowDefinition(settings),
         proposalRevision: workflowProposalRevision(idea), revision: 0, cursor: 0, state: 'ready', attempts: [], artifacts: [], createdAt: at, updatedAt: at,
         projectContext: { name: settings.projectName, brief: settings.projectBrief, agentPrompt: settings.agentPrompt, projectPath: project.projectPath, worktreeFolder: project.worktreeFolder } };
+      if (handoff) attachWorkflowPlan(idea.workflowRun, handoff, () => crypto.randomUUID());
       delete idea.lastError;
       recordOperation(state, 'workflow-run-started', 'committed', undefined, 1, idea.workflowRun.id);
       this.queue(state, ideaId, explicit);

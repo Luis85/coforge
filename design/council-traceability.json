@@ -1,0 +1,609 @@
+{
+  "format": "coforge-council-traceability/v1",
+  "source": "docs/coforge/THE-COUNCIL-PRD.md",
+  "releaseStatus": "implemented-reviewed-automated-gates-passed-native-unverified",
+  "acceptedDecisions": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "requirements": [
+    {
+      "id": "DEF-01",
+      "title": "Canonical Markdown",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-catalogue.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-vault.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-index.test.ts",
+        "src/plugin/tests/project/coforge/council-editor.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-drafts.test.ts",
+        "src/plugin/tests/project/coforge/council-connection-profiles.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies-ui.test.ts"
+      ]
+    },
+    {
+      "id": "DEF-02",
+      "title": "Identity and revisions",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-catalogue.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-vault.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-index.test.ts",
+        "src/plugin/tests/project/coforge/council-editor.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-drafts.test.ts",
+        "src/plugin/tests/project/coforge/council-connection-profiles.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies-ui.test.ts"
+      ]
+    },
+    {
+      "id": "DEF-03",
+      "title": "Validation",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-catalogue.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-vault.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-index.test.ts",
+        "src/plugin/tests/project/coforge/council-editor.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-drafts.test.ts",
+        "src/plugin/tests/project/coforge/council-connection-profiles.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies-ui.test.ts"
+      ]
+    },
+    {
+      "id": "DEF-04",
+      "title": "Editing and portability",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-catalogue.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-vault.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-index.test.ts",
+        "src/plugin/tests/project/coforge/council-editor.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-drafts.test.ts",
+        "src/plugin/tests/project/coforge/council-connection-profiles.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies-ui.test.ts"
+      ]
+    },
+    {
+      "id": "DEF-05",
+      "title": "Agent behavior",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-catalogue.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-vault.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-index.test.ts",
+        "src/plugin/tests/project/coforge/council-editor.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-drafts.test.ts",
+        "src/plugin/tests/project/coforge/council-connection-profiles.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies-ui.test.ts"
+      ]
+    },
+    {
+      "id": "DEF-06",
+      "title": "Authority and context isolation",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-catalogue.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-vault.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-index.test.ts",
+        "src/plugin/tests/project/coforge/council-editor.test.ts",
+        "src/plugin/tests/project/coforge/council-definition-drafts.test.ts",
+        "src/plugin/tests/project/coforge/council-connection-profiles.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies.test.ts",
+        "src/plugin/tests/project/coforge/council-dependencies-ui.test.ts"
+      ]
+    },
+    {
+      "id": "COU-01",
+      "title": "Team ownership",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-protocol.test.ts",
+        "src/plugin/tests/project/coforge/council-module.test.ts",
+        "src/plugin/tests/project/coforge/execution-kernel.test.ts",
+        "src/plugin/tests/project/coforge/execution-artifact-limits.test.ts",
+        "src/plugin/tests/project/coforge/execution-projection.test.ts"
+      ]
+    },
+    {
+      "id": "COU-02",
+      "title": "Default protocol",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-protocol.test.ts",
+        "src/plugin/tests/project/coforge/council-module.test.ts",
+        "src/plugin/tests/project/coforge/execution-kernel.test.ts",
+        "src/plugin/tests/project/coforge/execution-artifact-limits.test.ts",
+        "src/plugin/tests/project/coforge/execution-projection.test.ts"
+      ]
+    },
+    {
+      "id": "COU-03",
+      "title": "Configurable rounds",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-protocol.test.ts",
+        "src/plugin/tests/project/coforge/council-module.test.ts",
+        "src/plugin/tests/project/coforge/execution-kernel.test.ts",
+        "src/plugin/tests/project/coforge/execution-artifact-limits.test.ts",
+        "src/plugin/tests/project/coforge/execution-projection.test.ts"
+      ]
+    },
+    {
+      "id": "COU-04",
+      "title": "Input isolation",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-protocol.test.ts",
+        "src/plugin/tests/project/coforge/council-module.test.ts",
+        "src/plugin/tests/project/coforge/execution-kernel.test.ts",
+        "src/plugin/tests/project/coforge/execution-artifact-limits.test.ts",
+        "src/plugin/tests/project/coforge/execution-projection.test.ts"
+      ]
+    },
+    {
+      "id": "COU-05",
+      "title": "Persistence barriers",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-protocol.test.ts",
+        "src/plugin/tests/project/coforge/council-module.test.ts",
+        "src/plugin/tests/project/coforge/execution-kernel.test.ts",
+        "src/plugin/tests/project/coforge/execution-artifact-limits.test.ts",
+        "src/plugin/tests/project/coforge/execution-projection.test.ts"
+      ]
+    },
+    {
+      "id": "COU-06",
+      "title": "Optional synthesis",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-protocol.test.ts",
+        "src/plugin/tests/project/coforge/council-module.test.ts",
+        "src/plugin/tests/project/coforge/execution-kernel.test.ts",
+        "src/plugin/tests/project/coforge/execution-artifact-limits.test.ts",
+        "src/plugin/tests/project/coforge/execution-projection.test.ts"
+      ]
+    },
+    {
+      "id": "COU-07",
+      "title": "Complete attribution",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-protocol.test.ts",
+        "src/plugin/tests/project/coforge/council-module.test.ts",
+        "src/plugin/tests/project/coforge/execution-kernel.test.ts",
+        "src/plugin/tests/project/coforge/execution-artifact-limits.test.ts",
+        "src/plugin/tests/project/coforge/execution-projection.test.ts"
+      ]
+    },
+    {
+      "id": "COU-08",
+      "title": "Failure policy",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/council-protocol.test.ts",
+        "src/plugin/tests/project/coforge/council-module.test.ts",
+        "src/plugin/tests/project/coforge/execution-kernel.test.ts",
+        "src/plugin/tests/project/coforge/execution-artifact-limits.test.ts",
+        "src/plugin/tests/project/coforge/execution-projection.test.ts"
+      ]
+    },
+    {
+      "id": "INB-01",
+      "title": "Shared intake",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/intake-service.test.ts",
+        "src/plugin/tests/project/coforge/council-inbox-watcher.test.ts",
+        "src/plugin/tests/project/coforge/council-intake-scale.test.ts",
+        "src/plugin/tests/project/coforge/council-source-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts"
+      ]
+    },
+    {
+      "id": "INB-02",
+      "title": "New submissions",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/intake-service.test.ts",
+        "src/plugin/tests/project/coforge/council-inbox-watcher.test.ts",
+        "src/plugin/tests/project/coforge/council-intake-scale.test.ts",
+        "src/plugin/tests/project/coforge/council-source-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts"
+      ]
+    },
+    {
+      "id": "INB-03",
+      "title": "Repeated events",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/intake-service.test.ts",
+        "src/plugin/tests/project/coforge/council-inbox-watcher.test.ts",
+        "src/plugin/tests/project/coforge/council-intake-scale.test.ts",
+        "src/plugin/tests/project/coforge/council-source-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts"
+      ]
+    },
+    {
+      "id": "INB-04",
+      "title": "Activation and reconciliation",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/intake-service.test.ts",
+        "src/plugin/tests/project/coforge/council-inbox-watcher.test.ts",
+        "src/plugin/tests/project/coforge/council-intake-scale.test.ts",
+        "src/plugin/tests/project/coforge/council-source-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts"
+      ]
+    },
+    {
+      "id": "INB-05",
+      "title": "Routing and folders",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/intake-service.test.ts",
+        "src/plugin/tests/project/coforge/council-inbox-watcher.test.ts",
+        "src/plugin/tests/project/coforge/council-intake-scale.test.ts",
+        "src/plugin/tests/project/coforge/council-source-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts"
+      ]
+    },
+    {
+      "id": "INB-06",
+      "title": "Recoverable intake errors",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/intake-service.test.ts",
+        "src/plugin/tests/project/coforge/council-inbox-watcher.test.ts",
+        "src/plugin/tests/project/coforge/council-intake-scale.test.ts",
+        "src/plugin/tests/project/coforge/council-source-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts"
+      ]
+    },
+    {
+      "id": "INB-07",
+      "title": "Ordinary notes",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/intake-service.test.ts",
+        "src/plugin/tests/project/coforge/council-inbox-watcher.test.ts",
+        "src/plugin/tests/project/coforge/council-intake-scale.test.ts",
+        "src/plugin/tests/project/coforge/council-source-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts"
+      ]
+    },
+    {
+      "id": "MSG-01",
+      "title": "Explicit purpose",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/team-message-service.test.ts",
+        "src/plugin/tests/project/coforge/execution-outbox.test.ts",
+        "src/plugin/tests/project/coforge/execution-message-journal.test.ts",
+        "src/plugin/tests/project/coforge/execution-cancellation.test.ts",
+        "src/plugin/tests/project/coforge/council-messaging-module.test.ts",
+        "src/plugin/tests/project/coforge/council-message-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-messages-ui.test.ts"
+      ]
+    },
+    {
+      "id": "MSG-02",
+      "title": "Team visibility",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/team-message-service.test.ts",
+        "src/plugin/tests/project/coforge/execution-outbox.test.ts",
+        "src/plugin/tests/project/coforge/execution-message-journal.test.ts",
+        "src/plugin/tests/project/coforge/execution-cancellation.test.ts",
+        "src/plugin/tests/project/coforge/council-messaging-module.test.ts",
+        "src/plugin/tests/project/coforge/council-message-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-messages-ui.test.ts"
+      ]
+    },
+    {
+      "id": "MSG-03",
+      "title": "Directed delivery",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/team-message-service.test.ts",
+        "src/plugin/tests/project/coforge/execution-outbox.test.ts",
+        "src/plugin/tests/project/coforge/execution-message-journal.test.ts",
+        "src/plugin/tests/project/coforge/execution-cancellation.test.ts",
+        "src/plugin/tests/project/coforge/council-messaging-module.test.ts",
+        "src/plugin/tests/project/coforge/council-message-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-messages-ui.test.ts"
+      ]
+    },
+    {
+      "id": "MSG-04",
+      "title": "Trusted provenance",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/team-message-service.test.ts",
+        "src/plugin/tests/project/coforge/execution-outbox.test.ts",
+        "src/plugin/tests/project/coforge/execution-message-journal.test.ts",
+        "src/plugin/tests/project/coforge/execution-cancellation.test.ts",
+        "src/plugin/tests/project/coforge/council-messaging-module.test.ts",
+        "src/plugin/tests/project/coforge/council-message-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-messages-ui.test.ts"
+      ]
+    },
+    {
+      "id": "MSG-05",
+      "title": "Durable delivery",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/team-message-service.test.ts",
+        "src/plugin/tests/project/coforge/execution-outbox.test.ts",
+        "src/plugin/tests/project/coforge/execution-message-journal.test.ts",
+        "src/plugin/tests/project/coforge/execution-cancellation.test.ts",
+        "src/plugin/tests/project/coforge/council-messaging-module.test.ts",
+        "src/plugin/tests/project/coforge/council-message-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-messages-ui.test.ts"
+      ]
+    },
+    {
+      "id": "MSG-06",
+      "title": "Bounded delegation",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/team-message-service.test.ts",
+        "src/plugin/tests/project/coforge/execution-outbox.test.ts",
+        "src/plugin/tests/project/coforge/execution-message-journal.test.ts",
+        "src/plugin/tests/project/coforge/execution-cancellation.test.ts",
+        "src/plugin/tests/project/coforge/council-messaging-module.test.ts",
+        "src/plugin/tests/project/coforge/council-message-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-messages-ui.test.ts"
+      ]
+    },
+    {
+      "id": "MSG-07",
+      "title": "Thread control",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/team-message-service.test.ts",
+        "src/plugin/tests/project/coforge/execution-outbox.test.ts",
+        "src/plugin/tests/project/coforge/execution-message-journal.test.ts",
+        "src/plugin/tests/project/coforge/execution-cancellation.test.ts",
+        "src/plugin/tests/project/coforge/council-messaging-module.test.ts",
+        "src/plugin/tests/project/coforge/council-message-notes.test.ts",
+        "src/plugin/tests/project/coforge/council-messages-ui.test.ts"
+      ]
+    },
+    {
+      "id": "WF-01",
+      "title": "Intake mapping",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/configured-workflow-v2.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-execution.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-vault.test.ts",
+        "src/plugin/tests/project/coforge/workflow-message-plan.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-editor.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-draft-races.test.ts",
+        "src/plugin/tests/project/coforge/council-plan-handoff.test.ts",
+        "src/plugin/tests/project/coforge/council-v1-compatibility.test.ts"
+      ]
+    },
+    {
+      "id": "WF-02",
+      "title": "Subject modes",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/configured-workflow-v2.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-execution.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-vault.test.ts",
+        "src/plugin/tests/project/coforge/workflow-message-plan.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-editor.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-draft-races.test.ts",
+        "src/plugin/tests/project/coforge/council-plan-handoff.test.ts",
+        "src/plugin/tests/project/coforge/council-v1-compatibility.test.ts"
+      ]
+    },
+    {
+      "id": "WF-03",
+      "title": "Reusable execution",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/configured-workflow-v2.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-execution.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-vault.test.ts",
+        "src/plugin/tests/project/coforge/workflow-message-plan.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-editor.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-draft-races.test.ts",
+        "src/plugin/tests/project/coforge/council-plan-handoff.test.ts",
+        "src/plugin/tests/project/coforge/council-v1-compatibility.test.ts"
+      ]
+    },
+    {
+      "id": "WF-04",
+      "title": "Explicit artifacts",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/configured-workflow-v2.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-execution.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-vault.test.ts",
+        "src/plugin/tests/project/coforge/workflow-message-plan.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-editor.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-draft-races.test.ts",
+        "src/plugin/tests/project/coforge/council-plan-handoff.test.ts",
+        "src/plugin/tests/project/coforge/council-v1-compatibility.test.ts"
+      ]
+    },
+    {
+      "id": "WF-05",
+      "title": "Composed results",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/configured-workflow-v2.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-execution.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-vault.test.ts",
+        "src/plugin/tests/project/coforge/workflow-message-plan.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-editor.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-draft-races.test.ts",
+        "src/plugin/tests/project/coforge/council-plan-handoff.test.ts",
+        "src/plugin/tests/project/coforge/council-v1-compatibility.test.ts"
+      ]
+    },
+    {
+      "id": "WF-06",
+      "title": "Shared gates",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/configured-workflow-v2.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-execution.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-vault.test.ts",
+        "src/plugin/tests/project/coforge/workflow-message-plan.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-editor.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-draft-races.test.ts",
+        "src/plugin/tests/project/coforge/council-plan-handoff.test.ts",
+        "src/plugin/tests/project/coforge/council-v1-compatibility.test.ts"
+      ]
+    },
+    {
+      "id": "WF-07",
+      "title": "Version compatibility",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/configured-workflow-v2.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-execution.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-vault.test.ts",
+        "src/plugin/tests/project/coforge/workflow-message-plan.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-editor.test.ts",
+        "src/plugin/tests/project/coforge/workflow-v2-draft-races.test.ts",
+        "src/plugin/tests/project/coforge/council-plan-handoff.test.ts",
+        "src/plugin/tests/project/coforge/council-v1-compatibility.test.ts"
+      ]
+    },
+    {
+      "id": "OPS-01",
+      "title": "One monitor",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/execution-scheduler.test.ts",
+        "src/plugin/tests/project/coforge/execution-timing.test.ts",
+        "src/plugin/tests/project/coforge/execution-allowance.test.ts",
+        "src/plugin/tests/project/coforge/execution-retention.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts",
+        "src/plugin/tests/project/coforge/invocation-gate.test.ts",
+        "src/plugin/tests/project/coforge/council-provider.test.ts",
+        "src/plugin/tests/project/coforge/council-provider-timing.test.ts",
+        "src/plugin/tests/project/coforge/council-public-folder-policy.test.ts",
+        "src/plugin/tests/project/coforge/council-monitor.test.ts",
+        "src/plugin/tests/project/coforge/execution-costs.test.ts",
+        "src/plugin/tests/project/coforge/execution-byte-size.test.ts",
+        "src/plugin/tests/project/coforge/twitch-host.test.ts"
+      ]
+    },
+    {
+      "id": "OPS-02",
+      "title": "Meaningful controls",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/execution-scheduler.test.ts",
+        "src/plugin/tests/project/coforge/execution-timing.test.ts",
+        "src/plugin/tests/project/coforge/execution-allowance.test.ts",
+        "src/plugin/tests/project/coforge/execution-retention.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts",
+        "src/plugin/tests/project/coforge/invocation-gate.test.ts",
+        "src/plugin/tests/project/coforge/council-provider.test.ts",
+        "src/plugin/tests/project/coforge/council-provider-timing.test.ts",
+        "src/plugin/tests/project/coforge/council-public-folder-policy.test.ts",
+        "src/plugin/tests/project/coforge/council-monitor.test.ts",
+        "src/plugin/tests/project/coforge/execution-costs.test.ts",
+        "src/plugin/tests/project/coforge/execution-byte-size.test.ts",
+        "src/plugin/tests/project/coforge/twitch-host.test.ts"
+      ]
+    },
+    {
+      "id": "OPS-03",
+      "title": "Preflight and simulation",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/execution-scheduler.test.ts",
+        "src/plugin/tests/project/coforge/execution-timing.test.ts",
+        "src/plugin/tests/project/coforge/execution-allowance.test.ts",
+        "src/plugin/tests/project/coforge/execution-retention.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts",
+        "src/plugin/tests/project/coforge/invocation-gate.test.ts",
+        "src/plugin/tests/project/coforge/council-provider.test.ts",
+        "src/plugin/tests/project/coforge/council-provider-timing.test.ts",
+        "src/plugin/tests/project/coforge/council-public-folder-policy.test.ts",
+        "src/plugin/tests/project/coforge/council-monitor.test.ts",
+        "src/plugin/tests/project/coforge/execution-costs.test.ts",
+        "src/plugin/tests/project/coforge/execution-byte-size.test.ts",
+        "src/plugin/tests/project/coforge/twitch-host.test.ts"
+      ]
+    },
+    {
+      "id": "OPS-04",
+      "title": "Usage and diagnostics",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/execution-scheduler.test.ts",
+        "src/plugin/tests/project/coforge/execution-timing.test.ts",
+        "src/plugin/tests/project/coforge/execution-allowance.test.ts",
+        "src/plugin/tests/project/coforge/execution-retention.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts",
+        "src/plugin/tests/project/coforge/invocation-gate.test.ts",
+        "src/plugin/tests/project/coforge/council-provider.test.ts",
+        "src/plugin/tests/project/coforge/council-provider-timing.test.ts",
+        "src/plugin/tests/project/coforge/council-public-folder-policy.test.ts",
+        "src/plugin/tests/project/coforge/council-monitor.test.ts",
+        "src/plugin/tests/project/coforge/execution-costs.test.ts",
+        "src/plugin/tests/project/coforge/execution-byte-size.test.ts",
+        "src/plugin/tests/project/coforge/twitch-host.test.ts"
+      ]
+    },
+    {
+      "id": "OPS-05",
+      "title": "Host lifecycle",
+      "verification": "implemented",
+      "tests": [
+        "src/plugin/tests/project/coforge/execution-scheduler.test.ts",
+        "src/plugin/tests/project/coforge/execution-timing.test.ts",
+        "src/plugin/tests/project/coforge/execution-allowance.test.ts",
+        "src/plugin/tests/project/coforge/execution-retention.test.ts",
+        "src/plugin/tests/project/coforge/council-controls.test.ts",
+        "src/plugin/tests/project/coforge/invocation-gate.test.ts",
+        "src/plugin/tests/project/coforge/council-provider.test.ts",
+        "src/plugin/tests/project/coforge/council-provider-timing.test.ts",
+        "src/plugin/tests/project/coforge/council-public-folder-policy.test.ts",
+        "src/plugin/tests/project/coforge/council-monitor.test.ts",
+        "src/plugin/tests/project/coforge/execution-costs.test.ts",
+        "src/plugin/tests/project/coforge/execution-byte-size.test.ts",
+        "src/plugin/tests/project/coforge/twitch-host.test.ts"
+      ]
+    }
+  ],
+  "qualification": {
+    "nativeObsidian": "not-run: tooling is not provisioned; owner requested continuing without native verification",
+    "liveProvider": "not-run: deterministic and mocked transport tests do not qualify a live provider",
+    "finalProductReview": "completed: product P1-P8, security S1-S9, UX U1-U5 resolved in independent focused verdicts",
+    "finalPolishingPass": "completed: fixes, regression tests, refreshed browser/recovery captures and scope-specific UX ship verdict",
+    "repositoryGate": "npm run verify:project exit 0; nested check 5 passed/0 failed; production build and prototype embedding passed",
+    "uiQuality": "8 passed (48.3s); final gallery 40 reviewed captures; feature scenarios passed across final run and affected reruns"
+  },
+  "reviewReport": "docs/project-tasks/2026-10-28-the-council-review.md"
+}

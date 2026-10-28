@@ -161,7 +161,7 @@ export class StudioService {
   async updateIntegration(input: unknown): Promise<IntegrationSettings> {
     const patch = integrationPatch(input);
     const integration = await this.store.transaction(state => {
-      validateFolderLayout({ ...state.integration, ...patch });
+      validateFolderLayout({ ...state.integration, ...patch }, this.host.privateFolders?.() ?? []);
       if (patch.claudeBin && patch.claudeBin !== state.integration.claudeBin && state.jobs.some(isActiveJob))
         throw new StudioError('Finish or cancel all project runs before changing the Claude executable.', 409);
       if ((patch.projectPath !== undefined || patch.worktreeFolder !== undefined || patch.allowImplementation !== undefined)

@@ -12,13 +12,10 @@ import {
   type ObsSceneAction,
   type ObsSceneItem,
   type ObsSceneKind,
+  type ObsSceneRemoval,
 } from "../../../features/coforge/domain/obs-scenes";
 import { useCoforge } from "../../context/coforge-context";
 import { useStudioStore } from "../../stores/coforge-studio";
-type Removal = Extract<
-  ObsSceneAction,
-  { kind: "scene-delete" | "item-remove" }
->;
 export function useObsSceneManager() {
   const { host } = useCoforge();
   const store = useStudioStore();
@@ -26,7 +23,7 @@ export function useObsSceneManager() {
   const loading = ref(false);
   const error = ref("");
   const notice = ref("");
-  const confirmation = ref<{ action: Removal; text: string } | null>(null);
+  const confirmation = ref<{ action: ObsSceneRemoval; text: string } | null>(null);
   const confirmationElement = ref<HTMLElement | null>(null);
   let previousFocus: HTMLElement | null = null;
   watch(confirmation, async (value) => {

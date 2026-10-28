@@ -27,6 +27,7 @@ import ToastStack from "./ToastStack.vue";
 import WorkflowView from "./WorkflowView.vue";
 import WorkflowEditorView from "./WorkflowEditorView.vue";
 import ProjectsView from "./ProjectsView.vue";
+import CouncilView from "./CouncilView.vue";
 
 const model = useStudioApp();
 </script>
@@ -81,6 +82,7 @@ const model = useStudioApp();
             <AICostsView v-else-if="model.shell.store.view === 'ai-costs'" />
             <ScheduleView v-else-if="model.shell.store.view === 'schedule'" />
             <WorkflowView v-else-if="model.shell.store.view === 'workflow'" />
+            <CouncilView v-else-if="model.shell.store.view === 'council'" />
             <WorkflowEditorView
               v-else-if="model.shell.store.view === 'workflow-settings'"
             />

@@ -50,6 +50,7 @@ export interface Timers {
 
 /** Host capabilities the studio needs but must not implement itself. */
 export interface StudioHost {
+  privateFolders?(): readonly string[];
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;
   runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner };
   timers: Timers;
@@ -61,6 +62,8 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  council?: import('./council-ports').CouncilActions;
+  previewCouncil?(): import('./council-ports').CouncilActions;
   herdrWorkflows?: import('./herdr-workflow-ports').HerdrWorkflowActions;
   schedule?: import('./schedule-ports').ScheduleActions;
   previewSchedule?(): import('./schedule-ports').ScheduleActions;

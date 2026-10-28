@@ -23,6 +23,31 @@ in the CoForge prototype ZIP), ported to this plugin.
 
 ## Users
 
+### The Council (owner decisions, 2026-10-28)
+
+The owner requested implementation of The Council PRD and explicitly accepted all
+12 proposed defaults in its section 14:
+
+1. Reusable agents belong to the vault; teams and councils belong to a project.
+2. Setup creates a default project team; councils select ordered members from it.
+3. The standard protocol runs independent opinions, then solution proposals, sequentially.
+4. An optional chair adds synthesis without replacing any member's contribution.
+5. Team information becomes context without waking every member.
+6. Delegation needs explicit recipients and finite limits inherited from the root request.
+7. Activation previews existing files; reload reconciles arrivals and pauses execution.
+8. Ordinary edits do not rerun work; Run again creates a new submission generation.
+9. Generic notes use typed analytical subjects; creating/linking an Idea is explicit.
+10. Destinations share one execution kernel; councils compile their protocol into it.
+11. Existing v1 workflows retain their semantics; new capabilities use explicit v2 definitions.
+12. One designated desktop executes work only while CoForge is active.
+
+Definitions are canonical Markdown. Run evidence and local publication/delivery intents
+are durable and private. Each contribution must be persisted and projected before the
+next invocation. Unknown provider outcomes require explicit recovery without replay.
+Opinion rounds cannot read previous opinions through prompts, tools or provider history.
+Editable definitions never grant capabilities or bypass final host review of code changes.
+The full release scope and acceptance scenarios are in `docs/coforge/THE-COUNCIL-PRD.md`.
+
 A streamer operating a second-screen studio while on air. The studio must be
 understandable at a glance, work without credentials in a clearly labelled demo, and
 connect to the local Claude Code CLI. Viewers interact only through chat.

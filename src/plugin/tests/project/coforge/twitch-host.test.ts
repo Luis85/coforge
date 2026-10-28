@@ -13,7 +13,9 @@ it('passes the form encoding required by device authorization through the Obsidi
   const plugin = new (class extends Plugin {})(app, { id: 'coforge', name: 'CoForge', version: '0.1.0', minAppVersion: '1.13.7', description: '', author: '' });
   const runtime = createCoforgeRuntime(plugin, () => undefined);
   try {
-    await runtime.start(); await runtime.studio.updateIntegration({ twitchClientId: 'client' });
+    await runtime.start();
+    expect(runtime.host.council?.snapshot()).toMatchObject({ ready: true, paused: true, executor: false });
+    await runtime.studio.updateIntegration({ twitchClientId: 'client' });
     await runtime.host.twitch!.authorize('streamer');
     expect(request).toHaveBeenCalledWith(expect.objectContaining({ url: 'https://id.twitch.tv/oauth2/device', method: 'POST', contentType: 'application/x-www-form-urlencoded',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: expect.stringContaining('client_id=client') }));

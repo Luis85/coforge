@@ -11,6 +11,7 @@ export type MarkdownChild =
 export interface MarkdownOptions {
   compact?: boolean;
   links?: boolean;
+  definitions?: boolean;
 }
 const string = (value: unknown) => (typeof value === "string" ? value : "");
 const array = (value: unknown): unknown[] =>
@@ -214,6 +215,8 @@ export function markdownTree(
                 ),
               ];
         }
+        case "def":
+          return options.definitions === false ? [] : [entities(plain)];
         default:
           return [entities(plain)];
       }

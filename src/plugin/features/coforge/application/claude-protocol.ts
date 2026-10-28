@@ -60,6 +60,19 @@ export function buildClaudeArgs(
 ): string[] {
   const input = { stage, settings, ...(workflow ? { workflow } : {}) };
   const access = executionAccess(input);
+  return buildRestrictedClaudeArgs(settings, {
+    access, model: workflow?.step.model ?? settings.model,
+    schema: workflow ? executionSchema(input) : STAGE_JSON_SCHEMAS[stage],
+    systemPrompt: workflow ? executionSystemPrompt(input) : stageSystemPrompt(stage, settings),
+  });
+}
+
+/** Shared native transport policy; typed note invocations do not need a fabricated Idea. */
+export function buildRestrictedClaudeArgs(
+  settings: Pick<Settings, 'maxTurns' | 'maxBudgetUsd'>,
+  invocation: { access: 'none' | 'readproject' | 'editworktree'; model: string; schema: object; systemPrompt: string },
+): string[] {
+  const { access } = invocation;
   const tools =
     access === "none"
       ? ""
@@ -73,9 +86,7 @@ export function buildClaudeArgs(
     "--input-format",
     "text",
     "--json-schema",
-    JSON.stringify(
-      workflow ? executionSchema(input) : STAGE_JSON_SCHEMAS[stage],
-    ),
+    JSON.stringify(invocation.schema),
     "--restricted",
     "--safe-mode",
     "--no-session-persistence",
@@ -99,11 +110,9 @@ export function buildClaudeArgs(
     "--max-budget-usd",
     String(settings.maxBudgetUsd),
     "--model",
-    workflow?.step.model ?? settings.model,
+    invocation.model,
     "--system-prompt",
-    workflow
-      ? executionSystemPrompt(input)
-      : stageSystemPrompt(stage, settings),
+    invocation.systemPrompt,
   ];
 }
 

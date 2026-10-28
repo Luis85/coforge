@@ -60,6 +60,7 @@ export type ObsSceneAction = { expected: ObsSceneContext } & (
       confirmedName: string;
     })
 );
+export type ObsSceneRemoval = Extract<ObsSceneAction, { kind: 'scene-delete' | 'item-remove' }>;
 export interface ObsSceneResult {
   snapshot: ObsSnapshot;
   detail: ObsSceneDetail | null;

@@ -15,6 +15,12 @@ const PRIVATE_FOLDERS = [
   "CoForge/Music",
   "CoForge/Streams",
   "CoForge/Schedule",
+  "CoForge/Agents",
+  "CoForge/Teams",
+  "CoForge/Councils",
+  "CoForge/Inboxes",
+  "CoForge/Messages",
+  "CoForge/Tests",
   ".git",
 ];
 const folderText = text({ trim: true, min: 1, max: 200 });

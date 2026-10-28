@@ -44,6 +44,8 @@ import { ScheduleService } from '../../features/coforge/application/schedule-ser
 import { StreamPlanPreparation } from '../../features/coforge/application/schedule-preparation';
 import { VaultSchedule } from './vault-schedule';
 import { VaultAICosts } from './ai-cost-storage';
+import { InvocationGate } from '../../features/coforge/application/invocation-gate';
+import { CouncilModule } from './council-module';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -66,7 +68,8 @@ const request: HttpRequest = async ({ url, method, headers, body }) => {
 
 /** Composes CoForge for one plugin instance: vault storage, agent runners, Twitch intake and host actions. */
 export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => void, logger?: Pick<StructuredLogger, 'registerCatalog' | 'current' | 'correlation'>): CoforgeRuntime {
-  const storage = new VaultStudioStorage(plugin);
+  let councilPrivateFolders: () => readonly string[] = () => [];
+  const storage = new VaultStudioStorage(plugin, () => councilPrivateFolders());
   const workspaces = new LocalWorkflowWorkspaces(new WorkflowWorkspaceStateStorage(plugin));
   const log = operationsLog(logger);
   const listeners = new Set<(notice: StudioNotice) => void>();
@@ -75,13 +78,20 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     setTimeout: (callback, ms) => window.setTimeout(callback, ms), clearTimeout: handle => window.clearTimeout(handle),
     setInterval: (callback, ms) => window.setInterval(callback, ms), clearInterval: handle => window.clearInterval(handle),
   };
+  const invocations = new InvocationGate();
+  const demo = createDemoRunner(timers);
   const studio: StudioService = new StudioService(storage, {
-    runners: { demo: createDemoRunner(timers), claude: input => runClaudeStage(input, workspaces), herdr: input => herdrWorkflows.run(input) }, timers, probeRuntime: probeClaude,
+    privateFolders: () => councilPrivateFolders(),
+    runners: { demo: input => invocations.run(() => demo(input), input.signal),
+      claude: input => invocations.run(() => runClaudeStage(input, workspaces), input.signal),
+      herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal) }, timers, probeRuntime: probeClaude,
     assertWorkflowReviewable: (id, increment) => workspaces.assertReviewable(id, increment),
     report: error => { report('coforge.workflow'); notify(error.message, true); },
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
-  const publisher = new PublicSitePublisher(plugin, () => studio.integration());
+  const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id));
+  councilPrivateFolders = () => council.privateFolders();
+  const publisher = new PublicSitePublisher(plugin, () => studio.integration(), () => councilPrivateFolders());
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
   const stopStatusbar = mountNativeStatusbar(plugin, studio.store);
   const streamSource = new PublicStreamSource(studio.store);
@@ -99,7 +109,15 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const herdrAdmission = new HerdrAdmission();
   const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers, herdrAdmission);
   const herdrWorkflows = new HerdrWorkflowService(studio.store, herdr, herdrAdmission, new HerdrWorkflowStateStorage(plugin), new LocalHerdrWorkflowGateway(), new LocalHerdrAttemptFiles(undefined, workspaces), timers);
-  const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => studio.store.aiCostSnapshot(herdr.snapshot().records), timers);
+  const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => [...studio.store.aiCostSnapshot(herdr.snapshot().records), ...council.costTasks()], timers);
+  let councilCostTimer: number | undefined;
+  const stopCouncilCosts = council.actions.subscribe(() => {
+    if (councilCostTimer !== undefined) return;
+    councilCostTimer = timers.setTimeout(() => {
+      councilCostTimer = undefined;
+      void aiCosts.refresh().catch(() => report('coforge.observer'));
+    }, 100);
+  });
   const liveMonitor = new LiveStudioMonitor(studio.store, { obs: () => obsAdapter.metrics(), twitch: () => twitch.liveViewers() }, timers);
   const streamHistory = new StreamHistoryStorage(plugin.app.vault.adapter);
   const recorder = new StreamRecorder(studio.store, streamHistory, { capture: async () => {
@@ -125,6 +143,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    council: council.actions,
     herdrWorkflows,
     schedule: new ScheduleService(new VaultSchedule(plugin), new StreamPlanPreparation(studio, twitch.actions, obs, music), studio.store),
     aiCosts,
@@ -175,6 +194,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
       if (disposed) { await studio.stop(); return; }
       await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));
+      await council.start();
       for (const path of invalidNotes) notify(`CoForge skipped an idea note with invalid properties: ${path}`, true);
       storage.watch(
         change => { void studio.applyNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },
@@ -202,6 +222,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     },
     async dispose() {
       disposed = true;
+      stopCouncilCosts();
+      if (councilCostTimer !== undefined) timers.clearTimeout(councilCostTimer);
+      invocations.dispose();
+      await council.dispose();
       stopHerdrRuntime();
       stopStatusbar();
       streamViews.dispose(); streamSource.dispose();
