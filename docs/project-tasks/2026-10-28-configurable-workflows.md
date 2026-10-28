@@ -1,6 +1,6 @@
 # Task: Configure and execute project workflows
 
-- Status: in progress
+- Status: done; final merge/check status is tracked in [PR24](https://github.com/Luis85/coforge/pull/24).
 - Journey: BRIEF configurable workflows; owner-approved full replacement/reordering, per-project ownership,
   AI plus manual approval/checklist steps, and JSON import/export.
 - Base: managed Herdr/token/public UI foundation (PR23), merged at 83b7d775598e41896c29b168b725c2a5302f34ec.
@@ -60,6 +60,10 @@ No branching/DAG language, arbitrary shell execution, unattended publication or 
   body/annotation preservation and rejection before private writes or public publishing.
 - Scoped ESLint/Oxlint and full typecheck passed; `git diff --check` clean. File-size limits reviewed.
 - Local native Obsidian is not provisioned; nothing downloaded or launched. Linux contained-host CI is required.
+- Final implementation CI: **95 browser tests passed**, **40 gallery captures**, **20 native Obsidian tests passed**,
+  reload smoke **passed / errors []**, full project gate, dependency audit and GitGuardian passed. Native screenshots
+  were reviewed; duplicate passive OBS probes were coalesced after a reproduced startup-toast regression (**12 focused
+  tests passed**), with an added native assertion that the false toast is absent.
 
 ## Review and polishing pass
 
