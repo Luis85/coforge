@@ -8,6 +8,7 @@ const model = usePopulation();
     <header class="cf-page-heading">
       <div>
         <h1>Viewers and players</h1>
+        <p>Review profiles, game stats and participation controls. Viewer notes stay private.</p>
         <p>{{ model.total }} observed · {{ model.registeredTotal }} registered · {{ model.coins.toLocaleString() }} {{ model.currencyName }} in circulation</p>
       </div>
       <button v-if="model.notesAvailable" type="button" class="cf-btn cf-btn-secondary" :disabled="model.working" @click="model.refreshNotes()">Refresh viewer notes</button>
@@ -31,9 +32,10 @@ const model = usePopulation();
         </select></label
       >
     </div>
-    <p v-if="!model.total" class="cf-population-empty">
-      No viewers have been observed yet. Twitch chat and available chat-presence data populate this directory. Viewers join the game with <code>!register</code>.
-    </p>
+    <section v-if="!model.total" class="cf-population-empty cf-intent-empty" aria-label="No observed viewers">
+      <p>No viewers have been observed yet. Connect Twitch in Stream chat to populate this directory. Viewers join the game with <code>!register</code>.</p>
+      <button type="button" class="cf-btn cf-btn-primary" @click="model.openChat()">Open Stream chat</button>
+    </section>
     <div v-else class="cf-population-layout">
       <section class="cf-player-list" aria-label="Viewer directory">
         <div class="cf-data-scroll" tabindex="0" role="region" aria-label="Player table">
@@ -69,7 +71,7 @@ const model = usePopulation();
             </tbody>
           </table>
         </div>
-        <p v-if="!model.matching">No players match this search or status.</p>
+        <div v-if="!model.matching" class="cf-intent-empty"><p>No viewers match this search or status.</p><button type="button" class="cf-btn cf-btn-secondary" @click="model.clearFilters()">Clear viewer filters</button></div>
         <div class="cf-player-pagination">
           <span>{{ model.matching }} matching · Page {{ model.page + 1 }} of {{ model.pages }}</span
           ><button type="button" class="cf-btn cf-btn-secondary" :disabled="model.page === 0" @click="model.page--">
@@ -85,7 +87,7 @@ const model = usePopulation();
         </div>
       </section>
       <PlayerDetails v-if="model.selected" :model="model" />
-      <p v-else class="cf-player-detail-empty">Select a player to view stats, rewards and moderation controls.</p>
+      <p v-else class="cf-player-detail-empty">Select a viewer to inspect their profile, game stats and participation controls.</p>
     </div>
     <p v-if="model.error" class="cf-inline-error" role="alert">{{ model.error }}</p>
     <p v-if="model.notice" role="status">{{ model.notice }}</p>

@@ -4,6 +4,9 @@ import { STAGE_LABELS, STAGES } from '../../../features/coforge/domain/types';
 import { isActiveJob } from '../../../features/coforge/domain/workflow';
 import { useStudioStore } from '../../stores/coforge-studio';
 import { useStudioActions } from './use-studio-actions';
+import { defaultSettings } from '../../../features/coforge/domain/seed';
+import { stageAgent } from '../../../features/coforge/domain/stage-agents';
+import { stageAgentLabel, workflowProviderSummary } from './agent-labels';
 
 interface StageCopy { icon: string; title: string; description: string; input: string; output: string }
 
@@ -31,7 +34,7 @@ const SETTINGS_LOCATION = 'Studio settings → Agent workspace';
 
 const historyRow = (job: AgentJob) => ({
   id: job.id, ideaId: job.ideaId, status: job.status, stageLabel: STAGE_LABELS[job.stage],
-  providerLabel: job.provider === 'demo' ? 'Simulation' : 'Claude Code',
+  providerLabel: job.provider === 'demo' ? 'Simulation' : `Claude Code · ${job.model ?? 'model not recorded'}`,
   time: new Date(job.startedAt).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
   canCancel: isActiveJob(job),
   costText: job.costUsd === undefined ? '' : `Reported cost: $${job.costUsd.toFixed(4)}`,
@@ -46,11 +49,17 @@ export function useWorkflow() {
   const expanded = ref(false);
   const settings = computed<Settings | undefined>(() => store.state?.settings);
   const paused = computed(() => settings.value?.paused ?? true);
-  const isDemo = computed(() => settings.value?.provider !== 'claude');
+  const providerSummary = computed(() => workflowProviderSummary(settings.value ?? defaultSettings()));
+  const isDemo = computed(() => providerSummary.value.mode === 'demo');
   const running = computed(() => store.projectJobs.find(job => job.status === 'running'));
   const queuedCount = computed(() => store.projectJobs.filter(job => job.status === 'queued').length);
   const enabledCount = computed(() => STAGES.filter(stage => settings.value?.automation[stage]).length);
-  const implementationBlocked = computed(() => !isDemo.value && !store.state?.runtime.allowImplementation);
+  const stageProblem = (stage: AgentStage): string => {
+    if (stageAgent(settings.value ?? defaultSettings(), stage).provider === 'demo') return '';
+    if (!store.state?.runtime.cliAvailable) return 'Claude Code is not detected. Check the CLI in project settings before enabling this step.';
+    if ((stage === 'plan' || stage === 'implement') && !store.activeProject?.projectPath) return 'Set this project’s workspace in Studio settings before running this step.';
+    return stage === 'implement' && !store.activeProject?.allowImplementation ? `Implementation permission is required for this project. Enable it in ${SETTINGS_LOCATION}.` : '';
+  };
   const rows = computed(() => [...store.projectJobs].sort((a, b) => b.startedAt.localeCompare(a.startedAt)).map(historyRow));
 
   /** Runs one workflow request; a failure is already toasted by the store and is also kept inline. */
@@ -65,8 +74,8 @@ export function useWorkflow() {
     canRunNext: computed(() => !store.busy && !running.value && queuedCount.value === 0),
     summaryLabel: computed(() => paused.value ? 'Automation paused' : enabledCount.value ? 'Automation is running' : 'Manual workflow'),
     intervalSeconds: computed(() => settings.value?.intervalSeconds ?? 0),
-    providerIcon: computed(() => isDemo.value ? 'flask-conical' : 'bot'),
-    providerLabel: computed(() => isDemo.value ? 'Simulated agents' : 'Claude Code'),
+    providerIcon: computed(() => providerSummary.value.icon),
+    providerLabel: computed(() => providerSummary.value.label),
     providerTitle: computed(() => {
       const runtime = store.state?.runtime;
       if (isDemo.value || !runtime) return undefined;
@@ -76,7 +85,8 @@ export function useWorkflow() {
       id: stage, ...STAGE_COPY[stage],
       isActive: running.value?.stage === stage,
       automated: Boolean(settings.value?.automation[stage]),
-      blocked: stage === 'implement' && implementationBlocked.value,
+      agentText: stageAgentLabel(settings.value ?? defaultSettings(), stage),
+      blocked: Boolean(stageProblem(stage)), blockedReason: stageProblem(stage),
       last: index === STAGES.length - 1,
       toggleLabel: `Automatically ${stage === 'implement' ? 'implement plans' : `${stage} ideas`}`,
     }))),

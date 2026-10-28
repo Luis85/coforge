@@ -8,6 +8,10 @@ import { record } from '../../features/coforge/domain/check';
 export type ProjectNoteChange = { kind: 'upsert'; project: StudioProject } | { kind: 'remove'; id: string };
 const inFolder = (path: string) => path.startsWith(`${PROJECTS_FOLDER}/`);
 const fingerprint = (project: StudioProject) => JSON.stringify(projectProperties(project));
+function ownedFingerprint(properties: unknown): string | null {
+  try { const project = parseProjectNote(properties); return project ? fingerprint(project) : null; }
+  catch { return null; }
+}
 export function readProjectNote(content: string): StudioProject | null {
   const { yaml } = splitNote(content);
   return yaml === null ? null : parseProjectNote(parseYaml(yaml));
@@ -44,21 +48,31 @@ export class VaultProjects {
     const rollback = async () => { for (const undo of [...undos].reverse()) await undo(); };
     try {
       for (const project of projects) {
-        if (project.unavailable || (this.file(project.id) && this.written.get(project.id) === fingerprint(project))) continue;
+        if (project.unavailable) continue;
         const file = this.file(project.id);
+        if (!file && this.paths.has(project.id)) throw new Error('The project note changed on disk. Restore or refresh the canonical note before saving; nothing was replaced.');
+        if (file && this.written.get(project.id) === fingerprint(project)) continue;
         if (file) {
-          const before = record(parseYaml(splitNote(await this.plugin.app.vault.read(file)).yaml ?? ''));
+          let before: Record<string, unknown> = {};
           const oldFingerprint = this.written.get(project.id);
           await this.write(file.path, async () => {
-            await this.plugin.app.fileManager.processFrontMatter(file, properties => applyProjectProperties(record(properties), project));
+            await this.plugin.app.fileManager.processFrontMatter(file, properties => {
+              if (ownedFingerprint(properties) !== oldFingerprint)
+                throw new Error('The project note changed on disk. Wait for note synchronization or reload CoForge, then review the latest settings before saving; your note was preserved.');
+              before = structuredClone(record(properties));
+              applyProjectProperties(record(properties), project);
+            });
             this.written.set(project.id, fingerprint(project));
           });
           undos.push(() => this.write(file.path, async () => {
             if (!(await this.matches(file, project))) return;
+            let restored = false;
             await this.plugin.app.fileManager.processFrontMatter(file, properties => {
+              if (ownedFingerprint(properties) !== fingerprint(project)) return;
               for (const key of PROJECT_PROPERTIES) { if (key in before) properties[key] = before[key]; else delete properties[key]; }
+              restored = true;
             });
-            if (oldFingerprint) this.written.set(project.id, oldFingerprint); else this.written.delete(project.id);
+            if (restored) { if (oldFingerprint) this.written.set(project.id, oldFingerprint); else this.written.delete(project.id); }
           }));
         } else {
           if (!this.plugin.app.vault.getAbstractFileByPath(PROJECTS_FOLDER)) await this.plugin.app.vault.createFolder(PROJECTS_FOLDER);

@@ -4,6 +4,7 @@ import { defaultIntegration, defaultSettings } from './seed';
 import { obsSettingsCheck, obsCommandCheck } from './obs-check';
 import { populationCheck } from './population-check';
 import { stagePromptsCheck } from './stage-prompts';
+import { stageAgentsCheck } from './stage-agents';
 import type { AgentJob, AppState, Increment, IntegrationSettings, Settings } from './types';
 import { CONTRIBUTOR_COLORS } from './types';
 
@@ -33,6 +34,7 @@ const job: Check<AgentJob> = shape({
   projectId: optional(str),
 });
 export const settingsCheck: Check<Settings> = shape({
+  stageAgents: optional(stageAgentsCheck),
   stagePrompts: optional(stagePromptsCheck),
   agentPrompt: text({ max: 8000 }),
   projectName: str, projectBrief: str, provider,

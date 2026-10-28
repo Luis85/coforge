@@ -10,6 +10,11 @@ import type {
   StreamViewActions,
 } from "../../features/coforge/application/stream-surface-ports";
 import { protectStreamWindow } from "./stream-window-privacy";
+import {
+  StreamWindowSlots,
+  streamWindowSlot,
+  streamWindowSurface,
+} from "./stream-window-titles";
 
 /** Stream roots receive only the public source contract, never CoForge's private UI context or host actions. */
 export function registerStreamViews(
@@ -31,8 +36,12 @@ export function registerStreamViews(
       (surface) => `${plugin.manifest.id}-view-stream-${surface.id}`,
     ),
   );
-  const views = new Set<{ disposeView(): void }>();
-  const windows = new Map<Document, { close(): void; release(): void }>();
+  const views = new Set<{ disposeView(): void; syncWindow(): void }>();
+  const slots = new StreamWindowSlots<Document>();
+  const windows = new Map<
+    Document,
+    { surface: StreamSurface; title: string; close(): void; release(): void }
+  >();
   let closed = false;
   const record = (
     kind: Parameters<typeof event>[0],
@@ -45,6 +54,9 @@ export function registerStreamViews(
     class StreamView extends ItemView {
       private release = () => {};
       private projectId = "";
+      private stateApplied = false;
+      private windowSurface: StreamSurface | undefined;
+      private windowSlot: number | undefined;
       getViewType() {
         return type;
       }
@@ -55,7 +67,15 @@ export function registerStreamViews(
         return definition.icon;
       }
       getState() {
-        return { projectId: this.projectId };
+        const allocation = slots.get(this.containerEl.ownerDocument);
+        const surface = allocation?.surface ?? this.windowSurface;
+        const slot = allocation?.slot ?? this.windowSlot;
+        return {
+          projectId: this.projectId,
+          ...(surface && slot
+            ? { windowSurface: surface, windowSlot: slot }
+            : {}),
+        };
       }
       async setState(input: unknown): Promise<void> {
         const id =
@@ -64,6 +84,13 @@ export function registerStreamViews(
             : "";
         this.projectId =
           typeof id === "string" && /^CFP-\d{3,7}$/.test(id) ? id : "";
+        if (input && typeof input === "object") {
+          const surface = Reflect.get(input, "windowSurface");
+          const slot = Reflect.get(input, "windowSlot");
+          if (streamWindowSurface(surface)) this.windowSurface = surface;
+          if (streamWindowSlot(slot)) this.windowSlot = slot;
+        }
+        this.stateApplied = true;
         await this.onOpen();
       }
       async onOpen(): Promise<void> {
@@ -71,6 +98,7 @@ export function registerStreamViews(
         views.add(this);
         this.contentEl.empty();
         this.contentEl.classList.add("cf-stream-view-content");
+        this.syncWindow();
         const projection = sourceForProject(this.projectId);
         const root = this.contentEl.createDiv();
         const app = createApp(StreamSurfaceView, {
@@ -83,22 +111,44 @@ export function registerStreamViews(
           root.remove();
           projection.dispose();
         };
+      }
+      syncWindow(): void {
+        if (closed) return;
         const document = this.containerEl.ownerDocument;
-        if (document !== mainDocument && !windows.has(document)) {
+        if (document === mainDocument) return;
+        let capture = windows.get(document);
+        if (!capture) {
           const win = document.defaultView;
-          const release = protectStreamWindow(
-            document,
-            definition.title,
-            allowed,
-            () => record("stream-view-blocked", definition.id),
-          );
-          windows.set(document, {
-            release,
+          const entry = {
+            surface: definition.id,
+            title: "CoForge Stream - Opening",
+            release: () => {},
             close: () => {
               if (win && !win.closed) win.close();
             },
-          });
+          };
+          entry.release = protectStreamWindow(
+            document,
+            () => entry.title,
+            allowed,
+            () => record("stream-view-blocked", entry.surface),
+          );
+          windows.set(document, entry);
+          capture = entry;
         }
+        // onOpen can precede restored setState. A nonmatching provisional title prevents a capture collision.
+        if (this.stateApplied) {
+          const allocation = slots.acquire(
+            document,
+            this.windowSurface ?? definition.id,
+            this.windowSlot,
+          );
+          this.windowSurface = allocation.surface;
+          this.windowSlot = allocation.slot;
+          capture.surface = allocation.surface;
+          capture.title = allocation.title;
+        }
+        if (document.title !== capture.title) document.title = capture.title;
       }
       disposeView(): void {
         this.release();
@@ -113,41 +163,47 @@ export function registerStreamViews(
     }
     plugin.registerView(type, (leaf) => new StreamView(leaf));
   }
+  async function openWindow(
+    surface: StreamSurface,
+    reuse: boolean,
+  ): Promise<WorkspaceLeaf> {
+    if (closed) throw new Error("Stream views are closed. Reopen CoForge.");
+    const definition = STREAM_SURFACES.find((item) => item.id === surface);
+    if (!definition) throw new Error("Choose a public stream view.");
+    if (typeof plugin.app.workspace.openPopoutLeaf !== "function")
+      throw new Error("Detached stream views require desktop Obsidian.");
+    const type = `${plugin.manifest.id}-view-stream-${surface}`;
+    const existing = reuse
+      ? plugin.app.workspace
+          .getLeavesOfType(type)
+          .find((leaf) => leaf.view.containerEl.ownerDocument !== mainDocument)
+      : undefined;
+    const leaf: WorkspaceLeaf =
+      existing ??
+      plugin.app.workspace.openPopoutLeaf({
+        size: { width: surface === "kanban" ? 1200 : 720, height: 800 },
+      });
+    if (!existing)
+      await leaf.setViewState({
+        type,
+        active: true,
+        state: { projectId: currentProject() },
+      });
+    await plugin.app.workspace.revealLeaf(leaf);
+    record("stream-view-opened", surface);
+    return leaf;
+  }
   const actions: StreamViewActions = {
     async open(surface) {
-      if (closed) throw new Error("Stream views are closed. Reopen CoForge.");
-      const definition = STREAM_SURFACES.find((item) => item.id === surface);
-      if (!definition) throw new Error("Choose a public stream view.");
-      if (typeof plugin.app.workspace.openPopoutLeaf !== "function")
-        throw new Error("Detached stream views require desktop Obsidian.");
-      const type = `${plugin.manifest.id}-view-stream-${surface}`;
-      const existing = plugin.app.workspace
-        .getLeavesOfType(type)
-        .find((leaf) => leaf.view.containerEl.ownerDocument !== mainDocument);
-      const leaf: WorkspaceLeaf =
-        existing ??
-        plugin.app.workspace.openPopoutLeaf({
-          size: { width: surface === "kanban" ? 1200 : 720, height: 800 },
-        });
-      if (!existing)
-        await leaf.setViewState({
-          type,
-          active: true,
-          state: { projectId: currentProject() },
-        });
-      await plugin.app.workspace.revealLeaf(leaf);
-      record("stream-view-opened", surface);
+      // Explicit Open, ribbon and command interactions always create a fresh native window.
+      await openWindow(surface, false);
     },
     async showProject(projectId) {
       if (!/^CFP-\d{3,7}$/.test(projectId))
         throw new Error("Choose an available project first.");
-      await actions.open("kanban");
+      const leaf = await openWindow("kanban", true);
       const type = `${plugin.manifest.id}-view-stream-kanban`;
-      const leaf = plugin.app.workspace
-        .getLeavesOfType(type)
-        .find((leaf) => leaf.view.containerEl.ownerDocument !== mainDocument);
-      if (leaf)
-        await leaf.setViewState({ type, active: true, state: { projectId } });
+      await leaf.setViewState({ type, active: true, state: { projectId } });
     },
   };
   for (const definition of STREAM_SURFACES) {
@@ -162,10 +218,16 @@ export function registerStreamViews(
     });
   }
   plugin.registerEvent(
-    plugin.app.workspace.on("window-close", (_window, win) => {
-      windows.delete(win.document);
+    plugin.app.workspace.on("window-close", (container) => {
+      windows.delete(container.doc);
+      slots.release(container.doc);
     }),
   );
+  const syncWindows = () => {
+    if (!closed) for (const view of views) view.syncWindow();
+  };
+  plugin.registerEvent(plugin.app.workspace.on("layout-change", syncWindows));
+  plugin.registerEvent(plugin.app.workspace.on("window-open", syncWindows));
   const dispose = () => {
     if (closed) return;
     closed = true;
@@ -178,6 +240,7 @@ export function registerStreamViews(
       }
     }
     windows.clear();
+    slots.clear();
     for (const view of views) view.disposeView();
     views.clear();
   };

@@ -11,7 +11,6 @@
 .cf-community-section-heading > .cf-community-help { margin: 0; font-size: 10px; }
 .cf-community-avatar-lg { width: 46px; height: 46px; font-size: 14px; }
 .cf-community-avatar-xs { width: 22px; height: 22px; font-size: 8px; }
-.cf-community-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 10px; color: var(--color-purple); white-space: nowrap; }
 
 .cf-community-summary { display: flex; align-items: center; gap: 18px; padding: 18px 0 25px; border-top: 1px solid var(--cf-border); margin-bottom: 2px; }
 .cf-community-avatar-stack { display: flex; padding-left: 3px; flex-shrink: 0; }
@@ -153,7 +152,7 @@
   .cf-community-heading { align-items: flex-start; }
   .cf-community-layout { grid-template-columns: minmax(0, 1fr) 245px; gap: 24px; }
   .cf-community-aside { padding-left: 20px; }
-  .cf-community-badge, .cf-community-member-badges { display: none; }
+  .cf-community-member-badges { display: none; }
 }
 @container plugin-shell-leaf (max-width: 950px) {
   .cf-community-layout { grid-template-columns: 1fr; }

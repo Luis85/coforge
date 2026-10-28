@@ -3,7 +3,7 @@ import { StudioError } from '../domain/errors';
 import { settingsPatch } from '../domain/inputs';
 import { omit } from '../domain/objects';
 import { validateProjectPath, validateProjectUrl } from '../domain/project-note';
-import { copySettings, findProject, projectIdFor, projectPaths, selectProjectState } from '../domain/projects';
+import { copySettings, findProject, projectConfigurationIdentity, projectIdFor, projectPaths, selectProjectState } from '../domain/projects';
 import { cleanLine, cleanText } from '../domain/sanitize';
 import { defaultSettings } from '../domain/seed';
 import { isActiveJob } from '../domain/workflow';
@@ -12,12 +12,14 @@ import type { StudioStore } from './studio-store';
 import { addEvent } from './studio-store';
 import { recordOperation } from './population';
 import { normalizeStagePrompts } from '../domain/stage-prompts';
+import { normalizeStageAgents } from '../domain/stage-agents';
 
 function values(input: unknown) {
   const source = record(input);
   const settings = settingsPatch(omit(source, 'projectPath', 'worktreeFolder', 'allowImplementation', 'repositoryUrl', 'websiteUrl'));
   if (settings.agentPrompt !== undefined) settings.agentPrompt = cleanText(settings.agentPrompt, 8000);
   if (settings.stagePrompts !== undefined) settings.stagePrompts = normalizeStagePrompts(settings.stagePrompts);
+  if (settings.stageAgents !== undefined) settings.stageAgents = normalizeStageAgents(settings.stageAgents);
   const paths = {
     ...(source.projectPath === undefined ? {} : { projectPath: validateProjectPath(source.projectPath) }),
     ...(source.worktreeFolder === undefined ? {} : { worktreeFolder: validateProjectPath(source.worktreeFolder) }),
@@ -49,18 +51,22 @@ export async function addProject(store: StudioStore, input: unknown): Promise<St
     };
     state.projects.push(project);
     if (project.settings.agentPrompt) recordOperation(state, 'project-prompt-updated', 'committed', undefined, 1, project.id);
+    if (Object.keys(project.settings.stageAgents ?? {}).length) recordOperation(state, 'project-stage-agents-updated', 'committed', undefined, 1, project.id);
     selectProjectState(state, project.id);
     addEvent(state, 'system', `Project “${project.settings.projectName}” added.`);
     return project;
   });
 }
 
-export async function editProject(store: StudioStore, id: string, input: unknown): Promise<StudioProject> {
+export async function editProject(store: StudioStore, id: string, input: unknown, expectedConfiguration?: string): Promise<StudioProject> {
   const patch = values(input);
   return store.transaction(state => {
     const project = findProject(state, id);
+    if (expectedConfiguration !== undefined && expectedConfiguration !== projectConfigurationIdentity(project))
+      throw new StudioError('Project settings changed outside this form. Review the latest configuration before saving; your draft was not written.', 409);
     const previousPrompt = project.settings.agentPrompt;
     const previousStages = JSON.stringify(project.settings.stagePrompts ?? {});
+    const previousAgents = JSON.stringify([project.settings.provider, project.settings.model, project.settings.stageAgents ?? {}]);
     if (project.unavailable) throw new StudioError('Restore this project note before editing it.', 409);
     if (state.jobs.some(job => job.projectId === id && isActiveJob(job))) throw new StudioError('Finish or cancel this project’s queued runs before editing its configuration.', 409);
     const settings = { ...project.settings, ...patch.settings, automation: { ...project.settings.automation, ...patch.settings.automation } };
@@ -69,6 +75,7 @@ export async function editProject(store: StudioStore, id: string, input: unknown
     Object.assign(project, patch.paths, { settings, updatedAt: new Date().toISOString() });
     if (previousPrompt !== settings.agentPrompt) recordOperation(state, 'project-prompt-updated', 'committed', undefined, 1, project.id);
     if (previousStages !== JSON.stringify(settings.stagePrompts ?? {})) recordOperation(state, 'project-stage-prompts-updated', 'committed', undefined, 1, project.id);
+    if (previousAgents !== JSON.stringify([settings.provider, settings.model, settings.stageAgents ?? {}])) recordOperation(state, 'project-stage-agents-updated', 'committed', undefined, 1, project.id);
     if (project.allowImplementation && !project.projectPath) throw new StudioError('Set the project repository before allowing real implementation.');
     if (id === state.activeProjectId) { state.settings = copySettings(project.settings); Object.assign(state.integration, projectPaths(project)); }
     addEvent(state, 'system', `Project “${project.settings.projectName}” updated.`);

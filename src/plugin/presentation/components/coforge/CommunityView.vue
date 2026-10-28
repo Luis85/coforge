@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useCommunity } from '../../composables/coforge/use-community';
-import CfIcon from './CfIcon.vue';
 import CommunityBadges from './CommunityBadges.vue';
 import CommunityLeaderboard from './CommunityLeaderboard.vue';
 import CommunityProfile from './CommunityProfile.vue';
@@ -12,12 +11,9 @@ const model = useCommunity();
   <div class="cf-community-page">
     <header class="cf-page-heading cf-community-heading">
       <div>
-        <h1>Built by the community</h1>
-        <p>A little recognition for the people shaping the next version of your game.</p>
+        <h1>Community recognition</h1>
+        <p>Review contributors, earned badges and accepted work across projects.</p>
       </div>
-      <span class="cf-community-badge">
-        <CfIcon name="heart-handshake" /> Every contribution has a story
-      </span>
     </header>
     <div class="cf-community-summary">
       <span class="cf-community-avatar-stack">

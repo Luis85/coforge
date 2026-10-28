@@ -1,4 +1,5 @@
 import { StudioError } from './errors';
+import { normalizeStageAgents } from './stage-agents';
 import type { AppState, Idea, IntegrationSettings, Settings, StudioProject } from './types';
 
 export const INITIAL_PROJECT_ID = 'CFP-001';
@@ -7,7 +8,22 @@ export const PROJECTS_FOLDER = 'CoForge/Projects';
 export type ProjectPaths = Pick<IntegrationSettings, 'projectPath' | 'worktreeFolder' | 'allowImplementation'>;
 export interface ProjectState extends AppState { projects: StudioProject[]; activeProjectId: string; integration: IntegrationSettings }
 
-export const copySettings = (settings: Settings): Settings => ({ ...settings, automation: { ...settings.automation }, ...(settings.stagePrompts ? { stagePrompts: { ...settings.stagePrompts } } : {}) });
+export const copySettings = (settings: Settings): Settings => ({ ...settings, automation: { ...settings.automation }, ...(settings.stagePrompts ? { stagePrompts: { ...settings.stagePrompts } } : {}), stageAgents: normalizeStageAgents(settings.stageAgents ?? {}) });
+function orderedConfiguration(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(orderedConfiguration);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value)
+    .filter(([, entry]) => entry !== undefined).sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
+    .map(([key, entry]) => [key, orderedConfiguration(entry)]));
+  return value;
+}
+/** An exact configuration precondition, independent of key order, timestamps and note annotations. */
+export function projectConfigurationIdentity(project: StudioProject): string {
+  return JSON.stringify(orderedConfiguration({
+    id: project.id, settings: { ...copySettings(project.settings), stagePrompts: { ...project.settings.stagePrompts } },
+    projectPath: project.projectPath, worktreeFolder: project.worktreeFolder, allowImplementation: project.allowImplementation,
+    repositoryUrl: project.repositoryUrl, websiteUrl: project.websiteUrl,
+  }));
+}
 export const projectPaths = (project: ProjectPaths): ProjectPaths => ({
   projectPath: project.projectPath, worktreeFolder: project.worktreeFolder, allowImplementation: project.allowImplementation,
 });

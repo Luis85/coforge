@@ -19,6 +19,7 @@ import { streamSetupProgress } from '../domain/stream-setup';
 import { defaultObsSettings, emptyObsState } from '../domain/obs';
 import { disconnectedTwitch } from '../domain/twitch';
 import { normalizeStagePrompts } from '../domain/stage-prompts';
+import { hasClaudeStages, normalizeStageAgents } from '../domain/stage-agents';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -34,7 +35,7 @@ export class StudioService {
 
   async start(): Promise<{ invalidNotes: string[] }> {
     const loaded = await this.store.init();
-    if (this.store.snapshot().projects?.some(project => project.settings.provider === 'claude')) await this.refreshRuntime();
+    if (this.store.snapshot().projects?.some(project => hasClaudeStages(project.settings))) await this.refreshRuntime();
     else await this.store.updateRuntime(this.runtimeConfig());
     this.engine.start();
     return loaded;
@@ -71,10 +72,14 @@ export class StudioService {
   activateStreamMessage(id: string, active: boolean): Promise<void> { return this.store.transaction(state => activateStreamMessage(state, id, active)); }
   removeStreamMessage(id: string): Promise<void> { return this.store.transaction(state => removeStreamMessage(state, id)); }
 
-  createProject(input: unknown): Promise<StudioProject> { return addProject(this.store, input); }
-  async updateProject(input: unknown, id = this.state().activeProjectId!): Promise<StudioProject> {
-    const project = await editProject(this.store, id, input);
-    if (project.settings.provider === 'claude') await this.refreshRuntime();
+  async createProject(input: unknown): Promise<StudioProject> {
+    const project = await addProject(this.store, input);
+    if (hasClaudeStages(project.settings)) await this.refreshRuntime();
+    return project;
+  }
+  async updateProject(input: unknown, id = this.state().activeProjectId!, expectedConfiguration?: string): Promise<StudioProject> {
+    const project = await editProject(this.store, id, input, expectedConfiguration);
+    if (hasClaudeStages(project.settings)) await this.refreshRuntime();
     await this.store.updateRuntime(this.runtimeConfig());
     return project;
   }
@@ -97,6 +102,7 @@ export class StudioService {
       if (state.activeProjectId === id) { state.settings = copySettings(next.settings); Object.assign(state.integration, projectPaths(next)); }
       addEvent(state, 'system', change.kind === 'upsert' ? `Project “${next.settings.projectName}” changed in the vault. Automation is paused for review.` : 'A project note is missing. Restore it before running more work.');
     });
+    if (change.kind === 'upsert' && hasClaudeStages(change.project.settings)) await this.refreshRuntime();
   }
 
   async createIdea(input: unknown): Promise<ActionOutcome> {
@@ -119,20 +125,22 @@ export class StudioService {
     const parsed = settingsPatch(input);
     const patch = {
       ...parsed,
+      ...(parsed.stageAgents === undefined ? {} : { stageAgents: normalizeStageAgents(parsed.stageAgents) }),
         ...(parsed.stagePrompts === undefined ? {} : { stagePrompts: normalizeStagePrompts(parsed.stagePrompts) }),
       ...(parsed.agentPrompt === undefined ? {} : { agentPrompt: cleanText(parsed.agentPrompt, 8000) }), ...(parsed.projectName === undefined ? {} : { projectName: cleanLine(parsed.projectName, 80) }),
       ...(parsed.projectBrief === undefined ? {} : { projectBrief: cleanText(parsed.projectBrief, 8000) }),
     };
     const settings = await this.store.transaction(state => {
-        if ((patch.stagePrompts !== undefined || patch.agentPrompt !== undefined) && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
-          throw new StudioError('Finish or cancel queued runs before changing project prompts.', 409);
-      if (patch.provider && patch.provider !== state.settings.provider && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
-        throw new StudioError('Finish or cancel queued runs before changing the agent provider.', 409);
+      if ((patch.stagePrompts !== undefined || patch.agentPrompt !== undefined || patch.stageAgents !== undefined || patch.model !== undefined || patch.provider !== undefined)
+        && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
+        throw new StudioError('Finish or cancel queued runs before changing the provider, model or project prompts.', 409);
+      const previousAgents = JSON.stringify([state.settings.provider, state.settings.model, state.settings.stageAgents ?? {}]);
       state.settings = { ...state.settings, ...patch, automation: { ...state.settings.automation, ...patch.automation } };
+      if (previousAgents !== JSON.stringify([state.settings.provider, state.settings.model, state.settings.stageAgents ?? {}])) recordOperation(state, 'project-stage-agents-updated', 'committed', undefined, 1, state.activeProjectId);
       addEvent(state, 'system', patch.paused !== undefined ? `Automation ${patch.paused ? 'paused' : 'resumed'}.` : 'Project settings updated.');
       return state.settings;
     });
-    if (patch.provider === 'claude') await this.refreshRuntime();
+    if ((patch.provider !== undefined || patch.stageAgents !== undefined) && hasClaudeStages(settings)) await this.refreshRuntime();
     return settings;
   }
 

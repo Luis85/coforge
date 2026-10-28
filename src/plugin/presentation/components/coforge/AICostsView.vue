@@ -115,7 +115,7 @@ const model = useAICosts();
               >{{ feature.project }} · {{ feature.count }} attempts</small
             ></span
           ><strong
-            >{{ model.money(feature.summary.nanos)
+            >{{ feature.displayCost
             }}<small v-if="feature.summary.missing || feature.summary.pending"
               >Partial ·
               {{ feature.summary.missing + feature.summary.pending }} without
@@ -127,7 +127,16 @@ const model = useAICosts();
       <h2 v-if="model.tasks.length">
         Task history <small>({{ model.tasks.length }})</small>
       </h2>
-      <div v-if="model.tasks.length" class="cf-ai-table-wrap">
+      <p v-if="model.tasks.length" class="cf-ai-table-help">
+        Scroll across the task table to see provider, status and cost.
+      </p>
+      <div
+        v-if="model.tasks.length"
+        class="cf-ai-table-wrap cf-data-scroll"
+        tabindex="0"
+        role="region"
+        aria-label="AI task details"
+      >
         <table class="cf-ai-table">
           <caption class="sr-only">
             Every retained task and attempt, newest first
@@ -180,12 +189,36 @@ const model = useAICosts();
           </tbody>
         </table>
       </div>
-      <nav v-if="model.pages > 1" class="cf-actions" aria-label="Task history pages">
-        <button type="button" class="cf-btn" :disabled="model.store.page === 0" @click="model.store.page--">Previous tasks</button>
-        <span>Page {{ model.store.page + 1 }} of {{ model.pages }} · 50 attempts per page</span>
-        <button type="button" class="cf-btn" :disabled="model.store.page + 1 >= model.pages" @click="model.store.page++">Next tasks</button>
+      <nav
+        v-if="model.pages > 1"
+        class="cf-actions"
+        aria-label="Task history pages"
+      >
+        <button
+          type="button"
+          class="cf-btn"
+          :disabled="model.store.page === 0"
+          @click="model.store.page--"
+        >
+          Previous tasks
+        </button>
+        <span
+          >Page {{ model.store.page + 1 }} of {{ model.pages }} · 50 attempts
+          per page</span
+        >
+        <button
+          type="button"
+          class="cf-btn"
+          :disabled="model.store.page + 1 >= model.pages"
+          @click="model.store.page++"
+        >
+          Next tasks
+        </button>
       </nav>
-      <p v-if="model.features.length > 50" class="cf-muted">Showing the first 50 feature summaries. Search or filter to find another feature; totals include every matching task.</p>
+      <p v-if="model.features.length > 50" class="cf-muted">
+        Showing the first 50 feature summaries. Search or filter to find another
+        feature; totals include every matching task.
+      </p>
       <form
         v-if="model.store.editing"
         class="cf-ai-editor"

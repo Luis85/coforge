@@ -50,7 +50,7 @@ export function useCommunity() {
     makers: computed(() => ranked.value.filter(row => row.ideas > 0).length),
     totalVotes: computed(() => ranked.value.reduce((sum, row) => sum + row.votesReceived, 0).toLocaleString()),
     acceptedCount: computed(() => accepted.value.length),
-    modeLabel: computed(() => store.state?.settings.provider === 'demo' ? 'Demo agent mode' : 'Project totals'),
+    modeLabel: 'All projects',
     leaders: computed(() => (showAll.value ? ranked.value : ranked.value.slice(0, LEADERBOARD_PREVIEW)).map((row, index) => ({
       ...person(row), leading: index === 0, rankClass: index < 3 ? `is-rank-${index + 1}` : '',
       rank: String(index + 1).padStart(2, '0'),
@@ -86,6 +86,7 @@ export function useCommunity() {
     toggleShowAll: () => { showAll.value = !showAll.value; },
     selectContributor: (id: string) => { selectedId.value = id; },
     openIdea: (id: string) => { void actions.openIdea(id); },
+    openChat: () => store.navigate('stream'),
   });
 }
 export type CommunityModel = ReturnType<typeof useCommunity>;

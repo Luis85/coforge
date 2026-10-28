@@ -3,6 +3,7 @@
   width: var(--cf-chat-width); flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; overflow: hidden;
   border-left: 1px solid var(--cf-border); background: var(--cf-surface);
 }
+.cf-chat-scroll-area { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
 .cf-chat-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 20px 17px 17px; }
 .cf-chat-header > div { display: flex; align-items: center; gap: 8px; }
 .cf-chat-header > div > .cf-icon { color: var(--cf-muted); }
@@ -73,7 +74,7 @@
 }
 .cf-chat-idea-link:hover { text-decoration: underline; }
 
-.cf-chat-compose-area { flex-shrink: 0; padding: 0 14px 13px; }
+.cf-chat-compose-area { flex-shrink: 0; padding: 0 14px calc(13px + var(--cf-host-status-inset, 0px)); }
 .cf-chat-simulator-control {
   display: flex; align-items: center; justify-content: space-between; padding: 8px 1px; font-size: 10px; color: var(--cf-muted);
   border-top: 1px solid var(--cf-border);

@@ -13,7 +13,7 @@ const model = useWorkflow();
     <header class="cf-page-heading cf-workflow-heading">
       <div>
         <h1>Agent workflow</h1>
-        <p>Your community’s ideas. A repeatable path to a playable increment.</p>
+        <p>Configure each step, dispatch eligible requests and review every agent attempt.</p>
       </div>
       <div class="cf-workflow-inline cf-workflow-heading-actions">
         <button

@@ -5,8 +5,38 @@ import {
   protectStreamWindow,
 } from "../../../infrastructure/coforge/stream-window-privacy";
 import { flushPromises } from "@vue/test-utils";
-import { installObsidianDom } from '@test/obsidian';
+import { installObsidianDom } from "@test/obsidian";
 describe("dedicated capture window guard", () => {
+  it("uses a safe provisional title until a restored window identity is assigned", async () => {
+    const restoreDom = installObsidianDom();
+    const doc = document.implementation.createHTMLDocument(
+      "PRIVATE_VAULT_TITLE",
+    );
+    const pane = doc.createElement("section");
+    pane.className = "workspace-leaf-content";
+    pane.dataset.type = "coforge-view-stream-kanban";
+    doc.body.append(pane);
+    let title = "CoForge Stream - Opening";
+    const release = protectStreamWindow(
+      doc,
+      () => title,
+      new Set(["coforge-view-stream-kanban"]),
+      () => {},
+    );
+    try {
+      expect(doc.title).toBe("CoForge Stream - Opening");
+      title = "CoForge Stream - Kanban (2)";
+      doc.title = title;
+      await flushPromises();
+      expect(doc.title).toBe("CoForge Stream - Kanban (2)");
+      doc.title = "PRIVATE_PROJECT_TITLE";
+      await flushPromises();
+      expect(doc.title).toBe("CoForge Stream - Kanban (2)");
+    } finally {
+      release();
+      restoreDom();
+    }
+  });
   it("keeps a stable title and masks private replacement panes until they leave the window", async () => {
     const restoreDom = installObsidianDom();
     const doc = document.implementation.createHTMLDocument(

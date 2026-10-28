@@ -1,0 +1,89 @@
+/* Task groups stay separate from private settings; short panes scroll destinations, not fixed tools. */
+.ps--coforge .cf-studio .cf-main nav { flex: 0 1 auto; flex-direction: row; }
+.ps--coforge .cf-studio .cf-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.ps--coforge .cf-sidebar {
+  overflow: hidden;
+}
+.ps--coforge
+  .cf-sidebar
+  > :is(.cf-brand, .cf-project-switcher, .cf-sidebar-bottom) {
+  flex-shrink: 0;
+}
+.ps--coforge .cf-studio .cf-sidebar > nav {
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  gap: 12px;
+  padding-bottom: 16px;
+}
+.ps--coforge .cf-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  flex-shrink: 0;
+}
+.ps--coforge .cf-nav-group-label {
+  padding: 0 12px 3px;
+  color: var(--cf-muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.ps--coforge .cf-nav-group .cf-nav-item {
+  width: 100%;
+}
+.ps--coforge :is(.cf-board-page, .cf-stream-page) > .cf-page-heading p {
+  max-width: 70ch;
+  margin-top: 8px;
+  color: var(--cf-muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.ps--coforge .cf-intent-empty {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding-block: 16px;
+}
+.ps--coforge .cf-intent-empty p {
+  margin: 0;
+  max-width: 70ch;
+}
+.ps--coforge .cf-ai-table-help {
+  display: none;
+  color: var(--cf-muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+@container plugin-shell-leaf (max-width: 850px) {
+  .ps--coforge .cf-ai-table-help {
+    display: block;
+  }
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .ps--coforge .cf-nav-group-label {
+    display: none;
+  }
+  .ps--coforge .cf-sidebar > nav {
+    gap: 8px;
+  }
+  .ps--coforge .cf-workflow-stage-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ps--coforge .cf-workflow-stage-heading h3,
+  .ps--coforge .cf-workflow-running-label {
+    grid-column: 1 / -1;
+  }
+  .ps--coforge .cf-workflow-stage-heading > button {
+    justify-self: start;
+    max-width: 100%;
+    height: auto;
+    min-height: 32px;
+    white-space: normal;
+    padding: 5px 8px;
+  }
+}

@@ -5,6 +5,7 @@ import { cleanLine, cleanText, defangProperty, escapeMarkdown } from './sanitize
 import { STAGES, type Settings, type StudioProject } from './types';
 import { settingsPatch } from './inputs';
 import { normalizeStagePrompts } from './stage-prompts';
+import { normalizeStageAgents, agentModelCheck, stageAgentsCheck } from './stage-agents';
 
 export const PROJECT_MARKER = 'coforge-project';
 const FIELDS = {
@@ -17,6 +18,7 @@ export const PROJECT_PROPERTIES = [
   'type', 'id', 'created', 'updated', 'project-path', 'repository-url', 'website-url', 'worktree-folder', 'allow-implementation', ...Object.values(FIELDS),
   ...STAGES.map(stage => `automation-${stage}`),
   ...STAGES.map(stage => `agent-prompt-${stage}`),
+  ...STAGES.flatMap(stage => [`agent-provider-${stage}`, `agent-model-${stage}`]),
 ];
 const projectId = text({ min: 1, max: 80, pattern: /^CFP-\d{3,7}$/ });
 const path = text({ trim: true, max: 1000 });
@@ -48,6 +50,11 @@ export function projectProperties(project: StudioProject): Record<string, unknow
   }
   for (const stage of STAGES) result[`automation-${stage}`] = project.settings.automation[stage];
   for (const stage of STAGES) if (project.settings.stagePrompts?.[stage]) result[`agent-prompt-${stage}`] = defangProperty(project.settings.stagePrompts[stage] ?? '');
+  for (const stage of STAGES) {
+    const agent = project.settings.stageAgents?.[stage];
+    if (agent?.provider !== undefined) result[`agent-provider-${stage}`] = agent.provider;
+    if (agent?.model !== undefined) result[`agent-model-${stage}`] = defangProperty(agent.model);
+  }
   return result;
 }
 
@@ -68,6 +75,12 @@ export function parseProjectNote(value: unknown): StudioProject | null {
   const prompts: NonNullable<Settings['stagePrompts']> = {};
   for (const stage of STAGES) { const value = properties[`agent-prompt-${stage}`]; if (value != null) prompts[stage] = text({ max: 8000 })(cleanText(text({ max: 40000 })(value), 8001)); }
   values.stagePrompts = normalizeStagePrompts(prompts);
+  const agents: Record<string, unknown> = {};
+  for (const stage of STAGES) {
+    const provider = properties[`agent-provider-${stage}`]; const model = properties[`agent-model-${stage}`];
+    if (provider !== undefined || model !== undefined) agents[stage] = { ...(provider === undefined ? {} : { provider }), ...(model === undefined ? {} : { model: agentModelCheck(cleanLine(text({ max: 500 })(model))) }) };
+  }
+  values.stageAgents = normalizeStageAgents(stageAgentsCheck(agents));
   const automation: Record<string, unknown> = { ...defaults.automation };
   for (const stage of STAGES) if (properties[`automation-${stage}`] !== undefined) automation[stage] = properties[`automation-${stage}`];
   const settings: Settings = settingsCheck({ ...values, automation });

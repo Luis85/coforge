@@ -74,7 +74,7 @@ const model = useStreamSurface(props);
         <ol>
           <li v-for="entry in board.entries" :key="entry.name">
             <strong>{{ entry.name }}</strong
-            ><span>{{ entry.value }} {{ board.unit }}</span>
+            ><span>{{ model.metric(entry.value, board.unit) }}</span>
           </li>
         </ol>
       </section>

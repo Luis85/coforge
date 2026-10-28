@@ -1,6 +1,11 @@
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, shallowRef } from "vue";
 import type { ContextMenuItem } from "@nuxt/ui";
-import type { Idea } from "../../../features/coforge/domain/types";
+import {
+  STATUS_LABELS,
+  type Idea,
+} from "../../../features/coforge/domain/types";
+import { stageAgent } from "../../../features/coforge/domain/stage-agents";
+import { ideaProjectId } from "../../../features/coforge/domain/projects";
 import {
   assertStage,
   stageFor,
@@ -9,6 +14,14 @@ import {
 import { ideaFingerprint } from "../../../features/coforge/domain/integrity";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
+const elementNode = (value: unknown): value is HTMLElement =>
+  Boolean(
+    value &&
+    typeof value === "object" &&
+    Reflect.get(value, "nodeType") === 1 &&
+    typeof Reflect.get(value, "closest") === "function" &&
+    typeof Reflect.get(value, "focus") === "function",
+  );
 export function useIdeaCardMenu(
   props: { idea: Idea },
   card: { voted: boolean; voteDisabled: boolean; vote(): void },
@@ -16,11 +29,36 @@ export function useIdeaCardMenu(
   const store = useStudioStore();
   const actions = useStudioActions();
   const reviewed = ref("");
+  const portal = shallowRef<HTMLElement | false>(false);
+  const contextOpen = ref(false);
+  const dropdownOpen = ref(false);
+  const changed = (kind: "context" | "dropdown", open: boolean) => {
+    if (kind === "context") {
+      contextOpen.value = open;
+      if (open) dropdownOpen.value = false;
+    } else {
+      dropdownOpen.value = open;
+      if (open) contextOpen.value = false;
+    }
+    if (open) reviewed.value = ideaFingerprint(props.idea);
+  };
   const active = computed(() =>
     store.state?.jobs.some(
       (job) => job.ideaId === props.idea.id && isActiveJob(job),
     ),
   );
+  const nextAgent = computed(() => {
+    const stage = stageFor(props.idea);
+    const state = store.state;
+    const project = state?.projects?.find(
+      (project) => project.id === ideaProjectId(props.idea),
+    );
+    if (!stage || !state || !project) return null;
+    return stageAgent(
+      project.id === state.activeProjectId ? state.settings : project.settings,
+      stage,
+    );
+  });
   const reason = computed(() => {
     if (store.busy || active.value)
       return "A request action is already queued or running.";
@@ -33,12 +71,15 @@ export function useIdeaCardMenu(
         ? error.message
         : "Required evidence is missing.";
     }
-    const project = store.state?.projects?.find(
-      (project) => project.id === props.idea.projectId,
+    const state = store.state;
+    const project = state?.projects?.find(
+      (project) => project.id === ideaProjectId(props.idea),
     );
     if (!project || project.unavailable)
       return "Restore this project before dispatching work.";
-    if (project.settings.provider === "claude") {
+    const settings =
+      project.id === state?.activeProjectId ? state.settings : project.settings;
+    if (stageAgent(settings, stage).provider === "claude") {
       if (!store.state?.runtime.cliAvailable)
         return "Install/connect Claude Code in project settings.";
       if (["plan", "implement"].includes(stage) && !project.projectPath)
@@ -81,6 +122,7 @@ export function useIdeaCardMenu(
     const stage = stageFor(idea);
     const groups: ContextMenuItem[][] = [
       [
+        { type: "label", label: `${idea.id} · ${STATUS_LABELS[idea.status]}` },
         {
           label: `Open ${idea.id}`,
           icon: "i-lucide-panel-right",
@@ -106,12 +148,17 @@ export function useIdeaCardMenu(
           label: card.voted ? "Vote already counted" : "Vote for request",
           icon: "i-lucide-arrow-up",
           disabled: card.voteDisabled,
+          description:
+            card.voteDisabled && !card.voted
+              ? "Voting is unavailable while this request is flagged, archived or another action is pending."
+              : undefined,
           onSelect: () => card.vote(),
         },
       ],
     ];
     if (stage)
       groups.push([
+        { type: "label", label: "Next workflow step" },
         {
           label: {
             screen: "Screen request",
@@ -120,7 +167,10 @@ export function useIdeaCardMenu(
             implement: "Build planned request",
           }[stage],
           description:
-            reason.value || "Run the next eligible stage for this request.",
+            reason.value ||
+            (nextAgent.value?.provider === "claude"
+              ? `Claude Code · ${nextAgent.value.model}`
+              : "Simulation · no model calls"),
           icon: "i-lucide-play",
           disabled: Boolean(reason.value),
           onSelect: runStage,
@@ -172,8 +222,39 @@ export function useIdeaCardMenu(
   });
   return reactive({
     items,
-    openChanged: (open: boolean) => {
-      if (open) reviewed.value = ideaFingerprint(props.idea);
+    portal,
+    contextOpen,
+    dropdownOpen,
+    contextContent: computed(() => ({
+      collisionBoundary: portal.value || undefined,
+      collisionPadding: 12,
+      avoidCollisions: true,
+      "aria-label": `Actions for ${props.idea.id}`,
+    })),
+    dropdownContent: computed(() => ({
+      collisionBoundary: portal.value || undefined,
+      align: "end" as const,
+      collisionPadding: 12,
+      sideOffset: 6,
+      avoidCollisions: true,
+      "aria-label": `Actions for ${props.idea.id}`,
+    })),
+    bindCard: (value: unknown) => {
+      if (!elementNode(value)) return;
+      const scope = value.closest(".ps--coforge");
+      portal.value = elementNode(scope) ? scope : false;
+    },
+    contextChanged: (open: boolean) => changed("context", open),
+    dropdownChanged: (open: boolean) => changed("dropdown", open),
+    keydown: (event: KeyboardEvent) => {
+      if (
+        event.key !== "ContextMenu" &&
+        !(event.shiftKey && event.key === "F10")
+      )
+        return;
+      event.preventDefault();
+      event.stopPropagation();
+      changed("context", true);
     },
   });
 }

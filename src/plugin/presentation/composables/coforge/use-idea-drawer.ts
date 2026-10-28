@@ -6,6 +6,9 @@ import { useStudioStore } from '../../stores/coforge-studio';
 import { avatarStyle, formatTime } from './format';
 import { useDialogFocus } from './use-dialog-focus';
 import { useStudioActions } from './use-studio-actions';
+import { ideaProjectId } from '../../../features/coforge/domain/projects';
+import { stageAgent } from '../../../features/coforge/domain/stage-agents';
+import { stageAgentLabel } from './agent-labels';
 
 export type IdeaDrawerTab = 'overview' | 'plan' | 'increment' | 'activity';
 interface NextAction { action: AgentStage; label: string; description: string }
@@ -23,7 +26,7 @@ const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
 /** Contributor ids the streamer votes under (the studio votes as the simulator's `streamer`). */
 const STREAMER_IDS = ['simulator:streamer', 'local:streamer', 'streamer'];
 const NOTE_REQUIRED = 'Add a review note of at least 3 characters so the next step has the right context.';
-export const BLOCKED_BUILD_HELP = 'Enable real implementation in the CoForge plugin settings to build with Claude Code. Review the integration guide first.';
+export const BLOCKED_BUILD_HELP = 'Enable real implementation for this project in Studio settings → Agent workspace before building with Claude Code.';
 
 const jobTitle = (job: AgentJob): string =>
   `${job.provider === 'demo' ? 'Simulating' : 'Agent running'}: ${job.stage === 'implement' ? 'implementation' : job.stage}`;
@@ -49,9 +52,12 @@ function createIdeaDrawer() {
   const ideaJobs = computed(() => state.value?.jobs.filter(job => job.ideaId === idea.value?.id) ?? []);
   const activeJob = computed(() => ideaJobs.value.find(isActiveJob));
   const nextAction = computed(() => (idea.value ? NEXT_ACTIONS[idea.value.status] : undefined));
+  const project = computed(() => state.value?.projects?.find(project => project.id === (idea.value ? ideaProjectId(idea.value) : state.value?.activeProjectId)));
+  const projectSettings = computed(() => project.value?.id === state.value?.activeProjectId ? state.value?.settings : project.value?.settings);
+  const nextAgent = computed(() => projectSettings.value && nextAction.value ? stageAgent(projectSettings.value, nextAction.value.action) : undefined);
   const isBusy = computed(() => store.busy || Boolean(pending.value) || Boolean(activeJob.value));
   const blockedBuild = computed(() => nextAction.value?.action === 'implement'
-    && state.value?.settings.provider === 'claude' && !state.value.runtime.allowImplementation);
+    && nextAgent.value?.provider === 'claude' && !project.value?.allowImplementation);
 
   watch(() => store.selected, () => { note.value = ''; error.value = ''; });
 
@@ -95,14 +101,14 @@ function createIdeaDrawer() {
     voteLocked: computed(() => idea.value?.status === 'flagged' || idea.value?.status === 'rejected'),
     activeJobTitle: computed(() => (activeJob.value ? jobTitle(activeJob.value) : '')),
     activeJobLog: computed(() => activeJob.value?.logs[activeJob.value.logs.length - 1] ?? 'Preparing the request…'),
-    isDemo: computed(() => state.value?.settings.provider === 'demo'),
+    isDemo: computed(() => nextAgent.value?.provider === 'demo'),
     showFooter: computed(() => Boolean(nextAction.value) || idea.value?.status === 'review' || idea.value?.status === 'building'),
     canAccept: computed(() => Boolean(idea.value?.increment) && idea.value?.status === 'review'),
     nextLabel: computed(() => {
       const label = nextAction.value?.label ?? '';
       return idea.value?.lastError ? `Retry · ${label}` : label;
     }),
-    nextHelp: computed(() => (blockedBuild.value ? BLOCKED_BUILD_HELP : nextAction.value?.description ?? '')),
+    nextHelp: computed(() => blockedBuild.value ? BLOCKED_BUILD_HELP : `${nextAction.value?.description ?? ''}${projectSettings.value && nextAction.value ? ` ${stageAgentLabel(projectSettings.value, nextAction.value.action)}.` : ''}`),
     activity: computed(() => (state.value?.events ?? [])
       .filter(event => event.ideaId === idea.value?.id)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))

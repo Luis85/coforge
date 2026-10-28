@@ -74,6 +74,12 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - Each project can edit its Screen/Score/Plan/Build task prompts, starting from defaults, reset individual
   prompts and preview the assembled dispatch. Store them in the project note alongside the general prompt.
   Existing tool/output/review execution gates remain authoritative.
+- Each project can also override the AI provider and model independently for Screen, Score, Plan and Build.
+  Unset fields inherit that project's existing defaults; legacy notes keep their current behavior. The initial
+  choices are the workflow's supported Claude Code and Simulation runners. Queued attempts retain their chosen
+  provider/model, including when another project is selected. Configuration cannot change underneath active work.
+- Review every private, native-settings and public display view for a clear user goal and next action, then improve
+  concrete navigation, hierarchy, empty/error-state, accessibility and spacing findings without replacing the native design.
 - The stream schedule stays local to CoForge. Each planned stream has an Obsidian-compatible Markdown note
   for topics, scripts and storyboards, plus date/time, project, Twitch metadata, OBS scene choices and a music
   playlist. Preparation is explicit; planning never automatically updates a live channel or starts playback/a stream.

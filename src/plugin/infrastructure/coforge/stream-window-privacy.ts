@@ -16,7 +16,7 @@ export function captureWindowBlocked(
 }
 export function protectStreamWindow(
   document: Document,
-  title: string,
+  title: string | (() => string),
   allowed: ReadonlySet<string>,
   blocked: () => void,
 ): () => void {
@@ -42,7 +42,8 @@ export function protectStreamWindow(
   let closed = false;
   const refresh = () => {
     if (closed) return;
-    if (document.title !== title) document.title = title;
+    const currentTitle = typeof title === "string" ? title : title();
+    if (document.title !== currentTitle) document.title = currentTitle;
     const next = captureWindowBlocked(document, allowed);
     if (next !== wasBlocked) {
       wasBlocked = next;
