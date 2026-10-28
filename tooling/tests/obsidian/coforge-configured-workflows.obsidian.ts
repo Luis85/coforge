@@ -1,6 +1,7 @@
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
+import { splitNote } from '../../../src/plugin/infrastructure/coforge/markdown';
 describe("Configured human workflows in Obsidian", () => {
   test("persists a waiting human step across reload and finishes without an invented code increment", async ({
     obsidian,
@@ -89,6 +90,7 @@ describe("Configured human workflows in Obsidian", () => {
       .first()
       .click();
     await view
+      .locator('.cf-board-page > .cf-page-heading')
       .getByRole("button", { name: "New request", exact: true })
       .click();
     const dialog = view.getByRole("dialog");
@@ -108,6 +110,13 @@ describe("Configured human workflows in Obsidian", () => {
       .locator(".cf-idea-card")
       .filter({ hasText: "Review the forest path" });
     await browserExpect(card).toBeVisible();
+    const original = await obsidian.eval(async ({ app }) => {
+      const file = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Ideas/'));
+      return file ? app.vault.read(file) : null;
+    });
+    if (original === null) throw new Error('The canonical request note was not written.');
+    const originalBody = splitNote(original).body;
+    expect(originalBody).toContain('Preserve this human\\-authored request body\\.');
     await card.getByRole("button", { name: /^Actions for CF-/ }).click();
     await obsidian.page
       .getByRole("menu")
@@ -166,7 +175,7 @@ describe("Configured human workflows in Obsidian", () => {
       ),
     );
     expect(notes).toHaveLength(1);
-    expect(notes[0]).toContain("Preserve this human-authored request body.");
+    expect(splitNote(notes[0]!).body).toBe(originalBody);
     expect(notes[0]).toContain("status: succeeded");
     expect(notes[0]).toContain("state: finished");
     expect(notes[0]).not.toMatch(/^increment:/m);
