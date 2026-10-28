@@ -62,6 +62,24 @@ function fakeObs() {
   };
 }
 describe("streamer OBS workflow", () => {
+  it('coalesces installation probes from multiple views without rejecting the second caller', async () => {
+    const { store } = await emptyStore();
+    const obs = fakeObs();
+    let finish: () => void = () => {};
+    const blocked = new Promise<void>(resolve => { finish = resolve; });
+    const detect = vi.fn(async () => { await blocked; return { status: 'found' as const, running: false, passwordSaved: false }; });
+    obs.port.detect = detect;
+    const workflow = new ObsWorkflow(store, obs.port);
+    const results = Promise.allSettled([workflow.detect(), workflow.detect()]);
+    await vi.waitFor(() => expect(detect).toHaveBeenCalledOnce());
+    finish();
+    expect((await results).map(result => result.status)).toEqual(['fulfilled', 'fulfilled']);
+    expect(store.snapshot().population?.counters['stream-control-rejected']).toBeUndefined();
+    expect(store.snapshot().population?.counters['obs-detected']).toBe(1);
+    await workflow.detect();
+    expect(detect).toHaveBeenCalledTimes(2);
+    workflow.dispose();
+  });
   it('shares scene admission with broadcast controls and recovers a saved scene intent without replay', async () => {
     const { store, storage } = await emptyStore();
     const obs = fakeObs();

@@ -179,6 +179,7 @@ describe("Configured human workflows in Obsidian", () => {
     expect(notes[0]).toContain("status: succeeded");
     expect(notes[0]).toContain("state: finished");
     expect(notes[0]).not.toMatch(/^increment:/m);
+    await browserExpect(obsidian.page.getByText('An OBS interaction is already in progress.', { exact: true })).toHaveCount(0);
     await obsidian.screenshot("configured-human-workflow-finished");
     expect(obsidian.errors()).toEqual([]);
   });
