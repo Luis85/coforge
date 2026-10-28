@@ -17,7 +17,7 @@ export interface AICostTask {
   featureTitle: string;
   projectId: string;
   projectName: string;
-  provider: "claude" | "herdr" | "demo";
+  provider: "claude" | "herdr" | "demo" | "mcp";
   stage: string;
   status: string;
   startedAt: string;
@@ -36,7 +36,7 @@ export const aiCostTaskCheck = shape(
     featureTitle: text({ max: 200 }),
     projectId: text({ max: 200 }),
     projectName: text({ max: 100 }),
-    provider: oneOf(["claude", "herdr", "demo"] as const),
+    provider: oneOf(["claude", "herdr", "demo", "mcp"] as const),
     stage: text({ max: 40 }),
     status: text({ max: 40 }),
     startedAt: timestamp,

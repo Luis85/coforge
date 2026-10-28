@@ -122,5 +122,7 @@ jobs:
             reports/request-object/
             reports/council-card-assessment/
             reports/economy/
+            reports/task-scheduler/
+            reports/merged-native-mcp/
           retention-days: 14
           if-no-files-found: warn

@@ -1,3 +1,4 @@
+import { SCHEDULED_TASK_FOLDER } from "../../features/coforge/domain/scheduled-task";
 import type { Plugin } from "obsidian";
 import {
   normalizeVaultFolder,
@@ -71,6 +72,7 @@ export function councilRegisteredPrivateFolders(
       "CoForge/Messages",
       "CoForge/Tests",
       COUNCIL_TASK_FOLDER,
+      SCHEDULED_TASK_FOLDER,
     ]),
   ];
 }
@@ -100,6 +102,6 @@ export function councilFolderPolicy(
     publicFolder,
     configFolder: plugin.app.vault.configDir,
     definitionFolders: definitions,
-    outputFolders: ["CoForge/Tests", "CoForge/Messages", COUNCIL_TASK_FOLDER],
+    outputFolders: ["CoForge/Tests", "CoForge/Messages", COUNCIL_TASK_FOLDER, SCHEDULED_TASK_FOLDER],
   };
 }

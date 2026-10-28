@@ -60,8 +60,8 @@ const model = useWorkflow();
           class="cf-workflow-live-dot"
           :class="{ 'is-paused': model.paused }"
         /><strong>{{ model.summaryLabel }}</strong
-        ><span>{{ model.enabledCount }} AI steps automatic</span
-        ><span>New automatic runs · {{ model.intervalSeconds }}s interval</span
+        ><span>{{ model.automaticStepLabel }}</span
+        ><span>{{ model.cadenceLabel }}</span
         ><span class="cf-workflow-mode-tag" :title="model.providerTitle"
           ><CfIcon :name="model.providerIcon" size="sm" />{{
             model.providerLabel

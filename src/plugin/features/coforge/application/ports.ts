@@ -64,7 +64,7 @@ export interface StudioHost {
   assertExampleCleanup?(ideaIds: readonly string[]): void | (() => void) | Promise<void | (() => void)>;
   privateFolders?(): readonly string[];
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;
-  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner };
+  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   timers: Timers;
   probeRuntime(integration: IntegrationSettings): Promise<Pick<RuntimeInfo, 'cliAvailable' | 'projectPath' | 'allowImplementation'>>;
   report?(error: Error): void;
@@ -74,6 +74,9 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  taskScheduler?: import('./task-scheduler-ports').TaskSchedulerActions;
+  previewTaskScheduler?(): import('./task-scheduler-ports').TaskSchedulerActions;
+  mcp?: import('./mcp-ports').McpActions;
   council?: import('./council-ports').CouncilActions;
   previewCouncil?(): import('./council-ports').CouncilActions;
   herdrWorkflows?: import('./herdr-workflow-ports').HerdrWorkflowActions;
@@ -94,7 +97,7 @@ export interface StudioHostActions {
   obsScenes?: import('../domain/obs-scenes').ObsSceneActions;
   previewStreamStatistics?(): import('../domain/stream-metrics').StreamHistory[];
   /** Browser-only temporary service disposal; never a vault or live integration mutation. */
-  discardPreview?(example: "finance" | "ai-costs" | "schedule" | "music" | "statistics" | "live-studio" | "council" | "herdr"): void;
+  discardPreview?(example: "finance" | "ai-costs" | "schedule" | "music" | "statistics" | "live-studio" | "council" | "herdr" | "task-scheduler"): void;
   streamHistory?: import('./stream-metrics-ports').StreamHistoryActions;
   obs?: import('../domain/obs').ObsActions;
   twitch?: import('../domain/twitch').TwitchActions;

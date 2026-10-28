@@ -100,6 +100,10 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
     return {
       id: record.id,
       cwd: record.cwd,
+      validate: async () => {
+        if (released || record.activeAttemptId !== attemptId) throw attention();
+        await this.verify(record);
+      },
       capture: async (summary) => {
         if (released || record.activeAttemptId !== attemptId) throw attention();
         await this.verify(record);

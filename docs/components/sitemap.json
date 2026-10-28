@@ -947,6 +947,51 @@
       "file": "council-recovery.md"
     },
     {
+      "id": "council-scheduler",
+      "title": "Task scheduler",
+      "goal": "Schedule a private prompt for an agent, assigned team member or council.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = scheduler",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/TaskSchedulerView.vue",
+      "entry": [
+        "Open The Council → Advanced Council tools → Task scheduler."
+      ],
+      "actions": [
+        "Create or edit task",
+        "Set timer or recurrence",
+        "Enable or pause",
+        "Run now",
+        "Archive or restore",
+        "Inspect source and run",
+        "Acknowledge uncertain admission"
+      ],
+      "states": [
+        "Desktop unavailable",
+        "Labelled example",
+        "Non-executor",
+        "Execution paused",
+        "Empty",
+        "Draft",
+        "Enabled",
+        "Archived",
+        "Skipped occurrence",
+        "Uncertain admission",
+        "Storage error"
+      ],
+      "journeys": [
+        "Council",
+        "task-scheduling"
+      ],
+      "privacy": "Private plugin journal and ignored scheduled source notes; never included in capture views or public exports.",
+      "coverage": {
+        "group": "council",
+        "key": "scheduler"
+      },
+      "file": "council-scheduler.md"
+    },
+    {
       "id": "council-submit",
       "title": "Submit existing note",
       "goal": "Submit a reviewed note to the intended collaboration destination.",
@@ -1721,6 +1766,38 @@
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
       "file": "native-claude.md"
+    },
+    {
+      "id": "native-mcp",
+      "title": "Local MCP server",
+      "goal": "Activate one MCP connection for every CoForge project in this vault.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "native settings / Local MCP server",
+      "parent": "native-settings",
+      "component": "src/plugin/presentation/components/coforge/PluginSettingsMcp.vue",
+      "entry": [
+        "Open Obsidian Settings → Community plugins → CoForge → Local MCP server."
+      ],
+      "actions": [
+        "Activate MCP",
+        "Deactivate MCP",
+        "Acknowledge inspected workspace recovery"
+      ],
+      "states": [
+        "Inactive",
+        "Updating",
+        "Active",
+        "Configuration error",
+        "Desktop unavailable",
+        "Interrupted workspace"
+      ],
+      "journeys": [
+        "setup",
+        "workflow-configuration"
+      ],
+      "privacy": "Private workflow context and code; loopback authentication is stored only in ignored plugin data.",
+      "file": "native-mcp.md"
     },
     {
       "id": "native-settings",

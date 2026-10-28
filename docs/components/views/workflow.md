@@ -40,3 +40,9 @@ Journey tags: `request-to-recognition`, `workflow-configuration`.
 ## Workspace redesign
 
 The selected-project band precedes execution navigation. A prominent automation strip, selected request heading and captured-step sequence separate control state, work in progress and durable attempt evidence.
+
+For a selected external MCP run, the strip names the external client and explicit
+client calls. Project automation does not advance that run. Its captured native
+provider/model configuration remains visible as definition context in the tooltip;
+it is not presented as the provider that actually executed the MCP work. Native
+runs retain their configured provider labels, automatic-step count and cadence.

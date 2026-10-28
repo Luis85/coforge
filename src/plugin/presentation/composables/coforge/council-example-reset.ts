@@ -1,9 +1,11 @@
 import { useCouncilStore } from "../../stores/coforge-council";
 import { useCouncilEditorStore } from "../../stores/coforge-council-editor";
 import { useWorkflowV2Store } from "../../stores/coforge-workflow-v2";
+import { resetTaskSchedulerExample } from './task-scheduler-example-reset';
 
 /** Used only while Council is bound to its browser-only example service. */
 export function resetCouncilExample() {
+  resetTaskSchedulerExample();
   useCouncilStore().$patch({
     example: false,
     state: null,

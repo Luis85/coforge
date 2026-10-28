@@ -10,6 +10,7 @@ import CouncilMessages from "./CouncilMessages.vue";
 import CouncilFolderSettings from "./CouncilFolderSettings.vue";
 import CouncilAskView from "./CouncilAskView.vue";
 import ProjectWorkContext from "./ProjectWorkContext.vue";
+import TaskSchedulerView from "./TaskSchedulerView.vue";
 import { DEFAULT_COUNCIL_FOLDERS } from "../../../features/coforge/domain/council-definition-folders";
 const model = useCouncil();
 </script>
@@ -109,7 +110,7 @@ const model = useCouncil();
         v-if="
           model.store.state &&
           !model.store.state.executor &&
-          model.store.tab !== 'monitor'
+          model.store.tab !== 'monitor' && model.store.tab !== 'scheduler'
         "
         class="cf-intent-empty"
         aria-label="Council execution prerequisite"
@@ -167,6 +168,7 @@ const model = useCouncil();
         "
       />
       <CouncilMonitor v-else-if="model.store.tab === 'monitor'" />
+      <TaskSchedulerView v-else-if="model.store.tab === 'scheduler'" />
       <CouncilFolderSettings
         open
         v-if="model.store.state"

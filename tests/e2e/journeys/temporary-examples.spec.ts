@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { openCouncilPage } from '../support/council-navigation';
 
 const examples = [
   ["Finances", "Explore finance example", ".cf-finance"],
@@ -170,4 +171,31 @@ test("ordinary navigation retains temporary example drafts until explicit exit",
   await expect(
     page.getByLabel("Finance description", { exact: true }),
   ).toHaveValue("");
+});
+
+test('explicit global cleanup closes an inactive scheduler example without retaining its temporary draft', async ({ page }) => {
+  await page.goto('/#surface=node-1');
+  await expect(page.locator('html')).toHaveAttribute('data-prototype-ready', 'true');
+  const sidebar = page.locator('.cf-sidebar');
+  await sidebar.getByRole('button', { name: 'The Council', exact: true }).click();
+  await page.getByRole('button', { name: 'Explore Council example', exact: true }).click();
+  await openCouncilPage(page, 'Task scheduler');
+  const scheduler = page.getByRole('region', { name: 'Task scheduler', exact: true });
+  await scheduler.getByRole('button', { name: 'Explore scheduler example', exact: true }).click();
+  await scheduler.getByRole('button', { name: 'New scheduled task', exact: true }).click();
+  await scheduler.getByLabel('Task name', { exact: true }).fill('Discard only this temporary scheduler draft');
+  await sidebar.getByRole('button', { name: 'Project settings', exact: true }).click();
+  const cleanup = page.getByRole('region', { name: 'Remove example and local-test content', exact: true });
+  await cleanup.getByRole('button', { name: 'Preview example cleanup', exact: true }).click();
+  await cleanup.getByLabel('I reviewed the selected requests and local content above and want to remove them.', { exact: true }).check();
+  await cleanup.getByRole('button', { name: 'Remove selected examples and local content', exact: true }).click();
+  await expect(cleanup).toContainText('Temporary examples are closed.');
+  await sidebar.getByRole('button', { name: 'The Council', exact: true }).click();
+  await page.getByRole('button', { name: 'Explore Council example', exact: true }).click();
+  await openCouncilPage(page, 'Task scheduler');
+  await expect(scheduler.getByRole('button', { name: 'Explore scheduler example', exact: true })).toBeVisible();
+  await scheduler.getByRole('button', { name: 'Explore scheduler example', exact: true }).click();
+  await scheduler.getByRole('button', { name: 'New scheduled task', exact: true }).click();
+  await expect(scheduler.getByLabel('Task name', { exact: true })).toHaveValue('');
+  await expect(page.locator('.cf-project-switcher')).toContainText('Mosslight');
 });

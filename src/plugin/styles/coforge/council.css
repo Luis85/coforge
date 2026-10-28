@@ -4,6 +4,8 @@
   gap: var(--cf-space-md);
   min-width: 0;
 }
+.cf-task-form { display: grid; gap: var(--cf-space-md); min-width: 0; padding: 0; margin: 0; border: 0; }
+.cf-task-form legend { margin-block-end: var(--cf-space-md); font-weight: var(--font-semibold); }
 .cf-council .cf-settings-actions {
   display: flex;
   flex-wrap: wrap;

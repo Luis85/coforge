@@ -76,6 +76,7 @@ export function createCouncilActions(host: CouncilActionHost): CouncilActions {
         return task;
       }),
     listTasks: () => tasks.list(),
+    assertExecutor: () => host.assertExecutor(),
     catalogue: host.catalogue,
     definitionFolders: host.definitionFolders,
     workflows: host.workflows.actions,

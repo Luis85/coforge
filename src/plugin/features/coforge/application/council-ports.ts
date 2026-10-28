@@ -29,6 +29,7 @@ export interface CouncilRuntimeSnapshot {
 export interface CouncilActions {
   createTask(input: import("./council-tasks").CouncilTaskInput): Promise<import("./council-tasks").CouncilTaskRecord>;
   listTasks(): Promise<import("./council-tasks").CouncilTaskRecord[]>;
+  assertExecutor?(): Promise<void>;
   definitionFolders: CouncilFolderActions;
   workflows: import("./workflow-v2-ports").WorkflowV2Actions;
   catalogue: CouncilCatalogueActions;

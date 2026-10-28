@@ -46,6 +46,9 @@ Historical counters or external recovery evidence without trustworthy attributio
 remain rather than being reset. Monotonic IDs and intake deduplication tombstones
 remain so ordinary intake cannot replay deleted messages or reuse their IDs. Successful
 cleanup also closes temporary in-memory examples without changing real services.
+The nine example families are finance, AI costs, schedule, statistics, live studio,
+music, Council, Herdr and task scheduler. Saved native schedules and their drafts
+are preserved; the scheduler's example timer and cached receipts are discarded.
 
 ## Composition and boundaries
 

@@ -49,8 +49,9 @@ export function useWorkflow() {
     workflowAttemptRows(store.projectIdeas, store.projectJobs),
   );
   const provider = computed(() =>
-    workflowProviderSummary({ ...settings.value, workflow: definition.value }),
+    workflowProviderSummary({ ...settings.value, workflow: definition.value }, run.value?.external),
   );
+  const enabledCount = computed(() => run.value?.external ? 0 : definition.value.steps.filter(step => step.kind === 'ai' && step.automatic).length);
   const blocked = computed(() => {
     const idea = selected.value;
     if (!idea) return "Select a request to run its workflow.";
@@ -112,14 +113,11 @@ export function useWorkflow() {
     providerIcon: computed(() => provider.value.icon),
     providerLabel: computed(() => provider.value.label),
     providerTitle: computed(() => provider.value.title),
-    enabledCount: computed(
-      () =>
-        definition.value.steps.filter(
-          (step) => step.kind === "ai" && step.automatic,
-        ).length,
-    ),
+    enabledCount,
+    automaticStepLabel: computed(() => run.value?.external ? 'AI steps require explicit client calls' : `${enabledCount.value} AI steps automatic`),
+    cadenceLabel: computed(() => run.value?.external ? 'Project automation does not advance this run' : `New automatic runs · ${savedDefinition.value.limits.intervalSeconds}s interval`),
     summaryLabel: computed(() =>
-      settings.value.paused ? "Automation paused" : "Automation resumed",
+      run.value?.external ? 'External MCP run' : settings.value.paused ? "Automation paused" : "Automation resumed",
     ),
     runLabel: computed(() =>
       run.value ? CONFIGURED_RUN_LABELS[run.value.state] : "Not started",
@@ -161,7 +159,7 @@ export function useWorkflow() {
         id: step.id,
         name: step.name,
         index: index + 1,
-        agent: configuredAgentLabel(step),
+        agent: run.value?.external && step.kind === 'ai' ? 'External MCP client' : configuredAgentLabel(step),
         current: Boolean(run.value && index === run.value.cursor),
         completed: Boolean(run.value && index < run.value.cursor),
         state:

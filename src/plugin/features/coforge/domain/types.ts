@@ -4,12 +4,13 @@ export type AgentStage = 'screen' | 'score' | 'plan' | 'implement';
 export type Provider = 'demo' | 'claude' | 'herdr';
 /** Bounded at note/input boundaries and checked against each new request's captured taxonomy. */
 export type Category = string;
+export type ExecutionProvider = Provider | 'mcp';
 /** Contributor colours are Obsidian palette names (`--color-<name>`), never raw colour literals. */
 export type ContributorColor = 'purple' | 'orange' | 'green' | 'yellow' | 'blue' | 'pink' | 'cyan' | 'red';
 export const CONTRIBUTOR_COLORS: readonly ContributorColor[] = ['purple', 'orange', 'green', 'yellow', 'blue', 'pink', 'cyan', 'red'];
 
 export interface RiceScore { reach: number; impact: number; confidence: number; effort: number; score: number; rationale: string }
-export interface Screening { verdict: 'clear' | 'flagged'; reason: string; signals: string[]; checkedAt: string; provider: Provider }
+export interface Screening { verdict: 'clear' | 'flagged'; reason: string; signals: string[]; checkedAt: string; provider: ExecutionProvider }
 export interface ImplementationPlan { summary: string; steps: string[]; acceptanceCriteria: string[]; risks: string[]; markdown: string; createdAt: string }
 export interface FileChange { path: string; additions: number; deletions: number }
 export interface Increment {
@@ -42,7 +43,7 @@ export interface AgentJob {
   usage?: import('./ai-usage').StageUsage;
   herdrAgent?: 'claude';
   model?: string;
-  id: string; ideaId: string; stage: AgentStage; status: JobStatus; provider: Provider;
+  id: string; ideaId: string; stage: AgentStage; status: JobStatus; provider: ExecutionProvider;
   projectId?: string;
   startedAt: string; finishedAt?: string; logs: string[]; error?: string; costUsd?: number;
 }

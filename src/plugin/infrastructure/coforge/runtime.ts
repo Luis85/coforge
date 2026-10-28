@@ -48,6 +48,11 @@ import { InvocationGate } from '../../features/coforge/application/invocation-ga
 import { CouncilModule } from './council-module';
 import { executionCostTasks } from '../../features/coforge/application/execution-costs';
 import { assertExampleHostSettled } from '../../features/coforge/application/example-cleanup-host';
+import { McpStepRunner } from '../../features/coforge/application/mcp-step-runner';
+import { McpModule } from './mcp-module';
+import { TaskScheduler } from '../../features/coforge/application/task-scheduler';
+import { TaskSchedulerStateStorage } from './task-scheduler-storage';
+import { taskSchedulerHost } from './task-scheduler-host';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -82,22 +87,29 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   };
   const invocations = new InvocationGate();
   const demo = createDemoRunner(timers);
+  const mcpRunner = new McpStepRunner(workspaces, timers);
   const studio: StudioService = new StudioService(storage, {
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
     economyReservations: storage.economyReservations,
     privateFolders: () => councilPrivateFolders(),
     runners: { demo: input => invocations.run(() => demo(input), input.signal),
       claude: input => invocations.run(() => runClaudeStage(input, workspaces), input.signal),
-      herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal) }, timers, probeRuntime: probeClaude,
+      herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal),
+      mcp: input => invocations.run(() => {
+        if (!mcp.status().active) throw new Error('Activate CoForge MCP before reserving an external step.');
+        return mcpRunner.run(input);
+      }, input.signal) }, timers, probeRuntime: probeClaude,
     assertWorkflowReviewable: (id, increment) => workspaces.assertReviewable(id, increment),
     assertExampleCleanup: async ids => {
       if (!ids.length) return;
       herdrAdmission.assertRecovery();
+      mcp.assertExampleCleanup(ids);
       assertExampleHostSettled(ids, herdr.snapshot(), herdrWorkflows.snapshot(), council.actions.snapshot().runs);
       // Archive real charges before any selected request's attempt records leave the studio state.
       await aiCosts.refresh();
       const release = herdrAdmission.acquire();
       try {
+        mcp.assertExampleCleanup(ids);
         assertExampleHostSettled(ids, herdr.snapshot(), herdrWorkflows.snapshot(), council.actions.snapshot().runs);
         return release;
       } catch (error) { release(); throw error; }
@@ -106,6 +118,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
   const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id), id => storage.file(id));
+  const mcp = new McpModule(plugin, studio, mcpRunner);
+  const taskScheduler = new TaskScheduler(new TaskSchedulerStateStorage(plugin), taskSchedulerHost(plugin, studio, council.actions), timers);
   councilPrivateFolders = () => council.privateFolders();
   const publisher = new PublicSitePublisher(plugin, () => studio.integration(), () => councilPrivateFolders(), () => studio.state());
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
@@ -160,6 +174,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    taskScheduler,
+    mcp,
     council: council.actions,
     herdrWorkflows,
     schedule: new ScheduleService(new VaultSchedule(plugin), new StreamPlanPreparation(studio, twitch.actions, obs, music), studio.store),
@@ -214,6 +230,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       if (disposed) return;
       await council.start();
       if (disposed) return;
+      await mcp.start();
+      if (disposed) return;
+      await taskScheduler.start().catch(() => notify('Task scheduler could not start. Open Council → Task scheduler and restore its private journal before scheduling work.', true));
+      if (disposed) return;
       for (const path of invalidNotes) notify(`CoForge skipped an idea note with invalid properties: ${path}`, true);
       storage.watch(
         change => { void studio.applyNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },
@@ -241,9 +261,12 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     },
     async dispose() {
       disposed = true;
+      const closingTasks = taskScheduler.dispose();
+      const closingMcp = mcp.dispose();
       stopCouncilCosts();
       if (councilCostTimer !== undefined) timers.clearTimeout(councilCostTimer);
       invocations.dispose();
+      await Promise.all([closingTasks, closingMcp]);
       await council.dispose();
       stopHerdrRuntime();
       stopStatusbar();

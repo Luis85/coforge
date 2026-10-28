@@ -187,6 +187,16 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - Review the complete result from product, UX, accessibility, privacy, reliability and maintenance perspectives, apply an improvement/polishing pass, and open, qualify and merge the pull request after checks are green.
 - Provide an explicit preview-and-confirm cleanup for the loaded sample workspace and local chat-simulator content with their related history, and let the user close temporary examples. Preserve manually authored and Twitch requests even when tested with simulated AI. Older requests without reliable provenance must be identified as ambiguous and kept by default; provider choice alone never authorizes content deletion.
 
+### Agent task scheduler (owner decisions, 2026-10-28)
+
+- Save tasks with a prompt and optional explicit vault-note context, routed to an agent, a council,
+  or one explicitly selected member of a project team. Team scheduling does not wake every member.
+- Support one-time timers, repeating intervals and daily/weekly schedules with visible saved timezones.
+- Execute only while the designated Obsidian desktop and CoForge are open. Skip missed occurrences;
+  do not replay work after reopening. Existing execution permissions, finite limits, durable evidence,
+  uncertainty recovery and final human code review remain authoritative.
+- If a previous occurrence is still active, skip the next occurrence and display the reason.
+
 ### Streaming workspace increment (owner decisions, 2026-10-27)
 
 - Four read-only stream views (Kanban, Twitch chat, leaderboards, community) each have a ribbon icon that
@@ -282,6 +292,15 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   commits/merges/pushes of the game or the vault. Twitch chatbot replies and OAuth onboarding are now in scope.
 
 ## Decisions
+
+- 2026-10-28: ship one local MCP server for all projects in a CoForge vault, explicitly activated once from the plugin.
+  Activation registers it in the vault's `.mcp.json` and Claude Code's user-level `~/.claude.json`.
+  Discover projects through the shared server and require an explicit project ID on project/task tools;
+  adding or changing a project needs no new MCP configuration. Do not write each game repository's settings.
+  Expose step tools so external agents can perform at least Screen, Score, Plan and Build themselves,
+  including the context, validated result submission and bounded repository tools needed by those steps.
+  Keep project identity, screening, worktree isolation, durable attempt evidence and final streamer review.
+  Preserve unrelated client configuration and make activation errors recoverable.
 
 - 2026-10-23: the prototype's HTTP ingestion bridge for other chat platforms stays out of the plugin.
 - 2026-10-23: untrusted text is sanitized at intake and before every model run; edits made outside CoForge

@@ -2,6 +2,7 @@
 import { usePluginSettings } from "../../composables/coforge/use-plugin-settings";
 import CfIcon from "./CfIcon.vue";
 import PluginSettingsClaude from "./PluginSettingsClaude.vue";
+import PluginSettingsMcp from "./PluginSettingsMcp.vue";
 import PluginSettingsRow from "./PluginSettingsRow.vue";
 import PluginSettingsTwitch from "./PluginSettingsTwitch.vue";
 import PluginSettingsWebsite from "./PluginSettingsWebsite.vue";
@@ -31,7 +32,7 @@ const model = usePluginSettings();
       >
         <div>
           <dt>Here</dt>
-          <dd>Vault folders, Claude Code, Twitch and the viewer website.</dd>
+          <dd>Vault folders, Claude Code, local MCP, Twitch and the viewer website.</dd>
         </div>
         <div>
           <dt>Project settings</dt>
@@ -42,7 +43,8 @@ const model = usePluginSettings();
         <div>
           <dt>Workflow settings</dt>
           <dd>
-            Agent providers, models, prompts and run limits for each project.
+            Agent providers, models, prompts and run limits for each project,
+            under Agent workflow → Workflow settings.
           </dd>
         </div>
       </dl>
@@ -72,6 +74,7 @@ const model = usePluginSettings();
         />
       </PluginSettingsRow>
       <PluginSettingsClaude />
+      <PluginSettingsMcp />
       <PluginSettingsTwitch />
       <PluginSettingsWebsite />
       <div class="cf-plugin-settings-save">

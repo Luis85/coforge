@@ -179,6 +179,7 @@ export class CouncilModule {
       {
         enabled: () => this.executor && !this.disposed,
         preferences: () => this.preferences,
+        folderPolicy: () => this.folderPolicy(),
         assertExecutor: () => this.assertExecutor(),
         admit: (input) => this.admissions.admit(input),
         definitionChanged: (event) =>

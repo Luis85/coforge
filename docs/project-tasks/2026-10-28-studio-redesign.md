@@ -101,3 +101,11 @@ These follow-ups require fresh integrated checks and CI on the final revision. T
 - Four additional contained native specs cover advice/mixed-order execution/costs, Request Objects, private export revocation and Economy. Local host tooling remains unprovisioned; the PR's exact-head native CI and smoke loop qualify them before merge.
 
 These are local working-tree results. Final CI outcomes and immutable artifact links belong to the PR verification record; no screenshot baseline was committed.
+
+## Integration with main #30
+
+Main advanced to `b9f2a5d` while this work was being qualified. The merge preserves vault MCP tools and scheduled tasks while keeping Ask as the Council entry and placing Task scheduler among advanced tools. The canonical catalog now has **87 views**. The old browser run was stopped after 71 completed cases (64 passed, seven collected assertions still used the old progress wording); all numeric assertions remain and the source wording was repaired before fresh qualification.
+
+Independent integration reviews are in [MCP/workflow review](2026-10-29-mcp-integration-review.md) and [scheduler/native UI review](2026-10-29-main-integration-ui.md). Repairs preserve external MCP stepping/readiness and unknown/manual cost provenance, exact request-field captures, nine-family example reset, honest external-run/screening labels, all-row MCP recovery protection, and current-policy rejection of legacy inbox/output loops. Saved preferences and authored schedules remain intact; uncertain I/O remains distinct from known policy rejection.
+
+Fresh scheduler/MCP browser cases pass in both themes with explicit control hit testing, narrow reflow and Axe. The parent inspected all new view families. The merged full-project, gallery, browser CI and contained-host qualification supersede the pre-merge baseline before delivery.

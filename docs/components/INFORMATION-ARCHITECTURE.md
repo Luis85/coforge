@@ -42,7 +42,7 @@ Subpages keep focused tasks together without expanding the global navigation:
 - Economy: Command prices, Earning, Rewards, Loot boxes and Fulfillment.
 - The Council opens on Ask the Council: a question intake and retained task
   history. Advanced Council tools contains Definitions, Submit existing note,
-  Watched inboxes, Run monitor, Council workflows, Team messages and Definition
+  Watched inboxes, Task scheduler, Run monitor, Council workflows, Team messages and Definition
   folders.
 - Request details: Overview, Plan, Increment and Activity.
 
@@ -75,6 +75,10 @@ The four public capture tabs and viewer website are independent, read-only
 destinations. They receive the public projection, never the private studio frame
 or its capabilities. Native Obsidian settings own integration credentials and
 vault-level setup; project and workflow definitions stay in the studio.
+The native Local MCP server panel grants an explicitly activated owner client access
+to vault projects, including private projects; it is separate from public viewer
+projections. Timed and recurring prompts remain an advanced Council task and share
+the existing execution kernel, desktop ownership and paused/recovery boundaries.
 
 ## Implementation and coverage
 
