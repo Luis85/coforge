@@ -1,17 +1,14 @@
 .cf-council,
 .cf-council-section {
   display: grid;
-  gap: var(--size-4-4);
+  gap: var(--cf-space-md);
   min-width: 0;
-}
-.cf-council {
-  padding: var(--size-4-5);
 }
 .cf-council .cf-settings-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--size-4-2);
+  gap: var(--cf-space-sm);
 }
 .cf-council [aria-current="page"] {
   background: var(--background-modifier-hover);
@@ -26,7 +23,7 @@
 .cf-council-choice {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--size-4-2);
+  gap: var(--cf-space-sm);
   align-items: start;
   overflow-wrap: anywhere;
 }
@@ -35,7 +32,7 @@
   flex: 1 1 100%;
   min-width: 0;
   max-width: 100%;
-  gap: var(--size-4-2);
+  gap: var(--cf-space-sm);
 }
 .cf-council > .cf-btn {
   justify-self: start;
@@ -51,12 +48,7 @@
 }
 .cf-council-runs > li,
 .cf-council-section article {
-  padding-block: var(--size-4-4);
+  padding-block: var(--cf-space-md);
   border-bottom: 1px solid var(--background-modifier-border);
   overflow-wrap: anywhere;
-}
-@media (max-width: 720px) {
-  .cf-council {
-    padding: var(--size-4-3);
-  }
 }

@@ -4,13 +4,12 @@ import type { CouncilRuntimeSnapshot } from "../../features/coforge/application/
 import type { CouncilCatalogueSnapshot } from "../../features/coforge/application/council-catalogue";
 import type { CouncilPreflight } from "../../features/coforge/application/council-execution";
 import type { IntakeCandidate } from "../../features/coforge/domain/intake-bindings";
+import type { CouncilPage } from "./studio-pages";
 
 export const useCouncilStore = defineStore("coforge-council", () => {
   const state = ref<CouncilRuntimeSnapshot | null>(null);
   const catalogue = ref<CouncilCatalogueSnapshot>({ valid: [], invalid: [] });
-  const tab = ref<
-    "definitions" | "workflows" | "messages" | "submit" | "inboxes" | "monitor"
-  >("definitions");
+  const tab = ref<CouncilPage>("definitions");
   const source = ref("");
   const destination = ref("CoForge/Tests/");
   const target = ref("");

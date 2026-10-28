@@ -19,7 +19,7 @@ const views = [
     "Community settings",
     ".cf-community-settings-page",
   ],
-  ["14-project-settings", "Studio settings", ".cf-settings-page"],
+  ["14-project-settings", "Project settings", ".cf-settings-page"],
   ["14b-workflow-settings", "Workflow settings", ".cf-workflow-settings-page"],
 ] as const;
 for (const [step, label, selector] of views) {
@@ -162,7 +162,10 @@ for (const [index, label, id] of [
       "data-prototype-ready",
       "true",
     );
-    await page.locator(".cf-stream-displays > summary").click();
+    await page
+      .getByRole("navigation", { name: "Stream studio pages" })
+      .getByRole("button", { name: "Public displays", exact: true })
+      .click();
     await page
       .getByRole("button", { name: `Preview ${label}`, exact: true })
       .click();
@@ -224,7 +227,7 @@ for (const [step, label] of [
       ).toContainText("Unavailable");
       await page
         .getByRole("button", {
-          name: "Edit cost for CF-002 dispatch example-herdr-1",
+          name: "Add cost for CF-002 dispatch example-herdr-1",
           exact: true,
         })
         .click();
@@ -304,7 +307,7 @@ test("task navigation keeps the board first and settings reachable in a short pa
   await page.locator(".cf-studio").evaluate((el) => {
     el.style.height = "560px";
   });
-  for (const label of ["Studio settings", "How it works"]) {
+  for (const label of ["Project settings", "How it works"]) {
     const button = page.getByRole("button", { name: label, exact: true });
     await expect(button).toBeVisible();
     expect(

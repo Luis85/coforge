@@ -19,6 +19,15 @@
   --cf-font-mono: var(--font-monospace);
   --cf-sidebar-width: 206px;
   --cf-chat-width: 290px;
+  --cf-space-xs: var(--coforge-ds-spacing-xs, var(--size-4-1));
+  --cf-space-sm: var(--coforge-ds-spacing-sm, var(--size-4-2));
+  --cf-space-md: var(--coforge-ds-spacing-md, var(--size-4-4));
+  --cf-space-lg: var(--coforge-ds-spacing-lg, var(--size-4-6));
+  --cf-space-xl: var(--coforge-ds-spacing-xl, var(--size-4-8));
+  --cf-page-gutter: var(--cf-space-xl);
+  --cf-page-top: 28px;
+  --cf-page-bottom: 48px;
+  --cf-page-max-width: 1440px;
 }
 .cf-studio {
   position: relative;
@@ -55,6 +64,8 @@
   white-space: nowrap; transition: background 0.15s, transform 0.15s;
 }
 .cf-btn:active:not(:disabled) { transform: translateY(1px); }
+.cf-btn:not(.cf-btn-primary, .cf-btn-secondary, .cf-btn-ghost, .cf-btn-danger) { background: var(--interactive-normal); border-color: var(--cf-border); }
+.cf-btn:not(.cf-btn-primary, .cf-btn-secondary, .cf-btn-ghost, .cf-btn-danger):hover:not(:disabled) { background: var(--interactive-hover); }
 .cf-studio .cf-btn-primary, .cf-plugin-settings .cf-btn-primary { background: var(--cf-accent); color: var(--cf-accent-text); }
 .cf-btn-primary:hover:not(:disabled) { background: var(--interactive-accent-hover); }
 .cf-btn-secondary { background: var(--interactive-normal); border-color: var(--cf-border); color: var(--cf-text); }
@@ -79,7 +90,12 @@
 
 .cf-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .cf-field > span { font-size: 12px; color: var(--cf-text); font-weight: 600; }
-.cf-field :is(input, textarea, select) { width: 100%; padding: 9px 11px; line-height: 1.6; height: auto; }
+.cf-field :is(input, textarea, select),
+.cf-ai-filters :is(input, textarea, select),
+.cf-schedule-form :is(input, textarea, select) {
+  width: 100%; min-width: 0; padding: 9px 11px; line-height: 1.6; height: auto;
+  color: var(--cf-text); background: var(--cf-surface); border: 1px solid var(--cf-border-strong); border-radius: var(--radius-s);
+}
 .cf-field small { color: var(--cf-muted); font-size: 11px; line-height: 1.6; }
 .cf-empty-state { padding: 32px 20px; text-align: center; color: var(--cf-muted); display: flex; align-items: center; flex-direction: column; gap: 12px; }
 .cf-inline-error { color: var(--cf-danger); font-size: 11px; line-height: 1.6; }

@@ -1,10 +1,3 @@
-.cf-workflow-settings-page {
-  width: 100%;
-  max-width: 1240px;
-  min-width: 0;
-  margin-inline: auto;
-  padding: 30px 32px 48px;
-}
 .cf-workflow-settings-page > .cf-page-heading p {
   max-width: 74ch;
 }
@@ -324,9 +317,6 @@
   margin: 0 0 8px;
 }
 @container plugin-shell-leaf (max-width: 850px) {
-  .cf-workflow-settings-page {
-    padding: 24px 20px 40px;
-  }
   .cf-workflow-editor-layout {
     grid-template-columns: minmax(0, 1fr);
   }

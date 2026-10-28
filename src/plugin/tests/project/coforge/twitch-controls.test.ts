@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { StudioService } from '../../../features/coforge/application/studio';
 import { createDemoRunner } from '../../../features/coforge/application/demo-agent';
 import { disconnectedTwitch, type TwitchActions } from '../../../features/coforge/domain/twitch';
-import TwitchChannelControls from '../../../presentation/components/coforge/TwitchChannelControls.vue';
+import TwitchModeration from '../../../presentation/components/coforge/TwitchModeration.vue';
 import ChatComposer from '../../../presentation/components/coforge/ChatComposer.vue';
 import { coforgeKey, type CoforgeContext } from '../../../presentation/context/coforge-context';
 import { useStudioStore } from '../../../presentation/stores/coforge-studio';
@@ -28,7 +28,7 @@ async function render(composer = false) {
   store.state.runtime.twitch = { ...disconnectedTwitch(), phase: 'connected', message: 'Twitch chat connected', canChat: true, canManage: true, canModerate: true,
     bot: { id: '456', login: 'actual_bot', scopes: [] }, streamer: { id: '123', login: 'actual_streamer', scopes: [] },
     channel: { id: '123', login: 'actual_streamer', name: 'Actual streamer', title: 'Current stream', categoryId: '42', categoryName: 'Game' } };
-  const wrapper = mount(composer ? ChatComposer : TwitchChannelControls, { global: { plugins: [pinia], provide: { [coforgeKey as symbol]: context } } });
+  const wrapper = mount(composer ? ChatComposer : TwitchModeration, { global: { plugins: [pinia], provide: { [coforgeKey as symbol]: context } } });
   mounted.push({ wrapper, pinia, studio }); await flushPromises();
   return { wrapper, store, moderate, send };
 }

@@ -8,7 +8,10 @@ import { createDemoRunner } from "../../../features/coforge/application/demo-age
 import type { ObsControlPort } from "../../../features/coforge/application/obs-port";
 import type { ObsSnapshot } from "../../../features/coforge/domain/obs";
 import StudioApp from "../../../presentation/components/coforge/StudioApp.vue";
-import { coforgeKey, type CoforgeContext } from "../../../presentation/context/coforge-context";
+import {
+  coforgeKey,
+  type CoforgeContext,
+} from "../../../presentation/context/coforge-context";
 import { MemoryStorage, nodeTimers } from "./memory-storage";
 
 it("opens the preparation dashboard and controls the fake OBS stream through explicit buttons", async () => {
@@ -17,7 +20,11 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
   const studio = new StudioService(new MemoryStorage(), {
     timers,
     runners: { demo: runner, claude: runner },
-    probeRuntime: async () => ({ cliAvailable: false, projectPath: null, allowImplementation: false }),
+    probeRuntime: async () => ({
+      cliAvailable: false,
+      projectPath: null,
+      allowImplementation: false,
+    }),
   });
   await studio.start();
   const calls: string[] = [];
@@ -36,9 +43,14 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
       { id: "brb", name: "BRB" },
     ],
   };
-  const snapshot = async () => structuredClone({ ...state, revision: ++state.revision });
+  const snapshot = async () =>
+    structuredClone({ ...state, revision: ++state.revision });
   const port: ObsControlPort = {
-    detect: async () => ({ status: "found", running: false, passwordSaved: false }),
+    detect: async () => ({
+      status: "found",
+      running: false,
+      passwordSaved: false,
+    }),
     open: async () => {
       calls.push("open");
       return snapshot();
@@ -72,31 +84,61 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
     startupError: () => null,
     onNotice: () => () => undefined,
     host: {
-      streamHistory: { read: async () => null, list: async () => [{ id: 'fixture-stream', channelId: '123', startedAt: '2026-10-27T10:00:00Z', endedAt: null, samples: 2, lastSampleAt: '2026-10-27T10:01:00Z', peakObservedViewers: 15, meanObservedViewers: 12 }],
-        export: async id => { historyExports.push(id); return '/private/synthetic-export.json'; } },
+      streamHistory: {
+        read: async () => null,
+        list: async () => [
+          {
+            id: "fixture-stream",
+            channelId: "123",
+            startedAt: "2026-10-27T10:00:00Z",
+            endedAt: null,
+            samples: 2,
+            lastSampleAt: "2026-10-27T10:01:00Z",
+            peakObservedViewers: 15,
+            meanObservedViewers: 12,
+          },
+        ],
+        export: async (id) => {
+          historyExports.push(id);
+          return "/private/synthetic-export.json";
+        },
+      },
       obs,
       setSecret: () => false,
       hasSecret: () => false,
       openIdeaNote: async () => true,
       saveExport: async () => "export.json",
       publishBoard: async () => ({ folder: "", changed: false }),
-      installPagesWorkflow: async () => ({ folder: "", workflow: "", created: false }),
+      installPagesWorkflow: async () => ({
+        folder: "",
+        workflow: "",
+        created: false,
+      }),
     },
   };
   const pinia = createPinia();
-  const wrapper = mount(StudioApp, { global: { plugins: [pinia], provide: { [coforgeKey as symbol]: context } } });
+  const wrapper = mount(StudioApp, {
+    global: { plugins: [pinia], provide: { [coforgeKey as symbol]: context } },
+  });
   const button = (text: string) => {
-    const found = wrapper.findAll("button").find((button) => button.text() === text);
+    const found = wrapper
+      .findAll("button")
+      .find((button) => button.text() === text);
     if (!found) throw new Error(`Missing ${text}`);
     return found;
   };
   try {
     await flushPromises();
     expect(wrapper.get("h1").text()).toBe("Stream studio");
-    await button('Export stream JSON').trigger('click');
+    await button("History").trigger("click");
+    await button("Export stream JSON").trigger("click");
     await flushPromises();
-    expect(historyExports).toEqual(['fixture-stream']);
-    expect(wrapper.find('[aria-label="Guided stream setup"]').exists()).toBe(true);
+    expect(historyExports).toEqual(["fixture-stream"]);
+    await button("Guided setup").trigger("click");
+    await flushPromises();
+    expect(wrapper.find('[aria-label="Guided stream setup"]').exists()).toBe(
+      true,
+    );
     await button("Skip setup for now").trigger("click");
     await flushPromises();
     expect(studio.state().setupGuide?.dismissed).toBe(true);
@@ -106,10 +148,14 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
     await button("Open OBS Studio").trigger("click");
     await flushPromises();
     expect(calls).toEqual(["open"]);
-    const selects = wrapper.get('[aria-label="OBS connection and scenes"]').findAll("select");
+    const selects = wrapper
+      .get('[aria-label="OBS connection and scenes"]')
+      .findAll("select");
     await selects[0]!.setValue("live");
     await selects[1]!.setValue("brb");
-    await wrapper.get('[aria-label="OBS connection and scenes"] form').trigger("submit");
+    await wrapper
+      .get('[aria-label="OBS connection and scenes"] form')
+      .trigger("submit");
     await flushPromises();
     await studio.updateIntegration({
       twitchEnabled: true,
@@ -123,7 +169,11 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
         canManage: true,
         canModerate: true,
         canChat: true,
-        streamer: { id: "channel", login: "streamer", scopes: ['moderator:read:followers', 'channel:read:subscriptions'] },
+        streamer: {
+          id: "channel",
+          login: "streamer",
+          scopes: ["moderator:read:followers", "channel:read:subscriptions"],
+        },
         bot: { id: "channel", login: "streamer", scopes: [] },
         channel: {
           id: "channel",
@@ -135,11 +185,15 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
         },
       },
     });
-    const reviewStep = wrapper.findAll("button").find((item) => item.text().startsWith("5."));
+    const reviewStep = wrapper
+      .findAll("button")
+      .find((item) => item.text().startsWith("5."));
     await reviewStep!.trigger("click");
     await flushPromises();
     expect(button("Finish setup").attributes("disabled")).toBeDefined();
-    const reviewLabel = wrapper.findAll("label").find((item) => item.text().includes("I reviewed the destination"));
+    const reviewLabel = wrapper
+      .findAll("label")
+      .find((item) => item.text().includes("I reviewed the destination"));
     await reviewLabel!.get("input").setValue(true);
     await flushPromises();
     expect(button("Finish setup").attributes("disabled")).toBeUndefined();
@@ -147,6 +201,7 @@ it("opens the preparation dashboard and controls the fake OBS stream through exp
     await flushPromises();
     expect(studio.state().setupGuide?.completedAt).toBeTruthy();
     expect(calls).toEqual(["open"]);
+    await button("Broadcast").trigger("click");
     await button("Prepare stream").trigger("click");
     await flushPromises();
     expect(button("Go live").attributes("disabled")).toBeUndefined();

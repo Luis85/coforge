@@ -20,16 +20,16 @@ const model = useCouncilMessages(props);
       {{ model.store.error }}
     </p>
     <p v-if="model.store.notice" role="status">{{ model.store.notice }}</p>
-    <form @submit.prevent="model.post()">
-      <label for="cf-team-information">Information for this team</label>
-      <textarea
-        id="cf-team-information"
-        v-model="model.store.draft"
-        aria-label="Information for this team"
-        maxlength="16000"
-        rows="4"
-        :disabled="!teamId || model.store.busy"
-      />
+    <form class="cf-council-section" @submit.prevent="model.post()">
+      <label class="cf-field">
+        <span>Information for this team</span>
+        <textarea
+          v-model="model.store.draft"
+          maxlength="16000"
+          rows="4"
+          :disabled="!teamId || model.store.busy"
+        />
+      </label>
       <div class="cf-settings-actions">
         <button
           type="submit"

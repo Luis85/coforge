@@ -209,7 +209,7 @@ function createSettings() {
 export type SettingsModel = ReturnType<typeof createSettings>;
 const settingsKey: InjectionKey<SettingsModel> = Symbol("coforge-settings");
 
-/** In-studio "Studio settings": a draft of the project settings plus runtime evidence and project data actions. */
+/** In-studio Project settings: a draft plus runtime evidence and project data actions. */
 export function useSettings(): SettingsModel {
   const model = createSettings();
   provide(settingsKey, model);

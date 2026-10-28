@@ -3,6 +3,7 @@ import { AxeBuilder } from '@axe-core/playwright';
 import { mkdir } from 'node:fs/promises';
 
 for (const theme of ['light', 'dark']) test(`guided OBS and Twitch setup is honest and accessible in ${theme}`, async ({ page }) => {
+  test.setTimeout(60000);
   await page.goto('/#surface=node-1');
   await expect(page.locator('html')).toHaveAttribute('data-prototype-ready', 'true');
   await page.evaluate(theme => { document.body.classList.toggle('theme-dark', theme === 'dark'); document.body.classList.toggle('theme-light', theme === 'light'); }, theme);
@@ -23,7 +24,11 @@ for (const theme of ['light', 'dark']) test(`guided OBS and Twitch setup is hone
   }
   await guide.getByLabel('I reviewed the destination, audio and video in OBS', { exact: true }).check();
   await expect(guide.getByRole('button', { name: 'Finish setup', exact: true })).toBeDisabled();
+  const navigation = page.getByRole('navigation', { name: 'Stream studio pages' });
+  await navigation.getByRole('button', { name: 'Broadcast', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Go live', exact: true })).toBeDisabled();
+  await navigation.getByRole('button', { name: 'Setup', exact: true }).click();
+  await expect(guide.getByLabel('I reviewed the destination, audio and video in OBS', { exact: true })).toBeChecked();
   await guide.getByRole('list', { name: 'Setup steps' }).getByRole('button').nth(3).click();
   await expect(guide.getByRole('button', { name: 'Connect streamer', exact: true })).toBeDisabled();
   for (const width of [1280, 360]) {

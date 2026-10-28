@@ -1,22 +1,3 @@
-.ps--coforge .cf-ai-costs {
-  max-width: 1440px;
-  width: 100%;
-}
-.ps--coforge .cf-page-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-.ps--coforge .cf-page-heading h1 {
-  margin: 0 0 8px;
-}
-.ps--coforge .cf-page-heading p {
-  margin: 0;
-  color: var(--cf-muted);
-}
 .ps--coforge .cf-ai-filters {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
@@ -148,7 +129,7 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-@media (max-width: 760px) {
+@container plugin-shell-leaf (max-width: 760px) {
   .ps--coforge .cf-ai-filters {
     grid-template-columns: 1fr;
   }

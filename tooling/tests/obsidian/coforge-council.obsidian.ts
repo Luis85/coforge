@@ -115,6 +115,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
         "# Original human source\n\nKeep these bytes.\n",
       );
     });
+    await view.getByRole("navigation", { name: "Council workspace", exact: true }).getByRole("button", { name: "Run monitor", exact: true }).click();
     await view
       .getByRole("button", {
         name: "Use this desktop for execution",
@@ -181,6 +182,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
     await view
       .getByRole("button", { name: "The Council", exact: true })
       .click();
+    await view.getByRole("navigation", { name: "Council workspace", exact: true }).getByRole("button", { name: "Run monitor", exact: true }).click();
     await browserExpect(
       view.getByRole("status").filter({ hasText: "Execution paused" }),
     ).toBeVisible();

@@ -1,0 +1,38 @@
+---
+id: "broadcast"
+title: "Stream studio"
+goal: "Operate the current broadcast with explicit stream controls."
+audience: "streamer"
+kind: "page"
+route: "studio.view = broadcast"
+parent: "studio"
+component: "src/plugin/presentation/components/coforge/BroadcastView.vue"
+entry: ["Choose Stream studio in the studio navigation."]
+actions: ["Prepare","Go live","Pause or resume","Stop","Choose stream subpage"]
+states: ["Disconnected","Off air","Live","On break","Unknown external outcome"]
+journeys: ["broadcast"]
+privacy: "Private vault workspace; excluded from public projections."
+coverage: {"group":"studio","key":"broadcast"}
+---
+
+# Stream studio
+
+## Purpose
+
+Operate the current broadcast with explicit stream controls.
+
+Live monitoring leads. Setup, scenes, music, capture displays and history have separate local subpages. Connection and navigation never start broadcasting.
+
+## Entry and next action
+
+Choose Stream studio in the studio navigation. Available actions: Prepare; Go live; Pause or resume; Stop; Choose stream subpage. Return through the owning [CoForge studio](studio.md) surface.
+
+## States and recovery
+
+Disconnected; Off air; Live; On break; Unknown external outcome. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
+
+## Composition and boundaries
+
+Source: [src/plugin/presentation/components/coforge/BroadcastView.vue](../../../src/plugin/presentation/components/coforge/BroadcastView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
+
+Journey tags: `broadcast`.

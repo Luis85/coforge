@@ -1,6 +1,3 @@
-.ps--coforge .cf-stream-schedule-page {
-  max-width: 1440px;
-}
 .ps--coforge .cf-schedule-layout {
   display: grid;
   grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);

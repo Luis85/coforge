@@ -18,7 +18,7 @@ export function workflowStageProblem(
   if (agent.provider === "demo") return "";
   if (agent.provider === "herdr") {
     if (!project.projectPath)
-      return "Set this project’s workspace in Studio settings before running a Herdr step.";
+      return "Set this project’s workspace in Project settings before running a Herdr step.";
     if (!runtime?.herdrWorkflow?.ready)
       return (
         runtime?.herdrWorkflow?.message ||
@@ -30,9 +30,9 @@ export function workflowStageProblem(
     if (!runtime?.cliAvailable)
       return "Claude Code is not detected. Check the CLI in project settings before enabling this step.";
     if ((stage === "plan" || stage === "implement") && !project.projectPath)
-      return "Set this project’s workspace in Studio settings before running this step.";
+      return "Set this project’s workspace in Project settings before running this step.";
   }
   return stage === "implement" && !project.allowImplementation
-    ? "Implementation permission is required for this project. Enable it in Studio settings → Agent workspace."
+    ? "Implementation permission is required for this project. Enable it in Project settings → Agent workspace."
     : "";
 }

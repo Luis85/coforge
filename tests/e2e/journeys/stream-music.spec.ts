@@ -13,7 +13,10 @@ for (const theme of ["light", "dark"])
       document.body.classList.toggle("theme-light", theme === "light");
     }, theme);
     const music = page.locator(".cf-music");
-    await music.locator(":scope > summary").click();
+    await page
+      .getByRole("navigation", { name: "Stream studio pages" })
+      .getByRole("button", { name: "Music", exact: true })
+      .click();
     await music
       .getByRole("button", { name: "Explore music example", exact: true })
       .click();
@@ -71,7 +74,10 @@ for (const theme of ["light", "dark"])
     await page
       .getByRole("button", { name: "Stream studio", exact: true })
       .click();
-    await music.locator(":scope > summary").click();
+    await page
+      .getByRole("navigation", { name: "Stream studio pages" })
+      .getByRole("button", { name: "Music", exact: true })
+      .click();
     await expect(playback).toContainText("playing");
     await mkdir("reports/stream-music", { recursive: true });
     for (const width of [1280, 360]) {
@@ -83,14 +89,12 @@ for (const theme of ["light", "dark"])
             .analyze()
         ).violations,
       ).toEqual([]);
-      await test
-        .info()
-        .attach(`music-${theme}-${width}`, {
-          body: await music.screenshot({
-            path: `reports/stream-music/${theme}-${width}.png`,
-          }),
-          contentType: "image/png",
-        });
+      await test.info().attach(`music-${theme}-${width}`, {
+        body: await music.screenshot({
+          path: `reports/stream-music/${theme}-${width}.png`,
+        }),
+        contentType: "image/png",
+      });
     }
     await music
       .getByRole("button", { name: "Stop music", exact: true })

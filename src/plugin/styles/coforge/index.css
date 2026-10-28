@@ -21,7 +21,6 @@
 @import "./markdown.css";
 @import "./stream-surfaces.css";
 @import "./stream-display-controls.css";
-@import "./page-shell.css";
 @import "./ai-costs.css";
 @import "./schedule.css";
 @import "./step-agents.css";
@@ -32,3 +31,4 @@
 @import "./configured-workflow.css";
 @import "./council-definitions.css";
 @import "./council.css";
+@import "./page-shell.css";

@@ -1,37 +1,72 @@
-/* Shared operating-view gutters; specialized boards/chat keep their own internal layouts. */
-.ps--coforge
-  :is(
-    .cf-broadcast-page,
-    .cf-community-page,
-    .cf-projects-page,
-    .cf-settings-page,
-    .cf-statistics-page,
-    .cf-workflow-page,
-    .cf-population-page,
-    .cf-operations-page,
-    .cf-finance,
-    .cf-ai-costs-page,
-    .cf-stream-schedule-page
-  ) {
-  padding: 28px 32px 48px;
+/* One operating-page frame; board and capture surfaces retain their task-specific canvases. */
+.ps--coforge .cf-content > :is(
+  .cf-broadcast-page, .cf-community-page, .cf-projects-page, .cf-settings-page,
+  .cf-statistics-page, .cf-workflow-page, .cf-population-page, .cf-operations-page,
+  .cf-finance, .cf-ai-costs-page, .cf-stream-schedule-page, .cf-council,
+  .cf-workflow-settings-page, .cf-community-settings-page, .cf-stream-page
+) {
+  padding: var(--cf-page-top) var(--cf-page-gutter) var(--cf-page-bottom);
   width: 100%;
+  max-width: var(--cf-page-max-width);
   min-width: 0;
+  margin-inline: auto;
 }
+.ps--coforge .cf-page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--cf-space-md) var(--cf-space-lg);
+  margin-bottom: var(--cf-space-lg);
+}
+.ps--coforge .cf-page-heading > div { min-width: 0; }
+.ps--coforge .cf-page-heading :is(h1, h2, p) { overflow-wrap: anywhere; }
+.ps--coforge .cf-page-heading h1 { margin: 0 0 var(--cf-space-sm); }
+.ps--coforge .cf-page-heading p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--cf-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.ps--coforge .cf-studio .cf-main nav.cf-subpage-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-xs) var(--cf-space-lg);
+  margin-bottom: var(--cf-space-lg);
+  border-bottom: 1px solid var(--cf-border);
+}
+.ps--coforge .cf-studio .cf-subpage-nav > button {
+  min-height: 36px;
+  height: auto;
+  max-width: 100%;
+  padding: var(--cf-space-sm) 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--cf-muted);
+  white-space: normal;
+}
+.ps--coforge .cf-studio .cf-subpage-nav > button:hover { color: var(--cf-text); }
+.ps--coforge .cf-studio .cf-subpage-nav > button[aria-current="page"] {
+  border-bottom-color: var(--cf-accent);
+  background: transparent;
+  color: var(--cf-text);
+  outline: none;
+}
+.ps--coforge .cf-studio .cf-subpage-nav > button:focus-visible {
+  outline: 2px solid var(--cf-accent);
+  outline-offset: 2px;
+}
+.cf-subpage-panel { display: grid; gap: var(--cf-space-lg); min-width: 0; }
 @container plugin-shell-leaf (max-width: 600px) {
-  .ps--coforge
-    :is(
-      .cf-broadcast-page,
-      .cf-community-page,
-      .cf-projects-page,
-      .cf-settings-page,
-      .cf-statistics-page,
-      .cf-workflow-page,
-      .cf-population-page,
-      .cf-operations-page,
-      .cf-finance,
-      .cf-ai-costs-page,
-      .cf-stream-schedule-page
-    ) {
-    padding: 22px 18px 36px;
+  .ps--coforge .cf-studio {
+    --cf-page-gutter: 18px;
+    --cf-page-top: 22px;
+    --cf-page-bottom: 36px;
+  }
+  .ps--coforge .cf-studio .cf-main nav.cf-subpage-nav {
+    gap: var(--cf-space-xs) var(--cf-space-md);
   }
 }

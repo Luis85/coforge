@@ -8,6 +8,9 @@ for (const theme of ["light", "dark"]) {
     }) => {
       const errors = await openCouncilReview(page, scenario, theme);
       await page
+        .getByRole("button", { name: "Run monitor", exact: true })
+        .click();
+      await page
         .getByRole("button", {
           name: "Use this desktop for execution",
           exact: true,
@@ -163,6 +166,7 @@ test("a changed saved definition cannot replace the displayed Council preflight 
   page,
 }) => {
   await openCouncilReview(page, "default", "light");
+  await page.getByRole("button", { name: "Run monitor", exact: true }).click();
   await page
     .getByRole("button", {
       name: "Use this desktop for execution",

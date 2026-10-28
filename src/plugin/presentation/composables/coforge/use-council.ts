@@ -11,6 +11,7 @@ import {
 import { useCoforge } from "../../context/coforge-context";
 import { useCouncilStore } from "../../stores/coforge-council";
 import { useStudioStore } from "../../stores/coforge-studio";
+import { COUNCIL_PAGES, type CouncilPage } from "../../stores/studio-pages";
 import type { CouncilTarget } from "../../../features/coforge/application/council-execution";
 import { councilInboxActions } from "./council-inbox-actions";
 import { councilArtifactLabel } from "../../../features/coforge/application/council-execution";
@@ -172,6 +173,14 @@ export function useCouncil() {
   const model = reactive({
     store,
     studio,
+    pages: COUNCIL_PAGES,
+    selectPage: (page: CouncilPage) => {
+      store.tab = page;
+      if (
+        ["submit", "inboxes", "workflows", "messages", "folders"].includes(page)
+      )
+        void run(refresh);
+    },
     service,
     teams,
     targets,

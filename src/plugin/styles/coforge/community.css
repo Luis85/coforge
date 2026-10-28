@@ -1,6 +1,4 @@
 /* CoForge community styles: attribution and earned recognition. */
-.cf-community-page { padding: 30px 32px 48px; max-width: 1480px; margin: 0 auto; width: 100%; min-width: 0; }
-.cf-community-heading h1 { font-size: 27px; letter-spacing: -0.035em; line-height: 1.25; }
 .cf-community-heading p { font-size: 13px; line-height: 1.65; max-width: 66ch; margin-top: 8px; }
 .cf-community-inline { display: flex; align-items: center; gap: 8px; }
 .cf-studio .cf-community-help { font-size: 12px; color: var(--cf-muted); line-height: 1.65; margin-top: 8px; }
@@ -148,7 +146,6 @@
 .cf-community-profile-idea-footer > span { display: flex; align-items: center; gap: 4px; }
 
 @container plugin-shell-leaf (max-width: 1250px) {
-  .cf-community-page { padding: 26px 25px 40px; }
   .cf-community-heading { align-items: flex-start; }
   .cf-community-layout { grid-template-columns: minmax(0, 1fr) 245px; gap: 24px; }
   .cf-community-aside { padding-left: 20px; }
@@ -166,9 +163,7 @@
   .cf-community-member-badges { display: flex; }
 }
 @container plugin-shell-leaf (max-width: 600px) {
-  .cf-community-page { padding: 22px 18px 36px; }
   .cf-community-heading { margin-bottom: 23px; gap: 15px; }
-  .cf-community-heading h1 { font-size: 23px; }
   .cf-community-heading p { font-size: 12px; }
   .cf-community-summary p { flex-basis: calc(100% - 140px); }
   .cf-community-aside { grid-template-columns: 1fr; }

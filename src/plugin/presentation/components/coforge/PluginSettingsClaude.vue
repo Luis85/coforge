@@ -9,7 +9,7 @@ const model = usePluginSettingsForm();
   <h3 class="cf-setting-heading"><CfIcon name="bot" size="sm" /> Claude Code</h3>
   <p class="cf-plugin-settings-section-intro">
     Install the native Claude Code CLI and sign in from your own terminal with <code>claude auth login</code>. Then choose
-    <strong>Claude Code CLI</strong> as the agent provider in the studio’s Studio settings. CLI and provider terms and usage limits apply.
+    <strong>Claude Code</strong> for the project's AI steps in <strong>Workflow settings</strong>. CLI and provider terms and usage limits apply.
   </p>
   <PluginSettingsRow name="Claude Code executable" control-id="cf-ps-claude-bin">
     <template #description>

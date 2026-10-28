@@ -69,7 +69,7 @@ test("shows each AI attempt, partial totals and a labelled manual fallback", asy
   await expect(page.locator(".cf-ai-summary")).toContainText("0.4625");
   await page
     .getByRole("button", {
-      name: "Edit cost for CF-002 dispatch example-herdr-1",
+      name: "Add cost for CF-002 dispatch example-herdr-1",
       exact: true,
     })
     .click();

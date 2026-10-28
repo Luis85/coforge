@@ -1,0 +1,2477 @@
+{
+  "schema": 1,
+  "source": "docs/components/views",
+  "views": [
+    {
+      "id": "activity",
+      "title": "Studio activity",
+      "goal": "Open the request associated with a recent event.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "studio.activityOpen = true",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/ActivityPopover.vue",
+      "entry": [
+        "Choose Recent activity in the studio header."
+      ],
+      "actions": [
+        "Inspect event",
+        "Open associated request",
+        "Close"
+      ],
+      "states": [
+        "No events",
+        "Event with request",
+        "Event without request"
+      ],
+      "journeys": [
+        "recovery",
+        "request-to-recognition"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "activity.md"
+    },
+    {
+      "id": "ai-costs",
+      "title": "AI costs",
+      "goal": "Understand the known cost and usage of agent work.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = ai-costs",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/AICostsView.vue",
+      "entry": [
+        "Choose AI costs in the studio navigation."
+      ],
+      "actions": [
+        "Refresh",
+        "Filter project",
+        "Inspect feature and attempt",
+        "Record manual cost"
+      ],
+      "states": [
+        "No attempts",
+        "Reported amount",
+        "Manual amount",
+        "Unavailable amount",
+        "Partial token coverage"
+      ],
+      "journeys": [
+        "cost-review"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "ai-costs"
+      },
+      "file": "ai-costs.md"
+    },
+    {
+      "id": "board",
+      "title": "Request board",
+      "goal": "Choose the next request that needs attention.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = board",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/IdeaBoard.vue",
+      "entry": [
+        "Choose Idea board in the studio navigation."
+      ],
+      "actions": [
+        "Filter and search",
+        "Switch Kanban or table",
+        "Open request",
+        "Create request",
+        "Use valid context actions"
+      ],
+      "states": [
+        "No project",
+        "No requests",
+        "No matches",
+        "Queued work",
+        "Review pending"
+      ],
+      "journeys": [
+        "request-to-recognition",
+        "multi-project"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "board"
+      },
+      "file": "board.md"
+    },
+    {
+      "id": "broadcast",
+      "title": "Stream studio",
+      "goal": "Operate the current broadcast with explicit stream controls.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = broadcast",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/BroadcastView.vue",
+      "entry": [
+        "Choose Stream studio in the studio navigation."
+      ],
+      "actions": [
+        "Prepare",
+        "Go live",
+        "Pause or resume",
+        "Stop",
+        "Choose stream subpage"
+      ],
+      "states": [
+        "Disconnected",
+        "Off air",
+        "Live",
+        "On break",
+        "Unknown external outcome"
+      ],
+      "journeys": [
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "broadcast"
+      },
+      "file": "broadcast.md"
+    },
+    {
+      "id": "broadcast-displays",
+      "title": "Stream displays",
+      "goal": "Open the read-only surface intended for OBS capture.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = displays",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/StreamDisplaysPanel.vue",
+      "entry": [
+        "Open Stream studio, then choose Public displays."
+      ],
+      "actions": [
+        "Show selected project on stream Kanban",
+        "Open Kanban, chat, leaderboards or community tab",
+        "Preview public surface",
+        "Close public display preview"
+      ],
+      "states": [
+        "Native unavailable",
+        "Unavailable project",
+        "Embedded preview",
+        "Display opened",
+        "Open or project-change failure"
+      ],
+      "journeys": [
+        "broadcast",
+        "public-sharing"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "displays"
+      },
+      "file": "broadcast-displays.md"
+    },
+    {
+      "id": "broadcast-history",
+      "title": "Stream history",
+      "goal": "Inspect the archived record for a completed or active stream.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = history",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/StreamHistoryPanel.vue",
+      "entry": [
+        "Open Stream studio, then choose History."
+      ],
+      "actions": [
+        "Choose saved stream",
+        "Refresh stream history",
+        "Export stream JSON",
+        "Open Stream statistics"
+      ],
+      "states": [
+        "No records",
+        "Selected",
+        "Unavailable measurements",
+        "Missing intervals"
+      ],
+      "journeys": [
+        "broadcast",
+        "stream-analysis"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "history"
+      },
+      "file": "broadcast-history.md"
+    },
+    {
+      "id": "broadcast-live",
+      "title": "Live broadcast",
+      "goal": "Keep the current broadcast running with visible health and explicit controls.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = live",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/BroadcastControls.vue",
+      "entry": [
+        "Open Stream studio, then choose Broadcast."
+      ],
+      "actions": [
+        "Prepare",
+        "Go live",
+        "BRB or resume",
+        "Stop",
+        "Refresh observed state"
+      ],
+      "states": [
+        "Disconnected",
+        "Off air",
+        "Live",
+        "BRB",
+        "Unknown outcome",
+        "Stale health"
+      ],
+      "journeys": [
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "live"
+      },
+      "file": "broadcast-live.md"
+    },
+    {
+      "id": "broadcast-music",
+      "title": "Stream music",
+      "goal": "Choose and control the local audio for this stream.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = music",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/StreamMusic.vue",
+      "entry": [
+        "Open Stream studio, then choose Music."
+      ],
+      "actions": [
+        "Refresh library",
+        "Select playlist",
+        "Play, pause or stop",
+        "Seek or set volume",
+        "Edit playlist",
+        "Open metadata note"
+      ],
+      "states": [
+        "Native unavailable",
+        "Example",
+        "No tracks",
+        "Missing file",
+        "Playing",
+        "Paused",
+        "Stale note conflict"
+      ],
+      "journeys": [
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "music"
+      },
+      "file": "broadcast-music.md"
+    },
+    {
+      "id": "broadcast-scenes",
+      "title": "OBS scenes and sources",
+      "goal": "Edit the exact OBS scene and its existing sources.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = scenes",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/ObsSceneManager.vue",
+      "entry": [
+        "Open Stream studio, then choose Scenes."
+      ],
+      "actions": [
+        "Select scene",
+        "Create, rename, copy or delete",
+        "Switch program",
+        "Edit source visibility, order or membership",
+        "Refresh"
+      ],
+      "states": [
+        "Disconnected",
+        "Busy",
+        "Selected",
+        "Destructive confirmation",
+        "Unknown outcome",
+        "Example"
+      ],
+      "journeys": [
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "scenes"
+      },
+      "file": "broadcast-scenes.md"
+    },
+    {
+      "id": "broadcast-setup",
+      "title": "Stream setup",
+      "goal": "Complete connection and readiness checks before going live.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = setup",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/BroadcastSetup.vue",
+      "entry": [
+        "Open Stream studio, then choose Setup."
+      ],
+      "actions": [
+        "Guided setup",
+        "Connect or open OBS",
+        "Save profile and secret password",
+        "Choose scenes",
+        "Review readiness",
+        "Open Twitch settings"
+      ],
+      "states": [
+        "Native unavailable",
+        "Installation missing",
+        "Disconnected",
+        "Authentication issue",
+        "Scenes unavailable",
+        "Ready"
+      ],
+      "journeys": [
+        "setup",
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "setup"
+      },
+      "file": "broadcast-setup.md"
+    },
+    {
+      "id": "community",
+      "title": "Community recognition",
+      "goal": "Understand who contributed to accepted progress.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = community",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/CommunityView.vue",
+      "entry": [
+        "Choose Community in the studio navigation."
+      ],
+      "actions": [
+        "Select contributor",
+        "Inspect badges",
+        "Review accepted releases"
+      ],
+      "states": [
+        "No contributors",
+        "Selected contributor",
+        "Earned or locked badges",
+        "Demo"
+      ],
+      "journeys": [
+        "request-to-recognition",
+        "community"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "community"
+      },
+      "file": "community.md"
+    },
+    {
+      "id": "community-badges",
+      "title": "Contributor badges",
+      "goal": "Understand the milestones behind a contributor’s badges.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "community selected contributor badges",
+      "parent": "community-profile",
+      "component": "src/plugin/presentation/components/coforge/CommunityBadges.vue",
+      "entry": [
+        "Within the selected contributor on Community, inspect earned and locked badges."
+      ],
+      "actions": [
+        "Inspect earned and locked badges"
+      ],
+      "states": [
+        "No selection",
+        "Earned",
+        "Locked"
+      ],
+      "journeys": [
+        "community"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "community-badges.md"
+    },
+    {
+      "id": "community-profile",
+      "title": "Contributor recognition profile",
+      "goal": "Understand one contributor’s credited progress.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "community.selected",
+      "parent": "community",
+      "component": "src/plugin/presentation/components/coforge/CommunityProfile.vue",
+      "entry": [
+        "Open Community, then select a contributor in the leaderboard."
+      ],
+      "actions": [
+        "Select contributor",
+        "Read credited ideas and accepted work"
+      ],
+      "states": [
+        "No selected contributor",
+        "Selected",
+        "No accepted work"
+      ],
+      "journeys": [
+        "community",
+        "request-to-recognition"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "community-profile.md"
+    },
+    {
+      "id": "community-settings",
+      "title": "Community settings",
+      "goal": "Save the community’s naming and earning rules.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = community-settings",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/CommunitySettingsView.vue",
+      "entry": [
+        "Choose Community settings in the studio navigation."
+      ],
+      "actions": [
+        "Edit names",
+        "Edit earning rules and named ranks",
+        "Save or discard"
+      ],
+      "states": [
+        "Saved",
+        "Unsaved",
+        "Invalid thresholds",
+        "Saving",
+        "Failure with retained draft"
+      ],
+      "journeys": [
+        "community"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "community-settings"
+      },
+      "file": "community-settings.md"
+    },
+    {
+      "id": "council",
+      "title": "The Council",
+      "goal": "Choose a specialist collaboration task.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = council",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/CouncilView.vue",
+      "entry": [
+        "Choose The Council in the studio navigation."
+      ],
+      "actions": [
+        "Choose subpage",
+        "Refresh",
+        "Explore labelled example"
+      ],
+      "states": [
+        "Native unavailable",
+        "Example",
+        "No project",
+        "Loading",
+        "Error"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "council"
+      },
+      "file": "council.md"
+    },
+    {
+      "id": "council-definition-transfer",
+      "title": "Definition import and export",
+      "goal": "Review a portable specialist definition before saving or sharing it.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Council definitions / import and export details",
+      "parent": "council-definitions",
+      "component": "src/plugin/presentation/components/coforge/CouncilDefinitions.vue",
+      "entry": [
+        "Within The Council → Definitions, expand Import and export definitions."
+      ],
+      "actions": [
+        "Paste JSON",
+        "Preview current and imported definitions",
+        "Save import",
+        "Preview export"
+      ],
+      "states": [
+        "Invalid JSON",
+        "Replacement preview",
+        "Disabled import",
+        "Export ready"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "council-definition-transfer.md"
+    },
+    {
+      "id": "council-definitions",
+      "title": "Agents and councils",
+      "goal": "Save reusable specialists and project collaboration definitions.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = definitions",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/CouncilDefinitions.vue",
+      "entry": [
+        "Open The Council, then choose Definitions."
+      ],
+      "actions": [
+        "Create agent, team or council",
+        "Create default team",
+        "Select or search",
+        "Save or discard",
+        "Duplicate or archive",
+        "Preview import or export"
+      ],
+      "states": [
+        "No definitions",
+        "No team",
+        "Invalid definition",
+        "Preserved drafts",
+        "Changed on disk",
+        "Permission issue"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "council",
+        "key": "definitions"
+      },
+      "file": "council-definitions.md"
+    },
+    {
+      "id": "council-execution",
+      "title": "Council execution controls",
+      "goal": "Choose whether this desktop may execute Council work.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Council executor controls",
+      "parent": "council-monitor",
+      "component": "src/plugin/presentation/components/coforge/CouncilExecutionControls.vue",
+      "entry": [
+        "Within The Council → Run monitor, use the inline Execution controls section."
+      ],
+      "actions": [
+        "Check runtime",
+        "Designate desktop",
+        "Pause or resume execution",
+        "Pause or resume selected project"
+      ],
+      "states": [
+        "Native not ready",
+        "No executor",
+        "Paused",
+        "Resumed",
+        "Project paused"
+      ],
+      "journeys": [
+        "Council",
+        "recovery"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "council-execution.md"
+    },
+    {
+      "id": "council-folders",
+      "title": "Council folders",
+      "goal": "Save the vault folders used for Council definitions.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = folders",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/CouncilFolderSettings.vue",
+      "entry": [
+        "Open The Council, then choose Definition folders."
+      ],
+      "actions": [
+        "Review mappings",
+        "Edit folders",
+        "Save mapping"
+      ],
+      "states": [
+        "Loading",
+        "Unsaved",
+        "Invalid path",
+        "Revision conflict",
+        "Saved"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "council",
+        "key": "folders"
+      },
+      "file": "council-folders.md"
+    },
+    {
+      "id": "council-inboxes",
+      "title": "Watched inboxes",
+      "goal": "Activate reviewed note intake for a project destination.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = inboxes",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/CouncilSubmission.vue",
+      "entry": [
+        "Open The Council, then choose Watched inboxes."
+      ],
+      "actions": [
+        "Configure folder",
+        "Preview existing files",
+        "Select candidates",
+        "Activate or pause",
+        "Confirm generation reset"
+      ],
+      "states": [
+        "No bindings",
+        "Preview required",
+        "Existing candidates",
+        "Paused",
+        "Reconciled arrivals",
+        "Invalid binding"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "council",
+        "key": "inboxes"
+      },
+      "file": "council-inboxes.md"
+    },
+    {
+      "id": "council-messages",
+      "title": "Team messages",
+      "goal": "Send bounded context or work to explicit team recipients.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = messages",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/CouncilMessages.vue",
+      "entry": [
+        "Open The Council, then choose Team messages."
+      ],
+      "actions": [
+        "Select team and recipients",
+        "Compose",
+        "Choose information or delegation",
+        "Send"
+      ],
+      "states": [
+        "No team",
+        "No recipients",
+        "Invalid limits",
+        "Pending",
+        "Delivered",
+        "Uncertain delivery"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "council",
+        "key": "messages"
+      },
+      "file": "council-messages.md"
+    },
+    {
+      "id": "council-monitor",
+      "title": "Council run monitor",
+      "goal": "Resolve the next action or recovery decision for a Council run.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = monitor",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/CouncilMonitor.vue",
+      "entry": [
+        "Open The Council, then choose Run monitor."
+      ],
+      "actions": [
+        "Check and designate executor",
+        "Pause or resume",
+        "Filter and inspect",
+        "Resolve checkpoint",
+        "Recover unknown result",
+        "Retry publication",
+        "Export evidence"
+      ],
+      "states": [
+        "No runs",
+        "Paused",
+        "Queued",
+        "Running",
+        "Checkpoint",
+        "Unknown outcome",
+        "Publication conflict",
+        "Completed"
+      ],
+      "journeys": [
+        "Council",
+        "recovery"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "council",
+        "key": "monitor"
+      },
+      "file": "council-monitor.md"
+    },
+    {
+      "id": "council-plan-handoff",
+      "title": "Council plan handoff",
+      "goal": "Continue a validated Council plan in an existing request's project workflow.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "council.inspectedRun completed / Continue a validated plan in the project workflow",
+      "parent": "council-monitor",
+      "component": "src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue",
+      "entry": [
+        "Within The Council → Run monitor, inspect a completed run with a typed plan and expand Continue a validated plan in the project workflow."
+      ],
+      "actions": [
+        "Select validated plan artifact",
+        "Select existing project request",
+        "Hand selected plan to project workflow"
+      ],
+      "states": [
+        "No completed typed plan",
+        "Plan or request selection missing",
+        "Ready for explicit handoff",
+        "Handed to workflow",
+        "Stale request or rejected handoff"
+      ],
+      "journeys": [
+        "Council",
+        "request-to-recognition"
+      ],
+      "privacy": "Private execution evidence and request workflow; no discussion publication or public mutation capability.",
+      "file": "council-plan-handoff.md"
+    },
+    {
+      "id": "council-proposal-transfer",
+      "title": "Proposal workflow transfer",
+      "goal": "Review a portable v2 proposal workflow before applying it.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Council workflows / transfer preview",
+      "parent": "council-workflows",
+      "component": "src/plugin/presentation/components/coforge/WorkflowV2Transfer.vue",
+      "entry": [
+        "Within The Council → Council workflows, open the workflow transfer controls."
+      ],
+      "actions": [
+        "Preview import",
+        "Apply draft",
+        "Preview export"
+      ],
+      "states": [
+        "Invalid import",
+        "Valid preview",
+        "Unsaved draft",
+        "Export ready"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "council-proposal-transfer.md"
+    },
+    {
+      "id": "council-recovery",
+      "title": "Council recovery tools",
+      "goal": "Preserve or recover the selected run's retained execution evidence.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "council.inspectedRun recovery tools",
+      "parent": "council-monitor",
+      "component": "src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue",
+      "entry": [
+        "Within The Council → Run monitor, select a run to inspect its recovery tools."
+      ],
+      "actions": [
+        "Record allowance extension",
+        "Prepare private run export",
+        "Publish retained results to selected note",
+        "Remove settled history with export and consent"
+      ],
+      "states": [
+        "No selected run",
+        "Exhausted allowance",
+        "Export ready",
+        "Missing source",
+        "Pending work blocks removal",
+        "Retention consent required"
+      ],
+      "journeys": [
+        "Council",
+        "recovery"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "council-recovery.md"
+    },
+    {
+      "id": "council-submit",
+      "title": "Submit and preflight",
+      "goal": "Submit a reviewed note to the intended collaboration destination.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = submit",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/CouncilSubmission.vue",
+      "entry": [
+        "Open The Council, then choose Submit and preflight."
+      ],
+      "actions": [
+        "Choose source and target",
+        "Preview preflight",
+        "Submit reviewed input"
+      ],
+      "states": [
+        "No target",
+        "Invalid source",
+        "Stale preflight",
+        "Preview ready",
+        "Submitted",
+        "Failure"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "council",
+        "key": "submit"
+      },
+      "file": "council-submit.md"
+    },
+    {
+      "id": "council-workflows",
+      "title": "Council workflows",
+      "goal": "Save an explicit proposal workflow for this project.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = workflows",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/WorkflowV2Editor.vue",
+      "entry": [
+        "Open The Council, then choose Council workflows."
+      ],
+      "actions": [
+        "Load saved",
+        "Edit steps and collections",
+        "Preview import or export",
+        "Save or discard"
+      ],
+      "states": [
+        "No project",
+        "No saved definition",
+        "Unsaved draft",
+        "Validation error",
+        "Stale revision"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "council",
+        "key": "workflows"
+      },
+      "file": "council-workflows.md"
+    },
+    {
+      "id": "finance",
+      "title": "Stream finances",
+      "goal": "Maintain the private stream ledger.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = finance",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/FinanceView.vue",
+      "entry": [
+        "Choose Finances in the studio navigation."
+      ],
+      "actions": [
+        "Filter month or stream",
+        "Add or edit",
+        "Pause or activate plan",
+        "Confirm or cancel deletion",
+        "Refresh"
+      ],
+      "states": [
+        "Native unavailable",
+        "Example",
+        "No entries",
+        "Draft",
+        "Validation or conflict",
+        "Deletion confirmation"
+      ],
+      "journeys": [
+        "finance"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "finance"
+      },
+      "file": "finance.md"
+    },
+    {
+      "id": "finance-entry",
+      "title": "Finance entry",
+      "goal": "Record or correct a single payment or recurring commitment.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "finance selected entry or new draft",
+      "parent": "finance",
+      "component": "src/plugin/presentation/components/coforge/FinanceEntryForm.vue",
+      "entry": [
+        "Within Finances, use the entry form or choose Edit beside an existing entry."
+      ],
+      "actions": [
+        "Choose kind",
+        "Enter amount, date and category",
+        "Choose optional stream",
+        "Set recurrence",
+        "Save",
+        "Start new entry"
+      ],
+      "states": [
+        "New",
+        "Editing",
+        "Invalid amount",
+        "Stale ledger",
+        "Saving"
+      ],
+      "journeys": [
+        "finance"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "finance-entry.md"
+    },
+    {
+      "id": "guided-setup",
+      "title": "Guided stream setup",
+      "goal": "Finish first-time OBS and Twitch readiness checks.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "studio.setupRequested; studio.setupStep",
+      "parent": "broadcast-setup",
+      "component": "src/plugin/presentation/components/coforge/GuidedStreamSetup.vue",
+      "entry": [
+        "Choose Guided setup in the Stream studio header; the guide opens within Setup."
+      ],
+      "actions": [
+        "Reopen guide",
+        "Inspect installation",
+        "Connect tools",
+        "Review output",
+        "Change step",
+        "Close"
+      ],
+      "states": [
+        "Optional closed",
+        "Installation missing",
+        "WebSocket missing",
+        "Password or scopes missing",
+        "Human review needed",
+        "Ready"
+      ],
+      "journeys": [
+        "setup",
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "guided-setup.md"
+    },
+    {
+      "id": "help",
+      "title": "Studio guide",
+      "goal": "Learn the request-to-recognition loop.",
+      "audience": "streamer",
+      "kind": "dialog",
+      "route": "studio.help = true",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/HelpDialog.vue",
+      "entry": [
+        "Choose How it works in the studio navigation."
+      ],
+      "actions": [
+        "Read guide",
+        "Explore workflow",
+        "Close"
+      ],
+      "states": [
+        "Open",
+        "Demo explanation"
+      ],
+      "journeys": [
+        "setup",
+        "request-to-recognition"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "help.md"
+    },
+    {
+      "id": "herdr",
+      "title": "Herdr workspace controls",
+      "goal": "Dispatch an explicitly reviewed request to a verified ready agent.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.workflowTool = herdr",
+      "parent": "workflow",
+      "component": "src/plugin/presentation/components/coforge/HerdrPanel.vue",
+      "entry": [
+        "Open Agent workflow, then choose Herdr workspaces."
+      ],
+      "actions": [
+        "Refresh identities",
+        "Manage native agents",
+        "Review dispatch",
+        "Send",
+        "Acknowledge recovery"
+      ],
+      "states": [
+        "Native unavailable",
+        "Disconnected",
+        "No ready agent",
+        "Review required",
+        "Pending or unknown mutation"
+      ],
+      "journeys": [
+        "workflow-configuration",
+        "recovery"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "workflow",
+        "key": "herdr"
+      },
+      "file": "herdr.md"
+    },
+    {
+      "id": "herdr-recovery",
+      "title": "Herdr workflow recovery",
+      "goal": "Resolve the uncertain outcome of a managed workflow attempt.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "pending Herdr workflow attempt",
+      "parent": "workflow-runs",
+      "component": "src/plugin/presentation/components/coforge/HerdrWorkflowRecovery.vue",
+      "entry": [
+        "Within Agent workflow → Workflow runs, inspect the pending Herdr attempt recovery panel."
+      ],
+      "actions": [
+        "Refresh correlated result",
+        "Inspect attempt",
+        "Acknowledge recovery"
+      ],
+      "states": [
+        "No pending attempt",
+        "Waiting",
+        "Unknown outcome",
+        "Stale result",
+        "Recoverable"
+      ],
+      "journeys": [
+        "recovery"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "herdr-recovery.md"
+    },
+    {
+      "id": "idea-activity",
+      "title": "Request activity",
+      "goal": "Trace what happened to this request.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.drawerTab = activity",
+      "parent": "idea-detail",
+      "component": "src/plugin/presentation/components/coforge/IdeaActivityTab.vue",
+      "entry": [
+        "Open a request’s details, then choose Activity."
+      ],
+      "actions": [
+        "Read chronological events",
+        "Inspect attempts"
+      ],
+      "states": [
+        "No activity",
+        "Recorded events",
+        "Failed attempt"
+      ],
+      "journeys": [
+        "request-to-recognition",
+        "recovery"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "idea",
+        "key": "activity"
+      },
+      "file": "idea-activity.md"
+    },
+    {
+      "id": "idea-create",
+      "title": "New request",
+      "goal": "Record a request in the selected project.",
+      "audience": "streamer",
+      "kind": "dialog",
+      "route": "studio.creating = true",
+      "parent": "board",
+      "component": "src/plugin/presentation/components/coforge/NewIdeaDrawer.vue",
+      "entry": [
+        "On Idea board, choose New request (or Add idea to inbox on Kanban)."
+      ],
+      "actions": [
+        "Enter title and description",
+        "Choose category",
+        "Create",
+        "Cancel"
+      ],
+      "states": [
+        "No project",
+        "Draft",
+        "Validation error",
+        "Saving",
+        "Failure with retained draft"
+      ],
+      "journeys": [
+        "request-to-recognition"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "idea-create.md"
+    },
+    {
+      "id": "idea-detail",
+      "title": "Request details",
+      "goal": "Decide the next valid action for one request.",
+      "audience": "streamer",
+      "kind": "dialog",
+      "route": "studio.selectedIdea",
+      "parent": "board",
+      "component": "src/plugin/presentation/components/coforge/IdeaDrawer.vue",
+      "entry": [
+        "On Idea board, open a request card or request row."
+      ],
+      "actions": [
+        "Choose detail tab",
+        "Run eligible stage",
+        "Cancel active run",
+        "Close"
+      ],
+      "states": [
+        "No selected request",
+        "Active attempt",
+        "Stage error",
+        "Review pending"
+      ],
+      "journeys": [
+        "request-to-recognition"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "idea-detail.md"
+    },
+    {
+      "id": "idea-increment",
+      "title": "Request increment",
+      "goal": "Accept or reject the actual implementation changes.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.drawerTab = increment",
+      "parent": "idea-detail",
+      "component": "src/plugin/presentation/components/coforge/IdeaIncrementTab.vue",
+      "entry": [
+        "Open a request’s details, then choose Increment."
+      ],
+      "actions": [
+        "Inspect increment and diff",
+        "Accept or reject"
+      ],
+      "states": [
+        "No increment",
+        "Building",
+        "Review ready",
+        "Accepted",
+        "Rejected"
+      ],
+      "journeys": [
+        "request-to-recognition"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "idea",
+        "key": "increment"
+      },
+      "file": "idea-increment.md"
+    },
+    {
+      "id": "idea-overview",
+      "title": "Request overview",
+      "goal": "Understand and qualify the submitted request.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.drawerTab = overview",
+      "parent": "idea-detail",
+      "component": "src/plugin/presentation/components/coforge/IdeaOverviewTab.vue",
+      "entry": [
+        "Open a request’s details, then choose Overview."
+      ],
+      "actions": [
+        "Read request and context",
+        "Inspect screening",
+        "Edit RICE",
+        "Run next stage"
+      ],
+      "states": [
+        "Unscreened",
+        "Flagged",
+        "Screened",
+        "Changed context"
+      ],
+      "journeys": [
+        "request-to-recognition"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "idea",
+        "key": "overview"
+      },
+      "file": "idea-overview.md"
+    },
+    {
+      "id": "idea-plan",
+      "title": "Request plan",
+      "goal": "Assess the proposed implementation before building.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.drawerTab = plan",
+      "parent": "idea-detail",
+      "component": "src/plugin/presentation/components/coforge/IdeaPlanTab.vue",
+      "entry": [
+        "Open a request’s details, then choose Plan."
+      ],
+      "actions": [
+        "Read plan and steps",
+        "Run eligible plan or build action"
+      ],
+      "states": [
+        "No plan",
+        "Planning",
+        "Ready",
+        "Stale"
+      ],
+      "journeys": [
+        "request-to-recognition"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "idea",
+        "key": "plan"
+      },
+      "file": "idea-plan.md"
+    },
+    {
+      "id": "native-claude",
+      "title": "Claude Code settings",
+      "goal": "Configure the local CLI used by agent execution.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "native settings / Claude Code",
+      "parent": "native-settings",
+      "component": "src/plugin/presentation/components/coforge/PluginSettingsClaude.vue",
+      "entry": [
+        "Within Obsidian Settings → Community plugins → CoForge, use the Claude Code section."
+      ],
+      "actions": [
+        "Edit executable settings",
+        "Save integration settings",
+        "Check Claude Code"
+      ],
+      "states": [
+        "Native unavailable",
+        "Configured",
+        "Invalid executable",
+        "Unsaved",
+        "Checking",
+        "CLI available",
+        "CLI missing or too old"
+      ],
+      "journeys": [
+        "setup",
+        "workflow-configuration"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "native-claude.md"
+    },
+    {
+      "id": "native-settings",
+      "title": "CoForge integration settings",
+      "goal": "Save the vault-wide integration configuration.",
+      "audience": "streamer",
+      "kind": "native",
+      "route": "Obsidian Settings / CoForge",
+      "parent": null,
+      "component": "src/plugin/presentation/components/coforge/PluginSettings.vue",
+      "entry": [
+        "Open Obsidian Settings → Community plugins → CoForge."
+      ],
+      "actions": [
+        "Edit integration fields",
+        "Save",
+        "Discard",
+        "Dismiss notice"
+      ],
+      "states": [
+        "Loading",
+        "Startup failure",
+        "Unsaved",
+        "Saved",
+        "Validation or save error"
+      ],
+      "journeys": [
+        "setup",
+        "viewer-intake",
+        "public-sharing"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "native-settings.md"
+    },
+    {
+      "id": "native-twitch",
+      "title": "Twitch integration settings",
+      "goal": "Connect streamer and bot accounts with required permissions.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "native settings / Twitch",
+      "parent": "native-settings",
+      "component": "src/plugin/presentation/components/coforge/PluginSettingsTwitch.vue",
+      "entry": [
+        "Within Obsidian Settings → Community plugins → CoForge, use the Twitch section."
+      ],
+      "actions": [
+        "Configure app and channel",
+        "Authorize accounts",
+        "Inspect scopes",
+        "Configure replies",
+        "Save"
+      ],
+      "states": [
+        "Unconfigured",
+        "Authorization pending",
+        "Connected",
+        "Expired",
+        "Missing scopes",
+        "Failure"
+      ],
+      "journeys": [
+        "setup",
+        "viewer-intake"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "native-twitch.md"
+    },
+    {
+      "id": "native-twitch-authorization",
+      "title": "Twitch authorization",
+      "goal": "Grant the selected account’s required Twitch permissions.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch account authorization flow",
+      "parent": "native-twitch",
+      "component": "src/plugin/presentation/components/coforge/TwitchAuthorization.vue",
+      "entry": [
+        "Within native CoForge Twitch settings, or Stream chat → Twitch settings, use the streamer or chatbot connection controls."
+      ],
+      "actions": [
+        "Connect or reconnect streamer",
+        "Connect or reconnect chatbot",
+        "Open Twitch authorization",
+        "Cancel authorization"
+      ],
+      "states": [
+        "Missing client configuration",
+        "Awaiting browser authorization",
+        "Connected",
+        "Expired",
+        "Missing scopes",
+        "Failure"
+      ],
+      "journeys": [
+        "setup",
+        "viewer-intake"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "native-twitch-authorization.md"
+    },
+    {
+      "id": "native-vault",
+      "title": "Ideas folder setting",
+      "goal": "Choose where canonical idea notes live.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "native settings / Vault",
+      "parent": "native-settings",
+      "component": "src/plugin/presentation/components/coforge/PluginSettings.vue",
+      "entry": [
+        "Within Obsidian Settings → Community plugins → CoForge, edit Ideas folder under Vault."
+      ],
+      "actions": [
+        "Edit ideas folder",
+        "Save integration settings"
+      ],
+      "states": [
+        "Unchanged",
+        "Folder move",
+        "Pending work blocks move",
+        "Invalid path"
+      ],
+      "journeys": [
+        "setup"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "native-vault.md"
+    },
+    {
+      "id": "native-website",
+      "title": "Viewer website settings",
+      "goal": "Prepare the read-only viewer website for publication.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "native settings / Viewer website",
+      "parent": "native-settings",
+      "component": "src/plugin/presentation/components/coforge/PluginSettingsWebsite.vue",
+      "entry": [
+        "Within Obsidian Settings → Community plugins → CoForge, use the viewer website section."
+      ],
+      "actions": [
+        "Set Viewer board folder",
+        "Enable or disable Keep the viewer board updated",
+        "Save integration settings",
+        "Write board now",
+        "Set up GitHub Pages"
+      ],
+      "states": [
+        "Unconfigured",
+        "Invalid destination",
+        "Unsaved folder blocks export",
+        "Writing",
+        "Board written",
+        "Workflow installed",
+        "Export or setup failure"
+      ],
+      "journeys": [
+        "public-sharing"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "native-website.md"
+    },
+    {
+      "id": "operations",
+      "title": "Operations",
+      "goal": "Find the recorded outcome of a failed or uncertain action.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = operations",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/OperationsView.vue",
+      "entry": [
+        "Choose Operations in the studio navigation."
+      ],
+      "actions": [
+        "Filter event and effect",
+        "Clear filters",
+        "Inspect records",
+        "Export safe diagnostics"
+      ],
+      "states": [
+        "No events",
+        "No matches",
+        "Unconfirmed effect",
+        "Export unavailable",
+        "Export error"
+      ],
+      "journeys": [
+        "recovery",
+        "moderation"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "operations"
+      },
+      "file": "operations.md"
+    },
+    {
+      "id": "population",
+      "title": "Viewers and players",
+      "goal": "Inspect a viewer’s private participation record.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = population",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/PopulationView.vue",
+      "entry": [
+        "Choose Viewers in the studio navigation."
+      ],
+      "actions": [
+        "Search and filter",
+        "Select viewer",
+        "Refresh private notes",
+        "Clear filters",
+        "Page results"
+      ],
+      "states": [
+        "No viewers",
+        "No matches",
+        "No selection",
+        "Note sync pending or failed"
+      ],
+      "journeys": [
+        "viewer-intake",
+        "community",
+        "moderation"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "population"
+      },
+      "file": "population.md"
+    },
+    {
+      "id": "project-create",
+      "title": "Add project",
+      "goal": "Create the canonical project identity and workspace configuration.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "projects.adding = true",
+      "parent": "projects",
+      "component": "src/plugin/presentation/components/coforge/ProjectsView.vue",
+      "entry": [
+        "Open Projects from the project selector, then choose Add project."
+      ],
+      "actions": [
+        "Enter name, path and brief",
+        "Add optional URLs",
+        "Create",
+        "Cancel"
+      ],
+      "states": [
+        "Draft",
+        "Invalid path or brief",
+        "Saving",
+        "Failure"
+      ],
+      "journeys": [
+        "setup",
+        "multi-project"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "project-create.md"
+    },
+    {
+      "id": "projects",
+      "title": "Projects",
+      "goal": "Choose or create the project whose backlog you will operate.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = projects",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/ProjectsView.vue",
+      "entry": [
+        "Choose the project selector in the studio sidebar to open Projects."
+      ],
+      "actions": [
+        "Add project",
+        "Open board",
+        "Open settings",
+        "Confirm sample workspace"
+      ],
+      "states": [
+        "No projects",
+        "Adding",
+        "Selected",
+        "Unavailable",
+        "Background jobs"
+      ],
+      "journeys": [
+        "setup",
+        "multi-project"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "projects"
+      },
+      "file": "projects.md"
+    },
+    {
+      "id": "public-chat",
+      "title": "Public Twitch chat",
+      "goal": "Show the current Twitch conversation on stream.",
+      "audience": "viewer / OBS capture",
+      "kind": "public",
+      "route": "Obsidian stream surface = chat",
+      "parent": null,
+      "component": "src/plugin/presentation/components/coforge/StreamLiveChat.vue",
+      "entry": [
+        "Use the Stream Chat ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
+      ],
+      "actions": [
+        "Open from ribbon or Stream displays",
+        "Detach manually",
+        "Read live chat"
+      ],
+      "states": [
+        "Disconnected",
+        "No live messages",
+        "Connected messages"
+      ],
+      "journeys": [
+        "public-sharing",
+        "community"
+      ],
+      "privacy": "Explicit public whitelist; read-only.",
+      "coverage": {
+        "group": "public",
+        "key": "chat"
+      },
+      "file": "public-chat.md"
+    },
+    {
+      "id": "public-community",
+      "title": "Public community",
+      "goal": "Explain visible participation and community rewards.",
+      "audience": "viewer / OBS capture",
+      "kind": "public",
+      "route": "Obsidian stream surface = community",
+      "parent": null,
+      "component": "src/plugin/presentation/components/coforge/StreamCommunity.vue",
+      "entry": [
+        "Use the Stream Community ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
+      ],
+      "actions": [
+        "Open from ribbon or Stream displays",
+        "Detach manually",
+        "Read rules and recognition"
+      ],
+      "states": [
+        "No contributors",
+        "Configured names and ranks",
+        "Earned badges"
+      ],
+      "journeys": [
+        "public-sharing",
+        "community"
+      ],
+      "privacy": "Explicit public whitelist; read-only.",
+      "coverage": {
+        "group": "public",
+        "key": "community"
+      },
+      "file": "public-community.md"
+    },
+    {
+      "id": "public-kanban",
+      "title": "Public stream Kanban",
+      "goal": "Show the community the screened request backlog.",
+      "audience": "viewer / OBS capture",
+      "kind": "public",
+      "route": "Obsidian stream surface = kanban",
+      "parent": null,
+      "component": "src/plugin/presentation/components/coforge/StreamRequestBoard.vue",
+      "entry": [
+        "Use the Stream Kanban ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
+      ],
+      "actions": [
+        "Open from ribbon or Stream displays",
+        "Detach manually",
+        "Read projected cards"
+      ],
+      "states": [
+        "No public project",
+        "Awaiting screening count",
+        "Empty column",
+        "Screened cards"
+      ],
+      "journeys": [
+        "public-sharing",
+        "community"
+      ],
+      "privacy": "Explicit public whitelist; read-only.",
+      "coverage": {
+        "group": "public",
+        "key": "kanban"
+      },
+      "file": "public-kanban.md"
+    },
+    {
+      "id": "public-leaderboards",
+      "title": "Public leaderboards",
+      "goal": "Recognize visible community contributions.",
+      "audience": "viewer / OBS capture",
+      "kind": "public",
+      "route": "Obsidian stream surface = leaderboards",
+      "parent": null,
+      "component": "src/plugin/presentation/components/coforge/StreamLeaderboards.vue",
+      "entry": [
+        "Use the Stream Leaderboards ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
+      ],
+      "actions": [
+        "Open from ribbon or Stream displays",
+        "Detach manually",
+        "Read ranked metrics"
+      ],
+      "states": [
+        "No contributions",
+        "One or more empty rankings",
+        "Ranked contributors"
+      ],
+      "journeys": [
+        "public-sharing",
+        "community"
+      ],
+      "privacy": "Explicit public whitelist; read-only.",
+      "coverage": {
+        "group": "public",
+        "key": "leaderboards"
+      },
+      "file": "public-leaderboards.md"
+    },
+    {
+      "id": "public-website",
+      "title": "Viewer website",
+      "goal": "Follow screened progress and recognition outside Obsidian.",
+      "audience": "viewer / OBS capture",
+      "kind": "public",
+      "route": "public export / index.html",
+      "parent": null,
+      "component": "src/plugin/features/coforge/domain/public-site.ts",
+      "entry": [
+        "Open the deployed viewer website or the generated public export index.html."
+      ],
+      "actions": [
+        "Read board",
+        "Expand plan or community context",
+        "Read leaderboards and badges"
+      ],
+      "states": [
+        "No screened cards",
+        "Awaiting screening count",
+        "No leaders",
+        "Generated timestamp"
+      ],
+      "journeys": [
+        "public-sharing"
+      ],
+      "privacy": "Explicit public whitelist; read-only.",
+      "file": "public-website.md"
+    },
+    {
+      "id": "schedule",
+      "title": "Stream schedule",
+      "goal": "Prepare a saved plan for a future stream.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = schedule",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/ScheduleView.vue",
+      "entry": [
+        "Choose Schedule in the studio navigation."
+      ],
+      "actions": [
+        "New stream plan",
+        "Select plan",
+        "Save stream plan or discard changes",
+        "Open Markdown note",
+        "Refresh",
+        "Review saved preparation",
+        "Apply project, channel, scenes or playlist"
+      ],
+      "states": [
+        "Native unavailable",
+        "Example",
+        "No plans",
+        "Draft",
+        "Conflict",
+        "Reviewed preparation"
+      ],
+      "journeys": [
+        "stream-planning",
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "schedule"
+      },
+      "file": "schedule.md"
+    },
+    {
+      "id": "settings",
+      "title": "Project settings",
+      "goal": "Save this project’s brief and workspace boundaries.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = settings",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/SettingsView.vue",
+      "entry": [
+        "Choose Project settings in the studio navigation."
+      ],
+      "actions": [
+        "Edit brief and prompt",
+        "Configure repository",
+        "Save or discard",
+        "Open Workflow settings"
+      ],
+      "states": [
+        "No project",
+        "Saved",
+        "Unsaved",
+        "Saving",
+        "Invalid draft",
+        "Pending-work guard"
+      ],
+      "journeys": [
+        "setup",
+        "multi-project",
+        "workflow-configuration"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "settings"
+      },
+      "file": "settings.md"
+    },
+    {
+      "id": "settings-data",
+      "title": "Project data tools",
+      "goal": "Export or explicitly replace this project’s workspace data.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Project settings / data tools",
+      "parent": "settings",
+      "component": "src/plugin/presentation/components/coforge/SettingsDataSection.vue",
+      "entry": [
+        "Within Project settings, use the Project data section."
+      ],
+      "actions": [
+        "Export private JSON backup",
+        "Request sample replacement",
+        "Keep data or confirm replacement"
+      ],
+      "states": [
+        "Ready",
+        "Confirmation required",
+        "Pending work blocks replacement",
+        "Failure"
+      ],
+      "journeys": [
+        "setup",
+        "recovery"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "settings-data.md"
+    },
+    {
+      "id": "settings-repository",
+      "title": "Project repository settings",
+      "goal": "Set the repository boundary used by agent work.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Project settings / repository",
+      "parent": "settings",
+      "component": "src/plugin/presentation/components/coforge/SettingsRepositorySection.vue",
+      "entry": [
+        "Within Project settings, edit the Agent workspace fields."
+      ],
+      "actions": [
+        "Edit workspace and repository fields",
+        "Review implementation authorization",
+        "Save project settings"
+      ],
+      "states": [
+        "Missing path",
+        "Invalid workspace",
+        "Authorization disabled",
+        "Unsaved",
+        "Saved"
+      ],
+      "journeys": [
+        "setup",
+        "workflow-configuration"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "settings-repository.md"
+    },
+    {
+      "id": "settings-runtime",
+      "title": "Project runtime check",
+      "goal": "Verify the native runtime is available for this project.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Project settings / runtime check",
+      "parent": "settings",
+      "component": "src/plugin/presentation/components/coforge/SettingsRuntimeSection.vue",
+      "entry": [
+        "Within Project settings, inspect Local connections and choose Check Claude Code."
+      ],
+      "actions": [
+        "Check runtime",
+        "Inspect readiness or error"
+      ],
+      "states": [
+        "Not checked",
+        "Checking",
+        "Ready",
+        "Native unavailable",
+        "Check failed"
+      ],
+      "journeys": [
+        "setup",
+        "workflow-configuration"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "settings-runtime.md"
+    },
+    {
+      "id": "statistics",
+      "title": "Stream statistics",
+      "goal": "Compare recorded audience and stream performance.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = statistics",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/StreamStatisticsView.vue",
+      "entry": [
+        "Choose Statistics in the studio navigation."
+      ],
+      "actions": [
+        "Select stream",
+        "Choose metric",
+        "Compare earlier streams",
+        "Inspect sample"
+      ],
+      "states": [
+        "No recordings",
+        "Unavailable measurement",
+        "Missing-data gap",
+        "Selected sample",
+        "Example"
+      ],
+      "journeys": [
+        "stream-analysis"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "statistics"
+      },
+      "file": "statistics.md"
+    },
+    {
+      "id": "stream",
+      "title": "Stream chat",
+      "goal": "Manage the conversation with viewers.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = stream",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/StreamPage.vue",
+      "entry": [
+        "Choose Stream chat in the studio navigation."
+      ],
+      "actions": [
+        "Choose Chat",
+        "Choose Twitch settings",
+        "Choose Bot messages",
+        "Inspect intake status"
+      ],
+      "states": [
+        "Disconnected",
+        "Connecting",
+        "Live chat",
+        "Local command test"
+      ],
+      "journeys": [
+        "viewer-intake",
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "stream"
+      },
+      "file": "stream.md"
+    },
+    {
+      "id": "stream-channel",
+      "title": "Chat",
+      "goal": "Respond to viewers through the connected Twitch channel.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.streamTool = channel",
+      "parent": "stream",
+      "component": "src/plugin/presentation/components/coforge/ChatPanel.vue",
+      "entry": [
+        "Open Stream chat, then choose Chat."
+      ],
+      "actions": [
+        "Send chat",
+        "Enable explicit local test",
+        "Moderate message",
+        "Read viewer commands"
+      ],
+      "states": [
+        "Disconnected",
+        "Connecting",
+        "Missing scopes",
+        "Read-only",
+        "Sending",
+        "Local test",
+        "Send failure"
+      ],
+      "journeys": [
+        "viewer-intake",
+        "moderation"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "stream",
+        "key": "channel"
+      },
+      "file": "stream-channel.md"
+    },
+    {
+      "id": "stream-connection",
+      "title": "Twitch settings",
+      "goal": "Connect Twitch and inspect channel readiness.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.streamTool = connection",
+      "parent": "stream",
+      "component": "src/plugin/presentation/components/coforge/TwitchChannelControls.vue",
+      "entry": [
+        "Open Stream chat, then choose Twitch settings."
+      ],
+      "actions": [
+        "Edit connection settings",
+        "Connect or reconnect streamer and chatbot",
+        "Save Twitch connection",
+        "Reconnect",
+        "Update channel metadata",
+        "Inspect bot delivery needs attention"
+      ],
+      "states": [
+        "Native unavailable",
+        "Disconnected",
+        "Connecting",
+        "Missing scopes",
+        "Connected",
+        "Error"
+      ],
+      "journeys": [
+        "setup",
+        "viewer-intake"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "stream",
+        "key": "connection"
+      },
+      "file": "stream-connection.md"
+    },
+    {
+      "id": "stream-messages",
+      "title": "Bot messages",
+      "goal": "Maintain the recurring messages sent while live.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.streamTool = messages",
+      "parent": "stream",
+      "component": "src/plugin/presentation/components/coforge/StreamMessagesView.vue",
+      "entry": [
+        "Open Stream chat, then choose Bot messages."
+      ],
+      "actions": [
+        "Create or edit",
+        "Set interval",
+        "Pause or activate",
+        "Delete"
+      ],
+      "states": [
+        "No messages",
+        "Unsaved",
+        "Invalid interval",
+        "Paused",
+        "Live and enabled"
+      ],
+      "journeys": [
+        "viewer-intake",
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "stream",
+        "key": "messages"
+      },
+      "file": "stream-messages.md"
+    },
+    {
+      "id": "studio",
+      "title": "CoForge studio",
+      "goal": "Reach the private workspace for the task at hand.",
+      "audience": "streamer",
+      "kind": "shell",
+      "route": "Obsidian CoForge view",
+      "parent": null,
+      "component": "src/plugin/presentation/components/coforge/StudioApp.vue",
+      "entry": [
+        "Use the CoForge ribbon or the Open CoForge command in Obsidian."
+      ],
+      "actions": [
+        "Choose navigation group",
+        "Select project",
+        "Reopen navigation or chat",
+        "Open help"
+      ],
+      "states": [
+        "Loading",
+        "Invalid persisted data",
+        "Ready",
+        "Narrow layout",
+        "Collapsed panels"
+      ],
+      "journeys": [
+        "setup",
+        "request-to-recognition",
+        "broadcast",
+        "Council"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "studio.md"
+    },
+    {
+      "id": "twitch-channel",
+      "title": "Twitch channel editor",
+      "goal": "Save the metadata viewers will see on Twitch.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Stream chat / Twitch settings / channel metadata",
+      "parent": "stream-connection",
+      "component": "src/plugin/presentation/components/coforge/TwitchChannelEditor.vue",
+      "entry": [
+        "Within Stream chat → Twitch settings, use the channel metadata editor."
+      ],
+      "actions": [
+        "Edit title, category, tags and language",
+        "Save",
+        "Open Twitch branding"
+      ],
+      "states": [
+        "Disconnected",
+        "Missing permission",
+        "Draft",
+        "Saving",
+        "Failure"
+      ],
+      "journeys": [
+        "broadcast"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "twitch-channel.md"
+    },
+    {
+      "id": "twitch-moderation",
+      "title": "Chat moderation",
+      "goal": "Review and confirm one specific Twitch moderation action.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "stream moderation details",
+      "parent": "stream-channel",
+      "component": "src/plugin/presentation/components/coforge/TwitchModeration.vue",
+      "entry": [
+        "Within Stream chat → Chat, expand Moderation or choose a moderation action on a Twitch message."
+      ],
+      "actions": [
+        "Choose delete, timeout or ban",
+        "Review exact target",
+        "Confirm or cancel"
+      ],
+      "states": [
+        "Missing permission",
+        "Draft",
+        "Review required",
+        "Pending",
+        "Failure",
+        "Confirmed"
+      ],
+      "journeys": [
+        "moderation"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "twitch-moderation.md"
+    },
+    {
+      "id": "viewer-detail",
+      "title": "Viewer profile",
+      "goal": "Review a viewer’s private record and participation controls.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "population.selectedId",
+      "parent": "population",
+      "component": "src/plugin/presentation/components/coforge/PlayerDetails.vue",
+      "entry": [
+        "Open Viewers, then select a viewer name in the directory."
+      ],
+      "actions": [
+        "Inspect stats",
+        "Open private note",
+        "Apply eligible participation control"
+      ],
+      "states": [
+        "No selection",
+        "Registered",
+        "Unregistered",
+        "Blocked",
+        "Muted",
+        "Banned",
+        "Failure"
+      ],
+      "journeys": [
+        "community",
+        "moderation"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "viewer-detail.md"
+    },
+    {
+      "id": "workflow",
+      "title": "Agent workflow",
+      "goal": "Resolve the next execution decision for this project.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = workflow",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/WorkflowView.vue",
+      "entry": [
+        "Choose Agent workflow in the studio navigation."
+      ],
+      "actions": [
+        "Inspect execution",
+        "Complete checkpoint",
+        "Pause or resume",
+        "Inspect history",
+        "Open Workflow settings"
+      ],
+      "states": [
+        "No project",
+        "No active work",
+        "Queued",
+        "Running",
+        "Checkpoint",
+        "Failed or uncertain result"
+      ],
+      "journeys": [
+        "request-to-recognition",
+        "workflow-configuration"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "workflow"
+      },
+      "file": "workflow.md"
+    },
+    {
+      "id": "workflow-runs",
+      "title": "Workflow runs",
+      "goal": "Resolve the next checkpoint or attempt outcome.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.workflowTool = runs",
+      "parent": "workflow",
+      "component": "src/plugin/presentation/components/coforge/ConfiguredWorkflowExecution.vue",
+      "entry": [
+        "Open Agent workflow, then choose Workflow runs."
+      ],
+      "actions": [
+        "Select request run",
+        "Inspect captured steps and results",
+        "Complete required checklist",
+        "Inspect attempt history",
+        "Recover Herdr attempt"
+      ],
+      "states": [
+        "No runs",
+        "Queued",
+        "Running",
+        "Human checkpoint",
+        "Failed",
+        "Complete"
+      ],
+      "journeys": [
+        "request-to-recognition",
+        "recovery"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "workflow",
+        "key": "runs"
+      },
+      "file": "workflow-runs.md"
+    },
+    {
+      "id": "workflow-settings",
+      "title": "Workflow settings",
+      "goal": "Save the process that new requests will follow.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = workflow-settings",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/WorkflowEditorView.vue",
+      "entry": [
+        "Choose Workflow settings in the studio navigation."
+      ],
+      "actions": [
+        "Add or select step",
+        "Reorder or replace",
+        "Edit prompts and provider",
+        "Preview import or export",
+        "Save or discard"
+      ],
+      "states": [
+        "No project",
+        "Standard defaults",
+        "Saved",
+        "Unsaved draft",
+        "Validation error",
+        "Active-work guard"
+      ],
+      "journeys": [
+        "workflow-configuration"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "workflow-settings"
+      },
+      "file": "workflow-settings.md"
+    },
+    {
+      "id": "workflow-step",
+      "title": "Workflow step editor",
+      "goal": "Configure one stable workflow step.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "studio.workflowStepSelection",
+      "parent": "workflow-settings",
+      "component": "src/plugin/presentation/components/coforge/WorkflowStepEditor.vue",
+      "entry": [
+        "Open Workflow settings, then select a step in the step list."
+      ],
+      "actions": [
+        "Rename",
+        "Choose kind",
+        "Edit contract and access",
+        "Edit prompt or checklist"
+      ],
+      "states": [
+        "No selection",
+        "AI",
+        "Manual checkpoint",
+        "Invalid contract",
+        "Unsaved"
+      ],
+      "journeys": [
+        "workflow-configuration"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "workflow-step.md"
+    },
+    {
+      "id": "workflow-transfer",
+      "title": "Workflow import and export",
+      "goal": "Review a portable definition before replacing or sharing it.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "workflow transfer preview",
+      "parent": "workflow-settings",
+      "component": "src/plugin/presentation/components/coforge/WorkflowDefinitionTransfer.vue",
+      "entry": [
+        "Within Workflow settings, choose Import JSON or Preview workflow export."
+      ],
+      "actions": [
+        "Paste JSON",
+        "Validate and preview",
+        "Apply draft",
+        "Preview export"
+      ],
+      "states": [
+        "Closed",
+        "Invalid import",
+        "Valid preview",
+        "Export ready"
+      ],
+      "journeys": [
+        "workflow-configuration"
+      ],
+      "privacy": "Private vault workspace; excluded from public projections.",
+      "file": "workflow-transfer.md"
+    }
+  ]
+}

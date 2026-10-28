@@ -1,5 +1,4 @@
 /* CoForge settings. Studio settings are a form, with live connection evidence kept separate. */
-.cf-settings-page { padding: 30px 32px 48px; max-width: 1210px; width: 100%; min-width: 0; margin: 0 auto; }
 .cf-settings-page .cf-page-heading p { max-width: 66ch; }
 .cf-settings-local-label { display: inline-flex; align-items: center; gap: 7px; color: var(--cf-muted); font-size: 10px; white-space: nowrap; }
 .cf-settings-help { font-size: 12px; color: var(--cf-muted); line-height: 1.65; }
@@ -109,7 +108,6 @@
 .cf-settings-reset-confirm > .cf-settings-actions { justify-content: flex-end; }
 
 @container plugin-shell-leaf (max-width: 1250px) {
-  .cf-settings-page { padding: 26px 25px 40px; }
   .cf-settings-page .cf-page-heading { align-items: flex-start; }
   .cf-settings-section { grid-template-columns: minmax(160px, 0.6fr) minmax(0, 1.4fr); gap: 28px; }
 }
@@ -118,9 +116,7 @@
   .cf-settings-description p { max-width: 60ch; }
 }
 @container plugin-shell-leaf (max-width: 600px) {
-  .cf-settings-page { padding: 22px 18px 36px; }
   .cf-settings-page .cf-page-heading { margin-bottom: 23px; gap: 15px; }
-  .cf-settings-page .cf-page-heading h1 { font-size: 23px; }
   .cf-settings-local-label { display: none; }
   .cf-settings-fields-grid { grid-template-columns: 1fr; gap: 0 12px; }
   .cf-settings-runtime-list > div { grid-template-columns: 130px minmax(0, 1fr); font-size: 10px; gap: 12px; }
