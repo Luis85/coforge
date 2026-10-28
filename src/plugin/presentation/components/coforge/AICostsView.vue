@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAICosts } from "../../composables/coforge/use-ai-costs";
+import AIUsageSummary from "./AIUsageSummary.vue";
 const model = useAICosts();
 </script>
 <template>
@@ -92,9 +93,10 @@ const model = useAICosts();
       <p class="cf-muted">
         Known totals exclude unavailable costs and
         {{ model.summary.simulations }} simulation tasks. Retries and failed
-        attempts remain included. Herdr delivery does not report completion or
-        usage.
+        attempts remain included. Herdr does not currently report token usage
+        or costs.
       </p>
+      <AIUsageSummary :summary="model.tokenTotals" />
       <p v-if="model.store.state.loading" role="status">
         Loading cost history…
       </p>
@@ -122,13 +124,17 @@ const model = useAICosts();
               cost</small
             ></strong
           >
+          <small
+            >Uncached input {{ model.tokenCount(feature.tokens.inputTokens) }} ·
+            output {{ model.tokenCount(feature.tokens.outputTokens) }}</small
+          >
         </button>
       </div>
       <h2 v-if="model.tasks.length">
         Task history <small>({{ model.tasks.length }})</small>
       </h2>
       <p v-if="model.tasks.length" class="cf-ai-table-help">
-        Scroll across the task table to see provider, status and cost.
+        Scroll across the task table to see provider, status, tokens and cost.
       </p>
       <div
         v-if="model.tasks.length"
@@ -147,6 +153,8 @@ const model = useAICosts();
               <th scope="col">Provider / model</th>
               <th scope="col">Status / started</th>
               <th scope="col">Usage · USD</th>
+              <th scope="col">Uncached input tokens</th>
+              <th scope="col">Output tokens</th>
               <th scope="col">Cost entry</th>
             </tr>
           </thead>
@@ -166,6 +174,22 @@ const model = useAICosts();
               <td>
                 <strong>{{ model.cost(task).display }}</strong
                 ><small>{{ model.cost(task).source }}</small>
+              </td>
+              <td>
+                <strong>{{ model.tokens(task).input }}</strong
+                ><small>{{ model.tokens(task).inputSource }}</small
+                ><small
+                  v-if="
+                    task.usage?.cacheReadInputTokens !== undefined ||
+                    task.usage?.cacheCreationInputTokens !== undefined
+                  "
+                  >Cache read {{ model.tokens(task).cacheRead }} · write
+                  {{ model.tokens(task).cacheWrite }}</small
+                >
+              </td>
+              <td>
+                <strong>{{ model.tokens(task).output }}</strong
+                ><small>{{ model.tokens(task).outputSource }}</small>
               </td>
               <td>
                 <button

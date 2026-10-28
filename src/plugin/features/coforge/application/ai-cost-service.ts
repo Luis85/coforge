@@ -49,7 +49,11 @@ export class AICostService implements AICostActions {
     if (this.closed) return;
     this.stop();
     this.stop = this.store.subscribeEvents((event) => {
-      if (/^(job-|ai-cost-reported|herdr-action-)/.test(event.type))
+      if (
+        /^(job-|ai-cost-reported|ai-usage-reported|herdr-action-)/.test(
+          event.type,
+        )
+      )
         this.schedule();
     });
     await this.refresh();
@@ -73,6 +77,9 @@ export class AICostService implements AICostActions {
               ...incoming,
               featureTitle: before.featureTitle || incoming.featureTitle,
               projectName: before.projectName || incoming.projectName,
+              ...(incoming.usage
+                ? { usage: { ...before.usage, ...incoming.usage } }
+                : {}),
             }
           : incoming,
       );

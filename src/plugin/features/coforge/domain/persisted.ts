@@ -4,6 +4,7 @@ import { defaultIntegration, defaultSettings } from './seed';
 import { obsSettingsCheck, obsCommandCheck } from './obs-check';
 import { populationCheck } from './population-check';
 import { stagePromptsCheck } from './stage-prompts';
+import { stageUsageCheck } from './ai-usage';
 import { stageAgentsCheck } from './stage-agents';
 import type { AgentJob, AppState, Increment, IntegrationSettings, Settings } from './types';
 import { CONTRIBUTOR_COLORS } from './types';
@@ -16,7 +17,7 @@ export interface PersistedStudio extends Omit<AppState, 'ideas' | 'runtime' | 'p
 }
 
 const str = text();
-const provider = oneOf(['demo', 'claude'] as const);
+const provider = oneOf(['demo', 'claude', 'herdr'] as const);
 const stage = oneOf(['screen', 'score', 'plan', 'implement'] as const);
 
 function dictionary<T>(item: Check<T>): Check<Record<string, T>> {
@@ -28,12 +29,14 @@ const increment = shape({
   branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
 });
 const job: Check<AgentJob> = shape({
+  usage: optional(stageUsageCheck), herdrAgent: optional(oneOf(['claude'] as const)),
   model: optional(text({ max: 100 })),
   id: str, ideaId: str, stage, status: oneOf(['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const), provider,
   startedAt: timestamp, finishedAt: optional(timestamp), logs: list(str), error: optional(str), costUsd: optional(number({ min: 0 })),
   projectId: optional(str),
 });
 export const settingsCheck: Check<Settings> = shape({
+  herdrAgent: optional(oneOf(['claude'] as const)),
   stageAgents: optional(stageAgentsCheck),
   stagePrompts: optional(stagePromptsCheck),
   agentPrompt: text({ max: 8000 }),

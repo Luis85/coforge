@@ -7,17 +7,17 @@ const model = useStreamDisplays();
   <details class="cf-stream-displays">
     <summary>Public stream displays</summary>
     <p>
-      Open a dedicated read-only window from here or its Obsidian ribbon icon.
-      Capture that window in OBS and set Window Match Priority to “Window title
-      must match”. Keep the private studio outside your capture.
+      Open a new read-only tab in the main workspace from here or its Obsidian
+      ribbon icon. To capture it in OBS, detach that tab into its own window
+      using Obsidian’s tab menu. Keep the private studio outside your capture.
     </p>
     <p>
-      Window names stay fixed when you change projects. Dedicated windows pause
-      if another pane or dialog appears, and close when CoForge unloads. Reopen
-      them with the same ribbon icons after a reload.
+      Detached window names stay fixed when you change projects. Public windows
+      pause if another pane or dialog appears, and close when CoForge unloads.
+      After a reload, reopen a public tab and detach it again for capture.
     </p>
     <p>
-      The Kanban window stays pinned to its chosen project while you work
+      The Kanban display stays pinned to its chosen project while you work
       elsewhere.
     </p>
     <button
@@ -39,7 +39,7 @@ const model = useStreamDisplays();
             :disabled="!model.canOpen"
             @click="model.open(definition.id)"
           >
-            Open {{ definition.label }} window</button
+            Open {{ definition.label }} tab</button
           ><button
             v-if="model.source"
             type="button"
@@ -58,7 +58,7 @@ const model = useStreamDisplays();
     >
       <p>
         Preview only. These surrounding studio controls are private; capture the
-        dedicated window instead.
+        detached public window instead.
       </p>
       <button
         type="button"

@@ -38,6 +38,8 @@ export const OPERATION_CODES = [
   'job-queued', 'ai-cost-reported', 'ai-cost-manual-updated',
   'project-stage-prompts-updated',
   'project-stage-agents-updated',
+  'ai-usage-reported',
+  'herdr-workflow-updated',
   'twitch-chat-removed',
   'stream-view-opened', 'stream-view-closed', 'stream-view-blocked',
   'request-context-added',

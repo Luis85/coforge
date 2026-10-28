@@ -4,6 +4,7 @@ import { STAGES, type AgentStage, type Provider, type Settings } from "./types";
 export interface StageAgent {
   provider?: Provider;
   model?: string;
+  herdrAgent?: 'claude';
 }
 export type StageAgents = Partial<Record<AgentStage, StageAgent>>;
 /** A CLI model identifier is a value, never another flag or command line. */
@@ -14,9 +15,9 @@ export const agentModelCheck = text({
   max: 100,
   pattern: MODEL_PATTERN,
 });
-const providerCheck = oneOf(["demo", "claude"] as const);
+const providerCheck = oneOf(["demo", "claude", "herdr"] as const);
 const agentCheck = shape(
-  { provider: optional(providerCheck), model: optional(agentModelCheck) },
+  { provider: optional(providerCheck), model: optional(agentModelCheck), herdrAgent: optional(oneOf(['claude'] as const)) },
   { strict: true },
 );
 export const stageAgentsCheck = shape(
@@ -35,19 +36,21 @@ export function normalizeStageAgents(value: StageAgents): StageAgents {
   const result: StageAgents = {};
   for (const stage of STAGES) {
     const entry = checked[stage];
-    if (entry && (entry.provider !== undefined || entry.model !== undefined))
+    if (entry && (entry.provider !== undefined || entry.model !== undefined || entry.herdrAgent !== undefined))
       result[stage] = { ...entry };
   }
   return result;
 }
 export function stageAgent(
-  settings: Pick<Settings, "provider" | "model" | "stageAgents">,
+  settings: Pick<Settings, "provider" | "model" | "stageAgents" | 'herdrAgent'>,
   stage: AgentStage,
-): { provider: Provider; model: string } {
+): { provider: Provider; model: string; herdrAgent?: 'claude' } {
   const entry = settings.stageAgents?.[stage];
+  const provider = providerCheck(entry?.provider ?? settings.provider);
   return {
-    provider: providerCheck(entry?.provider ?? settings.provider),
+    provider,
     model: agentModelCheck(entry?.model ?? settings.model),
+    ...(provider === 'herdr' ? { herdrAgent: oneOf(['claude'] as const)(entry?.herdrAgent ?? settings.herdrAgent ?? 'claude') } : {}),
   };
 }
 export function hasClaudeStages(

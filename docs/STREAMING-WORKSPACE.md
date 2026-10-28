@@ -1,7 +1,7 @@
 # Streaming workspace
 
 The studio is private. Use the four **CoForge Stream** ribbon icons or the
-**Public stream displays** section in Stream studio for capture windows:
+**Public stream displays** section in Stream studio to open public tabs:
 
 | Display | Stable window title |
 | --- | --- |
@@ -10,19 +10,22 @@ The studio is private. Use the four **CoForge Stream** ribbon icons or the
 | Leaderboards | CoForge Stream - Leaderboards |
 | Community | CoForge Stream - Community |
 
-Each explicit ribbon/Open action opens a fresh native Obsidian window, without
-replacing a tab in the main workspace. Additional windows of the same kind keep
-numbered titles such as `CoForge Stream - Kanban (2)`, so OBS can distinguish them.
-Their window slots survive project retargeting and workspace restoration. Use the
-exact title of the intended window when configuring its OBS source.
+Each explicit ribbon/Open action opens a fresh tab in the main workspace, preserving
+existing tabs. The four monitor-framed icons identify the board, chat, rankings and
+community guide. Tabs remain read-only and contain only the public projection.
 
-In OBS, capture the dedicated window and choose **Window title must match** as
-the window match priority. Avoid capturing your whole desktop or private studio.
-The Kanban window stays on its selected project when you change projects privately.
-Use **Show selected project on stream Kanban** to change the public project explicitly.
-Capture windows show a curtain when another pane or host dialog appears, and close
-on plugin unload/reload. Reopen them with the same icons after a reload. Keep
-Obsidian's other windows outside the captured source. Platform-specific OBS capture
+For OBS capture, detach a public tab into its own window using Obsidian's tab menu.
+Additional detached windows of the same kind keep numbered titles such as
+`CoForge Stream - Kanban (2)`, so OBS can distinguish them. Their window slots
+survive project retargeting and workspace restoration. Use the exact title of the
+intended window and choose **Window title must match** as OBS's match priority.
+Avoid capturing your whole desktop, main workspace or private studio.
+
+The Kanban display stays on its chosen project when you change projects privately.
+Use **Show selected project on stream Kanban** to change the main public tab's
+project explicitly; detached captures stay pinned. Detached capture windows show a
+curtain when another pane or host dialog appears, and close on plugin unload/reload.
+Reopen a public tab and detach it again after a reload. Platform-specific OBS
 matching still needs an off-air check on the streamer's machine.
 
 Public chat contains actual messages received through the current Twitch connection,
@@ -64,13 +67,30 @@ streamer review. Overrides live in `agent-prompt-screen`, `agent-prompt-score`,
 
 Each step also has a provider and model choice. Blank fields inherit the project's
 defaults; explicit overrides remain independent when defaults change. The current
-workflow runners are Claude Code and Simulation. Simulation makes no model call;
-real steps use the configured Claude CLI alias or model identifier. A mixed workflow
+workflow runners are Claude Code, Simulation and Herdr. Simulation makes no model call;
+real steps use the configured model alias or identifier. A mixed workflow
 is labelled **Mixed providers**, and each workflow card shows its actual runner/model.
 **Use project defaults for this step** clears only its provider/model overrides,
 leaving its task prompt intact. The project note stores `agent-provider-<stage>` and
 `agent-model-<stage>` fields. Each queued attempt retains its selected provider/model
 for execution, history and AI-cost attribution, even while another project is active.
+
+Herdr steps launch a dedicated agent in the configured local Herdr session; select
+the **Claude Code** managed profile and a model for each step. Other agent kinds
+remain available in manual Herdr controls, but have no verified workflow profile yet.
+Connect and refresh Herdr in **Agent workflow** first. Each task uses a private,
+correlated JSON result file; delivery, terminal text and idle status alone never
+advance a request. Classifiers can only write that result; Plan reads the project
+and writes its result; Build edits a separate Git worktree for streamer review.
+The managed agent cannot execute test commands, so captured increments clearly
+report tests as not run. CoForge never accepts model-written usage or test claims.
+
+Herdr's interactive agent does not enforce the direct Claude runner's USD/turn caps.
+Manage spending in the external agent. Cancelling or timing out stops CoForge's wait;
+the external agent may still be running. Recovery records preserve the original
+session, workspace and attempt. Inspect that session, then explicitly acknowledge
+the record in **Agent workflow** before another mutation. Reload never resends a task
+or automatically resumes an incomplete attempt.
 
 Configuration edits require that project's queued/running tasks to finish or be
 cancelled. If project settings change outside the form, unsaved drafts stay intact;
@@ -86,6 +106,13 @@ known totals are partial when coverage is incomplete. Simulations contribute no
 real usage cost. Herdr delivery is not completion and currently has no reliable
 automatic cost: add a manual USD amount for the individual dispatch when available.
 A later provider report takes precedence without deleting its manual annotation.
+
+The same view shows provider-reported input/output tokens per attempt and known
+totals, with coverage for missing reports. Raw input excludes cache reads and cache
+creation, which are displayed separately. Inclusive input is available only when
+all three input counters are reported. Missing counters stay unavailable; zero is
+shown only when reported. Failed tasks retain reported usage. Herdr currently has
+no trustworthy token API, so its tasks contribute no inferred token totals.
 
 The private USD usage ledger is `CoForge/AI-Costs/Ledger.md`. It retains task records
 beyond the operational job list. Older history can only be backfilled from retained

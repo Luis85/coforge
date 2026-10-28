@@ -1,5 +1,8 @@
 import { list, number, oneOf, optional, shape, text, timestamp } from "./check";
+import { stageUsageCheck, type StageUsage } from "./ai-usage";
 export interface AICostTask {
+  usage?: StageUsage;
+  usageSource?: "provider";
   id: string;
   featureId: string;
   featureTitle: string;
@@ -29,6 +32,8 @@ export const aiCostTaskCheck = shape(
     startedAt: timestamp,
     finishedAt: optional(timestamp),
     model: optional(text({ max: 100 })),
+    usage: optional(stageUsageCheck),
+    usageSource: optional(oneOf(["provider"] as const)),
     reportedUsd: optional(number({ min: 0, max: 1000000000 })),
     manualUsd: optional(text({ max: 40 })),
     manualNote: optional(text({ max: 2000 })),

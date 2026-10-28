@@ -97,3 +97,14 @@
     padding: 5px 8px;
   }
 }
+/* Selection remains contained; keyboard focus is a separate inset indicator. */
+.ps--coforge .cf-studio .cf-sidebar nav .cf-nav-item[aria-current] {
+  outline: none;
+  box-shadow: none;
+  background: var(--cf-accent-soft);
+  color: var(--text-accent);
+}
+.ps--coforge .cf-studio .cf-sidebar nav .cf-nav-item:focus-visible {
+  outline: 2px solid var(--cf-accent);
+  outline-offset: -3px;
+}

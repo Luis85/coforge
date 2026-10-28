@@ -25,6 +25,7 @@ export type SettingsDraft = Pick<
   | "agentPrompt"
   | "provider"
   | "model"
+  | "herdrAgent"
   | NumberKey
 > &
   ProjectPaths &
@@ -114,12 +115,19 @@ export const PROVIDERS: Array<{
     title: "Claude Code CLI",
     text: "Real local agent runs using your configured Claude account.",
   },
+  {
+    value: "herdr",
+    icon: "network",
+    title: "Herdr",
+    text: "Dedicated Claude Code agent per task, launched with the selected model.",
+  },
 ];
 
 export const pickSettingsDraft = (
   settings: Settings,
 ): Omit<SettingsDraft, keyof ProjectPaths | keyof ProjectLinks> => ({
   agentPrompt: settings.agentPrompt,
+  ...(settings.herdrAgent ? { herdrAgent: settings.herdrAgent } : {}),
   stagePrompts: resolvedStagePrompts(settings.stagePrompts),
   stageAgents: stageAgentDrafts(settings.stageAgents),
   projectName: settings.projectName,
@@ -167,7 +175,7 @@ export function validateSettingsDraft(draft: SettingsDraft): string | null {
     draft.projectBrief.trim().length < 10 ||
     !draft.model.trim()
   )
-    return "Add a project name, a brief of at least 10 characters, and a Claude model.";
+    return "Add a project name, a brief of at least 10 characters, and a model identifier.";
   if (!MODEL_PATTERN.test(draft.model.trim()))
     return "Use a model name or alias containing letters, numbers, dots, dashes, underscores, or colons.";
   for (const stage of STAGES)

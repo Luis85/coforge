@@ -106,7 +106,7 @@ export class TestApp {
 
 /** Fresh kit logs, desktop Platform, DOM helpers (when a DOM exists) and a seeded app. */
 export function createTestApp(options: TestAppOptions = {}): TestApp {
-  uiLog.notices.length = 0; uiLog.menus.length = 0; hostErrors.length = 0;
+  uiLog.notices.length = 0; uiLog.menus.length = 0; uiLog.icons.clear(); hostErrors.length = 0;
   Object.assign(Platform, platformDefaults, options.platform);
   if (hasDom() && !domInstalled) { installObsidianDom(); domInstalled = true; }
   if (options.app !== undefined && !(options.app instanceof App)) throw new Error('OBSIDIAN_TEST_KIT_APP_REQUIRED: create it with `new App()` from the mocked obsidian module');

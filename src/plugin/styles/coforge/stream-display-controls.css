@@ -1,0 +1,33 @@
+.cf-stream-displays {
+  padding-block: 24px;
+  border-block: 1px solid var(--cf-border);
+  margin-block: 24px;
+}
+.cf-stream-displays > summary {
+  font-size: 17px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.cf-stream-displays:not([open]) > :not(summary) {
+  display: none;
+}
+.cf-stream-display-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-block: 20px;
+}
+.cf-stream-display-list code {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-block: 8px;
+}
+.cf-stream-display-preview {
+  padding-top: 20px;
+  border-top: 1px solid var(--cf-border);
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-stream-display-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

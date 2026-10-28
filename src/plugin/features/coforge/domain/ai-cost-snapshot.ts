@@ -26,6 +26,9 @@ export function collectCostTasks(
       ...(job.finishedAt ? { finishedAt: job.finishedAt } : {}),
       ...(job.model ? { model: job.model } : {}),
       ...(job.costUsd !== undefined ? { reportedUsd: job.costUsd } : {}),
+      ...(job.usage
+        ? { usage: { ...job.usage }, usageSource: "provider" as const }
+        : {}),
     };
   });
   return [

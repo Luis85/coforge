@@ -74,6 +74,7 @@ function createSettings() {
   const staleMessage = () =>
     `Project settings changed outside this form. Your draft for ${expectedProjectId.value || "the original project"} is kept. Copy any edits you want to retain, then discard changes to load the latest settings before saving.`;
   const loadSource = () => {
+    delete draft.herdrAgent;
     Object.assign(draft, copyDraft(persisted.value));
     expectedKey.value = persistedKey.value;
     expectedProjectId.value = sourceProject.value?.id ?? "";
@@ -199,10 +200,24 @@ function createSettings() {
       return {
         provider: entry.provider || draft.provider,
         model: entry.model.trim() || draft.model.trim(),
+        herdrAgent: entry.herdrAgent || draft.herdrAgent || "claude",
         providerInherited: !entry.provider,
         modelInherited: !entry.model.trim(),
       };
     }),
+    effectiveStepLabel: computed(() => {
+      const entry = draft.stageAgents[store.promptStage];
+      const provider = entry.provider || draft.provider;
+      return provider === "demo"
+        ? "Simulation · no model call"
+        : `${provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${entry.model.trim() || draft.model.trim()}`;
+    }),
+    hasHerdrStep: computed(() =>
+      STAGES.some(
+        (stage) =>
+          (draft.stageAgents[stage].provider || draft.provider) === "herdr",
+      ),
+    ),
     hasClaudeStep: computed(() =>
       STAGES.some(
         (stage) =>

@@ -46,6 +46,25 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - Persist intent before mutations; hold pending/uncertain actions across reload without replay.
   The streamer refreshes, inspects Herdr and explicitly acknowledges recovery before another mutation.
 
+### Herdr workflow provider (owner request, 2026-10-28)
+
+- Add Herdr to per-project workflow-step configuration, with an agent and model choice for each step.
+- The installed Herdr 0.9.5 can forward model arguments at agent launch, but does not expose a generic
+  existing-agent model setter/verifier or task-correlated structured result/cost API. Delivery is not completion.
+- Each step attempt launches a dedicated Herdr agent with its selected agent type/model; no existing live
+  agent is restarted or silently reconfigured. Initial managed launch support uses the verified restrictive
+  Claude Code profile; other Herdr kinds stay available in manual controls but are not claimed workflow-safe.
+- Completion uses an automatic task-correlated result file with schema validation. A matching attempt,
+  project, request revision and nonce plus observed post-send settling are required; terminal text/status alone
+  cannot advance work. Classifiers have one narrow result-file write exception; Plan remains read-only apart
+  from that private result channel; Build edits a separate worktree and reports an independently captured diff.
+- Herdr interactive agents do not expose trustworthy token/cost usage or enforce the native print-run USD/turn
+  limits. Display those boundaries honestly; never substitute model-written counters or generic Herdr metadata.
+- Track provider-reported input/output tokens (and cache read/create separately), retain usage on failed attempts,
+  and aggregate known counters/coverage privately in AI costs. Inclusive input requires complete cache counters.
+- Preserve project/agent identity checks, durable mutation intent, no uncertain-action replay, review gates,
+  cost provenance and private/public boundaries. Herdr's own agent permissions must be described honestly.
+
 ### Local stream music (owner decision, 2026-10-27)
 
 - A configurable folder inside the vault (default `CoForge/Music`) contains local MP3 files.
@@ -64,7 +83,8 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 ### Streaming workspace increment (owner decisions, 2026-10-27)
 
 - Four read-only stream views (Kanban, Twitch chat, leaderboards, community) each have a ribbon icon that
-  opens a detached Obsidian window. Window names remain stable for OBS capture. They expose only an explicit
+  opens a fresh tab in Obsidian's main workspace (owner revision, 2026-10-28). Tabs can be detached manually;
+  detached window names remain stable for OBS capture. They expose only an explicit
   public projection, without private notes, prompts, paths, account IDs, logs, moderation controls or finances.
   Chat includes live Twitch chat only, never local simulation or private bot diagnostics.
 - AI cost analytics use native USD, separate from the manual EUR finance ledger. Show costs per feature and
@@ -76,7 +96,7 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   Existing tool/output/review execution gates remain authoritative.
 - Each project can also override the AI provider and model independently for Screen, Score, Plan and Build.
   Unset fields inherit that project's existing defaults; legacy notes keep their current behavior. The initial
-  choices are the workflow's supported Claude Code and Simulation runners. Queued attempts retain their chosen
+  choices include Claude Code, Simulation and the verified Herdr managed Claude profile. Queued attempts retain their chosen
   provider/model, including when another project is selected. Configuration cannot change underneath active work.
 - Review every private, native-settings and public display view for a clear user goal and next action, then improve
   concrete navigation, hierarchy, empty/error-state, accessibility and spacing findings without replacing the native design.

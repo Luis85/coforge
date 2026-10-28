@@ -87,4 +87,64 @@ describe("per-task AI usage costs", () => {
     ).rejects.toThrow("changed");
     await service.dispose();
   });
+  it("archives usage through partial cumulative refreshes and operational pruning without counting an attempt twice", async () => {
+    const { store } = await emptyStore();
+    let source: AICostTask[] = [
+      {
+        ...task("tokens"),
+        usage: { inputTokens: 10 },
+        usageSource: "provider",
+      },
+    ];
+    let saved: AICostTask[] = [];
+    const storage = {
+      load: async () => structuredClone(saved),
+      save: async (tasks: AICostTask[]) => {
+        saved = structuredClone(tasks);
+      },
+    };
+    const service = new AICostService(
+      store,
+      storage,
+      () => source,
+      nodeTimers(),
+    );
+    await service.start();
+    source = [
+      {
+        ...task("tokens"),
+        usage: { outputTokens: 4 },
+        usageSource: "provider",
+      },
+    ];
+    await service.refresh();
+    expect(service.snapshot().tasks[0]?.usage).toEqual({
+      inputTokens: 10,
+      outputTokens: 4,
+    });
+    source = [
+      {
+        ...task("tokens"),
+        usage: { inputTokens: 15, outputTokens: 6 },
+        usageSource: "provider",
+      },
+    ];
+    await service.refresh();
+    await service.refresh();
+    expect(service.snapshot().tasks).toHaveLength(1);
+    expect(service.snapshot().tasks[0]?.usage).toEqual({
+      inputTokens: 15,
+      outputTokens: 6,
+    });
+    source = [];
+    await service.refresh();
+    await service.dispose();
+    const reopened = new AICostService(store, storage, () => [], nodeTimers());
+    await reopened.start();
+    expect(reopened.snapshot().tasks[0]?.usage).toEqual({
+      inputTokens: 15,
+      outputTokens: 6,
+    });
+    await reopened.dispose();
+  });
 });

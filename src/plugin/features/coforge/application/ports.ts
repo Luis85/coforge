@@ -36,8 +36,8 @@ export interface StudioStorage {
 
 export type ExternalNoteChange = { kind: 'upsert'; idea: NoteIdea } | { kind: 'remove'; id: string };
 
-export interface StageResult { screening?: Screening; rice?: RiceScore; plan?: ImplementationPlan; increment?: Increment; costUsd?: number }
-export interface StageInput { stage: AgentStage; idea: Idea; settings: Settings; integration: IntegrationSettings; signal?: AbortSignal; onLog?: (message: string) => void; onUsage?: (costUsd: number) => Promise<void> }
+export interface StageResult { screening?: Screening; rice?: RiceScore; plan?: ImplementationPlan; increment?: Increment; costUsd?: number; usage?: import('../domain/ai-usage').StageUsage }
+export interface StageInput { jobId?: string; stage: AgentStage; idea: Idea; settings: Settings; integration: IntegrationSettings; signal?: AbortSignal; onLog?: (message: string) => void; onUsage?: (costUsd: number) => Promise<void>; onTokenUsage?: (usage: import('../domain/ai-usage').StageUsage) => Promise<void> }
 export type StageRunner = (input: StageInput) => Promise<StageResult>;
 
 /** Host timers (Obsidian window timers in the plugin) keep pure code popout-safe and testable. */
@@ -50,7 +50,7 @@ export interface Timers {
 
 /** Host capabilities the studio needs but must not implement itself. */
 export interface StudioHost {
-  runners: { demo: StageRunner; claude: StageRunner };
+  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner };
   timers: Timers;
   probeRuntime(integration: IntegrationSettings): Promise<Pick<RuntimeInfo, 'cliAvailable' | 'projectPath' | 'allowImplementation'>>;
   report?(error: Error): void;
@@ -60,6 +60,7 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  herdrWorkflows?: import('./herdr-workflow-ports').HerdrWorkflowActions;
   schedule?: import('./schedule-ports').ScheduleActions;
   previewSchedule?(): import('./schedule-ports').ScheduleActions;
   aiCosts?: import('./ai-cost-ports').AICostActions;

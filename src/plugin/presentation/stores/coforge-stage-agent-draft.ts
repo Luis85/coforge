@@ -8,6 +8,7 @@ import {
 export interface StageAgentDraft {
   provider: Provider | "";
   model: string;
+  herdrAgent?: "claude" | "";
 }
 export type StageAgentDrafts = Record<AgentStage, StageAgentDraft>;
 
@@ -16,6 +17,9 @@ export function stageAgentDrafts(value?: StageAgents): StageAgentDrafts {
   const entry = (stage: AgentStage): StageAgentDraft => ({
     provider: value?.[stage]?.provider ?? "",
     model: value?.[stage]?.model ?? "",
+    ...(value?.[stage]?.herdrAgent
+      ? { herdrAgent: value[stage]?.herdrAgent }
+      : {}),
   });
   return {
     screen: entry("screen"),
@@ -39,10 +43,11 @@ export function stageAgentDraftValues(drafts: StageAgentDrafts): StageAgents {
   for (const stage of STAGES) {
     const draft = drafts[stage];
     const model = draft.model.trim();
-    if (draft.provider || model)
+    if (draft.provider || model || draft.herdrAgent)
       value[stage] = {
         ...(draft.provider ? { provider: draft.provider } : {}),
         ...(model ? { model } : {}),
+        ...(draft.herdrAgent ? { herdrAgent: draft.herdrAgent } : {}),
       };
   }
   return value;

@@ -73,13 +73,30 @@ const model = useSettingsForm();
           }}</small>
         </div>
       </div>
+      <label v-if="model.stepAgent.provider === 'herdr'" class="cf-field">
+        <span>Step Herdr agent type</span>
+        <select
+          v-model="model.draft.stageAgents[model.store.promptStage].herdrAgent"
+          :disabled="model.pending"
+          aria-label="Step Herdr agent type"
+        >
+          <option :value="undefined">Use project default (Claude Code)</option>
+          <option value="claude">Claude Code</option>
+        </select>
+        <small
+          >Only the verified managed Claude Code profile is supported. Each
+          attempt launches a dedicated agent with the selected model.</small
+        >
+      </label>
       <p class="cf-settings-help">
-        Effective runner:
-        <strong>{{
-          model.stepAgent.provider === "demo"
-            ? "Simulation · no model call"
-            : `Claude Code · ${model.stepAgent.model}`
-        }}</strong>
+        Effective runner: <strong>{{ model.effectiveStepLabel }}</strong>
+      </p>
+      <p v-if="model.stepAgent.provider === 'herdr'" class="cf-settings-help">
+        CoForge validates a task-correlated result file before advancing the
+        request. Delivery or idle status alone does not complete a step. Herdr
+        does not report reliable automatic token usage or costs. Configure
+        interactive agent spending and turn limits externally; CoForge’s native
+        CLI budget cap does not enforce Herdr spending.
       </p>
       <button
         type="button"
@@ -118,13 +135,7 @@ const model = useSettingsForm();
           Previewing does not run an agent. The general project prompt prefixes
           the request payload; these system instructions define the stage task.
         </p>
-        <p>
-          {{
-            model.stepAgent.provider === "demo"
-              ? "Simulation uses fixed local results and does not run custom prompts."
-              : `Dispatch: Claude Code · ${model.stepAgent.model}`
-          }}
-        </p>
+        <p>Dispatch: {{ model.effectiveStepLabel }}</p>
         <h3>System instructions</h3>
         <pre tabindex="0">{{ model.promptSystem }}</pre>
         <label class="cf-field"

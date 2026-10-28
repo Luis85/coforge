@@ -4,6 +4,7 @@ import {
   STATUS_LABELS,
   type Idea,
 } from "../../../features/coforge/domain/types";
+import { workflowStageProblem } from "./workflow-readiness";
 import { stageAgent } from "../../../features/coforge/domain/stage-agents";
 import { ideaProjectId } from "../../../features/coforge/domain/projects";
 import {
@@ -79,15 +80,7 @@ export function useIdeaCardMenu(
       return "Restore this project before dispatching work.";
     const settings =
       project.id === state?.activeProjectId ? state.settings : project.settings;
-    if (stageAgent(settings, stage).provider === "claude") {
-      if (!store.state?.runtime.cliAvailable)
-        return "Install/connect Claude Code in project settings.";
-      if (["plan", "implement"].includes(stage) && !project.projectPath)
-        return "Set the project directory first.";
-      if (stage === "implement" && !project.allowImplementation)
-        return "Real implementation is disabled for this project.";
-    }
-    return "";
+    return workflowStageProblem(settings, stage, project, store.state?.runtime);
   });
   const runStage = () => {
     const current = store.state?.ideas.find(
@@ -168,8 +161,8 @@ export function useIdeaCardMenu(
           }[stage],
           description:
             reason.value ||
-            (nextAgent.value?.provider === "claude"
-              ? `Claude Code · ${nextAgent.value.model}`
+            (nextAgent.value && nextAgent.value.provider !== "demo"
+              ? `${nextAgent.value.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${nextAgent.value.model}`
               : "Simulation · no model calls"),
           icon: "i-lucide-play",
           disabled: Boolean(reason.value),

@@ -18,7 +18,7 @@ export function useStreamDisplays() {
       error.value = "";
       void host.streamViews?.open(surface).catch(() => {
         error.value =
-          "The detached view could not be opened. Use desktop Obsidian and check its workspace.";
+          "The public tab could not be opened. Open a main workspace tab and try again.";
       });
     },
     showProject: () => {

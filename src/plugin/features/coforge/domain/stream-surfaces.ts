@@ -5,41 +5,55 @@ import {
   type PublicIdea,
 } from "./public-board";
 import { createEmptyState } from "./seed";
+import { defaultEconomyRules, type EconomyRules } from "./population";
+import {
+  defaultCommunityEnvironment,
+  type NamedRank,
+} from "./community-environment";
 export const STREAM_SURFACES = [
   {
     id: "kanban",
     title: "CoForge Stream - Kanban",
     label: "Stream Kanban",
-    icon: "columns-3",
+    icon: "coforge-stream-kanban",
   },
   {
     id: "chat",
     title: "CoForge Stream - Chat",
     label: "Stream Chat",
-    icon: "messages-square",
+    icon: "coforge-stream-chat",
   },
   {
     id: "leaderboards",
     title: "CoForge Stream - Leaderboards",
     label: "Stream Leaderboards",
-    icon: "trophy",
+    icon: "coforge-stream-leaderboards",
   },
   {
     id: "community",
     title: "CoForge Stream - Community",
     label: "Stream Community",
-    icon: "users-round",
+    icon: "coforge-stream-community",
   },
 ] as const;
 export type StreamSurface = (typeof STREAM_SURFACES)[number]["id"];
 export type StreamIdea = Pick<
   PublicIdea,
-  "id" | "title" | "description" | "category" | "status" | "votes" | "author"
+  | "id"
+  | "title"
+  | "description"
+  | "category"
+  | "status"
+  | "votes"
+  | "author"
+  | "rice"
 > & { contexts: Array<{ author: string; text: string }> };
 export interface StreamSurfaceSnapshot {
   board: {
     project: string;
     projectId: string;
+    awaitingScreening: number;
+    screenedRequests: number;
     columns: Array<{
       id: string;
       title: string;
@@ -56,7 +70,13 @@ export interface StreamSurfaceSnapshot {
     ideas: PublicContributor[];
     implementations: PublicContributor[];
   };
-  community: { actorName: string; contributors: PublicContributor[] };
+  community: {
+    actorName: string;
+    currencyName: string;
+    contributors: PublicContributor[];
+    ranks: NamedRank[];
+    rules: EconomyRules;
+  };
 }
 /** Whitelist, never a stripped clone of AppState. No runtime/accounts/paths/prompts/review/CRM/cost fields cross this seam. */
 export function streamSurfaceSnapshot(
@@ -84,11 +104,17 @@ export function streamSurfaceSnapshot(
           };
   const board = buildPublicBoard(scoped);
   const connected = state.runtime.twitch?.phase === "connected";
+  const rules = state.population?.rules ?? defaultEconomyRules();
   return {
     board: {
       project: board.project,
       projectId:
         context.projectId !== undefined && !project ? "" : board.projectId,
+      awaitingScreening: board.awaitingScreening,
+      screenedRequests: board.columns.reduce(
+        (sum, column) => sum + column.ideas.length,
+        0,
+      ),
       columns: board.columns.map((column) => ({
         id: column.id,
         title: column.title,
@@ -96,7 +122,7 @@ export function streamSurfaceSnapshot(
         ideas: column.ideas
           .slice(0, 50)
           .map(
-            ({ id, title, description, category, status, votes, author }) => ({
+            ({
               id,
               title,
               description,
@@ -104,6 +130,16 @@ export function streamSurfaceSnapshot(
               status,
               votes,
               author,
+              rice,
+            }) => ({
+              id,
+              title,
+              description,
+              category,
+              status,
+              votes,
+              author,
+              rice,
               contexts:
                 state.ideas
                   .find((idea) => idea.id === id)
@@ -137,8 +173,25 @@ export function streamSurfaceSnapshot(
     },
     leaderboards: board.leaderboards,
     community: {
-      actorName: state.population?.environment.actorName ?? "Agent",
+      actorName:
+        state.population?.environment.actorName ??
+        defaultCommunityEnvironment().actorName,
+      currencyName:
+        state.population?.environment.currencyName ??
+        defaultCommunityEnvironment().currencyName,
       contributors: board.contributors,
+      ranks: (
+        state.population?.environment.ranks ??
+        defaultCommunityEnvironment().ranks
+      ).map((rank) => ({ name: rank.name, minimumXp: rank.minimumXp })),
+      rules: {
+        coinsPerMinute: rules.coinsPerMinute,
+        xpPerMinute: rules.xpPerMinute,
+        screenedReputation: rules.screenedReputation,
+        screenedXp: rules.screenedXp,
+        acceptedReputation: rules.acceptedReputation,
+        acceptedXp: rules.acceptedXp,
+      },
     },
   };
 }

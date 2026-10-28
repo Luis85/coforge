@@ -1,7 +1,7 @@
 /** CoForge domain contracts. Ported from the local prototype's src/shared/types.ts. */
 export type IdeaStatus = 'inbox' | 'screened' | 'ranked' | 'planned' | 'building' | 'review' | 'shipped' | 'flagged' | 'rejected';
 export type AgentStage = 'screen' | 'score' | 'plan' | 'implement';
-export type Provider = 'demo' | 'claude';
+export type Provider = 'demo' | 'claude' | 'herdr';
 export type Category = 'Gameplay' | 'World' | 'Quality of life' | 'Art & audio' | 'Community';
 /** Contributor colours are Obsidian palette names (`--color-<name>`), never raw colour literals. */
 export type ContributorColor = 'purple' | 'orange' | 'green' | 'yellow' | 'blue' | 'pink' | 'cyan' | 'red';
@@ -34,6 +34,8 @@ export interface ChatMessage {
 }
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
+  usage?: import('./ai-usage').StageUsage;
+  herdrAgent?: 'claude';
   model?: string;
   id: string; ideaId: string; stage: AgentStage; status: JobStatus; provider: Provider;
   projectId?: string;
@@ -41,6 +43,7 @@ export interface AgentJob {
 }
 export interface Activity { id: string; ideaId?: string; type: 'idea' | 'vote' | 'agent' | 'review' | 'system'; text: string; createdAt: string }
 export interface Settings {
+  herdrAgent?: 'claude';
   stageAgents?: import('./stage-agents').StageAgents;
   stagePrompts?: import('./stage-prompts').StagePrompts;
   agentPrompt: string;
@@ -49,6 +52,7 @@ export interface Settings {
   requestCooldownSeconds: number;
 }
 export interface RuntimeInfo {
+  herdrWorkflow?: { ready: boolean; busy: boolean; message: string };
   liveStudio?: import('./live-studio').LiveStudioState;
   streamRecording?: import('./stream-metrics').StreamRecordingState;
   obs?: import('./obs').ObsPublicState;
