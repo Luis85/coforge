@@ -22,13 +22,15 @@ const NARRATION = {
 
 /** Clearly simulated agent output. No model is called and no game files are modified. */
 export function createDemoRunner(timers: Timers, delays: readonly [number, number] = [500, 650]) {
-  return async ({ stage, idea, signal, onLog }: StageInput): Promise<StageResult> => {
+  return async ({ stage, idea, signal, onLog, workflow }: StageInput): Promise<StageResult> => {
     onLog?.('Demo agent started. No external model is called and no game files are modified.');
     await pause(timers, delays[0], signal);
-    onLog?.(NARRATION[stage]);
+    onLog?.(workflow ? `Simulating ${workflow.step.name}.` : NARRATION[stage]);
     await pause(timers, delays[1], signal);
     const now = new Date().toISOString();
-    if (stage === 'screen') {
+    const output = workflow?.step.output ?? (stage === 'screen' ? 'screening' : stage === 'score' ? 'rice' : stage === 'plan' ? 'plan' : 'codechange');
+    if (output === 'markdown') return { markdown: `## Simulated ${workflow?.step.name ?? 'analysis'}\n\nIllustrative notes for ${idea.id}: ${idea.title}. No model was called and no game files were modified.` };
+    if (output === 'screening') {
       const signals = heuristicSignals(`${idea.title}\n${idea.description}`);
       return { screening: {
         verdict: signals.length ? 'flagged' : 'clear', signals, checkedAt: now, provider: 'demo',
@@ -37,13 +39,13 @@ export function createDemoRunner(timers: Timers, delays: readonly [number, numbe
           : 'No known injection patterns were found by the demo heuristic. This is a demonstration, not a guarantee that the request is safe.',
       } };
     }
-    if (stage === 'score') {
+    if (output === 'rice') {
       const hash = [...idea.title].reduce((sum, character) => sum + character.charCodeAt(0), 0);
       const values = { reach: 80 + (hash % 240), impact: [0.5, 1, 2, 3][hash % 4]!, confidence: [0.5, 0.65, 0.8][hash % 3]!, effort: [0.5, 1, 2, 3][hash % 4]! };
       return { rice: { ...values, score: riceValue(values),
         rationale: `Illustrative demo estimate for 30 days: ${values.reach} players reached × ${values.impact} impact × ${Math.round(values.confidence * 100)}% confidence ÷ ${values.effort} person-days. Votes are shown separately and do not determine reach. Validate these assumptions against the actual game and audience.` } };
     }
-    if (stage === 'plan') return { plan: samplePlan(idea.title, now) };
+    if (output === 'plan') return { plan: samplePlan(idea.title, now) };
     return { increment: sampleIncrement(idea.title, now) };
   };
 }

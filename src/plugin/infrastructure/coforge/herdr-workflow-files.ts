@@ -25,13 +25,26 @@ import {
   screeningOutput,
 } from "../../features/coforge/application/agent-prompts";
 import { cleanDeep } from "../../features/coforge/domain/sanitize";
-import { planMarkdown, riceValue } from "../../features/coforge/domain/types";
+import {
+  planMarkdown,
+  riceValue,
+  type Increment,
+} from "../../features/coforge/domain/types";
 import {
   agentGit,
   captureIncrement,
   prepareWorktree,
   projectRoot,
 } from "./agent-worktree";
+import type {
+  WorkflowWorkspaceLease,
+  WorkflowWorkspaces,
+} from "../../features/coforge/application/workflow-workspace-ports";
+import {
+  executionAccess,
+  executionResult,
+} from "../../features/coforge/application/workflow-execution";
+import { ideaProjectId } from "../../features/coforge/domain/projects";
 
 const RESULT_LIMIT = 512 * 1024;
 const invalid = () =>
@@ -187,7 +200,19 @@ async function readResult(
 
 /** Local filesystem boundary only. External agent lifetime belongs to the workflow coordinator. */
 export class LocalHerdrAttemptFiles implements HerdrAttemptFiles {
-  constructor(private readonly temporaryRoot = tmpdir()) {}
+  constructor(
+    private readonly temporaryRoot = tmpdir(),
+    private readonly workspaces?: WorkflowWorkspaces,
+  ) {}
+  async acknowledgeWorkspace(
+    id: string,
+    attemptId: string,
+    reusable = false,
+  ): Promise<void> {
+    if (!this.workspaces)
+      throw new Error("Configured workflow workspace recovery is unavailable.");
+    await this.workspaces.acknowledge(id, attemptId, reusable);
+  }
   async prepare(
     input: StageInput & { jobId: string },
   ): Promise<HerdrAttemptArea> {
@@ -200,8 +225,45 @@ export class LocalHerdrAttemptFiles implements HerdrAttemptFiles {
     let cwd: string;
     let artifact: string;
     let worktree: Awaited<ReturnType<typeof prepareWorktree>> | undefined;
+    let lease: WorkflowWorkspaceLease | undefined;
     const directories: Directory[] = [];
-    if (input.stage === "screen" || input.stage === "score") {
+    if (input.workflow) {
+      if (!this.workspaces)
+        throw new Error(
+          "Configured workflow workspace journal is unavailable.",
+        );
+      lease = await this.workspaces.acquire({
+        runId: input.workflow.runId,
+        projectId: ideaProjectId(input.idea),
+        attemptId: input.workflow.attemptId,
+        access: executionAccess(input),
+        integration: input.integration,
+        ...(input.workflow.workspaceId
+          ? { workspaceId: input.workflow.workspaceId }
+          : {}),
+        ...(input.signal ? { signal: input.signal } : {}),
+      });
+      cwd = lease.cwd;
+      try {
+        input.signal?.throwIfAborted();
+        if (lease.id) await input.onWorkspace?.(lease.id);
+        if (executionAccess(input) === "none") artifact = cwd;
+        else if (executionAccess(input) === "readproject")
+          artifact = await realpath(
+            await mkdtemp(join(temp, "coforge-herdr-result-")),
+          );
+        else {
+          await ignoreArtifacts(cwd, input.signal);
+          const artifacts = join(cwd, ".coforge-run-output");
+          await mkdir(artifacts, { recursive: true, mode: 0o700 });
+          directories.push(await ownedDirectory(artifacts));
+          artifact = await mkdtemp(join(artifacts, "attempt-"));
+        }
+      } catch (error) {
+        await lease.release();
+        throw error;
+      }
+    } else if (input.stage === "screen" || input.stage === "score") {
       cwd = artifact = await realpath(
         await mkdtemp(join(temp, "coforge-herdr-classifier-")),
       );
@@ -220,70 +282,101 @@ export class LocalHerdrAttemptFiles implements HerdrAttemptFiles {
           await mkdtemp(join(temp, "coforge-herdr-plan-")),
         );
     }
-    directories.push(await ownedDirectory(cwd));
-    if (artifact !== cwd) directories.push(await ownedDirectory(artifact));
-    const resultPath = join(artifact, "result.json");
-    if (
-      await lstat(resultPath).then(
-        () => true,
-        (error: unknown) => {
-          if (missing(error)) return false;
-          throw error;
-        },
-      )
-    )
-      throw invalid();
-    return {
-      cwd,
-      resultPath,
-      readResult: () => readResult(resultPath, directories),
-      finish: async (raw): Promise<StageResult> => {
-        await checkDirectories(directories);
-        const output = cleanDeep(raw);
-        const now = new Date().toISOString();
-        if (input.stage === "screen")
-          return {
-            screening: {
-              ...screeningOutput(output),
-              checkedAt: now,
-              provider: "herdr",
-            },
-          };
-        if (input.stage === "score") {
-          const score = scoreOutput(output);
-          return { rice: { ...score, score: riceValue(score) } };
-        }
-        if (input.stage === "plan") {
-          const plan = planOutput(output);
-          return {
-            plan: {
-              ...plan,
-              markdown: planMarkdown(plan, input.idea.title),
-              createdAt: now,
-            },
-          };
-        }
-        const result = implementationOutput(output);
-        if (!worktree) throw new Error("The build worktree is missing.");
-        const pointerPath = join(worktree.cwd, ".git");
-        if (
-          !(await lstat(pointerPath)).isFile() ||
-          !(await readFile(pointerPath)).equals(worktree.pointer)
+    try {
+      input.signal?.throwIfAborted();
+      directories.push(await ownedDirectory(cwd));
+      if (artifact !== cwd) directories.push(await ownedDirectory(artifact));
+      const resultPath = join(artifact, "result.json");
+      if (
+        await lstat(resultPath).then(
+          () => true,
+          (error: unknown) => {
+            if (missing(error)) return false;
+            throw error;
+          },
         )
-          throw new Error(
-            "The worktree Git metadata changed unexpectedly. No Git inspection was run; inspect this worktree manually.",
-          );
-        return {
-          increment: await captureIncrement(
-            worktree.cwd,
-            worktree.branch,
-            result.summary,
-            input.signal,
-          ),
-        };
-      },
-      // A timeout/cancellation does not confirm that the external process has stopped.
-      dispose: async () => undefined,
-    };
+      )
+        throw invalid();
+      let captured = false;
+      let changes: Increment | undefined;
+      const captureChanges = async () => {
+        if (!lease || captured) return changes;
+        changes = await lease.capture(
+          `Cumulative changes after ${input.workflow?.step.name ?? input.stage}`,
+        );
+        captured = true;
+        if (lease.id) await input.onChanges?.(changes ?? null);
+        return changes;
+      };
+      const managedLease = lease;
+      return {
+        ...(lease?.id ? { workspaceId: lease.id } : {}),
+        cwd,
+        resultPath,
+        readResult: () => readResult(resultPath, directories),
+        finish: async (raw): Promise<StageResult> => {
+          await checkDirectories(directories);
+          const output = cleanDeep(raw);
+          const now = new Date().toISOString();
+          if (input.workflow) {
+            const result = executionResult(input, output);
+            const increment = await captureChanges();
+            if (increment) result.increment = increment;
+            return result;
+          }
+          if (input.stage === "screen")
+            return {
+              screening: {
+                ...screeningOutput(output),
+                checkedAt: now,
+                provider: "herdr",
+              },
+            };
+          if (input.stage === "score") {
+            const score = scoreOutput(output);
+            return { rice: { ...score, score: riceValue(score) } };
+          }
+          if (input.stage === "plan") {
+            const plan = planOutput(output);
+            return {
+              plan: {
+                ...plan,
+                markdown: planMarkdown(plan, input.idea.title),
+                createdAt: now,
+              },
+            };
+          }
+          const result = implementationOutput(output);
+          if (!worktree) throw new Error("The build worktree is missing.");
+          const pointerPath = join(worktree.cwd, ".git");
+          if (
+            !(await lstat(pointerPath)).isFile() ||
+            !(await readFile(pointerPath)).equals(worktree.pointer)
+          )
+            throw new Error(
+              "The worktree Git metadata changed unexpectedly. No Git inspection was run; inspect this worktree manually.",
+            );
+          return {
+            increment: await captureIncrement(
+              worktree.cwd,
+              worktree.branch,
+              result.summary,
+              input.signal,
+            ),
+          };
+        },
+        // A timeout/cancellation does not confirm that the external process has stopped.
+        dispose: async () => undefined,
+        ...(managedLease
+          ? {
+              release: (uncertain: boolean) => managedLease.release(uncertain),
+              captureChanges,
+            }
+          : {}),
+      };
+    } catch (error) {
+      await lease?.release();
+      throw error;
+    }
   }
 }

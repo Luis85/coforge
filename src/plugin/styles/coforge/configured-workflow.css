@@ -1,0 +1,139 @@
+.cf-configured-run {
+  padding-block: 24px;
+  border-block: 1px solid var(--cf-border);
+  margin-block: 24px;
+  min-width: 0;
+}
+.cf-configured-run > .cf-field {
+  max-width: 640px;
+  margin-bottom: 24px;
+}
+.cf-configured-run-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.cf-configured-run-heading h2 {
+  font-size: 18px;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.cf-configured-run-heading p {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--cf-muted);
+}
+.cf-configured-run-state {
+  color: var(--cf-text);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.cf-configured-progress {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.cf-configured-progress li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--cf-border);
+}
+.cf-configured-progress li.is-current {
+  background: var(--cf-accent-soft);
+  border-radius: var(--radius-s);
+}
+.cf-configured-progress li.is-completed .cf-workflow-step-number {
+  color: var(--text-success);
+}
+.cf-configured-progress strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.cf-configured-progress small {
+  display: block;
+  font-size: 11px;
+  color: var(--cf-muted);
+  line-height: 1.65;
+}
+.cf-configured-progress li > span:last-child {
+  max-width: 190px;
+  font-size: 11px;
+  color: var(--cf-muted);
+  line-height: 1.65;
+}
+.cf-configured-manual {
+  padding-block: 20px;
+  margin-block: 20px;
+  border-block: 1px solid var(--cf-border);
+}
+.cf-configured-manual h3,
+.cf-configured-results h3 {
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+.cf-configured-manual > .cf-markdown {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.cf-configured-checklist {
+  display: grid;
+  gap: 12px;
+  margin-block: 20px;
+}
+.cf-configured-checklist small {
+  color: var(--cf-muted);
+}
+.cf-configured-manual .cf-field {
+  margin-block: 16px;
+}
+.cf-configured-results {
+  margin-top: 24px;
+  border-top: 1px solid var(--cf-border);
+  padding-top: 20px;
+}
+.cf-configured-results > details {
+  border-bottom: 1px solid var(--cf-border);
+  padding-block: 12px;
+}
+.cf-configured-results summary {
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cf-configured-results .cf-markdown {
+  font-size: 13px;
+  line-height: 1.65;
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-configured-progress li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .cf-configured-progress li > span:last-child {
+    grid-column: 2;
+    max-width: none;
+  }
+}
+
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-workflow-history-head,
+  .cf-workflow-history-row summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .cf-workflow-history-head > span:nth-child(3),
+  .cf-workflow-history-row summary > time {
+    display: none;
+  }
+  .cf-workflow-history-idea {
+    min-width: 0;
+  }
+  .cf-workflow-history-idea small {
+    overflow-wrap: anywhere;
+  }
+}

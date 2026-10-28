@@ -93,8 +93,8 @@ const model = useAICosts();
       <p class="cf-muted">
         Known totals exclude unavailable costs and
         {{ model.summary.simulations }} simulation tasks. Retries and failed
-        attempts remain included. Herdr does not currently report token usage
-        or costs.
+        attempts remain included. Herdr does not currently report token usage or
+        costs.
       </p>
       <AIUsageSummary :summary="model.tokenTotals" />
       <p v-if="model.store.state.loading" role="status">
@@ -162,7 +162,14 @@ const model = useAICosts();
             <tr v-for="task in model.visibleTasks" :key="task.id">
               <td>
                 <code>{{ task.featureId }}</code> {{ task.featureTitle
-                }}<small>{{ task.stage }} · {{ task.id }}</small>
+                }}<small
+                  >{{ task.workflow?.stepName ?? task.stage }} ·
+                  {{ task.id }}</small
+                >
+                <small v-if="task.workflow"
+                  >{{ task.workflow.stepId }} · workflow
+                  {{ task.workflow.definitionRevision }}</small
+                >
               </td>
               <td>
                 {{ task.provider
@@ -198,7 +205,7 @@ const model = useAICosts();
                   "
                   type="button"
                   class="cf-btn"
-                  :aria-label="`Edit cost for ${task.featureId} ${task.stage} ${task.id}`"
+                  :aria-label="`Edit cost for ${task.featureId} ${task.workflow?.stepName ?? task.stage} ${task.id}`"
                   :disabled="model.store.busy"
                   @click="model.edit(task, $event)"
                 >

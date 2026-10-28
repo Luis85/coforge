@@ -1,215 +1,213 @@
-import { computed, reactive, ref } from "vue";
-import type {
-  AgentJob,
-  AgentStage,
-  Settings,
-} from "../../../features/coforge/domain/types";
-import { STAGE_LABELS, STAGES } from "../../../features/coforge/domain/types";
+import { computed, reactive } from "vue";
+import { storeToRefs } from "pinia";
+import { useConfiguredWorkflowUiStore } from "../../stores/coforge-configured-workflow";
+import { workflowAttemptRows } from "./configured-workflow-history";
+import type { WorkflowRun } from "../../../features/coforge/domain/configured-workflow-run";
+import { workflowDefinition } from "../../../features/coforge/domain/configured-workflow";
 import { isActiveJob } from "../../../features/coforge/domain/workflow";
+import { defaultSettings } from "../../../features/coforge/domain/seed";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
-import { defaultSettings } from "../../../features/coforge/domain/seed";
-import { workflowStageProblem } from "./workflow-readiness";
-import { stageAgentLabel, workflowProviderSummary } from "./agent-labels";
-
-interface StageCopy {
-  icon: string;
-  title: string;
-  description: string;
-  input: string;
-  output: string;
-}
-
-const STAGE_COPY: Record<AgentStage, StageCopy> = {
-  screen: {
-    icon: "shield-check",
-    title: "Screen the request",
-    input: "New idea",
-    output: "Screened or flagged",
-    description:
-      "Check untrusted chat for prompt injection and hold suspicious requests for moderation.",
-  },
-  score: {
-    icon: "sparkles",
-    title: "Find the value",
-    input: "Screened idea",
-    output: "Ranked idea",
-    description:
-      "Review product fit and estimate RICE with a written rationale for every score.",
-  },
-  plan: {
-    icon: "list-checks",
-    title: "Make a plan",
-    input: "Ranked idea",
-    output: "Saved plan",
-    description:
-      "Pick a high-priority idea and save implementation steps, risks, and acceptance criteria.",
-  },
-  implement: {
-    icon: "code",
-    title: "Build the increment",
-    input: "Saved plan",
-    output: "Ready for review",
-    description:
-      "Execute the saved plan and collect changed files and a diff for the streamer.",
-  },
-};
-const HISTORY_PREVIEW = 8;
-const FAILURE = "The workflow could not be updated.";
-const SETTINGS_LOCATION = "Studio settings → Agent workspace";
-
-const historyRow = (job: AgentJob) => ({
-  id: job.id,
-  ideaId: job.ideaId,
-  status: job.status,
-  stageLabel: STAGE_LABELS[job.stage],
-  providerLabel:
-    job.provider === "demo"
-      ? "Simulation"
-      : `${job.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${job.model ?? "model not recorded"}`,
-  time: new Date(job.startedAt).toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-  }),
-  canCancel: isActiveJob(job),
-  costText:
-    job.costUsd === undefined
-      ? ""
-      : `Reported cost: $${job.costUsd.toFixed(4)}`,
-  log: `${job.logs.join("\n") || "No log entries."}${job.error ? `\nError: ${job.error}` : ""}`,
-});
-
-/** View model of the agent workflow page: stage toggles, the workbench, the queue rules and the run history. */
+import { workflowProviderSummary } from "./agent-labels";
+import {
+  configuredAgentLabel,
+  configuredStepProblem,
+  CONFIGURED_RUN_LABELS,
+} from "./configured-workflow-display";
+/** The execution monitor reads each run's frozen definition; editing is a different destination. */
 export function useWorkflow() {
   const store = useStudioStore();
   const actions = useStudioActions();
-  const error = ref("");
-  const expanded = ref(false);
-  const settings = computed<Settings | undefined>(() => store.state?.settings);
-  const paused = computed(() => settings.value?.paused ?? true);
-  const providerSummary = computed(() =>
-    workflowProviderSummary(settings.value ?? defaultSettings()),
+  const { monitorError: error, historyExpanded: expanded } = storeToRefs(
+    useConfiguredWorkflowUiStore(),
   );
-  const isDemo = computed(() => providerSummary.value.mode === "demo");
-  const running = computed(() =>
-    store.projectJobs.find((job) => job.status === "running"),
+  const settings = computed(() => store.state?.settings ?? defaultSettings());
+  const savedDefinition = computed(() => workflowDefinition(settings.value));
+  const selected = computed(
+    () =>
+      store.projectIdeas.find(
+        (idea) => idea.id === store.workflowRequestSelection,
+      ) ??
+      store.projectIdeas.find(
+        (idea) =>
+          idea.workflowRun &&
+          !["finished", "stopped"].includes(idea.workflowRun.state),
+      ) ??
+      store.projectIdeas.find(
+        (idea) => !["shipped", "rejected"].includes(idea.status),
+      ) ??
+      store.projectIdeas[0],
   );
-  const queuedCount = computed(
-    () => store.projectJobs.filter((job) => job.status === "queued").length,
+  const run = computed(() => selected.value?.workflowRun);
+  const definition = computed(
+    () => run.value?.definition ?? savedDefinition.value,
   );
-  const enabledCount = computed(
-    () => STAGES.filter((stage) => settings.value?.automation[stage]).length,
+  const currentStep = computed(
+    () => definition.value.steps[run.value?.cursor ?? 0],
   );
-  const stageProblem = (stage: AgentStage): string =>
-    workflowStageProblem(
-      settings.value ?? defaultSettings(),
-      stage,
-      store.activeProject,
-      store.state?.runtime,
-    );
   const rows = computed(() =>
-    [...store.projectJobs]
-      .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
-      .map(historyRow),
+    workflowAttemptRows(store.projectIdeas, store.projectJobs),
   );
-
-  /** Runs one workflow request; a failure is already toasted by the store and is also kept inline. */
-  function perform(work: () => Promise<boolean>): void {
+  const provider = computed(() =>
+    workflowProviderSummary({ ...settings.value, workflow: definition.value }),
+  );
+  const blocked = computed(() => {
+    const idea = selected.value;
+    if (!idea) return "Select a request to run its workflow.";
+    if (["shipped", "rejected", "flagged"].includes(idea.status))
+      return "This request is closed or held for moderation.";
+    if (
+      store.projectJobs.some(
+        (job) => job.ideaId === idea.id && isActiveJob(job),
+      )
+    )
+      return "A request attempt is already queued or running.";
+    if (
+      run.value &&
+      [
+        "running",
+        "waiting-human",
+        "finished",
+        "awaiting-review",
+        "stopped",
+      ].includes(run.value.state)
+    )
+      return CONFIGURED_RUN_LABELS[run.value.state];
+    return currentStep.value?.kind === "ai"
+      ? configuredStepProblem(
+          currentStep.value,
+          store.activeProject,
+          store.state?.runtime,
+          idea,
+          run.value,
+        )
+      : "";
+  });
+  function perform(work: () => Promise<boolean>) {
     error.value = "";
-    void work().then((done) => {
-      if (!done) error.value = FAILURE;
+    void work().then((ok) => {
+      if (!ok)
+        error.value =
+          store.toasts.at(-1)?.message || "The workflow could not be updated.";
     });
   }
-
+  const terminal = (value: WorkflowRun | undefined) =>
+    value && ["finished", "stopped"].includes(value.state);
   return reactive({
     store,
     error,
     expanded,
-    paused,
-    isDemo,
-    enabledCount,
-    blockedText: `Implementation permission is required for this project. Enable it in ${SETTINGS_LOCATION}.`,
-    canRunNext: computed(
-      () => !store.busy && !running.value && queuedCount.value === 0,
+    selected,
+    run,
+    definition,
+    currentStep,
+    blocked,
+    paused: computed(() => settings.value.paused),
+    intervalSeconds: computed(
+      () => savedDefinition.value.limits.intervalSeconds,
+    ),
+    providerIcon: computed(() => provider.value.icon),
+    providerLabel: computed(() => provider.value.label),
+    providerTitle: computed(() => provider.value.title),
+    enabledCount: computed(
+      () =>
+        definition.value.steps.filter(
+          (step) => step.kind === "ai" && step.automatic,
+        ).length,
     ),
     summaryLabel: computed(() =>
-      paused.value
-        ? "Automation paused"
-        : enabledCount.value
-          ? "Automation is running"
-          : "Manual workflow",
+      settings.value.paused ? "Automation paused" : "Automation resumed",
     ),
-    intervalSeconds: computed(() => settings.value?.intervalSeconds ?? 0),
-    providerIcon: computed(() => providerSummary.value.icon),
-    providerLabel: computed(() => providerSummary.value.label),
-    providerTitle: computed(() => {
-      const runtime = store.state?.runtime;
-      if (isDemo.value || !runtime) return undefined;
-      return providerSummary.value.title;
-    }),
-    stages: computed(() =>
-      STAGES.map((stage, index) => ({
-        id: stage,
-        ...STAGE_COPY[stage],
-        isActive: running.value?.stage === stage,
-        automated: Boolean(settings.value?.automation[stage]),
-        agentText: stageAgentLabel(settings.value ?? defaultSettings(), stage),
-        blocked: Boolean(stageProblem(stage)),
-        blockedReason: stageProblem(stage),
-        last: index === STAGES.length - 1,
-        toggleLabel: `Automatically ${stage === "implement" ? "implement plans" : `${stage} ideas`}`,
+    runLabel: computed(() =>
+      run.value ? CONFIGURED_RUN_LABELS[run.value.state] : "Not started",
+    ),
+    capturedEarlier: computed(() =>
+      Boolean(
+        run.value &&
+        run.value.definition.revision !== savedDefinition.value.revision,
+      ),
+    ),
+    canRunNext: computed(
+      () => !store.busy && !blocked.value && Boolean(currentStep.value),
+    ),
+    canRestart: computed(
+      () =>
+        !store.busy &&
+        Boolean(terminal(run.value)) &&
+        !selected.value?.increment?.files.length &&
+        !["shipped", "rejected", "flagged"].includes(
+          selected.value?.status ?? "",
+        ),
+    ),
+    canStop: computed(
+      () =>
+        !store.busy &&
+        Boolean(
+          run.value &&
+          ["ready", "running", "waiting-human", "attention"].includes(
+            run.value.state,
+          ),
+        ),
+    ),
+    runNextLabel: computed(
+      () =>
+        `${run.value?.state === "attention" ? "Retry" : run.value ? "Run" : "Start"} · ${currentStep.value?.name ?? "workflow"}`,
+    ),
+    steps: computed(() =>
+      definition.value.steps.map((step, index) => ({
+        id: step.id,
+        name: step.name,
+        index: index + 1,
+        agent: configuredAgentLabel(step),
+        current: Boolean(run.value && index === run.value.cursor),
+        completed: Boolean(run.value && index < run.value.cursor),
+        state:
+          run.value?.attempts
+            .filter((attempt) => attempt.stepId === step.id)
+            .at(-1)?.status ?? "Not started",
       })),
     ),
-    active: computed(() => {
-      const job = running.value;
-      if (!job) return null;
-      return {
-        id: job.id,
-        ideaId: job.ideaId,
-        label: `${STAGE_LABELS[job.stage]} in progress`,
-        title:
-          store.state?.ideas.find((idea) => idea.id === job.ideaId)?.title ??
-          "Community idea",
-        lastLog: job.logs[job.logs.length - 1] ?? "Starting the agent…",
-      };
-    }),
-    idleText: computed(() =>
-      paused.value
-        ? "Resume automation or dispatch the next idea yourself."
-        : "The workflow will pick up eligible ideas as they arrive.",
-    ),
-    thresholdLabel: computed(() => {
-      const votes = settings.value?.minVotes ?? 0;
-      return `Planning threshold: ${votes} ${votes === 1 ? "vote" : "votes"}`;
-    }),
     runCount: computed(() => rows.value.length),
     visibleRuns: computed(() =>
-      expanded.value ? rows.value : rows.value.slice(0, HISTORY_PREVIEW),
+      expanded.value ? rows.value : rows.value.slice(0, 8),
     ),
-    hasMoreRuns: computed(() => rows.value.length > HISTORY_PREVIEW),
+    hasMoreRuns: computed(() => rows.value.length > 8),
     moreLabel: computed(() =>
       expanded.value
-        ? "Show recent runs"
-        : `Show all ${rows.value.length} runs`,
+        ? "Show recent attempts"
+        : `Show all ${rows.value.length} attempts`,
     ),
-    runNext: () => perform(() => actions.runNext()),
+    runNext: () => {
+      const id = selected.value?.id;
+      if (id) perform(() => actions.runWorkflowStep(id));
+    },
+    restart: () => {
+      const id = selected.value?.id;
+      if (id) perform(() => actions.startWorkflow(id));
+    },
+    stop: () => {
+      const id = selected.value?.id;
+      if (id) perform(() => actions.stopWorkflow(id));
+    },
     togglePause: () =>
-      perform(() => actions.changeSettings({ paused: !paused.value })),
-    toggleStage: (stage: AgentStage) => {
-      const current = settings.value?.automation;
-      if (!current) return;
-      perform(() =>
-        actions.changeSettings({
-          automation: { ...current, [stage]: !current[stage] },
-        }),
-      );
+      perform(() => actions.changeSettings({ paused: !settings.value.paused })),
+    selectRequest: (event: Event) => {
+      if (
+        event.target &&
+        "value" in event.target &&
+        typeof event.target.value === "string"
+      )
+        store.workflowRequestSelection = event.target.value;
     },
-    cancel: (jobId: string) => perform(() => actions.cancelJob(jobId)),
-    openIdea: (ideaId: string) => store.select(ideaId),
-    editPrompt: (stage: AgentStage) => {
-      store.promptStage = stage;
-      store.navigate("settings");
+    editWorkflow: () => store.navigate("workflow-settings"),
+    editPrompt: (id: string) => {
+      store.workflowStepSelection = id;
+      store.navigate("workflow-settings");
     },
+    openIdea: (id: string) => {
+      void actions.openIdea(id);
+    },
+    cancel: (id: string) => perform(() => actions.cancelJob(id)),
     toggleExpanded: () => {
       expanded.value = !expanded.value;
     },

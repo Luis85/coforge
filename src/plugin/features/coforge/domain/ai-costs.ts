@@ -1,6 +1,13 @@
 import { list, number, oneOf, optional, shape, text, timestamp } from "./check";
 import { stageUsageCheck, type StageUsage } from "./ai-usage";
 export interface AICostTask {
+  workflow?: {
+    runId: string;
+    definitionRevision: string;
+    stepId: string;
+    stepName: string;
+    attemptId: string;
+  };
   usage?: StageUsage;
   usageSource?: "provider";
   id: string;
@@ -32,6 +39,18 @@ export const aiCostTaskCheck = shape(
     startedAt: timestamp,
     finishedAt: optional(timestamp),
     model: optional(text({ max: 100 })),
+    workflow: optional(
+      shape(
+        {
+          runId: text({ min: 1, max: 80 }),
+          definitionRevision: text({ min: 1, max: 80 }),
+          stepId: text({ min: 1, max: 80 }),
+          stepName: text({ min: 1, max: 100 }),
+          attemptId: text({ min: 1, max: 80 }),
+        },
+        { strict: true },
+      ),
+    ),
     usage: optional(stageUsageCheck),
     usageSource: optional(oneOf(["provider"] as const)),
     reportedUsd: optional(number({ min: 0, max: 1000000000 })),

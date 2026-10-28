@@ -1,28 +1,18 @@
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
-
-function body(content: string): string {
+function body(content: string) {
   const frontmatter = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/.exec(content);
   return frontmatter ? content.slice(frontmatter[0].length) : content;
 }
-
-describe("Project step agents in the contained vault", () => {
-  test("persists step overrides and reset across reload without changing human project annotations", async ({
+describe("Dedicated project workflow editor in the contained vault", () => {
+  test("persists independent step configurations across reload and preserves human note annotations exactly", async ({
     obsidian,
   }) => {
     let view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
-    await view
-      .getByRole("button", { name: "Studio settings", exact: true })
-      .click();
-    await browserExpect(
-      view.getByRole("heading", { name: "Choose a project", exact: true }),
-    ).toBeVisible();
-    await view
-      .getByRole("button", { name: "Manage projects", exact: true })
-      .click();
+    await view.locator(".cf-project-switcher").click();
     await view
       .getByRole("button", { name: "Add project", exact: true })
       .click();
@@ -32,9 +22,7 @@ describe("Project step agents in the contained vault", () => {
     await view.getByLabel(/^Project path/).fill("/synthetic/step-agents");
     await view
       .getByLabel("Description", { exact: true })
-      .fill(
-        "A contained project for independent workflow provider and model settings.",
-      );
+      .fill("A contained project for independently configured AI steps.");
     await view
       .getByRole("button", { name: "Create project", exact: true })
       .click();
@@ -45,7 +33,7 @@ describe("Project step agents in the contained vault", () => {
       const file = app.vault
         .getMarkdownFiles()
         .find((file) => file.path.startsWith("CoForge/Projects/"));
-      if (!file) throw new Error("Contained project note was not created.");
+      if (!file) throw new Error("Project note missing");
       await app.fileManager.processFrontMatter(file, (frontmatter) => {
         frontmatter["human-annotation"] = "keep";
       });
@@ -58,36 +46,40 @@ describe("Project step agents in the contained vault", () => {
       return { path: file.path, content: await app.vault.read(file) };
     });
     await view
-      .getByRole("button", { name: "Studio settings", exact: true })
+      .getByRole("button", { name: "Workflow settings", exact: true })
+      .first()
+      .click();
+    await browserExpect(view.locator(".cf-workflow-editor-layout")).toHaveCSS(
+      "display",
+      "grid",
+    );
+    await view
+      .getByLabel("AI provider", { exact: true })
+      .selectOption("claude");
+    await view.getByLabel("AI model", { exact: true }).fill("haiku");
+    await view
+      .locator('[data-step-id="plan"] .cf-workflow-step-select')
       .click();
     await view
-      .getByLabel("Workflow step", { exact: true })
-      .selectOption("screen");
-    await view
-      .getByLabel("Step provider", { exact: true })
+      .getByLabel("AI provider", { exact: true })
       .selectOption("claude");
-    await view.getByLabel("Step model", { exact: true }).fill("haiku");
+    await view.getByLabel("AI model", { exact: true }).fill("sonnet");
     await view
-      .getByLabel("Workflow step", { exact: true })
-      .selectOption("plan");
-    await view
-      .getByLabel("Step provider", { exact: true })
-      .selectOption("claude");
-    await view.getByLabel("Step model", { exact: true }).fill("sonnet");
-    await view
-      .getByRole("button", { name: "Save settings", exact: true })
+      .getByRole("button", { name: "Save workflow", exact: true })
       .click();
     await browserExpect(
-      view.getByText("Settings saved", { exact: true }),
+      view.getByText(
+        "Workflow saved. New runs use this definition; existing runs retain their captured steps.",
+        { exact: true },
+      ),
     ).toBeVisible();
     const written = await obsidian.eval(
       ({ app }, path) => app.vault.adapter.read(path),
       original.path,
     );
-    expect(written).toMatch(/^agent-provider-screen:\s*['"]?claude['"]?\s*$/m);
-    expect(written).toMatch(/^agent-model-screen:\s*['"]?haiku['"]?\s*$/m);
-    expect(written).toMatch(/^agent-provider-plan:\s*['"]?claude['"]?\s*$/m);
-    expect(written).toMatch(/^agent-model-plan:\s*['"]?sonnet['"]?\s*$/m);
+    expect(written).toContain("workflow-definition:");
+    expect(written).toContain("model: haiku");
+    expect(written).toContain("model: sonnet");
     expect(written).toContain("human-annotation: keep");
     expect(body(written)).toBe(body(original.content));
     await obsidian.reloadPlugin();
@@ -95,36 +87,32 @@ describe("Project step agents in the contained vault", () => {
       `${obsidian.pluginId}-view-project-workbench`,
     );
     await view
-      .getByRole("button", { name: "Studio settings", exact: true })
+      .getByRole("button", { name: "Workflow settings", exact: true })
+      .first()
       .click();
-    await view
-      .getByLabel("Workflow step", { exact: true })
-      .selectOption("screen");
     await browserExpect(
-      view.getByLabel("Step provider", { exact: true }),
+      view.getByLabel("AI provider", { exact: true }),
     ).toHaveValue("claude");
     await browserExpect(
-      view.getByLabel("Step model", { exact: true }),
+      view.getByLabel("AI model", { exact: true }),
     ).toHaveValue("haiku");
+    await view.getByLabel("AI model", { exact: true }).fill("sonnet");
+    await view.getByLabel("AI provider", { exact: true }).selectOption("demo");
     await view
-      .getByRole("button", {
-        name: "Use project defaults for this step",
-        exact: true,
-      })
-      .click();
-    await view
-      .getByRole("button", { name: "Save settings", exact: true })
+      .getByRole("button", { name: "Save workflow", exact: true })
       .click();
     await browserExpect(
-      view.getByText("Settings saved", { exact: true }),
+      view.getByText(
+        "Workflow saved. New runs use this definition; existing runs retain their captured steps.",
+        { exact: true },
+      ),
     ).toBeVisible();
     const reset = await obsidian.eval(
       ({ app }, path) => app.vault.adapter.read(path),
       original.path,
     );
-    expect(reset).not.toMatch(/^agent-provider-screen:/m);
-    expect(reset).not.toMatch(/^agent-model-screen:/m);
-    expect(reset).toMatch(/^agent-model-plan:\s*['"]?sonnet['"]?\s*$/m);
+    expect(reset).not.toContain("model: haiku");
+    expect(reset).toContain("provider: claude");
     expect(reset).toContain("human-annotation: keep");
     expect(body(reset)).toBe(body(original.content));
     await obsidian.reloadPlugin();
@@ -132,30 +120,45 @@ describe("Project step agents in the contained vault", () => {
       `${obsidian.pluginId}-view-project-workbench`,
     );
     await view
-      .getByRole("button", { name: "Studio settings", exact: true })
+      .getByRole("button", { name: "Workflow settings", exact: true })
+      .first()
       .click();
-    await view
-      .getByLabel("Workflow step", { exact: true })
-      .selectOption("screen");
     await browserExpect(
-      view.getByLabel("Step provider", { exact: true }),
-    ).toHaveValue("");
+      view.getByLabel("AI provider", { exact: true }),
+    ).toHaveValue("demo");
     await browserExpect(
-      view.getByLabel("Step model", { exact: true }),
-    ).toHaveValue("");
+      view.getByLabel("AI model", { exact: true }),
+    ).toHaveValue("sonnet");
     await browserExpect(
-      view.getByLabel("Step model", { exact: true }),
+      view.getByLabel("AI model", { exact: true }),
     ).toBeDisabled();
     await view
-      .getByLabel("Workflow step", { exact: true })
-      .selectOption("plan");
+      .locator('[data-step-id="plan"] .cf-workflow-step-select')
+      .click();
     await browserExpect(
-      view.getByLabel("Step provider", { exact: true }),
+      view.getByLabel("AI provider", { exact: true }),
     ).toHaveValue("claude");
+    await view
+      .getByRole("button", { name: "Preview workflow export", exact: true })
+      .click();
     await browserExpect(
-      view.getByLabel("Step model", { exact: true }),
-    ).toHaveValue("sonnet");
-    await obsidian.screenshot("project-step-agents");
+      view.getByLabel("Workflow export JSON", { exact: true }),
+    ).toContainText("claude");
+    await view
+      .getByRole("button", { name: "Export workflow JSON", exact: true })
+      .click();
+    const savedPath = view.getByLabel("Saved workflow JSON path", {
+      exact: true,
+    });
+    await browserExpect(savedPath).toHaveValue(/coforge-export-.*\.json$/);
+    const exported = await obsidian.eval(
+      ({ app }, path) => app.vault.adapter.read(path),
+      await savedPath.inputValue(),
+    );
+    expect(exported).toContain("coforge-workflow/v1");
+    expect(exported).not.toContain("/synthetic/step-agents");
+    expect(exported).not.toContain("human-annotation");
+    await obsidian.screenshot("dedicated-workflow-editor");
     expect(obsidian.errors()).toEqual([]);
   });
 });

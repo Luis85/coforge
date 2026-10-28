@@ -25,6 +25,7 @@ import StudioSidebar from "./StudioSidebar.vue";
 import StudioTopbar from "./StudioTopbar.vue";
 import ToastStack from "./ToastStack.vue";
 import WorkflowView from "./WorkflowView.vue";
+import WorkflowEditorView from "./WorkflowEditorView.vue";
 import ProjectsView from "./ProjectsView.vue";
 
 const model = useStudioApp();
@@ -80,6 +81,9 @@ const model = useStudioApp();
             <AICostsView v-else-if="model.shell.store.view === 'ai-costs'" />
             <ScheduleView v-else-if="model.shell.store.view === 'schedule'" />
             <WorkflowView v-else-if="model.shell.store.view === 'workflow'" />
+            <WorkflowEditorView
+              v-else-if="model.shell.store.view === 'workflow-settings'"
+            />
             <ProjectsView v-else-if="model.shell.store.view === 'projects'" />
             <CommunityView v-else-if="model.shell.store.view === 'community'" />
             <PopulationView

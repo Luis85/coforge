@@ -57,7 +57,7 @@ for (const theme of ["light", "dark"])
       menu.getByRole("menuitem", { name: "Copy request ID", exact: true }),
     ).toBeVisible();
     await expect(
-      menu.getByRole("menuitem", { name: /Create implementation plan/ }),
+      menu.getByRole("menuitem", { name: /Start · Screen/ }),
     ).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(menu).toHaveCount(0);
@@ -103,16 +103,18 @@ test("menu explains a step-specific runtime block without dispatching work", asy
     "true",
   );
   await page
-    .getByRole("button", { name: "Studio settings", exact: true })
+    .getByRole("button", { name: "Workflow settings", exact: true })
     .click();
-  await page.getByLabel("Workflow step", { exact: true }).selectOption("plan");
+  await page.getByLabel("AI provider", { exact: true }).selectOption("claude");
   await page
-    .getByLabel("Step provider", { exact: true })
-    .selectOption("claude");
-  await page
-    .getByRole("button", { name: "Save settings", exact: true })
+    .getByRole("button", { name: "Save workflow", exact: true })
     .click();
-  await expect(page.getByText("Settings saved", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(
+      "Workflow saved. New runs use this definition; existing runs retain their captured steps.",
+      { exact: true },
+    ),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: /^Idea board/ })
     .first()
@@ -123,7 +125,7 @@ test("menu explains a step-specific runtime block without dispatching work", asy
   await card.click({ button: "right" });
   const menu = page.getByRole("menu");
   const blocked = menu.getByRole("menuitem", {
-    name: /Create implementation plan/,
+    name: /Start · Screen/,
   });
   await expect(blocked).toHaveAttribute("aria-disabled", "true");
   await expect(blocked).toContainText("Claude Code");

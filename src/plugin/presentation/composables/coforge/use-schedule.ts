@@ -46,9 +46,17 @@ export function useSchedule() {
     const service = actions();
     if (!service) return;
     store.notes = await service.list();
-    stopMusic(); const player = music(); store.playlists = player?.snapshot().library.playlists ?? [];
-    stopMusic = player?.subscribe(state => { store.playlists = state.library.playlists; }) ?? (() => {});
-    if (selected.value && selected.value.revision !== store.expected) { store.review = ''; if (!dirty()) choose(selected.value); }
+    stopMusic();
+    const player = music();
+    store.playlists = player?.snapshot().library.playlists ?? [];
+    stopMusic =
+      player?.subscribe((state) => {
+        store.playlists = state.library.playlists;
+      }) ?? (() => {});
+    if (selected.value && selected.value.revision !== store.expected) {
+      store.review = "";
+      if (!dirty()) choose(selected.value);
+    }
     store.ready = true;
   }
   function choose(note: ScheduleNote) {
@@ -77,9 +85,16 @@ export function useSchedule() {
     available: computed(() => Boolean(actions())),
     canPreview: Boolean(host.previewSchedule),
     playlists: computed(() => store.playlists),
-    projectName: (id: string) => studio.state?.projects?.find(project => project.id === id)?.settings.projectName ?? id,
-    sceneName: (id: string) => studio.state?.runtime.obs?.snapshot?.scenes.find(scene => scene.id === id)?.name ?? (id ? 'Saved scene · reconnect OBS to verify' : 'Not set'),
-    playlistName: (id: string) => store.playlists.find(playlist => playlist.id === id)?.name ?? (id ? 'Saved playlist · refresh library to verify' : 'Not set'),
+    projectName: (id: string) =>
+      studio.state?.projects?.find((project) => project.id === id)?.settings
+        .projectName ?? id,
+    sceneName: (id: string) =>
+      studio.state?.runtime.obs?.snapshot?.scenes.find(
+        (scene) => scene.id === id,
+      )?.name ?? (id ? "Saved scene · reconnect OBS to verify" : "Not set"),
+    playlistName: (id: string) =>
+      store.playlists.find((playlist) => playlist.id === id)?.name ??
+      (id ? "Saved playlist · refresh library to verify" : "Not set"),
     scenes: computed(() => studio.state?.runtime.obs?.snapshot?.scenes ?? []),
     projects: computed(
       () =>
@@ -191,10 +206,8 @@ export function useSchedule() {
           throw new Error(
             "Review the saved plan before applying a preparation step.",
           );
-        if (step === "project" && studio.dirtySettings)
-          throw new Error(
-            "Save or discard project settings before switching projects.",
-          );
+        const guard = step === "project" ? studio.configurationIssue() : "";
+        if (guard) throw new Error(guard);
         await actions()?.apply(note.plan.id, store.review, step);
         store.stepResults[step] = "Applied";
         store.notice = `Preparation step applied: ${step}.`;

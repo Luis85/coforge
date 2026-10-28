@@ -27,3 +27,6 @@
 @import "./step-agents.css";
 @import "./view-intent.css";
 @import "./card-menu.css";
+
+@import "./workflow-editor.css";
+@import "./configured-workflow.css";

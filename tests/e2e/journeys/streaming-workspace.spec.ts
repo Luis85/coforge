@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
-test("edits project stage prompts, retains drafts and isolates overrides", async ({
+test("edits workflow instructions in the dedicated view and preserves local drafts", async ({
   page,
 }) => {
   await page.goto("/#surface=node-1");
@@ -10,44 +10,48 @@ test("edits project stage prompts, retains drafts and isolates overrides", async
     "true",
   );
   await page
-    .getByRole("button", { name: "Studio settings", exact: true })
+    .getByRole("button", { name: "Workflow settings", exact: true })
+    .first()
     .click();
-  await page.getByLabel("Workflow step", { exact: true }).selectOption("screen");
   await page
-    .getByLabel("Project stage prompt", { exact: true })
+    .getByLabel("Step instructions", { exact: true })
     .fill("PROJECT_SCREEN_POLICY: explain product fit and reject scope creep.");
-  await page.getByText("Preview assembled dispatch", { exact: true }).click();
-  await expect(page.locator(".cf-prompt-preview pre").first()).toContainText(
-    "PROJECT_SCREEN_POLICY",
-  );
   await page
-    .getByRole("button", { name: "Idea board", exact: false })
+    .getByRole("button", { name: /^Idea board/ })
     .first()
     .click();
   await expect(
-    page.getByLabel("Project stage prompt", { exact: true }),
+    page.getByLabel("Step instructions", { exact: true }),
   ).toHaveValue(
     "PROJECT_SCREEN_POLICY: explain product fit and reject scope creep.",
   );
   await page
-    .getByRole("button", { name: "Save settings", exact: true })
-    .click();
-  await expect(page.getByText("Settings saved", { exact: true })).toBeVisible();
-  await page.getByLabel("Workflow step", { exact: true }).selectOption("plan");
-  await expect(
-    page.getByLabel("Project stage prompt", { exact: true }),
-  ).not.toHaveValue(/PROJECT_SCREEN_POLICY/);
-  await page.getByLabel("Workflow step", { exact: true }).selectOption("screen");
-  await page
-    .getByRole("button", { name: "Reset selected stage prompt", exact: true })
+    .getByRole("button", { name: "Save workflow", exact: true })
     .click();
   await expect(
-    page.getByLabel("Project stage prompt", { exact: true }),
+    page.getByText(
+      "Workflow saved. New runs use this definition; existing runs retain their captured steps.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page.locator('[data-step-id="plan"] .cf-workflow-step-select').click();
+  await expect(
+    page.getByLabel("Step instructions", { exact: true }),
   ).not.toHaveValue(/PROJECT_SCREEN_POLICY/);
   await page
-    .getByRole("button", { name: "Save settings", exact: true })
+    .locator('[data-step-id="screen"] .cf-workflow-step-select')
     .click();
+  await expect(
+    page.getByLabel("Step instructions", { exact: true }),
+  ).toHaveValue(/PROJECT_SCREEN_POLICY/);
+  await page
+    .getByRole("button", { name: "Preview workflow export", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Workflow export JSON", { exact: true }),
+  ).toContainText("PROJECT_SCREEN_POLICY");
 });
+
 test("shows each AI attempt, partial totals and a labelled manual fallback", async ({
   page,
 }) => {
@@ -70,7 +74,7 @@ test("shows each AI attempt, partial totals and a labelled manual fallback", asy
     })
     .click();
   const form = page.getByRole("form", { name: "Manual task cost" });
-  await expect(form.getByLabel('Amount · USD', { exact: true })).toBeFocused();
+  await expect(form.getByLabel("Amount · USD", { exact: true })).toBeFocused();
   await form.getByLabel("Amount · USD", { exact: true }).fill("0.0375");
   await form
     .getByLabel("Source / note", { exact: true })

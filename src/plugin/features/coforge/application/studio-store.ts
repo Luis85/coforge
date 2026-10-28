@@ -11,6 +11,7 @@ import { streamSurfaceSnapshot } from '../domain/stream-surfaces';
 import { viewerNoteProfiles } from '../domain/viewer-notes';
 import { collectCostTasks } from '../domain/ai-cost-snapshot';
 import type { HerdrRecord } from '../domain/herdr';
+import { recoverConfiguredRuns } from '../domain/configured-workflow-run';
 export { addEvent, assemble, enforceIntegrity, mergeNote } from './studio-state';
 type Listener = (state: AppState) => void | Promise<void>;
 
@@ -48,6 +49,7 @@ export class StudioStore {
       if (idea) { idea.lastError = job.error; if (idea.status === 'building') idea.status = 'planned'; }
     }
     delete state.runtime.activeJobId;
+    recoverConfiguredRuns(state);
     enforceIntegrity(state, new Set());
     state.settings.paused = true; // Unattended execution never resumes merely because the plugin restarted.
     for (const project of state.projects) project.settings.paused = true;

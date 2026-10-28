@@ -99,11 +99,12 @@ export async function captureIncrement(
   branch: string,
   summary: string,
   signal?: AbortSignal,
+  options: { allowEmpty?: boolean; baseCommit?: string } = {},
 ): Promise<Increment> {
   const files: FileChange[] = (
     await agentGit(
       worktree,
-      ["diff", "--no-ext-diff", "--no-textconv", "--numstat", "HEAD", "--"],
+      ["diff", "--no-ext-diff", "--no-textconv", "--numstat", options.baseCommit ?? "HEAD", "--"],
       signal,
     )
   )
@@ -120,11 +121,11 @@ export async function captureIncrement(
     });
   let diff = await agentGit(
     worktree,
-    ["diff", "--no-ext-diff", "--no-textconv", "--no-color", "HEAD", "--"],
+    ["diff", "--no-ext-diff", "--no-textconv", "--no-color", options.baseCommit ?? "HEAD", "--"],
     signal,
   );
   diff += await newFiles(worktree, files, signal);
-  if (!files.length)
+  if (!files.length && !options.allowEmpty)
     throw new Error(
       "Claude produced no changed files. The idea remains planned; inspect the run before retrying.",
     );

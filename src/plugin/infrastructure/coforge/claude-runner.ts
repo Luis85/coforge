@@ -10,6 +10,9 @@ import type { IntegrationSettings } from '../../features/coforge/domain/types';
 import { planMarkdown, riceValue } from '../../features/coforge/domain/types';
 import { captureProcess, ProcessFailure } from './process';
 import { captureIncrement, prepareWorktree, projectRoot } from './agent-worktree';
+import type { WorkflowWorkspaceLease, WorkflowWorkspaces } from '../../features/coforge/application/workflow-workspace-ports';
+import { executionAccess, executionResult, executionTaskPrompt } from '../../features/coforge/application/workflow-execution';
+import { ideaProjectId } from '../../features/coforge/domain/projects';
 
 function executable(integration: IntegrationSettings): string {
   const command = integration.claudeBin.trim() || 'claude';
@@ -45,34 +48,56 @@ async function interpret(input: StageInput, output: unknown, costUsd: number | u
 }
 
 /** Runs one stage through the native Claude Code CLI with stage-specific tool restrictions. */
-export async function runClaudeStage(input: StageInput): Promise<StageResult> {
+export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWorkspaces): Promise<StageResult> {
   const { stage, idea, settings, integration, signal } = input;
   const onLog = input.onLog ?? (() => undefined);
   if (signal?.aborted) throw new Error('Run cancelled.');
   let cwd: string; let temporary: string | undefined; let worktree: { cwd: string; branch: string; pointer: Buffer } | null = null;
-  if (stage === 'screen' || stage === 'score') cwd = temporary = await mkdtemp(join(tmpdir(), 'coforge-classifier-'));
+  let lease: WorkflowWorkspaceLease | undefined;
+  let captured = false;
+  const changes = async (summary: string) => {
+    if (!lease || captured) return undefined;
+    const increment = await lease.capture(summary); captured = true;
+    if (lease.id) await input.onChanges?.(increment ?? null);
+    return increment;
+  };
+  if (input.workflow) {
+    if (!workspaces) throw new Error('Configured workflow workspaces are unavailable. Restore their private journal before running.');
+    lease = await workspaces.acquire({ runId: input.workflow.runId, projectId: ideaProjectId(idea), attemptId: input.workflow.attemptId,
+      access: executionAccess(input), integration, ...(input.workflow.workspaceId ? { workspaceId: input.workflow.workspaceId } : {}), ...(signal ? { signal } : {}) });
+    cwd = lease.cwd;
+    try { if (lease.id) await input.onWorkspace?.(lease.id); }
+    catch (error) { await lease.release(); throw error; }
+  } else if (stage === 'screen' || stage === 'score') cwd = temporary = await mkdtemp(join(tmpdir(), 'coforge-classifier-'));
   else {
     cwd = await projectRoot(integration);
     if (stage === 'implement') { worktree = await prepareWorktree(input, cwd, onLog); cwd = worktree.cwd; }
   }
   try {
-    onLog(`Claude ${stage}: ${stage === 'screen' || stage === 'score' ? 'no tools; isolated temporary directory' : stage === 'plan' ? 'read-only repository access' : 'file editing in a separate worktree'}.`);
-    const raw = await captureProcess(executable(integration), buildClaudeArgs(stage, settings), {
-      cwd, input: stageInput(stage, idea, settings), timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
+    const access = executionAccess(input);
+    onLog(`Claude ${input.workflow?.step.name ?? stage}: ${access === 'none' ? 'no tools; isolated temporary directory' : access === 'readproject' ? 'read-only project access' : 'file editing in an isolated worktree'}.`);
+    const raw = await captureProcess(executable(integration), buildClaudeArgs(stage, settings, input.workflow), {
+      cwd, input: input.workflow ? executionTaskPrompt(input) : stageInput(stage, idea, settings), timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
     });
     const usage = reportedClaudeCost(raw); if (usage !== undefined) await input.onUsage?.(usage);
     const tokens = reportedClaudeUsage(raw); if (tokens) await input.onTokenUsage?.(tokens);
     const envelope = parseClaudeEnvelope(raw);
     // Model output is saved to notes and shown to viewers: it gets the same sanitizing as chat before validation.
-    const result = await interpret(input, cleanDeep(envelope.output), envelope.costUsd, worktree, onLog);
+    const result = input.workflow ? executionResult(input, envelope.output) : await interpret(input, cleanDeep(envelope.output), envelope.costUsd, worktree, onLog);
+    const increment = await changes(result.summary ?? `Cumulative changes after ${input.workflow?.step.name ?? stage}`);
+    if (increment) result.increment = increment;
+    if (envelope.costUsd !== undefined) result.costUsd = envelope.costUsd;
     return { ...result, ...(tokens ? { usage: tokens } : {}) };
   } catch (error) {
-    if (error instanceof ProcessFailure) { const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage); const tokens = reportedClaudeUsage(error.output); if (tokens) await input.onTokenUsage?.(tokens); throw new Error(error.message); }
+    if (error instanceof ProcessFailure) { const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage); const tokens = reportedClaudeUsage(error.output); if (tokens) await input.onTokenUsage?.(tokens); }
+    await changes(`Cumulative changes after failed ${input.workflow?.step.name ?? stage}`);
+    if (error instanceof ProcessFailure) throw new Error(error.message);
     if (error instanceof CheckError) throw new Error('Claude output failed schema validation. The idea was not advanced.');
     if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))
       throw new Error(`Update native Claude Code to the current release; required restricted/safe-mode/structured-output flags are not supported. No permissive fallback is used. ${error.message}`);
     throw error;
   } finally {
+    await lease?.release();
     if (temporary) await rm(temporary, { recursive: true, force: true });
   }
 }

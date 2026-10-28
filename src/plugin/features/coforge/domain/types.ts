@@ -16,6 +16,8 @@ export interface Increment {
   branch?: string; worktree?: string; commit?: string; createdAt: string; simulated: boolean;
 }
 export interface Idea {
+  workflowRun?: import('./configured-workflow-run').WorkflowRun;
+  workflowHistory?: import('./configured-workflow-run').WorkflowRun[];
   contexts?: import('./idea-context').IdeaContext[];
   id: string; number: number; title: string; description: string; authorId: string; category: Category; status: IdeaStatus;
   /** Absent only on legacy notes, which migrate to the initial project. */
@@ -34,6 +36,7 @@ export interface ChatMessage {
 }
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
+  workflow?: import('./configured-workflow-run').ConfiguredStepExecution;
   usage?: import('./ai-usage').StageUsage;
   herdrAgent?: 'claude';
   model?: string;
@@ -43,6 +46,7 @@ export interface AgentJob {
 }
 export interface Activity { id: string; ideaId?: string; type: 'idea' | 'vote' | 'agent' | 'review' | 'system'; text: string; createdAt: string }
 export interface Settings {
+  workflow?: import('./configured-workflow').WorkflowDefinition;
   herdrAgent?: 'claude';
   stageAgents?: import('./stage-agents').StageAgents;
   stagePrompts?: import('./stage-prompts').StagePrompts;

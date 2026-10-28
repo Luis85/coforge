@@ -28,23 +28,21 @@ describe("Managed Herdr workflow configuration", () => {
       "Contained Herdr configuration",
     );
     await view
-      .getByRole("button", { name: "Studio settings", exact: true })
+      .getByRole("button", { name: "Workflow settings", exact: true })
       .click();
+    await view.getByLabel("AI provider", { exact: true }).selectOption("herdr");
     await view
-      .getByLabel("Workflow step", { exact: true })
-      .selectOption("screen");
-    await view
-      .getByLabel("Step provider", { exact: true })
-      .selectOption("herdr");
-    await view
-      .getByLabel("Step Herdr agent type", { exact: true })
+      .getByLabel("Herdr agent type", { exact: true })
       .selectOption("claude");
-    await view.getByLabel("Step model", { exact: true }).fill("haiku");
+    await view.getByLabel("AI model", { exact: true }).fill("haiku");
     await view
-      .getByRole("button", { name: "Save settings", exact: true })
+      .getByRole("button", { name: "Save workflow", exact: true })
       .click();
     await browserExpect(
-      view.getByText("Settings saved", { exact: true }),
+      view.getByText(
+        "Workflow saved. New runs use this definition; existing runs retain their captured steps.",
+        { exact: true },
+      ),
     ).toBeVisible();
     const notes = await obsidian.eval(async ({ app }) =>
       Promise.all(
@@ -57,28 +55,25 @@ describe("Managed Herdr workflow configuration", () => {
     const note = notes.find((note) =>
       note.includes("Contained Herdr configuration"),
     );
-    expect(note).toContain("agent-provider-screen: herdr");
-    expect(note).toContain("agent-model-screen: haiku");
-    expect(note).toContain("agent-herdr-agent-screen: claude");
+    expect(note).toContain("provider: herdr");
+    expect(note).toContain("model: haiku");
+    expect(note).toContain("herdrAgent: claude");
     expect(note).not.toMatch(/^herdr-agent:/m);
     await obsidian.reloadPlugin();
     view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
     await view
-      .getByRole("button", { name: "Studio settings", exact: true })
+      .getByRole("button", { name: "Workflow settings", exact: true })
       .click();
-    await view
-      .getByLabel("Workflow step", { exact: true })
-      .selectOption("screen");
     await browserExpect(
-      view.getByLabel("Step provider", { exact: true }),
+      view.getByLabel("AI provider", { exact: true }),
     ).toHaveValue("herdr");
     await browserExpect(
-      view.getByLabel("Step Herdr agent type", { exact: true }),
+      view.getByLabel("Herdr agent type", { exact: true }),
     ).toHaveValue("claude");
     await browserExpect(
-      view.getByLabel("Step model", { exact: true }),
+      view.getByLabel("AI model", { exact: true }),
     ).toHaveValue("haiku");
     await obsidian.screenshot("herdr-step-configuration");
     expect(obsidian.errors()).toEqual([]);

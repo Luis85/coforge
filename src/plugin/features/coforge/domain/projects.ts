@@ -8,7 +8,7 @@ export const PROJECTS_FOLDER = 'CoForge/Projects';
 export type ProjectPaths = Pick<IntegrationSettings, 'projectPath' | 'worktreeFolder' | 'allowImplementation'>;
 export interface ProjectState extends AppState { projects: StudioProject[]; activeProjectId: string; integration: IntegrationSettings }
 
-export const copySettings = (settings: Settings): Settings => ({ ...settings, automation: { ...settings.automation }, ...(settings.stagePrompts ? { stagePrompts: { ...settings.stagePrompts } } : {}), stageAgents: normalizeStageAgents(settings.stageAgents ?? {}) });
+export const copySettings = (settings: Settings): Settings => ({ ...settings, ...(settings.workflow ? { workflow: structuredClone(settings.workflow) } : {}), automation: { ...settings.automation }, ...(settings.stagePrompts ? { stagePrompts: { ...settings.stagePrompts } } : {}), stageAgents: normalizeStageAgents(settings.stageAgents ?? {}) });
 function orderedConfiguration(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(orderedConfiguration);
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value)

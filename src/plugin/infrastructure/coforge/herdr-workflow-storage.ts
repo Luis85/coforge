@@ -1,6 +1,7 @@
 import type { Plugin } from 'obsidian';
 import type { HerdrWorkflowRecord, HerdrWorkflowStorage } from '../../features/coforge/application/herdr-workflow-ports';
 import { boolean, list, number, oneOf, optional, shape, text, timestamp } from '../../features/coforge/domain/check';
+import { configuredStepExecutionCheck } from '../../features/coforge/domain/configured-workflow-run';
 
 const string = text({ max: 4096 });
 const identity = text({ min: 1, max: 320 });
@@ -11,6 +12,7 @@ const target = shape({
 }, { strict: true });
 const settings = shape({ executable: text({ min: 1, max: 1000 }), session: text({ min: 1, max: 80, pattern: /^[a-zA-Z0-9_-]+$/u }) }, { strict: true });
 const recordCheck = shape({
+  workflow: optional(configuredStepExecutionCheck), workspaceId: optional(identity),
   id: identity, jobId: identity, ideaId: identity, projectId: identity, stage: oneOf(['screen', 'score', 'plan', 'implement'] as const),
   model: text({ min: 1, max: 100 }), kind: oneOf(['claude'] as const), settings,
   fingerprint: identity, nonce: identity, at: timestamp, updatedAt: optional(timestamp), inspectedAt: optional(timestamp),

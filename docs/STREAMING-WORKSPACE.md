@@ -51,37 +51,33 @@ can be opened privately. Public cards have no privileged links or editing action
 Logs, diffs and prompt editors remain source text. Card actions are available by
 right-click or the **Actions** button; review-sensitive actions open the review UI.
 
-## Project prompts
+## Project prompts and workflows
 
-Open a project's **Studio settings → Workflow steps**, or **Configure step** in its
-workflow. Select Screen, Score, Plan or Build. Each starts with a default and can
-be overridden independently for that project. Blank/reset restores the default.
-Preview shows the normalized system instructions and an existing request's payload
-without invoking an agent. Save settings before dispatching. Finish/cancel that
-project's queued/running tasks before changing its prompts.
+Open **Workflow settings** in the Build navigation group to edit the selected
+project's ordered process. Add, duplicate, remove or reorder AI, approval and
+checklist steps, including replacements for the original Screen/Score/Plan/Build.
+Each AI step has explicit instructions, provider/model, result contract and access.
+Import/export JSON works on a previewed draft and never starts a model. See
+[Project workflows](WORKFLOWS.md) for execution, manual checkpoints and the JSON format.
 
-The general project prompt prefixes the request payload. Stage instructions define
-the task; CoForge still supplies execution restrictions, output schemas and mandatory
-streamer review. Overrides live in `agent-prompt-screen`, `agent-prompt-score`,
-`agent-prompt-plan` and `agent-prompt-implement` in the project Markdown note.
-
-Each step also has a provider and model choice. Blank fields inherit the project's
-defaults; explicit overrides remain independent when defaults change. The current
-workflow runners are Claude Code, Simulation and Herdr. Simulation makes no model call;
-real steps use the configured model alias or identifier. A mixed workflow
-is labelled **Mixed providers**, and each workflow card shows its actual runner/model.
-**Use project defaults for this step** clears only its provider/model overrides,
-leaving its task prompt intact. The project note stores `agent-provider-<stage>` and
-`agent-model-<stage>` fields. Each queued attempt retains its selected provider/model
-for execution, history and AI-cost attribution, even while another project is active.
+The general project prompt stays in **Project settings** and prefixes dispatch.
+Workflow definitions are owned `workflow-definition` frontmatter in the project
+Markdown note; progress and artifacts live in request notes. Legacy flat prompt/
+agent settings still resolve to equivalent standard steps until explicit configuration.
+Opening a view does not rewrite them. Saving a revision changes future runs;
+existing runs keep their captured instructions, inputs, limits and AI choices.
+The supported runners are Claude Code, Simulation and the managed Herdr profile.
+Simulation calls no model. Each real attempt retains its model and step identity
+for execution, history and AI-cost attribution across project switches.
 
 Herdr steps launch a dedicated agent in the configured local Herdr session; select
 the **Claude Code** managed profile and a model for each step. Other agent kinds
 remain available in manual Herdr controls, but have no verified workflow profile yet.
 Connect and refresh Herdr in **Agent workflow** first. Each task uses a private,
 correlated JSON result file; delivery, terminal text and idle status alone never
-advance a request. Classifiers can only write that result; Plan reads the project
-and writes its result; Build edits a separate Git worktree for streamer review.
+advance a request. No-project-access steps can only write their result; read-only
+steps inspect the project/run workspace and write their private result; editing
+steps share a separate Git worktree for final streamer review.
 The managed agent cannot execute test commands, so captured increments clearly
 report tests as not run. CoForge never accepts model-written usage or test claims.
 
@@ -92,9 +88,9 @@ session, workspace and attempt. Inspect that session, then explicitly acknowledg
 the record in **Agent workflow** before another mutation. Reload never resends a task
 or automatically resumes an incomplete attempt.
 
-Configuration edits require that project's queued/running tasks to finish or be
-cancelled. If project settings change outside the form, unsaved drafts stay intact;
-save is blocked until you review the external values using **Discard changes**.
+Project paths/general context stay protected during unfinished runs. Future workflow
+definitions remain editable. External configuration changes preserve unsaved drafts
+and block a stale save until you review the current values using **Discard changes**.
 
 ## Costs and finances
 

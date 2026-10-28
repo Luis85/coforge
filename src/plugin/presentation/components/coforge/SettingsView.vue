@@ -2,11 +2,8 @@
 import { useSettings } from "../../composables/coforge/use-settings";
 import CfIcon from "./CfIcon.vue";
 import SettingsDataSection from "./SettingsDataSection.vue";
-import SettingsNumberSection from "./SettingsNumberSection.vue";
-import SettingsProviderSection from "./SettingsProviderSection.vue";
 import SettingsRuntimeSection from "./SettingsRuntimeSection.vue";
 import SettingsRepositorySection from "./SettingsRepositorySection.vue";
-import SettingsStagePrompts from "./SettingsStagePrompts.vue";
 
 const model = useSettings();
 </script>
@@ -102,38 +99,29 @@ const model = useSettings();
             >
           </div>
         </section>
-        <SettingsProviderSection />
-        <SettingsStagePrompts />
         <SettingsRepositorySection />
         <p class="cf-settings-help">
           Viewer feature requests have a fixed 5-minute cooldown across all
           projects. Registration and earning rules are managed under Players and
           Operations.
         </p>
-        <SettingsNumberSection
-          :fields="model.rhythm"
-          icon="sliders-horizontal"
-          heading="Workflow rhythm"
-          text="Stage automation switches are on the Agent workflow screen. These limits apply to the queue."
+        <section
+          class="cf-settings-workflow-link"
+          aria-label="Workflow configuration location"
         >
-          <p class="cf-settings-note">
-            <CfIcon name="shield-check" size="sm" />
-            <span>Review of a finished increment always stays with you.</span>
+          <h2>Configure the workflow separately</h2>
+          <p>
+            Steps, AI providers, models, prompts and run limits live in Workflow
+            settings for this project.
           </p>
-        </SettingsNumberSection>
-        <SettingsNumberSection
-          :fields="model.limits"
-          icon="gauge"
-          heading="Run limits"
-          text="Native Claude Code receives the turn and USD caps. CoForge applies the wait timeout to managed Herdr attempts."
-        >
-          <p class="cf-settings-help">
-            Herdr agent spending and turn limits are configured externally.
-            These native CLI caps do not enforce Herdr spending. A timeout or
-            cancellation ends CoForge’s wait; inspect the original Herdr agent
-            before acknowledging recovery.
-          </p>
-        </SettingsNumberSection>
+          <button
+            type="button"
+            class="cf-btn cf-btn-secondary"
+            @click="model.store.navigate('workflow-settings')"
+          >
+            Open Workflow settings
+          </button>
+        </section>
         <div class="cf-settings-save">
           <span class="cf-settings-help" aria-live="polite">
             <template v-if="model.status === 'saved'"

@@ -37,6 +37,7 @@ export class ObsWorkflow {
   private closed = false;
   private stopObserving = () => {};
   private observed: Promise<void> = Promise.resolve();
+  private detection: Promise<void> | undefined;
   constructor(
     private readonly store: StudioStore,
     private readonly obs: ObsControlPort,
@@ -151,7 +152,11 @@ export class ObsWorkflow {
       await this.publish();
     }
   }
-  async detect(): Promise<void> {
+  detect(): Promise<void> {
+    if (!this.detection) this.detection = this.detectOnce().finally(() => { this.detection = undefined; });
+    return this.detection;
+  }
+  private async detectOnce(): Promise<void> {
     await this.claim();
     try {
       await this.event('obs-detection-requested', 'none');
