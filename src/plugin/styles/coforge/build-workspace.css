@@ -90,6 +90,8 @@
 .cf-workflow-history-body { padding: var(--cf-space-md); }
 .cf-workflow-code-block { border-radius: var(--radius-m); }
 .cf-workflow-editor-layout { gap: var(--cf-space-lg); }
+.cf-workflow-settings-page.is-embedded { min-width: 0; padding: 0; margin: 0; max-width: none; }
+.cf-workflow-subpage-heading h2 { font-size: 22px; line-height: 1.35; letter-spacing: -0.02em; }
 .cf-workflow-step-list { padding: var(--cf-space-md); background: var(--cf-surface); border-radius: var(--cf-section-radius, 12px); }
 .cf-workflow-step-list li.is-selected { background: var(--cf-accent-surface, var(--cf-accent-soft)); }
 .cf-workflow-step-list .cf-workflow-step-select { padding: var(--cf-space-sm); }

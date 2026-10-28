@@ -14,6 +14,7 @@ const model = useProjects();
     <form v-if="model.adding" class="cf-project-create" aria-label="Add project" @submit="model.submit">
       <h2>Add a project</h2>
       <label class="cf-field"><span>Project name</span><input v-model="model.draft.projectName" type="text" required maxlength="80" placeholder="Moon orchard"></label>
+      <label class="cf-field"><span>Project visibility</span><select v-model="model.draft.visibility" aria-label="Project visibility" :aria-describedby="`${model.store.layoutId}-new-project-visibility-help`"><option value="public">Public · eligible for viewer discovery</option><option value="private">Private · owner workspace only</option></select><small :id="`${model.store.layoutId}-new-project-visibility-help`">Private projects and their requests stay out of viewer discovery, capture boards and recognition.</small></label>
       <label class="cf-field">
         <span>Project path</span><input v-model="model.draft.projectPath" type="text" required maxlength="1000" spellcheck="false" placeholder="C:/Games/moon-orchard">
         <small>Absolute path where the game files and agents work. It can be outside this vault; the project note stays in the vault.</small>
@@ -35,7 +36,7 @@ const model = useProjects();
       </div>
       <article v-for="project in model.rows" :key="project.id" class="cf-project-row" :class="{ 'is-selected': project.selected }">
         <div class="cf-project-row-content">
-          <div class="cf-project-row-title"><h2>{{ project.name }}</h2><code class="cf-readable-project-id">{{ project.id }}</code><span v-if="project.selected" class="cf-badge">Selected</span></div>
+          <div class="cf-project-row-title"><h2>{{ project.name }}</h2><code class="cf-readable-project-id">{{ project.id }}</code><span class="cf-badge">{{ project.unavailable ? 'Unavailable' : project.visibility === 'private' ? 'Private' : 'Public' }}</span><span v-if="project.publicationBlocked" class="cf-badge">Publication blocked</span><span v-if="project.selected" class="cf-badge">Selected</span></div>
           <MarkdownBody :source="project.brief" compact :links="false" />
           <code>{{ project.path || 'Repository not configured' }}</code>
           <div v-if="project.repositoryUrl || project.websiteUrl" class="cf-project-links">

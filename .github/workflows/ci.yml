@@ -115,5 +115,12 @@ jobs:
             reports/example-cleanup/
             reports/product-audit/
             reports/ui-intent/after/
+            reports/council-ask/
+            reports/council-prompt-order/
+            reports/agent-costs/
+            reports/project-privacy/
+            reports/request-object/
+            reports/council-card-assessment/
+            reports/economy/
           retention-days: 14
           if-no-files-found: warn

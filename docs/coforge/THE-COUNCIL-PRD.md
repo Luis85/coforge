@@ -8,6 +8,8 @@ The Council lets a CoForge user assemble reusable AI agents into teams and counc
 
 The default council holds two sequential rounds. Every member first gives an independent opinion on the submitted note. After all required opinions have been saved, every member receives those opinions and proposes a solution. An optional chair can then consolidate the proposals. Configuration is maintained through CoForge’s UI and readable Markdown definitions.
 
+Owner amendment, 28 October 2026: each round can choose **Round robin** (sequential members) or **Fan out** (concurrent members). The persisted `promptOrder` field is optional; absent fields keep legacy round-robin semantics and unchanged revisions. Round dependencies remain ordered, opinions remain independent and dependent rounds wait for committed, projected outcomes. This supersedes the original same-round sequential restriction when fan out is explicitly selected; it does not enable concurrent rounds or change existing captured runs.
+
 Requirements below describe the proposed feature. Section 2 identifies the existing implementation and the changes needed to integrate it. Defaults are proposed product decisions, not previously approved owner decisions.
 
 # 1 Product goals and release scope
@@ -161,11 +163,11 @@ Requirement IDs below are stable implementation and acceptance references. All r
 
 **COU-02 — Default protocol.** A council shall offer two sequential rounds: independent opinions, followed by solution proposals from every configured member. Both rounds shall write each contribution to the originating note.
 
-**COU-03 — Configurable rounds.** Users shall add, remove, rename, duplicate, and reorder supported sequential rounds; choose participants and order; edit prompt templates; bind input collections; choose output contracts; and set completion rules. References may only target earlier rounds or captured input. A two-round template remains the default.
+**COU-03 — Configurable rounds.** Users shall add, remove, rename, duplicate, and reorder supported ordered rounds; choose participants and publication order; choose per-round Round robin or Fan out prompt order; edit prompt templates; bind input collections; choose output contracts; and set completion rules. References may only target earlier rounds or captured input. A two-round template with round-robin members remains the default.
 
 **COU-04 — Input isolation.** Within the default opinion round, every member shall receive the same captured source and shared context, plus its own instructions. Earlier opinions shall be excluded. Within the default solution round, every member shall receive the original source and the same ordered, persisted opinion collection. Earlier solution proposals shall be excluded.
 
-**COU-05 — Persistence barriers.** A contribution shall be durably recorded and successfully projected into the source note before the next member is invoked. A dependent round shall start only after the prior round’s configured completion rule and projection barrier are satisfied.
+**COU-05 — Persistence barriers.** In Round robin, a contribution shall be durably recorded and successfully projected before the next member is invoked. In Fan out, selected attempt intents and finite reservations shall be committed before concurrent dispatch; individual outcomes remain durable and are projected in participant order. A dependent round shall start only after the prior round’s configured completion rule and projection barrier are satisfied. An unknown outcome remains held for explicit recovery rather than replay.
 
 **COU-06 — Optional synthesis.** Users may add a synthesis stage assigned to one member. It shall receive the selected opinion and solution collections, preserve disagreement, and produce a separately labeled recommendation. It shall not replace members’ second-round responses.
 
@@ -274,7 +276,7 @@ A queued run remains tied to its captured revision. If the user changes the requ
 | State | Meaning and next action |
 | - | - |
 | Queued | Accepted and durable; waiting for execution eligibility. |
-| Running | One invocation or a local execution action is active. |
+| Running | One invocation, one permitted fan-out batch, or a local execution action is active. |
 | Publishing | A contribution is durable; its source-note projection is incomplete. Retry publication without another model call. |
 | Waiting for human | A workflow checkpoint or recovery decision requires input; the provider slot is released. |
 | Paused | A user or policy has stopped future dispatch. Resume rechecks current grants and dependencies. |
@@ -286,7 +288,7 @@ A queued run remains tied to its captured revision. If the user changes the requ
 
 Pause stops before the next external action; it does not claim to interrupt a provider instantaneously. Cancel requests provider cancellation where supported and stops descendants from launching. A Herdr operation may continue externally after the local wait ends, consistent with existing CoForge behavior. [S1](https://github.com/Luis85/coforge/blob/ddca02d6dbc8e53e9b82490a8577c84d6f3bbf4a/docs/WORKFLOWS.md)
 
-A parent workflow waiting for a council result shall not occupy the provider slot. The scheduler shall schedule executable member steps and allow unrelated ready runs to progress. A council’s own member dependencies remain sequential.
+A parent workflow waiting for a council result shall not occupy the provider slot. The scheduler shall schedule executable member work and allow unrelated ready runs to progress. Council round dependencies remain ordered; members follow the captured Round robin or Fan out setting inside each round.
 
 ## 6.4 Durable result and publication sequence
 

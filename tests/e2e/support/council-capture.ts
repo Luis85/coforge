@@ -1,3 +1,4 @@
+import { showAdvancedCouncilTools } from './council-navigation';
 import { expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -51,5 +52,6 @@ export async function openCouncilReview(
   await page
     .getByRole("button", { name: "Explore Council example", exact: true })
     .click();
+  await showAdvancedCouncilTools(page);
   return errors;
 }

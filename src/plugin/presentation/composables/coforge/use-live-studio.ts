@@ -69,6 +69,8 @@ export function useLiveStudio() {
     state,
     example: computed(() => Boolean(example.value)),
     canPreview: Boolean(host.previewLiveStudio),
+    viewerIsCount: computed(() => viewerFresh.value && state.value.viewers.value?.state === "live"
+      && Number.isFinite(state.value.viewers.value.viewers)),
     viewer: computed(() =>
       !viewerFresh.value
         ? "Unavailable"

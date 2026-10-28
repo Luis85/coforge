@@ -1,14 +1,14 @@
 ---
 id: "community-settings"
 title: "Community settings"
-goal: "Save the community’s naming and earning rules."
+goal: "Save community names, XP and reputation rules, and ranks."
 audience: "streamer"
 kind: "page"
 route: "studio.view = community-settings"
 parent: "studio"
 component: "src/plugin/presentation/components/coforge/CommunitySettingsView.vue"
 entry: ["Choose Community settings in the studio navigation."]
-actions: ["Edit names","Edit earning rules and named ranks","Save or discard"]
+actions: ["Edit names","Edit XP and reputation rules and named ranks","Open Economy for currency income and prices","Save or discard"]
 states: ["Saved","Unsaved","Invalid thresholds","Saving","Failure with retained draft"]
 journeys: ["community"]
 privacy: "Private vault workspace; excluded from public projections."
@@ -21,7 +21,7 @@ This is channel-wide configuration, shared across every project. The scope summa
 
 ## Purpose
 
-Save the community’s naming and earning rules.
+Save community names, XP and reputation rules, and ranks. Currency income, subscriber totals, command fees and rewards live together in [Economy](economy.md). Community settings preserves the current Economy base rate when saving a naming or participation draft.
 
 Labels and thresholds do not reset existing balances. Registration grants no initial balance.
 

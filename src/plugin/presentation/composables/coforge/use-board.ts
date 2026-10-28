@@ -1,6 +1,7 @@
 import { computed, inject, provide, reactive, ref, type InjectionKey } from 'vue';
 import type { Category, Idea, IdeaStatus } from '../../../features/coforge/domain/types';
-import { CATEGORIES, rankedIdeas, STATUS_LABELS } from '../../../features/coforge/domain/types';
+import { rankedIdeas, STATUS_LABELS } from '../../../features/coforge/domain/types';
+import { requestCategoryNames } from '../../../features/coforge/domain/request-categories';
 import { useStudioStore } from '../../stores/coforge-studio';
 import { contributorName } from './format';
 import { projectWorkSummary } from './project-work-summary';
@@ -74,7 +75,7 @@ function createBoard() {
   return reactive({
     store, query, filter, category, layout, sort, requestKind, filtered, isFiltered, tabs, columns, rows,
     summary: computed(() => projectWorkSummary(store.state)),
-    categories: CATEGORIES, sortOptions: SORT_OPTIONS,
+    categories: computed(() => [...new Set([...requestCategoryNames(store.activeProject?.settings.requestObject), ...ideas.value.map(idea => idea.category)])]), sortOptions: SORT_OPTIONS,
     projectEmpty: computed(() => ideas.value.length === 0),
     emptyTitle: computed(() => (isFiltered.value ? 'No ideas match this view.' : 'Your next game starts with an idea.')),
     emptyText: computed(() => (isFiltered.value ? 'Try a different search or filter.' : 'Submit an idea here, or type !request in the stream chat.')),

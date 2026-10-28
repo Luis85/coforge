@@ -1,0 +1,59 @@
+.cf-economy-config-fields { margin: 0; padding: 0; border: 0; min-width: 0; }
+.cf-economy-section { display: grid; gap: 24px; min-width: 0; }
+.cf-economy-section > div:first-child > h2 { font-size: 22px; margin-bottom: 8px; }
+.cf-economy-section p { max-width: 75ch; color: var(--cf-muted); line-height: 1.7; font-size: 13px; }
+.cf-economy-section h3 { font-size: 17px; }
+.cf-economy-section h4 { font-size: 15px; }
+.cf-economy-page .cf-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.cf-economy-page .cf-btn { max-width: 100%; white-space: normal; }
+.cf-economy-editor-layout { display: grid; grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.8fr); gap: 28px; align-items: start; }
+.cf-economy-picker { min-width: 0; padding: 16px; border-radius: var(--cf-section-radius); background: var(--cf-surface); }
+.cf-economy-picker > h3 { margin-bottom: 12px; }
+.cf-economy-picker ul { list-style: none; margin: 0; padding: 0; max-height: min(600px, 65vh); overflow: auto; }
+.cf-economy-picker li + li { border-top: 1px solid var(--cf-border); }
+.cf-economy-picker button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: start; width: 100%; padding: 14px 10px; background: transparent; border: 0; height: auto; text-align: start; white-space: normal; color: var(--cf-text); }
+.cf-economy-picker button[aria-pressed="true"] { background: var(--cf-accent-surface); border-radius: var(--radius-m); }
+.cf-economy-picker button:hover { background: var(--cf-hover); }
+.cf-economy-picker small { grid-column: 1 / -1; color: var(--cf-muted); font-size: 12px; line-height: 1.6; }
+.cf-economy-picker :is(strong, code) { overflow-wrap: anywhere; font-size: 13px; }
+.cf-economy-inspector { display: grid; gap: 18px; min-width: 0; padding-left: 24px; border-left: 1px solid var(--cf-border); }
+.cf-economy-inspector > code { color: var(--cf-muted); overflow-wrap: anywhere; font-size: 12px; }
+.cf-economy-inspector fieldset { display: grid; gap: 12px; min-width: 0; padding: 16px; border: 1px solid var(--cf-border); border-radius: var(--radius-m); }
+.cf-economy-inspector legend { font-weight: 600; font-size: 13px; padding-inline: 6px; }
+.cf-economy-three-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.cf-economy-check { display: flex; align-items: center; gap: 10px; line-height: 1.6; font-size: 13px; }
+.cf-economy-check input { flex-shrink: 0; }
+.cf-economy-earning-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.cf-economy-earning-layout > section { display: grid; gap: 16px; align-content: start; }
+.cf-economy-policy { padding: 22px; background: var(--cf-info-surface); border-radius: var(--cf-section-radius); }
+.cf-economy-policy h3 { margin-bottom: 10px; }
+.cf-economy-policy p + p { margin-top: 10px; }
+.cf-economy-save { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; margin-top: 32px; background: var(--cf-bg); border-top: 1px solid var(--cf-border); }
+.cf-economy-save > p { flex: 1 1 260px; margin: 0; }
+.cf-economy-history { border-top: 1px solid var(--cf-border); padding-top: 22px; }
+.cf-economy-history summary { cursor: pointer; font-weight: 600; }
+.cf-economy-history > p { margin-block: 12px; }
+.cf-economy-history table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 12px; }
+.cf-economy-history :is(th, td) { text-align: start; vertical-align: top; padding: 12px; border-bottom: 1px solid var(--cf-border); }
+.cf-economy-history th { background: var(--cf-surface); }
+.cf-economy-history small { display: block; color: var(--cf-muted); margin-top: 6px; }
+.cf-economy-outcome { display: grid; grid-template-columns: minmax(0, 1fr) 100px auto; gap: 12px; align-items: end; padding-block: 16px; border-bottom: 1px solid var(--cf-border); }
+.cf-economy-outcome > p { grid-column: 1 / -1; font-variant-numeric: tabular-nums; }
+.cf-economy-queue-filters { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(0, 2fr); gap: 18px; }
+.cf-economy-queue { list-style: none; padding: 0; margin: 0; }
+.cf-economy-queue > li { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 16px; padding-block: 22px; border-bottom: 1px solid var(--cf-border); }
+.cf-economy-queue > li > div { flex: 1 1 260px; min-width: 0; overflow-wrap: anywhere; }
+.cf-economy-queue h3 { margin-bottom: 8px; }
+.cf-economy-queue small { display: block; color: var(--cf-muted); margin-top: 8px; }
+.cf-economy-fulfillment-editor { display: grid; gap: 16px; padding: 24px; background: var(--cf-surface); border-radius: var(--cf-section-radius); }
+@container plugin-shell-leaf (max-width: 900px) {
+  .cf-economy-editor-layout, .cf-economy-earning-layout { grid-template-columns: minmax(0, 1fr); }
+  .cf-economy-picker ul { max-height: 320px; }
+  .cf-economy-inspector { padding-left: 0; border-left: 0; padding-top: 22px; border-top: 1px solid var(--cf-border); }
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-economy-three-fields, .cf-economy-queue-filters { grid-template-columns: minmax(0, 1fr); }
+  .cf-economy-outcome { grid-template-columns: minmax(0, 1fr) 90px; }
+  .cf-economy-outcome > .cf-btn { grid-column: 1 / -1; justify-self: start; }
+  .cf-economy-fulfillment-editor { padding: 18px; }
+}

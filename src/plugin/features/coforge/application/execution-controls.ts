@@ -10,6 +10,7 @@ export class ExecutionControls {
     private readonly activeRunId: () => string | undefined,
   ) {}
   async retry(id: string, acknowledgeUnknown = false): Promise<void> {
+    if (this.activeRunId() === id) throw new Error("Wait for all active round members to settle before retrying.");
     await this.store.mutate((next) => {
       const run = next.runs.find((item) => item.id === id);
       if (!run || run.state !== "attention")

@@ -38,3 +38,7 @@ The capture title and connection state precede a dedicated scrolling conversatio
 Source: [src/plugin/presentation/components/coforge/StreamLiveChat.vue](../../../src/plugin/presentation/components/coforge/StreamLiveChat.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
 
 Journey tags: `public-sharing`, `community`.
+
+## Project privacy
+
+This surface shows previously observed live Twitch text under its existing source/time rules. Project privacy does not inferentially redact actor-authored messages or recall text already sent to Twitch. Fresh derived bot replies are gated and stale unsent derived replies are cancelled.

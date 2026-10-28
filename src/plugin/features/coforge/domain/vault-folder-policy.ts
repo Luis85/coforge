@@ -1,4 +1,5 @@
 import { text } from "./check";
+import { COUNCIL_TASK_FOLDER } from "./council-task";
 
 export interface VaultFolderLayout {
   ideasFolder: string;
@@ -22,6 +23,7 @@ const PRIVATE_FOLDERS = [
   "CoForge/Messages",
   "CoForge/Tests",
   "CoForge/Recovery",
+  COUNCIL_TASK_FOLDER,
   ".git",
 ];
 const folderText = text({ trim: true, min: 1, max: 200 });

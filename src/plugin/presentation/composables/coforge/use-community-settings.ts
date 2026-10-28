@@ -52,7 +52,7 @@ export function useCommunitySettings() {
             currencyName: environment.currencyName,
             ranks: environment.ranks.map((rank) => ({ ...rank })),
           },
-          rules: { ...rules },
+          rules: { ...rules, coinsPerMinute: studio.getEconomy().coinsPerMinute },
         }),
       );
       load();
@@ -71,10 +71,10 @@ export function useCommunitySettings() {
     notice,
     working,
     dirty: computed(() => encoded.value !== saved.value),
+    openEconomy: () => { store.navigate('economy'); },
     ruleFields: computed(
       () =>
         [
-          { key: "coinsPerMinute", label: `${environment.currencyName || "Currency"} per chat-presence minute` },
           { key: "xpPerMinute", label: "XP per chat-presence minute" },
           { key: "screenedReputation", label: "Reputation per screened feature" },
           { key: "screenedXp", label: "XP per screened feature" },

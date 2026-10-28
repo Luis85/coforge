@@ -9,6 +9,7 @@ export function projectWorkSummary(state: AppState | null) {
   return {
     id: project.id,
     name: project.settings.projectName,
+    visibility: project.visibility ?? 'public',
     unavailable: Boolean(project.unavailable),
     paused: project.settings.paused,
     requests: ideas.length,

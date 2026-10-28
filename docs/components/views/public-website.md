@@ -37,3 +37,7 @@ The project identity and participation commands lead the page, followed by the g
 Source: [src/plugin/features/coforge/domain/public-site.ts](../../../src/plugin/features/coforge/domain/public-site.ts). The exported document owns its standalone HTML and CSS. It uses the explicit public projection and exposes no private mutation controls.
 
 Journey tags: `public-sharing`.
+
+## Project privacy
+
+Revoking publication scrubs owned local board JSON and HTML even when automatic board updates are off. Unrelated files are preserved. Previously deployed GitHub Pages content remains online until the streamer republishes or removes it; CoForge does not push the vault.

@@ -7,7 +7,7 @@ kind: "subpage"
 route: "council.tab = messages"
 parent: "council"
 component: "src/plugin/presentation/components/coforge/CouncilMessages.vue"
-entry: ["Open The Council, then choose Team messages."]
+entry: ["Open The Council, expand Advanced Council tools, then choose Team messages."]
 actions: ["Select team and recipients","Compose","Choose information or delegation","Send"]
 states: ["No team","No recipients","Invalid limits","Pending","Delivered","Uncertain delivery"]
 journeys: ["Council"]
@@ -25,7 +25,7 @@ Information adds context without waking every member. Delegation has explicit re
 
 ## Entry and next action
 
-Open The Council, then choose Team messages. Available actions: Select team and recipients; Compose; Choose information or delegation; Send. Return through the owning [The Council](council.md) surface.
+Open The Council, expand Advanced Council tools, then choose Team messages. Available actions: Select team and recipients; Compose; Choose information or delegation; Send. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 

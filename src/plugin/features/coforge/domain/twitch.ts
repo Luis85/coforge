@@ -12,6 +12,8 @@ export interface TwitchState {
   tracking?: { phase: 'idle' | 'live' | 'offline' | 'error'; message: string; checkedAt?: string; streamId?: string; presentPlayers?: number };
 }
 export interface BotReply {
+  /** Explicit derived-response references; empty is safe, absent legacy provenance fails closed. */
+  publicProjectIds?: string[];
   id: string; parentMessageId?: string; channelId: string; senderId: string; text: string; createdAt: string; streamMessageId?: string; streamKey?: string;
   reviewedAt?: string; greetingPlayerId?: string;
   status: 'pending' | 'sending' | 'sent' | 'failed' | 'uncertain' | 'cancelled'; messageId?: string; error?: string;

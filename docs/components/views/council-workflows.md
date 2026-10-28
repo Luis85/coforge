@@ -7,7 +7,7 @@ kind: "subpage"
 route: "council.tab = workflows"
 parent: "council"
 component: "src/plugin/presentation/components/coforge/WorkflowV2Editor.vue"
-entry: ["Open The Council, then choose Council workflows."]
+entry: ["Open The Council, expand Advanced Council tools, then choose Council workflows."]
 actions: ["Load saved","Edit steps and collections","Preview import or export","Save or discard"]
 states: ["No project","No saved definition","Unsaved draft","Validation error","Stale revision"]
 journeys: ["Council"]
@@ -25,7 +25,7 @@ Version 2 composes reusable agents, councils and checkpoints. Generic note subje
 
 ## Entry and next action
 
-Open The Council, then choose Council workflows. Available actions: Load saved; Edit steps and collections; Preview import or export; Save or discard. Return through the owning [The Council](council.md) surface.
+Open The Council, expand Advanced Council tools, then choose Council workflows. Available actions: Load saved; Edit steps and collections; Preview import or export; Save or discard. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 

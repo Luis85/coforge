@@ -22,6 +22,7 @@ it("leads with stream work and keeps configuration beside its owning journey", a
       "Insights navigation",
     ]);
     expect(groups[1]?.text()).toContain("Project settings");
+    expect(groups[1]?.findAll('button').map(button => button.text().trim()).slice(0, 3)).toEqual([expect.stringContaining('Idea board'), 'The Council', 'Agent workflow']);
     expect(groups[2]?.text()).toContain("Community settings");
     expect(wrapper.find(".cf-sidebar-bottom").text()).not.toContain(
       "Project settings",
@@ -91,7 +92,7 @@ it("keeps the dirty workflow and current destination when another journey is sel
     await wrapper.get('button[title="Stream studio"]').trigger("click");
     expect(fixture.store.view).toBe("workflow-settings");
     expect(wrapper.get('button[aria-current="page"]').text()).toBe(
-      "Workflow settings",
+      "Agent workflow",
     );
     expect(fixture.store.dirtyWorkflow).toBe(true);
     expect(fixture.runner).not.toHaveBeenCalled();

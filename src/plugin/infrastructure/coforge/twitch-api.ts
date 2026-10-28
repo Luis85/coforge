@@ -3,6 +3,7 @@ import type { ModerationAction, TwitchChannel, TwitchRole, TwitchChannelUpdate }
 import { TwitchAccounts, BOT_SCOPES } from './twitch-auth';
 import { assertResponse, object, strings, TwitchError, type HttpRequest, type HttpResponse } from './twitch-http';
 import type { ChatSenderPort, PlayerModerationPort, LivePresencePort, ModerationReceipt } from '../../features/coforge/application/integration-ports';
+import { readChannelSubscriptions } from './twitch-subscriptions';
 
 const HELIX = 'https://api.twitch.tv/helix/';
 const numeric = (value: string) => /^\d+$/.test(value);
@@ -71,6 +72,11 @@ export class TwitchApi implements ChatSenderPort, PlayerModerationPort, LivePres
     if (typeof value.total !== 'number' || !Number.isInteger(value.total) || value.total < 0 || typeof value.points !== 'number' || !Number.isInteger(value.points) || value.points < 0)
       throw new TwitchError('service', 'Twitch did not return subscription totals.');
     return { total: value.total, points: value.points };
+  }
+  async subscriptions(userIds: readonly string[]): Promise<string[]> {
+    return readChannelSubscriptions(userIds,
+      query => this.call('streamer', ['channel:read:subscriptions'], 'GET', 'subscriptions', query),
+      () => ({ channelId: this.config().twitchBroadcasterId, clientId: this.config().twitchClientId, streamerId: this.accounts.identity('streamer')?.id }));
   }
   async updateChannel(input: TwitchChannelUpdate): Promise<void> {
     if (!input.title.trim() || [...input.title].length > 140 || (input.categoryId && !numeric(input.categoryId))) throw new TwitchError('validation', 'Enter a title of 1–140 characters and select a Twitch category.');
@@ -166,14 +172,26 @@ export class TwitchApi implements ChatSenderPort, PlayerModerationPort, LivePres
     }
     throw new TwitchError('service', 'Chat-presence snapshot exceeds the supported page limit. No time was credited.');
   }
+  /** Complete filtered evidence: https://dev.twitch.tv/docs/api/reference/#get-banned-users */
   async restrictions(userIds: readonly string[]): Promise<Array<{ userId: string; expiresAt?: string }>> {
     if (!userIds.length) return [];
     if (userIds.length > 100 || userIds.some(id => !numeric(id))) throw new TwitchError('validation', 'Select at most 100 Twitch users per restriction lookup.');
-    const response = await this.call('streamer', ['moderator:manage:banned_users'], 'GET', 'moderation/banned', { broadcaster_id: this.config().twitchBroadcasterId, user_id: userIds });
-    return snapshot(response).map(value => {
+    const channelId = this.config().twitchBroadcasterId; const clientId = this.config().twitchClientId;
+    if (!numeric(channelId)) throw new TwitchError('validation', 'Connect the broadcaster before checking restrictions.');
+    const response = await this.call('streamer', ['moderator:manage:banned_users'], 'GET', 'moderation/banned', { broadcaster_id: channelId, user_id: [...new Set(userIds)], first: '100' });
+    if (channelId !== this.config().twitchBroadcasterId || clientId !== this.config().twitchClientId || this.accounts.identity('streamer')?.id !== channelId)
+      throw new TwitchError('authorization', 'The Twitch connection changed. Refresh before checking restrictions.');
+    const rows = snapshot(response); const pagination = object(response.json).pagination;
+    const cursor = object(pagination).cursor;
+    if (!pagination || typeof pagination !== 'object' || Array.isArray(pagination) || (cursor !== undefined && cursor !== ''))
+      throw new TwitchError('service', 'Twitch returned an incomplete snapshot of restrictions. No time was credited.');
+    const seen = new Set<string>();
+    return rows.map(value => {
       const item = object(value);
-      if (typeof item.user_id !== 'string' || !numeric(item.user_id) || !userIds.includes(item.user_id) || (item.expires_at && (typeof item.expires_at !== 'string' || !Number.isFinite(Date.parse(item.expires_at)))))
+      if (typeof item.user_id !== 'string' || !numeric(item.user_id) || !userIds.includes(item.user_id) || seen.has(item.user_id)
+        || typeof item.expires_at !== 'string' || (item.expires_at && !Number.isFinite(Date.parse(item.expires_at))))
         throw new TwitchError('service', 'Twitch returned invalid restriction details.');
+      seen.add(item.user_id);
       return { userId: item.user_id, ...(typeof item.expires_at === 'string' && item.expires_at ? { expiresAt: item.expires_at } : {}) };
     });
   }

@@ -14,6 +14,7 @@ export type StudioView =
   | "settings"
   | "projects"
   | "population"
+  | 'economy'
   | "operations"
   | "community-settings"
   | "broadcast"
@@ -68,6 +69,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   const workflowStepSelection = ref("");
   const workflowRequestSelection = ref("");
   const dirtyCommunitySettings = ref(false);
+  const dirtyEconomy = ref(false);
   const streamTool = ref<StreamPage>("channel");
   const workflowTool = ref<WorkflowPage>("runs");
   const broadcastTool = ref<BroadcastPage>("live");
@@ -190,11 +192,12 @@ export const useStudioStore = defineStore("coforge-studio", () => {
         settings: dirtySettings.value,
         "community-settings": dirtyCommunitySettings.value,
         "workflow-settings": dirtyWorkflow.value,
+          economy: dirtyEconomy.value,
       },
       next,
     );
   }
-  function navigate(next: StudioView) {
+  function changeView(next: StudioView) {
     const problem = configurationIssue(next);
     if (problem) {
       notify(problem, true);
@@ -204,11 +207,22 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     activityOpen.value = false;
     return true;
   }
+  function navigate(next: StudioView) {
+    const destination =
+      next === "workflow" &&
+      (view.value === "workflow-settings" || workflowTool.value === "settings")
+        ? "workflow-settings"
+        : next;
+    if (!changeView(destination)) return false;
+    if (destination === "workflow-settings") workflowTool.value = "settings";
+    return true;
+  }
   function openStreamTool(next: StreamPage) {
     if (navigate("stream")) streamTool.value = next;
   }
   function openWorkflowTool(next: WorkflowPage) {
-    if (navigate("workflow")) workflowTool.value = next;
+    if (changeView(next === "settings" ? "workflow-settings" : "workflow"))
+      workflowTool.value = next;
   }
   function select(id: string | null, tab: IdeaDrawerTab = "overview") {
     selected.value = id;
@@ -267,6 +281,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     layoutId,
     dirtySettings,
     dirtyCommunitySettings,
+    dirtyEconomy,
     dirtyWorkflow,
     configurationIssue,
     workflowStepSelection,

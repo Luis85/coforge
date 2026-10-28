@@ -6,6 +6,7 @@ import { populationCheck } from './population-check';
 import { stagePromptsCheck } from './stage-prompts';
 import { stageUsageCheck } from './ai-usage';
 import { stageAgentsCheck } from './stage-agents';
+import { requestObjectDefinitionCheck } from './request-object';
 import { workflowDefinitionCheck } from './configured-workflow';
 import { configuredStepExecutionCheck } from './configured-workflow-run';
 import type { AgentJob, AppState, Increment, IntegrationSettings, Settings } from './types';
@@ -40,6 +41,7 @@ const job: Check<AgentJob> = shape({
   projectId: optional(str),
 });
 export const settingsCheck: Check<Settings> = shape({
+  requestObject: optional(requestObjectDefinitionCheck),
   workflow: optional(workflowDefinitionCheck),
   herdrAgent: optional(oneOf(['claude'] as const)),
   stageAgents: optional(stageAgentsCheck),
@@ -80,6 +82,7 @@ const persisted: Check<PersistedStudio> = shape({
   events: list(shape({ id: str, ideaId: optional(str), type: oneOf(['idea', 'vote', 'agent', 'review', 'system'] as const), text: str, createdAt: timestamp })),
   settings: settingsCheck, integration, votes: dictionary(list(str)), increments: dictionary(increment),
   botReplies: optional(list(shape({ id: str, parentMessageId: optional(str), channelId: str, senderId: str, text: str, createdAt: timestamp, streamMessageId: optional(str), streamKey: optional(str),
+    publicProjectIds: optional(list(text({ pattern: /^CFP-\d{3,7}$/ }), { max: 100 })),
     reviewedAt: optional(timestamp), greetingPlayerId: optional(str),
     status: oneOf(['pending', 'sending', 'sent', 'failed', 'uncertain', 'cancelled'] as const), messageId: optional(str), error: optional(str) }))),
   ingestMeta: shape({ processedMessages: list(shape({ id: str, ideaId: optional(str) })), lastRequests: dictionary(timestamp), chatRemovals: optional(shape({ channelId: str, messages: list(str, { max: 1000 }), clearAt: optional(timestamp), users: list(shape({ id: str, at: timestamp }), { max: 1000 }) })) }),

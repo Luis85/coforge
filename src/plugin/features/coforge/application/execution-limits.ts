@@ -6,6 +6,7 @@ import type {
 } from "../domain/execution-run";
 import { ExecutionMessageRejection } from "../domain/execution-message-rejection";
 import { effectiveExecutionAllowance } from "../domain/execution-allowance";
+import { timingReservations } from "./execution-timing-reservations";
 
 export function reservedExecutionInvocations(run: ExecutionRun): number {
   const attempts = run.attempts.filter((attempt) => !attempt.skipped);
@@ -40,7 +41,8 @@ export function accountInitialRootRetries(
     previous.messaging?.outbox.map((entry) => entry.message.id) ?? [],
   );
   if (
-    (root.usedExecutionMs ?? 0) - (run.timing?.active?.reservedMs ?? 0) >=
+    (root.usedExecutionMs ?? 0) -
+      timingReservations(run).reduce((sum, item) => sum + item.reservedMs, 0) >=
       (root.limitExecutionMs ?? 900000) &&
     next.messaging?.outbox.some(
       (entry) =>

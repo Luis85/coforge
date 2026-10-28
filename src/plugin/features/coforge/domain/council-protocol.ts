@@ -16,6 +16,7 @@ export interface CouncilInvocation {
   roundId: string;
   roundName: string;
   kind: CouncilRound["kind"];
+  promptOrder?: CouncilRound["promptOrder"];
   agent: AgentDefinition;
   agentRevision: string;
   instructions: string;
@@ -102,6 +103,9 @@ export function compileCouncil(
         roundId: round.id,
         roundName: round.name,
         kind: round.kind,
+        ...(round.promptOrder === undefined
+          ? {}
+          : { promptOrder: round.promptOrder }),
         agent: structuredClone(agent),
         agentRevision: definitionRevision(agent),
         instructions: round.instructions,

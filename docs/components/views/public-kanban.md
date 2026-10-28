@@ -38,3 +38,7 @@ The capture title, project identity and screened-request summary lead the board.
 Source: [src/plugin/presentation/components/coforge/StreamRequestBoard.vue](../../../src/plugin/presentation/components/coforge/StreamRequestBoard.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
 
 Journey tags: `public-sharing`, `community`.
+
+## Project privacy
+
+Only requests whose canonical parent project is public are eligible. A selected private, unavailable or missing project produces a generic empty identity and board; the display never falls back to private active settings.

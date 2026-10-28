@@ -22,7 +22,8 @@ for (const theme of ["light", "dark"]) {
         name: "Stream studio",
         exact: true,
       });
-      await expect(nav.getByRole("button", { name: "Workflow settings", exact: true }).locator('.cf-icon svg')).toBeVisible();
+      await expect(nav.getByRole("button", { name: "Workflow settings", exact: true })).toHaveCount(0);
+      await expect(nav.getByRole("button", { name: "Agent workflow", exact: true }).locator('.cf-icon svg')).toBeVisible();
       await button.click();
       await expect(button).toHaveAttribute("aria-current", "page");
       await page.locator(".cf-broadcast-page h1").click();

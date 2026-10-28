@@ -8,6 +8,7 @@ import CouncilMonitor from "./CouncilMonitor.vue";
 import WorkflowV2Editor from "./WorkflowV2Editor.vue";
 import CouncilMessages from "./CouncilMessages.vue";
 import CouncilFolderSettings from "./CouncilFolderSettings.vue";
+import CouncilAskView from "./CouncilAskView.vue";
 import ProjectWorkContext from "./ProjectWorkContext.vue";
 import { DEFAULT_COUNCIL_FOLDERS } from "../../../features/coforge/domain/council-definition-folders";
 const model = useCouncil();
@@ -18,8 +19,8 @@ const model = useCouncil();
       <div>
         <h1>The Council</h1>
         <p>
-          Reusable specialists, independent opinions and attributable solutions
-          in your notes.
+          Ask for advice, collect independent opinions and follow each task from
+          its captured question to attributed results.
         </p>
       </div>
       <button
@@ -31,7 +32,7 @@ const model = useCouncil();
         Refresh Council
       </button>
     </header>
-    <ProjectWorkContext />
+    <ProjectWorkContext :show-automation="false" />
     <p v-if="!model.service">
       Open this view in desktop Obsidian to create vault-backed definitions and
       submit private Markdown notes.
@@ -58,7 +59,41 @@ const model = useCouncil();
     >
       Exit example
     </button>
-    <template v-if="model.service">
+    <div class="cf-council-task-navigation">
+      <nav aria-label="Council tasks">
+        <button
+          type="button"
+          class="cf-btn cf-btn-secondary"
+          :aria-current="model.store.tab === 'ask' ? 'page' : undefined"
+          @click="model.selectPage('ask')"
+        >
+          Ask the Council
+        </button>
+      </nav>
+      <details
+        v-if="model.service"
+        class="cf-council-advanced"
+        :open="model.store.tab !== 'ask'"
+      >
+        <summary>Advanced Council tools</summary>
+        <CfSubpageNav
+          label="Council workspace"
+          :items="model.advancedPages"
+          :selected="model.store.tab"
+          @select="model.selectPage($event)"
+        />
+      </details>
+    </div>
+    <p
+      v-if="model.store.error || model.store.state?.error"
+      role="alert"
+      class="cf-inline-error"
+    >
+      {{ model.store.error || model.store.state?.error }}
+    </p>
+    <p v-if="model.store.notice" role="status">{{ model.store.notice }}</p>
+    <CouncilAskView v-if="model.store.tab === 'ask'" />
+    <template v-else-if="model.service">
       <p v-if="!model.projectId">
         Create or select a project before configuring teams, councils and
         proposal workflows.
@@ -70,20 +105,6 @@ const model = useCouncil();
           Manage projects
         </button>
       </p>
-      <p
-        v-if="model.store.error || model.store.state?.error"
-        role="alert"
-        class="cf-inline-error"
-      >
-        {{ model.store.error || model.store.state?.error }}
-      </p>
-      <p v-if="model.store.notice" role="status">{{ model.store.notice }}</p>
-      <CfSubpageNav
-        label="Council workspace"
-        :items="model.pages"
-        :selected="model.store.tab"
-        @select="model.selectPage($event)"
-      />
       <section
         v-if="
           model.store.state &&
@@ -106,7 +127,7 @@ const model = useCouncil();
           Open Run monitor
         </button>
       </section>
-      <CouncilExecutionControls v-show="model.store.tab === 'monitor'" />
+      <CouncilExecutionControls v-if="model.store.tab === 'monitor'" />
       <template v-if="model.store.tab === 'definitions'">
         <CouncilDefinitions
           :catalogue="model.service.catalogue"

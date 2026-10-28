@@ -23,6 +23,7 @@ import type {
 import type { CouncilCatalogueSnapshot } from "./council-catalogue";
 import { projectInvocationInstructions } from "./invocation-project-context";
 import type { InvocationExecutionLimits } from "./invocation-project-context";
+import { assertCapturedPromptOrder } from "./captured-prompt-order";
 
 export interface CouncilTarget {
   kind: "agent" | "council";
@@ -34,6 +35,7 @@ export interface CouncilSource {
   generation: number;
   revision: string;
   markdown: string;
+  linkedIdea?: import("../domain/council-linked-idea").LinkedCouncilIdea;
 }
 export interface CouncilPreflight {
   projectPrompt?: string;
@@ -99,7 +101,8 @@ export function encodeCouncilPlan(plan: CouncilPlan): string {
   });
 }
 export function decodeCouncilPlan(
-  run: Pick<ExecutionRun, "definitionSnapshot">,
+  run: Pick<ExecutionRun, "definitionSnapshot"> &
+    Partial<Pick<ExecutionRun, "invocations">>,
 ): CouncilPlan {
   if (!run.definitionSnapshot)
     throw new Error("The pinned council definition is missing.");
@@ -109,6 +112,7 @@ export function decodeCouncilPlan(
     teamDefinitionCheck(value.team),
     list(agentDefinitionCheck)(value.agents),
   );
+  assertCapturedPromptOrder(run.invocations, plan.invocations);
   return {
     ...plan,
     targetKind: oneOf(["agent", "council"] as const)(
@@ -177,7 +181,7 @@ export function councilAdmission(
     teamId: plan.team.id,
     context: preview.context,
     subject: {
-      kind: "note",
+      ...(source.linkedIdea ? { kind: "idea" as const, ideaId: source.linkedIdea.ideaId, ideaRevision: source.linkedIdea.revision } : { kind: "note" as const }),
       sourceId: source.sourceId,
       revision: source.revision,
       markdown: source.markdown,
@@ -191,6 +195,9 @@ export function councilAdmission(
     invocations: plan.invocations.map((item) => ({
       id: item.id,
       roundId: item.roundId,
+      ...(item.promptOrder === undefined
+        ? {}
+        : { promptOrder: item.promptOrder }),
       agentId: item.agent.id,
       agentRevision: item.agentRevision,
       provider: limits.simulation ? "demo" : item.agent.provider,

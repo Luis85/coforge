@@ -3,6 +3,7 @@ import type { ChatResult } from "./chat";
 import { meaningful } from "../domain/sanitize";
 import { recordOperation } from "./population";
 import { addEvent } from "./studio-state";
+import { PUBLIC_UNAVAILABLE, requestIsPublic } from '../domain/project-publicity';
 export function addRequestContext(
   state: InternalState,
   ideaId: string,
@@ -13,6 +14,7 @@ export function addRequestContext(
   eventId?: string,
 ): ChatResult {
   const idea = state.ideas.find((idea) => idea.id === ideaId);
+  if (/^(?:twitch|api):/u.test(authorId) && (!idea || !requestIsPublic(state, idea))) return { ok: false, message: PUBLIC_UNAVAILABLE };
   if (!idea) return { ok: false, message: `Request ${ideaId} does not exist.` };
   if (["shipped", "rejected"].includes(idea.status))
     return {

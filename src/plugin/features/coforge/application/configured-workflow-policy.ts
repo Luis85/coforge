@@ -99,7 +99,7 @@ export function applyConfiguredOutput(idea: Idea, run: WorkflowRun, snapshot: Co
   else payload = { output, summary: result.summary ?? changes?.summary ?? 'No code changes were produced.', ...(changes ? { increment: changes } : {}) };
   const artifact = appendWorkflowArtifact(run, snapshot, payload, now);
   if (artifact.screening) {
-    const signals = heuristicSignals(`${idea.title}\n${idea.description}\n${idea.contexts?.map(item => item.text).join('\n') ?? ''}`);
+    const signals = heuristicSignals(`${idea.title}\n${idea.description}\n${idea.requestObject ? JSON.stringify(idea.requestObject) : ''}\n${idea.contexts?.map(item => item.text).join('\n') ?? ''}`);
     idea.screening = signals.length ? { ...artifact.screening, verdict: 'flagged', signals: [...new Set([...artifact.screening.signals, ...signals])] } : artifact.screening;
   }
   if (artifact.rice) idea.rice = artifact.rice;

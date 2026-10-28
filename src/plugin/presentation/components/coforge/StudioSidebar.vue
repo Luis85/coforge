@@ -3,7 +3,7 @@ import { useStudioNavigation } from "../../composables/coforge/use-studio-naviga
 import BrandMark from "./BrandMark.vue";
 import CfIcon from "./CfIcon.vue";
 
-const { shell: model, groups } = useStudioNavigation();
+const { shell: model, groups, navigate } = useStudioNavigation();
 </script>
 <template>
   <aside class="cf-sidebar">
@@ -60,7 +60,7 @@ const { shell: model, groups } = useStudioNavigation();
               : item.label
           "
           :disabled="item.disabled"
-          @click="model.store.navigate(item.view)"
+          @click="navigate(item.view)"
         >
           <CfIcon :name="item.icon" />
           <span>{{ item.label }}</span>

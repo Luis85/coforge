@@ -20,8 +20,13 @@ import type { CouncilAdmissions } from "./council-admissions";
 import type { CouncilRunContext } from "./council-run-context";
 import type { CouncilSourceNotes } from "./council-source-notes";
 import type { CouncilInboxWatcher } from "./council-inbox-watcher";
+import {
+  CouncilTasks,
+  type CouncilTaskNotes,
+} from "../../features/coforge/application/council-tasks";
 
 export interface CouncilActionHost {
+  taskNotes: CouncilTaskNotes;
   catalogue: CouncilCatalogueActions;
   definitionFolders: CouncilFolderActions;
   workflows: CouncilWorkflowModule;
@@ -39,6 +44,7 @@ export interface CouncilActionHost {
   subscribe(listener: (snapshot: CouncilRuntimeSnapshot) => void): () => void;
   assertReady(): void;
   assertExecutor(): Promise<void>;
+  beforePrune(id: string): Promise<void>;
   publish(): void;
   clearError(): void;
   protect(paths: string[]): Promise<void>;
@@ -49,12 +55,27 @@ export interface CouncilActionHost {
 }
 /** Public commands stay small; effects and policy remain in their injected services. */
 export function createCouncilActions(host: CouncilActionHost): CouncilActions {
+  const tasks = new CouncilTasks(
+    host.taskNotes,
+    host.catalogue,
+    (id) => host.context.projectReady(id),
+    host.assertReady,
+    undefined,
+    (link, projectId) => host.context.linkedIdeas.capture(link, projectId),
+  );
   const binding = (id: string): IntakeBinding => {
     const value = host.preferences().bindings.find((item) => item.id === id);
     if (!value) throw new Error("Inbox binding not found.");
     return value;
   };
   return {
+    createTask: (input) =>
+      host.serial(async () => {
+        const task = await tasks.create(input);
+        host.publish();
+        return task;
+      }),
+    listTasks: () => tasks.list(),
     catalogue: host.catalogue,
     definitionFolders: host.definitionFolders,
     workflows: host.workflows.actions,
@@ -286,6 +307,7 @@ export function createCouncilActions(host: CouncilActionHost): CouncilActions {
     pruneRun: (id) =>
       host.serial(async () => {
         await host.assertExecutor();
+        await host.beforePrune(id);
         await host.kernel.pruneRun(id);
         await host.watcher.reconcileAll();
       }),

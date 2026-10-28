@@ -69,8 +69,8 @@ export function renderPublicSite(board: PublicBoard): string {
 <body>
   <header class="site-header">
     <h1>${e(board.project)}</h1>
-    <p class="project-id">Community game project <strong>${e(board.projectId)}</strong></p>
-    <p>Join with <code>!register</code> in stream chat. Suggest an idea with <code>!request ${e(board.projectId)} your idea</code> and support a request with <code>!vote CF-101</code>.</p>
+    <p class="project-id">${board.projectId ? `Community game project <strong>${e(board.projectId)}</strong>` : 'No public project is selected.'}</p>
+    <p>Join with <code>!register</code> in stream chat. ${board.projectId ? `Suggest an idea with <code>!request ${e(board.projectId)} &lt;idea&gt;</code>.` : 'Use <code>!projects</code> to discover public games.'} Support a public request with <code>!vote &lt;request-id&gt;</code>.</p>
     <p class="updated">Updated <time datetime="${e(board.generatedAt)}">${e(updated.toUTCString())}</time>. <a href="./">Refresh board</a></p>
     ${board.awaitingScreening ? `<p class="notice">${e(board.awaitingScreening)} new ${board.awaitingScreening === 1 ? 'request is' : 'requests are'} waiting for screening.</p>` : ''}
     <nav aria-label="Viewer board sections"><a href="#requests">Idea board</a><a href="#leaderboards">Leaderboards</a><a href="#recognition">Badges</a></nav>

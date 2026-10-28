@@ -17,6 +17,9 @@ export type NoteIdea = Omit<Idea, 'voters' | 'increment'>;
 
 export interface LoadedStudio { data: PersistedStudio | null; notes: NoteIdea[]; invalidNotes: string[]; projects?: StudioProject[] }
 export interface SaveOptions {
+  /** Atomically commit command note effects with wallet, receipts and frozen rewards. */
+  atomicCommand?: true;
+  requestValuesEdit?: { ideaId: string; expectedInputIdentity: string };
   /** Exact whole-note fingerprints reviewed before removing example requests. */
   exampleCleanup?: { notes: Record<string, string> };
   /** Ideas whose note already holds the new values (external edits): do not write them back. */
@@ -54,6 +57,10 @@ export interface Timers {
 
 /** Host capabilities the studio needs but must not implement itself. */
 export interface StudioHost {
+  /** Private immutable reward tickets are reserved before command effects. */
+  economyReservations?: import("../domain/command-economy").EconomyReservationPort;
+  /** A host publication lease spans persistence and notification, including initialization. */
+  beforeCommit?(next: AppState, previous: AppState | null): Promise<void | (() => void)>;
   assertExampleCleanup?(ideaIds: readonly string[]): void | (() => void) | Promise<void | (() => void)>;
   privateFolders?(): readonly string[];
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;

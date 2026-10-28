@@ -38,3 +38,7 @@ The three ranking groups keep their named metric and explicit values. The first 
 Source: [src/plugin/presentation/components/coforge/StreamLeaderboards.vue](../../../src/plugin/presentation/components/coforge/StreamLeaderboards.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
 
 Journey tags: `public-sharing`, `community`.
+
+## Project privacy
+
+Recognition is recomputed from public-project requests only. Private ideas, votes, implementations and badge progress do not increase public totals or reveal private-only contributors.

@@ -83,6 +83,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const invocations = new InvocationGate();
   const demo = createDemoRunner(timers);
   const studio: StudioService = new StudioService(storage, {
+    beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
+    economyReservations: storage.economyReservations,
     privateFolders: () => councilPrivateFolders(),
     runners: { demo: input => invocations.run(() => demo(input), input.signal),
       claude: input => invocations.run(() => runClaudeStage(input, workspaces), input.signal),
@@ -103,9 +105,9 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     report: error => { report('coforge.workflow'); notify(error.message, true); },
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
-  const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id));
+  const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id), id => storage.file(id));
   councilPrivateFolders = () => council.privateFolders();
-  const publisher = new PublicSitePublisher(plugin, () => studio.integration(), () => councilPrivateFolders());
+  const publisher = new PublicSitePublisher(plugin, () => studio.integration(), () => councilPrivateFolders(), () => studio.state());
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
   const stopStatusbar = mountNativeStatusbar(plugin, studio.store);
   const streamSource = new PublicStreamSource(studio.store);
@@ -123,7 +125,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const herdrAdmission = new HerdrAdmission();
   const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers, herdrAdmission);
   const herdrWorkflows = new HerdrWorkflowService(studio.store, herdr, herdrAdmission, new HerdrWorkflowStateStorage(plugin), new LocalHerdrWorkflowGateway(), new LocalHerdrAttemptFiles(undefined, workspaces), timers);
-  const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => [...studio.store.aiCostSnapshot(herdr.snapshot().records), ...executionCostTasks(council.actions.snapshot().runs, studio.state().projects ?? [])], timers);
+  const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => [...studio.store.aiCostSnapshot(herdr.snapshot().records, herdrWorkflows.snapshot().records), ...executionCostTasks(council.actions.snapshot().runs, studio.state().projects ?? [], council.actions.messages())], timers);
+  council.setCostArchiver(() => aiCosts.refresh());
   let councilCostTimer: number | undefined;
   const stopCouncilCosts = council.actions.subscribe(() => {
     if (councilCostTimer !== undefined) return;
@@ -190,10 +193,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       return true;
     },
     saveExport: json => saveJson('export', json),
-    publishBoard: () => publisher.publish(studio.state(), studio.integration().publicFolder),
+    publishBoard: () => publisher.publishCurrent(() => studio.state(), () => studio.integration().publicFolder),
     async installPagesWorkflow() {
       const result = await publisher.installWorkflow(studio.integration().publicFolder);
-      await publisher.publish(studio.state(), studio.integration().publicFolder);
+      await publisher.publishCurrent(() => studio.state(), () => studio.integration().publicFolder);
       return result;
     },
   };

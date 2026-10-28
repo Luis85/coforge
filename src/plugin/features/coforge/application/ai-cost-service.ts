@@ -70,6 +70,7 @@ export class AICostService implements AICostActions {
     const tasks = new Map(this.state.tasks.map((task) => [task.id, task]));
     for (const incoming of this.collect()) {
       const before = tasks.get(incoming.id);
+      const attribution = before?.attribution ? { ...incoming.attribution, ...before.attribution } : incoming.attribution;
       tasks.set(
         incoming.id,
         before
@@ -79,6 +80,7 @@ export class AICostService implements AICostActions {
               featureTitle: before.featureTitle || incoming.featureTitle,
               projectName: before.projectName || incoming.projectName,
               ...(before.workflow ? { workflow: before.workflow } : {}),
+              ...(attribution ? { attribution } : {}),
               ...(incoming.usage
                 ? { usage: { ...before.usage, ...incoming.usage } }
                 : {}),
@@ -153,6 +155,7 @@ export class AICostService implements AICostActions {
         );
       if (task.provider === "demo")
         throw new Error("Simulation tasks cannot receive real usage costs.");
+      if (task.status === 'not-started') throw new Error('No provider was contacted for this attempt. There is no usage cost to enter.');
       if (amount !== null && task.reportedUsd !== undefined)
         throw new Error(
           "A provider cost is already reported. Manual fallback is only used when no provider cost is available.",

@@ -11,6 +11,7 @@ import {
 import { defaultSettings } from "../../../features/coforge/domain/seed";
 import { projectConfigurationIdentity } from "../../../features/coforge/domain/projects";
 import { useStudioShell } from "./use-studio-app";
+import { copyRequestObject } from './request-object-draft';
 import {
   pickSettingsDraft,
   validateSettingsDraft,
@@ -26,6 +27,7 @@ function createSettings() {
     repositoryUrl: store.activeProject?.repositoryUrl ?? "",
     websiteUrl: store.activeProject?.websiteUrl ?? "",
     allowImplementation: store.activeProject?.allowImplementation ?? false,
+    visibility: store.activeProject?.visibility ?? 'public',
   }));
   const persistedKey = computed(() => JSON.stringify(persisted.value));
   const sourceProject = computed(() =>
@@ -41,7 +43,7 @@ function createSettings() {
   const expectedProjectId = ref(sourceProject.value?.id ?? "");
   const expectedConfiguration = ref(sourceIdentity.value);
   const expectedKey = ref(persistedKey.value);
-  const copyDraft = (value: SettingsDraft): SettingsDraft => ({ ...value });
+  const copyDraft = (value: SettingsDraft): SettingsDraft => ({ ...value, requestObject: value.requestObject ? copyRequestObject(value.requestObject) : undefined });
   const draft = reactive<SettingsDraft>(copyDraft(persisted.value));
   const error = ref("");
   const saved = ref(false);
@@ -50,6 +52,11 @@ function createSettings() {
   const saving = ref(false);
 
   const dirty = computed(() => JSON.stringify(draft) !== expectedKey.value);
+  const visibilityOnlyDirty = computed(() => {
+    if (!dirty.value || draft.visibility === persisted.value.visibility || expectedProjectId.value !== sourceProject.value?.id
+      || expectedConfiguration.value !== sourceIdentity.value || expectedKey.value !== persistedKey.value) return false;
+    return JSON.stringify({ ...draft, visibility: persisted.value.visibility }) === expectedKey.value;
+  });
   const staleMessage = () =>
     `Project settings changed outside this form. Your draft for ${expectedProjectId.value || "the original project"} is kept. Copy any edits you want to retain, then discard changes to load the latest settings before saving.`;
   const loadSource = () => {
@@ -170,6 +177,7 @@ function createSettings() {
     resetConfirm,
     checking,
     dirty,
+    visibilityOnlyDirty,
     pending,
     runtime,
     saving,

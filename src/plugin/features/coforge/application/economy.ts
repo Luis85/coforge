@@ -57,6 +57,7 @@ export interface PresenceCredit {
   from: number;
   to: number;
   playerIds: readonly string[];
+  subscribers?: { channelId: string; checkedAt: string; playerIds: readonly string[] };
 }
 /** Caller supplies the intersection of two complete live chat snapshots from the same stream. */
 export function creditPresence(state: InternalState, sample: PresenceCredit): void {
@@ -77,26 +78,33 @@ export function creditPresence(state: InternalState, sample: PresenceCredit): vo
   const players = new Map(state.population.players.map((player) => [player.id, player]));
   for (const id of new Set(sample.playerIds)) {
     const player = players.get(id);
-    if (
-      !player?.registeredAt ||
-      Date.parse(player.registeredAt) > sample.from ||
-      playerRestricted(player, sample.channelId)
-    )
+    if (!player || playerRestricted(player, sample.channelId))
       continue;
+    // Legacy registered counters already include only registered intervals; new profiles keep XP separate.
+    player.registeredPresenceSeconds ??= player.registeredAt ? player.presenceSeconds : 0;
+    player.rewardedXpMinutes ??= player.registeredAt ? player.rewardedMinutes : 0;
+    if (player.registeredAt && Date.parse(player.registeredAt) <= sample.from) player.registeredPresenceSeconds += seconds;
     player.presenceSeconds += seconds;
     player.lastSeenAt = new Date(sample.to).toISOString();
     credited++;
     const minutes = Math.floor(player.presenceSeconds / 60) - player.rewardedMinutes;
-    if (minutes <= 0) continue;
+    const xpMinutes = Math.floor(player.registeredPresenceSeconds / 60) - player.rewardedXpMinutes;
+    if (minutes <= 0 && xpMinutes <= 0) continue;
     const rules = state.population.rules;
+    const evidence = sample.subscribers;
+    const checked = evidence ? Date.parse(evidence.checkedAt) : NaN;
+    const trustedSubscriber = evidence?.channelId === sample.channelId && Number.isFinite(checked)
+      && checked >= sample.to - 90_000 && checked <= sample.to + 5000 && evidence.playerIds.includes(id);
+    const currencyRate = trustedSubscriber ? state.population.economy?.definition.premiumCurrencyPerMinute ?? rules.coinsPerMinute : rules.coinsPerMinute;
     award(state, player, {
       id: `${id}:${sample.id}`,
       reason: "presence",
-      coins: minutes * rules.coinsPerMinute,
-      xp: minutes * rules.xpPerMinute,
+      coins: minutes * currencyRate,
+      xp: xpMinutes * rules.xpPerMinute,
       reputation: 0,
     });
     player.rewardedMinutes += minutes;
+    player.rewardedXpMinutes += xpMinutes;
   }
   if (credited) recordOperation(state, "presence-credited", "committed", undefined, credited);
 }

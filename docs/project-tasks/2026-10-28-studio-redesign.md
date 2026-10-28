@@ -1,6 +1,6 @@
 # Task: Rebuild the studio around user goals
 
-- Status: in progress
+- Status: implemented; final delivery and exact-head CI tracked in PR #29
 - Journey in `BRIEF.md`: all private, native-settings and public-display journeys; the complete community-to-reviewed-increment loop.
 
 ## Why
@@ -55,9 +55,49 @@ The original 73 surfaces and new cleanup panel have explicit coverage. Findings 
 - [Independent engineering review](2026-10-28-studio-engineering-review.md).
 - [Independent visual review](2026-10-28-studio-visual-review.md).
 - [Cleanup behavior and test-first evidence](2026-10-28-example-cleanup.md).
+- [Expanded workflows, cross-review and polishing](2026-10-28-expanded-studio-review.md).
 
 The pass corrected misleading scope/provider/backup labels, incompatible retained filters, optional-capability promises, card gutter overlap, icon grid placement, late workflow decisions, narrow community overflow, public website contrast and timed refresh. Cleanup added trusted provenance, exact-note receipts, durable interruption recovery, postcommit trash warnings, replay protection and native admission guards.
 
-## Untested scope
+## Follow-up: Workflow settings belongs to Agent workflow
+
+The owner requested this navigation revision while PR #29 was being qualified. Workflow settings becomes a local subpage of Agent workflow, sharing its heading, project context and local navigation. The old internal locator remains a guarded compatibility alias. No extra global sidebar entry or duplicate page frame remains. Existing definitions, run snapshots and save semantics are preserved; dirty drafts must block both global and local transitions.
+
+The canonical view keeps both its compatibility and local coverage mappings. The catalog accepts an array of coverage mappings for one view, while retaining support for existing single mappings and rejecting duplicates or stale aliases.
+
+Prior revision `6eb2348` passed real Obsidian: **16 files, 22 tests**, plus smoke **status passed, errors [], pluginConsole []**. Main CI passed **5 gates, 0 failures in 175.7s**, release build, embedding and **16 clean submission checks**. Browser CI passed **155 tests (7.3m)** and captured the 40-image gallery. These are baseline evidence; the updated revision receives fresh qualification before merge.
+
+## Follow-up: Ask the Council is the entry journey
+
+The owner identified that advice/opinion requests were buried behind Council setup. The Council now needs a primary new-task intake and ingested-task history on entry. The implementation adds private analytical task-note creation/listing and reuses the existing captured preflight/admission kernel; advanced configuration remains available. Saving a question does not start a provider, and history distinguishes saved notes, durable runs and observed inbox candidates.
+
+The new question draft must survive failures, keep its project/team/council identity, and use an idempotent creation key. Task history spans projects by default and must not hide failures or uncertain outcomes. Existing private/public, independent-opinion and final-review boundaries remain authoritative.
+
+## Untested live integrations
 
 Live Twitch/OBS/Claude/Herdr sessions and personal vaults are outside local verification. Only contained fixtures and explicitly simulated examples are used.
+
+## Additional owner scope during qualification
+
+The owner clarified these cumulative requirements before final merge:
+
+- [Actor cost attribution](2026-10-28-agent-cost-attribution.md) retains agents, teams and councils with immutable attempt evidence.
+- [Round prompt order](2026-10-28-council-prompt-order.md) and [actual fan-out execution](2026-10-28-council-fanout-execution.md) support independently configured concurrent and sequential rounds.
+- [Card assessments](2026-10-28-council-item-assessment.md) prepare a linked advice task with explicit draft replacement and admission.
+- [Request Objects](2026-10-28-request-object.md) capture per-project class, categories and typed fields for new requests; existing notes retain their format.
+- [Private projects](2026-10-28-private-projects.md) and [publication revocation](2026-10-28-private-project-publication.md) exclude owner-only projects from viewer surfaces and commands.
+- [Economy](2026-10-28-economy-workspace.md) adds command fees/benefits, base and subscriber income, virtual rewards, weighted lootboxes, currency redemption and explicit manual perk fulfillment.
+
+These follow-ups require fresh integrated checks and CI on the final revision. The original green PR revision is baseline evidence only.
+
+## Expanded qualification, 2026-10-29
+
+- Full `npm run verify:project`: exit 0, **5 checks passed, 0 failed, 0 skipped in 890.4s**; production build **1,685 modules in 7.03s**, embedding **1 passed / 0 failed**. Generated UI-effects explicitly skip because no visual definitions exist.
+- The first expanded gate reported **3 checks passed / 2 failed**: one lint spread over an iterable and a catalog test repeatedly rereading the canonical view fixture. Removed the redundant spread and loaded the fixture once, separating contract validation from route coverage without reducing assertions or changing timeouts. Focused rerun: **2 files / 9 tests passed (1.75s)**, then the full gate passed.
+- UI quality: **8 passed (1.1m)**. Refreshed gallery: **40 captures / failures []**. Parent inspected representative main/native states and new Council, Request Object, actor-cost and Economy captures across themes and widths.
+- Canonical catalog: **85 views**, valid route coverage and current generated sitemap. Self-review found ten unclassified helper/fixture files; registered them in the existing helper inventory. Final self-review is **clean, violations [], approved []**.
+- Focused Economy browser: **4 passed (1.8m)** with 20 images; Request Object: **2 passed (49.1s)** with 12 images. New Council intake, card assessment, round-order, cost and private-projection flows have separate evidence linked from their task records.
+- The complete 178-case browser run is underway at submission. It exposed old assertions for the intentionally revised progress count; numeric progress checks remain and wording now consistently counts completed or skipped steps, including the screen-reader announcement. Focused monitor/history regression: **2 files / 4 tests passed (1.10s)**.
+- Four additional contained native specs cover advice/mixed-order execution/costs, Request Objects, private export revocation and Economy. Local host tooling remains unprovisioned; the PR's exact-head native CI and smoke loop qualify them before merge.
+
+These are local working-tree results. Final CI outcomes and immutable artifact links belong to the PR verification record; no screenshot baseline was committed.

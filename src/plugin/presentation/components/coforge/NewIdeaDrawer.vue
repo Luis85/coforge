@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useNewIdeaDrawer } from "../../composables/coforge/use-new-idea";
 import CfIcon from "./CfIcon.vue";
+import RequestObjectFields from './RequestObjectFields.vue';
 
 const model = useNewIdeaDrawer();
 </script>
@@ -31,6 +32,7 @@ const model = useNewIdeaDrawer();
         <h2 id="cf-new-idea-title">New request</h2>
         <p v-if="model.project">For <strong>{{ model.project.settings.projectName }}</strong> · <code>{{ model.project.id }}</code></p>
         <p v-else>Select a project before creating a request.</p>
+        <p v-if="model.requestDefinition?.className" class="cf-badge">{{ model.requestDefinition.className }}</p>
       </div>
       <form @submit.prevent="model.submit()">
         <label class="cf-field"
@@ -86,6 +88,7 @@ const model = useNewIdeaDrawer();
             />
           </label>
         </div>
+        <section v-if="model.requestDefinition?.fields.length" class="cf-new-request-properties" aria-label="Project request fields"><h3>Project fields</h3><p>These values stay in the private request note.</p><RequestObjectFields :fields="model.requestDefinition.fields" :values="model.requestValues" :disabled="model.busy" @change="model.setRequestValue($event)" /></section>
         <div class="cf-submission-note">
           <span class="cf-status-dot is-active" />
           <p>

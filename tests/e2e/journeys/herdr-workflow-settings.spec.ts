@@ -1,3 +1,4 @@
+import { openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -14,10 +15,7 @@ for (const theme of ["light", "dark"])
       document.body.classList.toggle("theme-light", theme === "light");
       document.body.classList.toggle("theme-dark", theme === "dark");
     }, theme);
-    await page
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .first()
-      .click();
+    await openWorkflowSettings(page);
     await page.getByLabel("AI provider", { exact: true }).selectOption("herdr");
     const agent = page.getByLabel("Herdr agent type", { exact: true });
     expect(await agent.locator("option").allTextContents()).toEqual([
@@ -62,9 +60,7 @@ for (const theme of ["light", "dark"])
           .analyze()
       ).violations,
     ).toEqual([]);
-    await page
-      .getByRole("button", { name: "Agent workflow", exact: true })
-      .click();
+    await openWorkflowRuns(page);
     await expect(
       page.getByRole("list", { name: "Captured workflow steps", exact: true }),
     ).toContainText("Herdr · Claude Code · haiku");
@@ -74,9 +70,6 @@ for (const theme of ["light", "dark"])
         exact: true,
       }),
     ).toContainText(/Herdr workflow is unavailable|project path/);
-    await page
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .first()
-      .click();
+    await openWorkflowSettings(page);
     await expect(agent).toHaveValue("claude");
   });

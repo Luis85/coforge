@@ -39,6 +39,12 @@ The expressive studio direction is recorded in [DESIGN.md](../../DESIGN.md). Lea
 - Use `cf-subpage-panel` for shared section gaps. Preserve mounted models when
   switching subpages would otherwise lose a draft; store-backed drafts can also
   survive component recreation. Navigation itself never saves or dispatches work.
+- A local configuration task shares its parent's frame. Agent workflow owns one
+  H1, selected-project context and local navigation for runs, Herdr and settings;
+  the embedded workflow editor begins at H2 and adds no second page gutter.
+  Compatibility locators select that same task and keep the parent current in
+  the sidebar. Dirty workflow drafts guard local task changes as well as global
+  navigation and project changes.
 - Use `cf-field` for a labelled input/select/textarea with help text. Native settings
   use `PluginSettingsRow`. A new inline form should not create an unframed control
   style when an existing form primitive expresses the same role.
@@ -65,10 +71,17 @@ and provide a working route, as Council admission does for executor designation.
 Keep execution controls, external-effect confirmation and unknown-outcome recovery
 explicit. Read-only public roots never receive private studio host capabilities.
 
+The Council's first page leads with question intake and task history. Administrative
+pages remain in Advanced Council tools. Execution controls appear once on the
+active intake or monitor page. A saved task is distinct from an admitted run;
+retained history, saved source notes and latest inbox observations keep their own
+labels and recovery actions.
+
 ## Verification
 
 `stabilization-layout.spec.ts` checks the actual shared frame, control affordances,
-focus, Axe scans and reflow across all 16 routes, two themes and wide/narrow leaves.
+focus, Axe scans and reflow across visible destinations and compatibility locators,
+two themes and wide/narrow leaves.
 `stabilization-subpages.spec.ts` exercises every local task page with keyboard
 activation and captures. The broader journey suite verifies the corresponding
 effects and recovery boundaries. Screenshots are review evidence, not baselines.

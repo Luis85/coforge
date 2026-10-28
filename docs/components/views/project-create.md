@@ -39,3 +39,7 @@ Journey tags: `setup`, `multi-project`.
 ## Workspace redesign
 
 The inline creation form is a separate authoring surface with the same labelled-field and action hierarchy as workflow configuration. Paths and URLs keep their existing validation and write semantics.
+
+## Project privacy
+
+Choose Public or Private before creating the canonical project note. Private means owner workspace only; local authoring remains available without making a game discoverable to viewers.

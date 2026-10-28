@@ -1,7 +1,8 @@
 import { CheckError, list, noteTimestamp as timestamp, nullable, number, oneOf, optional, record, shape, text } from './check';
 import { cleanDeep, cleanLine, cleanText, defangProperty, escapeMarkdown, unescapeMarkdown } from './sanitize';
 import type { Idea } from './types';
-import { CATEGORIES, IDEA_STATUSES, planMarkdown } from './types';
+import { IDEA_STATUSES, planMarkdown } from './types';
+import { categoryNameCheck } from './request-categories';
 import { ideaContextsCheck, contextProperties } from './idea-context';
 import { workflowHistoryCheck, workflowRunCheck } from './configured-workflow-run';
 import { restoreWorkflowNoteData, workflowNoteData } from './workflow-note-data';
@@ -12,18 +13,11 @@ import { restoreWorkflowNoteData, workflowNoteData } from './workflow-note-data'
  * CoForge writes only the properties below and never rewrites the note body after creation.
  */
 export const IDEA_MARKER = 'coforge-idea';
-export const OWNED_PROPERTIES = [
-  'workflow-run', 'workflow-history',
-  'contexts',
-  'type', 'id', 'coforge-project', 'coforge-kind', 'title', 'category', 'status', 'author', 'author-name', 'votes', 'created', 'updated',
-  'screening', 'screening-reason', 'screening-signals', 'screening-checked', 'screening-provider',
-  'rice-reach', 'rice-impact', 'rice-confidence', 'rice-effort', 'rice-score', 'rice-rationale',
-  'plan-summary', 'plan-steps', 'plan-acceptance', 'plan-risks', 'plan-created', 'review-note', 'last-error',
-] as const;
-type Owned = (typeof OWNED_PROPERTIES)[number];
-
-export function ideaProperties(idea: Idea, authorName: string): Partial<Record<Owned, unknown>> {
-  const p: Partial<Record<Owned, unknown>> = {
+export { OWNED_PROPERTIES } from './idea-owned-properties';
+import { OWNED_PROPERTIES } from './idea-owned-properties';
+import { requestObjectFromProperties, requestObjectNoteProperties, requestObjectPropertyKeys } from './request-object-note';
+export function ideaProperties(idea: Idea, authorName: string): Record<string, unknown> {
+  const p: Record<string, unknown> = {
     type: IDEA_MARKER, id: idea.id, title: idea.title, category: idea.category, status: idea.status,
     author: idea.authorId, 'author-name': authorName, votes: idea.voters.length, created: idea.createdAt, updated: idea.updatedAt,
   };
@@ -47,17 +41,18 @@ export function ideaProperties(idea: Idea, authorName: string): Partial<Record<O
   if (idea.reviewNote) p['review-note'] = idea.reviewNote;
   if (idea.lastError) p['last-error'] = idea.lastError;
   // Titles, names and model output are untrusted text: defang links, Templater commands and inline queries.
-  for (const [key, value] of Object.entries(p) as Array<[Owned, unknown]>) {
+  for (const [key, value] of Object.entries(p)) {
     if (typeof value === 'string') p[key] = defangProperty(value);
     else if (Array.isArray(value)) p[key] = value.map(item => typeof item === 'string' ? defangProperty(item) : item);
   }
+  if (idea.requestObject) Object.assign(p, requestObjectNoteProperties(idea.requestObject));
   return p;
 }
 
 /** Applies the idea to existing frontmatter in place: unrelated properties are preserved, stale owned ones removed. */
 export function applyIdeaProperties(frontmatter: Record<string, unknown>, idea: Idea, authorName: string): void {
   const next = ideaProperties(idea, authorName);
-  for (const key of OWNED_PROPERTIES) {
+  for (const key of [...OWNED_PROPERTIES, ...requestObjectPropertyKeys(idea.requestObject)]) {
     if (key in next) frontmatter[key] = next[key];
     else delete frontmatter[key];
   }
@@ -93,7 +88,7 @@ const noteShape = shape({
   type: oneOf([IDEA_MARKER] as const), id: text({ pattern: /^CF-\d{3,7}$/ }), title: text({ trim: true, min: 1, max: 200 }),
   'coforge-project': optional(text({ min: 1, max: 80, pattern: /^CFP-\d{3,7}$/ })),
   'coforge-kind': optional(oneOf(['feature', 'bug'] as const)),
-  category: oneOf(CATEGORIES), status: oneOf(IDEA_STATUSES), author: text({ min: 3, max: 120, pattern: /^[a-z]+:\S/ }), created: timestamp, updated: timestamp,
+  category: categoryNameCheck, status: oneOf(IDEA_STATUSES), author: text({ min: 3, max: 120, pattern: /^[a-z]+:\S/ }), created: timestamp, updated: timestamp,
   screening: optional(oneOf(['clear', 'flagged'] as const)), 'screening-reason': optional(str), 'screening-signals': items(20),
   'screening-checked': optional(timestamp), 'screening-provider': optional(provider),
   'rice-reach': optional(number({ min: 0 })), 'rice-impact': optional(number({ gt: 0, max: 3 })), 'rice-confidence': optional(number({ min: 0, max: 1 })),
@@ -114,6 +109,9 @@ export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'v
     id: p.id, number: Number(p.id.slice(3)), title: cleanLine(p.title, 200) || p.id, description: descriptionFromBody(body, cleanLine(p.title, 200) || p.id), authorId: p.author,
     category: p.category, status: p.status, createdAt: p.created, updatedAt: p.updated,
   };
+  const requestObject = requestObjectFromProperties(properties);
+  if (requestObject) idea.requestObject = requestObject;
+  if (requestObject?.categories && !requestObject.categories.includes(idea.category)) throw new Error('The category is outside this request’s captured category list.');
   if (p['coforge-project']) idea.projectId = p['coforge-project'];
   if (p['coforge-kind']) idea.requestKind = p['coforge-kind'];
   if (p.contexts?.length) idea.contexts = p.contexts;

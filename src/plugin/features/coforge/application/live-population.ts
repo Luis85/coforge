@@ -8,6 +8,8 @@ import { restrictionLease, syncRestrictions } from "./player-moderation";
 import type { LivePresencePort } from "./integration-ports";
 import { IntegrationFailure } from "../domain/integration-failure";
 import { observeChatters } from './observe-chatters';
+import { PresenceSubscriptionCache } from './presence-subscriptions';
+import { presenceRestrictions } from './presence-restrictions';
 
 /** Owned live polling: complete snapshots only, no offline/restart credit and no missed announcement replay. */
 export class LivePopulationTracker {
@@ -18,6 +20,7 @@ export class LivePopulationTracker {
   private lastCheck = 0;
   private live: { id: string; checkedAt: number } | null = null;
   private previous: { streamId: string; at: number; users: Set<string> } | null = null;
+  private readonly subscriptions: PresenceSubscriptionCache;
   constructor(
     private readonly studio: StudioService,
     private readonly api: LivePresencePort,
@@ -25,7 +28,7 @@ export class LivePopulationTracker {
     private readonly config: () => IntegrationSettings,
     private readonly ready: () => boolean,
     private readonly publish: (state: NonNullable<TwitchState["tracking"]>) => void,
-  ) {}
+  ) { this.subscriptions = new PresenceSubscriptionCache(api); }
   get liveStreamId(): string | null {
     return this.live && Date.now() - this.live.checkedAt <= 90_000 ? this.live.id : null;
   }
@@ -38,6 +41,7 @@ export class LivePopulationTracker {
   }
   reset(): void {
     this.generation++;
+    this.subscriptions.reset();
     this.previous = null;
     this.live = null;
     this.lastCheck = 0;
@@ -46,6 +50,7 @@ export class LivePopulationTracker {
   stop(): void {
     this.stopped = true;
     this.generation++;
+    this.subscriptions.reset();
     if (this.timer !== undefined) this.timers.clearInterval(this.timer);
     this.previous = null;
     this.live = null;
@@ -90,44 +95,41 @@ export class LivePopulationTracker {
             const profiles = this.api.chattersProfiles ? await this.api.chattersProfiles() : null;
             const users = new Set(profiles ? profiles.map(profile => profile.id) : await this.api.chatters());
             if (!current()) return;
-            const registered =
-              this.studio
-                .state()
-                .population?.players.filter(
-                  (player) => player.registeredAt && users.has(player.id) && player.id.startsWith("twitch:"),
-                )
-                .map((player) => player.id) ?? [];
-            const banned: Array<{ userId: string; expiresAt?: string }> = [];
+            const observed = [...users].filter(id => /^twitch:\d+$/.test(id));
+            const snapshot = this.studio.state();
+            const premium = snapshot.population?.economy?.definition.premiumCurrencyPerMinute;
+            const verifyPremium = premium !== undefined && premium !== snapshot.population?.rules.coinsPerMinute;
             const lease = restrictionLease(this.studio.store.internalSnapshot());
-            for (let offset = 0; offset < registered.length; offset += 100) {
-              banned.push(
-                ...(await this.api.restrictions(registered.slice(offset, offset + 100).map((id) => id.slice(7)))),
-              );
-              if (!current()) return;
-            }
+            const [banned, subscribers] = await Promise.all([
+              presenceRestrictions(this.api, observed, current),
+              verifyPremium ? this.subscriptions.read(channelId, observed, current) : Promise.resolve(undefined),
+            ]);
+            if (!current()) return;
             const at = Date.now();
             const previous = this.previous;
             await this.studio.store.transaction((state) => {
               if (!current()) return;
-              if (profiles) observeChatters(state, profiles, new Date(at).toISOString());
-              syncRestrictions(state, channelId, registered, banned, lease);
+              const names = new Map(state.contributors.map(person => [person.id, person.name]));
+              observeChatters(state, profiles ?? observed.map(id => ({ id, name: names.get(id) ?? 'Twitch viewer' })), new Date(at).toISOString());
+              syncRestrictions(state, channelId, observed, banned, lease);
               if (previous?.streamId === stream.id)
                 creditPresence(state, {
                   id: `${channelId}:${stream.id}:${at}`,
                   channelId,
                   from: previous.at,
                   to: at,
-                  playerIds: registered.filter((id) => previous.users.has(id)),
+                  playerIds: observed.filter((id) => previous.users.has(id)),
+                  ...(subscribers ? { subscribers } : {}),
                 });
             });
             if (!current()) return;
             this.previous = { streamId: stream.id, at, users };
             this.publish({
               phase: "live",
-              message: "Tracking live chat-presence time. This is not verified video watch time.",
+              message: `Tracking live chat-presence time. This is not verified video watch time.${verifyPremium ? subscribers ? ' Subscriber income uses fresh current-channel verification.' : ' Subscriber verification unavailable; base income used for this sample.' : ''}`,
               checkedAt: new Date(at).toISOString(),
               streamId: stream.id,
-              presentPlayers: registered.length,
+              presentPlayers: observed.length,
             });
           } catch (error) {
             if (!current()) return;

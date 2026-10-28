@@ -1,9 +1,11 @@
 import type { AppState } from "./types";
 import type { HerdrRecord } from "./herdr";
 import type { AICostTask } from "./ai-costs";
+import { herdrCostAttribution, type HerdrCostTarget } from './ai-cost-attribution';
 export function collectCostTasks(
   state: Pick<AppState, "jobs" | "ideas" | "projects">,
   herdr: readonly HerdrRecord[],
+  managed: readonly HerdrCostTarget[] = [],
 ): AICostTask[] {
   const ideas = new Map(state.ideas.map((idea) => [idea.id, idea]));
   const projects = new Map(
@@ -13,6 +15,8 @@ export function collectCostTasks(
     const idea = ideas.get(job.ideaId);
     const projectId = job.projectId ?? idea?.projectId ?? "";
     const project = projects.get(projectId);
+    const captured = managed.find(record => record.jobId === job.id);
+    const attribution = captured ? herdrCostAttribution(captured.settings.session, captured.target) : undefined;
     return {
       id: `job:${job.id}`,
       featureId: job.ideaId,
@@ -23,6 +27,7 @@ export function collectCostTasks(
       stage: job.stage,
       status: job.status,
       startedAt: job.startedAt,
+      ...(attribution ? { attribution } : {}),
       ...(job.finishedAt ? { finishedAt: job.finishedAt } : {}),
       ...(job.model ? { model: job.model } : {}),
       ...(job.workflow
@@ -56,6 +61,7 @@ export function collectCostTasks(
         stage: "dispatch",
         status: record.status,
         startedAt: record.at,
+        ...(record.target ? { attribution: herdrCostAttribution(record.session, record.target) } : {}),
       })),
   ];
 }

@@ -7,7 +7,7 @@ kind: "subpage"
 route: "council.tab = inboxes"
 parent: "council"
 component: "src/plugin/presentation/components/coforge/CouncilSubmission.vue"
-entry: ["Open The Council, then choose Watched inboxes."]
+entry: ["Open The Council, expand Advanced Council tools, then choose Watched inboxes."]
 actions: ["Configure folder","Preview existing files","Select candidates","Activate or pause","Confirm generation reset"]
 states: ["No bindings","Preview required","Existing candidates","Paused","Reconciled arrivals","Invalid binding"]
 journeys: ["Council"]
@@ -25,7 +25,7 @@ Activation previews existing files. Reload reconciles arrivals and pauses execut
 
 ## Entry and next action
 
-Open The Council, then choose Watched inboxes. Available actions: Configure folder; Preview existing files; Select candidates; Activate or pause; Confirm generation reset. Return through the owning [The Council](council.md) surface.
+Open The Council, expand Advanced Council tools, then choose Watched inboxes. Available actions: Configure folder; Preview existing files; Select candidates; Activate or pause; Confirm generation reset. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 

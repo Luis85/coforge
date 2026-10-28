@@ -40,3 +40,7 @@ Journey tags: `setup`, `multi-project`.
 ## Workspace redesign
 
 Project rows give the stable project ID, request count, review workload and automation state distinct visual roles. Unavailable project notes have an explicit restore instruction beside disabled actions.
+
+## Project privacy
+
+Project visibility is explicit at creation and in each row. Existing projects with no visibility field remain public. Private projects stay fully usable in the owner studio and are excluded from viewer discovery and public request projections.

@@ -25,6 +25,8 @@ import type {
 } from "../../../features/coforge/domain/execution-run";
 import { v1ExecutionSummary } from "../../../features/coforge/application/execution-v1-adapter";
 import { councilHistoryActions } from "./council-history-actions";
+import { useCouncilAsk } from "./use-council-ask";
+import { refreshCouncil } from "./refresh-council";
 import {
   councilRunState,
   legacyRunMatches,
@@ -37,6 +39,7 @@ export function useCouncil() {
   let service =
     store.example && !host.council ? host.previewCouncil?.() : host.council;
   const studio = useStudioStore();
+  store.tab = "ask";
   let closed = false;
   let stop = () => {};
   async function run(work: () => Promise<void>) {
@@ -59,9 +62,7 @@ export function useCouncil() {
   async function refresh() {
     if (!service) return;
     const current = service;
-    store.state = service.snapshot();
-    const catalogue = await service.catalogue.list();
-    if (!closed && current === service) store.catalogue = catalogue;
+    await refreshCouncil(current, store, () => !closed && current === service);
   }
   onMounted(() => {
     if (!service) return;
@@ -87,6 +88,7 @@ export function useCouncil() {
       store.preview = null;
       store.team = "";
       store.target = "";
+      store.taskSource = "";
     },
   );
   watch(
@@ -157,6 +159,8 @@ export function useCouncil() {
     store.source = "CoForge/Examples/Council proposal.md";
     store.team = "team-example";
     store.target = "council-example";
+    store.taskTeam = "team-example";
+    store.taskCouncil = "council-example";
     stop = service.subscribe((state) => {
       if (!closed) store.state = state;
     });
@@ -190,10 +194,29 @@ export function useCouncil() {
     store,
     studio,
     pages: COUNCIL_PAGES,
+    advancedPages: COUNCIL_PAGES.filter((page) => page.id !== "ask"),
+    ask: useCouncilAsk({
+      store,
+      service: requireService,
+      current: (value) => value === service,
+      available: () => Boolean(service),
+      target,
+      projectId: () => studio.state?.activeProjectId ?? "",
+      closed: () => closed,
+      refresh,
+      run,
+    }),
     selectPage: (page: CouncilPage) => {
       store.tab = page;
       if (
-        ["submit", "inboxes", "workflows", "messages", "folders"].includes(page)
+        [
+          "ask",
+          "submit",
+          "inboxes",
+          "workflows",
+          "messages",
+          "folders",
+        ].includes(page)
       )
         void run(refresh);
     },
@@ -232,6 +255,7 @@ export function useCouncil() {
       ),
     ),
     selectedRun,
+    settling: computed(() => selectedRun.value?.attempts.some(attempt => attempt.status === 'dispatching') ?? false),
     runState: councilRunState,
     progressAnnouncement: computed(() => {
       const current =

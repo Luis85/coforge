@@ -1,5 +1,6 @@
 import { list, number, oneOf, optional, shape, text, boolean } from "./check";
 import { stageUsageCheck } from "./ai-usage";
+import { councilPromptOrderCheck } from "./council-prompt-order";
 import {
   workflowPlanCheck,
   workflowSerializedSize,
@@ -28,6 +29,7 @@ export function executionSubjectCheck(value: unknown): ExecutionSubject {
       revision: id,
       markdown: text({ min: 1, max: 160000 }),
       ideaId: optional(id),
+      ideaRevision: optional(id),
     },
     { strict: true },
   )(value);
@@ -36,7 +38,7 @@ export function executionSubjectCheck(value: unknown): ExecutionSubject {
       throw new Error("An Idea subject requires its existing Idea identity.");
     return { ...result, kind: "idea", ideaId: result.ideaId };
   }
-  if (result.ideaId !== undefined)
+  if (result.ideaId !== undefined || result.ideaRevision !== undefined)
     throw new Error("A generic note cannot claim Idea identity.");
   return {
     kind: "note",
@@ -49,6 +51,7 @@ export const executionInvocationCheck = shape(
   {
     id,
     roundId: id,
+    promptOrder: optional(councilPromptOrderCheck),
     agentId: id,
     agentRevision: id,
     provider,

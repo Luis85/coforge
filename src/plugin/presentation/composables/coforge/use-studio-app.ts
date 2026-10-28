@@ -6,6 +6,7 @@ import { useStudioStore } from "../../stores/coforge-studio";
 import {
   STUDIO_NAVIGATION,
   studioDestination,
+  studioRoot,
 } from "../../stores/studio-destinations";
 import { relativeTime } from "./format";
 import { useStudioActions } from "./use-studio-actions";
@@ -29,7 +30,7 @@ export function useStudioShell() {
     nav: computed(() =>
       STUDIO_NAVIGATION.map((item) => ({
         ...item,
-        active: store.view === item.view,
+        active: studioRoot(store.view) === item.view,
         disabled: Boolean(
           studioDestination(item.view).requiresProject && !store.activeProject,
         ),
@@ -40,7 +41,7 @@ export function useStudioShell() {
         working: item.view === "workflow" && Boolean(store.activeJob),
       })),
     ),
-    viewLabel: computed(() => studioDestination(store.view).label),
+    viewLabel: computed(() => studioDestination(studioRoot(store.view)).label),
     projectScoped: computed(
       () => studioDestination(store.view).scope === "project",
     ),

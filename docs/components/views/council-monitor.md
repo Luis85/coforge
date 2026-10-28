@@ -7,7 +7,7 @@ kind: "subpage"
 route: "council.tab = monitor"
 parent: "council"
 component: "src/plugin/presentation/components/coforge/CouncilMonitor.vue"
-entry: ["Open The Council, then choose Run monitor."]
+entry: ["Open The Council, expand Advanced Council tools, then choose Run monitor."]
 actions: ["Check and designate executor","Pause or resume","Filter and inspect","Resolve checkpoint","Recover unknown result","Retry publication","Export evidence"]
 states: ["No runs","Paused","Queued","Running","Checkpoint","Unknown outcome","Publication conflict","Completed"]
 journeys: ["Council","recovery"]
@@ -25,7 +25,7 @@ Contributions persist and project before the next invocation. Unknown provider o
 
 ## Entry and next action
 
-Open The Council, then choose Run monitor. Available actions: Check and designate executor; Pause or resume; Filter and inspect; Resolve checkpoint; Recover unknown result; Retry publication; Export evidence. Return through the owning [The Council](council.md) surface.
+Open The Council, expand Advanced Council tools, then choose Run monitor. Available actions: Check and designate executor; Pause or resume; Filter and inspect; Resolve checkpoint; Recover unknown result; Retry publication; Export evidence. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 

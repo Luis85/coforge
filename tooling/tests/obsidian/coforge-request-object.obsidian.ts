@@ -1,0 +1,75 @@
+import { expect as browserExpect } from '@playwright/test';
+import { describe, expect } from 'vitest';
+import { test } from './support/obsidian-fixture';
+
+function body(text: string) {
+  return text.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/, '');
+}
+describe('Project Request Object in the contained host', () => {
+  test('persists project categories and captured values without rewriting existing schema or human note bytes', async ({ obsidian }) => {
+    let view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await view.locator('.cf-project-switcher').click();
+    await view.getByRole('button', { name: 'Add project', exact: true }).click();
+    await view.getByLabel('Project name', { exact: true }).fill('Native Request Object');
+    await view.getByLabel(/^Project path/).fill('/synthetic/request-object');
+    await view.getByLabel('Description', { exact: true }).fill('A contained project with custom request categories and fields.');
+    await view.getByRole('button', { name: 'Create project', exact: true }).click();
+    await browserExpect(view.locator('.cf-project-switcher')).toContainText('Native Request Object');
+    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await view.getByLabel('Request note class', { exact: true }).fill('Business Idea');
+    await view.getByLabel('Request categories', { exact: true }).fill('Strategy\nCommercial');
+    await view.getByRole('button', { name: 'Add request field', exact: true }).click();
+    await view.getByLabel('Field 1 label', { exact: true }).fill('Audience');
+    await view.getByLabel('Field 1 property key', { exact: true }).fill('target_audience');
+    await view.getByRole('button', { name: 'Save settings', exact: true }).click();
+    await browserExpect(view.getByText('Settings saved', { exact: true })).toBeVisible();
+    await view.getByRole('button', { name: /^Idea board/ }).first().click();
+    await view.getByRole('button', { name: 'New request', exact: true }).first().click();
+    await view.getByLabel('The idea', { exact: true }).fill('Native business opportunity');
+    await view.getByLabel('A little more context', { exact: true }).fill('The original request description remains canonical.');
+    await view.getByLabel('Audience', { exact: true }).fill('Independent makers');
+    await view.getByRole('button', { name: 'Add to the board', exact: true }).click();
+    const original = await obsidian.eval(async ({ app }) => {
+      const file = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Ideas/'));
+      if (!file) throw new Error('Expected a canonical request note.');
+      await app.vault.process(file, text => text.replace(/^---\r?\n/, '---\nowner-property: "preserve this exact quoting"\n') + '\r\n## Human annotation\r\nKeep these **body bytes**.\r\n');
+      return { path: file.path, text: await app.vault.read(file) };
+    });
+    expect(original.text).toContain('request-class: Business Idea');
+    expect(original.text).toContain('target_audience: Independent makers');
+    expect(original.text).toContain('coforge-request-schema:');
+    await obsidian.reloadPlugin();
+    view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await view.getByRole('button', { name: /^Idea board/ }).first().click();
+    const card = view.locator('.cf-idea-card').filter({ hasText: 'Native business opportunity' });
+    await card.locator('.cf-idea-open').click();
+    const fields = view.getByRole('region', { name: 'Captured request object', exact: true });
+    await browserExpect(fields.getByRole('heading', { name: 'Business Idea', exact: true })).toBeVisible();
+    await fields.getByLabel('Audience', { exact: true }).fill('Local makers');
+    await fields.getByRole('button', { name: 'Save request fields', exact: true }).click();
+    await browserExpect(fields.getByRole('button', { name: 'Save request fields', exact: true })).toBeDisabled();
+    const edited = await obsidian.eval(({ app }, path) => app.vault.adapter.read(path), original.path);
+    expect(body(edited)).toBe(body(original.text));
+    expect(edited).toContain('owner-property: "preserve this exact quoting"');
+    expect(edited).toContain('target_audience: Local makers');
+    await view.getByRole('button', { name: 'Close idea details', exact: true }).click();
+    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await view.getByLabel('Request note class', { exact: true }).fill('Feature Idea');
+    await view.getByLabel('Request categories', { exact: true }).fill('Product');
+    await view.getByRole('button', { name: 'Save settings', exact: true }).click();
+    await browserExpect(view.getByText('Settings saved', { exact: true })).toBeVisible();
+    expect(await obsidian.eval(({ app }, path) => app.vault.adapter.read(path), original.path)).toBe(edited);
+    await obsidian.reloadPlugin();
+    view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await browserExpect(view.getByLabel('Request note class', { exact: true })).toHaveValue('Feature Idea');
+    await browserExpect(view.getByLabel('Request categories', { exact: true })).toHaveValue('Product');
+    await view.getByRole('button', { name: /^Idea board/ }).first().click();
+    await card.locator('.cf-idea-open').click();
+    await browserExpect(fields.getByRole('heading', { name: 'Business Idea', exact: true })).toBeVisible();
+    await browserExpect(fields.getByLabel('Audience', { exact: true })).toHaveValue('Local makers');
+    await browserExpect(view.locator('.cf-idea-category')).toHaveText('Strategy');
+    expect(obsidian.errors()).toEqual([]);
+    await obsidian.screenshot('request-object-captured-schema-and-human-note');
+  });
+});

@@ -1,3 +1,4 @@
+import { openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -9,10 +10,7 @@ test("edits workflow instructions in the dedicated view and preserves local draf
     "data-prototype-ready",
     "true",
   );
-  await page
-    .getByRole("button", { name: "Workflow settings", exact: true })
-    .first()
-    .click();
+  await openWorkflowSettings(page);
   await page
     .getByLabel("Step instructions", { exact: true })
     .fill("PROJECT_SCREEN_POLICY: explain product fit and reject scope creep.");

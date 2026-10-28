@@ -1,6 +1,8 @@
 import { list, number, oneOf, optional, shape, text, timestamp } from "./check";
 import { stageUsageCheck, type StageUsage } from "./ai-usage";
+import { aiCostAttributionCheck, type AICostAttribution } from './ai-cost-attribution';
 export interface AICostTask {
+  attribution?: AICostAttribution;
   workflow?: {
     runId: string;
     definitionRevision: string;
@@ -28,25 +30,26 @@ export interface AICostTask {
 }
 export const aiCostTaskCheck = shape(
   {
+    attribution: optional(aiCostAttributionCheck),
     id: text({ min: 1, max: 240 }),
-    featureId: text({ min: 1, max: 80 }),
+    featureId: text({ min: 1, max: 200 }),
     featureTitle: text({ max: 200 }),
-    projectId: text({ max: 80 }),
+    projectId: text({ max: 200 }),
     projectName: text({ max: 100 }),
     provider: oneOf(["claude", "herdr", "demo"] as const),
     stage: text({ max: 40 }),
     status: text({ max: 40 }),
     startedAt: timestamp,
     finishedAt: optional(timestamp),
-    model: optional(text({ max: 100 })),
+    model: optional(text({ max: 200 })),
     workflow: optional(
       shape(
         {
-          runId: text({ min: 1, max: 80 }),
+          runId: text({ min: 1, max: 200 }),
           definitionRevision: text({ min: 1, max: 80 }),
           stepId: text({ min: 1, max: 80 }),
-          stepName: text({ min: 1, max: 100 }),
-          attemptId: text({ min: 1, max: 80 }),
+          stepName: text({ min: 1, max: 200 }),
+          attemptId: text({ min: 1, max: 200 }),
         },
         { strict: true },
       ),
@@ -81,8 +84,9 @@ export function normalizedUsd(input: string): string {
 }
 export function taskCost(task: AICostTask): {
   nanos?: bigint;
-  source: "reported" | "manual" | "unavailable" | "simulation";
+  source: "reported" | "manual" | "unavailable" | "simulation" | 'not-started';
 } {
+  if (task.status === 'not-started') return { source: 'not-started' };
   if (task.provider === "demo") return { source: "simulation" };
   if (task.reportedUsd !== undefined)
     return { source: "reported", nanos: usdNanos(task.reportedUsd.toFixed(9)) };
@@ -114,14 +118,16 @@ export function costSummary(tasks: readonly AICostTask[]) {
   let missing = 0;
   let pending = 0;
   let simulations = 0;
+  let notStarted = 0;
   for (const task of tasks) {
     const cost = taskCost(task);
     if (cost.nanos !== undefined) nanos += cost.nanos;
     if (cost.source === "reported") reported++;
     else if (cost.source === "manual") manual++;
     else if (cost.source === "simulation") simulations++;
-    else if (["queued", "running", "pending"].includes(task.status)) pending++;
+    else if (cost.source === 'not-started') notStarted++;
+    else if (["queued", "running", "pending", 'dispatching'].includes(task.status)) pending++;
     else missing++;
   }
-  return { nanos, reported, manual, missing, pending, simulations };
+  return { nanos, reported, manual, missing, pending, simulations, notStarted };
 }

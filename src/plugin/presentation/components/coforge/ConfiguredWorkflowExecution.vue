@@ -118,17 +118,28 @@ defineProps<{ model: WorkflowModel }>();
       <ConfiguredWorkflowResults v-if="model.run" :run="model.run" />
     </template>
     <div v-else class="cf-intent-empty">
-      <h2>A request starts the workflow</h2>
-      <p>
+      <h2>
+        {{
+          model.store.activeProject
+            ? "A request starts the workflow"
+            : "Choose a project"
+        }}
+      </h2>
+      <p v-if="model.store.activeProject">
         Add a request on the Idea board, or accept one from Twitch chat, then
         select it here.
+      </p>
+      <p v-else>
+        Create or select a project to run requests and configure its workflow.
       </p>
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
-        @click="model.store.navigate('board')"
+        @click="
+          model.store.navigate(model.store.activeProject ? 'board' : 'projects')
+        "
       >
-        Open Idea board
+        {{ model.store.activeProject ? "Open Idea board" : "Manage projects" }}
       </button>
     </div>
   </section>

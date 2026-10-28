@@ -12,6 +12,7 @@ const model = useExampleCleanup();
     <div v-if="model.preview" class="cf-example-cleanup-preview">
       <h3>Review exactly what will be removed</h3>
       <p>{{ model.selectedCount }} requests selected · {{ model.preview.localChatCount }} local simulator messages · {{ model.preview.localProfileCount }} unreferenced local profiles · temporary examples will close.</p>
+      <p>{{ model.preview.economyUsageCount }} local-test Economy receipts · {{ model.preview.economyPerkCount }} related local-test manual perks will be removed. Viewer Economy activity and its fulfillment history stay.</p>
       <p class="cf-settings-help">Selected request notes go to Obsidian’s trash with their related run and activity history. Unreferenced local profiles are removed. Project containers, live Twitch chat, retained requests, their votes and real cost evidence stay. Historical counters and external recovery evidence are kept where attribution is uncertain.</p>
       <details v-if="model.preview.automatic.length">
         <summary>Tracked samples and local-test requests · {{ model.preview.automatic.length }}</summary>

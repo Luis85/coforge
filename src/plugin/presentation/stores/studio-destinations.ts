@@ -7,6 +7,7 @@ type Destination = {
   group: StudioGroup;
   scope: "project" | "channel" | "vault";
   requiresProject?: boolean;
+  parent?: StudioView;
 };
 
 /** One contract for root destination identity, task ownership and data scope. */
@@ -36,24 +37,24 @@ export const STUDIO_DESTINATIONS = {
     scope: "project",
     requiresProject: true,
   },
+  council: {
+    label: "The Council",
+    icon: "users",
+    group: "build",
+    scope: "vault",
+  },
   workflow: {
     label: "Agent workflow",
     icon: "workflow",
     group: "build",
     scope: "project",
-    requiresProject: true,
   },
   "workflow-settings": {
     label: "Workflow settings",
     icon: "sliders-horizontal",
     group: "build",
     scope: "project",
-  },
-  council: {
-    label: "The Council",
-    icon: "users",
-    group: "build",
-    scope: "vault",
+    parent: "workflow",
   },
   settings: {
     label: "Project settings",
@@ -72,6 +73,9 @@ export const STUDIO_DESTINATIONS = {
     icon: "users",
     group: "community",
     scope: "channel",
+  },
+  economy: {
+    label: 'Economy', icon: 'coins', group: 'community', scope: 'channel',
   },
   "community-settings": {
     label: "Community settings",
@@ -123,11 +127,18 @@ export function studioDestination(view: StudioView): Destination {
   return STUDIO_DESTINATIONS[view];
 }
 
-/** Projects has its own switcher; each other root appears once in task navigation. */
+/** Compatibility locators share the owning root's frame and global navigation item. */
+export function studioRoot(view: StudioView): StudioView {
+  return studioDestination(view).parent ?? view;
+}
+
+/** Projects has its own switcher; focused subpages stay in their owning root. */
 function isStudioView(view: string): view is StudioView {
   return Object.hasOwn(STUDIO_DESTINATIONS, view);
 }
 export const STUDIO_NAVIGATION = Object.entries(STUDIO_DESTINATIONS).flatMap(
   ([view, destination]) =>
-    view !== "projects" && isStudioView(view) ? [{ view, ...destination }] : [],
+    view !== "projects" && isStudioView(view) && !studioDestination(view).parent
+      ? [{ view, ...destination }]
+      : [],
 );

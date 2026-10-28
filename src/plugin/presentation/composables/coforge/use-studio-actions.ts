@@ -140,6 +140,9 @@ export function useStudioActions() {
       }),
     simulate: () => attempt(() => studio.simulate()),
     createIdea: (data: {
+      projectId?: string;
+      requestObjectRevision?: string;
+      requestValues?: Record<string, import('../../../features/coforge/domain/request-object').RequestFieldValue>;
       title: string;
       description: string;
       category: Category;

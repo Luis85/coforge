@@ -1,3 +1,4 @@
+import { openWorkflowSettings } from "../../../tests/e2e/support/workflow-navigation.ts";
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
@@ -177,10 +178,7 @@ describe("Streaming workspace in the contained vault", () => {
     await browserExpect(view.locator(".cf-project-switcher")).toContainText(
       "Contained prompt project",
     );
-    await view
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .first()
-      .click();
+    await openWorkflowSettings(view);
     await view
       .getByLabel("Step instructions", { exact: true })
       .fill("CONTAINED_POLICY: explain project fit.");

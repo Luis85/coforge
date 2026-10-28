@@ -40,3 +40,7 @@ Journey tags: `request-to-recognition`, `multi-project`.
 ## Workspace redesign
 
 A project context band identifies the canonical project. The decision summary counts current project requests awaiting screening, moderation or final review; review and moderation counts open their existing filters without running work. Accepted totals count request state, not agent attempts.
+
+## Project privacy
+
+Private project context is labelled in the owner workspace. Owner requests and local simulation remain available; viewer chat intake is refused for private projects even when an ID is guessed.

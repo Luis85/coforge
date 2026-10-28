@@ -81,7 +81,7 @@ const model = useCouncilModel();
             }}{{ run.pauseRequested ? " · Paused" : "" }} · {{ run.cursor }}/{{
               run.invocations.length
             }}
-            contributions published</span
+            steps completed or skipped</span
           >
         </div>
         <p>
@@ -100,7 +100,7 @@ const model = useCouncilModel();
             v-if="run.state === 'publishing'"
             type="button"
             class="cf-btn cf-btn-primary"
-            :disabled="model.store.busy || !model.store.state?.executor"
+            :disabled="model.store.busy || !model.store.state?.executor || run.attempts.some(attempt => attempt.status === 'dispatching')"
             @click="model.repair(run.id)"
           >
             Repair note publication</button
@@ -190,21 +190,21 @@ const model = useCouncilModel();
         </button>
       </form>
       <template v-if="model.selectedRun.state === 'attention'"
-        ><label
+        ><p v-if="model.settling" role="status">Wait for all active round members to settle before retrying, continuing or skipping. Pause and cancel remain available.</p><label
           ><input v-model="model.store.acknowledge" type="checkbox" /> I
           inspected any uncertain external attempt. Retrying may produce another
           provider charge.</label
         ><button
           type="button"
           class="cf-btn cf-btn-secondary"
-          :disabled="model.store.busy"
+          :disabled="model.store.busy || model.settling"
           @click="model.retry(model.selectedRun.id)"
         >
           Retry eligible action</button
         ><button
           type="button"
           class="cf-btn cf-btn-secondary"
-          :disabled="model.store.busy"
+          :disabled="model.store.busy || model.settling"
           @click="model.continueSnapshot(model.selectedRun.id)"
         >
           Continue using original snapshot
@@ -220,7 +220,7 @@ const model = useCouncilModel();
           ><button
             type="button"
             class="cf-btn cf-btn-secondary"
-            :disabled="model.store.busy || !model.store.skipReason.trim()"
+            :disabled="model.store.busy || model.settling || !model.store.skipReason.trim()"
             @click="model.skip(model.selectedRun.id)"
           >
             Record missing contribution

@@ -4,6 +4,38 @@ import { MESSAGE_REJECTION_REASONS } from "./execution-message-rejection";
 /** Persisted progress and attribution must agree before the host can dispatch from a journal. */
 export function assertExecutionRunConsistency(run: ExecutionRun): void {
   if (
+    (run.timing?.active && run.timing.parallel?.length) ||
+    new Set(run.timing?.parallel?.map((item) => item.token)).size !==
+      (run.timing?.parallel?.length ?? 0)
+  )
+    throw new Error(
+      "Execution timing reservations have inconsistent identities.",
+    );
+  if (
+    run.attempts.some(
+      (attempt) =>
+        attempt.status === "not-started" &&
+        (attempt.artifactId || attempt.usage || attempt.costUsd !== undefined),
+    )
+  )
+    throw new Error(
+      "An undispatched attempt cannot carry provider result or telemetry evidence.",
+    );
+  if (
+    run.invocations.some(
+      (invocation) =>
+        invocation.promptOrder === "fan-out" &&
+        run.invocations.some(
+          (other) =>
+            other.roundId === invocation.roundId &&
+            other.promptOrder !== "fan-out",
+        ),
+    )
+  )
+    throw new Error(
+      "Every captured member of a fan-out round must agree on prompt order.",
+    );
+  if (
     run.artifacts.some(
       (artifact) =>
         artifact.messageRejection &&

@@ -4,6 +4,20 @@
   gap: 16px;
   margin-bottom: 24px;
 }
+.ps--coforge .cf-ai-attribution { margin-block: 28px; padding-block: 24px; border-block: 1px solid var(--cf-border); }
+.ps--coforge .cf-ai-attribution > p { max-width: 75ch; line-height: 1.7; margin-block: 12px; }
+.ps--coforge .cf-ai-attribution-coverage { padding: 14px 18px; border-radius: var(--radius-m); background: var(--cf-info-surface); }
+.ps--coforge .cf-ai-attribution-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-block: 22px; }
+.ps--coforge .cf-ai-attribution-filters select { min-height: 38px; padding: 8px 10px; border: 1px solid var(--cf-border-strong); border-radius: var(--radius-s); background: var(--cf-surface); color: var(--cf-text); font: inherit; }
+.ps--coforge .cf-ai-attribution-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 20px; }
+.ps--coforge .cf-ai-attribution-tabs [aria-pressed="true"] { background: var(--cf-accent-surface); border-color: var(--cf-accent); }
+.ps--coforge .cf-ai-attribution-groups { list-style: none; margin: 0; padding: 0; }
+.ps--coforge .cf-ai-attribution-groups button { display: flex; align-items: start; justify-content: space-between; gap: 16px; width: 100%; height: auto; min-width: 0; padding: 16px 0; border: 0; border-bottom: 1px solid var(--cf-border); border-radius: 0; background: transparent; white-space: normal; text-align: start; }
+.ps--coforge .cf-ai-attribution-groups button:hover { background: var(--cf-hover); }
+.ps--coforge .cf-ai-attribution-groups button > span { min-width: 0; overflow-wrap: anywhere; }
+.ps--coforge .cf-ai-attribution-groups button > span:last-child { text-align: end; flex-shrink: 0; max-width: 40%; }
+.ps--coforge .cf-ai-attribution-groups strong { font-size: 15px; font-variant-numeric: tabular-nums; }
+.ps--coforge .cf-ai-attribution-groups small { margin-top: 6px; font-size: 12px; line-height: 1.6; }
 .ps--coforge .cf-ai-costs label {
   display: grid;
   gap: 8px;
@@ -123,6 +137,9 @@
   max-width: 400px;
   overflow-wrap: anywhere;
 }
+.ps--coforge .cf-ai-table td:nth-child(2) { min-width: 190px; max-width: 280px; }
+.ps--coforge .cf-ai-table td:nth-child(3) { min-width: 140px; }
+.ps--coforge .cf-ai-table td:nth-child(4) { min-width: 130px; }
 .ps--coforge .cf-ai-editor {
   display: grid;
   gap: 18px;
@@ -139,6 +156,7 @@
   overflow-wrap: anywhere;
 }
 @container plugin-shell-leaf (max-width: 760px) {
+  .ps--coforge .cf-ai-attribution-filters { grid-template-columns: minmax(0, 1fr); }
   .ps--coforge .cf-ai-filters {
     grid-template-columns: 1fr;
   }

@@ -7,7 +7,7 @@ const model = useCommunitySettings();
     <header class="cf-page-heading">
       <div>
         <h1>Community settings</h1>
-        <p>Names, earning rules and the rank ladder shared across the community.</p>
+        <p>Names, XP and reputation rules, and the rank ladder shared across the community.</p>
       </div>
     </header>
     <section class="cf-decision-brief" aria-label="Community settings scope">
@@ -31,10 +31,12 @@ const model = useCommunitySettings();
         </p>
       </section>
       <section aria-label="Community earning rules">
-        <h2>Earning rules</h2>
+        <h2>Participation benefits</h2>
         <p>
           Rates apply to future credited chat-presence minutes and feature milestones. Existing balances stay unchanged.
         </p>
+        <p>Currency income, subscriber rates, command prices and rewards are configured together in Economy.</p>
+        <button type="button" class="cf-btn cf-btn-secondary" @click="model.openEconomy()">Open Economy</button>
         <div class="cf-economy-fields">
           <label v-for="field in model.ruleFields" :key="field.key" class="cf-field"
             ><span>{{ field.label }}</span

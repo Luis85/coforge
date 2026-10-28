@@ -5,6 +5,7 @@ import CfIcon from "./CfIcon.vue";
 import IdeaRiceEditor from "./IdeaRiceEditor.vue";
 import MarkdownBody from "./MarkdownBody.vue";
 import { screeningProviderLabel } from '../../composables/coforge/agent-labels';
+import RequestValuesPanel from './RequestValuesPanel.vue';
 
 defineProps<{ idea: Idea }>();
 const model = useIdeaDrawerContext();
@@ -44,6 +45,7 @@ const model = useIdeaDrawerContext();
     </div>
   </section>
 
+  <RequestValuesPanel v-if="idea.requestObject" :key="idea.id" :idea="idea" />
   <section v-if="idea.screening" class="cf-idea-section">
     <h3>
       <CfIcon

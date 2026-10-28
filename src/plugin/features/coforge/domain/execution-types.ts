@@ -1,4 +1,5 @@
 import type { StageUsage } from "./ai-usage";
+import type { CouncilPromptOrder } from "./council-prompt-order";
 import type { TeamMessageDraft } from "./team-messages";
 import type { ExecutionMessagingState } from "./execution-outbox";
 import type { ExecutionLocalAction } from "./execution-local-action";
@@ -16,10 +17,12 @@ export type ExecutionSubject =
       revision: string;
       markdown: string;
       ideaId: string;
+      ideaRevision?: string;
     };
 export interface ExecutionInvocation {
   id: string;
   roundId: string;
+  promptOrder?: CouncilPromptOrder;
   agentId: string;
   agentRevision: string;
   provider: "demo" | "claude" | "herdr";
@@ -46,7 +49,7 @@ export interface ExecutionResponse {
 export interface ExecutionAttempt {
   id: string;
   invocationId: string;
-  status: "dispatching" | "unknown" | "responded" | "published";
+  status: "dispatching" | "not-started" | "unknown" | "responded" | "published";
   startedAt: string;
   dispatch: ExecutionDispatch;
   artifactId?: string;
@@ -145,7 +148,18 @@ export interface ExecutionRun extends ExecutionAdmission {
   timing?: {
     usedMs: number;
     scopes: { id: string; usedMs: number }[];
-    active?: { token: string; scopeId?: string; reservedMs: number };
+    active?: {
+      token: string;
+      scopeId?: string;
+      reservedMs: number;
+      accountedMs?: number;
+    };
+    parallel?: {
+      token: string;
+      scopeId?: string;
+      reservedMs: number;
+      accountedMs?: number;
+    }[];
   };
 }
 export interface ExecutionJournal {

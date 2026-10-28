@@ -3,14 +3,11 @@ import {
   ExecutionBlockError,
 } from "../domain/execution-block";
 import {
-  executionResponseCheck,
   EXECUTION_RESULT_RESERVE_BYTES,
   EXECUTION_RUN_BYTES,
   EXECUTION_JOURNAL_BYTES,
-  type ExecutionArtifact,
   type ExecutionAttempt,
   type ExecutionDispatch,
-  type ExecutionResponse,
 } from "../domain/execution-run";
 import { workflowSerializedSize } from "../domain/configured-workflow-run";
 import type { ExecutionKernelHost } from "./execution-ports";
@@ -18,19 +15,15 @@ import type { ExecutionJournalStore } from "./execution-journal-store";
 import type { ExecutionPublication } from "./execution-publication";
 import type { ExecutionLocalActions } from "./execution-local-actions";
 import { nextExecutionBoundary } from "./execution-boundaries";
-import {
-  accountInitialRootRetries,
-  reserveExecutionDispatch,
-} from "./execution-limits";
-import { cancelledExecutionLineage } from "../domain/execution-lineage";
-import {
-  ExecutionMessageRejection,
-  messageRejectionInfo,
-} from "../domain/execution-message-rejection";
-import { assertExecutionArtifactLimit } from "../domain/execution-artifact-limit";
+import { reserveExecutionDispatch } from "./execution-limits";
 import type { ExecutionTiming } from "./execution-timing";
 
+import { ExecutionAttemptWork } from "./execution-attempt-work";
+import { ExecutionFanout } from "./execution-fanout";
+
 export class ExecutionInvocations {
+  private readonly attemptWork: ExecutionAttemptWork;
+  private readonly fanout: ExecutionFanout;
   private invoking = false;
   private activeRunId?: string;
   constructor(
@@ -40,7 +33,17 @@ export class ExecutionInvocations {
     private readonly localActions: ExecutionLocalActions,
     private readonly isPaused: () => boolean,
     private readonly timing: ExecutionTiming,
-  ) {}
+  ) {
+    this.attemptWork = new ExecutionAttemptWork(store, host, timing);
+    this.fanout = new ExecutionFanout(
+      store,
+      host,
+      publication,
+      timing,
+      this.attemptWork,
+      isPaused,
+    );
+  }
   get isInvoking(): boolean {
     return this.invoking;
   }
@@ -84,6 +87,10 @@ export class ExecutionInvocations {
     this.invoking = true;
     this.activeRunId = id;
     try {
+      if (invocation.promptOrder === "fan-out") {
+        await this.fanout.step(structuredClone(run));
+        return;
+      }
       let dispatch: ExecutionDispatch;
       try {
         dispatch = await this.timing.measure(id, invocation, async () => {
@@ -154,101 +161,7 @@ export class ExecutionInvocations {
           });
         throw error;
       }
-      let result: ExecutionResponse;
-      const providerTiming = this.timing.hooks(id, invocation);
-      try {
-        try {
-          result = executionResponseCheck(
-            await this.host.invoke(
-              structuredClone(this.store.find(id)),
-              structuredClone(invocation),
-              structuredClone(attempt),
-              providerTiming,
-            ),
-          );
-        } finally {
-          await providerTiming.stop();
-        }
-        assertExecutionArtifactLimit(invocation, result);
-        if (Boolean(result.plan) !== (invocation.output === "plan"))
-          throw new Error(
-            "The provider result does not match its declared Markdown or validated-plan contract.",
-          );
-      } catch (error) {
-        await this.store.mutate((next) => {
-          const current = next.runs.find((item) => item.id === id)!;
-          const saved = current.attempts.find(
-            (item) => item.id === attempt.id,
-          )!;
-          saved.status = "unknown";
-          saved.error =
-            "The provider did not yield a durably validated result. Inspect its original session before retrying.";
-          if (current.state !== "cancelled") current.state = "attention";
-          current.reason = saved.error;
-        });
-        throw error;
-      }
-      await this.store.mutate((next) => {
-        const current = next.runs.find((item) => item.id === id)!;
-        const saved = current.attempts.find((item) => item.id === attempt.id)!;
-        const artifact: ExecutionArtifact = {
-          ...result,
-          id: `artifact-${attempt.id}`,
-          runId: id,
-          invocationId: invocation.id,
-          attemptId: attempt.id,
-          roundId: invocation.roundId,
-          agentId: invocation.agentId,
-          agentRevision: invocation.agentRevision,
-          provider: invocation.provider,
-          model: invocation.model,
-          inputArtifactIds: [...dispatch.inputArtifactIds],
-          createdAt: this.host.now(),
-        };
-        if (result.usage) {
-          saved.usage = result.usage;
-          saved.usageSource = "provider";
-        }
-        if (result.costUsd !== undefined) saved.costUsd = result.costUsd;
-        if (!artifact.usage && saved.usage)
-          artifact.usage = structuredClone(saved.usage);
-        if (artifact.costUsd === undefined && saved.costUsd !== undefined)
-          artifact.costUsd = saved.costUsd;
-        if (result.messageDrafts?.length) {
-          if (cancelledExecutionLineage(next, current)) {
-            artifact.messagesRejected = true;
-            artifact.messageRejection = messageRejectionInfo(
-              new ExecutionMessageRejection("cancelled"),
-            );
-          } else if (!this.host.commitMessages) {
-            artifact.messagesRejected = true;
-            artifact.messageRejection = messageRejectionInfo(
-              new ExecutionMessageRejection("unavailable"),
-            );
-          } else {
-            // Work on a separate candidate so a rejected batch cannot leave a partial outbox or budget reservation.
-            const messageCandidate = structuredClone(next);
-            try {
-              this.host.commitMessages(
-                messageCandidate,
-                structuredClone(current),
-                structuredClone(saved),
-                result.messageDrafts,
-              );
-              accountInitialRootRetries(next, messageCandidate, current);
-              next.messaging = messageCandidate.messaging;
-            } catch (error) {
-              artifact.messagesRejected = true;
-              artifact.messageRejection = messageRejectionInfo(error);
-            }
-          }
-        }
-        current.artifacts.push(artifact);
-        saved.artifactId = artifact.id;
-        saved.status = "responded";
-        if (current.state !== "cancelled") current.state = "publishing";
-        current.updatedAt = this.host.now();
-      });
+      await this.attemptWork.run(id, invocation, attempt);
       await this.publication.repair(id);
     } finally {
       this.invoking = false;

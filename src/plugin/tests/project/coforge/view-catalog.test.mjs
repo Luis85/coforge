@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { readCatalogue, validateCatalogue, renderSitemap, sourceCoverage } from "../../../../../tooling/coforge/view-catalog.mjs";
 
 const root = process.cwd();
+const catalogue = readCatalogue(root);
 const sample = (id, parent = null) => ({
   id, title: id, goal: "Complete one task.", audience: "streamer", kind: "page",
   route: id, parent, component: "BRIEF.md", entry: ["Studio navigation"],
@@ -25,10 +26,13 @@ describe("view catalogue", () => {
     expect(() => validateCatalogue([{ ...sample("a"), component: "../outside.md" }], root)).toThrow(/inside the project/);
   });
 
+  it('validates all canonical view contracts', () => {
+    expect(() => validateCatalogue(catalogue, root)).not.toThrow();
+  });
+
   it("documents every live route and nested navigation state exactly once", () => {
-    const views = readCatalogue(root);
+    const views = catalogue;
     expect(views.length).toBeGreaterThan(40);
-    expect(() => validateCatalogue(views, root)).not.toThrow();
     expect(() => sourceCoverage(views, root)).not.toThrow();
     const board = views.find((view) => view.id === "board");
     expect(() => sourceCoverage(views.filter((view) => view !== board), root)).toThrow(/board/);
@@ -38,11 +42,38 @@ describe("view catalogue", () => {
   });
 
   it("keeps generated Markdown and JSON in sync with canonical files", () => {
-    const views = readCatalogue(root);
+    const views = catalogue;
     const output = renderSitemap(views);
     expect(readFileSync(resolve(root, "docs/components/sitemap.md"), "utf8")).toBe(output.markdown);
     expect(readFileSync(resolve(root, "docs/components/sitemap.json"), "utf8")).toBe(output.json);
     expect(output.markdown).toContain("[Request board](views/board.md)");
     expect(renderSitemap([...views].reverse())).toEqual(output);
+  });
+
+  it('accepts one nested settings contract covering its compatibility locator and local workflow page', () => {
+    const views = catalogue.map(view => view.id === 'workflow-settings'
+      ? { ...view, coverage: [{ group: 'studio', key: 'workflow-settings' }, { group: 'workflow', key: 'settings' }] }
+      : view);
+    expect(() => validateCatalogue(views, root)).not.toThrow();
+    expect(() => sourceCoverage(views, root)).not.toThrow();
+  });
+
+  it('rejects malformed or empty coverage arrays instead of silently reducing route coverage', () => {
+    for (const coverage of [[], [null], ['workflow'], [{ group: 'workflow' }], [{ group: 'workflow', key: 1 }]])
+      expect(() => validateCatalogue([{ ...sample('invalid'), coverage }], root)).toThrow(/coverage/);
+  });
+
+  it('rejects duplicate, missing, stale and unknown nested coverage mappings', () => {
+    const views = catalogue;
+    const mappings = [{ group: 'studio', key: 'workflow-settings' }, { group: 'workflow', key: 'settings' }];
+    const withCoverage = coverage => views.map(view => view.id === 'workflow-settings' ? { ...view, coverage } : view);
+    expect(() => sourceCoverage(withCoverage([...mappings, mappings[1]]), root)).toThrow(/duplicate/);
+    expect(() => sourceCoverage([...withCoverage(mappings), { ...sample('copy'), coverage: { group: 'workflow', key: 'settings' } }], root)).toThrow(/duplicate/);
+    expect(() => sourceCoverage(withCoverage([mappings[1]]), root)).toThrow(/workflow-settings/);
+    expect(() => sourceCoverage(withCoverage([mappings[0]]), root)).toThrow(/settings/);
+    expect(() => sourceCoverage(withCoverage([...mappings, { group: 'workflow', key: 'retired' }]), root)).toThrow(/retired/);
+    expect(() => sourceCoverage(withCoverage([...mappings, { group: 'unknown', key: 'settings' }]), root)).toThrow(/unknown coverage group/);
+    for (const group of ['__proto__', 'constructor'])
+      expect(() => sourceCoverage(withCoverage([...mappings, { group, key: 'settings' }]), root)).toThrow(/unknown coverage group/);
   });
 });

@@ -1,3 +1,4 @@
+import { cleanupEconomyExamples } from './example-cleanup-economy';
 import type { InternalState } from './ports';
 import { recordOperation } from './population';
 import { exampleRemovalCutoffsCheck } from '../domain/example-content';
@@ -13,6 +14,7 @@ export function removeExampleState(state: InternalState, selectedIds: readonly s
     for (const id of selected) if (!cutoffs[id] || Date.parse(cutoffs[id]) < Date.parse(now)) cutoffs[id] = now;
     state.exampleRemovalCutoffs = exampleRemovalCutoffsCheck(cutoffs);
   }
+  const economyCleanup = cleanupEconomyExamples(state, selected);
   const jobs = new Set(state.jobs.filter(job => selected.has(job.ideaId)).map(job => job.id));
   const samples = new Set(state.sampleEventIds ?? []);
   state.ideas = state.ideas.filter(idea => !selected.has(idea.id));
@@ -31,9 +33,11 @@ export function removeExampleState(state: InternalState, selectedIds: readonly s
       player.xp = Math.max(0, player.xp - reward.xp);
       player.reputation = Math.max(0, player.reputation - reward.reputation);
     }
-    player.rewardClaims = player.rewardClaims.filter(claim => ![...selected].some(id => claim === `screened:${id}` || claim === `accepted:${id}`));
+    player.rewardClaims = player.rewardClaims.filter(claim => ![...selected].some(id => claim === `screened:${id}` || claim === `accepted:${id}` || claim === `command:${id}`));
   }
   const referenced = new Set(state.ideas.flatMap(idea => [idea.authorId, ...idea.voters, ...(idea.contexts ?? []).map(context => context.authorId)]));
+  for (const usage of state.population.economy?.usages ?? []) referenced.add(usage.playerId);
+  for (const perk of state.population.economy?.redemptions ?? []) referenced.add(perk.playerId);
   for (const message of state.chat) referenced.add(message.userId);
   for (const reward of state.population.rewards) referenced.add(reward.playerId);
   for (const reply of state.botReplies) if (reply.greetingPlayerId) referenced.add(reply.greetingPlayerId);
@@ -45,8 +49,8 @@ export function removeExampleState(state: InternalState, selectedIds: readonly s
   state.contributors = state.contributors.filter(person => !removedProfiles.has(person.id));
   state.population.players = state.population.players.filter(player => !removedProfiles.has(player.id));
   state.population.operations = state.population.operations.filter(record => !(record.playerId && removedProfiles.has(record.playerId)) && !(record.entityId && (selected.has(record.entityId) || jobs.has(record.entityId))));
-  const changed = selected.size > 0 || removedProfiles.size > 0 || state.chat.length !== beforeChat || state.events.length !== beforeEvents;
+  const changed = economyCleanup.usages > 0 || economyCleanup.perks > 0 || selected.size > 0 || removedProfiles.size > 0 || state.chat.length !== beforeChat || state.events.length !== beforeEvents;
   if (changed) recordOperation(state, 'example-content-removed', 'committed', undefined, selected.size);
   // Deduplication tombstones and monotonic IDs deliberately survive cleanup: removed intake must not replay.
-  return { requests: selected.size, profiles: removedProfiles.size, changed };
+  return { requests: selected.size, profiles: removedProfiles.size, economyUsages: economyCleanup.usages, economyPerks: economyCleanup.perks, changed };
 }

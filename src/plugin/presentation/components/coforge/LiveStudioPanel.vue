@@ -31,7 +31,7 @@ const model = useLiveStudio();
     <div class="cf-live-readings">
       <section aria-label="Live viewers">
         <h3>Viewers</h3>
-        <p class="cf-live-value">{{ model.viewer }}</p>
+        <p class="cf-live-value" :class="{ 'is-status': !model.viewerIsCount }">{{ model.viewer }}</p>
         <p>{{ model.viewerStatus }}</p>
         <small>{{ model.updated(model.state.viewers.checkedAt) }}</small>
       </section>

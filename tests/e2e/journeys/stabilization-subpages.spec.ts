@@ -1,10 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
+import { councilPageButton } from '../support/council-navigation';
 
 async function capture(page: Page, scope: string, label: string, name: string) {
-  const nav = page.getByRole("navigation", { name: label, exact: true });
-  const button = nav.getByRole("button", { name, exact: true });
+  const button = label === 'Council workspace'
+    ? await councilPageButton(page, name)
+    : page.getByRole("navigation", { name: label, exact: true }).getByRole("button", { name, exact: true });
   await button.focus();
   await button.press("Enter");
   await expect(button).toHaveAttribute("aria-current", "page");
@@ -92,7 +94,7 @@ test("focused chat and workflow pages are keyboard reachable", async ({ page }) 
   await page
     .getByRole("button", { name: "Agent workflow", exact: true })
     .click();
-  for (const name of ["Workflow runs", "Herdr workspaces"])
+  for (const name of ["Workflow runs", "Herdr workspaces", "Workflow settings"])
     await capture(page, ".cf-workflow-page", "Agent workflow pages", name);
 });
 
@@ -110,8 +112,9 @@ test("Council authoring, folders, intake and execution are distinct accessible p
     .getByRole("button", { name: "Explore Council example", exact: true })
     .click();
   for (const name of [
+    "Ask the Council",
     "Definitions",
-    "Submit and preflight",
+    "Submit existing note",
     "Watched inboxes",
     "Run monitor",
     "Council workflows",

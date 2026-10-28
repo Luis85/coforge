@@ -9,6 +9,19 @@ const LIST_FIELDS = ["entry", "actions", "states", "journeys"];
 const KINDS = new Set(["shell", "page", "subpage", "panel", "dialog", "native", "public"]);
 const strings = (source) => [...source.matchAll(/["']([^"']+)["']/g)].map((match) => match[1]);
 
+/** One task can own both a current local locator and a compatibility alias. */
+function coverageMappings(view) {
+  if (view.coverage === undefined) return [];
+  const mappings = Array.isArray(view.coverage) ? view.coverage : [view.coverage];
+  if (!mappings.length || mappings.some(mapping => !mapping || typeof mapping !== "object"
+    || Array.isArray(mapping) || typeof mapping.group !== "string" || !mapping.group.trim()
+    || typeof mapping.key !== "string" || !mapping.key.trim()))
+    throw new Error(`${view.file}: invalid coverage contract`);
+  if (new Set(mappings.map(mapping => `${mapping.group}\n${mapping.key}`)).size !== mappings.length)
+    throw new Error(`${view.file}: duplicate coverage contract`);
+  return mappings;
+}
+
 /** Markdown files are the sole authored source; sitemap output contains no independent inventory. */
 export function readCatalogue(root) {
   return readdirSync(resolve(root, FOLDER)).filter((file) => file.endsWith(".md")).sort().map((file) => {
@@ -48,7 +61,7 @@ export function validateCatalogue(views, root) {
       const localPath = relative(root, target);
       if (localPath.startsWith("..") || isAbsolute(localPath) || !existsSync(target)) throw new Error(`${view.file}: broken local Markdown link ${href}`);
     }
-    if (view.coverage && (typeof view.coverage.group !== "string" || typeof view.coverage.key !== "string")) throw new Error(`${view.file}: invalid coverage contract`);
+    coverageMappings(view);
     byId.set(view.id, view);
   }
   for (const view of views) {
@@ -82,20 +95,22 @@ export function sourceCoverage(views, root) {
     council: pageIds("COUNCIL_PAGES"),
     broadcast: pageIds("BROADCAST_PAGES"),
     workflow: pageIds("WORKFLOW_PAGES"),
+    economy: pageIds("ECONOMY_PAGES"),
     stream: pageIds("STREAM_PAGES"),
     public: [...requiredMatch(surfaces, /export const STREAM_SURFACES = \[([\s\S]*?)\] as const/, "public surface").matchAll(/id:\s*["']([^"']+)["']/g)].map((match) => match[1]),
   };
+  const documentedMappings = views.flatMap(view => coverageMappings(view).map(mapping => ({ ...mapping, file: view.file })));
   for (const [group, expected] of Object.entries(groups)) {
     if (!expected.length) throw new Error(`${group}: empty navigation contract; update catalogue coverage adapter`);
-    const documented = views.filter((view) => view.coverage?.group === group).map((view) => view.coverage.key);
+    const documented = documentedMappings.filter(mapping => mapping.group === group).map(mapping => mapping.key);
     const missing = expected.filter((key) => !documented.includes(key));
     const stale = documented.filter((key) => !expected.includes(key));
     if (missing.length || stale.length || new Set(documented).size !== documented.length) {
       throw new Error(`${group} coverage mismatch: missing [${missing.join(", ")}], stale [${stale.join(", ")}], or duplicate coverage`);
     }
   }
-  for (const view of views.filter((entry) => entry.coverage)) {
-    if (!groups[view.coverage.group]) throw new Error(`${view.file}: unknown coverage group`);
+  for (const mapping of documentedMappings) {
+    if (!Object.hasOwn(groups, mapping.group)) throw new Error(`${mapping.file}: unknown coverage group`);
   }
 }
 

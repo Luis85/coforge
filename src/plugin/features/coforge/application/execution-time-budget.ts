@@ -4,6 +4,7 @@ import type {
   ExecutionRun,
 } from "../domain/execution-run";
 import { effectiveExecutionAllowance } from "../domain/execution-allowance";
+import { timingReservation } from "./execution-timing-reservations";
 const rootFor = (journal: ExecutionJournal, run: ExecutionRun) => {
   const parent = journal.messaging?.outbox.find(
     (entry) => entry.message.id === run.subject.sourceId,
@@ -16,8 +17,9 @@ export function remainingExecutionMs(
   journal: ExecutionJournal,
   run: ExecutionRun,
   invocation?: ExecutionInvocation,
+  token?: string,
 ): number {
-  const active = run.timing?.active;
+  const active = token ? timingReservation(run, token) : run.timing?.active;
   const allowance = effectiveExecutionAllowance(run);
   const reservation = active?.reservedMs ?? 0;
   const remaining = [

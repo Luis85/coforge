@@ -146,6 +146,9 @@ export function compileWorkflowV2(
         const invocation: ExecutionInvocation = {
           id: `${prefix}${item.id}`,
           roundId: `${prefix}${item.roundId}`,
+          ...(item.promptOrder === undefined
+            ? {}
+            : { promptOrder: item.promptOrder }),
           agentId: item.agent.id,
           agentRevision: item.agentRevision,
           provider: item.agent.provider,
@@ -154,8 +157,12 @@ export function compileWorkflowV2(
           access: "none",
           inputRoundIds: item.inputs.map((round) => `${prefix}${round}`),
           output: item.output,
-          maxArtifactCharacters: compiled.definition.limits.maxArtifactCharacters,
-          executionScope: { id: step.id, limitMs: compiled.definition.limits.maxExecutionSeconds*1000 },
+          maxArtifactCharacters:
+            compiled.definition.limits.maxArtifactCharacters,
+          executionScope: {
+            id: step.id,
+            limitMs: compiled.definition.limits.maxExecutionSeconds * 1000,
+          },
         };
         plan.invocations.push(invocation);
         invocationIds.push(invocation.id);

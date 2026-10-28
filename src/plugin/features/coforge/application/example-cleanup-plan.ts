@@ -15,6 +15,8 @@ export interface ExampleCleanupPreview {
   preservedCount: number;
   localChatCount: number;
   localProfileCount: number;
+  economyUsageCount: number;
+  economyPerkCount: number;
   hasPersistentChanges: boolean;
   blocked: string;
   notes: Record<string, string>;
@@ -54,9 +56,9 @@ export function exampleCleanupPlan(state: InternalState): ExampleCleanupPreview 
   const cleanup = removeExampleState(structuredClone(state), automatic.map(idea => idea.id));
   return {
     stateKey: contextEventId(JSON.stringify([state.ideas, state.requestOrigins, state.projects, state.settings.paused, state.jobs,
-      localChat, state.contributors, state.population.players, state.population.rewards, state.sampleEventIds, state.exampleRemovalCutoffs])),
+      localChat, state.contributors, state.population.players, state.population.rewards, state.sampleEventIds, state.exampleRemovalCutoffs, state.population.economy])),
     automatic, legacy, ambiguous, preservedCount, localChatCount: localChat.length,
-    localProfileCount: cleanup.profiles, hasPersistentChanges: cleanup.changed,
+    localProfileCount: cleanup.profiles, economyUsageCount: cleanup.economyUsages, economyPerkCount: cleanup.economyPerks, hasPersistentChanges: cleanup.changed,
     blocked: exampleCleanupProblem(state), notes: {},
   };
 }

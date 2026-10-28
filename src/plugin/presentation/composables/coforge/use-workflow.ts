@@ -14,7 +14,7 @@ import {
   configuredStepProblem,
   CONFIGURED_RUN_LABELS,
 } from "./configured-workflow-display";
-/** The execution monitor reads each run's frozen definition; editing is a different destination. */
+/** Shared workflow workspace; execution reads captured definitions and settings edit future runs. */
 export function useWorkflow() {
   const store = useStudioStore();
   const actions = useStudioActions();
@@ -95,6 +95,9 @@ export function useWorkflow() {
     value && ["finished", "stopped"].includes(value.state);
   return reactive({
     store,
+    page: computed(() =>
+      store.view === "workflow-settings" ? "settings" : store.workflowTool,
+    ),
     error,
     expanded,
     selected,
@@ -199,10 +202,12 @@ export function useWorkflow() {
       )
         store.workflowRequestSelection = event.target.value;
     },
-    editWorkflow: () => store.navigate("workflow-settings"),
+    selectPage: (page: import("../../stores/studio-pages").WorkflowPage) =>
+      store.openWorkflowTool(page),
+    editWorkflow: () => store.openWorkflowTool("settings"),
     editPrompt: (id: string) => {
       store.workflowStepSelection = id;
-      store.navigate("workflow-settings");
+      store.openWorkflowTool("settings");
     },
     openIdea: (id: string) => {
       void actions.openIdea(id);
