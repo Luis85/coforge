@@ -4,8 +4,15 @@ import type { StageInput, StageRunner } from '../../../features/coforge/applicat
 import { stageAgent } from '../../../features/coforge/domain/stage-agents';
 import { applyProjectProperties, parseProjectNote, projectProperties } from '../../../features/coforge/domain/project-note';
 import { seededStore, nodeTimers } from './memory-storage';
+import { ideaBody, ideaProperties, parseIdeaNote } from '../../../features/coforge/domain/idea-note';
 
 describe('Herdr project workflow configuration', () => {
+  it('reloads canonical request notes screened by Herdr', async () => {
+    const { store } = await seededStore();
+    const idea = store.snapshot().ideas[0]!;
+    idea.screening = { provider: 'herdr', verdict: 'clear', signals: [], reason: 'Validated result', checkedAt: new Date().toISOString() };
+    expect(parseIdeaNote(ideaProperties(idea, 'Fixture author'), ideaBody(idea)).screening?.provider).toBe('herdr');
+  });
   it('round-trips owned agent/model frontmatter and resets overrides without touching other properties', async () => {
     const { store } = await seededStore();
     const project = store.snapshot().projects![0]!;
