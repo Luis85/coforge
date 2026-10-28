@@ -37,7 +37,7 @@ async function capture(page: Page, scope: string, label: string, name: string) {
   await page.setViewportSize({ width: 1280, height: 900 });
 }
 
-test("focused broadcast, chat and workflow pages are keyboard reachable and preserve drafts", async ({
+test("focused broadcast pages are keyboard reachable and preserve setup drafts", async ({
   page,
 }) => {
   test.setTimeout(120000);
@@ -79,6 +79,14 @@ test("focused broadcast, chat and workflow pages are keyboard reachable and pres
   await page
     .getByRole("button", { name: "Open stream chat", exact: true })
     .click();
+  await expect(page.locator('.cf-stream-page')).toBeVisible();
+});
+
+test("focused chat and workflow pages are keyboard reachable", async ({ page }) => {
+  test.setTimeout(120000);
+  await page.goto('/#surface=node-1');
+  await expect(page.locator('html')).toHaveAttribute('data-prototype-ready', 'true');
+  await page.locator('.cf-sidebar').getByRole('button', { name: 'Stream chat', exact: true }).click();
   for (const name of ["Chat", "Twitch settings", "Bot messages"])
     await capture(page, ".cf-stream-page", "Stream tools", name);
   await page

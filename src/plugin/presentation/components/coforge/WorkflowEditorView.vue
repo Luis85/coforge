@@ -4,6 +4,7 @@ import WorkflowStepList from "./WorkflowStepList.vue";
 import WorkflowStepEditor from "./WorkflowStepEditor.vue";
 import WorkflowDefinitionLimits from "./WorkflowDefinitionLimits.vue";
 import WorkflowDefinitionTransfer from "./WorkflowDefinitionTransfer.vue";
+import ProjectWorkContext from "./ProjectWorkContext.vue";
 const model = useWorkflowEditor();
 </script>
 <template>
@@ -18,6 +19,7 @@ const model = useWorkflowEditor();
         </p>
       </div>
     </header>
+    <ProjectWorkContext />
     <p>Reuse agents and councils in a proposal process through <button type="button" class="cf-btn cf-btn-ghost" @click="model.store.navigate('council')">The Council</button>.</p>
     <section
       v-if="!model.project || model.project.unavailable"

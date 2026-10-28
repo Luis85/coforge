@@ -33,6 +33,8 @@ No public project; Awaiting screening count; Empty column; Screened cards. When 
 
 ## Composition and boundaries
 
+The capture title, project identity and screened-request summary lead the board. Stage headings combine text and theme color; count markers stay beside their stage. Every card retains its public ID, demand, authorship and screening/status context. No private actions or raw unscreened text are added.
+
 Source: [src/plugin/presentation/components/coforge/StreamRequestBoard.vue](../../../src/plugin/presentation/components/coforge/StreamRequestBoard.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
 
 Journey tags: `public-sharing`, `community`.

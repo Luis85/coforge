@@ -1805,7 +1805,9 @@
       "actions": [
         "Read board",
         "Expand plan or community context",
-        "Read leaderboards and badges"
+        "Read leaderboards and badges",
+        "Navigate sections",
+        "Refresh board"
       ],
       "states": [
         "No screened cards",
@@ -1899,15 +1901,15 @@
     },
     {
       "id": "settings-data",
-      "title": "Project data tools",
-      "goal": "Export or explicitly replace this project’s workspace data.",
+      "title": "Backup and sample tools",
+      "goal": "Export a private studio backup or explicitly replace this project’s requests with sample data.",
       "audience": "streamer",
       "kind": "panel",
       "route": "Project settings / data tools",
       "parent": "settings",
       "component": "src/plugin/presentation/components/coforge/SettingsDataSection.vue",
       "entry": [
-        "Within Project settings, use the Project data section."
+        "Within Project settings, use Backup and sample tools."
       ],
       "actions": [
         "Export private JSON backup",
@@ -1926,6 +1928,46 @@
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
       "file": "settings-data.md"
+    },
+    {
+      "id": "settings-example-cleanup",
+      "title": "Example content cleanup",
+      "goal": "Review and explicitly remove sample and local-test content while preserving real requests.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Project settings / Backup and sample tools / Example cleanup",
+      "parent": "settings-data",
+      "component": "src/plugin/presentation/components/coforge/ExampleContentCleanup.vue",
+      "entry": [
+        "Open Project settings, then Preview example cleanup under Backup and sample tools."
+      ],
+      "actions": [
+        "Preview exact tracked requests",
+        "Inspect historical candidates",
+        "Select exact historical request IDs",
+        "Keep content",
+        "Confirm removal",
+        "Refresh a stale preview"
+      ],
+      "states": [
+        "Closed",
+        "Loading preview",
+        "Paused automation required",
+        "Pending work blocked",
+        "Preview",
+        "Historical origin unknown",
+        "Working",
+        "Failed with selection retained",
+        "Committed",
+        "Recovery archive retained"
+      ],
+      "journeys": [
+        "setup",
+        "multi-project",
+        "request-to-recognition"
+      ],
+      "privacy": "Private requests and note evidence stay within the vault. Cleanup uses exact IDs and never changes credentials, external game files or retained public request policy.",
+      "file": "settings-example-cleanup.md"
     },
     {
       "id": "settings-repository",

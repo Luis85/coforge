@@ -39,6 +39,7 @@ export function useNewIdeaDrawer() {
 
   return reactive({
     title, requestKind, description, category, username, busy, error,
+    project: computed(() => store.activeProject),
     categories: CATEGORIES,
     canSubmit: computed(() => !busy.value && Boolean(title.value.trim()) && Boolean(username.value.trim())),
     focus: useDialogFocus(close, 'input'),

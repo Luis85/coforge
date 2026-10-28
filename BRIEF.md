@@ -128,6 +128,13 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ## Surfaces (from the design)
 
+### Studio architecture and redesign (owner decisions, 2026-10-28)
+
+- Overhaul the information architecture documented in `docs/components`, then redesign every view as part of one system around user goals, correct data and useful insights.
+- Use a more expressive studio: stronger color, larger summaries and more visual emphasis. Keep Obsidian theme compatibility, canonical data ownership and explicit execution/review/recovery boundaries.
+- Review the complete result from product, UX, accessibility, privacy, reliability and maintenance perspectives, apply an improvement/polishing pass, and open, qualify and merge the pull request after checks are green.
+- Provide an explicit preview-and-confirm cleanup for the loaded sample workspace and local chat-simulator content with their related history, and let the user close temporary examples. Preserve manually authored and Twitch requests even when tested with simulated AI. Older requests without reliable provenance must be identified as ambiguous and kept by default; provider choice alone never authorizes content deletion.
+
 ### Streaming workspace increment (owner decisions, 2026-10-27)
 
 - Four read-only stream views (Kanban, Twitch chat, leaderboards, community) each have a ribbon icon that

@@ -3,6 +3,7 @@ import { emptyLiveStudio } from "../../../features/coforge/domain/live-studio";
 import { useCoforge } from "../../context/coforge-context";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { statisticNumber } from "./statistics-format";
+import { useTemporaryExample } from "./use-temporary-example";
 export function useLiveStudio() {
   const { studio, host } = useCoforge();
   const store = useStudioStore();
@@ -57,6 +58,12 @@ export function useLiveStudio() {
       ? `${statisticNumber(value, decimals)}${unit}`
       : "Unavailable";
   };
+  const exitExample = () => {
+    if (!store.studioExampleEnabled) return;
+    store.exitStudioExample();
+    host.discardPreview?.("live-studio");
+  };
+  const beginExample = useTemporaryExample("live-studio", exitExample);
   return reactive({
     store,
     state,
@@ -115,9 +122,10 @@ export function useLiveStudio() {
       },
     ]),
     preview: () => {
-      store.studioExampleEnabled = true;
+      beginExample();
+      store.beginStudioExample();
       store.obsEditorOpen = true;
-      store.studioExampleRevision++;
     },
+    exitExample,
   });
 }

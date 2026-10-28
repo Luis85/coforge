@@ -12,6 +12,7 @@ import { splitNote } from './markdown';
 import { VaultProjects, type ProjectNoteChange } from './vault-projects';
 import { validateFolderLayout } from '../../features/coforge/domain/vault-folder-policy';
 import { protectPrivateData } from './private-data-guard';
+import { VaultExampleCleanup } from './vault-example-cleanup';
 export { splitNote } from './markdown';
 
 /** Reads an idea from note text, or returns null for notes that are not CoForge ideas. Throws for invalid idea notes. */
@@ -40,7 +41,13 @@ export class VaultStudioStorage implements StudioStorage {
   private readonly echoes = new Map<string, string[]>();
   private folder = defaultIntegration().ideasFolder;
   private readonly projects: VaultProjects;
-  constructor(private readonly plugin: Plugin, private readonly privateFolders: () => readonly string[] = () => []) { this.projects = new VaultProjects(plugin); }
+  private readonly cleanup: VaultExampleCleanup;
+  constructor(private readonly plugin: Plugin, private readonly privateFolders: () => readonly string[] = () => []) {
+    this.projects = new VaultProjects(plugin);
+    this.cleanup = new VaultExampleCleanup(plugin, this.dataPath, content => readIdeaNote(content)?.id, () => plugin.app.vault.getMarkdownFiles().filter(file => inFolder(file.path, this.folder)));
+  }
+  previewExampleNotes(ids: readonly string[]): Promise<Record<string, string>> { return this.cleanup.preview(ids, id => this.file(id)); }
+  exampleCleanupWarning(): string | undefined { return this.cleanup.warning; }
 
   projectFile(id: string): TFile | null { return this.projects.file(id); }
   watchProjects(onChange: (change: ProjectNoteChange) => void, onInvalid: (path: string) => void): void { this.projects.watch(onChange, onInvalid); }
@@ -52,6 +59,8 @@ export class VaultStudioStorage implements StudioStorage {
 
   async load(): Promise<LoadedStudio> {
     const adapter = this.plugin.app.vault.adapter;
+    await protectPrivateData(this.plugin);
+    await this.cleanup.recover();
     const data: PersistedStudio | null = await adapter.exists(this.dataPath) ? parsePersistedStudio(JSON.parse(await adapter.read(this.dataPath))) : null;
     const integration = data?.integration ?? defaultIntegration();
     const layout = validateFolderLayout(integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
@@ -72,9 +81,23 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   async save(next: InternalState, previous: InternalState | null, options: SaveOptions = {}): Promise<void> {
+    await this.cleanup.settleBeforeSave();
     const layout = validateFolderLayout(next.integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
     next.integration = { ...next.integration, ...layout };
     await protectPrivateData(this.plugin, layout);
+    if (options.exampleCleanup) {
+      if (!previous || next.integration.ideasFolder !== this.folder || JSON.stringify(previous.projects) !== JSON.stringify(next.projects))
+        throw new Error('Cleanup cannot change project notes or vault folders. Refresh the preview.');
+      const removed = previous.ideas.filter(idea => !next.ideas.some(item => item.id === idea.id)).map(idea => idea.id);
+      const reviewed = Object.keys(options.exampleCleanup.notes);
+      if (removed.length !== reviewed.length || removed.some(id => !reviewed.includes(id)) || next.ideas.some(idea => {
+        const before = previous.ideas.find(item => item.id === idea.id);
+        return !before || noteValues(before, before.authorId) !== noteValues(idea, idea.authorId);
+      })) throw new Error('Cleanup targets changed. Refresh the preview before removing notes.');
+      await this.cleanup.remove(options.exampleCleanup.notes, id => this.file(id), JSON.stringify(this.persisted(next), null, 2));
+      for (const id of removed) this.paths.delete(id);
+      return;
+    }
     if (next.integration.ideasFolder !== this.folder) await this.moveFolder(next.integration.ideasFolder);
     const external = new Set(options.fromNotes ?? []);
     if (options.replaceAll) await this.retireAll(options.replaceProjectId ? previous?.ideas.filter(idea => idea.projectId === options.replaceProjectId).map(idea => idea.id) : undefined);
@@ -101,6 +124,7 @@ export class VaultStudioStorage implements StudioStorage {
   watch(onChange: (change: ExternalNoteChange) => void, onInvalid: (path: string) => void): void {
     const { vault, metadataCache } = this.plugin.app;
     this.plugin.registerEvent(metadataCache.on('changed', (file, data) => {
+      if (this.cleanup.writing.has(file.path) || !vault.getFileByPath(file.path)) return;
       if (!inFolder(file.path, this.folder)) return;
       if (this.isEcho(file.path, data)) return;
       let idea: NoteIdea | null;
@@ -112,9 +136,11 @@ export class VaultStudioStorage implements StudioStorage {
       onChange({ kind: 'upsert', idea });
     }));
     this.plugin.registerEvent(vault.on('delete', file => {
+      if (this.cleanup.writing.has(file.path)) return;
       for (const [id, path] of this.paths) if (path === file.path) { this.paths.delete(id); onChange({ kind: 'remove', id }); }
     }));
     this.plugin.registerEvent(vault.on('rename', (file, oldPath) => {
+      if (this.cleanup.writing.has(file.path) || this.cleanup.writing.has(oldPath)) return;
       for (const [id, path] of this.paths) {
         if (path !== oldPath) continue;
         if (inFolder(file.path, this.folder)) this.paths.set(id, file.path);

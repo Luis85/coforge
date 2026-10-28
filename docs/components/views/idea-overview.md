@@ -36,3 +36,7 @@ Unscreened; Flagged; Screened; Changed context. Inspect an error beside the affe
 Source: [src/plugin/presentation/components/coforge/IdeaOverviewTab.vue](../../../src/plugin/presentation/components/coforge/IdeaOverviewTab.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`.
+
+## Workspace redesign
+
+Screening provenance distinguishes Simulation, Claude Code and Herdr from the stored screening record. The evidence surface and vote count have clearer visual priority; moderation remains an explicit decision.

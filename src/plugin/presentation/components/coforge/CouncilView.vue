@@ -8,6 +8,7 @@ import CouncilMonitor from "./CouncilMonitor.vue";
 import WorkflowV2Editor from "./WorkflowV2Editor.vue";
 import CouncilMessages from "./CouncilMessages.vue";
 import CouncilFolderSettings from "./CouncilFolderSettings.vue";
+import ProjectWorkContext from "./ProjectWorkContext.vue";
 import { DEFAULT_COUNCIL_FOLDERS } from "../../../features/coforge/domain/council-definition-folders";
 const model = useCouncil();
 </script>
@@ -30,6 +31,7 @@ const model = useCouncil();
         Refresh Council
       </button>
     </header>
+    <ProjectWorkContext />
     <p v-if="!model.service">
       Open this view in desktop Obsidian to create vault-backed definitions and
       submit private Markdown notes.
@@ -46,6 +48,16 @@ const model = useCouncil();
       Council example · in-memory definitions and simulated outputs only.
       Nothing is saved to your vault.
     </p>
+    <button
+      v-if="model.example"
+      type="button"
+      class="cf-btn cf-btn-secondary"
+      :disabled="model.store.busy"
+      title="Discard temporary definitions, runs and example drafts"
+      @click="model.exitExample()"
+    >
+      Exit example
+    </button>
     <template v-if="model.service">
       <p v-if="!model.projectId">
         Create or select a project before configuring teams, councils and

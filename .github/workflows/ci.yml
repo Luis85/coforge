@@ -112,5 +112,8 @@ jobs:
             reports/e2e/
             reports/stabilization/operating-views/
             reports/stabilization-subpages/
+            reports/example-cleanup/
+            reports/product-audit/
+            reports/ui-intent/after/
           retention-days: 14
           if-no-files-found: warn

@@ -6,6 +6,7 @@ import ConfiguredWorkflowExecution from "./ConfiguredWorkflowExecution.vue";
 import HerdrPanel from "./HerdrPanel.vue";
 import HerdrWorkflowRecovery from "./HerdrWorkflowRecovery.vue";
 import CfSubpageNav from "./CfSubpageNav.vue";
+import ProjectWorkContext from "./ProjectWorkContext.vue";
 import { WORKFLOW_PAGES } from "../../stores/studio-pages";
 const model = useWorkflow();
 </script>
@@ -39,6 +40,7 @@ const model = useWorkflow();
         </button>
       </div>
     </header>
+    <ProjectWorkContext />
     <p v-if="model.error" role="alert" class="cf-inline-error">
       {{ model.error }}
     </p>

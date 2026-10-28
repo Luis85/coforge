@@ -7,6 +7,7 @@ import type { IntakeCandidate } from "../../features/coforge/domain/intake-bindi
 import type { CouncilPage } from "./studio-pages";
 
 export const useCouncilStore = defineStore("coforge-council", () => {
+  const example = ref(false);
   const state = ref<CouncilRuntimeSnapshot | null>(null);
   const catalogue = ref<CouncilCatalogueSnapshot>({ valid: [], invalid: [] });
   const tab = ref<CouncilPage>("definitions");
@@ -49,6 +50,7 @@ export const useCouncilStore = defineStore("coforge-council", () => {
   const allowanceScope = ref("");
   const allowanceReason = ref("");
   return {
+    example,
     state,
     catalogue,
     tab,

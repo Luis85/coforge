@@ -3,7 +3,11 @@ import type { useBroadcast } from "../../composables/coforge/use-broadcast";
 defineProps<{ model: ReturnType<typeof useBroadcast> }>();
 </script>
 <template>
-  <section class="cf-broadcast-console" aria-label="Broadcast controls">
+  <section
+    class="cf-broadcast-console"
+    :class="{ 'is-live': model.active, 'is-uncertain': model.state.uncertain }"
+    aria-label="Broadcast controls"
+  >
     <div>
       <span class="cf-broadcast-state" :class="{ 'is-live': model.active }">{{
         model.state.uncertain
@@ -26,7 +30,7 @@ defineProps<{ model: ReturnType<typeof useBroadcast> }>();
         >
       </p>
     </div>
-    <div class="cf-broadcast-actions">
+    <div class="cf-broadcast-actions" aria-label="Stream actions">
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
@@ -74,6 +78,21 @@ defineProps<{ model: ReturnType<typeof useBroadcast> }>();
     <p v-if="model.state.uncertain" class="cf-inline-error" role="alert">
       The previous interaction is unconfirmed. Refresh OBS state before another
       stream action.
+    </p>
+    <p v-else-if="!model.supported" class="cf-broadcast-guidance">
+      Broadcast controls run inside Obsidian. Connect OBS there to operate your
+      stream.
+    </p>
+    <p v-else-if="!model.connected" class="cf-broadcast-guidance">
+      Open OBS and connect to see its current scene. Then review setup and
+      prepare the stream.
+    </p>
+    <p
+      v-else-if="!model.active && !model.state.prepared"
+      class="cf-broadcast-guidance"
+    >
+      Prepare stream checks readiness before Go live becomes available. Review
+      your destination, audio and video in OBS.
     </p>
     <div class="cf-settings-actions">
       <button

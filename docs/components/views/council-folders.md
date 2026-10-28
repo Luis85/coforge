@@ -36,3 +36,7 @@ Loading; Unsaved; Invalid path; Revision conflict; Saved. Inspect an error besid
 Source: [src/plugin/presentation/components/coforge/CouncilFolderSettings.vue](../../../src/plugin/presentation/components/coforge/CouncilFolderSettings.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`.
+
+## Workspace redesign
+
+Folder configuration uses a focused disclosure, labelled fields and preview grouping. Saving still reconciles definitions without moving or deleting authored files.

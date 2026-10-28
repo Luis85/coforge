@@ -4,6 +4,7 @@ import { useStudioStore } from "../../stores/coforge-studio";
 import { scheduleDraft, useScheduleStore } from "../../stores/coforge-schedule";
 import type { ScheduleNote } from "../../../features/coforge/domain/schedule";
 import type { ScheduleStep } from "../../../features/coforge/application/schedule-ports";
+import { useTemporaryExample } from "./use-temporary-example";
 export function useSchedule() {
   const { host } = useCoforge();
   const store = useScheduleStore();
@@ -78,6 +79,28 @@ export function useSchedule() {
   onMounted(() => {
     void run(load);
   });
+  const exitExample = () => {
+    if (!store.example) return;
+    stopMusic();
+    store.example = false;
+    store.notes = [];
+    store.playlists = [];
+    store.selected = "";
+    store.draft = scheduleDraft();
+    store.expected = null;
+    store.date = "";
+    store.tags = "";
+    store.categoryQuery = "";
+    store.categories = [];
+    store.review = "";
+    store.stepResults = {};
+    store.ready = false;
+    store.error = "";
+    store.notice = "";
+    clean = draftKey();
+    host.discardPreview?.("schedule");
+  };
+  const beginExample = useTemporaryExample("schedule", exitExample);
   return reactive({
     store,
     studio,
@@ -113,9 +136,12 @@ export function useSchedule() {
       void run(load);
     },
     preview: () => {
+      if (host.schedule || store.busy) return;
+      beginExample();
       store.example = true;
       void run(load);
     },
+    exitExample,
     create: () => {
       if (dirty()) {
         store.error = "Save or discard the current plan first.";

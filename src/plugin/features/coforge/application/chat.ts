@@ -30,7 +30,7 @@ function ensureContributor(state: InternalState, raw: Person): string {
   return id;
 }
 
-export function createIdea(state: InternalState, input: Person & { title: string; description: string; category?: Category; projectId?: string; requestKind?: 'feature' | 'bug' }): Idea {
+export function createIdea(state: InternalState, input: Person & { title: string; description: string; category?: Category; projectId?: string; requestKind?: 'feature' | 'bug' }, origin: import('../domain/example-content').RequestOrigin = 'manual'): Idea {
   const projectId = input.projectId ?? state.activeProjectId;
   const title = cleanLine(input.title);
   const description = cleanText(input.description);
@@ -48,6 +48,7 @@ export function createIdea(state: InternalState, input: Person & { title: string
     status: 'inbox', voters: [], createdAt: now, updatedAt: now,
   };
   state.ideas.push(idea);
+  (state.requestOrigins ??= {})[idea.id] = origin;
   addEvent(state, 'idea', `${input.username} suggested “${idea.title}”.`, idea.id);
   return idea;
 }
@@ -89,7 +90,8 @@ function request(state: InternalState, input: ChatInput, userId: string, project
   const recent = state.ideas.filter(i => Date.now() - Date.parse(i.createdAt) < 60_000).length;
   if (recent >= INTAKE_LIMITS.perMinute) return { ok: false, message: 'Lots of ideas are arriving right now. Please send yours again in a minute.' };
   const title = text.length <= 100 ? text : `${text.slice(0, 97).trimEnd()}…`;
-  const idea = createIdea(state, { title, description: text, projectId, requestKind, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source: input.source ?? 'simulator' });
+  const source = input.source ?? 'simulator';
+  const idea = createIdea(state, { title, description: text, projectId, requestKind, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source }, source === 'simulator' ? 'local-test' : source);
   if (requestKind === 'feature' && player) player.lastFeatureAt = now;
   else state.ingestMeta.lastRequests[`bug:${userId}`] = now;
   recordOperation(state, requestKind === 'feature' ? 'request-created' : 'bug-created', 'committed', userId);

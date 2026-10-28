@@ -47,6 +47,7 @@ import { VaultAICosts } from './ai-cost-storage';
 import { InvocationGate } from '../../features/coforge/application/invocation-gate';
 import { CouncilModule } from './council-module';
 import { executionCostTasks } from '../../features/coforge/application/execution-costs';
+import { assertExampleHostSettled } from '../../features/coforge/application/example-cleanup-host';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -87,6 +88,18 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       claude: input => invocations.run(() => runClaudeStage(input, workspaces), input.signal),
       herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal) }, timers, probeRuntime: probeClaude,
     assertWorkflowReviewable: (id, increment) => workspaces.assertReviewable(id, increment),
+    assertExampleCleanup: async ids => {
+      if (!ids.length) return;
+      herdrAdmission.assertRecovery();
+      assertExampleHostSettled(ids, herdr.snapshot(), herdrWorkflows.snapshot(), council.actions.snapshot().runs);
+      // Archive real charges before any selected request's attempt records leave the studio state.
+      await aiCosts.refresh();
+      const release = herdrAdmission.acquire();
+      try {
+        assertExampleHostSettled(ids, herdr.snapshot(), herdrWorkflows.snapshot(), council.actions.snapshot().runs);
+        return release;
+      } catch (error) { release(); throw error; }
+    },
     report: error => { report('coforge.workflow'); notify(error.message, true); },
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });

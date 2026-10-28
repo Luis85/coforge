@@ -4,6 +4,7 @@ import { useIdeaDrawerContext } from "../../composables/coforge/use-idea-drawer"
 import CfIcon from "./CfIcon.vue";
 import IdeaRiceEditor from "./IdeaRiceEditor.vue";
 import MarkdownBody from "./MarkdownBody.vue";
+import { screeningProviderLabel } from '../../composables/coforge/agent-labels';
 
 defineProps<{ idea: Idea }>();
 const model = useIdeaDrawerContext();
@@ -69,11 +70,7 @@ const model = useIdeaDrawerContext();
               : "Needs moderation"
           }}
         </span>
-        <span class="cf-muted">{{
-          idea.screening.provider === "demo"
-            ? "Simulated screening"
-            : "Claude screening"
-        }}</span>
+        <span class="cf-muted">{{ screeningProviderLabel(idea.screening.provider) }}</span>
       </div>
       <MarkdownBody :source="idea.screening.reason" />
       <ul v-if="idea.screening.signals.length > 0" class="cf-idea-list">

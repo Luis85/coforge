@@ -36,3 +36,7 @@ No project; Saved; Unsaved; Saving; Invalid draft; Pending-work guard. Inspect a
 Source: [src/plugin/presentation/components/coforge/SettingsView.vue](../../../src/plugin/presentation/components/coforge/SettingsView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `setup`, `multi-project`, `workflow-configuration`.
+
+## Workspace redesign
+
+Project identity is visible above the form. Brief, repository, workflow location, runtime evidence and data tools have distinct section hierarchy; changing projects uses the existing unsaved-draft guard.

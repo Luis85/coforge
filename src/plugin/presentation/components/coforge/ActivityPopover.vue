@@ -12,6 +12,7 @@ const model = useStudioShell();
         <CfIcon name="x" />
       </button>
     </header>
+    <p class="cf-activity-intent">Recent changes across projects. Select a request event to inspect its details.</p>
     <div>
       <button
         v-for="event in model.events" :key="event.id" type="button" class="cf-activity-item" :disabled="!event.ideaId"

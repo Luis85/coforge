@@ -8,6 +8,7 @@ import {
 } from "vue";
 import { useCoforge } from "../../context/coforge-context";
 import { useAICostStore } from "../../stores/coforge-ai-costs";
+import { useTemporaryExample } from "./use-temporary-example";
 import {
   costSummary,
   formatUsd,
@@ -83,6 +84,25 @@ export function useAICosts() {
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt)),
   );
   const summary = computed(() => costSummary(tasks.value));
+  const exitExample = () => {
+    if (!store.example) return;
+    stop();
+    store.example = false;
+    store.state = { tasks: [], loading: false, error: "" };
+    store.editing = null;
+    store.expected = "";
+    store.amount = "";
+    store.note = "";
+    store.project = "";
+    store.feature = "";
+    store.search = "";
+    store.source = "";
+    store.page = 0;
+    store.error = "";
+    store.notice = "";
+    host.discardPreview?.("ai-costs");
+  };
+  const beginExample = useTemporaryExample("ai-costs", exitExample);
   watch(
     () => [store.project, store.feature, store.search, store.source],
     () => {
@@ -175,9 +195,12 @@ export function useAICosts() {
       });
     },
     preview: () => {
+      if (host.aiCosts || store.busy) return;
+      beginExample();
       store.example = true;
       connect();
     },
+    exitExample,
     bindAmount: (value: unknown) => {
       amountInput = focusable(value) ? value : null;
     },

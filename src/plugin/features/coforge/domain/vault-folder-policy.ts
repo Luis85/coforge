@@ -21,6 +21,7 @@ const PRIVATE_FOLDERS = [
   "CoForge/Inboxes",
   "CoForge/Messages",
   "CoForge/Tests",
+  "CoForge/Recovery",
   ".git",
 ];
 const folderText = text({ trim: true, min: 1, max: 200 });

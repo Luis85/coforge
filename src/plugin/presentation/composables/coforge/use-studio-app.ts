@@ -2,50 +2,16 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { workflowDefinition } from "../../../features/coforge/domain/configured-workflow";
 import { STAGE_LABELS } from "../../../features/coforge/domain/types";
 import { useCoforge } from "../../context/coforge-context";
-import { useStudioStore, type StudioView } from "../../stores/coforge-studio";
+import { useStudioStore } from "../../stores/coforge-studio";
+import {
+  STUDIO_NAVIGATION,
+  studioDestination,
+} from "../../stores/studio-destinations";
 import { relativeTime } from "./format";
 import { useStudioActions } from "./use-studio-actions";
 import { defaultSettings } from "../../../features/coforge/domain/seed";
 import { workflowProviderSummary } from "./agent-labels";
 import { observeHostStatusInset } from "./host-status-inset";
-
-const VIEW_LABELS: Record<StudioView, string> = {
-  council: "The Council",
-  board: "Idea board",
-  stream: "Stream chat",
-  workflow: "Agent workflow",
-  community: "Community",
-  settings: "Settings",
-  projects: "Projects",
-  population: "Viewers",
-  operations: "Operations",
-  "community-settings": "Community settings",
-  broadcast: "Stream studio",
-  statistics: "Statistics",
-  finance: "Finances",
-  "ai-costs": "AI costs",
-  schedule: "Stream schedule",
-  "workflow-settings": "Workflow settings",
-};
-const NAV: Array<{ view: StudioView; label: string; icon: string }> = [
-  { view: "council", label: "The Council", icon: "users" },
-  { view: "broadcast", label: "Stream studio", icon: "radio" },
-  { view: "statistics", label: "Statistics", icon: "chart-line" },
-  { view: "finance", label: "Finances", icon: "wallet" },
-  { view: "ai-costs", label: "AI costs", icon: "receipt-text" },
-  { view: "schedule", label: "Schedule", icon: "calendar-days" },
-  { view: "board", label: "Idea board", icon: "layout-grid" },
-  { view: "stream", label: "Stream chat", icon: "message-square" },
-  { view: "workflow", label: "Agent workflow", icon: "workflow" },
-  {
-    view: "workflow-settings",
-    label: "Workflow settings",
-    icon: "sliders-horizontal",
-  },
-  { view: "community", label: "Community", icon: "trophy" },
-  { view: "population", label: "Viewers", icon: "users" },
-  { view: "operations", label: "Operations", icon: "chart-no-axes-combined" },
-];
 
 /** Derived studio-shell state shared by the frame components (sidebar, top bar, pipeline, dock, activity). */
 export function useStudioShell() {
@@ -61,9 +27,12 @@ export function useStudioShell() {
       store.rightPanelCollapsed = !store.rightPanelCollapsed;
     },
     nav: computed(() =>
-      NAV.map((item) => ({
+      STUDIO_NAVIGATION.map((item) => ({
         ...item,
         active: store.view === item.view,
+        disabled: Boolean(
+          studioDestination(item.view).requiresProject && !store.activeProject,
+        ),
         count:
           item.view === "board"
             ? store.projectIdeas.filter((i) => i.status !== "rejected").length
@@ -71,7 +40,16 @@ export function useStudioShell() {
         working: item.view === "workflow" && Boolean(store.activeJob),
       })),
     ),
-    viewLabel: computed(() => VIEW_LABELS[store.view]),
+    viewLabel: computed(() => studioDestination(store.view).label),
+    projectScoped: computed(
+      () => studioDestination(store.view).scope === "project",
+    ),
+    scopeLabel: computed(() => {
+      const scope = studioDestination(store.view).scope;
+      if (scope === "project")
+        return store.activeProject?.settings.projectName ?? "Select a project";
+      return scope === "vault" ? "Vault workspace" : "Channel workspace";
+    }),
     providerSummary: computed(() =>
       workflowProviderSummary(state.value?.settings ?? defaultSettings()),
     ),

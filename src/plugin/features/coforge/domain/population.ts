@@ -35,6 +35,7 @@ export interface Player {
   rewardClaims: string[];
 }
 export const OPERATION_CODES = [
+  'example-content-removed',
   'workflow-definition-updated',
   'workflow-run-started', 'workflow-run-stopped', 'workflow-run-finished', 'workflow-run-awaiting-review',
   'workflow-manual-waiting', 'workflow-manual-completed',

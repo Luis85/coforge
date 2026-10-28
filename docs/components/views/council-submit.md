@@ -36,3 +36,7 @@ No target; Invalid source; Stale preflight; Preview ready; Submitted; Failure. I
 Source: [src/plugin/presentation/components/coforge/CouncilSubmission.vue](../../../src/plugin/presentation/components/coforge/CouncilSubmission.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`.
+
+## Workspace redesign
+
+Submission fields and preflight evidence use the Council authoring hierarchy. The execution prerequisite has a visible attention surface and working route to Run monitor.

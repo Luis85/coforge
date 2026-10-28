@@ -7,12 +7,13 @@ const model = useStreamMessages();
     <header>
       <h2>Recurring bot messages</h2>
       <p>
-        Post while the stream is live. Each message starts paused; the first post follows a full interval. Missed
-        intervals are skipped.
+        Post while the stream is live. Each message starts paused; the first
+        post follows a full interval. Missed intervals are skipped.
       </p>
     </header>
     <p v-if="!model.enabled" role="status">
-      Enable automatic bot messages in Connection settings before activated messages can post.
+      Enable automatic bot messages in Twitch settings before activated messages
+      can post.
     </p>
     <form class="cf-stream-message-form" @submit="model.save">
       <h3>{{ model.editing ? "Edit message" : "Add message" }}</h3>
@@ -23,16 +24,31 @@ const model = useStreamMessages();
           rows="3"
           maxlength="500"
           required
-          placeholder="Join The Hood with !register"
+          placeholder="Join the community with !register"
         ></textarea></label
       ><label class="cf-field"
-        ><span>Interval (minutes)</span><input v-model.number="model.interval" type="number" min="1" max="240" required
+        ><span>Interval (minutes)</span
+        ><input
+          v-model.number="model.interval"
+          type="number"
+          min="1"
+          max="240"
+          required
       /></label>
       <p>Saving an edited message pauses it for review.</p>
       <div class="cf-settings-actions">
-        <button type="submit" class="cf-btn cf-btn-primary" :disabled="model.working">
+        <button
+          type="submit"
+          class="cf-btn cf-btn-primary"
+          :disabled="model.working"
+        >
           {{ model.editing ? "Save message" : "Add message" }}</button
-        ><button v-if="model.editing" type="button" class="cf-btn cf-btn-secondary" @click="model.reset()">
+        ><button
+          v-if="model.editing"
+          type="button"
+          class="cf-btn cf-btn-secondary"
+          @click="model.reset()"
+        >
           Cancel edit
         </button>
       </div>
@@ -46,7 +62,9 @@ const model = useStreamMessages();
         </div>
         <p class="cf-stream-message-text">{{ message.text }}</p>
         <p>Last confirmed send: {{ message.sent }}</p>
-        <p v-if="message.lastError" class="cf-inline-error">{{ message.lastError }}</p>
+        <p v-if="message.lastError" class="cf-inline-error">
+          {{ message.lastError }}
+        </p>
         <p v-if="message.active">Next: {{ message.next }}</p>
         <div class="cf-settings-actions">
           <button
@@ -83,13 +101,26 @@ const model = useStreamMessages();
         >
           <p>Delete this recurring message? Unsent copies will be cancelled.</p>
           <div class="cf-settings-actions">
-            <button type="button" class="cf-btn cf-btn-secondary" @click="model.deleting = ''">Keep message</button
-            ><button type="button" class="cf-btn cf-btn-danger" @click="model.remove()">Confirm deletion</button>
+            <button
+              type="button"
+              class="cf-btn cf-btn-secondary"
+              @click="model.deleting = ''"
+            >
+              Keep message</button
+            ><button
+              type="button"
+              class="cf-btn cf-btn-danger"
+              @click="model.remove()"
+            >
+              Confirm deletion
+            </button>
           </div>
         </div>
       </li>
     </ol>
-    <p v-if="model.error" class="cf-inline-error" role="alert">{{ model.error }}</p>
+    <p v-if="model.error" class="cf-inline-error" role="alert">
+      {{ model.error }}
+    </p>
     <p v-if="model.notice" role="status">{{ model.notice }}</p>
   </section>
 </template>

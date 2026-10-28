@@ -35,3 +35,7 @@ Draft; Invalid path or brief; Saving; Failure. Inspect an error beside the affec
 Source: [src/plugin/presentation/components/coforge/ProjectsView.vue](../../../src/plugin/presentation/components/coforge/ProjectsView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `setup`, `multi-project`.
+
+## Workspace redesign
+
+The inline creation form is a separate authoring surface with the same labelled-field and action hierarchy as workflow configuration. Paths and URLs keep their existing validation and write semantics.

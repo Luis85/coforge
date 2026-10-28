@@ -35,3 +35,7 @@ Native not ready; No executor; Paused; Resumed; Project paused. Inspect an error
 Source: [src/plugin/presentation/components/coforge/CouncilExecutionControls.vue](../../../src/plugin/presentation/components/coforge/CouncilExecutionControls.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`, `recovery`.
+
+## Workspace redesign
+
+Execution controls remain separate from editable definitions. Executor designation and paused state retain their existing explicit actions, using the shared Council control spacing.

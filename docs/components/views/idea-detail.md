@@ -35,3 +35,7 @@ No selected request; Active attempt; Stage error; Review pending. Inspect an err
 Source: [src/plugin/presentation/components/coforge/IdeaDrawer.vue](../../../src/plugin/presentation/components/coforge/IdeaDrawer.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`.
+
+## Workspace redesign
+
+The request heading is a distinct project-work surface; evidence sections use a larger reading hierarchy. Overview, plan, increment and activity keep their existing local navigation and review gates.

@@ -33,6 +33,8 @@ Disconnected; No live messages; Connected messages. When data is unavailable, in
 
 ## Composition and boundaries
 
+The capture title and connection state precede a dedicated scrolling conversation region. The empty state explains when messages appear and how to participate. Registration/help guidance stays below the message history; local simulator messages remain excluded.
+
 Source: [src/plugin/presentation/components/coforge/StreamLiveChat.vue](../../../src/plugin/presentation/components/coforge/StreamLiveChat.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
 
 Journey tags: `public-sharing`, `community`.

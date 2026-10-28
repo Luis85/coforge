@@ -35,6 +35,12 @@ Applying channel metadata updates Twitch immediately. Scene assignments require 
 
 Native unavailable; Example; No plans; Draft; Conflict; Reviewed preparation. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+Saved plans form a named selection column, beside the selected plan editor. Twitch metadata and OBS/music assignments are distinct editor sections with explicit timing of effects. Saving a plan does not update Twitch, start music or broadcast; preparation is reviewed and applied separately.
+
+Temporary browser examples provide an explicit **Exit example** control. Exiting discards that example’s drafts and cached sample edits without mutating live services or vault content. Ordinary navigation keeps editable preview drafts; the explicit sample-cleanup action also closes temporary examples for the current studio pane. Native services are never replaced by preview services.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/ScheduleView.vue](../../../src/plugin/presentation/components/coforge/ScheduleView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

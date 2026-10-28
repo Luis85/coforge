@@ -17,6 +17,8 @@ coverage: {"group":"studio","key":"community-settings"}
 
 # Community settings
 
+This is channel-wide configuration, shared across every project. The scope summary shows saved versus unsaved configuration; environment labels, future earning rules and the rank ladder are distinct form sections. Existing balances and contribution history remain intact, and guarded navigation preserves a dirty draft.
+
 ## Purpose
 
 Save the community’s naming and earning rules.

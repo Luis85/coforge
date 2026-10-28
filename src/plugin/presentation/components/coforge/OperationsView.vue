@@ -18,6 +18,13 @@ const model = useOperations();
         Export safe diagnostics
       </button>
     </header>
+    <section class="cf-decision-brief" aria-label="Retained operational evidence">
+      <div>
+        <h2>{{ model.unconfirmedCount }} unconfirmed {{ model.unconfirmedCount === 1 ? 'event' : 'events' }} in the retained log</h2>
+        <p>These are historical outcomes. Inspect the owning tool for current state and recovery before repeating an action.</p>
+      </div>
+      <button v-if="model.unconfirmedCount" type="button" class="cf-btn cf-btn-secondary" @click="model.showUnconfirmed()">Inspect unconfirmed events</button>
+    </section>
     <div class="cf-operation-groups">
       <section v-for="group in model.groups" :key="group.title">
         <h2>{{ group.title }}</h2>
@@ -29,7 +36,7 @@ const model = useOperations();
         </dl>
       </section>
     </div>
-    <section aria-label="Operational log">
+    <section class="cf-log-section" aria-label="Operational log">
       <h2>Operational log</h2>
       <p>{{ model.retention }}</p>
       <p>{{ model.rewardRetention }}</p>

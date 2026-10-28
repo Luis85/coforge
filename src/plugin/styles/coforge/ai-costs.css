@@ -49,15 +49,24 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
-  padding-block: 20px;
-  border-block: 1px solid var(--cf-border);
+  padding: 24px;
+  margin-top: 16px;
+  border: 1px solid var(--cf-border);
+  border-radius: var(--radius-l);
+  background: color-mix(in srgb, var(--cf-accent) 7%, var(--cf-bg));
 }
 .ps--coforge .cf-ai-summary strong {
   display: block;
   margin-top: 8px;
-  font-size: 24px;
+  font-size: 30px;
   font-variant-numeric: tabular-nums;
 }
+.ps--coforge .cf-ai-summary > div:first-child strong { color: var(--text-accent); }
+.ps--coforge .cf-ai-coverage-note { color: var(--cf-text); background: var(--cf-surface); border: 1px solid var(--cf-border); border-radius: var(--radius-m); padding: 14px 18px; line-height: 1.7; }
+.ps--coforge .cf-ai-token-usage { padding-bottom: 20px; border-bottom: 1px solid var(--cf-border); }
+.ps--coforge .cf-ai-features button:hover { background: var(--cf-hover); }
+.ps--coforge .cf-ai-features button { border-radius: 0; padding-inline: 12px; }
+.ps--coforge .cf-ai-table thead { background: var(--cf-surface); }
 .ps--coforge .cf-ai-costs small {
   display: block;
   color: var(--cf-muted);

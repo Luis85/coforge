@@ -7,7 +7,14 @@ const model = useBroadcastModel();
     <section aria-label="Stream readiness">
       <h2>Readiness</h2>
       <ul class="cf-readiness-list">
-        <li v-for="check in model.checklist" :key="check.label">
+        <li
+          v-for="check in model.checklist"
+          :key="check.label"
+          :class="{
+            'is-ready': check.ready,
+            'is-needed': !check.ready && check.required,
+          }"
+        >
           <div>
             <strong>{{ check.label }}</strong
             ><span>{{

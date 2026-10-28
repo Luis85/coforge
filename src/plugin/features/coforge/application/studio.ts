@@ -22,6 +22,8 @@ import { normalizeStagePrompts } from '../domain/stage-prompts';
 import { hasClaudeStages, normalizeStageAgents } from '../domain/stage-agents';
 import { projectHasPendingWorkflow, saveProjectWorkflow } from './workflow-configuration';
 import { validateFolderLayout } from '../domain/vault-folder-policy';
+import { previewExampleCleanup, removeExampleContent } from './example-cleanup';
+import type { ExampleCleanupPreview } from './example-cleanup-plan';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -118,7 +120,7 @@ export class StudioService {
 
   async createIdea(input: unknown): Promise<ActionOutcome> {
     const values = newIdeaInput(input);
-    const idea = await this.store.transaction(state => createIdea(state, { ...values, source: 'simulator' }));
+    const idea = await this.store.transaction(state => createIdea(state, { ...values, source: 'simulator' }, 'manual'));
     return { message: `Added ${idea.id} to the inbox.`, result: idea };
   }
   async vote(ideaId: string): Promise<ChatResult> {
@@ -195,6 +197,12 @@ export class StudioService {
     }, { replaceAll: true, replaceProjectId: projectId });
   }
 
+  previewExampleCleanup(): Promise<ExampleCleanupPreview> { return previewExampleCleanup(this.store); }
+  exampleCleanupWarning(): string | undefined { return this.store.exampleCleanupWarning(); }
+  removeExampleContent(preview: ExampleCleanupPreview, additionalIds: readonly string[] = []) {
+    return removeExampleContent(this.store, preview, additionalIds, this.host.assertExampleCleanup);
+  }
+
   /** A readable private snapshot. Increments can contain source code and local paths. */
   exportJson(): string {
     return JSON.stringify({ ...omit(this.state(), 'runtime'), exportedAt: new Date().toISOString() }, null, 2);
@@ -208,6 +216,7 @@ export class StudioService {
       await this.store.transaction(state => {
         if (state.jobs.some(job => job.ideaId === change.id && isActiveJob(job))) throw new StudioError(`${change.id} was deleted while its run was active.`, 409);
         state.ideas = state.ideas.filter(idea => idea.id !== change.id);
+        if (state.requestOrigins) delete state.requestOrigins[change.id];
         state.manualHolds = state.manualHolds.filter(id => id !== change.id);
         addEvent(state, 'system', `${change.id}’s note was removed from the vault.`);
       }, { fromNotes: [change.id] });

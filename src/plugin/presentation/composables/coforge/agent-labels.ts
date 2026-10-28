@@ -3,8 +3,14 @@ import {
   STAGE_LABELS,
   type AgentStage,
   type Settings,
+  type Provider,
 } from "../../../features/coforge/domain/types";
 import { stageAgent } from "../../../features/coforge/domain/stage-agents";
+
+export function screeningProviderLabel(provider: Provider): string {
+  if (provider === 'demo') return 'Simulated screening';
+  return provider === 'herdr' ? 'Herdr · Claude Code screening' : 'Claude Code screening';
+}
 type AgentSettings = Pick<
   Settings,
   "provider" | "model" | "stageAgents" | "herdrAgent" | "workflow"

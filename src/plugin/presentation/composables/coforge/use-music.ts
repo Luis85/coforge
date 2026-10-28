@@ -3,6 +3,8 @@ import { useCoforge } from "../../context/coforge-context";
 import { useMusicStore } from "../../stores/coforge-music";
 import type { MusicActions } from "../../../features/coforge/application/music-ports";
 import type { MusicTrack } from "../../../features/coforge/domain/music";
+import { emptyMusic } from "../../../features/coforge/domain/music";
+import { useTemporaryExample } from "./use-temporary-example";
 export function useMusic() {
   const { host } = useCoforge();
   const store = useMusicStore();
@@ -65,11 +67,38 @@ export function useMusic() {
     `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
   const number = (event: Event) =>
     event.target instanceof HTMLInputElement ? Number(event.target.value) : 0;
+  const exitExample = () => {
+    if (!store.example) return;
+    const previous = actions();
+    unsubscribe();
+    store.example = false;
+    store.state = emptyMusic();
+    store.folder = "";
+    store.selected = "";
+    store.name = "";
+    store.tracks = [];
+    store.version = undefined;
+    store.search = "";
+    store.error = "";
+    store.notice = "";
+    void previous?.stop().catch(() => {
+      store.error = "The example player could not be stopped.";
+    });
+    host.discardPreview?.("music");
+  };
+  const beginExample = useTemporaryExample("music", exitExample);
   return reactive({
     store,
     playback,
-    preparedPlaylist: computed(() => store.state.library.playlists.find(item => item.id === store.state.selectedPlaylistId)),
-    playPrepared: () => { const id = store.state.selectedPlaylistId; if (id) void run(service => service.playPlaylist(id)); },
+    preparedPlaylist: computed(() =>
+      store.state.library.playlists.find(
+        (item) => item.id === store.state.selectedPlaylistId,
+      ),
+    ),
+    playPrepared: () => {
+      const id = store.state.selectedPlaylistId;
+      if (id) void run((service) => service.playPlaylist(id));
+    },
     current,
     title,
     time,
@@ -91,10 +120,13 @@ export function useMusic() {
     ),
     busy: computed(() => store.state.busy),
     preview: () => {
+      if (host.music || store.state.busy) return;
+      beginExample();
       store.example = true;
       connect();
       void run((service) => service.refresh());
     },
+    exitExample,
     refresh: () => {
       void run((service) => service.refresh());
     },

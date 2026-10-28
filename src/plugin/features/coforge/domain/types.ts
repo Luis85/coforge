@@ -72,6 +72,12 @@ export interface StudioProject {
   unavailable?: boolean;
 }
 export interface AppState {
+  /** Private entrypoint-assigned provenance. Provider choice never implies sample content. */
+  requestOrigins?: Record<string, import('./example-content').RequestOrigin>;
+  /** Committed cleanup cutoff per request ID; newer generations keep their own cost history. */
+  exampleRemovalCutoffs?: Record<string, string>;
+  sampleEventIds?: string[];
+  sampleCreatedProjectIds?: string[];
   setupGuide?: import('./stream-setup').StreamSetupState;
   obsSettings?: import('./obs').ObsSettings;
   obsCommand?: import('./obs').ObsCommand;

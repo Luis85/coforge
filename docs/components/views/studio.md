@@ -22,6 +22,12 @@ Reach the private workspace for the task at hand.
 
 The shell owns navigation, header, notifications and overlays. Stream studio opens initially. Shared chat and background processing survive project selection.
 
+Navigation follows Stream, Build, Community and Insights. Project and Community
+settings sit with the work they configure. Projects opens through the persistent
+project switcher. The top bar identifies the actual data scope: project identity
+for Build work, Channel workspace for shared tools, and Vault workspace for
+cross-project data. See the [information architecture](../INFORMATION-ARCHITECTURE.md).
+
 ## Entry and next action
 
 Use the CoForge ribbon or the Open CoForge command in Obsidian. Available actions: Choose navigation group; Select project; Reopen navigation or chat; Open help. This is an independent entry surface.

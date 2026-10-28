@@ -31,6 +31,10 @@ Open Stream chat, then choose Twitch settings. Edit the application Client ID, a
 
 Native unavailable; Disconnected; Connecting; Missing scopes; Connected; Error. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+The current channel and connection message lead the settings surface. Authorization, receiving chat and automatic posting are distinct choices. Channel edits remain explicit; an unconfirmed delivery remains available for inspection rather than replay.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/TwitchChannelControls.vue](../../../src/plugin/presentation/components/coforge/TwitchChannelControls.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

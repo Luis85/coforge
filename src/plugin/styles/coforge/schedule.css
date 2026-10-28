@@ -32,9 +32,18 @@
 }
 .ps--coforge .cf-schedule-form label {
   display: grid;
+  align-content: start;
   gap: 8px;
   font-weight: 600;
 }
+.ps--coforge .cf-schedule-layout > aside { padding: 20px; background: var(--cf-surface); border-radius: var(--radius-l); align-self: start; }
+.ps--coforge .cf-schedule-layout > aside h2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; margin-bottom: 18px; }
+.ps--coforge .cf-schedule-layout > aside > p { line-height: 1.7; color: var(--cf-muted); font-size: 12px; }
+.ps--coforge .cf-schedule-form > h3 { padding-top: 24px; border-top: 1px solid var(--cf-border); color: var(--text-accent); }
+.ps--coforge .cf-schedule-form .cf-schedule-section-help { margin-top: -10px; margin-bottom: 0; max-width: 70ch; color: var(--cf-muted); font-size: 12px; font-weight: 400; line-height: 1.7; }
+.ps--coforge .cf-schedule-save { padding-top: 20px; border-top: 1px solid var(--cf-border); }
+.ps--coforge .cf-schedule-form input { align-self: start; }
+.ps--coforge .cf-schedule-item:hover { background: var(--cf-hover); }
 .ps--coforge .cf-schedule-form small {
   font-weight: 400;
   color: var(--cf-muted);

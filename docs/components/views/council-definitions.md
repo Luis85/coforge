@@ -36,3 +36,7 @@ No definitions; No team; Invalid definition; Preserved drafts; Changed on disk; 
 Source: [src/plugin/presentation/components/coforge/CouncilDefinitions.vue](../../../src/plugin/presentation/components/coforge/CouncilDefinitions.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`.
+
+## Workspace redesign
+
+The saved-definition catalogue is a separate, searchable surface beside focused definition authoring; selected entries use the shared accent treatment. Narrow panes stack the catalogue above the editor.

@@ -3,7 +3,12 @@ import { useCoforge } from "../../context/coforge-context";
 import { useHerdrStore } from "../../stores/coforge-herdr";
 import { useStudioStore } from "../../stores/coforge-studio";
 import type { HerdrActions } from "../../../features/coforge/application/herdr-ports";
-import { herdrReady, sameHerdrAgent } from "../../../features/coforge/domain/herdr";
+import {
+  emptyHerdr,
+  herdrReady,
+  sameHerdrAgent,
+} from "../../../features/coforge/domain/herdr";
+import { useTemporaryExample } from "./use-temporary-example";
 export function useHerdr() {
   const { host } = useCoforge();
   const store = useHerdrStore();
@@ -63,13 +68,43 @@ export function useHerdr() {
     }
   }
   const observation = computed(() => store.state.observation);
-  watch(observation, value => {
-    if (!value?.panes.some(pane => pane.id === store.pane && !pane.agent)) store.pane = '';
-    const target = value?.agents.find(agent => agent.paneId === store.agent);
-    if (!target) store.agent = '';
-    if (store.review && (!target || !herdrReady(target) || !sameHerdrAgent(target, store.review.target))) store.review = null;
-    if (store.interruptConfirm && (!target || !sameHerdrAgent(target, store.interruptConfirm))) store.interruptConfirm = null;
+  watch(observation, (value) => {
+    if (!value?.panes.some((pane) => pane.id === store.pane && !pane.agent))
+      store.pane = "";
+    const target = value?.agents.find((agent) => agent.paneId === store.agent);
+    if (!target) store.agent = "";
+    if (
+      store.review &&
+      (!target ||
+        !herdrReady(target) ||
+        !sameHerdrAgent(target, store.review.target))
+    )
+      store.review = null;
+    if (
+      store.interruptConfirm &&
+      (!target || !sameHerdrAgent(target, store.interruptConfirm))
+    )
+      store.interruptConfirm = null;
   });
+  const exitExample = () => {
+    if (!store.example) return;
+    unsubscribe();
+    store.example = false;
+    store.state = emptyHerdr();
+    store.executable = "";
+    store.session = "";
+    store.workspace = "";
+    store.pane = "";
+    store.agent = "";
+    store.request = "";
+    store.provider = "claude";
+    store.review = null;
+    store.interruptConfirm = null;
+    store.error = "";
+    store.notice = "";
+    host.discardPreview?.("herdr");
+  };
+  const beginExample = useTemporaryExample("herdr", exitExample);
   return reactive({
     store,
     project,
@@ -109,10 +144,13 @@ export function useHerdr() {
         ) ?? [],
     ),
     preview: () => {
+      if (host.herdr || store.state.busy) return;
+      beginExample();
       store.example = true;
       connect();
       void run((service) => service.refresh());
     },
+    exitExample,
     refresh: () => {
       store.review = null;
       void run((service) => service.refresh());

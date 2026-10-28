@@ -29,7 +29,8 @@ const model = useNewIdeaDrawer();
       </header>
       <div class="cf-new-idea-heading">
         <h2 id="cf-new-idea-title">New request</h2>
-        <p>The request belongs to the selected project.</p>
+        <p v-if="model.project">For <strong>{{ model.project.settings.projectName }}</strong> · <code>{{ model.project.id }}</code></p>
+        <p v-else>Select a project before creating a request.</p>
       </div>
       <form @submit.prevent="model.submit()">
         <label class="cf-field"

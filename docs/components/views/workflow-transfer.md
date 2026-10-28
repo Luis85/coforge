@@ -35,3 +35,7 @@ Closed; Invalid import; Valid preview; Export ready. Inspect an error beside the
 Source: [src/plugin/presentation/components/coforge/WorkflowDefinitionTransfer.vue](../../../src/plugin/presentation/components/coforge/WorkflowDefinitionTransfer.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `workflow-configuration`.
+
+## Workspace redesign
+
+Import and export use a focused inspection surface with literal JSON. Import still replaces only the editor draft after preview; save remains explicit.

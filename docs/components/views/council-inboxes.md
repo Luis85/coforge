@@ -36,3 +36,7 @@ No bindings; Preview required; Existing candidates; Paused; Reconciled arrivals;
 Source: [src/plugin/presentation/components/coforge/CouncilSubmission.vue](../../../src/plugin/presentation/components/coforge/CouncilSubmission.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`.
+
+## Workspace redesign
+
+Inbox routing uses the Council authoring hierarchy and explicit admission preview. The executor prerequisite remains visible before any watched intake can be changed.

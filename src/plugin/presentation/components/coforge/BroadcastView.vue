@@ -18,8 +18,8 @@ const model = useBroadcast();
       <div>
         <h1>Stream studio</h1>
         <p>
-          Operate your broadcast, with separate pages for preparation and stream
-          tools.
+          Prepare the show, control the broadcast and keep audience and stream
+          health in sight.
         </p>
       </div>
       <div class="cf-settings-actions">

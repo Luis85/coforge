@@ -20,13 +20,32 @@ const model = usePluginSettings();
       </p>
     </div>
     <form v-else class="cf-plugin-settings-form" @submit="model.submit">
+      <h2>Vault integrations</h2>
       <p class="cf-plugin-settings-intro">
-        These settings are saved with the plugin in this vault’s configuration
-        folder; the Twitch token is kept in Obsidian’s secret storage. Configure
-        the project brief and workspace under <strong>Project settings</strong>;
-        configure agent providers, models, prompts and run limits under
-        <strong>Workflow settings</strong>.
+        Connect the tools shared by this vault. Twitch tokens stay in Obsidian’s
+        secret storage.
       </p>
+      <dl
+        class="cf-plugin-settings-ownership"
+        aria-label="Where settings belong"
+      >
+        <div>
+          <dt>Here</dt>
+          <dd>Vault folders, Claude Code, Twitch and the viewer website.</dd>
+        </div>
+        <div>
+          <dt>Project settings</dt>
+          <dd>
+            The selected game’s brief, repository and implementation permission.
+          </dd>
+        </div>
+        <div>
+          <dt>Workflow settings</dt>
+          <dd>
+            Agent providers, models, prompts and run limits for each project.
+          </dd>
+        </div>
+      </dl>
       <h3 class="cf-setting-heading">
         <CfIcon name="folder" size="sm" /> Vault
       </h3>

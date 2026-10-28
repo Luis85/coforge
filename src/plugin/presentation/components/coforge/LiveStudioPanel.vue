@@ -14,6 +14,15 @@ const model = useLiveStudio();
       >
         Explore studio example
       </button>
+      <button
+        v-if="model.example"
+        type="button"
+        class="cf-btn cf-btn-secondary"
+        title="Return to actual observations and discard example scene edits"
+        @click="model.exitExample()"
+      >
+        Exit example
+      </button>
     </header>
     <p v-if="model.example" class="cf-settings-help">
       Example live metrics · synthetic data, not a connected channel or OBS

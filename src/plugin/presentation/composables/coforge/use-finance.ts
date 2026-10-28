@@ -15,6 +15,7 @@ import {
   type FinanceEntry,
 } from "../../../features/coforge/domain/finance";
 import type { StreamSummary } from "../../../features/coforge/domain/stream-metrics";
+import { useTemporaryExample } from "./use-temporary-example";
 export function useFinance() {
   const { host } = useCoforge();
   const store = useFinanceStore();
@@ -83,6 +84,19 @@ export function useFinance() {
     store.removal = null;
     if (focus?.isConnected) focus.focus();
   };
+  const exitExample = () => {
+    if (!store.example) return;
+    store.example = false;
+    store.ledger = { currency: "EUR", revision: "", entries: [] };
+    store.ready = false;
+    store.removal = null;
+    store.stream = "";
+    store.error = "";
+    store.notice = "";
+    reset();
+    host.discardPreview?.("finance");
+  };
+  const beginExample = useTemporaryExample("finance", exitExample);
   return reactive({
     store,
     streams,
@@ -109,9 +123,12 @@ export function useFinance() {
       store.ledger.entries.some((entry) => entry.id === store.draft.id),
     ),
     preview: () => {
+      if (host.finance || store.busy) return;
+      beginExample();
       store.example = true;
       void run(load);
     },
+    exitExample,
     refresh: () => {
       void run(load);
     },
@@ -177,4 +194,6 @@ export function useFinance() {
   });
 }
 export type FinanceModel = ReturnType<typeof useFinance>;
-export function useFinanceDraft() { return useFinanceStore(); }
+export function useFinanceDraft() {
+  return useFinanceStore();
+}

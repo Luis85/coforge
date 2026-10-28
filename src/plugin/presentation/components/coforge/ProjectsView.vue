@@ -43,7 +43,8 @@ const model = useProjects();
             <code v-else-if="project.repositoryUrl">{{ project.repositoryUrl }}</code>
             <a v-if="project.websiteUrl" :href="project.websiteUrl" target="_blank" rel="noopener noreferrer">Website</a>
           </div>
-          <div class="cf-project-metrics"><span>{{ project.requests }} requests</span><span>{{ project.review }} for review</span><span>{{ project.status }}</span><span v-if="project.jobs">{{ project.jobs }} active / queued</span></div>
+          <div class="cf-project-metrics"><span><strong>{{ project.requests }}</strong> requests</span><span><strong>{{ project.review }}</strong> for review</span><span>{{ project.status }}</span><span v-if="project.jobs"><strong>{{ project.jobs }}</strong> active / queued</span></div>
+          <p v-if="project.unavailable" class="cf-inline-error">Restore the canonical project note in Obsidian, then refresh the studio before opening this project.</p>
         </div>
         <div class="cf-settings-actions">
           <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy || project.unavailable" :aria-label="`Settings for ${project.name}`" @click="model.edit(project.id)">Settings</button>

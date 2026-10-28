@@ -28,6 +28,8 @@ These are deliberate surface boundaries, not copies of the operating-page frame.
 
 ## Heading, navigation and controls
 
+The expressive studio direction is recorded in [DESIGN.md](../../DESIGN.md). Leading summaries make a decision or data boundary visible: project work awaiting review, registration gaps, historical uncertain effects or measurement coverage. Keep the total's scope explicit and derive it from the same canonical projection as the detail. Larger numerals use tabular figures; semantic color accompanies a text label. A filter shortcut never starts work.
+
 - Use `cf-page-heading` for the view's title, concise purpose and relevant actions.
 - Use [`CfSubpageNav`](../../src/plugin/presentation/components/coforge/CfSubpageNav.vue)
   with the shared `studio-pages.ts` constants for task subpages. It is a labelled

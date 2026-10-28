@@ -39,29 +39,6 @@ defineProps<{ model: WorkflowModel }>();
         This run retains an earlier saved definition. Changes in Workflow
         settings apply to new runs.
       </p>
-      <ol class="cf-configured-progress" aria-label="Captured workflow steps">
-        <li
-          v-for="step in model.steps"
-          :key="step.id"
-          :class="{
-            'is-current': step.current,
-            'is-completed': step.completed,
-          }"
-        >
-          <span class="cf-workflow-step-number">{{ step.index }}</span>
-          <div>
-            <strong>{{ step.name }}</strong
-            ><small>{{ step.agent }}</small>
-          </div>
-          <span>{{
-            step.current
-              ? model.runLabel
-              : step.completed
-                ? "Completed"
-                : step.state
-          }}</span>
-        </li>
-      </ol>
       <ConfiguredManualStep
         v-if="
           model.run?.state === 'waiting-human' &&
@@ -103,6 +80,29 @@ defineProps<{ model: WorkflowModel }>();
           </button>
         </div></template
       >
+      <ol class="cf-configured-progress" aria-label="Captured workflow steps">
+        <li
+          v-for="step in model.steps"
+          :key="step.id"
+          :class="{
+            'is-current': step.current,
+            'is-completed': step.completed,
+          }"
+        >
+          <span class="cf-workflow-step-number">{{ step.index }}</span>
+          <div>
+            <strong>{{ step.name }}</strong
+            ><small>{{ step.agent }}</small>
+          </div>
+          <span>{{
+            step.current
+              ? model.runLabel
+              : step.completed
+                ? "Completed"
+                : step.state
+          }}</span>
+        </li>
+      </ol>
       <p v-if="model.run?.state === 'finished'" class="cf-workflow-policy">
         Workflow finished without pending code changes. No implementation or
         shipped-feature credit was created.

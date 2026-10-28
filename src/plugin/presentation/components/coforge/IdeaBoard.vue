@@ -5,6 +5,8 @@ import BoardTable from './BoardTable.vue';
 import BoardToolbar from './BoardToolbar.vue';
 import BoardWelcome from './BoardWelcome.vue';
 import CfIcon from './CfIcon.vue';
+import ProjectWorkContext from './ProjectWorkContext.vue';
+import BoardDecisionSummary from './BoardDecisionSummary.vue';
 
 const model = useIdeaBoard();
 </script>
@@ -19,8 +21,10 @@ const model = useIdeaBoard();
         <CfIcon name="plus" /> New request
       </button>
     </div>
+    <ProjectWorkContext />
     <BoardWelcome v-if="model.projectEmpty" />
     <template v-else>
+      <BoardDecisionSummary />
       <BoardToolbar />
       <div v-if="!model.filtered.length" class="cf-board-empty">
         <CfIcon name="circle-dashed" />

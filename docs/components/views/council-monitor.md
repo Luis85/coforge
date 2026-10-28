@@ -36,3 +36,7 @@ No runs; Paused; Queued; Running; Checkpoint; Unknown outcome; Publication confl
 Source: [src/plugin/presentation/components/coforge/CouncilMonitor.vue](../../../src/plugin/presentation/components/coforge/CouncilMonitor.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`, `recovery`.
+
+## Workspace redesign
+
+Run records and expandable evidence use a consistent execution ledger. Attention and recovery controls remain close to the inspected run; no count is presented as proof of a successful provider effect.

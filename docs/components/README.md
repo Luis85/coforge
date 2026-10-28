@@ -1,5 +1,9 @@
 # Views and navigation
 
+The [information architecture](INFORMATION-ARCHITECTURE.md) explains the Stream,
+Build, Community and Insights task families, project versus channel scope, and
+the boundary between global destinations and focused local tasks.
+
 The [generated sitemap](sitemap.md) describes every shipped product destination,
 local subpage, task panel, dialog, native settings surface and public capture.
 [sitemap.json](sitemap.json) provides the same contracts for tools.

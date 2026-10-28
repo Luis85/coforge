@@ -35,3 +35,7 @@ No project; Draft; Validation error; Saving; Failure with retained draft. Inspec
 Source: [src/plugin/presentation/components/coforge/NewIdeaDrawer.vue](../../../src/plugin/presentation/components/coforge/NewIdeaDrawer.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`.
+
+## Workspace redesign
+
+The creation heading names the selected project and its stable ID before any input. The dialog retains labelled fields, protected focus and the existing submission-failure draft.

@@ -50,6 +50,7 @@ export class AICostService implements AICostActions {
     this.stop();
     this.stop = this.store.subscribeEvents((event) => {
       if (
+        event.type === 'example-content-removed' ||
         /^(job-|ai-cost-reported|ai-usage-reported|herdr-action-)/.test(
           event.type,
         )
@@ -85,7 +86,12 @@ export class AICostService implements AICostActions {
           : incoming,
       );
     }
-    return [...tasks.values()];
+    const cutoffs = this.store.exampleCostRemovalCutoffs();
+    return [...tasks.values()].filter(task => {
+      const removedAt = cutoffs[task.featureId];
+      const manual = task.manualUsd !== undefined || task.manualNote !== undefined || task.manualAt !== undefined;
+      return task.provider !== 'demo' || manual || !removedAt || !(Date.parse(task.startedAt) <= Date.parse(removedAt));
+    });
   }
   private async sync(): Promise<void> {
     return this.command(async () => {

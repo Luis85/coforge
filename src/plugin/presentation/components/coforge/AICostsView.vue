@@ -25,6 +25,16 @@ const model = useAICosts();
     <p v-if="model.store.example" class="cf-notice">
       Example data · changes stay in this preview.
     </p>
+    <button
+      v-if="model.store.example"
+      type="button"
+      class="cf-btn cf-btn-secondary"
+      :disabled="model.store.busy"
+      title="Discard this temporary example and its edits"
+      @click="model.exitExample()"
+    >
+      Exit example
+    </button>
     <p v-if="!model.available">
       AI cost history is available in Obsidian.
       <button
@@ -70,7 +80,8 @@ const model = useAICosts();
         </button>
         Showing {{ model.store.feature }}
       </p>
-      <div class="cf-ai-summary">
+      <h2>Cost coverage</h2>
+      <div class="cf-ai-summary" aria-label="Cost coverage summary">
         <div>
           <small>Known usage · USD</small
           ><strong>{{ model.money(model.summary.nanos) }}</strong>
@@ -96,6 +107,15 @@ const model = useAICosts();
         attempts remain included. Herdr does not currently report token usage or
         costs.
       </p>
+      <p
+        v-if="model.summary.missing || model.summary.pending"
+        class="cf-ai-coverage-note"
+      >
+        <strong>The known total is partial.</strong>
+        {{ model.summary.missing }} attempts have no cost and
+        {{ model.summary.pending }} are pending. Add a manual fallback in task
+        history when you have a reliable source.
+      </p>
       <AIUsageSummary :summary="model.tokenTotals" />
       <p v-if="model.store.state.loading" role="status">
         Loading cost history…
@@ -103,6 +123,10 @@ const model = useAICosts();
       <p v-else-if="!model.tasks.length">
         No tasks match this view. Real workflow runs and Herdr dispatches appear
         here as they are recorded.
+      </p>
+      <h2 v-if="model.features.length">By feature</h2>
+      <p v-if="model.features.length" class="cf-muted">
+        Select a feature to inspect every retained attempt and its cost source.
       </p>
       <div v-if="model.features.length" class="cf-ai-features">
         <button

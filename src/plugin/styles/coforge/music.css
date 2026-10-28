@@ -13,8 +13,17 @@
   overflow-wrap: anywhere;
 }
 .ps--coforge .cf-music-playback {
-  padding-block: 16px;
+  padding: 24px;
+  margin-block: 20px;
+  background: color-mix(in srgb, var(--cf-accent) 7%, var(--cf-bg));
+  border: 1px solid var(--cf-border);
+  border-radius: var(--radius-l);
 }
+.ps--coforge .cf-music-playback h3 { font-size: 24px; }
+.ps--coforge .cf-music-playback .cf-settings-actions { margin-block: 18px; }
+.ps--coforge .cf-music-sliders { margin-top: 22px; }
+.ps--coforge .cf-music-workspace > section { min-width: 0; }
+.ps--coforge .cf-music-list > li:hover { background: var(--cf-hover); }
 .ps--coforge .cf-music-sliders,
 .ps--coforge .cf-music-workspace {
   display: grid;

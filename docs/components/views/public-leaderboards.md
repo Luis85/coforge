@@ -33,6 +33,8 @@ The surface shows all three rankings: supported ideas, idea makers and accepted-
 
 ## Composition and boundaries
 
+The three ranking groups keep their named metric and explicit values. The first ranked contribution receives a subtle theme accent while visible rank numbers and native list semantics preserve meaning without color. Empty rankings explain the next participation step.
+
 Source: [src/plugin/presentation/components/coforge/StreamLeaderboards.vue](../../../src/plugin/presentation/components/coforge/StreamLeaderboards.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
 
 Journey tags: `public-sharing`, `community`.

@@ -16,6 +16,8 @@ privacy: "Private vault workspace; excluded from public projections."
 
 # Studio activity
 
+The introduction identifies recent changes across projects. Request events open their associated request; events without a request remain informational. The panel receives private studio activity only and is never reused as a public capture.
+
 ## Purpose
 
 Open the request associated with a recent event.

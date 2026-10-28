@@ -31,6 +31,10 @@ Open Stream chat, then choose Bot messages. Available actions: Create or edit; S
 
 No messages; Unsaved; Invalid interval; Paused; Live and enabled. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+Message authoring is grouped apart from the retained message list. Each retained message shows state, interval and last confirmed delivery beside its actions. Saving an edit pauses the message for review.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/StreamMessagesView.vue](../../../src/plugin/presentation/components/coforge/StreamMessagesView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

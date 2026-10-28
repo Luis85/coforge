@@ -31,6 +31,11 @@ export class StudioStore {
   nativeStatusSnapshot() { const state = this.current(); return { twitch: state.runtime.twitch?.phase, running: state.jobs.filter(job => job.status === 'running').length, queued: state.jobs.filter(job => job.status === 'queued').length }; }
   viewerNotesSnapshot(ids?: ReadonlySet<string>) { return viewerNoteProfiles(this.current(), ids); }
   aiCostSnapshot(records: readonly HerdrRecord[]) { return collectCostTasks(this.current(), records); }
+  previewExampleNotes(ids: readonly string[]): Promise<Record<string, string>> {
+    if (!this.storage.previewExampleNotes) return Promise.resolve({});
+    return this.storage.previewExampleNotes(ids);
+  }
+  exampleCleanupWarning(): string | undefined { return this.storage.exampleCleanupWarning?.(); }
 
   async init(): Promise<{ invalidNotes: string[] }> {
     let loaded: LoadedStudio;
@@ -65,6 +70,7 @@ export class StudioStore {
     return structuredClone(omit(this.current(), 'integration', 'ingestMeta', 'manualHolds'));
   }
   internalSnapshot(): InternalState { return structuredClone(this.current()); }
+  exampleCostRemovalCutoffs(): Record<string, string> { return { ...this.current().exampleRemovalCutoffs }; }
   integrationSnapshot(): InternalState['integration'] { return { ...this.current().integration }; }
   liveChatSnapshot() {
     const state = this.current(); return { phase: state.runtime.twitch?.phase, connectedAt: state.runtime.twitch?.connectedAt,

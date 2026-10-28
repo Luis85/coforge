@@ -134,6 +134,47 @@
 
 .cf-studio.is-navigation-collapsed { --cf-sidebar-width: 0px; }
 .cf-panel-toggle { flex-shrink: 0; }
+
+/* Navigation belongs to the operating loop; shared tools keep their own scope. */
+.cf-project-switcher.is-active {
+  border-color: var(--cf-accent);
+  background: var(--cf-accent-soft);
+}
+.cf-nav-group + .cf-nav-group {
+  padding-top: var(--cf-space-md);
+  border-top: 1px solid var(--cf-border);
+}
+.cf-nav-item[aria-current="page"] > .cf-icon {
+  color: var(--cf-accent);
+}
+.cf-sidebar-bottom {
+  padding-top: var(--cf-space-sm);
+  border-top: 1px solid var(--cf-border);
+}
+.cf-breadcrumb > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cf-topbar-actions,
+.cf-breadcrumb > .cf-icon,
+.cf-project-id-copy {
+  flex-shrink: 0;
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-topbar { gap: var(--cf-space-sm); }
+  .cf-breadcrumb { gap: var(--cf-space-sm); }
+  .cf-breadcrumb > span:not(.cf-icon) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .cf-breadcrumb > .cf-icon { display: none; }
+  .cf-topbar-actions { gap: var(--cf-space-sm); }
+}
 @container plugin-shell-leaf (max-width: 1050px) {
   .cf-studio.cf-view-board.is-chat-expanded .cf-content { display: none; }
   .cf-studio.cf-view-board.is-chat-expanded .cf-chat-panel.is-full { display: flex; flex: 1; min-width: 0; width: 100%; min-height: 0; height: auto; align-self: stretch; }
