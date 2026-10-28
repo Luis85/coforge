@@ -1,5 +1,4 @@
 /* Project management follows the studio's existing typography, controls and theme tokens. */
-.cf-projects-page { padding: 27px 26px 32px; width: 100%; max-width: 1210px; margin: 0 auto; }
 .cf-projects-context { color: var(--cf-muted); font-size: 12px; line-height: 1.7; margin-bottom: 24px !important; max-width: 80ch; }
 .cf-project-create { display: flex; flex-direction: column; gap: 18px; padding: 22px 0; margin-bottom: 24px; border-block: 1px solid var(--cf-border); max-width: 680px; }
 .cf-project-create h2 { font-size: 17px; }
@@ -17,7 +16,6 @@
 .cf-project-repository-toggle { display: flex; align-items: center; gap: 10px; font-size: 12px; }
 .cf-project-repository-toggle input { flex-shrink: 0; }
 @container plugin-shell-leaf (max-width: 650px) {
-  .cf-projects-page { padding: 22px 16px; }
   .cf-projects-page .cf-page-heading { align-items: flex-start; flex-direction: column; gap: 14px; }
   .cf-project-row { flex-direction: column; align-items: stretch; gap: 16px; }
 }

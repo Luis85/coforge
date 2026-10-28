@@ -26,7 +26,7 @@ See [Projects](PROJECTS.md) for IDs and the required `!request <project-id> <ide
    Windows use the native `claude.exe`, not an npm `.cmd` wrapper — CoForge never starts
    a shell). Set the project's absolute workspace path under **Project settings → Agent workspace**.
    It may be outside the vault. A repository URL is a metadata link, not a clone or initialization action.
-4. In the project's **Studio settings**, choose **Claude Code** and save, or press
+4. In the project's **Workflow settings**, choose **Claude Code** for the AI steps and save. In native integration settings, press
    **Check Claude Code**. The check only probes the CLI version; it makes no model call.
 5. Run screening/scoring manually on a harmless idea first. These stages have no tools
    and run in an empty temporary folder. Planning reads the repository.

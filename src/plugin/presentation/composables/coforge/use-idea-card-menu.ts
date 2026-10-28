@@ -67,7 +67,7 @@ export function useIdeaCardMenu(
     }
     store.workflowRequestSelection = props.idea.id;
     store.select(null);
-    store.navigate("workflow");
+    store.openWorkflowTool("runs");
   };
   const runStage = () => {
     const current = store.state?.ideas.find(

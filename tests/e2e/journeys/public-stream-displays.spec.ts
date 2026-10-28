@@ -15,7 +15,10 @@ for (const [label, id, content] of [
       "data-prototype-ready",
       "true",
     );
-    await page.getByText("Public stream displays", { exact: true }).click();
+    await page
+      .getByRole("navigation", { name: "Stream studio pages" })
+      .getByRole("button", { name: "Public displays", exact: true })
+      .click();
     await page
       .getByRole("button", { name: `Preview ${label}`, exact: true })
       .click();

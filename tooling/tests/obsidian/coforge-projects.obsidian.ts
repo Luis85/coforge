@@ -12,6 +12,7 @@ describe('CoForge projects in the contained vault', () => {
       await app.vault.adapter.write('CoForge/Streams/.index.json', JSON.stringify({ activeId: null, streams: [{ id: history.id, channelId: '123', startedAt: history.startedAt, endedAt: history.endedAt, samples: 0, lastSampleAt: history.startedAt, peakObservedViewers: null, meanObservedViewers: null }] }));
     });
     const view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await view.getByRole('navigation', { name: 'Stream studio pages', exact: true }).getByRole('button', { name: 'History', exact: true }).click();
     await view.getByRole('button', { name: 'Refresh stream history', exact: true }).click();
     await view.getByLabel('Recorded stream', { exact: true }).selectOption('twitch-123-1');
     await view.getByRole('button', { name: 'Export stream JSON', exact: true }).click();
@@ -28,10 +29,13 @@ describe('CoForge projects in the contained vault', () => {
     expect(type).toBeDefined();
     const view = await obsidian.openView(type!);
     await browserExpect(view.getByRole('heading', { name: 'Stream studio', exact: true })).toBeVisible();
+    await view.getByRole('button', { name: 'Guided setup', exact: true }).click();
     await browserExpect(view.getByRole('region', { name: 'Guided stream setup', exact: true })).toBeVisible();
     await view.getByRole('button', { name: 'Skip setup for now', exact: true }).click();
+    await view.getByRole('navigation', { name: 'Stream studio pages', exact: true }).getByRole('button', { name: 'Broadcast', exact: true }).click();
     await browserExpect(view.getByRole('button', { name: 'Go live', exact: true })).toBeDisabled();
     await browserExpect(view.getByRole('button', { name: 'Open OBS Studio', exact: true })).toBeEnabled();
+    await view.getByRole('navigation', { name: 'Stream studio pages', exact: true }).getByRole('button', { name: 'Setup', exact: true }).click();
     await view.getByLabel('OBS executable (optional)', { exact: true }).fill('/synthetic/obs');
     await view.getByRole('button', { name: 'Save OBS setup', exact: true }).click();
     await browserExpect(view.getByText('OBS connection and scenes saved.', { exact: true })).toBeVisible();
@@ -65,7 +69,7 @@ describe('CoForge projects in the contained vault', () => {
     await view.getByLabel('Description', { exact: true }).fill('A quiet moon garden built with the stream community.');
     await view.getByRole('button', { name: 'Create project', exact: true }).click();
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Obsidian moon');
-    await view.getByRole('button', { name: 'Studio settings', exact: true }).click();
+    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
     await view.getByLabel('General agent prompt', { exact: true }).fill('Use Rust and Bevy. Keep changes small.');
     await view.getByRole('button', { name: 'Save settings', exact: true }).click();
     await browserExpect(view.getByLabel('General agent prompt', { exact: true })).toHaveValue('Use Rust and Bevy. Keep changes small.');
@@ -101,7 +105,7 @@ describe('CoForge projects in the contained vault', () => {
     await view.getByRole('button', { name: 'Confirm block', exact: true }).click();
     await browserExpect(view.getByRole('button', { name: 'Unblock participation', exact: true })).toBeVisible();
     await view.getByRole('button', { name: 'Stream chat', exact: true }).click();
-    await view.getByRole('tab', { name: 'Bot messages', exact: true }).click();
+    await view.getByRole('navigation', { name: 'Stream tools', exact: true }).getByRole('button', { name: 'Bot messages', exact: true }).click();
     await view.getByLabel('Message text', { exact: true }).fill('Join The Hood with !register');
     await view.getByLabel('Interval (minutes)', { exact: true }).fill('5');
     await view.getByRole('button', { name: 'Add message', exact: true }).click();

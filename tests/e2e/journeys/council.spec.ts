@@ -73,6 +73,9 @@ for (const theme of ["light", "dark"]) {
     await expect(page.locator(".cf-council-round")).toHaveCount(2);
     await capture(page, "definitions", theme);
     await page
+      .getByRole("button", { name: "Run monitor", exact: true })
+      .click();
+    await page
       .getByRole("button", {
         name: "Use this desktop for execution",
         exact: true,
@@ -229,6 +232,7 @@ test("creates three specialists, a team and a six-invocation council entirely th
   await expect(page.locator(".cf-council-definition-list")).toContainText(
     "UI-only council",
   );
+  await page.getByRole("button", { name: "Run monitor", exact: true }).click();
   await page
     .getByRole("button", {
       name: "Use this desktop for execution",

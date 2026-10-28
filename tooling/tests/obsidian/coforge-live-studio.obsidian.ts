@@ -44,8 +44,8 @@ describe("Live studio in the contained vault", () => {
     const view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
+    await view.getByRole("navigation", { name: "Stream studio pages", exact: true }).getByRole("button", { name: "Music", exact: true }).click();
     const music = view.locator(".cf-music");
-    await music.locator(":scope > summary").click();
     await music
       .getByRole("button", { name: "Refresh music library", exact: true })
       .click();
@@ -92,8 +92,8 @@ describe("Live studio in the contained vault", () => {
     await view.getByLabel('Description', { exact: true }).fill('Contained host integration checks.');
     await view.getByRole('button', { name: 'Create project', exact: true }).click();
     await view.getByRole("button", { name: "Agent workflow", exact: true }).click();
+    await view.getByRole("navigation", { name: "Agent workflow pages", exact: true }).getByRole("button", { name: "Herdr workspaces", exact: true }).click();
     const herdr = view.locator(".cf-herdr");
-    await herdr.locator(":scope > summary").click();
     await browserExpect(herdr).toContainText("start the chosen Herdr session");
     await browserExpect(
       herdr.getByRole("button", {
@@ -129,8 +129,8 @@ describe("Live studio in the contained vault", () => {
           exact: true,
         }),
       ).toHaveCount(0);
+      await view.getByRole("navigation", { name: "Stream studio pages", exact: true }).getByRole("button", { name: "Scenes", exact: true }).click();
       const scenes = view.locator(".cf-obs-scene-manager");
-      await scenes.locator("summary").click();
       await browserExpect(scenes).toContainText(
         "Connect OBS in the setup controls",
       );
@@ -140,6 +140,7 @@ describe("Live studio in the contained vault", () => {
           exact: true,
         }),
       ).toHaveCount(0);
+      await view.getByRole("navigation", { name: "Stream studio pages", exact: true }).getByRole("button", { name: "Broadcast", exact: true }).click();
       await browserExpect(
         view.getByRole("button", { name: "Go live", exact: true }),
       ).toBeDisabled();

@@ -56,6 +56,7 @@ Integration setup, the viewer website and safety boundaries: [docs/coforge/INTEG
 Projects, request routing and project-note properties: [docs/coforge/PROJECTS.md](docs/coforge/PROJECTS.md).
 Community, registration and earning rules: [docs/coforge/COMMUNITY.md](docs/coforge/COMMUNITY.md).
 Application architecture and extension seams: [docs/coforge/FOUNDATIONS.md](docs/coforge/FOUNDATIONS.md).
+View goals, local subpages and public surfaces: [view catalogue and generated sitemap](docs/components/README.md).
 Product brief: [BRIEF.md](BRIEF.md).
 
 ### Source map

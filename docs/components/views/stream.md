@@ -1,0 +1,38 @@
+---
+id: "stream"
+title: "Stream chat"
+goal: "Manage the conversation with viewers."
+audience: "streamer"
+kind: "page"
+route: "studio.view = stream"
+parent: "studio"
+component: "src/plugin/presentation/components/coforge/StreamPage.vue"
+entry: ["Choose Stream chat in the studio navigation."]
+actions: ["Choose Chat","Choose Twitch settings","Choose Bot messages","Inspect intake status"]
+states: ["Disconnected","Connecting","Live chat","Local command test"]
+journeys: ["viewer-intake","broadcast"]
+privacy: "Private vault workspace; excluded from public projections."
+coverage: {"group":"studio","key":"stream"}
+---
+
+# Stream chat
+
+## Purpose
+
+Manage the conversation with viewers.
+
+Conversation, connection configuration and recurring messages have separate local subpages. Local tests remain labelled and excluded from public capture chat.
+
+## Entry and next action
+
+Choose Stream chat in the studio navigation. Available actions: Choose Chat; Choose Twitch settings; Choose Bot messages; Inspect intake status. Return through the owning [CoForge studio](studio.md) surface.
+
+## States and recovery
+
+Disconnected; Connecting; Live chat; Local command test. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
+
+## Composition and boundaries
+
+Source: [src/plugin/presentation/components/coforge/StreamPage.vue](../../../src/plugin/presentation/components/coforge/StreamPage.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
+
+Journey tags: `viewer-intake`, `broadcast`.

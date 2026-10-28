@@ -102,8 +102,8 @@ const model = useSettings();
         <SettingsRepositorySection />
         <p class="cf-settings-help">
           Viewer feature requests have a fixed 5-minute cooldown across all
-          projects. Registration and earning rules are managed under Players and
-          Operations.
+          projects. Review registration and participation under Viewers;
+          configure earning rules under Community settings.
         </p>
         <section
           class="cf-settings-workflow-link"

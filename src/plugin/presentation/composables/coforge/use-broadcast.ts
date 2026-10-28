@@ -1,18 +1,38 @@
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+  provide,
+  inject,
+  type InjectionKey,
+} from "vue";
 import { useCoforge } from "../../context/coforge-context";
 import { useStudioStore } from "../../stores/coforge-studio";
-import { defaultObsSettings, emptyObsState } from "../../../features/coforge/domain/obs";
+import type { BroadcastPage } from "../../stores/studio-pages";
+import {
+  defaultObsSettings,
+  emptyObsState,
+} from "../../../features/coforge/domain/obs";
 
 export function useBroadcast(trackView = true) {
   const { studio, host } = useCoforge();
   const store = useStudioStore();
   const now = ref(Date.now());
-  const clock = trackView ? window.setInterval(() => {
-    now.value = Date.now();
-  }, 1000) : undefined;
-  onBeforeUnmount(() => { if (clock !== undefined) window.clearInterval(clock); });
+  const clock = trackView
+    ? window.setInterval(() => {
+        now.value = Date.now();
+      }, 1000)
+    : undefined;
+  onBeforeUnmount(() => {
+    if (clock !== undefined) window.clearInterval(clock);
+  });
   const state = computed(() => store.state?.runtime.obs ?? emptyObsState());
-  const settings = computed(() => store.state?.obsSettings ?? defaultObsSettings());
+  const settings = computed(
+    () => store.state?.obsSettings ?? defaultObsSettings(),
+  );
   const draft = reactive(defaultObsSettings());
   let saved = defaultObsSettings();
   const loaded = ref(false);
@@ -24,7 +44,10 @@ export function useBroadcast(trackView = true) {
     settings,
     (next) => {
       for (const [key, value] of Object.entries(next)) {
-        if (!loaded.value || Reflect.get(draft, key) === Reflect.get(saved, key))
+        if (
+          !loaded.value ||
+          Reflect.get(draft, key) === Reflect.get(saved, key)
+        )
           Object.assign(draft, { [key]: value });
       }
       saved = { ...next };
@@ -47,7 +70,10 @@ export function useBroadcast(trackView = true) {
       notice.value = success;
       return true;
     } catch (problem) {
-      error.value = problem instanceof Error ? problem.message : "The stream interaction could not be completed.";
+      error.value =
+        problem instanceof Error
+          ? problem.message
+          : "The stream interaction could not be completed.";
       return false;
     } finally {
       working.value = false;
@@ -55,7 +81,9 @@ export function useBroadcast(trackView = true) {
   }
   const obs = () => {
     if (!host.obs)
-      throw new Error("OBS control is available in the Obsidian plugin. This preview does not control a broadcast.");
+      throw new Error(
+        "OBS control is available in the Obsidian plugin. This preview does not control a broadcast.",
+      );
     return host.obs;
   };
   const snapshot = computed(() => state.value.snapshot);
@@ -69,24 +97,43 @@ export function useBroadcast(trackView = true) {
       !snapshot.value?.transitioning &&
       !snapshot.value?.reconnecting,
   );
-  const active = computed(() => connected.value && Boolean(snapshot.value?.active));
-  return reactive({
+  const active = computed(
+    () => connected.value && Boolean(snapshot.value?.active),
+  );
+  const model = reactive({
     elapsed: computed(() => {
       const value = snapshot.value;
       if (!value) return "";
       const parts = /^(\d+):([0-5]\d):([0-5]\d)/.exec(value.timecode);
       if (!parts) return value.timecode;
-      const base = Number(parts[1]) * 3600 + Number(parts[2]) * 60 + Number(parts[3]);
+      const base =
+        Number(parts[1]) * 3600 + Number(parts[2]) * 60 + Number(parts[3]);
       const seconds =
         base +
         (active.value && !state.value.uncertain
-          ? Math.max(0, Math.floor((now.value - Date.parse(value.observedAt)) / 1000))
+          ? Math.max(
+              0,
+              Math.floor((now.value - Date.parse(value.observedAt)) / 1000),
+            )
           : 0);
-      return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
+      return [
+        Math.floor(seconds / 3600),
+        Math.floor(seconds / 60) % 60,
+        seconds % 60,
+      ]
         .map((part) => String(part).padStart(2, "0"))
         .join(":");
     }),
     store,
+    openTwitchSettings: () => store.openStreamTool("connection"),
+    openSetup: () => {
+      store.broadcastTool = "setup";
+      store.setupRequested = true;
+    },
+    selectPage: (page: BroadcastPage) => {
+      store.broadcastTool = page;
+      if (page === "scenes") store.obsEditorOpen = true;
+    },
     state,
     settings,
     draft,
@@ -101,13 +148,16 @@ export function useBroadcast(trackView = true) {
     scenes: computed(() => snapshot.value?.scenes ?? []),
     currentScene: computed(
       () =>
-        snapshot.value?.scenes.find((scene) => scene.id === snapshot.value?.programSceneId)?.name ?? "Not available",
+        snapshot.value?.scenes.find(
+          (scene) => scene.id === snapshot.value?.programSceneId,
+        )?.name ?? "Not available",
     ),
     title: computed(() =>
       state.value.uncertain
         ? "OBS state needs confirmation"
         : !connected.value
-          ? state.value.connection === "connecting" || state.value.connection === "authenticating"
+          ? state.value.connection === "connecting" ||
+            state.value.connection === "authenticating"
             ? "Connecting to OBS"
             : "OBS not connected"
           : snapshot.value?.reconnecting
@@ -122,8 +172,16 @@ export function useBroadcast(trackView = true) {
                   ? "Ready to go live"
                   : "Prepare your stream",
     ),
-    canPrepare: computed(() => Boolean(host.obs) && stable.value && !active.value),
-    canGoLive: computed(() => Boolean(host.obs) && stable.value && !active.value && state.value.prepared),
+    canPrepare: computed(
+      () => Boolean(host.obs) && stable.value && !active.value,
+    ),
+    canGoLive: computed(
+      () =>
+        Boolean(host.obs) &&
+        stable.value &&
+        !active.value &&
+        state.value.prepared,
+    ),
     canPause: computed(
       () =>
         Boolean(host.obs) &&
@@ -132,7 +190,13 @@ export function useBroadcast(trackView = true) {
         !state.value.onBreak &&
         Boolean(settings.value.breakSceneId),
     ),
-    canResume: computed(() => Boolean(host.obs) && stable.value && active.value && state.value.onBreak),
+    canResume: computed(
+      () =>
+        Boolean(host.obs) &&
+        stable.value &&
+        active.value &&
+        state.value.onBreak,
+    ),
     canStop: computed(
       () =>
         Boolean(host.obs) &&
@@ -147,40 +211,59 @@ export function useBroadcast(trackView = true) {
         label: "OBS WebSocket connection",
         ready: connected.value,
         required: true,
-        detail: connected.value ? "Connected" : "Start OBS and enable Tools → WebSocket Server Settings.",
+        detail: connected.value
+          ? "Connected"
+          : "Start OBS and enable Tools → WebSocket Server Settings.",
       },
       {
         label: "Go-live scene",
-        ready: Boolean(snapshot.value?.scenes.some((scene) => scene.id === settings.value.liveSceneId)),
+        ready: Boolean(
+          snapshot.value?.scenes.some(
+            (scene) => scene.id === settings.value.liveSceneId,
+          ),
+        ),
         required: true,
         detail:
-          snapshot.value?.scenes.find((scene) => scene.id === settings.value.liveSceneId)?.name ??
-          "Choose and save a scene below.",
+          snapshot.value?.scenes.find(
+            (scene) => scene.id === settings.value.liveSceneId,
+          )?.name ?? "Choose and save a scene below.",
       },
       {
         label: "BRB scene",
-        ready: Boolean(snapshot.value?.scenes.some((scene) => scene.id === settings.value.breakSceneId)),
+        ready: Boolean(
+          snapshot.value?.scenes.some(
+            (scene) => scene.id === settings.value.breakSceneId,
+          ),
+        ),
         required: false,
         detail:
-          snapshot.value?.scenes.find((scene) => scene.id === settings.value.breakSceneId)?.name ??
-          "Optional; required for Pause / BRB.",
+          snapshot.value?.scenes.find(
+            (scene) => scene.id === settings.value.breakSceneId,
+          )?.name ?? "Optional; required for Pause / BRB.",
       },
       {
         label: "Twitch chat",
         ready: store.state?.runtime.twitch?.phase === "connected",
         required: false,
-        detail: store.state?.runtime.twitch?.message ?? "Connect Twitch under Stream chat.",
+        detail:
+          store.state?.runtime.twitch?.message ??
+          "Connect Twitch under Stream chat.",
       },
       {
         label: "Project",
         ready: Boolean(store.activeProject),
         required: false,
-        detail: store.activeProject?.settings.projectName ?? "Add or select a project for community requests.",
+        detail:
+          store.activeProject?.settings.projectName ??
+          "Add or select a project for community requests.",
       },
     ]),
     save: (event: Event) => {
       event.preventDefault();
-      void run(() => obs().configure({ ...draft }), "OBS connection and scenes saved.");
+      void run(
+        () => obs().configure({ ...draft }),
+        "OBS connection and scenes saved.",
+      );
     },
     connect: () => {
       void run(async () => {
@@ -192,7 +275,7 @@ export function useBroadcast(trackView = true) {
       void run(async () => {
         await obs().configure({ ...draft });
         await obs().detect();
-      }, 'OBS installation check complete.');
+      }, "OBS installation check complete.");
     },
     open: () => {
       void run(async () => {
@@ -201,7 +284,10 @@ export function useBroadcast(trackView = true) {
       }, "OBS is open and connected. Prepare the stream before going live.");
     },
     disconnect: () => {
-      void run(() => obs().disconnect(), "Disconnected from OBS. Any existing broadcast keeps running.");
+      void run(
+        () => obs().disconnect(),
+        "Disconnected from OBS. Any existing broadcast keeps running.",
+      );
     },
     refresh: () => {
       void run(() => obs().refresh(), "OBS state refreshed.");
@@ -213,13 +299,19 @@ export function useBroadcast(trackView = true) {
       }, "OBS password stored securely. Reconnect to use it.");
     },
     prepare: () => {
-      void run(() => obs().prepare(), "Readiness checked. Go live starts the OBS broadcast.");
+      void run(
+        () => obs().prepare(),
+        "Readiness checked. Go live starts the OBS broadcast.",
+      );
     },
     goLive: () => {
       void run(() => obs().goLive(), "OBS confirmed the live broadcast.");
     },
     pause: () => {
-      void run(() => obs().pause(), "BRB scene confirmed. The stream remains live.");
+      void run(
+        () => obs().pause(),
+        "BRB scene confirmed. The stream remains live.",
+      );
     },
     resume: () => {
       void run(() => obs().resume(), "Previous live scene restored.");
@@ -228,4 +320,14 @@ export function useBroadcast(trackView = true) {
       void run(() => obs().stop(), "OBS confirmed the stream stopped.");
     },
   });
+  if (trackView) provide(broadcastModelKey, model);
+  return model;
+}
+
+const broadcastModelKey: InjectionKey<ReturnType<typeof useBroadcast>> =
+  Symbol("broadcast-page");
+export function useBroadcastModel(): ReturnType<typeof useBroadcast> {
+  const model = inject(broadcastModelKey);
+  if (!model) throw new Error("Broadcast page context is unavailable.");
+  return model;
 }

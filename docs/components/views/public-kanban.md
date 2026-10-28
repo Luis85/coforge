@@ -1,0 +1,38 @@
+---
+id: "public-kanban"
+title: "Public stream Kanban"
+goal: "Show the community the screened request backlog."
+audience: "viewer / OBS capture"
+kind: "public"
+route: "Obsidian stream surface = kanban"
+parent: null
+component: "src/plugin/presentation/components/coforge/StreamRequestBoard.vue"
+entry: ["Use the Stream Kanban ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."]
+actions: ["Open from ribbon or Stream displays","Detach manually","Read projected cards"]
+states: ["No public project","Awaiting screening count","Empty column","Screened cards"]
+journeys: ["public-sharing","community"]
+privacy: "Explicit public whitelist; read-only."
+coverage: {"group":"public","key":"kanban"}
+---
+
+# Public stream Kanban
+
+## Purpose
+
+Show the community the screened request backlog.
+
+Only screened requests cross the public projection. Private notes, prompts, moderation, finances and logs are excluded.
+
+## Entry and next action
+
+Use the Stream Kanban ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture. Available actions: Open from ribbon or Stream displays; Detach manually; Read projected cards. This is an independent entry surface.
+
+## States and recovery
+
+No public project; Awaiting screening count; Empty column; Screened cards. When data is unavailable, inspect the connection or project in the private studio. Public capture remains read-only.
+
+## Composition and boundaries
+
+Source: [src/plugin/presentation/components/coforge/StreamRequestBoard.vue](../../../src/plugin/presentation/components/coforge/StreamRequestBoard.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
+
+Journey tags: `public-sharing`, `community`.

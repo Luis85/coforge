@@ -96,12 +96,13 @@ const { shell: model, groups } = useStudioNavigation();
         type="button"
         class="cf-nav-item"
         :class="{ 'is-active': model.store.view === 'settings' }"
-        aria-label="Studio settings"
-        title="Studio settings"
+        :aria-current="model.store.view === 'settings' ? 'page' : undefined"
+        aria-label="Project settings"
+        title="Project settings"
         @click="model.store.navigate('settings')"
       >
         <CfIcon name="settings" />
-        <span>Studio settings</span>
+        <span>Project settings</span>
       </button>
       <div class="cf-streamer-profile">
         <div>

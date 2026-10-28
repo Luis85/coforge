@@ -142,7 +142,7 @@ export function useStudioShell() {
     },
     startHelp: () => {
       store.help = false;
-      store.navigate("workflow");
+      store.openWorkflowTool("runs");
     },
   });
 }

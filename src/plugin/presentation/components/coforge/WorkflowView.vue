@@ -5,6 +5,8 @@ import WorkflowHistory from "./WorkflowHistory.vue";
 import ConfiguredWorkflowExecution from "./ConfiguredWorkflowExecution.vue";
 import HerdrPanel from "./HerdrPanel.vue";
 import HerdrWorkflowRecovery from "./HerdrWorkflowRecovery.vue";
+import CfSubpageNav from "./CfSubpageNav.vue";
+import { WORKFLOW_PAGES } from "../../stores/studio-pages";
 const model = useWorkflow();
 </script>
 <template>
@@ -27,6 +29,7 @@ const model = useWorkflow();
         ><button
           type="button"
           class="cf-btn cf-btn-secondary"
+          v-if="model.store.workflowTool === 'runs'"
           :disabled="model.store.busy"
           @click="model.togglePause()"
         >
@@ -39,21 +42,42 @@ const model = useWorkflow();
     <p v-if="model.error" role="alert" class="cf-inline-error">
       {{ model.error }}
     </p>
-    <div class="cf-workflow-summary">
-      <span
-        class="cf-workflow-live-dot"
-        :class="{ 'is-paused': model.paused }"
-      /><strong>{{ model.summaryLabel }}</strong
-      ><span>{{ model.enabledCount }} AI steps automatic</span
-      ><span>New automatic runs · {{ model.intervalSeconds }}s interval</span
-      ><span class="cf-workflow-mode-tag" :title="model.providerTitle"
-        ><CfIcon :name="model.providerIcon" size="sm" />{{
-          model.providerLabel
-        }}</span
-      >
+    <CfSubpageNav
+      label="Agent workflow pages"
+      :items="WORKFLOW_PAGES"
+      :selected="model.store.workflowTool"
+      @select="model.store.workflowTool = $event"
+    />
+    <div
+      v-show="model.store.workflowTool === 'runs'"
+      class="cf-subpage-panel"
+      role="region"
+      aria-label="Request workflow runs"
+    >
+      <div class="cf-workflow-summary">
+        <span
+          class="cf-workflow-live-dot"
+          :class="{ 'is-paused': model.paused }"
+        /><strong>{{ model.summaryLabel }}</strong
+        ><span>{{ model.enabledCount }} AI steps automatic</span
+        ><span>New automatic runs · {{ model.intervalSeconds }}s interval</span
+        ><span class="cf-workflow-mode-tag" :title="model.providerTitle"
+          ><CfIcon :name="model.providerIcon" size="sm" />{{
+            model.providerLabel
+          }}</span
+        >
+      </div>
+      <ConfiguredWorkflowExecution :model="model" /><WorkflowHistory
+        :model="model"
+      /><HerdrWorkflowRecovery />
     </div>
-    <ConfiguredWorkflowExecution :model="model" /><WorkflowHistory
-      :model="model"
-    /><HerdrWorkflowRecovery /><HerdrPanel />
+    <div
+      v-show="model.store.workflowTool === 'herdr'"
+      class="cf-subpage-panel"
+      role="region"
+      aria-label="Herdr workspace administration"
+    >
+      <HerdrPanel open />
+    </div>
   </div>
 </template>

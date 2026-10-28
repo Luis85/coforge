@@ -123,7 +123,6 @@
 .cf-chat-panel.is-full .cf-chat-simulator-control { font-size: 11px; }
 .cf-chat-panel.is-full .cf-chat-session-start { font-size: 11px; }
 
-.cf-stream-page { padding: 30px; max-width: 1400px; margin: 0 auto; }
 .cf-stream-layout { display: grid; grid-template-columns: minmax(320px, 540px) minmax(260px, 1fr); gap: 40px; align-items: start; }
 .cf-stream-reference { padding: 28px 0; max-width: 390px; }
 .cf-stream-reference h2 { font-size: 25px; line-height: 1.5; letter-spacing: -0.6px; }
@@ -153,7 +152,6 @@
   .cf-chat-compose-area { padding-left: 10px; padding-right: 10px; }
 }
 @container plugin-shell-leaf (max-width: 1030px) {
-  .cf-stream-page { padding: 24px; }
   .cf-stream-layout { gap: 25px; grid-template-columns: minmax(280px, 1fr) minmax(220px, 0.8fr); }
   .cf-stream-reference { padding-top: 10px; }
   .cf-stream-reference h2 { font-size: 21px; }
@@ -166,9 +164,7 @@
   .cf-stream-page .cf-page-heading .cf-badge { display: none; }
 }
 @container plugin-shell-leaf (max-width: 560px) {
-  .cf-stream-page { padding: 22px 14px; }
   .cf-stream-page .cf-page-heading { margin-bottom: 24px; }
-  .cf-stream-page .cf-page-heading h1 { font-size: 22px; }
   .cf-stream-page .cf-page-heading p { max-width: none; font-size: 11px; }
   .cf-stream-layout { gap: 20px; }
   .cf-stream-reference > p { font-size: 12px; }

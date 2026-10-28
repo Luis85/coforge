@@ -70,6 +70,8 @@
     "harness:preview": "vite preview --config configs/bundling/vite.harness.config.mjs --host 127.0.0.1 --port 4180 --strictPort",
     "test:e2e": "playwright test",
     "ui:gallery": "node tooling/ui/review-gallery.mjs --target clickdummy",
+    "docs:views": "node tooling/coforge/view-catalog.mjs",
+    "check:views": "node tooling/coforge/view-catalog.mjs --check",
     "check:tokens": "node tooling/styles/check-tokens.mjs",
     "check:style-literals": "node tooling/styles/check-style-literals.mjs",
     "check:source": "node tooling/quality/check-source.mjs",

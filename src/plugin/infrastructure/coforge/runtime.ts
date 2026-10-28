@@ -46,6 +46,7 @@ import { VaultSchedule } from './vault-schedule';
 import { VaultAICosts } from './ai-cost-storage';
 import { InvocationGate } from '../../features/coforge/application/invocation-gate';
 import { CouncilModule } from './council-module';
+import { executionCostTasks } from '../../features/coforge/application/execution-costs';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -109,7 +110,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const herdrAdmission = new HerdrAdmission();
   const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers, herdrAdmission);
   const herdrWorkflows = new HerdrWorkflowService(studio.store, herdr, herdrAdmission, new HerdrWorkflowStateStorage(plugin), new LocalHerdrWorkflowGateway(), new LocalHerdrAttemptFiles(undefined, workspaces), timers);
-  const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => [...studio.store.aiCostSnapshot(herdr.snapshot().records), ...council.costTasks()], timers);
+  const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => [...studio.store.aiCostSnapshot(herdr.snapshot().records), ...executionCostTasks(council.actions.snapshot().runs, studio.state().projects ?? [])], timers);
   let councilCostTimer: number | undefined;
   const stopCouncilCosts = council.actions.subscribe(() => {
     if (councilCostTimer !== undefined) return;
@@ -194,7 +195,9 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
       if (disposed) { await studio.stop(); return; }
       await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));
+      if (disposed) return;
       await council.start();
+      if (disposed) return;
       for (const path of invalidNotes) notify(`CoForge skipped an idea note with invalid properties: ${path}`, true);
       storage.watch(
         change => { void studio.applyNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },

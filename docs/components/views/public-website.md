@@ -1,0 +1,37 @@
+---
+id: "public-website"
+title: "Viewer website"
+goal: "Follow screened progress and recognition outside Obsidian."
+audience: "viewer / OBS capture"
+kind: "public"
+route: "public export / index.html"
+parent: null
+component: "src/plugin/features/coforge/domain/public-site.ts"
+entry: ["Open the deployed viewer website or the generated public export index.html."]
+actions: ["Read board","Expand plan or community context","Read leaderboards and badges"]
+states: ["No screened cards","Awaiting screening count","No leaders","Generated timestamp"]
+journeys: ["public-sharing"]
+privacy: "Explicit public whitelist; read-only."
+---
+
+# Viewer website
+
+## Purpose
+
+Follow screened progress and recognition outside Obsidian.
+
+The script-free export uses a restrictive CSP and public whitelist. Requests and votes happen in Twitch. The streamer deploys the public folder; the plugin never commits or pushes.
+
+## Entry and next action
+
+Open the deployed viewer website or the generated public export index.html. Available actions: Read board; Expand plan or community context; Read leaderboards and badges. This is an independent entry surface.
+
+## States and recovery
+
+No screened cards; Awaiting screening count; No leaders; Generated timestamp. Inspect the generated timestamp; a newer export appears only after the streamer deploys it. This surface cannot mutate private data.
+
+## Composition and boundaries
+
+Source: [src/plugin/features/coforge/domain/public-site.ts](../../../src/plugin/features/coforge/domain/public-site.ts). The exported document owns its standalone HTML and CSS. It uses the explicit public projection and exposes no private mutation controls.
+
+Journey tags: `public-sharing`.

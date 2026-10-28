@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useCouncil } from "../../composables/coforge/use-council";
+import CfSubpageNav from "./CfSubpageNav.vue";
+import CouncilExecutionControls from "./CouncilExecutionControls.vue";
 import CouncilDefinitions from "./CouncilDefinitions.vue";
 import CouncilSubmission from "./CouncilSubmission.vue";
 import CouncilMonitor from "./CouncilMonitor.vue";
@@ -64,136 +66,39 @@ const model = useCouncil();
         {{ model.store.error || model.store.state?.error }}
       </p>
       <p v-if="model.store.notice" role="status">{{ model.store.notice }}</p>
-      <div class="cf-settings-actions" aria-label="Council execution controls">
-        <button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :disabled="model.store.busy"
-          @click="model.checkRuntime()"
-        >
-          Check native runtime
-        </button>
-        <span role="status">{{
-          model.store.state?.paused ? "Execution paused" : "Execution resumed"
-        }}</span>
-        <button
-          v-if="!model.store.state?.executor"
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :disabled="model.store.busy || !model.store.state?.ready"
-          @click="model.designate()"
-        >
-          Use this desktop for execution
-        </button>
-        <template v-else
-          ><button
-            v-if="model.store.state.paused"
-            type="button"
-            class="cf-btn cf-btn-primary"
-            :disabled="model.store.busy"
-            @click="model.resume()"
-          >
-            Resume Council execution</button
-          ><button
-            v-else
-            type="button"
-            class="cf-btn cf-btn-secondary"
-            @click="model.pause()"
-          >
-            Pause before next action
-          </button></template
-        >
-      </div>
-      <button
-        v-if="model.store.state?.executor && model.projectId"
-        type="button"
-        class="cf-btn cf-btn-secondary"
-        :disabled="model.store.busy"
-        @click="model.pauseProject()"
+      <CfSubpageNav
+        label="Council workspace"
+        :items="model.pages"
+        :selected="model.store.tab"
+        @select="model.selectPage($event)"
+      />
+      <section
+        v-if="
+          model.store.state &&
+          !model.store.state.executor &&
+          model.store.tab !== 'monitor'
+        "
+        class="cf-intent-empty"
+        aria-label="Council execution prerequisite"
       >
-        {{
-          model.store.state.preferences.pausedProjectIds?.includes(
-            model.projectId,
-          )
-            ? "Resume selected project"
-            : "Pause selected project"
-        }}
-      </button>
-      <nav class="cf-settings-actions" aria-label="Council workspace">
+        <p>
+          Before submitting work or changing inboxes and definition folders,
+          open Run monitor and designate this desktop for execution. Execution
+          stays paused until you explicitly resume it.
+        </p>
         <button
           type="button"
           class="cf-btn cf-btn-secondary"
-          :aria-current="model.store.tab === 'definitions' ? 'page' : undefined"
-          @click="model.store.tab = 'definitions'"
+          @click="model.selectPage('monitor')"
         >
-          Definitions
+          Open Run monitor
         </button>
-        <button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :aria-current="model.store.tab === 'submit' ? 'page' : undefined"
-          @click="
-            model.store.tab = 'submit';
-            model.refresh();
-          "
-        >
-          Submit and preflight
-        </button>
-        <button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :aria-current="model.store.tab === 'inboxes' ? 'page' : undefined"
-          @click="
-            model.store.tab = 'inboxes';
-            model.refresh();
-          "
-        >
-          Watched inboxes
-        </button>
-        <button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :aria-current="model.store.tab === 'monitor' ? 'page' : undefined"
-          @click="model.store.tab = 'monitor'"
-        >
-          Run monitor
-        </button>
-        <button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :aria-current="model.store.tab === 'workflows' ? 'page' : undefined"
-          @click="
-            model.store.tab = 'workflows';
-            model.refresh();
-          "
-        >
-          Council workflows
-        </button>
-        <button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :aria-current="model.store.tab === 'messages' ? 'page' : undefined"
-          @click="
-            model.store.tab = 'messages';
-            model.refresh();
-          "
-        >
-          Team messages
-        </button>
-      </nav>
+      </section>
+      <CouncilExecutionControls v-show="model.store.tab === 'monitor'" />
       <template v-if="model.store.tab === 'definitions'">
         <CouncilDefinitions
           :catalogue="model.service.catalogue"
           :project-id="model.projectId"
-        />
-        <CouncilFolderSettings
-          v-if="model.store.state"
-          :actions="model.service.definitionFolders"
-          :folders="
-            model.store.state.preferences.definitionFolders ??
-            DEFAULT_COUNCIL_FOLDERS
-          "
-          :preferences-revision="model.store.state.preferences.revision"
         />
       </template>
       <WorkflowV2Editor
@@ -228,7 +133,18 @@ const model = useCouncil();
           model.store.tab === 'submit' || model.store.tab === 'inboxes'
         "
       />
-      <CouncilMonitor v-else />
+      <CouncilMonitor v-else-if="model.store.tab === 'monitor'" />
+      <CouncilFolderSettings
+        open
+        v-if="model.store.state"
+        v-show="model.store.tab === 'folders'"
+        :actions="model.service.definitionFolders"
+        :folders="
+          model.store.state.preferences.definitionFolders ??
+          DEFAULT_COUNCIL_FOLDERS
+        "
+        :preferences-revision="model.store.state.preferences.revision"
+      />
     </template>
   </div>
 </template>

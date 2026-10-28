@@ -95,7 +95,7 @@ function createIdeaDrawer() {
     }
     store.workflowRequestSelection = id;
     store.select(null);
-    store.navigate("workflow");
+    store.openWorkflowTool("runs");
   };
   async function runConfigured() {
     const current = idea.value;

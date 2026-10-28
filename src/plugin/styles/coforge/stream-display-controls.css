@@ -1,7 +1,12 @@
 .cf-stream-displays {
+  min-width: 0;
   padding-block: 24px;
   border-block: 1px solid var(--cf-border);
   margin-block: 24px;
+}
+.cf-stream-displays .cf-btn {
+  max-width: 100%;
+  white-space: normal;
 }
 .cf-stream-displays > summary {
   font-size: 17px;

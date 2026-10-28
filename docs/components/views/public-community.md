@@ -1,0 +1,38 @@
+---
+id: "public-community"
+title: "Public community"
+goal: "Explain visible participation and community rewards."
+audience: "viewer / OBS capture"
+kind: "public"
+route: "Obsidian stream surface = community"
+parent: null
+component: "src/plugin/presentation/components/coforge/StreamCommunity.vue"
+entry: ["Use the Stream Community ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."]
+actions: ["Open from ribbon or Stream displays","Detach manually","Read rules and recognition"]
+states: ["No contributors","Configured names and ranks","Earned badges"]
+journeys: ["public-sharing","community"]
+privacy: "Explicit public whitelist; read-only."
+coverage: {"group":"public","key":"community"}
+---
+
+# Public community
+
+## Purpose
+
+Explain visible participation and community rewards.
+
+Private viewer identities and moderation state stay behind the seam. Rules and public names are explicitly projected.
+
+## Entry and next action
+
+Use the Stream Community ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture. Available actions: Open from ribbon or Stream displays; Detach manually; Read rules and recognition. This is an independent entry surface.
+
+## States and recovery
+
+No contributors; Configured names and ranks; Earned badges. When data is unavailable, inspect the connection or project in the private studio. Public capture remains read-only.
+
+## Composition and boundaries
+
+Source: [src/plugin/presentation/components/coforge/StreamCommunity.vue](../../../src/plugin/presentation/components/coforge/StreamCommunity.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
+
+Journey tags: `public-sharing`, `community`.

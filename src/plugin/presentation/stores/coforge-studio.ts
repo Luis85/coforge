@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import type { AppState } from "../../features/coforge/domain/types";
 import { configurationProblem } from "./configuration-guard";
 import { projectIdeas as scopedIdeas } from "../../features/coforge/domain/projects";
+import type { BroadcastPage, StreamPage, WorkflowPage } from "./studio-pages";
 
 export type StudioView =
   | "council"
@@ -57,7 +58,9 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   const workflowStepSelection = ref("");
   const workflowRequestSelection = ref("");
   const dirtyCommunitySettings = ref(false);
-  const streamTool = ref<"channel" | "messages">("channel");
+  const streamTool = ref<StreamPage>("channel");
+  const workflowTool = ref<WorkflowPage>("runs");
+  const broadcastTool = ref<BroadcastPage>("live");
   const setupStep = ref(0);
   const historySelection = ref("");
   const statisticsStream = ref("");
@@ -152,10 +155,17 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     const problem = configurationIssue(next);
     if (problem) {
       notify(problem, true);
-      return;
+      return false;
     }
     view.value = next;
     activityOpen.value = false;
+    return true;
+  }
+  function openStreamTool(next: StreamPage) {
+    if (navigate("stream")) streamTool.value = next;
+  }
+  function openWorkflowTool(next: WorkflowPage) {
+    if (navigate("workflow")) workflowTool.value = next;
   }
   function select(id: string | null, tab: IdeaDrawerTab = "overview") {
     selected.value = id;
@@ -214,6 +224,8 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     workflowStepSelection,
     workflowRequestSelection,
     streamTool,
+    workflowTool,
+    broadcastTool,
     setupStep,
     setupRequested,
     historySelection,
@@ -244,6 +256,8 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     notify,
     dismiss,
     navigate,
+    openStreamTool,
+    openWorkflowTool,
     select,
     mutate,
     dispose,

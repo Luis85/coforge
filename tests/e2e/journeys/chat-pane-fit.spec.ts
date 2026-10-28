@@ -32,4 +32,12 @@ test("keeps disconnected chat setup reachable in a short expanded board pane", a
   );
   await configure.click();
   await expect(page.locator(".cf-topbar strong")).toHaveText("Stream chat");
+  await expect(
+    page
+      .getByRole("navigation", { name: "Stream tools" })
+      .getByRole("button", { name: "Twitch settings", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    page.getByRole("region", { name: "Twitch channel controls" }),
+  ).toBeVisible();
 });

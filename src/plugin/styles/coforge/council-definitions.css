@@ -1,18 +1,18 @@
 .cf-council-definitions {
   display: grid;
-  gap: var(--size-4-4);
+  gap: var(--cf-space-md);
   min-width: 0;
 }
 .cf-council-definitions .cf-check {
   display: flex;
   align-items: center;
-  gap: var(--size-4-2);
-  margin-block: var(--size-4-2);
+  gap: var(--cf-space-sm);
+  margin-block: var(--cf-space-sm);
 }
 .cf-council-editor-layout {
   display: grid;
   grid-template-columns: minmax(150px, 1fr) minmax(0, 3fr);
-  gap: var(--size-4-4);
+  gap: var(--cf-space-md);
   align-items: start;
 }
 .cf-council-editor-layout fieldset {
@@ -25,7 +25,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
-  gap: var(--size-4-3);
+  gap: calc(var(--cf-space-xs) * 3);
 }
 .cf-council-definition-list,
 .cf-council-draft-list {
@@ -52,15 +52,15 @@
 .cf-council-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--size-4-3);
+  gap: calc(var(--cf-space-xs) * 3);
 }
 .cf-council-order {
-  padding-inline-start: var(--size-4-5);
+  padding-inline-start: calc(var(--cf-space-xs) * 5);
 }
 .cf-council-order li {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--size-4-2);
+  gap: var(--cf-space-sm);
   align-items: center;
 }
 .cf-council-order li span {
@@ -69,8 +69,8 @@
 }
 .cf-council-round {
   border-top: 1px solid var(--background-modifier-border);
-  margin-top: var(--size-4-5);
-  padding-top: var(--size-4-4);
+  margin-top: calc(var(--cf-space-xs) * 5);
+  padding-top: var(--cf-space-md);
 }
 .cf-council-definitions pre {
   white-space: pre-wrap;
@@ -78,7 +78,7 @@
   max-height: 30em;
   overflow-y: auto;
 }
-@media (max-width: 720px) {
+@container plugin-shell-leaf (max-width: 720px) {
   .cf-council-editor-layout,
   .cf-council-fields {
     grid-template-columns: minmax(0, 1fr);

@@ -5,7 +5,7 @@ import { InvocationGate } from "../../../features/coforge/application/invocation
 import { StudioService } from "../../../features/coforge/application/studio";
 import { createSeed } from "../../../features/coforge/domain/seed";
 import { MemoryStorage, nodeTimers } from "./memory-storage";
-export async function councilControlsFixture() {
+export async function councilControlsFixture(executor = true) {
   const app = new App();
   const kit = createTestApp({
     app,
@@ -40,7 +40,7 @@ export async function councilControlsFixture() {
     new InvocationGate(),
   );
   await module.start();
-  await module.actions.designateExecutor();
+  if (executor) await module.actions.designateExecutor();
   const projectId = studio.state().activeProjectId!;
   await module.actions.catalogue.save({
     schema: "agent/v1",

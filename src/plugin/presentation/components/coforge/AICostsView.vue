@@ -205,7 +205,7 @@ const model = useAICosts();
                   "
                   type="button"
                   class="cf-btn"
-                  :aria-label="`Edit cost for ${task.featureId} ${task.workflow?.stepName ?? task.stage} ${task.id}`"
+                  :aria-label="`${task.manualUsd === undefined ? 'Add cost' : 'Edit cost'} for ${task.featureId} ${task.workflow?.stepName ?? task.stage} ${task.id}`"
                   :disabled="model.store.busy"
                   @click="model.edit(task, $event)"
                 >

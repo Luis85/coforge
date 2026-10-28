@@ -24,6 +24,10 @@ for (const theme of ["light", "dark"])
       .click();
     await expect(monitor).toContainText("synthetic data");
     await expect(monitor).toContainText("54");
+    await page
+      .getByRole("navigation", { name: "Stream studio pages" })
+      .getByRole("button", { name: "Scenes", exact: true })
+      .click();
     const editor = page.locator(".cf-obs-scene-manager");
     await expect(
       editor.getByLabel("Scene to edit", { exact: true }),
@@ -129,22 +133,26 @@ for (const theme of ["light", "dark"])
         content: document.documentElement.scrollWidth,
       }));
       expect(size.content).toBeLessThanOrEqual(size.width);
-      await test
-        .info()
-        .attach(`live-monitor-${theme}-${width}`, {
-          body: await monitor.screenshot({
-            path: `reports/live-studio-scenes/monitor-${theme}-${width}.png`,
-          }),
-          contentType: "image/png",
-        });
-      await test
-        .info()
-        .attach(`scene-editor-${theme}-${width}`, {
-          body: await editor.screenshot({
-            path: `reports/live-studio-scenes/editor-${theme}-${width}.png`,
-          }),
-          contentType: "image/png",
-        });
+      await page
+        .getByRole("navigation", { name: "Stream studio pages" })
+        .getByRole("button", { name: "Broadcast", exact: true })
+        .click();
+      await test.info().attach(`live-monitor-${theme}-${width}`, {
+        body: await monitor.screenshot({
+          path: `reports/live-studio-scenes/monitor-${theme}-${width}.png`,
+        }),
+        contentType: "image/png",
+      });
+      await page
+        .getByRole("navigation", { name: "Stream studio pages" })
+        .getByRole("button", { name: "Scenes", exact: true })
+        .click();
+      await test.info().attach(`scene-editor-${theme}-${width}`, {
+        body: await editor.screenshot({
+          path: `reports/live-studio-scenes/editor-${theme}-${width}.png`,
+        }),
+        contentType: "image/png",
+      });
     }
     await editor
       .getByRole("button", { name: "Delete selected scene", exact: true })
@@ -166,6 +174,10 @@ for (const theme of ["light", "dark"])
         .getByLabel("Scene to edit", { exact: true })
         .locator("option:checked"),
     ).toContainText("program");
+    await page
+      .getByRole("navigation", { name: "Stream studio pages" })
+      .getByRole("button", { name: "Broadcast", exact: true })
+      .click();
     await expect(
       page.getByRole("button", { name: "Go live", exact: true }),
     ).toBeDisabled();

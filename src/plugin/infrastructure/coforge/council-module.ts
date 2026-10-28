@@ -1,5 +1,5 @@
 import { councilKernelHost } from "./council-kernel-host";
-import { startCouncilRuntimeLoop } from "./council-runtime-loop";
+import { startCouncilObservation } from "./council-runtime-loop";
 import { CouncilRunContext } from "./council-run-context";
 import { CouncilAdmissions } from "./council-admissions";
 import { createCouncilActions } from "./council-actions";
@@ -22,10 +22,7 @@ import { contextEventId } from "../../features/coforge/domain/integrity";
 
 import { FileExecutionJournal } from "./execution-journal-storage";
 import { CouncilStateStorage } from "./council-state-storage";
-import {
-  CouncilSourceNotes,
-  indexCouncilRunSources,
-} from "./council-source-notes";
+import { CouncilSourceNotes } from "./council-source-notes";
 
 import {
   DEFAULT_COUNCIL_FOLDERS,
@@ -38,7 +35,6 @@ import {
 import { CouncilInvocationHost } from "./council-invocation-host";
 import { CouncilMessagingModule } from "./council-messaging-module";
 import { CouncilWorkflowModule } from "./council-workflow-module";
-import { executionCostTasks } from "../../features/coforge/application/execution-costs";
 import type { IntakeFolderPolicy } from "../../features/coforge/domain/intake-bindings";
 import { CouncilWorkflowMessaging } from "./council-workflow-messaging";
 import { councilDefinitionConfiguration } from "./council-definition-configuration";
@@ -276,9 +272,6 @@ export class CouncilModule {
   private get executor(): boolean {
     return this.preferences.executorId === this.deviceId;
   }
-  costTasks() {
-    return executionCostTasks(this.runs(), this.studio.state().projects ?? []);
-  }
   privateFolders(): readonly string[] {
     return councilRegisteredPrivateFolders(
       this.studio.ready
@@ -364,26 +357,32 @@ export class CouncilModule {
     };
   }
   async start(): Promise<void> {
+    if (this.disposed) return;
     try {
       this.preferences = await this.storage.preferences();
+      if (this.disposed) return;
       this.ready = true;
       if (this.executor) await this.kernel.load();
       else this.secondaryRuns = (await this.journal.load()).runs;
-      await indexCouncilRunSources(this.plugin, this.sources, this.runs());
-      await this.intakeRuntime.watcher.configure(this.preferences.bindings);
-      this.stopLoop = startCouncilRuntimeLoop(
-        this.timers,
-        this.scheduler,
-        this.messaging.service,
-        this.intakeRuntime.watcher,
-        () => !this.disposed && this.executor,
-        () => {
+      if (this.disposed) return;
+      this.stopLoop = await startCouncilObservation({
+        plugin: this.plugin,
+        sources: this.sources,
+        runs: this.runs(),
+        bindings: this.preferences.bindings,
+        watcher: this.intakeRuntime.watcher,
+        timers: this.timers,
+        scheduler: this.scheduler,
+        messages: this.messaging.service,
+        disposed: () => this.disposed,
+        enabled: () => !this.disposed && this.executor,
+        failed: () => {
           this.error =
             "Message delivery or inbox reconciliation needs repair. Committed results remain retained.";
           this.publish();
         },
-      );
-
+      });
+      if (this.disposed) this.stopLoop();
       this.publish();
     } catch {
       this.ready = false;
@@ -394,6 +393,7 @@ export class CouncilModule {
   }
   async dispose(): Promise<void> {
     this.disposed = true;
+    this.ready = false;
     this.stopLoop?.();
     this.intakeRuntime.watcher.dispose();
     this.scheduler.dispose();

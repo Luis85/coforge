@@ -1,5 +1,3 @@
-.cf-population-page, .cf-operations-page { padding: 28px; min-width: 0; }
-.cf-community-settings-page { padding: 28px; min-width: 0; max-width: 1100px; }
 .cf-community-settings-page h2 { font-size: 17px; color: var(--cf-text); }
 .cf-community-settings-page p { font-size: 12px; line-height: 1.7; color: var(--cf-muted); margin: 10px 0; }
 .cf-community-settings-form > section { padding: 22px 0; border-bottom: 1px solid var(--cf-border); }
@@ -60,8 +58,6 @@
 .cf-stream-message-text { color: var(--cf-text) !important; white-space: pre-wrap; overflow-wrap: anywhere; }
 @container plugin-shell-leaf (max-width: 1150px) { .cf-population-layout { grid-template-columns: minmax(0, 1fr); } }
 @container plugin-shell-leaf (max-width: 600px) {
-  .cf-population-page, .cf-operations-page { padding: 22px 14px; }
-  .cf-community-settings-page { padding: 22px 14px; }
   .cf-operation-groups { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .cf-rank-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .cf-population-toolbar { gap: 14px; }
