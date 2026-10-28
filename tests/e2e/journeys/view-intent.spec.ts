@@ -319,6 +319,14 @@ test("task navigation keeps the board first and settings reachable in a short pa
     .focus();
   await page.keyboard.press("Enter");
   await expect(page.locator(".cf-operations-page")).toBeVisible();
+  await page.setViewportSize({ width: 800, height: 700 });
+  const captions = navigation.locator(".cf-nav-group-label");
+  await expect(captions).toHaveCount(4);
+  for (let index = 0; index < 4; index++)
+    await expect(captions.nth(index)).toBeHidden();
+  await expect(navigation.getByRole("button").first()).toHaveAccessibleName(
+    /Idea board/,
+  );
 });
 
 test("an empty viewer directory gives a working path to connect chat", async ({

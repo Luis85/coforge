@@ -64,6 +64,7 @@ confirmation includes both themes. Setup has all five steps plus narrow review.
 | --- | --- | --- |
 | Flat navigation mixed live operation, development, community and records | Finding a task required scanning unrelated destinations | Grouped Build, Stream, Community and Insights; preserved labels/landmark and put Idea board first |
 | Generated outer-workbench nav styles leaked a 12rem basis/column into nested controls | New sidebar scrolling could hide destinations despite free space; tabs/pagination could inherit the wrong layout | Explicit owned sidebar flex policy and a minimal inner-nav reset; geometry test keeps footer tools reachable and removes blank navigation space |
+| Native intermediate-width icon rail still displayed clipped group captions | Narrow native leaves looked unfinished despite correct navigation | Caption hiding now uses the same 1030px breakpoint as the icon rail; medium-width accessible-name regression added |
 | Several entry headings described content vaguely | View purpose was unclear, especially Channel/Community/Operations | Short task-specific goal lines; concrete recognition/troubleshooting wording; no new mission banners |
 | Workflow headings clipped automation controls at 360px | The control and title competed with Configure step | Narrow two-row grid preserves title, action and toggle; full reflow assertions pass |
 | Context menu content escaped `.ps--coforge` into the body | Menu was transparent, unthemed and an inline list of buttons | Nuxt/Reka receives the card's owner-document portal root; explicit vertical surface/group/item styles, collision bounds and readable descriptions |
@@ -98,6 +99,10 @@ mandatory human review and backend action gates.
 - Final mechanical detector over changed UI targets: `[]`.
 - Parent runs the mandatory full project, browser, UI-quality, gallery and contained
   native-Obsidian gates after integration; their final-head results belong in the PR.
+- Initial native integration passed 15/16 cases, including fresh windows, menu and
+  status clearance. The step-configuration fixture inspected files before asynchronous
+  creation completed; it now waits for the successful project UI acknowledgement.
+  Native evidence also exposed the intermediate-width caption clipping corrected above.
 
 Screenshots and DOM checks do not prove full screen-reader compliance. No personal
 vault, live Twitch mutation, paid agent dispatch, OBS broadcast or actual audio

@@ -38,6 +38,9 @@ describe("Project step agents in the contained vault", () => {
     await view
       .getByRole("button", { name: "Create project", exact: true })
       .click();
+    await browserExpect(view.locator(".cf-project-switcher")).toContainText(
+      "Contained step-agent project",
+    );
     const original = await obsidian.eval(async ({ app }) => {
       const file = app.vault
         .getMarkdownFiles()

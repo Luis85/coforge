@@ -1,6 +1,14 @@
 /* Task groups stay separate from private settings; short panes scroll destinations, not fixed tools. */
-.ps--coforge .cf-studio .cf-main nav { flex: 0 1 auto; flex-direction: row; }
-.ps--coforge .cf-studio .cf-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.ps--coforge .cf-studio .cf-main nav {
+  flex: 0 1 auto;
+  flex-direction: row;
+}
+.ps--coforge .cf-studio .cf-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .ps--coforge .cf-sidebar {
   overflow: hidden;
 }
@@ -63,13 +71,15 @@
     display: block;
   }
 }
-@container plugin-shell-leaf (max-width: 600px) {
+@container plugin-shell-leaf (max-width: 1030px) {
   .ps--coforge .cf-nav-group-label {
     display: none;
   }
   .ps--coforge .cf-sidebar > nav {
     gap: 8px;
   }
+}
+@container plugin-shell-leaf (max-width: 600px) {
   .ps--coforge .cf-workflow-stage-heading {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
