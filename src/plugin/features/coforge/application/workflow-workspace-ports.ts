@@ -34,6 +34,7 @@ export interface WorkflowWorkspaceStorage {
 export interface WorkflowWorkspaceLease {
   id?: string;
   cwd: string;
+  validate?(): Promise<void>;
   capture(summary: string): Promise<Increment | undefined>;
   release(uncertain?: boolean): Promise<void>;
 }

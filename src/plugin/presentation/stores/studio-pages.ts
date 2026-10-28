@@ -13,6 +13,7 @@ export const COUNCIL_PAGES = [
   { id: "definitions", label: "Definitions" },
   { id: "submit", label: "Submit and preflight" },
   { id: "inboxes", label: "Watched inboxes" },
+  { id: "scheduler", label: "Task scheduler" },
   { id: "monitor", label: "Run monitor" },
   { id: "workflows", label: "Council workflows" },
   { id: "messages", label: "Team messages" },

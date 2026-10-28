@@ -51,12 +51,12 @@ export function ideaWorkflowAction(
   return {
     kind: "run",
     label: `${run?.state === "attention" ? "Retry" : run ? "Run" : "Start"} · ${step.name}`,
-    description: `${configuredAgentLabel(step)}. ${!run ? "Starts the saved workflow from its first step; prior legacy stages are not inferred." : "Uses this run’s captured definition."}`,
+    description: `${run?.external && step.kind === 'ai' ? 'External MCP client' : configuredAgentLabel(step)}. ${!run ? "Starts the saved workflow from its first step; prior legacy stages are not inferred." : "Uses this run’s captured definition."}`,
     blocked:
       step.kind === "ai"
         ? configuredStepProblem(step, project, runtime, idea, run)
         : "",
-    demo: step.kind === "ai" && step.provider === "demo",
+    demo: !run?.external && step.kind === "ai" && step.provider === "demo",
   };
 }
 export const ideaWorkflowActionIdentity = (

@@ -28,6 +28,7 @@ export interface WorkflowAttempt {
   inputs: string[]; startedAt: string; finishedAt?: string; jobId?: string; checkedIds?: string[]; note?: string; error?: string;
 }
 export interface WorkflowRun {
+  external?: boolean;
   id: string; ideaId: string; projectId: string; definition: WorkflowDefinition; proposalRevision: string; revision: number; cursor: number;
   state: 'ready' | 'running' | 'waiting-human' | 'attention' | 'finished' | 'awaiting-review' | 'stopped';
   attempts: WorkflowAttempt[]; artifacts: WorkflowArtifact[]; workspaceId?: string; activeAttemptId?: string;
@@ -41,7 +42,7 @@ export interface ConfiguredStepExecution {
 const string = text({ max: 4096 });
 const stringList = list(text({ max: 2000 }), { max: 100 });
 const screening = shape({ verdict: oneOf(['clear', 'flagged'] as const), reason: text({ min: 1, max: 3000 }), signals: list(text({ max: 500 }), { max: 20 }),
-  checkedAt: timestamp, provider: oneOf(['demo', 'claude', 'herdr'] as const) }, { strict: true });
+  checkedAt: timestamp, provider: oneOf(['demo', 'claude', 'herdr', 'mcp'] as const) }, { strict: true });
 const rice = shape({ reach: number({ integer: true, min: 1, max: 1000000 }), impact: oneOf([0.25, 0.5, 1, 2, 3] as const), confidence: number({ min: 0.05, max: 1 }),
   effort: number({ min: 0.25, max: 365 }), rationale: text({ min: 1, max: 6000 }), score: number({ min: 0, max: 1000000000000 }) }, { strict: true });
 const plan = shape({ summary: text({ min: 1, max: 4000 }), steps: list(text({ min: 1, max: 2000 }), { min: 1, max: 24 }),
@@ -67,6 +68,7 @@ const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: 
   status: oneOf(['queued', 'running', 'waiting-human', 'succeeded', 'failed', 'cancelled'] as const), inputs: list(workflowIdCheck, { max: 200 }), startedAt: timestamp,
   finishedAt: optional(timestamp), jobId: optional(workflowIdCheck), checkedIds: optional(list(workflowIdCheck, { max: 40 })), note: optional(text({ max: 3000 })), error: optional(text({ max: 4000 })) }, { strict: true });
 const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: workflowIdCheck, definition: workflowDefinitionCheck, proposalRevision: workflowIdCheck,
+  external: optional(boolean),
   revision: number({ integer: true, min: 0, max: Number.MAX_SAFE_INTEGER }), cursor: number({ integer: true, min: 0, max: 40 }),
   state: oneOf(['ready', 'running', 'waiting-human', 'attention', 'finished', 'awaiting-review', 'stopped'] as const), attempts: list(attempt, { max: 100 }), artifacts: list(workflowArtifactCheck, { max: 200 }),
   workspaceId: optional(workflowIdCheck), activeAttemptId: optional(workflowIdCheck), createdAt: timestamp, updatedAt: timestamp, error: optional(text({ max: 4000 })), invalidatedArtifactIds: optional(list(workflowIdCheck, { max: 200 })),

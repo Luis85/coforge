@@ -68,7 +68,7 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
+export interface EngineOptions { runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
 
 /** One worker, a FIFO queue of at most 50 jobs, optional timed automation and explicit cancellation. */
 export class WorkflowEngine {
@@ -84,6 +84,7 @@ export class WorkflowEngine {
     this.configured = new ConfiguredWorkflowEngine(store, { runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
   }
   async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }
+  async startMcpWorkflow(ideaId: string) { const run = await this.configured.start(ideaId, true, undefined, true); this.kick(); return run; }
   async startWorkflowFromPlan(ideaId: string, handoff: WorkflowPlanHandoff) { const run = await this.configured.start(ideaId, true, handoff); this.kick(); return run; }
   async runWorkflowStep(ideaId: string) { const run = await this.configured.next(ideaId); this.kick(); return run; }
   async completeWorkflowManual(ideaId: string, revision: number, checkedIds: string[], note = '') { const run = await this.configured.manual(ideaId, revision, checkedIds, note); this.kick(); return run; }
@@ -246,6 +247,7 @@ export class WorkflowEngine {
       const job = state.jobs.find(j => j.id === next.id);
       const idea = state.ideas.find(i => i.id === next.ideaId);
       if (!job || job.status !== 'queued') return null;
+      if (job.provider === 'mcp') throw new Error('MCP attempts require a configured workflow.');
       if (!idea) throw new Error('The idea was removed before its run started.');
       const projectId = next.projectId ?? ideaProjectId(idea);
       if (ideaProjectId(idea) !== projectId) throw new Error('The idea moved to another project before its run started.');

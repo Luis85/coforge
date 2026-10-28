@@ -2,6 +2,7 @@
 import { usePluginSettings } from "../../composables/coforge/use-plugin-settings";
 import CfIcon from "./CfIcon.vue";
 import PluginSettingsClaude from "./PluginSettingsClaude.vue";
+import PluginSettingsMcp from "./PluginSettingsMcp.vue";
 import PluginSettingsRow from "./PluginSettingsRow.vue";
 import PluginSettingsTwitch from "./PluginSettingsTwitch.vue";
 import PluginSettingsWebsite from "./PluginSettingsWebsite.vue";
@@ -53,6 +54,7 @@ const model = usePluginSettings();
         />
       </PluginSettingsRow>
       <PluginSettingsClaude />
+      <PluginSettingsMcp />
       <PluginSettingsTwitch />
       <PluginSettingsWebsite />
       <div class="cf-plugin-settings-save">

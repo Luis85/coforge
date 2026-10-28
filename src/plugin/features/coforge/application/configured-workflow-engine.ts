@@ -13,7 +13,7 @@ import { attachWorkflowPlan, type WorkflowPlanHandoff } from './workflow-plan-ha
 import { appendWorkflowArtifact, applyConfiguredOutput, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
 
 interface ConfiguredHost {
-  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner };
+  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   cost(id: string, value: number): Promise<void>; usage(id: string, value: StageUsage): Promise<void>;
 }
 const time = () => new Date().toISOString();
@@ -40,6 +40,7 @@ export class ConfiguredWorkflowEngine {
     const idea = configuredIdea(state, ideaId);
     const run = idea.workflowRun;
     if (!run || run.state !== 'ready' || workflowProposalRevision(idea) !== run.proposalRevision) throw new Error('Start a fresh workflow for this request revision.');
+    if (run.external && !explicit) return null;
     if (state.jobs.some(job => job.ideaId === ideaId && isActiveJob(job))) throw new Error('This request already has an active attempt.');
     const step = run.definition.steps[run.cursor];
     if (!step) { finish(state, ideaId); return null; }
@@ -56,21 +57,22 @@ export class ConfiguredWorkflowEngine {
       recordOperation(state, 'workflow-manual-waiting', 'committed', undefined, 1, id);
       return null;
     }
-    configuredRuntime(state, idea, step);
-    if (!this.host.runners[step.provider]) throw new Error('This step’s selected provider is unavailable.');
+    const provider = run.external ? 'mcp' : step.provider;
+    configuredRuntime(state, idea, step, run.external);
+    if (!this.host.runners[provider]) throw new Error('This step’s selected provider is unavailable.');
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
     const inputs = configuredInputs(run, step);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
       attemptId: id, step: structuredClone(step), inputArtifacts: structuredClone(inputs), ...(run.workspaceId ? { workspaceId: run.workspaceId } : {}) };
-    const job: AgentJob = { id: crypto.randomUUID(), ideaId, projectId: run.projectId, stage: compatibilityStage(step.output), provider: step.provider,
-      model: step.model, ...(step.provider === 'herdr' ? { herdrAgent: step.herdrAgent ?? 'claude' } : {}), workflow: snapshot,
+    const job: AgentJob = { id: crypto.randomUUID(), ideaId, projectId: run.projectId, stage: compatibilityStage(step.output), provider,
+      ...(!run.external ? { model: step.model, ...(step.provider === 'herdr' ? { herdrAgent: step.herdrAgent ?? 'claude' } : {}) } : {}), workflow: snapshot,
       status: 'queued', startedAt: at, logs: [`${step.name} queued.`] };
     run.attempts.push({ id, stepId: step.id, stepName: step.name, kind: 'ai', status: 'queued', jobId: job.id, inputs: inputs.map(item => item.id), startedAt: at });
     run.activeAttemptId = id; run.state = 'running'; touch(run);
     state.jobs.push(job); delete idea.lastError; recordOperation(state, 'job-queued', 'none', undefined, 1, job.id);
     return job;
   }
-  async start(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff): Promise<WorkflowRun> {
+  async start(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff, external = false): Promise<WorkflowRun> {
     await this.store.transaction(state => {
       const idea = configuredIdea(state, ideaId);
       const projectId = ideaProjectId(idea);
@@ -86,6 +88,7 @@ export class ConfiguredWorkflowEngine {
       const project = findProject(state, projectId);
       const at = time();
       idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition: workflowDefinition(settings),
+        ...(external ? { external: true } : {}),
         proposalRevision: workflowProposalRevision(idea), revision: 0, cursor: 0, state: 'ready', attempts: [], artifacts: [], createdAt: at, updatedAt: at,
         projectContext: { name: settings.projectName, brief: settings.projectBrief, agentPrompt: settings.agentPrompt, projectPath: project.projectPath, worktreeFolder: project.worktreeFolder } };
       if (handoff) attachWorkflowPlan(idea.workflowRun, handoff, () => crypto.randomUUID());
@@ -176,7 +179,7 @@ export class ConfiguredWorkflowEngine {
       const current = state.jobs.find(item => item.id === job.id);
       if (!current || current.status !== 'queued') return null;
       const { idea, run, attempt, snapshot } = configuredAttempt(state, current);
-      configuredRuntime(state, idea, snapshot.step);
+      configuredRuntime(state, idea, snapshot.step, run.external);
       const project = findProject(state, run.projectId);
       if (run.projectContext && (run.projectContext.projectPath !== project.projectPath || run.projectContext.worktreeFolder !== project.worktreeFolder)) throw new Error('This run’s project directory changed. Stop and start a fresh workflow.');
       current.status = 'running'; current.startedAt = time(); attempt.status = 'running'; attempt.startedAt = current.startedAt; touch(run);
@@ -187,7 +190,7 @@ export class ConfiguredWorkflowEngine {
     });
     if (!input) return;
     signal.throwIfAborted();
-    const runner = this.host.runners[input.workflow.step.provider];
+    const runner = this.host.runners[job.provider];
     if (!runner) throw new Error('The configured workflow runner is unavailable.');
     const payload: StageInput = { ...input, onUsage: cost => this.host.cost(job.id, cost), onTokenUsage: usage => this.host.usage(job.id, usage),
       onWorkspace: async workspaceId => { await this.store.transaction(state => {

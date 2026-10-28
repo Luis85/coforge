@@ -1,0 +1,101 @@
+// @vitest-environment happy-dom
+import { execFile } from 'node:child_process';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, expect, it, vi } from 'vitest';
+vi.mock('obsidian', () => import('@test/obsidian'));
+import { App, Plugin } from 'obsidian';
+import { createTestApp } from '@test/obsidian';
+import { McpModule } from '../../../infrastructure/coforge/mcp-module';
+import { McpStepRunner } from '../../../features/coforge/application/mcp-step-runner';
+import { StudioService } from '../../../features/coforge/application/studio';
+import { record } from '../../../features/coforge/domain/check';
+import { createSeed } from '../../../features/coforge/domain/seed';
+import { MemoryStorage, nodeTimers } from './memory-storage';
+
+const stops: Array<() => Promise<void>> = [];
+afterEach(async () => { for (const stop of stops.splice(0)) await stop(); });
+async function fixture() {
+  const root = await mkdtemp(join(tmpdir(), 'coforge-mcp-module-'));
+  const directory = join(root, 'plugin'); const project = join(root, 'game'); const userSettings = join(root, '.claude.json');
+  await mkdir(project);
+  const app = new App(); createTestApp({ app });
+  class TestPlugin extends Plugin {}
+  const plugin = new TestPlugin(app, { id: 'coforge', name: 'CoForge', version: '0.1.0', minAppVersion: '1.13.7', author: '', description: '' });
+  const timers = nodeTimers();
+  const studio = new StudioService(new MemoryStorage(createSeed()), { timers, runners: { demo: async () => ({}), claude: async () => ({}) },
+    probeRuntime: async () => ({ cliAvailable: false, projectPath: null, allowImplementation: false }) });
+  await studio.start(); await studio.updateProject({ projectPath: project });
+  const make = () => {
+    const runner = new McpStepRunner({ start: async () => {}, acknowledge: async (workspaceId, attemptId) => { acknowledged.push(`${workspaceId}:${attemptId}`); }, assertReviewable: async () => {}, acquire: async () => { throw new Error('Not used'); } }, timers);
+    return new McpModule(plugin, studio, runner, { directory, vaultPath: root, userSettings, checkNode: async () => {} });
+  };
+  const acknowledged: string[] = [];
+  const module = make(); await module.start();
+  stops.push(async () => { await module.dispose(); await studio.stop(); await rm(root, { recursive: true, force: true }); });
+  return { root, directory, project, userSettings, studio, module, make, acknowledged, projectId: studio.state().activeProjectId! };
+}
+it('activates both config scopes, serves the shipped stdio bridge, reloads safely and removes owned registrations', async () => {
+  const f = await fixture();
+  await writeFile(f.userSettings, JSON.stringify({ keep: true }));
+  await f.module.activate();
+  expect(f.module.status().active).toBe(true);
+  const project = record(JSON.parse(await readFile(join(f.root, '.mcp.json'), 'utf8')));
+  const servers = record(project.mcpServers);
+  const name = Object.keys(servers)[0]!;
+  const entry = record(servers[name]);
+  expect(name).not.toContain(f.projectId.toLowerCase());
+  await expect(readFile(join(f.project, '.mcp.json'), 'utf8')).rejects.toThrow();
+  const before = await readFile(join(f.root, '.mcp.json'), 'utf8');
+  await f.studio.createProject({ projectName: 'New game', projectBrief: 'A newly added project uses the existing MCP.', projectPath: join(f.root, 'new-game') });
+  expect(await readFile(join(f.root, '.mcp.json'), 'utf8')).toBe(before);
+  expect(JSON.stringify(entry)).not.toContain('token');
+  expect(record(JSON.parse(await readFile(f.userSettings, 'utf8')))).toMatchObject({ keep: true, mcpServers: servers });
+  const output = await new Promise<string>((resolve, reject) => {
+    const child = execFile(process.execPath, [join(f.directory, 'coforge-mcp-bridge.cjs'), join(f.directory, 'coforge-mcp-connection.json')], { windowsHide: true, timeout: 10000 }, (error, stdout) => { if (error) reject(error); else resolve(stdout); });
+    child.stdin?.end(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } } }) + '\n' + JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }) + '\n');
+  });
+  const responses = output.trim().split('\n').map(line => record(JSON.parse(line)));
+  expect(responses[0]).toMatchObject({ id: 1, result: { serverInfo: { name: 'coforge' } } });
+  expect(responses[1]).toMatchObject({ id: 2, result: { tools: expect.arrayContaining([expect.objectContaining({ name: 'coforge_submit_result' })]) } });
+  const closing = f.module.dispose();
+  expect(f.module.status().active).toBe(false);
+  await closing;
+  const stopped = record(JSON.parse(await readFile(join(f.directory, 'coforge-mcp-connection.json'), 'utf8')));
+  expect(stopped.token).toBe('');
+  const reloaded = f.make();
+  try {
+    await reloaded.start(); expect(reloaded.status().active).toBe(true);
+    await reloaded.deactivate(); expect(reloaded.status().active).toBe(false);
+    expect(record(JSON.parse(await readFile(f.userSettings, 'utf8')))).toEqual({ keep: true, mcpServers: {} });
+  } finally { await reloaded.dispose(); }
+});
+it('keeps pending activation inactive after interruption and needs no configuration rewrite for project directory changes', async () => {
+  const f = await fixture(); await f.module.activate(); await f.module.dispose();
+  const path = join(f.directory, 'coforge-mcp-settings.json');
+  const saved: unknown = JSON.parse(await readFile(path, 'utf8'));
+  record(record(saved).registration).phase = 'pending'; await writeFile(path, JSON.stringify(saved));
+  const next = f.make();
+  try {
+    await next.start(); expect(next.status().active).toBe(false);
+    await f.studio.updateProject({ projectPath: join(f.root, 'other') });
+    await next.activate(); expect(next.status().active).toBe(true);
+    expect(record(JSON.parse(await readFile(join(f.root, '.mcp.json'), 'utf8'))).mcpServers).toBeDefined();
+  } finally { await next.dispose(); }
+});
+it('requires a failed external attempt and persists explicit human workspace recovery without replay', async () => {
+  const f = await fixture(); await f.module.activate();
+  const { workflowDefinition } = await import('../../../features/coforge/domain/configured-workflow');
+  const definition = workflowDefinition(f.studio.state().settings);
+  const step = definition.steps.find(step => step.kind === 'ai')!;
+  if (step.kind !== 'ai') throw new Error('Expected AI step');
+  await f.studio.store.transaction(state => { state.jobs.push({ id: 'interrupted', ideaId: state.ideas[0]!.id, projectId: f.projectId, stage: 'implement', status: 'failed', provider: 'mcp', startedAt: new Date().toISOString(), logs: [],
+    workflow: { runId: 'run', definitionRevision: definition.revision, proposalRevision: 'proposal', attemptId: 'attempt', workspaceId: 'workspace', step, inputArtifacts: [] } }); });
+  expect(f.module.status().recovery).toHaveLength(1);
+  const before = f.studio.state().jobs.length;
+  await f.module.recover('interrupted');
+  expect(f.acknowledged).toEqual(['workspace:attempt']);
+  expect(f.module.status().recovery).toEqual([]);
+  expect(f.studio.state().jobs).toHaveLength(before);
+});

@@ -16,6 +16,7 @@ import { createFinancePreview } from './finance-preview';
 import { PublicStreamSource } from '../../src/plugin/features/coforge/application/stream-surface-source';
 import { createWorkspacePreview } from './workspace-preview';
 import { createCouncilPreview } from './council-preview';
+import { createTaskSchedulerPreview } from './task-scheduler-preview';
 
 /** Browser-only storage: the sample workspace in memory, nothing is persisted. */
 class PreviewStorage implements StudioStorage {
@@ -57,6 +58,7 @@ export function createPreviewCoforge(): CoforgeContext {
   let liveExample: StudioExample | undefined;
   let musicExample: ReturnType<typeof createMusicPreview> | undefined;
   let councilExample: ReturnType<typeof createCouncilPreview> | undefined;
+  let taskExample: ReturnType<typeof createTaskSchedulerPreview> | undefined;
   void studio.start().then(() => streamSource.start()).catch((error: unknown) => { failure = error instanceof Error ? error.message : String(error); });
   return {
     studio, startupError: () => failure, onNotice: () => () => undefined,
@@ -66,6 +68,7 @@ export function createPreviewCoforge(): CoforgeContext {
       previewSchedule: () => workspaceExample.schedule,
       previewFinance: () => financeExample,
       previewCouncil: () => councilExample ??= createCouncilPreview(studio.store, new URLSearchParams(window.location.search).get('council-review')),
+      previewTaskScheduler: () => taskExample ??= createTaskSchedulerPreview(councilExample ??= createCouncilPreview(studio.store)),
       previewHerdr: () => herdrExample,
       previewMusic: () => musicExample ??= createMusicPreview(),
       previewLiveStudio: () => liveExample ??= createLiveStudioPreview(studio.store),

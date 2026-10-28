@@ -52,7 +52,7 @@ export interface Timers {
 export interface StudioHost {
   privateFolders?(): readonly string[];
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;
-  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner };
+  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   timers: Timers;
   probeRuntime(integration: IntegrationSettings): Promise<Pick<RuntimeInfo, 'cliAvailable' | 'projectPath' | 'allowImplementation'>>;
   report?(error: Error): void;
@@ -62,6 +62,9 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  taskScheduler?: import('./task-scheduler-ports').TaskSchedulerActions;
+  previewTaskScheduler?(): import('./task-scheduler-ports').TaskSchedulerActions;
+  mcp?: import('./mcp-ports').McpActions;
   council?: import('./council-ports').CouncilActions;
   previewCouncil?(): import('./council-ports').CouncilActions;
   herdrWorkflows?: import('./herdr-workflow-ports').HerdrWorkflowActions;

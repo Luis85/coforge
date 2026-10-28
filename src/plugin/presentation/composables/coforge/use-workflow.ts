@@ -158,7 +158,7 @@ export function useWorkflow() {
         id: step.id,
         name: step.name,
         index: index + 1,
-        agent: configuredAgentLabel(step),
+        agent: run.value?.external && step.kind === 'ai' ? 'External MCP client' : configuredAgentLabel(step),
         current: Boolean(run.value && index === run.value.cursor),
         completed: Boolean(run.value && index < run.value.cursor),
         state:
