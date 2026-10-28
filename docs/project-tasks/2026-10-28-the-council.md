@@ -70,8 +70,9 @@ ship. Details and qualification limits are in `2026-10-28-the-council-review.md`
 
 ## Untested scope
 
-Native Obsidian tooling is not provisioned: both the dev-loop and new native spec
-attempt exited 1 without downloading or launching anything. The owner explicitly
-requested continuing with native verification unavailable. Live Claude/Herdr calls
+Local Obsidian tooling is not provisioned: both the local dev-loop and native spec
+attempt exited 1 without downloading or launching anything. The owner requested
+continuing locally; PR #27 subsequently enabled contained real-Obsidian and browser
+qualification on the GitHub runner before merge. Live Claude/Herdr calls
 were not made; deterministic and mocked transport evidence is not live-provider
 qualification. Checks currently use installed Node v24.20.0; `.nvmrc` requests v24.21.0.

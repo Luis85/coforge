@@ -37,14 +37,53 @@ export function useCouncilDefinitionDrafts(
   function select(entry: CouncilCatalogueEntry) {
     preserve();
     const projectId = project();
+    const cached = store.buffers[key(projectId, entry.definition.id)];
     apply(
-      store.buffers[key(projectId, entry.definition.id)] ?? {
-        projectId,
-        definition: entry.definition,
-        revision: entry.revision,
-        saved: JSON.stringify(entry.definition),
-      },
+      cached && JSON.stringify(cached.definition) !== cached.saved
+        ? cached
+        : {
+            projectId,
+            definition: entry.definition,
+            revision: entry.revision,
+            saved: JSON.stringify(entry.definition),
+          },
     );
+  }
+  function refresh(entries: readonly CouncilCatalogueEntry[]) {
+    const byId = new Map(entries.map((entry) => [entry.definition.id, entry]));
+    const canonical = (
+      entry: CouncilCatalogueEntry,
+      projectId: string,
+    ): CouncilDefinitionDraft => ({
+      projectId,
+      definition: structuredClone(toRaw(entry.definition)),
+      revision: entry.revision,
+      saved: JSON.stringify(entry.definition),
+    });
+    for (const [bufferKey, buffer] of Object.entries(store.buffers)) {
+      if (JSON.stringify(buffer.definition) !== buffer.saved) continue;
+      const current = byId.get(buffer.definition.id);
+      if (
+        current &&
+        (current.definition.schema === "agent/v1" ||
+          current.definition.projectId === buffer.projectId)
+      )
+        store.buffers[bufferKey] = canonical(current, buffer.projectId);
+      else delete store.buffers[bufferKey];
+    }
+    if (!store.draft || dirty.value) return;
+    const current = byId.get(store.draft.id);
+    if (
+      current &&
+      (current.definition.schema === "agent/v1" ||
+        current.definition.projectId === store.projectId)
+    )
+      apply(canonical(current, store.projectId));
+    else {
+      store.draft = null;
+      store.revision = undefined;
+      store.saved = "";
+    }
   }
   function fresh(definition: CouncilDefinitionDocument) {
     preserve();
@@ -137,6 +176,7 @@ export function useCouncilDefinitionDrafts(
     dirty,
     preserve,
     select,
+    refresh,
     fresh,
     switchProject,
     markSaved,

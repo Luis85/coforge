@@ -1,7 +1,7 @@
 {
   "format": "coforge-council-traceability/v1",
   "source": "docs/coforge/THE-COUNCIL-PRD.md",
-  "releaseStatus": "implemented-reviewed-automated-gates-passed-native-unverified",
+  "releaseStatus": "implemented-reviewed",
   "acceptedDecisions": [
     1,
     2,
@@ -598,12 +598,13 @@
     }
   ],
   "qualification": {
-    "nativeObsidian": "not-run: tooling is not provisioned; owner requested continuing without native verification",
+    "nativeObsidian": "Local runner not provisioned; contained native qualification on GitHub is tracked by PR #27 current-revision checks.",
     "liveProvider": "not-run: deterministic and mocked transport tests do not qualify a live provider",
     "finalProductReview": "completed: product P1-P8, security S1-S9, UX U1-U5 resolved in independent focused verdicts",
     "finalPolishingPass": "completed: fixes, regression tests, refreshed browser/recovery captures and scope-specific UX ship verdict",
     "repositoryGate": "npm run verify:project exit 0; nested check 5 passed/0 failed; production build and prototype embedding passed",
-    "uiQuality": "8 passed (48.3s); final gallery 40 reviewed captures; feature scenarios passed across final run and affected reruns"
+    "uiQuality": "8 passed (48.3s); final gallery 40 reviewed captures; feature scenarios passed across final run and affected reruns",
+    "pullRequestChecks": "https://github.com/Luis85/coforge/pull/27/checks"
   },
   "reviewReport": "docs/project-tasks/2026-10-28-the-council-review.md"
 }

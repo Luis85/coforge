@@ -228,6 +228,7 @@ export function useCouncilDefinitions(props: {
   const load = () =>
     action(async () => {
       snapshot(await props.catalogue.list());
+      drafts.refresh(catalogue.valid);
     });
   const setup = () =>
     action(async () => {
@@ -328,6 +329,7 @@ export function useCouncilDefinitions(props: {
     () => props.projectId,
     (id) => {
       drafts.switchProject(id);
+      drafts.refresh(catalogue.valid);
       store.preview = null;
     },
   );

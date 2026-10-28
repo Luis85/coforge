@@ -115,6 +115,81 @@ it("restores unsaved definition drafts through selection, creation, duplication 
   expect(name()).toBe("Dirty B");
   wrapper.unmount();
 });
+it("refreshes clean canonical drafts after external edits while preserving genuinely unsaved changes", async () => {
+  let definition: CouncilDefinitionDocument = {
+    schema: "agent/v1",
+    id: "external-agent",
+    name: "External reviewer",
+    enabled: true,
+    role: "Review",
+    instructions: "Original instructions.",
+    provider: "demo",
+    model: "sonnet",
+    contextSources: [],
+    requestedCapabilities: { project: "none", messaging: false },
+  };
+  const catalogue = new CouncilCatalogue({
+    scan: async () => ({
+      valid: [
+        {
+          definition: structuredClone(definition),
+          path: "Private/Moved.md",
+          revision: definitionRevision(definition),
+        },
+      ],
+      invalid: [],
+    }),
+    save: async () => undefined,
+    open: async () => undefined,
+  });
+  const wrapper = mount(CouncilDefinitions, {
+    props: { catalogue, projectId: "A" },
+    global: { plugins: [createPinia()] },
+  });
+  const click = async (name: string) => {
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text().startsWith(name))!
+      .trigger("click");
+    await flushPromises();
+  };
+  const instructions = () => {
+    const element = wrapper.get(
+      'textarea[aria-label="Agent instructions"]',
+    ).element;
+    if (!(element instanceof HTMLTextAreaElement))
+      throw new Error("Expected instructions.");
+    return element.value;
+  };
+  await flushPromises();
+  await click("External reviewer");
+  definition = {
+    ...definition,
+    instructions: "External canonical instructions.",
+  };
+  await click("Refresh definitions");
+  expect(instructions()).toBe("External canonical instructions.");
+  await click("Create agent");
+  definition = { ...definition, instructions: "Newer canonical instructions." };
+  await click("Refresh definitions");
+  await click("External reviewer");
+  expect(instructions()).toBe("Newer canonical instructions.");
+  await wrapper
+    .get('textarea[aria-label="Agent instructions"]')
+    .setValue("Unsaved local instructions.");
+  definition = {
+    ...definition,
+    instructions: "Latest canonical instructions.",
+  };
+  await click("Refresh definitions");
+  expect(instructions()).toBe("Unsaved local instructions.");
+  await click("Create agent");
+  await click("External reviewer");
+  expect(instructions()).toBe("Unsaved local instructions.");
+  await click("Discard draft");
+  expect(instructions()).toBe("Latest canonical instructions.");
+  wrapper.unmount();
+});
 it("explains Herdr unavailability while preserving an imported Herdr provider selection", async () => {
   const definition: CouncilDefinitionDocument = {
     schema: "agent/v1",

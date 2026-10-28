@@ -8,9 +8,10 @@ reviewers inspected product/PRD coverage; security, privacy and reliability; and
 UX, accessibility and operations. They reviewed actual files, fault-injection
 tests and all 20 Council light/dark/wide/narrow captures. No redesign was requested.
 
-Native Obsidian and live-provider qualification remain unavailable; the owner
-explicitly accepted continuing without native verification. Review findings below
-are code/behavior findings, separate from those qualification limits.
+Local native Obsidian and live-provider qualification were unavailable during
+implementation; the owner accepted that local limitation. PR #27 opts into the
+GitHub runner's contained native and browser checks before merge. Review findings
+below are code/behavior findings, separate from live-provider qualification.
 
 ## Findings and regression plan
 
@@ -89,3 +90,16 @@ binding and clears its activation state while retaining notes, runs and replay
 tombstones; its consequences are explained before confirmation.
 Explicit connection-profile IDs are resolved against supported provider bindings;
 unknown or mismatched enabled references cannot silently select the global CLI.
+
+## PR qualification
+
+PR #27 includes current `main` dependency updates. Its first full CI pass cleared
+the canonical and browser jobs; real Obsidian passed 20 of 21 cases and caught a
+clean-definition refresh defect in the new Council case. Clean cached editor
+buffers were being restored over external canonical changes. Refresh/selection
+now reconciles clean buffers from the latest note and preserves only genuinely
+unsaved edits. Six focused draft/editor/vault tests passed after the fix. The
+native test and its timeout/assertions remain unchanged.
+
+Current-revision canonical, browser, security and native checks are tracked at
+https://github.com/Luis85/coforge/pull/27/checks; merge requires them to pass.
