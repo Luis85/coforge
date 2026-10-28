@@ -7,8 +7,10 @@ export const WORKFLOW_HISTORY_LIMIT_BYTES = 8 * 1024 * 1024;
 export const WORKFLOW_MARKDOWN_LIMIT = 16000;
 export const WORKFLOW_ATTEMPT_RESERVE_BYTES = 512 * 1024;
 export function workflowSerializedSize(value: unknown): number {
+  const serialized = JSON.stringify(value) ?? '';
+  if (!/[^\u0020-\u007e]/u.test(serialized)) return serialized.length;
   let bytes = 0;
-  for (const char of JSON.stringify(value) ?? '') {
+  for (const char of serialized) {
     const code = char.charCodeAt(0);
     bytes += char.length === 2 ? 4 : code < 128 ? 1 : code < 2048 ? 2 : 3;
   }
@@ -44,6 +46,7 @@ const rice = shape({ reach: number({ integer: true, min: 1, max: 1000000 }), imp
   effort: number({ min: 0.25, max: 365 }), rationale: text({ min: 1, max: 6000 }), score: number({ min: 0, max: 1000000000000 }) }, { strict: true });
 const plan = shape({ summary: text({ min: 1, max: 4000 }), steps: list(text({ min: 1, max: 2000 }), { min: 1, max: 24 }),
   acceptanceCriteria: list(text({ min: 1, max: 2000 }), { min: 1, max: 20 }), risks: list(text({ min: 1, max: 2000 }), { max: 16 }), markdown: text({ max: 100000 }), createdAt: timestamp }, { strict: true });
+export const workflowPlanCheck = plan;
 const increment = shape({ summary: text({ min: 1, max: 6000 }), files: list(shape({ path: string, additions: number({ integer: true, min: 0 }), deletions: number({ integer: true, min: 0 }) }, { strict: true }), { max: 10000 }),
   tests: stringList, diff: text({ max: 200000 }), branch: optional(string), worktree: optional(string), commit: optional(string), createdAt: timestamp, simulated: boolean }, { strict: true });
 const artifact = shape({ id: workflowIdCheck, runId: workflowIdCheck, stepId: workflowIdCheck, attemptId: workflowIdCheck, proposalRevision: workflowIdCheck,

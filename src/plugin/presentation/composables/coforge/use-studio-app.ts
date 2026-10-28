@@ -10,6 +10,7 @@ import { workflowProviderSummary } from "./agent-labels";
 import { observeHostStatusInset } from "./host-status-inset";
 
 const VIEW_LABELS: Record<StudioView, string> = {
+  council: "The Council",
   board: "Idea board",
   stream: "Stream chat",
   workflow: "Agent workflow",
@@ -27,6 +28,7 @@ const VIEW_LABELS: Record<StudioView, string> = {
   "workflow-settings": "Workflow settings",
 };
 const NAV: Array<{ view: StudioView; label: string; icon: string }> = [
+  { view: "council", label: "The Council", icon: "users" },
   { view: "broadcast", label: "Stream studio", icon: "radio" },
   { view: "statistics", label: "Statistics", icon: "chart-line" },
   { view: "finance", label: "Finances", icon: "wallet" },

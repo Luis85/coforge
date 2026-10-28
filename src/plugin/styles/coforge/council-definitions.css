@@ -1,0 +1,86 @@
+.cf-council-definitions {
+  display: grid;
+  gap: var(--size-4-4);
+  min-width: 0;
+}
+.cf-council-definitions .cf-check {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  margin-block: var(--size-4-2);
+}
+.cf-council-editor-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(0, 3fr);
+  gap: var(--size-4-4);
+  align-items: start;
+}
+.cf-council-editor-layout fieldset {
+  min-width: 0;
+}
+.cf-council-editor-layout form {
+  min-width: 0;
+}
+.cf-council .cf-council-definitions .cf-council-editor-layout > nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: var(--size-4-3);
+}
+.cf-council-definition-list,
+.cf-council-draft-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.cf-council-definition-list .cf-btn,
+.cf-council-draft-list .cf-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  white-space: normal;
+  width: 100%;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.cf-council-definition-list [aria-current="true"] {
+  background: var(--background-modifier-hover);
+}
+.cf-council-definition-list small {
+  color: var(--text-muted);
+}
+.cf-council-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--size-4-3);
+}
+.cf-council-order {
+  padding-inline-start: var(--size-4-5);
+}
+.cf-council-order li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-4-2);
+  align-items: center;
+}
+.cf-council-order li span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.cf-council-round {
+  border-top: 1px solid var(--background-modifier-border);
+  margin-top: var(--size-4-5);
+  padding-top: var(--size-4-4);
+}
+.cf-council-definitions pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 30em;
+  overflow-y: auto;
+}
+@media (max-width: 720px) {
+  .cf-council-editor-layout,
+  .cf-council-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

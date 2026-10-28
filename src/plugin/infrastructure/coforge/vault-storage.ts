@@ -40,7 +40,7 @@ export class VaultStudioStorage implements StudioStorage {
   private readonly echoes = new Map<string, string[]>();
   private folder = defaultIntegration().ideasFolder;
   private readonly projects: VaultProjects;
-  constructor(private readonly plugin: Plugin) { this.projects = new VaultProjects(plugin); }
+  constructor(private readonly plugin: Plugin, private readonly privateFolders: () => readonly string[] = () => []) { this.projects = new VaultProjects(plugin); }
 
   projectFile(id: string): TFile | null { return this.projects.file(id); }
   watchProjects(onChange: (change: ProjectNoteChange) => void, onInvalid: (path: string) => void): void { this.projects.watch(onChange, onInvalid); }
@@ -54,7 +54,7 @@ export class VaultStudioStorage implements StudioStorage {
     const adapter = this.plugin.app.vault.adapter;
     const data: PersistedStudio | null = await adapter.exists(this.dataPath) ? parsePersistedStudio(JSON.parse(await adapter.read(this.dataPath))) : null;
     const integration = data?.integration ?? defaultIntegration();
-    const layout = validateFolderLayout(integration, [this.plugin.app.vault.configDir]);
+    const layout = validateFolderLayout(integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
     if (data) data.integration = { ...data.integration, ...layout };
     await protectPrivateData(this.plugin, layout);
     this.folder = layout.ideasFolder;
@@ -72,7 +72,7 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   async save(next: InternalState, previous: InternalState | null, options: SaveOptions = {}): Promise<void> {
-    const layout = validateFolderLayout(next.integration, [this.plugin.app.vault.configDir]);
+    const layout = validateFolderLayout(next.integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
     next.integration = { ...next.integration, ...layout };
     await protectPrivateData(this.plugin, layout);
     if (next.integration.ideasFolder !== this.folder) await this.moveFolder(next.integration.ideasFolder);

@@ -4,6 +4,7 @@ import { useStudioShell } from "./use-studio-app";
 
 type Group = "stream" | "build" | "community" | "insights";
 const DESTINATIONS: Record<StudioView, Group> = {
+  council: "build",
   broadcast: "stream",
   schedule: "stream",
   stream: "stream",
@@ -30,6 +31,7 @@ const ORDER: StudioView[] = [
   "board",
   "workflow",
   "workflow-settings",
+  "council",
   "broadcast",
   "schedule",
   "stream",

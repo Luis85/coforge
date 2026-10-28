@@ -28,10 +28,10 @@ function previousTime(text: string | null): string | null {
  * Nothing is committed or pushed: the streamer publishes by pushing the vault repository.
  */
 export class PublicSitePublisher {
-  constructor(private readonly plugin: Plugin, private readonly currentFolders?: () => VaultFolderLayout) {}
+  constructor(private readonly plugin: Plugin, private readonly currentFolders?: () => VaultFolderLayout, private readonly privateFolders: () => readonly string[] = () => []) {}
 
   private async layout(folder: string): Promise<VaultFolderLayout> {
-    const layout = validateFolderLayout({ ideasFolder: this.currentFolders?.().ideasFolder ?? DEFAULT_IDEAS_FOLDER, publicFolder: folder }, [this.plugin.app.vault.configDir]);
+    const layout = validateFolderLayout({ ideasFolder: this.currentFolders?.().ideasFolder ?? DEFAULT_IDEAS_FOLDER, publicFolder: folder }, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
     await protectPrivateData(this.plugin, layout);
     return layout;
   }

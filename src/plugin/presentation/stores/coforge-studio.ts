@@ -5,6 +5,7 @@ import { configurationProblem } from "./configuration-guard";
 import { projectIdeas as scopedIdeas } from "../../features/coforge/domain/projects";
 
 export type StudioView =
+  | "council"
   | "board"
   | "stream"
   | "workflow"

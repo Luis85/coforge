@@ -13,6 +13,7 @@ import { stageUsageCheck, hasTokenUsage, type StageUsage } from '../domain/ai-us
 import { workflowIntegrityKey } from './workflow-note-integrity';
 import { workflowProposalRevision } from '../domain/configured-workflow-run';
 import { ConfiguredWorkflowEngine } from './configured-workflow-engine';
+import type { WorkflowPlanHandoff } from './workflow-plan-handoff';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
@@ -83,6 +84,7 @@ export class WorkflowEngine {
     this.configured = new ConfiguredWorkflowEngine(store, { runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
   }
   async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }
+  async startWorkflowFromPlan(ideaId: string, handoff: WorkflowPlanHandoff) { const run = await this.configured.start(ideaId, true, handoff); this.kick(); return run; }
   async runWorkflowStep(ideaId: string) { const run = await this.configured.next(ideaId); this.kick(); return run; }
   async completeWorkflowManual(ideaId: string, revision: number, checkedIds: string[], note = '') { const run = await this.configured.manual(ideaId, revision, checkedIds, note); this.kick(); return run; }
   async stopWorkflow(ideaId: string) {
