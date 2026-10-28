@@ -9,6 +9,7 @@ const DESTINATIONS: Record<StudioView, Group> = {
   stream: "stream",
   board: "build",
   workflow: "build",
+  "workflow-settings": "build",
   projects: "build",
   settings: "build",
   community: "community",
@@ -28,6 +29,7 @@ const GROUPS: Array<{ id: Group; label: string }> = [
 const ORDER: StudioView[] = [
   "board",
   "workflow",
+  "workflow-settings",
   "broadcast",
   "schedule",
   "stream",

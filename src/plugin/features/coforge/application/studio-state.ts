@@ -6,6 +6,7 @@ import { copySettings, initialProject, INITIAL_PROJECT_ID, projectPaths } from "
 import type { Activity, Idea } from "../domain/types";
 import type { InternalState, LoadedStudio, NoteIdea } from "./ports";
 import { emptyPopulation } from "../domain/population";
+import { stopUntrustedWorkflow, workflowIntegrityKey, workflowMetadataFingerprint } from './workflow-note-integrity';
 
 export function addEvent(state: InternalState, type: Activity["type"], text: string, ideaId?: string): void {
   state.events.push({
@@ -127,6 +128,12 @@ export function enforceIntegrity(state: InternalState, external: ReadonlySet<str
   const quarantined: string[] = [];
   for (const idea of state.ideas) {
     if (external !== "all" && !external.has(idea.id)) continue;
+    const workflowKey = workflowIntegrityKey(idea);
+    if ((idea.workflowRun || idea.workflowHistory?.length || state.integrity[workflowKey]) && state.integrity[workflowKey] !== workflowMetadataFingerprint(idea)) {
+      stopUntrustedWorkflow(idea);
+      quarantined.push(idea.id);
+      addEvent(state, 'system', `${idea.id} has externally changed workflow progress. Inspect it and start a fresh workflow.`, idea.id);
+    }
     if (!needsVerification(idea) || state.integrity[idea.id] === ideaFingerprint(idea)) continue;
     quarantine(idea);
     quarantined.push(idea.id);
@@ -137,7 +144,13 @@ export function enforceIntegrity(state: InternalState, external: ReadonlySet<str
       idea.id,
     );
   }
-  state.integrity = Object.fromEntries(state.ideas.map((idea) => [idea.id, ideaFingerprint(idea)]));
+  const previousIntegrity = state.integrity;
+  state.integrity = Object.fromEntries(state.ideas.flatMap(idea => {
+    const key = workflowIntegrityKey(idea);
+    // Removing managed note fields must not turn configured code into unguarded legacy work.
+    const fingerprint = idea.workflowRun || idea.workflowHistory?.length ? workflowMetadataFingerprint(idea) : previousIntegrity[key];
+    return [[idea.id, ideaFingerprint(idea)], ...(fingerprint !== undefined ? [[key, fingerprint]] : [])];
+  }));
   return quarantined;
 }
 

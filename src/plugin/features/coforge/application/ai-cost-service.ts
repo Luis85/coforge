@@ -77,6 +77,7 @@ export class AICostService implements AICostActions {
               ...incoming,
               featureTitle: before.featureTitle || incoming.featureTitle,
               projectName: before.projectName || incoming.projectName,
+              ...(before.workflow ? { workflow: before.workflow } : {}),
               ...(incoming.usage
                 ? { usage: { ...before.usage, ...incoming.usage } }
                 : {}),

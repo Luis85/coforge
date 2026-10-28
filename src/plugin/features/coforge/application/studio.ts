@@ -20,6 +20,8 @@ import { defaultObsSettings, emptyObsState } from '../domain/obs';
 import { disconnectedTwitch } from '../domain/twitch';
 import { normalizeStagePrompts } from '../domain/stage-prompts';
 import { hasClaudeStages, normalizeStageAgents } from '../domain/stage-agents';
+import { projectHasPendingWorkflow, saveProjectWorkflow } from './workflow-configuration';
+import { validateFolderLayout } from '../domain/vault-folder-policy';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -30,7 +32,7 @@ export class StudioService {
   private readonly integrationListeners = new Set<(integration: IntegrationSettings) => void>();
   constructor(storage: StudioStorage, private readonly host: StudioHost) {
     this.store = new StudioStore(storage, host.events, host.observerFailed);
-    this.engine = new WorkflowEngine(this.store, { runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}) });
+    this.engine = new WorkflowEngine(this.store, { runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}), ...(host.assertWorkflowReviewable ? { assertWorkflowReviewable: host.assertWorkflowReviewable } : {}) });
   }
 
   async start(): Promise<{ invalidNotes: string[] }> {
@@ -86,6 +88,15 @@ export class StudioService {
   async selectProject(id: string): Promise<void> {
     await this.store.transaction(state => { selectProjectState(state, id); });
   }
+  async saveWorkflow(projectId: string, definition: unknown, expectedIdentity: string): Promise<StudioProject> {
+    const project = await saveProjectWorkflow(this.store, projectId, definition, expectedIdentity);
+    if (hasClaudeStages(project.settings)) await this.refreshRuntime();
+    return project;
+  }
+  startWorkflow(ideaId: string) { return this.engine.startWorkflow(ideaId); }
+  runWorkflowStep(ideaId: string) { return this.engine.runWorkflowStep(ideaId); }
+  completeWorkflowManual(ideaId: string, expectedRevision: number, checkedIds: string[], note = '') { return this.engine.completeWorkflowManual(ideaId, expectedRevision, checkedIds, note); }
+  stopWorkflow(ideaId: string) { return this.engine.stopWorkflow(ideaId); }
 
   async applyProjectNoteChange(change: { kind: 'upsert'; project: StudioProject } | { kind: 'remove'; id: string }): Promise<void> {
     const id = change.kind === 'upsert' ? change.project.id : change.id;
@@ -123,6 +134,7 @@ export class StudioService {
 
   async updateSettings(input: unknown): Promise<Settings> {
     const parsed = settingsPatch(input);
+    if (parsed.workflow !== undefined) throw new StudioError('Use Workflow settings to save a workflow with its source revision.', 409);
     const patch = {
       ...parsed,
       ...(parsed.stageAgents === undefined ? {} : { stageAgents: normalizeStageAgents(parsed.stageAgents) }),
@@ -131,6 +143,8 @@ export class StudioService {
       ...(parsed.projectBrief === undefined ? {} : { projectBrief: cleanText(parsed.projectBrief, 8000) }),
     };
     const settings = await this.store.transaction(state => {
+      if (Object.keys(patch).some(key => !['paused', 'automation'].includes(key)) && projectHasPendingWorkflow(state, state.activeProjectId))
+        throw new StudioError('Finish, stop or review this project’s workflow before changing project settings. Future definitions can be edited in Workflow settings.', 409);
       if ((patch.stagePrompts !== undefined || patch.agentPrompt !== undefined || patch.stageAgents !== undefined || patch.model !== undefined || patch.provider !== undefined)
         && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
         throw new StudioError('Finish or cancel queued runs before changing the provider, model or project prompts.', 409);
@@ -147,11 +161,12 @@ export class StudioService {
   async updateIntegration(input: unknown): Promise<IntegrationSettings> {
     const patch = integrationPatch(input);
     const integration = await this.store.transaction(state => {
+      validateFolderLayout({ ...state.integration, ...patch });
       if (patch.claudeBin && patch.claudeBin !== state.integration.claudeBin && state.jobs.some(isActiveJob))
         throw new StudioError('Finish or cancel all project runs before changing the Claude executable.', 409);
       if ((patch.projectPath !== undefined || patch.worktreeFolder !== undefined || patch.allowImplementation !== undefined)
-        && state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)))
-        throw new StudioError('Finish or cancel this project’s queued runs before editing its repository configuration.', 409);
+        && (state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)) || projectHasPendingWorkflow(state, state.activeProjectId)))
+        throw new StudioError('Finish or stop this project’s queued runs and workflow before editing its repository configuration.', 409);
       if (patch.ideasFolder && patch.ideasFolder !== state.integration.ideasFolder && state.jobs.some(isActiveJob))
         throw new StudioError('Finish or cancel queued runs before moving the ideas folder.', 409);
       state.integration = { ...state.integration, ...patch };
@@ -174,7 +189,10 @@ export class StudioService {
   /** Replaces the project with the illustrative sample workspace. Existing idea notes go to the vault trash. */
   async loadSample(): Promise<void> {
     const projectId = this.state().activeProjectId;
-    await this.store.transaction(state => { loadProjectSample(state); }, { replaceAll: true, replaceProjectId: projectId });
+    await this.store.transaction(state => {
+      if (projectId && projectHasPendingWorkflow(state, projectId)) throw new StudioError('Finish, stop or review this project’s workflow before replacing its requests with examples.', 409);
+      loadProjectSample(state);
+    }, { replaceAll: true, replaceProjectId: projectId });
   }
 
   /** A readable private snapshot. Increments can contain source code and local paths. */

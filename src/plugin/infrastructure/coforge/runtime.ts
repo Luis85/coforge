@@ -29,6 +29,8 @@ import { herdrWorkflowReadiness } from '../../features/coforge/application/herdr
 import { HerdrWorkflowStateStorage } from './herdr-workflow-storage';
 import { LocalHerdrWorkflowGateway } from './herdr-workflow-gateway';
 import { LocalHerdrAttemptFiles } from './herdr-workflow-files';
+import { LocalWorkflowWorkspaces } from './workflow-workspaces';
+import { WorkflowWorkspaceStateStorage } from './workflow-workspace-storage';
 import { FinanceService } from '../../features/coforge/application/finance-service';
 import { VaultFinance } from './finance-storage';
 import { PublicStreamSource } from '../../features/coforge/application/stream-surface-source';
@@ -65,6 +67,7 @@ const request: HttpRequest = async ({ url, method, headers, body }) => {
 /** Composes CoForge for one plugin instance: vault storage, agent runners, Twitch intake and host actions. */
 export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => void, logger?: Pick<StructuredLogger, 'registerCatalog' | 'current' | 'correlation'>): CoforgeRuntime {
   const storage = new VaultStudioStorage(plugin);
+  const workspaces = new LocalWorkflowWorkspaces(new WorkflowWorkspaceStateStorage(plugin));
   const log = operationsLog(logger);
   const listeners = new Set<(notice: StudioNotice) => void>();
   const notify = (message: string, error = false) => { for (const listener of listeners) listener({ message, error }); };
@@ -73,11 +76,12 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     setInterval: (callback, ms) => window.setInterval(callback, ms), clearInterval: handle => window.clearInterval(handle),
   };
   const studio: StudioService = new StudioService(storage, {
-    runners: { demo: createDemoRunner(timers), claude: runClaudeStage, herdr: input => herdrWorkflows.run(input) }, timers, probeRuntime: probeClaude,
+    runners: { demo: createDemoRunner(timers), claude: input => runClaudeStage(input, workspaces), herdr: input => herdrWorkflows.run(input) }, timers, probeRuntime: probeClaude,
+    assertWorkflowReviewable: (id, increment) => workspaces.assertReviewable(id, increment),
     report: error => { report('coforge.workflow'); notify(error.message, true); },
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
-  const publisher = new PublicSitePublisher(plugin);
+  const publisher = new PublicSitePublisher(plugin, () => studio.integration());
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
   const stopStatusbar = mountNativeStatusbar(plugin, studio.store);
   const streamSource = new PublicStreamSource(studio.store);
@@ -94,7 +98,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const music = new MusicService(new VaultMusic(plugin), new LocalMusicPlayer(plugin.app.vault), code => studio.store.transaction(state => recordOperation(state, code)));
   const herdrAdmission = new HerdrAdmission();
   const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers, herdrAdmission);
-  const herdrWorkflows = new HerdrWorkflowService(studio.store, herdr, herdrAdmission, new HerdrWorkflowStateStorage(plugin), new LocalHerdrWorkflowGateway(), new LocalHerdrAttemptFiles(), timers);
+  const herdrWorkflows = new HerdrWorkflowService(studio.store, herdr, herdrAdmission, new HerdrWorkflowStateStorage(plugin), new LocalHerdrWorkflowGateway(), new LocalHerdrAttemptFiles(undefined, workspaces), timers);
   const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => studio.store.aiCostSnapshot(herdr.snapshot().records), timers);
   const liveMonitor = new LiveStudioMonitor(studio.store, { obs: () => obsAdapter.metrics(), twitch: () => twitch.liveViewers() }, timers);
   const streamHistory = new StreamHistoryStorage(plugin.app.vault.adapter);
@@ -170,6 +174,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       try { await protectPrivateData(plugin); ({ invalidNotes } = await studio.start()); }
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
       if (disposed) { await studio.stop(); return; }
+      await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));
       for (const path of invalidNotes) notify(`CoForge skipped an idea note with invalid properties: ${path}`, true);
       storage.watch(
         change => { void studio.applyNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },

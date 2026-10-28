@@ -2,11 +2,9 @@
 import { useWorkflow } from "../../composables/coforge/use-workflow";
 import CfIcon from "./CfIcon.vue";
 import WorkflowHistory from "./WorkflowHistory.vue";
-import WorkflowStages from "./WorkflowStages.vue";
-import WorkflowWorkbench from "./WorkflowWorkbench.vue";
+import ConfiguredWorkflowExecution from "./ConfiguredWorkflowExecution.vue";
 import HerdrPanel from "./HerdrPanel.vue";
 import HerdrWorkflowRecovery from "./HerdrWorkflowRecovery.vue";
-
 const model = useWorkflow();
 </script>
 <template>
@@ -15,56 +13,47 @@ const model = useWorkflow();
       <div>
         <h1>Agent workflow</h1>
         <p>
-          Configure each step, dispatch eligible requests and review every agent
-          attempt.
+          Run this project’s saved steps, complete human decisions and review
+          every attempt. Configure the process separately in Workflow settings.
         </p>
       </div>
       <div class="cf-workflow-inline cf-workflow-heading-actions">
         <button
           type="button"
           class="cf-btn cf-btn-secondary"
-          :disabled="!model.canRunNext"
-          title="Dispatch the next eligible idea from an enabled stage"
-          @click="model.runNext()"
+          @click="model.editWorkflow()"
         >
-          <CfIcon name="play" size="sm" /> Run next
-        </button>
-        <button
+          <CfIcon name="list-settings" size="sm" />Workflow settings</button
+        ><button
           type="button"
-          class="cf-btn"
-          :class="model.paused ? 'cf-btn-primary' : 'cf-btn-secondary'"
+          class="cf-btn cf-btn-secondary"
           :disabled="model.store.busy"
           @click="model.togglePause()"
         >
-          <CfIcon :name="model.paused ? 'play' : 'pause'" size="sm" />
-          {{ model.paused ? "Resume automation" : "Pause automation" }}
+          <CfIcon :name="model.paused ? 'play' : 'pause'" size="sm" />{{
+            model.paused ? "Resume automation" : "Pause automation"
+          }}
         </button>
       </div>
     </header>
-    <div v-if="model.error" class="cf-workflow-alert" role="alert">
-      <CfIcon name="circle-alert" />
-      <span>{{ model.error }}</span>
-    </div>
+    <p v-if="model.error" role="alert" class="cf-inline-error">
+      {{ model.error }}
+    </p>
     <div class="cf-workflow-summary">
       <span
         class="cf-workflow-live-dot"
         :class="{ 'is-paused': model.paused }"
-      />
-      <strong>{{ model.summaryLabel }}</strong>
-      <span>{{ model.enabledCount }} of 4 stages automated</span>
-      <span class="cf-workflow-dot-separator">·</span>
-      <span>Checks every {{ model.intervalSeconds }}s</span>
-      <span class="cf-workflow-mode-tag" :title="model.providerTitle">
-        <CfIcon :name="model.providerIcon" size="sm" />
-        {{ model.providerLabel }}
-      </span>
+      /><strong>{{ model.summaryLabel }}</strong
+      ><span>{{ model.enabledCount }} AI steps automatic</span
+      ><span>New automatic runs · {{ model.intervalSeconds }}s interval</span
+      ><span class="cf-workflow-mode-tag" :title="model.providerTitle"
+        ><CfIcon :name="model.providerIcon" size="sm" />{{
+          model.providerLabel
+        }}</span
+      >
     </div>
-    <div class="cf-workflow-layout">
-      <WorkflowStages :model="model" />
-      <WorkflowWorkbench :model="model" />
-    </div>
-    <HerdrWorkflowRecovery />
-    <WorkflowHistory :model="model" />
-    <HerdrPanel />
+    <ConfiguredWorkflowExecution :model="model" /><WorkflowHistory
+      :model="model"
+    /><HerdrWorkflowRecovery /><HerdrPanel />
   </div>
 </template>

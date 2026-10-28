@@ -174,20 +174,24 @@ describe("Streaming workspace in the contained vault", () => {
     await view
       .getByRole("button", { name: "Create project", exact: true })
       .click();
+    await browserExpect(view.locator(".cf-project-switcher")).toContainText(
+      "Contained prompt project",
+    );
     await view
-      .getByRole("button", { name: "Studio settings", exact: true })
+      .getByRole("button", { name: "Workflow settings", exact: true })
+      .first()
       .click();
     await view
-      .getByLabel("Workflow step", { exact: true })
-      .selectOption("screen");
-    await view
-      .getByLabel("Project stage prompt", { exact: true })
+      .getByLabel("Step instructions", { exact: true })
       .fill("CONTAINED_POLICY: explain project fit.");
     await view
-      .getByRole("button", { name: "Save settings", exact: true })
+      .getByRole("button", { name: "Save workflow", exact: true })
       .click();
     await browserExpect(
-      view.getByText("Settings saved", { exact: true }),
+      view.getByText(
+        "Workflow saved. New runs use this definition; existing runs retain their captured steps.",
+        { exact: true },
+      ),
     ).toBeVisible();
     await view.getByRole("button", { name: "Schedule", exact: true }).click();
     await view
@@ -224,7 +228,7 @@ describe("Streaming workspace in the contained vault", () => {
     expect(
       notes.projects.some(
         (note) =>
-          note.includes("agent-prompt-screen:") &&
+          note.includes("workflow-definition:") &&
           note.includes("CONTAINED_POLICY: explain project fit."),
       ),
     ).toBe(true);

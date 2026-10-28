@@ -25,6 +25,17 @@ export function collectCostTasks(
       startedAt: job.startedAt,
       ...(job.finishedAt ? { finishedAt: job.finishedAt } : {}),
       ...(job.model ? { model: job.model } : {}),
+      ...(job.workflow
+        ? {
+            workflow: {
+              runId: job.workflow.runId,
+              definitionRevision: job.workflow.definitionRevision,
+              stepId: job.workflow.step.id,
+              stepName: job.workflow.step.name,
+              attemptId: job.workflow.attemptId,
+            },
+          }
+        : {}),
       ...(job.costUsd !== undefined ? { reportedUsd: job.costUsd } : {}),
       ...(job.usage
         ? { usage: { ...job.usage }, usageSource: "provider" as const }

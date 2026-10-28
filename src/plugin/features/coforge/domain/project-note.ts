@@ -6,6 +6,8 @@ import { STAGES, type Settings, type StudioProject } from './types';
 import { settingsPatch } from './inputs';
 import { normalizeStagePrompts } from './stage-prompts';
 import { normalizeStageAgents, agentModelCheck, stageAgentsCheck } from './stage-agents';
+import { workflowDefinitionCheck } from './configured-workflow';
+import { restoreWorkflowNoteData, workflowNoteData } from './workflow-note-data';
 
 export const PROJECT_MARKER = 'coforge-project';
 const FIELDS = {
@@ -19,6 +21,7 @@ export const PROJECT_PROPERTIES = [
   ...STAGES.map(stage => `automation-${stage}`),
   ...STAGES.map(stage => `agent-prompt-${stage}`),
   'herdr-agent', ...STAGES.map(stage => `agent-herdr-agent-${stage}`),
+  'workflow-definition',
   ...STAGES.flatMap(stage => [`agent-provider-${stage}`, `agent-model-${stage}`]),
 ];
 const projectId = text({ min: 1, max: 80, pattern: /^CFP-\d{3,7}$/ });
@@ -51,6 +54,7 @@ export function projectProperties(project: StudioProject): Record<string, unknow
   }
   for (const stage of STAGES) result[`automation-${stage}`] = project.settings.automation[stage];
   if (project.settings.herdrAgent) result['herdr-agent'] = project.settings.herdrAgent;
+  if (project.settings.workflow) result['workflow-definition'] = workflowNoteData(workflowDefinitionCheck(project.settings.workflow));
   for (const stage of STAGES) if (project.settings.stagePrompts?.[stage]) result[`agent-prompt-${stage}`] = defangProperty(project.settings.stagePrompts[stage] ?? '');
   for (const stage of STAGES) {
     const agent = project.settings.stageAgents?.[stage];
@@ -71,6 +75,7 @@ export function parseProjectNote(value: unknown): StudioProject | null {
   if (properties.type !== PROJECT_MARKER) return null;
   const defaults = defaultSettings();
   const values: Record<string, unknown> = { ...defaults };
+  if (properties['workflow-definition'] !== undefined) values.workflow = workflowDefinitionCheck(restoreWorkflowNoteData(properties['workflow-definition']));
   if (properties['herdr-agent'] !== undefined) values.herdrAgent = properties['herdr-agent'];
   for (const [key, property] of Object.entries(FIELDS)) if (properties[property] !== undefined) values[key] = properties[property];
   values.projectName = cleanLine(text({ min: 1, max: 80 })(values.projectName), 80);

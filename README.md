@@ -2,8 +2,8 @@
 
 **A community game studio inside Obsidian.** Streamers build a game with their viewers and
 AI agents across multiple projects: viewers pitch ideas with `!request <project-id> <idea>` and support them with `!vote`; every idea
-gets a stable ID (`CF-101`), its own Markdown note, a screening verdict, an explained RICE
-score, an implementation plan, a reviewable increment and mandatory streamer review.
+gets a stable ID (`CF-101`) and its own Markdown note. The standard workflow adds screening,
+an explained RICE score, a plan and a reviewable increment. Actual code changes require streamer review.
 Accepted work earns the author community recognition and badges.
 
 This plugin is the Obsidian port of the CoForge local web prototype (React + Express),
@@ -12,8 +12,9 @@ rebuilt on the [obsidian-plugin-shell](https://github.com/Luis85/obsidian-plugin
 
 ## Use it
 
-See [Streaming workspace](docs/STREAMING-WORKSPACE.md) for public capture windows,
-project stage prompts, viewer context/CRM notes, AI costs and stream planning.
+See [Streaming workspace](docs/STREAMING-WORKSPACE.md) for public tabs/capture windows,
+viewer context/CRM notes, AI costs and stream planning. [Project workflows](docs/WORKFLOWS.md)
+explains the dedicated workflow editor, AI/manual steps and JSON import/export.
 
 1. Build (`npm ci`, `npm run build`) and copy `dist/main.js`, `dist/styles.css` and
    `manifest.json` into `<vault>/.obsidian/plugins/coforge/`, then enable **CoForge**.
@@ -25,9 +26,10 @@ project stage prompts, viewer context/CRM notes, AI costs and stream planning.
    Each has a stable project ID (`CFP-001`) and its own backlog, saved as Markdown notes in the vault.
 5. Try the loop: choose **Test commands locally**, send `!register`, then
    `!request CFP-001 Add a lantern`. Register another test viewer to vote, open the idea and run
-   **Screen → Score → Plan → Build** with the demo agents,
-   inspect the plan and increment, then accept it. Enable stages in **Agent workflow**
-   and resume automation for automatic progression (automation always starts paused).
+   the standard **Screen → Score → Plan → Build** workflow with demo agents in **Agent workflow**.
+   Meet each step's vote requirements, inspect the plan and increment, then accept it.
+   Edit automatic steps in **Workflow settings** and resume automation in the monitor
+   for automatic progression (automation always starts paused).
 
 For local development, `npm run build:local` builds and installs the plugin into this
 repository's `.obsidian/plugins/coforge/`. It does not use or create `.test-vault`.
@@ -44,8 +46,8 @@ Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume au
 | Operations | Safe structured diagnostics, cumulative statistics, bounded operational/reward history and explicit delivery outcomes |
 | Projects | Vault-backed project notes, separate backlogs and workspace paths (including outside the vault), metadata links and descriptions; requests require their parent project ID |
 | Ideas | One note per idea with properties for status, screening, RICE and plan; edits and deletions in the vault flow back into the studio |
-| Workflow | Screen → Score → Plan → Build, single worker, queue, pause/resume, run next, cancel, vote threshold, failure holds |
-| Agents | Clearly labelled demo agents, or the native Claude Code CLI (no tools for screening/scoring, read-only planning, builds in a separate Git worktree) |
+| Workflow | Per-project ordered AI/approval/checklist steps; replace/reorder core steps, typed outputs/access, JSON import/export, pinned runs, queue, pause/resume and recovery |
+| Agents | Simulation, native Claude Code or dedicated managed Herdr Claude agents; separate output/tool contracts, shared isolated run worktrees and retained per-step costs/tokens |
 | Review | Plan, diff and files, accept, request changes, archive, moderation override |
 | Recognition | Leaderboards, contributor profiles and seven badges computed from evidence |
 | Viewer website | Read-only, script-free board, leaderboards and badges in a vault folder, deployed to GitHub Pages from `main` by a workflow CoForge writes once |

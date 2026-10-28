@@ -20,6 +20,7 @@ const views = [
     ".cf-community-settings-page",
   ],
   ["14-project-settings", "Studio settings", ".cf-settings-page"],
+  ["14b-workflow-settings", "Workflow settings", ".cf-workflow-settings-page"],
 ] as const;
 for (const [step, label, selector] of views) {
   test(`view intent: ${label} remains usable at desktop and narrow widths`, async ({

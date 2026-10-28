@@ -4,15 +4,12 @@ import {
   STATUS_LABELS,
   type Idea,
 } from "../../../features/coforge/domain/types";
-import { workflowStageProblem } from "./workflow-readiness";
-import { stageAgent } from "../../../features/coforge/domain/stage-agents";
 import { ideaProjectId } from "../../../features/coforge/domain/projects";
+import { isActiveJob } from "../../../features/coforge/domain/workflow";
 import {
-  assertStage,
-  stageFor,
-  isActiveJob,
-} from "../../../features/coforge/domain/workflow";
-import { ideaFingerprint } from "../../../features/coforge/domain/integrity";
+  ideaWorkflowAction,
+  ideaWorkflowActionIdentity,
+} from "./idea-workflow-action";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
 const elementNode = (value: unknown): value is HTMLElement =>
@@ -41,55 +38,47 @@ export function useIdeaCardMenu(
       dropdownOpen.value = open;
       if (open) contextOpen.value = false;
     }
-    if (open) reviewed.value = ideaFingerprint(props.idea);
+    if (open)
+      reviewed.value = ideaWorkflowActionIdentity(props.idea, project.value);
   };
   const active = computed(() =>
     store.state?.jobs.some(
       (job) => job.ideaId === props.idea.id && isActiveJob(job),
     ),
   );
-  const nextAgent = computed(() => {
-    const stage = stageFor(props.idea);
-    const state = store.state;
-    const project = state?.projects?.find(
+  const project = computed(() =>
+    store.state?.projects?.find(
       (project) => project.id === ideaProjectId(props.idea),
-    );
-    if (!stage || !state || !project) return null;
-    return stageAgent(
-      project.id === state.activeProjectId ? state.settings : project.settings,
-      stage,
-    );
-  });
-  const reason = computed(() => {
-    if (store.busy || active.value)
-      return "A request action is already queued or running.";
-    const stage = stageFor(props.idea);
-    if (!stage) return "";
-    try {
-      assertStage(props.idea, stage);
-    } catch (error) {
-      return error instanceof Error
-        ? error.message
-        : "Required evidence is missing.";
+    ),
+  );
+  const nextAction = computed(() =>
+    ideaWorkflowAction(props.idea, project.value, store.state?.runtime),
+  );
+  const reason = computed(() =>
+    store.busy || active.value
+      ? "A request action is already queued or running."
+      : (nextAction.value?.blocked ?? ""),
+  );
+  const openWorkflow = () => {
+    const guard = store.configurationIssue("workflow");
+    if (guard) {
+      store.notify(guard, true);
+      return;
     }
-    const state = store.state;
-    const project = state?.projects?.find(
-      (project) => project.id === ideaProjectId(props.idea),
-    );
-    if (!project || project.unavailable)
-      return "Restore this project before dispatching work.";
-    const settings =
-      project.id === state?.activeProjectId ? state.settings : project.settings;
-    return workflowStageProblem(settings, stage, project, store.state?.runtime);
-  });
+    store.workflowRequestSelection = props.idea.id;
+    store.select(null);
+    store.navigate("workflow");
+  };
   const runStage = () => {
     const current = store.state?.ideas.find(
       (idea) => idea.id === props.idea.id,
     );
-    const stage = current && stageFor(current);
-    if (!current || !stage || ideaFingerprint(current) !== reviewed.value) {
+    if (
+      !current ||
+      ideaWorkflowActionIdentity(current, project.value) !== reviewed.value
+    ) {
       store.notify(
-        "This request changed. Reopen its action menu and review it again.",
+        "This request or workflow changed. Reopen its action menu and review it again.",
         true,
       );
       return;
@@ -98,7 +87,18 @@ export function useIdeaCardMenu(
       store.notify(reason.value, true);
       return;
     }
-    void actions.takeAction(current.id, stage);
+    if (nextAction.value?.kind === "open") {
+      openWorkflow();
+      return;
+    }
+    void actions.runWorkflowStep(current.id).then((ok) => {
+      if (
+        ok &&
+        store.state?.ideas.find((idea) => idea.id === current.id)?.workflowRun
+          ?.state === "waiting-human"
+      )
+        openWorkflow();
+    });
   };
   const copy = (text: string) => {
     if (!navigator.clipboard?.writeText) {
@@ -112,7 +112,7 @@ export function useIdeaCardMenu(
   };
   const items = computed<ContextMenuItem[][]>(() => {
     const idea = props.idea;
-    const stage = stageFor(idea);
+    const action = nextAction.value;
     const groups: ContextMenuItem[][] = [
       [
         { type: "label", label: `${idea.id} · ${STATUS_LABELS[idea.status]}` },
@@ -149,22 +149,13 @@ export function useIdeaCardMenu(
         },
       ],
     ];
-    if (stage)
+    if (action)
       groups.push([
-        { type: "label", label: "Next workflow step" },
+        { type: "label", label: "Configured workflow" },
         {
-          label: {
-            screen: "Screen request",
-            score: "Review and score",
-            plan: "Create implementation plan",
-            implement: "Build planned request",
-          }[stage],
-          description:
-            reason.value ||
-            (nextAgent.value && nextAgent.value.provider !== "demo"
-              ? `${nextAgent.value.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${nextAgent.value.model}`
-              : "Simulation · no model calls"),
-          icon: "i-lucide-play",
+          label: action.label,
+          description: reason.value || action.description,
+          icon: action.kind === "open" ? "i-lucide-workflow" : "i-lucide-play",
           disabled: Boolean(reason.value),
           onSelect: runStage,
         },
@@ -208,7 +199,7 @@ export function useIdeaCardMenu(
         {
           label: "Open agent workflow",
           icon: "i-lucide-workflow",
-          onSelect: () => store.navigate("workflow"),
+          onSelect: openWorkflow,
         },
       ]);
     return groups;

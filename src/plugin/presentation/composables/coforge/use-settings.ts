@@ -9,26 +9,9 @@ import {
   type InjectionKey,
 } from "vue";
 import { defaultSettings } from "../../../features/coforge/domain/seed";
-import { STAGES, STAGE_LABELS } from "../../../features/coforge/domain/types";
-import {
-  defaultStagePrompt,
-  normalizeStagePrompts,
-} from "../../../features/coforge/domain/stage-prompts";
-import {
-  stageInput,
-  stageSystemPrompt,
-} from "../../../features/coforge/application/agent-prompts";
 import { projectConfigurationIdentity } from "../../../features/coforge/domain/projects";
 import { useStudioShell } from "./use-studio-app";
 import {
-  copyStageAgentDrafts,
-  stageAgentDraftValues,
-  stageAgentOverrides,
-} from "../../stores/coforge-stage-agent-draft";
-import {
-  PROVIDERS,
-  RHYTHM,
-  LIMITS,
   pickSettingsDraft,
   validateSettingsDraft,
   type SettingsDraft,
@@ -58,11 +41,7 @@ function createSettings() {
   const expectedProjectId = ref(sourceProject.value?.id ?? "");
   const expectedConfiguration = ref(sourceIdentity.value);
   const expectedKey = ref(persistedKey.value);
-  const copyDraft = (value: SettingsDraft): SettingsDraft => ({
-    ...value,
-    stagePrompts: { ...value.stagePrompts },
-    stageAgents: copyStageAgentDrafts(value.stageAgents),
-  });
+  const copyDraft = (value: SettingsDraft): SettingsDraft => ({ ...value });
   const draft = reactive<SettingsDraft>(copyDraft(persisted.value));
   const error = ref("");
   const saved = ref(false);
@@ -74,7 +53,6 @@ function createSettings() {
   const staleMessage = () =>
     `Project settings changed outside this form. Your draft for ${expectedProjectId.value || "the original project"} is kept. Copy any edits you want to retain, then discard changes to load the latest settings before saving.`;
   const loadSource = () => {
-    delete draft.herdrAgent;
     Object.assign(draft, copyDraft(persisted.value));
     expectedKey.value = persistedKey.value;
     expectedProjectId.value = sourceProject.value?.id ?? "";
@@ -101,6 +79,17 @@ function createSettings() {
       saving.value ||
       store.projectJobs.some(
         (job) => job.status === "running" || job.status === "queued",
+      ) ||
+      store.projectIdeas.some(
+        (idea) =>
+          idea.workflowRun &&
+          [
+            "ready",
+            "running",
+            "waiting-human",
+            "attention",
+            "awaiting-review",
+          ].includes(idea.workflowRun.state),
       ),
   );
   const runtime = computed(() => store.state?.runtime);
@@ -132,11 +121,8 @@ function createSettings() {
     }
     const patch = {
       ...draft,
-      stageAgents: stageAgentOverrides(draft.stageAgents),
-      stagePrompts: normalizeStagePrompts(draft.stagePrompts),
       projectName: draft.projectName.trim(),
       projectBrief: draft.projectBrief.trim(),
-      model: draft.model.trim(),
     };
     saving.value = true;
     try {
@@ -191,74 +177,6 @@ function createSettings() {
     availableProject: computed(() =>
       Boolean(store.activeProject && !store.activeProject.unavailable),
     ),
-    promptStages: STAGES.map((stage) => ({
-      id: stage,
-      label: STAGE_LABELS[stage],
-    })),
-    stepAgent: computed(() => {
-      const entry = draft.stageAgents[store.promptStage];
-      return {
-        provider: entry.provider || draft.provider,
-        model: entry.model.trim() || draft.model.trim(),
-        herdrAgent: entry.herdrAgent || draft.herdrAgent || "claude",
-        providerInherited: !entry.provider,
-        modelInherited: !entry.model.trim(),
-      };
-    }),
-    effectiveStepLabel: computed(() => {
-      const entry = draft.stageAgents[store.promptStage];
-      const provider = entry.provider || draft.provider;
-      return provider === "demo"
-        ? "Simulation · no model call"
-        : `${provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${entry.model.trim() || draft.model.trim()}`;
-    }),
-    hasHerdrStep: computed(() =>
-      STAGES.some(
-        (stage) =>
-          (draft.stageAgents[stage].provider || draft.provider) === "herdr",
-      ),
-    ),
-    hasClaudeStep: computed(() =>
-      STAGES.some(
-        (stage) =>
-          (draft.stageAgents[stage].provider || draft.provider) === "claude",
-      ),
-    ),
-    defaultProviderLabel: computed(
-      () =>
-        PROVIDERS.find((provider) => provider.value === draft.provider)
-          ?.title ?? "Simulation",
-    ),
-    resetStepAgent: () => {
-      draft.stageAgents[store.promptStage] = { provider: "", model: "" };
-    },
-    promptOrigin: computed(() =>
-      normalizeStagePrompts(draft.stagePrompts)[store.promptStage]
-        ? "Project override"
-        : "Default prompt",
-    ),
-    promptSystem: computed(() => stageSystemPrompt(store.promptStage, draft)),
-    promptPayload: computed(() => {
-      const idea = store.projectIdeas.find(
-        (idea) => idea.id === store.promptPreviewIdea,
-      );
-      return idea
-        ? stageInput(store.promptStage, idea, {
-            ...(store.state?.settings ?? defaultSettings()),
-            ...draft,
-            stageAgents: stageAgentDraftValues(draft.stageAgents),
-          })
-        : draft.agentPrompt ||
-            "Choose a request to preview its full dispatch payload.";
-    }),
-    resetStagePrompt: () => {
-      draft.stagePrompts[store.promptStage] = defaultStagePrompt(
-        store.promptStage,
-      );
-    },
-    providers: PROVIDERS,
-    rhythm: RHYTHM,
-    limits: LIMITS,
     status: computed(() =>
       saved.value && !dirty.value ? "saved" : dirty.value ? "dirty" : "clean",
     ),

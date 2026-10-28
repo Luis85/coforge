@@ -1,6 +1,6 @@
 import { HerdrAdmission } from './herdr-admission';
 import type { HerdrActions } from './herdr-ports';
-import { herdrResultOutput, herdrSystemPrompt, herdrTaskPrompt } from './herdr-result';
+import { HerdrTaskPromptError, herdrResultOutput, herdrSystemPrompt, herdrTaskPrompt } from './herdr-result';
 import type { HerdrAttemptFiles, HerdrWorkflowActions, HerdrWorkflowGateway, HerdrWorkflowRecord, HerdrWorkflowState, HerdrWorkflowStorage } from './herdr-workflow-ports';
 import type { StageInput, StageResult, Timers } from './ports';
 import { recordOperation } from './population';
@@ -9,6 +9,8 @@ import { herdrReady, sameHerdrAgent } from '../domain/herdr';
 import { ideaFingerprint } from '../domain/integrity';
 import { ideaProjectId } from '../domain/projects';
 import { agentModelCheck } from '../domain/stage-agents';
+import { workflowProposalRevision } from '../domain/configured-workflow-run';
+import { executionAccess } from './workflow-execution';
 
 const terminal = (record: HerdrWorkflowRecord) => ['completed', 'reviewed'].includes(record.phase);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
@@ -73,7 +75,7 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
     const state = this.store.snapshot();
     const current = state.ideas.find(idea => idea.id === record.ideaId);
     const project = state.projects?.find(project => project.id === record.projectId);
-    if (!current || ideaFingerprint(current) !== record.fingerprint || !project || project.unavailable) throw attention();
+    if (!current || (record.workflow ? workflowProposalRevision(current) : ideaFingerprint(current)) !== record.fingerprint || !project || project.unavailable) throw attention();
   }
   private async save(record: HerdrWorkflowRecord, phase: HerdrWorkflowRecord['phase'], patch: Partial<HerdrWorkflowRecord> = {}): Promise<void> {
     const next = { ...record, ...patch, phase, updatedAt: new Date(this.clock.now()).toISOString() };
@@ -124,11 +126,12 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
         (original.settings.herdrAgent ?? 'claude') !== 'claude' || !Number.isInteger(original.settings.timeoutSeconds) || original.settings.timeoutSeconds < 15 || original.settings.timeoutSeconds > 1800)
       throw new Error('A captured Herdr job, supported agent and bounded deadline are required.');
     const controller = new AbortController();
-    const input = { ...original, signal: controller.signal, jobId: original.jobId, idea: structuredClone(original.idea), settings: structuredClone(original.settings), integration: structuredClone(original.integration) };
-    const model = agentModelCheck(input.settings.model);
+    const input = { ...original, ...(original.workflow ? { workflow: structuredClone(original.workflow) } : {}), signal: controller.signal, jobId: original.jobId, idea: structuredClone(original.idea), settings: structuredClone(original.settings), integration: structuredClone(original.integration) };
+    const model = agentModelCheck(input.workflow?.step.model ?? input.settings.model);
     const record: HerdrWorkflowRecord = {
       id: this.clock.id(), jobId: input.jobId, ideaId: input.idea.id, projectId: ideaProjectId(input.idea), stage: input.stage,
-      model, kind: 'claude', settings: structuredClone(this.manual.snapshot().settings), fingerprint: ideaFingerprint(input.idea),
+      model, kind: 'claude', settings: structuredClone(this.manual.snapshot().settings), fingerprint: input.workflow ? input.workflow.proposalRevision : ideaFingerprint(input.idea),
+      ...(input.workflow ? { workflow: structuredClone(input.workflow) } : {}),
       nonce: this.clock.id(), at: new Date(this.clock.now()).toISOString(), phase: 'preparing',
       projectPath: input.integration.projectPath, worktreeFolder: input.integration.worktreeFolder,
     };
@@ -143,11 +146,14 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
     this.state.error = '';
     this.publish();
     let area: Awaited<ReturnType<HerdrAttemptFiles['prepare']>> | undefined;
+    let externalUncertain = false;
+    let completed = false;
     try {
       this.check(input, deadline, record);
       await this.save(record, 'preparing');
       await this.event('herdr-action-requested', record.id);
       area = await this.bounded(controller.signal, () => this.files.prepare(input));
+      if (area.workspaceId) { record.workspaceId = area.workspaceId; if (record.workflow) record.workflow.workspaceId = area.workspaceId; }
       const systemPrompt = herdrSystemPrompt(input, area.resultPath);
       const prompt = herdrTaskPrompt(input, record, area.resultPath);
       this.check(input, deadline, record);
@@ -160,9 +166,10 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
       await this.save(record, 'workspace-created');
       this.check(input, deadline, record);
       await this.save(record, 'starting-agent');
+      externalUncertain = true;
       const started = await this.bounded(controller.signal, () => this.gateway.startAgent(record.settings, workspace.pane, {
         name: `cf-${record.id.replaceAll('-', '').slice(0, 24)}`, kind: 'claude', model, stage: input.stage,
-        resultPath: prepared.resultPath, systemPrompt, sessionId: input.jobId,
+        resultPath: prepared.resultPath, systemPrompt, sessionId: input.jobId, ...(input.workflow ? { access: executionAccess(input) } : {}),
       }, input.signal));
       Object.assign(record, { target: started.agent, launchArgv: started.argv });
       await this.save(record, 'agent-ready');
@@ -181,35 +188,47 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
         target = observed;
         this.check(input, deadline, record);
         busy ||= target.status === 'working';
+        if (target.status === 'working') externalUncertain = true;
         if (target.status === 'blocked' || !target.ready) throw attention();
         const advanced = baseline !== undefined && target.completionSeq !== undefined && target.completionSeq > baseline;
         if (herdrReady(target) && (busy || advanced)) {
+          externalUncertain = false;
+          await this.bounded(controller.signal, () => prepared.captureChanges?.() ?? Promise.resolve(undefined));
           const raw = await this.bounded(controller.signal, () => prepared.readResult());
           if (raw !== null) {
             const output = herdrResultOutput(raw, record);
             const result = await this.bounded(controller.signal, () => prepared.finish(output));
+            externalUncertain = true;
             const final = await this.bounded(controller.signal, () => this.gateway.inspectAgent(record.settings, target, input.signal));
             if (!herdrReady(final)) throw attention();
+            externalUncertain = false;
             this.check(input, deadline, record);
             record.target = final;
             await this.save(record, 'completed');
+            completed = true;
             await this.event('herdr-action-delivered', record.id).catch(() => {
               this.state.error = 'Herdr completed, but its operation log could not be updated. The verified workflow journal was preserved.';
               this.publish();
             });
-            return { ...(result.screening ? { screening: result.screening } : {}), ...(result.rice ? { rice: result.rice } : {}),
+            return { ...(result.markdown !== undefined ? { markdown: result.markdown } : {}), ...(result.summary !== undefined ? { summary: result.summary } : {}), ...(result.screening ? { screening: result.screening } : {}), ...(result.rice ? { rice: result.rice } : {}),
               ...(result.plan ? { plan: result.plan } : {}), ...(result.increment ? { increment: result.increment } : {}) };
           }
         }
         await this.pause(input.signal, Math.min(500, Math.max(1, deadline - this.clock.now())));
       }
-    } catch {
+    } catch (error) {
       await this.failed(record);
+      if (error instanceof HerdrTaskPromptError) {
+        this.state.error = `${error.message} ${attention().message}`;
+        this.publish();
+        throw new HerdrTaskPromptError(this.state.error);
+      }
       throw attention();
     } finally {
       this.timers.clearTimeout(deadlineTimer);
       original.signal?.removeEventListener('abort', abort);
       if (this.cancellation === controller) this.cancellation = undefined;
+      await area?.release?.(!completed && externalUncertain).catch(() => undefined);
       await area?.dispose().catch(() => undefined);
       this.state.busy = false;
       release();
@@ -241,6 +260,13 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
     return this.recover(id, async record => {
       if (!record.inspectedAt || this.clock.now() - Date.parse(record.inspectedAt) > 30000 || JSON.stringify(this.manual.snapshot().settings) !== JSON.stringify(record.settings))
         throw new Error('Inspect the original Herdr session before acknowledging this uncertain attempt.');
+      if (record.workspaceId) {
+        const current = this.manual.snapshot();
+        const target = record.target && current.observation?.agents.find(agent => agent.paneId === record.target?.paneId);
+        const reusable = !!current.checkedAt && this.clock.now() - Date.parse(current.checkedAt) <= 30000 && !!current.observation?.running && !!current.observation.compatible && !!target && !!record.target && sameHerdrAgent(target, record.target) && target.name === record.target.name && target.cwd === record.target.cwd && herdrReady(target);
+        if (!this.files.acknowledgeWorkspace) throw new Error('Workspace recovery is unavailable. Preserve the original attempt until it is restored.');
+        await this.files.acknowledgeWorkspace(record.workspaceId, record.workflow?.attemptId ?? record.jobId, reusable);
+      }
       await this.save(record, 'reviewed');
       await this.event('herdr-action-reviewed', record.id);
     });

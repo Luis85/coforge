@@ -35,10 +35,11 @@ function exactEditRule(path: string): string {
 
 /** Interactive flags only: Herdr does not enforce the native print runner's turn or spending caps. */
 export async function buildHerdrWorkflowArgs(cwd: string, profile: HerdrWorkflowProfile): Promise<string[]> {
+  const access = profile.access ?? (profile.stage === 'screen' || profile.stage === 'score' ? 'none' : profile.stage === 'plan' ? 'readproject' : 'editworktree');
   if (profile.kind !== 'claude' || !/^[a-z][a-z0-9_-]{0,31}$/u.test(profile.name) ||
       !/^[a-zA-Z0-9][a-zA-Z0-9._:/@+[\]-]{0,199}$/u.test(profile.model) ||
       (profile.sessionId !== undefined && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u.test(profile.sessionId)) ||
-      !['screen', 'score', 'plan', 'implement'].includes(profile.stage) || !isAbsolute(profile.resultPath)) throw invalid();
+      !['screen', 'score', 'plan', 'implement'].includes(profile.stage) || !['none', 'readproject', 'editworktree'].includes(access) || !isAbsolute(profile.resultPath)) throw invalid();
   const systemPrompt = profile.systemPrompt.replace(/\s+/gu, ' ').trim();
   if (!systemPrompt || systemPrompt.length > 20000 || /\p{Cc}/u.test(systemPrompt)) throw invalid();
   const [root, artifactParent] = await Promise.all([
@@ -47,18 +48,18 @@ export async function buildHerdrWorkflowArgs(cwd: string, profile: HerdrWorkflow
   const artifact = resolve(artifactParent, basename(profile.resultPath));
   const location = relative(root, artifact);
   const inside = !!location && location !== '..' && !location.startsWith(`..${sep}`) && !isAbsolute(location);
-  if (inside === (profile.stage === 'plan')) throw invalid();
+  if (inside === (access === 'readproject')) throw invalid();
   try { if ((await lstat(artifact)).isSymbolicLink()) throw invalid(); }
   catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw invalid(); }
   const writeResult = exactEditRule(artifact);
-  const classification = profile.stage === 'screen' || profile.stage === 'score';
-  const tools = classification ? 'Write' : profile.stage === 'plan' ? 'Read,Glob,Grep,Write' : 'Read,Glob,Grep,Edit,Write';
-  const allowed = classification ? writeResult : profile.stage === 'plan' ? `Read,Glob,Grep,${writeResult}` : tools;
+  const classification = access === 'none';
+  const tools = classification ? 'Write' : access === 'readproject' ? 'Read,Glob,Grep,Write' : 'Read,Glob,Grep,Edit,Write';
+  const allowed = classification ? writeResult : access === 'readproject' ? `Read,Glob,Grep,${writeResult}` : tools;
   return [
     '--restricted', '--safe-mode', '--no-chrome', '--setting-sources', '',
     '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
     '--tools', tools, '--allowedTools', allowed, '--disallowedTools', DENIED.join(','),
-    '--permission-mode', 'dontAsk', ...(profile.stage === 'plan' ? ['--add-dir', artifactParent] : []),
+    '--permission-mode', 'dontAsk', ...(access === 'readproject' ? ['--add-dir', artifactParent] : []),
     '--model', profile.model, ...(profile.sessionId ? ['--session-id', profile.sessionId] : []), '--system-prompt', systemPrompt,
   ];
 }

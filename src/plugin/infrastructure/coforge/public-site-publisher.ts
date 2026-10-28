@@ -7,6 +7,8 @@ import { renderPublicSite } from '../../features/coforge/domain/public-site';
 import { PUBLIC_SITE_CSS } from '../../features/coforge/domain/public-site-styles';
 import type { AppState } from '../../features/coforge/domain/types';
 import { captureProcess } from './process';
+import { DEFAULT_IDEAS_FOLDER, validateFolderLayout, type VaultFolderLayout } from '../../features/coforge/domain/vault-folder-policy';
+import { protectPrivateData } from './private-data-guard';
 
 export interface PublishResult { folder: string; changed: boolean }
 export interface WorkflowResult { workflow: string; folder: string; created: boolean }
@@ -26,10 +28,16 @@ function previousTime(text: string | null): string | null {
  * Nothing is committed or pushed: the streamer publishes by pushing the vault repository.
  */
 export class PublicSitePublisher {
-  constructor(private readonly plugin: Plugin) {}
+  constructor(private readonly plugin: Plugin, private readonly currentFolders?: () => VaultFolderLayout) {}
+
+  private async layout(folder: string): Promise<VaultFolderLayout> {
+    const layout = validateFolderLayout({ ideasFolder: this.currentFolders?.().ideasFolder ?? DEFAULT_IDEAS_FOLDER, publicFolder: folder }, [this.plugin.app.vault.configDir]);
+    await protectPrivateData(this.plugin, layout);
+    return layout;
+  }
 
   async publish(state: AppState, folder: string): Promise<PublishResult> {
-    const target = normalizePath(folder);
+    const target = (await this.layout(folder)).publicFolder;
     const adapter = this.plugin.app.vault.adapter;
     const read = async (name: string) => await adapter.exists(`${target}/${name}`) ? adapter.read(`${target}/${name}`) : null;
     const board = buildPublicBoard(state);
@@ -52,6 +60,7 @@ export class PublicSitePublisher {
 
   /** Writes the GitHub Pages workflow at the root of the Git repository that contains the vault. */
   async installWorkflow(folder: string): Promise<WorkflowResult> {
+    folder = (await this.layout(folder)).publicFolder;
     const adapter = this.plugin.app.vault.adapter;
     if (!(adapter instanceof FileSystemAdapter)) throw new Error('The viewer website setup needs the desktop app with a vault on disk.');
     const vaultPath = adapter.getBasePath();

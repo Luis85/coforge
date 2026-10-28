@@ -2,6 +2,8 @@ import { boolean, number, oneOf, optional, shape, text } from './check';
 import { CATEGORIES } from './types';
 import { stagePromptsCheck } from './stage-prompts';
 import { agentModelCheck, stageAgentsCheck } from './stage-agents';
+import { workflowDefinitionCheck } from './configured-workflow';
+import { normalizeVaultFolder } from './vault-folder-policy';
 
 const username = text({ trim: true, min: 1, max: 50 });
 
@@ -22,6 +24,7 @@ export const riceInput = shape({
 }, { strict: true });
 
 export const settingsPatch = shape({
+  workflow: optional(workflowDefinitionCheck),
   herdrAgent: optional(oneOf(['claude'] as const)),
   stageAgents: optional(stageAgentsCheck),
   stagePrompts: optional(stagePromptsCheck),
@@ -36,7 +39,7 @@ export const settingsPatch = shape({
   requestCooldownSeconds: optional(number({ integer: true, min: 0, max: 600 })),
 }, { strict: true });
 
-const folder = text({ trim: true, min: 1, max: 200, pattern: /^(?!\/)(?!.*\.\.)[^\\:*?"<>|]+$/ });
+const folder = normalizeVaultFolder;
 const pathText = text({ trim: true, max: 1000 });
 const twitchId = text({ trim: true, max: 100, pattern: /^[\w-]*$/ });
 

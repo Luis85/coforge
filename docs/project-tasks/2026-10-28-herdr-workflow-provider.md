@@ -1,6 +1,6 @@
 # Task: Run project workflow steps through Herdr
 
-- Status: implementation and validation in progress.
+- Status: done; merged in PR23 at 83b7d775598e41896c29b168b725c2a5302f34ec.
 - Base: main 964294312b8ee071c1424057f4d8e8c602050fea (PR22).
 - Traceability: BRIEF owner request; generated requirement/interaction arrays remain empty.
 
@@ -72,3 +72,7 @@ No live agent mutation, paid run or personal vault opening is authorized for QA.
   Contained Obsidian CI is required before merge.
 - Untested: a paid model invocation and actual streaming/OBS capture on the streamer's desktop. Herdr's initial
   workflow profile is Claude-only, with no trustworthy automatic Herdr costs/tokens or enforced interactive USD/turn caps.
+
+Final head 1d0364ca6bbee3097061135df56577c0c9836aab: CI project gate **5 passed, 0 failed, 0 skipped (114.1s)**;
+browser **88 passed (2.0m)**; native Obsidian **19 passed, 0 failed, 0 pending**; reload smoke **passed, errors []**.
+Dependency audit **0 vulnerabilities**, root installation verified, GitGuardian passed. Native public-tab styling reviewed.

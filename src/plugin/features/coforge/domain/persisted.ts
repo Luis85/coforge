@@ -6,6 +6,8 @@ import { populationCheck } from './population-check';
 import { stagePromptsCheck } from './stage-prompts';
 import { stageUsageCheck } from './ai-usage';
 import { stageAgentsCheck } from './stage-agents';
+import { workflowDefinitionCheck } from './configured-workflow';
+import { configuredStepExecutionCheck } from './configured-workflow-run';
 import type { AgentJob, AppState, Increment, IntegrationSettings, Settings } from './types';
 import { CONTRIBUTOR_COLORS } from './types';
 
@@ -29,6 +31,7 @@ const increment = shape({
   branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
 });
 const job: Check<AgentJob> = shape({
+  workflow: optional(configuredStepExecutionCheck),
   usage: optional(stageUsageCheck), herdrAgent: optional(oneOf(['claude'] as const)),
   model: optional(text({ max: 100 })),
   id: str, ideaId: str, stage, status: oneOf(['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const), provider,
@@ -36,6 +39,7 @@ const job: Check<AgentJob> = shape({
   projectId: optional(str),
 });
 export const settingsCheck: Check<Settings> = shape({
+  workflow: optional(workflowDefinitionCheck),
   herdrAgent: optional(oneOf(['claude'] as const)),
   stageAgents: optional(stageAgentsCheck),
   stagePrompts: optional(stagePromptsCheck),

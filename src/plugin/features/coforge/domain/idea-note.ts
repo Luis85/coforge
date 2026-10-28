@@ -3,6 +3,8 @@ import { cleanDeep, cleanLine, cleanText, defangProperty, escapeMarkdown, unesca
 import type { Idea } from './types';
 import { CATEGORIES, IDEA_STATUSES, planMarkdown } from './types';
 import { ideaContextsCheck, contextProperties } from './idea-context';
+import { workflowHistoryCheck, workflowRunCheck } from './configured-workflow-run';
+import { restoreWorkflowNoteData, workflowNoteData } from './workflow-note-data';
 
 /**
  * An idea note is canonical for the idea itself: identity, text, category, status and the saved
@@ -11,6 +13,7 @@ import { ideaContextsCheck, contextProperties } from './idea-context';
  */
 export const IDEA_MARKER = 'coforge-idea';
 export const OWNED_PROPERTIES = [
+  'workflow-run', 'workflow-history',
   'contexts',
   'type', 'id', 'coforge-project', 'coforge-kind', 'title', 'category', 'status', 'author', 'author-name', 'votes', 'created', 'updated',
   'screening', 'screening-reason', 'screening-signals', 'screening-checked', 'screening-provider',
@@ -27,6 +30,8 @@ export function ideaProperties(idea: Idea, authorName: string): Partial<Record<O
   if (idea.projectId) p['coforge-project'] = idea.projectId;
   if (idea.requestKind) p['coforge-kind'] = idea.requestKind;
   if (idea.contexts?.length) p.contexts = contextProperties(idea.contexts);
+  if (idea.workflowRun) p['workflow-run'] = workflowNoteData(workflowRunCheck(idea.workflowRun));
+  if (idea.workflowHistory) p['workflow-history'] = workflowNoteData(workflowHistoryCheck(idea.workflowHistory));
   if (idea.screening) Object.assign(p, {
     screening: idea.screening.verdict, 'screening-reason': idea.screening.reason, 'screening-signals': idea.screening.signals,
     'screening-checked': idea.screening.checkedAt, 'screening-provider': idea.screening.provider,
@@ -103,7 +108,8 @@ const noteShape = shape({
  * is sanitized again (this also removes the joiners `defangProperty` inserted when writing).
  */
 export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'voters' | 'increment'> {
-  const p = cleanDeep(noteShape(record(frontmatter)));
+  const properties = record(frontmatter);
+  const p = cleanDeep(noteShape(properties));
   const idea: Omit<Idea, 'voters' | 'increment'> = {
     id: p.id, number: Number(p.id.slice(3)), title: cleanLine(p.title, 200) || p.id, description: descriptionFromBody(body, cleanLine(p.title, 200) || p.id), authorId: p.author,
     category: p.category, status: p.status, createdAt: p.created, updatedAt: p.updated,
@@ -124,6 +130,11 @@ export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'v
   }
   if (p['review-note']) idea.reviewNote = p['review-note'];
   if (p['last-error']) idea.lastError = p['last-error'];
+  if (properties['workflow-run'] !== undefined) idea.workflowRun = workflowRunCheck(restoreWorkflowNoteData(properties['workflow-run']));
+  if (properties['workflow-history'] !== undefined) idea.workflowHistory = workflowHistoryCheck(restoreWorkflowNoteData(properties['workflow-history']));
+  if (idea.workflowRun && (idea.workflowRun.ideaId !== idea.id || idea.workflowRun.projectId !== (idea.projectId ?? 'CFP-001')))
+    throw new Error('The managed workflow run belongs to a different request or project.');
+  if (idea.workflowHistory?.some(run => run.ideaId !== idea.id)) throw new Error('The managed workflow history belongs to a different request.');
   return idea;
 }
 

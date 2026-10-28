@@ -9,9 +9,7 @@ import {
 } from "vue";
 import type {
   AgentJob,
-  AgentStage,
   IdeaAction,
-  IdeaStatus,
 } from "../../../features/coforge/domain/types";
 import { STAGE_LABELS } from "../../../features/coforge/domain/types";
 import { isActiveJob } from "../../../features/coforge/domain/workflow";
@@ -20,41 +18,9 @@ import { avatarStyle, formatTime } from "./format";
 import { useDialogFocus } from "./use-dialog-focus";
 import { useStudioActions } from "./use-studio-actions";
 import { ideaProjectId } from "../../../features/coforge/domain/projects";
-import { stageAgent } from "../../../features/coforge/domain/stage-agents";
-import { stageAgentLabel } from "./agent-labels";
-import { workflowStageProblem } from "./workflow-readiness";
+import { ideaWorkflowAction } from "./idea-workflow-action";
 
 export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity";
-interface NextAction {
-  action: AgentStage;
-  label: string;
-  description: string;
-}
-
-const NEXT_ACTIONS: Partial<Record<IdeaStatus, NextAction>> = {
-  inbox: {
-    action: "screen",
-    label: "Screen request",
-    description: "Check the request before it enters the agent workflow.",
-  },
-  screened: {
-    action: "score",
-    label: "Review & score",
-    description: "Estimate reach, impact, confidence, and effort.",
-  },
-  ranked: {
-    action: "plan",
-    label: "Create implementation plan",
-    description:
-      "Turn this idea into an actionable plan with acceptance criteria.",
-  },
-  planned: {
-    action: "implement",
-    label: "Build this idea",
-    description:
-      "Dispatch the saved plan and bring the increment back for your review.",
-  },
-};
 const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
   { value: "overview", label: "Overview" },
   { value: "plan", label: "Plan" },
@@ -67,7 +33,7 @@ const NOTE_REQUIRED =
   "Add a review note of at least 3 characters so the next step has the right context.";
 
 const jobTitle = (job: AgentJob): string =>
-  `${job.provider === "demo" ? "Simulating" : "Agent running"}: ${job.stage === "implement" ? "implementation" : job.stage}`;
+  `${job.provider === "demo" ? "Simulating" : "Agent running"}: ${job.workflow?.step.name ?? (job.stage === "implement" ? "implementation" : job.stage)}`;
 const jobLog = (job: AgentJob): string => {
   const lines = [job.logs.join("\n") || "No log entries."];
   if (job.error) lines.push(`Error: ${job.error}`);
@@ -103,9 +69,6 @@ function createIdeaDrawer() {
       state.value?.jobs.filter((job) => job.ideaId === idea.value?.id) ?? [],
   );
   const activeJob = computed(() => ideaJobs.value.find(isActiveJob));
-  const nextAction = computed(() =>
-    idea.value ? NEXT_ACTIONS[idea.value.status] : undefined,
-  );
   const project = computed(() =>
     state.value?.projects?.find(
       (project) =>
@@ -113,30 +76,43 @@ function createIdeaDrawer() {
         (idea.value ? ideaProjectId(idea.value) : state.value?.activeProjectId),
     ),
   );
-  const projectSettings = computed(() =>
-    project.value?.id === state.value?.activeProjectId
-      ? state.value?.settings
-      : project.value?.settings,
-  );
-  const nextAgent = computed(() =>
-    projectSettings.value && nextAction.value
-      ? stageAgent(projectSettings.value, nextAction.value.action)
+  const nextAction = computed(() =>
+    idea.value
+      ? ideaWorkflowAction(idea.value, project.value, state.value?.runtime)
       : undefined,
   );
   const isBusy = computed(
     () => store.busy || Boolean(pending.value) || Boolean(activeJob.value),
   );
-  const blockedReason = computed(() =>
-    projectSettings.value && nextAction.value
-      ? workflowStageProblem(
-          projectSettings.value,
-          nextAction.value.action,
-          project.value,
-          state.value?.runtime,
-        )
-      : "",
-  );
-  const blockedBuild = computed(() => Boolean(blockedReason.value));
+  const blockedBuild = computed(() => Boolean(nextAction.value?.blocked));
+  const openWorkflow = () => {
+    const id = idea.value?.id;
+    if (!id) return;
+    const guard = store.configurationIssue("workflow");
+    if (guard) {
+      store.notify(guard, true);
+      return;
+    }
+    store.workflowRequestSelection = id;
+    store.select(null);
+    store.navigate("workflow");
+  };
+  async function runConfigured() {
+    const current = idea.value;
+    const action = nextAction.value;
+    if (!current || !action || action.blocked || isBusy.value) return;
+    if (action.kind === "open") {
+      openWorkflow();
+      return;
+    }
+    if (await perform("workflow", () => actions.runWorkflowStep(current.id))) {
+      if (
+        store.state?.ideas.find((idea) => idea.id === current.id)?.workflowRun
+          ?.state === "waiting-human"
+      )
+        openWorkflow();
+    }
+  }
 
   watch(
     () => store.selected,
@@ -242,7 +218,7 @@ function createIdeaDrawer() {
         activeJob.value?.logs[activeJob.value.logs.length - 1] ??
         "Preparing the request…",
     ),
-    isDemo: computed(() => nextAgent.value?.provider === "demo"),
+    isDemo: computed(() => nextAction.value?.demo ?? false),
     showFooter: computed(
       () =>
         Boolean(nextAction.value) ||
@@ -250,17 +226,25 @@ function createIdeaDrawer() {
         idea.value?.status === "building",
     ),
     canAccept: computed(
-      () => Boolean(idea.value?.increment) && idea.value?.status === "review",
+      () =>
+        Boolean(idea.value?.increment) &&
+        idea.value?.status === "review" &&
+        (!idea.value.workflowRun ||
+          idea.value.workflowRun.state === "awaiting-review"),
     ),
-    nextLabel: computed(() => {
-      const label = nextAction.value?.label ?? "";
-      return idea.value?.lastError ? `Retry · ${label}` : label;
-    }),
-    nextHelp: computed(() =>
-      blockedReason.value
-        ? blockedReason.value
-        : `${nextAction.value?.description ?? ""}${projectSettings.value && nextAction.value ? ` ${stageAgentLabel(projectSettings.value, nextAction.value.action)}.` : ""}`,
+    nextLabel: computed(() => nextAction.value?.label ?? ""),
+    nextHelp: computed(
+      () => nextAction.value?.blocked || nextAction.value?.description || "",
     ),
+    canFinalReview: computed(
+      () =>
+        !idea.value?.workflowRun ||
+        idea.value.workflowRun.state === "awaiting-review",
+    ),
+    runConfigured: () => {
+      void runConfigured();
+    },
+    openWorkflow,
     activity: computed(() =>
       (state.value?.events ?? [])
         .filter((event) => event.ideaId === idea.value?.id)
@@ -272,7 +256,7 @@ function createIdeaDrawer() {
         id: job.id,
         status: job.status,
         provider: job.provider,
-        label: STAGE_LABELS[job.stage],
+        label: job.workflow?.step.name ?? STAGE_LABELS[job.stage],
         log: jobLog(job),
       })),
     ),

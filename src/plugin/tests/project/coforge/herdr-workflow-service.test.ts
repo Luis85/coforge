@@ -74,6 +74,53 @@ async function fixture(start = true) {
 }
 
 describe('automatic Herdr workflow orchestration', () => {
+  it('retains an actionable bounded-prompt error before sending any external command', async () => {
+    const f = await fixture();
+    f.input.settings.agentPrompt = 'a'.repeat(8000);
+    f.input.settings.projectBrief = 'b'.repeat(8000);
+    await expect(f.service.run(f.input)).rejects.toThrow('bounded prompt interface');
+    expect(f.service.snapshot().error).toContain('no text was truncated or sent');
+    expect(f.gateway.createWorkspace).not.toHaveBeenCalled();
+    expect(f.gateway.startAgent).not.toHaveBeenCalled();
+    expect(f.control.records.at(-1)?.phase).toBe('attention');
+  });
+  it.each([true, false])('reuses a workspace only after fresh original idle-target recovery (matching=%s)', async matching => {
+    const f = await fixture(false);
+    f.control.records = [{ id: 'attention-one', jobId: JOB, ideaId: f.input.idea.id, projectId: f.input.idea.projectId ?? 'CFP-001', stage: 'screen',
+      model: 'sonnet', kind: 'claude', settings: f.manual.snapshot().settings, fingerprint: 'fingerprint', nonce: 'nonce', at: new Date(f.clock.now()).toISOString(), phase: 'attention', workspaceId: 'shared-workspace',
+      target: { paneId: 'w1:p1', terminalId: 't1', workspaceId: 'w1', cwd: '/private/attempt', agent: 'claude', name: 'cf-test', ready: true, status: 'idle', sessionRef: matching ? '' : 'different-session' } }];
+    f.files.acknowledgeWorkspace = vi.fn(async () => { expect(f.control.records[0]?.phase).toBe('attention'); });
+    await f.service.start();
+    await f.service.inspect('attention-one');
+    await f.service.acknowledge('attention-one');
+    expect(f.files.acknowledgeWorkspace).toHaveBeenCalledWith('shared-workspace', JOB, matching);
+    expect(f.control.records[0]?.phase).toBe('reviewed');
+  });
+  it('captures host changes before rejecting a malformed result and preserves uncertainty when final inspection fails', async () => {
+    const f = await fixture();
+    const captureChanges = vi.fn(async () => undefined);
+    const release = vi.fn(async () => undefined);
+    f.files.prepare = async () => ({ ...f.area, captureChanges, release });
+    f.control.invalid = 'nonce';
+    await expect(f.service.run(f.input)).rejects.toThrow('attention');
+    expect(captureChanges).toHaveBeenCalledOnce();
+    expect(f.area.finish).not.toHaveBeenCalled();
+    expect(release).toHaveBeenCalledWith(false);
+    const malformed = await fixture();
+    const malformedChanges = vi.fn(async () => undefined);
+    malformed.files.prepare = async () => ({ ...malformed.area, captureChanges: malformedChanges });
+    malformed.area.readResult.mockRejectedValue(new Error('invalid JSON file'));
+    await expect(malformed.service.run(malformed.input)).rejects.toThrow('attention');
+    expect(malformedChanges).toHaveBeenCalledOnce();
+    const uncertain = await fixture();
+    const uncertainRelease = vi.fn(async () => undefined);
+    uncertain.files.prepare = async () => ({ ...uncertain.area, release: uncertainRelease });
+    const inspect = uncertain.gateway.inspectAgent;
+    let count = 0;
+    uncertain.gateway.inspectAgent = async (...args) => { if (++count === 3) throw new Error('identity disappeared'); return inspect(...args); };
+    await expect(uncertain.service.run(uncertain.input)).rejects.toThrow('attention');
+    expect(uncertainRelease).toHaveBeenCalledWith(true);
+  });
   it('journals every mutation before delivery and commits verified completion before returning', async () => {
     const f = await fixture();
     const result = await f.service.run(f.input);

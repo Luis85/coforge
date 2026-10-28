@@ -1,6 +1,6 @@
 import { StudioError, errorMessage } from '../domain/errors';
 import { recordOperation } from './population';
-import type { AgentJob, AgentStage, IdeaAction } from '../domain/types';
+import type { AgentJob, AgentStage, IdeaAction, Increment } from '../domain/types';
 import { riceValue, STAGE_LABELS, STAGES } from '../domain/types';
 import { assertStage, heuristicSignals, isActiveJob, nextEligible, statusDuring } from '../domain/workflow';
 import type { InternalState, StageResult, StageRunner, Timers } from './ports';
@@ -10,6 +10,9 @@ import { copySettings, findProject, ideaProjectId, projectIdeas, projectPaths, p
 import { ideaFingerprint } from '../domain/integrity';
 import { agentModelCheck, stageAgent } from '../domain/stage-agents';
 import { stageUsageCheck, hasTokenUsage, type StageUsage } from '../domain/ai-usage';
+import { workflowIntegrityKey } from './workflow-note-integrity';
+import { workflowProposalRevision } from '../domain/configured-workflow-run';
+import { ConfiguredWorkflowEngine } from './configured-workflow-engine';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
@@ -64,10 +67,11 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner }; timers: Timers; onError?: (error: Error) => void }
+export interface EngineOptions { runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
 
 /** One worker, a FIFO queue of at most 50 jobs, optional timed automation and explicit cancellation. */
 export class WorkflowEngine {
+  private readonly configured: ConfiguredWorkflowEngine;
   private drainPromise: Promise<void> | null = null;
   private controller: AbortController | null = null;
   private activeId: string | null = null;
@@ -75,7 +79,17 @@ export class WorkflowEngine {
   private readonly lastAutomaticTick = new Map<string, number>();
   private lastProjectId: string | null = null;
   private stopped = false;
-  constructor(readonly store: StudioStore, private readonly options: EngineOptions) {}
+  constructor(readonly store: StudioStore, private readonly options: EngineOptions) {
+    this.configured = new ConfiguredWorkflowEngine(store, { runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
+  }
+  async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }
+  async runWorkflowStep(ideaId: string) { const run = await this.configured.next(ideaId); this.kick(); return run; }
+  async completeWorkflowManual(ideaId: string, revision: number, checkedIds: string[], note = '') { const run = await this.configured.manual(ideaId, revision, checkedIds, note); this.kick(); return run; }
+  async stopWorkflow(ideaId: string) {
+    const job = this.store.snapshot().jobs.find(item => item.ideaId === ideaId && isActiveJob(item));
+    if (job) await this.cancel(job.id);
+    return this.configured.stop(ideaId);
+  }
 
   start(): void {
     this.stopped = false;
@@ -101,6 +115,7 @@ export class WorkflowEngine {
       if (!idea) throw new StudioError('Idea not found.', 404);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
+      if (settings.workflow || idea.workflowRun || Object.hasOwn(state.integrity, workflowIntegrityKey(idea))) throw new StudioError('Use this project’s configured workflow controls instead of legacy stage actions. Restore missing managed progress before reviewing preserved changes.', 409);
       const agent = stageAgent(settings, stage);
       if (agent.provider === 'herdr' && !this.options.runners.herdr) throw new StudioError('Herdr workflow execution is unavailable in this host.', 409);
       if (automatic && settings.paused) throw new StudioError('Automation is paused.', 409);
@@ -131,8 +146,18 @@ export class WorkflowEngine {
       : [...state.projects.slice(index + 1), ...state.projects.slice(0, index + 1)];
     for (const project of projects) {
       const settings = projectSettings(state, project.id);
+      if (settings.workflow || projectIdeas(state, project.id).some(idea => idea.workflowRun)) {
+        const interval = settings.workflow?.limits.intervalSeconds ?? settings.intervalSeconds;
+        if (!manual && settings.paused) continue;
+        const allowNew = manual || Date.now() - (this.lastAutomaticTick.get(project.id) ?? 0) >= interval * 1000;
+        const previousRuns = new Set(projectIdeas(state, project.id).map(idea => idea.workflowRun?.id));
+        const configured = await this.configured.tick(project.id, manual, allowNew);
+        if (this.store.snapshot().ideas.some(idea => ideaProjectId(idea) === project.id && idea.workflowRun && !previousRuns.has(idea.workflowRun.id))) this.lastAutomaticTick.set(project.id, Date.now());
+        if (configured) { this.lastProjectId = project.id; this.kick(); return configured; }
+        if (settings.workflow) continue;
+      }
       if (project.unavailable || (!manual && (settings.paused || Date.now() - (this.lastAutomaticTick.get(project.id) ?? 0) < settings.intervalSeconds * 1000))) continue;
-      const next = nextEligible({ ...state, ideas: projectIdeas(state, project.id), settings, jobs: state.jobs.filter(job => job.projectId === project.id) });
+      const next = nextEligible({ ...state, ideas: projectIdeas(state, project.id).filter(idea => !idea.workflowRun), settings, jobs: state.jobs.filter(job => job.projectId === project.id) });
       if (!next) continue;
       this.lastAutomaticTick.set(project.id, Date.now());
       this.lastProjectId = project.id;
@@ -143,7 +168,27 @@ export class WorkflowEngine {
 
   async action(ideaId: string, action: IdeaAction, note = ''): Promise<unknown> {
     if ((STAGES as readonly string[]).includes(action)) return this.submit(ideaId, action as AgentStage);
-    return this.store.transaction(state => applyReview(state, ideaId, action as Exclude<IdeaAction, AgentStage>, note));
+    let expectedReview: { runId: string; revision: number; increment: string } | undefined;
+    if (action === 'approve') {
+      const idea = this.store.snapshot().ideas.find(item => item.id === ideaId);
+      const run = idea?.workflowRun;
+      if (run && idea.increment && (run.workspaceId || !idea.increment.simulated)) {
+        if (!run.workspaceId || !this.options.assertWorkflowReviewable) throw new Error('Verify the attributed run workspace before accepting real code changes.');
+        expectedReview = { runId: run.id, revision: run.revision, increment: JSON.stringify(idea.increment) };
+        await this.options.assertWorkflowReviewable(run.workspaceId, idea.increment);
+      }
+    }
+    return this.store.transaction(state => {
+      const idea = state.ideas.find(idea => idea.id === ideaId);
+      const run = idea?.workflowRun;
+      if (action === 'approve' && idea && run && workflowProposalRevision(idea) !== run.proposalRevision)
+        throw new StudioError('The request changed during this workflow. Request changes and start a fresh run before accepting its preserved code changes.', 409);
+      if (expectedReview && (run?.id !== expectedReview.runId || run.revision !== expectedReview.revision || JSON.stringify(idea?.increment) !== expectedReview.increment)) throw new Error('The workflow or reviewed changes changed during verification. Inspect the current diff again.');
+      if (['approve', 'changes'].includes(action) && run && run.state !== 'awaiting-review') throw new Error('Finish or stop this workflow before the final host review.');
+      const result = applyReview(state, ideaId, action as Exclude<IdeaAction, AgentStage>, note);
+      this.configured.review(state, ideaId, action);
+      return result;
+    });
   }
 
   async cancel(jobId: string): Promise<void> {
@@ -153,6 +198,15 @@ export class WorkflowEngine {
       if (!job) throw new StudioError('Job not found.', 404);
       if (job.status !== 'queued') throw new StudioError('Only queued or running jobs can be cancelled.', 409);
       job.status = 'cancelled'; job.finishedAt = new Date().toISOString(); job.logs.push('Cancelled by the streamer.');
+      if (job.workflow) {
+        const run = state.ideas.find(idea => idea.id === job.ideaId)?.workflowRun;
+        if (run?.id === job.workflow.runId && run.activeAttemptId === job.workflow.attemptId) {
+          const attempt = run.attempts.find(item => item.id === run.activeAttemptId);
+          if (attempt) { attempt.status = 'cancelled'; attempt.finishedAt = job.finishedAt; }
+          run.state = 'attention'; run.error = 'The queued step was cancelled. Explicitly retry when ready.';
+          run.revision++; run.updatedAt = job.finishedAt; delete run.activeAttemptId;
+        }
+      }
       recordOperation(state, 'job-cancelled');
       const idea = state.ideas.find(i => i.id === job.ideaId);
       if (idea) idea.lastError = 'Run cancelled. Start the stage manually when ready.';
@@ -179,8 +233,8 @@ export class WorkflowEngine {
       if (!next) return;
       const controller = new AbortController();
       this.controller = controller; this.activeId = next.id;
-      try { await this.run(next, controller); }
-      catch (error) { await this.fail(next, controller.signal.aborted, error); }
+      try { if (next.workflow) await this.configured.run(next, controller.signal); else await this.run(next, controller); }
+      catch (error) { if (next.workflow) await this.configured.fail(next, controller.signal.aborted, error); else await this.fail(next, controller.signal.aborted, error); }
       finally { this.controller = null; this.activeId = null; }
     }
   }

@@ -5,6 +5,7 @@ import { cleanText } from '../domain/sanitize';
 import { isActiveJob } from '../domain/workflow';
 import type { InternalState } from './ports';
 import { addEvent } from './studio-store';
+import { workflowIntegrityKey } from './workflow-note-integrity';
 
 /** Streamer decisions: accept, request changes, archive or clear a moderation flag. The final decision is always manual. */
 export function applyReview(state: InternalState, ideaId: string, action: Exclude<IdeaAction, AgentStage>, note: string): Idea {
@@ -13,6 +14,8 @@ export function applyReview(state: InternalState, ideaId: string, action: Exclud
   if (state.jobs.some(j => j.ideaId === ideaId && isActiveJob(j))) throw new StudioError('Cancel or finish this idea’s agent job before reviewing it.', 409);
   const text = cleanText(note, 3000);
   if (action === 'approve') {
+    if (!idea.workflowRun && Object.hasOwn(state.integrity, workflowIntegrityKey(idea)))
+      throw new StudioError('Managed workflow progress is missing. Restore the original request metadata before accepting its preserved changes.', 409);
     if (idea.status !== 'review' || !idea.increment) throw new StudioError('Only a completed increment in review can be accepted.', 409);
     idea.status = 'shipped';
     idea.reviewNote = text || 'Accepted by the streamer.';
@@ -49,6 +52,8 @@ export function applyReview(state: InternalState, ideaId: string, action: Exclud
 export function adjustRice(state: InternalState, ideaId: string, rice: Omit<RiceScore, 'score'>): Idea {
   const idea = state.ideas.find(i => i.id === ideaId);
   if (!idea) throw new StudioError('Idea not found.', 404);
+  if (idea.workflowRun && !['finished', 'stopped'].includes(idea.workflowRun.state))
+    throw new StudioError('This workflow uses captured RICE evidence. Finish or stop it before adjusting the displayed estimate.', 409);
   if (!idea.rice || idea.screening?.verdict !== 'clear') throw new StudioError('Complete the scoring stage before adjusting its estimate.', 409);
   if (['building', 'shipped', 'rejected', 'flagged'].includes(idea.status) || state.jobs.some(j => j.ideaId === idea.id && isActiveJob(j)))
     throw new StudioError('The estimate is locked while work is running or after acceptance.', 409);

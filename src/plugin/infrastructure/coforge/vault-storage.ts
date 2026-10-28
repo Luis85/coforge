@@ -10,6 +10,8 @@ import { defaultIntegration } from '../../features/coforge/domain/seed';
 import type { Idea } from '../../features/coforge/domain/types';
 import { splitNote } from './markdown';
 import { VaultProjects, type ProjectNoteChange } from './vault-projects';
+import { validateFolderLayout } from '../../features/coforge/domain/vault-folder-policy';
+import { protectPrivateData } from './private-data-guard';
 export { splitNote } from './markdown';
 
 /** Reads an idea from note text, or returns null for notes that are not CoForge ideas. Throws for invalid idea notes. */
@@ -51,7 +53,11 @@ export class VaultStudioStorage implements StudioStorage {
   async load(): Promise<LoadedStudio> {
     const adapter = this.plugin.app.vault.adapter;
     const data: PersistedStudio | null = await adapter.exists(this.dataPath) ? parsePersistedStudio(JSON.parse(await adapter.read(this.dataPath))) : null;
-    this.folder = data?.integration.ideasFolder ?? this.folder;
+    const integration = data?.integration ?? defaultIntegration();
+    const layout = validateFolderLayout(integration, [this.plugin.app.vault.configDir]);
+    if (data) data.integration = { ...data.integration, ...layout };
+    await protectPrivateData(this.plugin, layout);
+    this.folder = layout.ideasFolder;
     this.paths.clear();
     const notes: NoteIdea[] = []; const invalidNotes: string[] = [];
     for (const file of this.plugin.app.vault.getMarkdownFiles().filter(f => inFolder(f.path, this.folder))) {
@@ -66,6 +72,9 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   async save(next: InternalState, previous: InternalState | null, options: SaveOptions = {}): Promise<void> {
+    const layout = validateFolderLayout(next.integration, [this.plugin.app.vault.configDir]);
+    next.integration = { ...next.integration, ...layout };
+    await protectPrivateData(this.plugin, layout);
     if (next.integration.ideasFolder !== this.folder) await this.moveFolder(next.integration.ideasFolder);
     const external = new Set(options.fromNotes ?? []);
     if (options.replaceAll) await this.retireAll(options.replaceProjectId ? previous?.ideas.filter(idea => idea.projectId === options.replaceProjectId).map(idea => idea.id) : undefined);
@@ -192,6 +201,6 @@ export class VaultStudioStorage implements StudioStorage {
 
   private async ensureFolder(folder: string): Promise<void> {
     const path = normalizePath(folder);
-    if (!this.plugin.app.vault.getAbstractFileByPath(path)) await this.plugin.app.vault.createFolder(path);
+    if (!this.plugin.app.vault.getAbstractFileByPath(path) && !(await this.plugin.app.vault.adapter.exists(path))) await this.plugin.app.vault.createFolder(path);
   }
 }

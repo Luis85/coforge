@@ -13,9 +13,11 @@ import { addEvent } from './studio-store';
 import { recordOperation } from './population';
 import { normalizeStagePrompts } from '../domain/stage-prompts';
 import { normalizeStageAgents } from '../domain/stage-agents';
+import { projectHasPendingWorkflow } from './workflow-configuration';
 
 function values(input: unknown) {
   const source = record(input);
+  if (source.workflow !== undefined) throw new StudioError('Use Workflow settings to save a workflow with its source revision.', 409);
   const settings = settingsPatch(omit(source, 'projectPath', 'worktreeFolder', 'allowImplementation', 'repositoryUrl', 'websiteUrl'));
   if (settings.agentPrompt !== undefined) settings.agentPrompt = cleanText(settings.agentPrompt, 8000);
   if (settings.stagePrompts !== undefined) settings.stagePrompts = normalizeStagePrompts(settings.stagePrompts);
@@ -68,6 +70,7 @@ export async function editProject(store: StudioStore, id: string, input: unknown
     const previousStages = JSON.stringify(project.settings.stagePrompts ?? {});
     const previousAgents = JSON.stringify([project.settings.provider, project.settings.model, project.settings.stageAgents ?? {}]);
     if (project.unavailable) throw new StudioError('Restore this project note before editing it.', 409);
+    if (projectHasPendingWorkflow(state, id)) throw new StudioError('Finish, stop or review this project’s workflow runs before changing project settings. Future workflow definitions can still be edited in Workflow settings.', 409);
     if (state.jobs.some(job => job.projectId === id && isActiveJob(job))) throw new StudioError('Finish or cancel this project’s queued runs before editing its configuration.', 409);
     const settings = { ...project.settings, ...patch.settings, automation: { ...project.settings.automation, ...patch.settings.automation } };
     settings.projectName = cleanLine(settings.projectName, 80);

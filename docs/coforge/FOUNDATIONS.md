@@ -28,6 +28,9 @@ defaults; invalid stored data is rejected and preserved rather than replaced wit
 | `Timers` | Obsidian window timers; deterministic test timers | Owned scheduling and cancellation |
 | `StudioEventSink` / `StudioEventListener` | Injected sink and application subscribers | Immutable committed facts, isolated observer failures |
 | `TwitchSecrets` / `HttpRequest` | Host adapters | Credentials and network access, confined to integration code |
+| `WorkflowDefinition` / `WorkflowRun` | Domain contracts and `ConfiguredWorkflowEngine` | Ordered definitions, immutable attempts/artifacts and revision-checked execution |
+| `WorkflowWorkspaces` | `LocalWorkflowWorkspaces` and private journal | Durable reservations, exclusive shared worktrees, cumulative capture and final-review verification |
+| `HerdrWorkflowGateway` / `HerdrAttemptFiles` | Local Herdr/native file adapters | Dedicated launch identity, one-shot delivery and bounded correlated result files |
 
 `TwitchModule` composes accounts, authorization, WebSocket transport and application workers for one
 plugin instance. No global singleton, second source of player truth or additional dependency container
@@ -51,6 +54,42 @@ is introduced. Its lifecycle owns every subscription and timer.
 The application services depend on contracts, not Obsidian, Vue, Pinia or a concrete HTTP client.
 Provider schemas, credentials, token rotation and protocol success checks stay in the Twitch adapters.
 Opaque player IDs remain provider-prefixed so a rename cannot create a second account.
+
+## Configurable workflows
+
+`configured-workflow.ts` validates portable definitions: stable IDs, order, typed outputs,
+access and limits. `configured-workflow-run.ts` validates captured runs, attempts and artifacts.
+Step identity never selects tools or schemas. Legacy stage names remain transport compatibility
+labels; `ConfiguredWorkflowEngine` advances its pinned cursor and commits results only after
+checking the proposal revision, active attempt and exact bound artifact hashes.
+
+`StudioService.saveWorkflow` writes a new project-note revision with a source precondition;
+running definitions stay frozen. Manual checkpoints persist and release the worker. Host code
+review remains separate from editable approval steps. Real cumulative changes are authoritative
+host snapshots; missing semantic fields or later simulations cannot erase or replace them.
+
+Provider adapters use `workflow-execution.ts` to select schemas by output and tools by access.
+Native Claude and Herdr share a run workspace through `WorkflowWorkspaces`. The journal reserves
+ownership before Git mutation and records verified descriptors before launch. Unknown external
+outcomes retain holds; recovery can reuse only a verified idle target's workspace, otherwise it
+retires that workspace. Final acceptance verifies lease state and the actual reviewed diff, then
+checks application state again before committing. Acceptance never runs a Git merge.
+
+Definitions live in project `workflow-definition` frontmatter; request `workflow-run` and
+`workflow-history` contain managed progress. Template-safe serialization reverses exactly so
+captured artifact bytes/hashes survive reload. Corruption hashes are not signatures: private
+plugin-data integrity anchors independently reject forged or deleted managed progress. Human
+annotations belong in note bodies. Legacy notes resolve defaults without incidental migration.
+
+The private workflow editor, transfer preview and manual checkpoint drafts use per-leaf Pinia
+stores. Composables own actions and lifecycle; Vue binds those models. Import validates before
+replacing a draft and cannot run a step. Every configuration draft shares navigation/project-switch
+guards. Export contains portable definitions, not credentials, workspace descriptors or histories.
+
+`vault-folder-policy.ts` validates private/public separation at application, storage and publication
+boundaries, including the actual host configuration directory. `protectPrivateData` appends managed
+rules for the configured request folder before writes, preserving human ignore bytes and note bodies.
+Already tracked files/history remain a repository-owner responsibility; no automatic Git mutation occurs.
 
 ## Events and effects
 

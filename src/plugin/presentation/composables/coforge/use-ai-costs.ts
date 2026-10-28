@@ -76,7 +76,7 @@ export function useAICosts() {
           (!store.project || task.projectId === store.project) &&
           (!store.feature || task.featureId === store.feature) &&
           (!store.source || taskCost(task).source === store.source) &&
-          `${task.featureId} ${task.featureTitle} ${task.model ?? ""} ${task.stage}`
+          `${task.featureId} ${task.featureTitle} ${task.model ?? ""} ${task.stage} ${task.workflow?.stepName ?? ""} ${task.workflow?.stepId ?? ""} ${task.workflow?.runId ?? ""} ${task.workflow?.attemptId ?? ""}`
             .toLowerCase()
             .includes(store.search.toLowerCase()),
       )

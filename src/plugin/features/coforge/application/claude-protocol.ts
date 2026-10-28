@@ -2,6 +2,12 @@ import { boolean, number, optional, record, text } from "../domain/check";
 import type { AgentStage, Settings } from "../domain/types";
 import { STAGE_JSON_SCHEMAS, stageSystemPrompt } from "./agent-prompts";
 import {
+  executionAccess,
+  executionSchema,
+  executionSystemPrompt,
+} from "./workflow-execution";
+import type { ConfiguredStepExecution } from "../domain/configured-workflow-run";
+import {
   hasTokenUsage,
   stageUsageCheck,
   type StageUsage,
@@ -50,11 +56,14 @@ const DENY = [
 export function buildClaudeArgs(
   stage: AgentStage,
   settings: Settings,
+  workflow?: ConfiguredStepExecution,
 ): string[] {
+  const input = { stage, settings, ...(workflow ? { workflow } : {}) };
+  const access = executionAccess(input);
   const tools =
-    stage === "screen" || stage === "score"
+    access === "none"
       ? ""
-      : stage === "plan"
+      : access === "readproject"
         ? "Read,Glob,Grep"
         : "Read,Glob,Grep,Edit,Write";
   return [
@@ -64,7 +73,9 @@ export function buildClaudeArgs(
     "--input-format",
     "text",
     "--json-schema",
-    JSON.stringify(STAGE_JSON_SCHEMAS[stage]),
+    JSON.stringify(
+      workflow ? executionSchema(input) : STAGE_JSON_SCHEMAS[stage],
+    ),
     "--restricted",
     "--safe-mode",
     "--no-session-persistence",
@@ -79,7 +90,7 @@ export function buildClaudeArgs(
     "--disallowedTools",
     DENY.join(","),
     "--permission-mode",
-    stage === "implement" ? "acceptEdits" : "dontAsk",
+    access === "editworktree" ? "acceptEdits" : "dontAsk",
     "--permission-prompts",
     "none",
     ...(tools ? ["--allowedTools", tools] : []),
@@ -88,9 +99,11 @@ export function buildClaudeArgs(
     "--max-budget-usd",
     String(settings.maxBudgetUsd),
     "--model",
-    settings.model,
+    workflow?.step.model ?? settings.model,
     "--system-prompt",
-    stageSystemPrompt(stage, settings),
+    workflow
+      ? executionSystemPrompt(input)
+      : stageSystemPrompt(stage, settings),
   ];
 }
 

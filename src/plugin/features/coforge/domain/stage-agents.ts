@@ -54,8 +54,9 @@ export function stageAgent(
   };
 }
 export function hasClaudeStages(
-  settings: Pick<Settings, "provider" | "model" | "stageAgents">,
+  settings: Pick<Settings, "provider" | "model" | "stageAgents" | 'workflow'>,
 ): boolean {
+  if (settings.workflow) return settings.workflow.steps.some(step => step.kind === 'ai' && step.provider === 'claude');
   return STAGES.some(
     (stage) => stageAgent(settings, stage).provider === "claude",
   );

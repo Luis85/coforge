@@ -65,6 +65,29 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - Preserve project/agent identity checks, durable mutation intent, no uncertain-action replay, review gates,
   cost provenance and private/public boundaries. Herdr's own agent permissions must be described honestly.
 
+### Configurable workflows (owner decisions, 2026-10-28)
+
+- Give agent workflows their own private configuration view, separate from execution monitoring and project settings.
+- Each project owns its workflow. New projects start with the standard Screen/Score/Plan/Build process.
+- The streamer can add, rename, duplicate, remove, replace and reorder all steps, including core steps.
+  Support AI steps and manual approval/checklist steps. Each AI step has a prompt, provider/agent/model,
+  validated output contract and explicit access profile. Step IDs stay stable through edits and reordering.
+- Import and export a workflow as a versioned JSON object. Import validates and previews replacement of
+  the editor draft; saving is explicit and atomic. Exports contain definitions and authored prompts,
+  never credentials, repository paths, job history or live workspace/recovery state.
+- Preserve exact workflow revisions, instructions, inputs and agent choices for existing runs and history.
+  Editing a definition cannot reinterpret an active attempt. Legacy projects resolve to equivalent standard
+  definitions without rewriting their notes until an explicit save. Preserve unrelated note properties/body.
+- Manual checkpoints persist without occupying the AI worker. Checklists require their required items and
+  explicit streamer input; completing a checkpoint does not accept code or publish a request.
+- Execution design: semantic output contracts and access permissions are separate from step identity/order.
+  Prior outputs are immutable, attributed artifacts treated as untrusted input. A shared isolated run worktree
+  lets later read/edit steps inspect earlier changes; every attempt keeps its own result channel and cost record.
+- Host policy stays outside editable definitions: project implementation authorization, verified native tool
+  restrictions, external uncertainty recovery and final streamer review of actual code changes. A process
+  that ends without code changes finishes its workflow only; it does not fabricate an increment or ship a feature.
+  Removing screening never automatically makes private requests public. No imported workflow starts by itself.
+
 ### Local stream music (owner decision, 2026-10-27)
 
 - A configurable folder inside the vault (default `CoForge/Music`) contains local MP3 files.

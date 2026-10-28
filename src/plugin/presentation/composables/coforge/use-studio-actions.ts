@@ -39,11 +39,9 @@ export function useStudioActions() {
       () => false,
     );
   const selectProject = async (id: string): Promise<boolean> => {
-    if (store.dirtySettings) {
-      store.notify(
-        "Save or discard your project settings before switching projects.",
-        true,
-      );
+    const problem = store.configurationIssue();
+    if (problem) {
+      store.notify(problem, true);
       return false;
     }
     const done = await attempt(() => studio.selectProject(id));
@@ -56,11 +54,17 @@ export function useStudioActions() {
   };
   return {
     selectProject,
-    createProject: (input: unknown) =>
-      attempt(
+    createProject: (input: unknown) => {
+      const problem = store.configurationIssue();
+      if (problem) {
+        store.notify(problem, true);
+        return Promise.resolve(false);
+      }
+      return attempt(
         () => studio.createProject(input),
         "Project added. Its automation starts paused.",
-      ),
+      );
+    },
     changeProject: (input: unknown, id?: string) =>
       attempt(() => studio.updateProject(input, id), "Project settings saved."),
     saveProjectDraft: (
@@ -107,6 +111,18 @@ export function useStudioActions() {
           job
             ? `${STAGE_LABELS[job.stage]} queued for ${job.ideaId}.`
             : "No eligible step right now. Check stage toggles, vote threshold, and active jobs.",
+      ),
+    startWorkflow: (id: string) =>
+      attempt(
+        () => studio.startWorkflow(id),
+        "Workflow started with its saved definition.",
+      ),
+    runWorkflowStep: (id: string) =>
+      attempt(() => studio.runWorkflowStep(id), "Workflow step requested."),
+    stopWorkflow: (id: string) =>
+      attempt(
+        () => studio.stopWorkflow(id),
+        "Workflow stop requested. Inspect any pending code changes or external agents.",
       ),
     cancelJob: (id: string) =>
       attempt(() => studio.cancel(id), "Cancellation requested."),

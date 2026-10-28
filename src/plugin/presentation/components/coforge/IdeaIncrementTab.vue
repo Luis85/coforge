@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Idea } from '../../../features/coforge/domain/types';
-import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
-import CfIcon from './CfIcon.vue';
-import MarkdownBody from './MarkdownBody.vue';
+import type { Idea } from "../../../features/coforge/domain/types";
+import { useIdeaDrawerContext } from "../../composables/coforge/use-idea-drawer";
+import CfIcon from "./CfIcon.vue";
+import MarkdownBody from "./MarkdownBody.vue";
 
 defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
@@ -13,7 +13,10 @@ const drawer = useIdeaDrawerContext();
       <CfIcon name="flask-conical" />
       <span>
         <strong>Simulated increment</strong>
-        <small>This is an illustrative artifact for exploring the review flow. It has not changed game files or run tests.</small>
+        <small
+          >This is an illustrative artifact for exploring the review flow. It
+          has not changed game files or run tests.</small
+        >
       </span>
     </div>
     <section class="cf-idea-section">
@@ -22,12 +25,20 @@ const drawer = useIdeaDrawerContext();
         <span v-if="idea.increment.simulated" class="cf-badge">Demo</span>
       </h3>
       <MarkdownBody class="cf-idea-body" :source="idea.increment.summary" />
-      <div v-if="idea.increment.branch" class="cf-idea-code-meta" title="Branch">
+      <div
+        v-if="idea.increment.branch"
+        class="cf-idea-code-meta"
+        title="Branch"
+      >
         <CfIcon name="git-branch" size="sm" />
         <span class="cf-sr-only">Branch</span>
         <code>{{ idea.increment.branch }}</code>
       </div>
-      <div v-if="idea.increment.worktree" class="cf-idea-code-meta" title="Worktree path">
+      <div
+        v-if="idea.increment.worktree"
+        class="cf-idea-code-meta"
+        title="Worktree path"
+      >
         <CfIcon name="folder-git-2" size="sm" />
         <span class="cf-sr-only">Worktree path</span>
         <code>{{ idea.increment.worktree }}</code>
@@ -36,36 +47,64 @@ const drawer = useIdeaDrawerContext();
         <li v-for="(file, index) in idea.increment.files" :key="index">
           <CfIcon name="file-code" />
           <code>{{ file.path }}</code>
-          <span class="cf-idea-additions">+{{ file.additions }}<span class="cf-sr-only"> additions</span></span>
-          <span class="cf-idea-deletions">−{{ file.deletions }}<span class="cf-sr-only"> deletions</span></span>
+          <span class="cf-idea-additions"
+            >+{{ file.additions
+            }}<span class="cf-sr-only"> additions</span></span
+          >
+          <span class="cf-idea-deletions"
+            >−{{ file.deletions
+            }}<span class="cf-sr-only"> deletions</span></span
+          >
         </li>
       </ul>
     </section>
     <section class="cf-idea-section">
       <h3><CfIcon name="flask-conical" /> Verification notes</h3>
       <ul v-if="idea.increment.tests.length" class="cf-idea-list">
-          <li v-for="(test, index) in idea.increment.tests" :key="index"><MarkdownBody :source="test" /></li>
+        <li v-for="(test, index) in idea.increment.tests" :key="index">
+          <MarkdownBody :source="test" />
+        </li>
       </ul>
-      <p v-else class="cf-idea-help">No test results were reported. Verify the increment in the game project before accepting it.</p>
+      <p v-else class="cf-idea-help">
+        No test results were reported. Verify the increment in the game project
+        before accepting it.
+      </p>
     </section>
     <section class="cf-idea-section">
-      <h3><CfIcon name="file-code" /> {{ idea.increment.simulated ? 'Illustrative diff' : 'Working tree diff' }}</h3>
-      <pre class="cf-idea-code" tabindex="0">{{ idea.increment.diff || 'No diff available.' }}</pre>
+      <h3>
+        <CfIcon name="file-code" />
+        {{
+          idea.increment.simulated ? "Illustrative diff" : "Working tree diff"
+        }}
+      </h3>
+      <pre class="cf-idea-code" tabindex="0">{{
+        idea.increment.diff || "No diff available."
+      }}</pre>
     </section>
-    <div v-if="idea.status === 'review'" class="cf-idea-alert">
+    <div
+      v-if="idea.status === 'review' && drawer.canFinalReview"
+      class="cf-idea-alert"
+    >
       <CfIcon name="clipboard-check" />
-      <span>Review the files, acceptance criteria, and verification notes before making your decision below.</span>
+      <span
+        >Review the files, acceptance criteria, and verification notes before
+        making your decision below.</span
+      >
     </div>
   </template>
   <div v-else class="cf-idea-empty">
     <CfIcon name="code" size="lg" />
     <h3>The next increment starts here</h3>
-    <p>Build an approved plan to collect its changed files, diff, and verification notes for review.</p>
+    <p>
+      Build an approved plan to collect its changed files, diff, and
+      verification notes for review.
+    </p>
     <button
-      v-if="idea.status === 'planned'" type="button" class="cf-btn cf-btn-secondary" :disabled="drawer.isBusy || drawer.blockedBuild"
-      @click="drawer.act('implement')"
+      type="button"
+      class="cf-btn cf-btn-secondary"
+      @click="drawer.openWorkflow()"
     >
-      Build this idea <CfIcon name="arrow-right" />
+      Open workflow <CfIcon name="arrow-right" />
     </button>
   </div>
 </template>
