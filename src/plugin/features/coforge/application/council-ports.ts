@@ -27,6 +27,7 @@ export interface CouncilRuntimeSnapshot {
   error: string;
 }
 export interface CouncilActions {
+  assertExecutor?(): Promise<void>;
   definitionFolders: CouncilFolderActions;
   workflows: import("./workflow-v2-ports").WorkflowV2Actions;
   catalogue: CouncilCatalogueActions;

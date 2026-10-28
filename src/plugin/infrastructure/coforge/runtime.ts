@@ -47,6 +47,11 @@ import { VaultAICosts } from './ai-cost-storage';
 import { InvocationGate } from '../../features/coforge/application/invocation-gate';
 import { CouncilModule } from './council-module';
 import { executionCostTasks } from '../../features/coforge/application/execution-costs';
+import { McpStepRunner } from '../../features/coforge/application/mcp-step-runner';
+import { McpModule } from './mcp-module';
+import { TaskScheduler } from '../../features/coforge/application/task-scheduler';
+import { TaskSchedulerStateStorage } from './task-scheduler-storage';
+import { taskSchedulerHost } from './task-scheduler-host';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -81,16 +86,23 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   };
   const invocations = new InvocationGate();
   const demo = createDemoRunner(timers);
+  const mcpRunner = new McpStepRunner(workspaces, timers);
   const studio: StudioService = new StudioService(storage, {
     privateFolders: () => councilPrivateFolders(),
     runners: { demo: input => invocations.run(() => demo(input), input.signal),
       claude: input => invocations.run(() => runClaudeStage(input, workspaces), input.signal),
-      herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal) }, timers, probeRuntime: probeClaude,
+      herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal),
+      mcp: input => invocations.run(() => {
+        if (!mcp.status().active) throw new Error('Activate CoForge MCP before reserving an external step.');
+        return mcpRunner.run(input);
+      }, input.signal) }, timers, probeRuntime: probeClaude,
     assertWorkflowReviewable: (id, increment) => workspaces.assertReviewable(id, increment),
     report: error => { report('coforge.workflow'); notify(error.message, true); },
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
   const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id));
+  const mcp = new McpModule(plugin, studio, mcpRunner);
+  const taskScheduler = new TaskScheduler(new TaskSchedulerStateStorage(plugin), taskSchedulerHost(plugin, studio, council.actions), timers);
   councilPrivateFolders = () => council.privateFolders();
   const publisher = new PublicSitePublisher(plugin, () => studio.integration(), () => councilPrivateFolders());
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
@@ -144,6 +156,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    taskScheduler,
+    mcp,
     council: council.actions,
     herdrWorkflows,
     schedule: new ScheduleService(new VaultSchedule(plugin), new StreamPlanPreparation(studio, twitch.actions, obs, music), studio.store),
@@ -198,6 +212,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       if (disposed) return;
       await council.start();
       if (disposed) return;
+      await mcp.start();
+      if (disposed) return;
+      await taskScheduler.start().catch(() => notify('Task scheduler could not start. Open Council → Task scheduler and restore its private journal before scheduling work.', true));
+      if (disposed) return;
       for (const path of invalidNotes) notify(`CoForge skipped an idea note with invalid properties: ${path}`, true);
       storage.watch(
         change => { void studio.applyNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },
@@ -225,9 +243,12 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     },
     async dispose() {
       disposed = true;
+      const closingTasks = taskScheduler.dispose();
+      const closingMcp = mcp.dispose();
       stopCouncilCosts();
       if (councilCostTimer !== undefined) timers.clearTimeout(councilCostTimer);
       invocations.dispose();
+      await Promise.all([closingTasks, closingMcp]);
       await council.dispose();
       stopHerdrRuntime();
       stopStatusbar();

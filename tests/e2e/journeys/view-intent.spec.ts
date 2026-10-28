@@ -107,6 +107,12 @@ test("native settings clearly separate vault integration from project configurat
     }, theme);
     for (const width of [1280, 360]) {
       await page.setViewportSize({ width, height: 900 });
+      const mcpRow = page.locator('.cf-mcp-setting-row');
+      const mcpInfo = await mcpRow.locator('.cf-setting-row-info').boundingBox();
+      const mcpControls = await mcpRow.locator('.cf-setting-row-control').boundingBox();
+      expect(mcpInfo).not.toBeNull();
+      expect(mcpControls).not.toBeNull();
+      if (mcpInfo && mcpControls) expect(mcpInfo.x + mcpInfo.width <= mcpControls.x + 1 || mcpInfo.y + mcpInfo.height <= mcpControls.y + 1).toBe(true);
       await page.screenshot({
         path: `${directory}/15-native-settings-${theme}-${width}.png`,
         fullPage: true,

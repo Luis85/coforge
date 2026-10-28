@@ -24,7 +24,7 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
           ideaId: idea.id,
           status: attempt.status,
           stageLabel: attempt.stepName,
-          providerLabel: step
+          providerLabel: run.external && step?.kind === 'ai' ? 'External MCP client · model not reported' : step
             ? configuredAgentLabel(step)
             : "Runner not recorded",
           time: clock(attempt.startedAt),
@@ -55,7 +55,7 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
       providerLabel:
         job.provider === "demo"
           ? "Simulation"
-          : `${job.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${job.model ?? "model not recorded"}`,
+          : job.provider === "mcp" ? "External MCP client · model not reported" : `${job.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${job.model ?? "model not recorded"}`,
       time: clock(job.startedAt),
       at: job.startedAt,
       canCancel: isActiveJob(job),

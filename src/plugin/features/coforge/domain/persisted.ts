@@ -34,7 +34,7 @@ const job: Check<AgentJob> = shape({
   workflow: optional(configuredStepExecutionCheck),
   usage: optional(stageUsageCheck), herdrAgent: optional(oneOf(['claude'] as const)),
   model: optional(text({ max: 100 })),
-  id: str, ideaId: str, stage, status: oneOf(['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const), provider,
+  id: str, ideaId: str, stage, status: oneOf(['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const), provider: oneOf(['demo', 'claude', 'herdr', 'mcp'] as const),
   startedAt: timestamp, finishedAt: optional(timestamp), logs: list(str), error: optional(str), costUsd: optional(number({ min: 0 })),
   projectId: optional(str),
 });

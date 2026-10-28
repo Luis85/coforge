@@ -26,13 +26,13 @@ export function configuredInputs(run: WorkflowRun, step: AiWorkflowStep): Workfl
   for (const role of step.inputs ?? []) if (!inputs.some(artifact => artifact.output === role)) throw new Error(`The step requires a valid preceding ${role} artifact.`);
   return inputs.map(workflowArtifactCheck);
 }
-export function configuredRuntime(state: InternalState, idea: Idea, step: AiWorkflowStep): void {
+export function configuredRuntime(state: InternalState, idea: Idea, step: AiWorkflowStep, external = false): void {
   if (idea.voters.length < (step.minVotes ?? 0)) throw new Error(`This step requires ${step.minVotes} votes.`);
   if (idea.screening?.verdict === 'flagged') throw new Error('Resolve this request’s moderation flag before continuing.');
   const project = findProject(state, ideaProjectId(idea));
-  if (step.provider === 'demo') return;
-  if (step.provider === 'claude' && !state.runtime.cliAvailable) throw new Error('The native Claude runtime is unavailable.');
-  if (step.provider === 'herdr' && !state.runtime.herdrWorkflow?.ready) throw new Error(state.runtime.herdrWorkflow?.message || 'The Herdr runtime or recovery journal is not ready.');
+  if (!external && step.provider === 'demo') return;
+  if (!external && step.provider === 'claude' && !state.runtime.cliAvailable) throw new Error('The native Claude runtime is unavailable.');
+  if (!external && step.provider === 'herdr' && !state.runtime.herdrWorkflow?.ready) throw new Error(state.runtime.herdrWorkflow?.message || 'The Herdr runtime or recovery journal is not ready.');
   if (step.access !== 'none' && !project.projectPath) throw new Error('Set this project’s repository path before repository access.');
   if (step.access === 'editworktree' && !project.allowImplementation) throw new Error('Enable implementation for this project before worktree editing.');
 }

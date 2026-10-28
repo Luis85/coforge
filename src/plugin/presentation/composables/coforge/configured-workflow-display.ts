@@ -38,14 +38,14 @@ export function configuredStepProblem(
     return "Choose an available project before running this step.";
   if (idea && new Set(idea.voters).size < (step.minVotes ?? 0))
     return `Needs ${step.minVotes} votes before this step can run.`;
-  if (step.provider === "demo") return "";
+  if (!run?.external && step.provider === "demo") return "";
   if (step.access !== "none" && !project.projectPath)
     return "Set the project path in Project settings before running this step.";
   if (step.access === "editworktree" && !project.allowImplementation)
     return "Enable real implementation in Project settings → Agent workspace before running an editing step.";
-  if (step.provider === "claude" && !runtime?.cliAvailable)
+  if (!run?.external && step.provider === "claude" && !runtime?.cliAvailable)
     return "Claude Code is not detected. Check the native CLI connection in Project settings.";
-  if (step.provider === "herdr") {
+  if (!run?.external && step.provider === "herdr") {
     if (!runtime?.herdrWorkflow?.ready)
       return (
         runtime?.herdrWorkflow?.message ||
