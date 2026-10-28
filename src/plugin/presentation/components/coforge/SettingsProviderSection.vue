@@ -84,8 +84,43 @@ const model = useSettingsForm();
           does not prove that you are signed in.
         </p>
       </div>
+      <div v-if="model.hasHerdrStep" class="cf-settings-connection-info">
+        <div class="cf-settings-connection-status">
+          <span
+            class="cf-status-dot"
+            :class="
+              model.runtime?.herdrWorkflow?.ready ? 'is-active' : 'is-error'
+            "
+          /><strong>{{
+            model.runtime?.herdrWorkflow?.ready
+              ? "Herdr workflow ready"
+              : "Herdr workflow unavailable"
+          }}</strong>
+        </div>
+        <p>
+          {{
+            model.runtime?.herdrWorkflow?.message ||
+            "Check and configure the Herdr connection on Agent workflow inside Obsidian. Browser previews cannot launch native agents."
+          }}
+        </p>
+        <p>
+          Every Herdr step requires a project path. Build also requires
+          implementation permission. CoForge launches a dedicated managed Claude
+          Code agent per attempt and validates its correlated result artifact.
+        </p>
+      </div>
+      <label v-if="model.draft.provider === 'herdr'" class="cf-field"
+        ><span>Default Herdr agent type</span
+        ><select v-model="model.draft.herdrAgent" :disabled="model.pending">
+          <option :value="undefined">Claude Code (default)</option>
+          <option value="claude">Claude Code (explicit)</option></select
+        ><small
+          >The verified managed profile currently supports Claude Code
+          only.</small
+        ></label
+      >
       <label class="cf-field">
-        <span>Default Claude model</span>
+        <span>Default agent model</span>
         <input
           v-model="model.draft.model"
           type="text"
@@ -96,8 +131,8 @@ const model = useSettingsForm();
           aria-describedby="cf-settings-model-help"
         />
         <small id="cf-settings-model-help"
-          >A CLI alias such as sonnet or opus. Real steps inherit it when no
-          step model is set; Simulation makes no model call.</small
+          >A Claude Code model alias such as sonnet or opus. Real steps inherit
+          it when no step model is set; Simulation makes no model call.</small
         >
       </label>
     </div>

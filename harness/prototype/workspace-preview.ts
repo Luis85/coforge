@@ -19,6 +19,13 @@ export function createWorkspacePreview(store: StudioStore, timers: Timers) {
       startedAt: "2026-10-26T17:00:00.000Z",
       model: "example-model",
       reportedUsd: 0.0125,
+      usage: {
+        inputTokens: 120,
+        outputTokens: 30,
+        cacheReadInputTokens: 40,
+        cacheCreationInputTokens: 10,
+      },
+      usageSource: "provider",
     },
     {
       id: "example-build-1",
@@ -31,6 +38,13 @@ export function createWorkspacePreview(store: StudioStore, timers: Timers) {
       status: "failed",
       startedAt: "2026-10-26T17:10:00.000Z",
       reportedUsd: 0.45,
+      usage: {
+        inputTokens: 80,
+        outputTokens: 50,
+        cacheReadInputTokens: 0,
+        cacheCreationInputTokens: 0,
+      },
+      usageSource: "provider",
     },
     {
       id: "example-herdr-1",

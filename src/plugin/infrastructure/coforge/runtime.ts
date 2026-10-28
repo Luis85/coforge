@@ -23,6 +23,12 @@ import { LocalMusicPlayer } from './local-music-player';
 import { HerdrService } from '../../features/coforge/application/herdr-service';
 import { LocalHerdrGateway } from './herdr-gateway';
 import { HerdrStateStorage } from './herdr-storage';
+import { HerdrAdmission } from '../../features/coforge/application/herdr-admission';
+import { HerdrWorkflowService } from '../../features/coforge/application/herdr-workflow-service';
+import { herdrWorkflowReadiness } from '../../features/coforge/application/herdr-workflow-readiness';
+import { HerdrWorkflowStateStorage } from './herdr-workflow-storage';
+import { LocalHerdrWorkflowGateway } from './herdr-workflow-gateway';
+import { LocalHerdrAttemptFiles } from './herdr-workflow-files';
 import { FinanceService } from '../../features/coforge/application/finance-service';
 import { VaultFinance } from './finance-storage';
 import { PublicStreamSource } from '../../features/coforge/application/stream-surface-source';
@@ -66,8 +72,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     setTimeout: (callback, ms) => window.setTimeout(callback, ms), clearTimeout: handle => window.clearTimeout(handle),
     setInterval: (callback, ms) => window.setInterval(callback, ms), clearInterval: handle => window.clearInterval(handle),
   };
-  const studio = new StudioService(storage, {
-    runners: { demo: createDemoRunner(timers), claude: runClaudeStage }, timers, probeRuntime: probeClaude,
+  const studio: StudioService = new StudioService(storage, {
+    runners: { demo: createDemoRunner(timers), claude: runClaudeStage, herdr: input => herdrWorkflows.run(input) }, timers, probeRuntime: probeClaude,
     report: error => { report('coforge.workflow'); notify(error.message, true); },
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
@@ -75,7 +81,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
   const stopStatusbar = mountNativeStatusbar(plugin, studio.store);
   const streamSource = new PublicStreamSource(studio.store);
-  const streamViews = registerStreamViews(plugin, projectId => { const scoped = new PublicStreamSource(studio.store, projectId); scoped.start(); return { source: scoped.asPort(), dispose: () => scoped.dispose() }; }, () => studio.store.ready ? studio.state().activeProjectId ?? '' : '', (kind, surface) => studio.store.transaction(state => recordOperation(state, kind, 'committed', undefined, 1, surface)), () => notify('A public stream window could not be opened. Use desktop Obsidian and check its workspace.', true));
+  const streamViews = registerStreamViews(plugin, projectId => { const scoped = new PublicStreamSource(studio.store, projectId); scoped.start(); return { source: scoped.asPort(), dispose: () => scoped.dispose() }; }, () => studio.store.ready ? studio.state().activeProjectId ?? '' : '', (kind, surface) => studio.store.transaction(state => recordOperation(state, kind, 'committed', undefined, 1, surface)), () => notify('A public stream view could not be opened. Use desktop Obsidian and check its workspace.', true));
   const twitch = new TwitchModule(studio, {
     getSecret: name => secrets(plugin.app)?.getSecret(name) ?? null,
     setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
@@ -86,7 +92,9 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   });
   const obs = new ObsWorkflow(studio.store, obsAdapter);
   const music = new MusicService(new VaultMusic(plugin), new LocalMusicPlayer(plugin.app.vault), code => studio.store.transaction(state => recordOperation(state, code)));
-  const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers);
+  const herdrAdmission = new HerdrAdmission();
+  const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers, herdrAdmission);
+  const herdrWorkflows = new HerdrWorkflowService(studio.store, herdr, herdrAdmission, new HerdrWorkflowStateStorage(plugin), new LocalHerdrWorkflowGateway(), new LocalHerdrAttemptFiles(), timers);
   const aiCosts = new AICostService(studio.store, new VaultAICosts(plugin), () => studio.store.aiCostSnapshot(herdr.snapshot().records), timers);
   const liveMonitor = new LiveStudioMonitor(studio.store, { obs: () => obsAdapter.metrics(), twitch: () => twitch.liveViewers() }, timers);
   const streamHistory = new StreamHistoryStorage(plugin.app.vault.adapter);
@@ -97,6 +105,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   } }, timers);
   let stopListening = () => {};
   let stopPublishing = () => {};
+  let stopHerdrRuntime = () => {};
   let disposed = false;
   let failure: string | null = null;
 
@@ -112,6 +121,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    herdrWorkflows,
     schedule: new ScheduleService(new VaultSchedule(plugin), new StreamPlanPreparation(studio, twitch.actions, obs, music), studio.store),
     aiCosts,
     viewerNotes,
@@ -175,15 +185,23 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       streamSource.start();
       viewerNotes.start();
       obs.start();
+      const updateHerdr = () => { if (!disposed) void studio.store.updateRuntime({ herdrWorkflow: herdrWorkflowReadiness(herdr.snapshot(), herdrWorkflows.snapshot(), Date.now()) }).catch(() => report('coforge.observer')); };
+      const stopManual = herdr.subscribe(updateHerdr);
+      const stopWorkflow = herdrWorkflows.subscribe(updateHerdr);
+      stopHerdrRuntime = () => { stopManual(); stopWorkflow(); };
+      updateHerdr();
       void music.refresh().catch(() => undefined);
-      void (async () => { try { await herdr.start(); } catch { if (!disposed) notify('Herdr settings could not be loaded. Check the saved recovery records before reconnecting.', true); } if (disposed) return; try { await aiCosts.start(); } catch { if (!disposed) notify('AI cost history could not be loaded. Review the cost dashboard before relying on its totals.', true); } })();
+      void (async () => { try { await herdr.start(); if (!disposed) await herdrWorkflows.start(); } catch { if (!disposed) notify('Herdr settings or workflow recovery records could not be loaded. Restore them before dispatching.', true); } if (disposed) return; try { await aiCosts.start(); } catch { if (!disposed) notify('AI cost history could not be loaded. Review the cost dashboard before relying on its totals.', true); } })();
       liveMonitor.start();
       void recorder.start();
     },
     async dispose() {
       disposed = true;
+      stopHerdrRuntime();
       stopStatusbar();
       streamViews.dispose(); streamSource.dispose();
+      await studio.engine.stop();
+      await herdrWorkflows.dispose();
       await music.dispose();
       await herdr.dispose();
       await liveMonitor.stop();

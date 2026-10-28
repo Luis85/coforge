@@ -2,191 +2,156 @@ import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
 describe("Streaming workspace in the contained vault", () => {
-  test("opens a fresh native window on each ribbon action and closes every capture on unload", async ({
+  test("opens fresh styled public tabs in the main workspace and preserves the private workbench", async ({
     obsidian,
   }) => {
-    const workbench = await obsidian.openView(
-      `${obsidian.pluginId}-view-project-workbench`,
-    );
-    const mainBefore = await obsidian.eval(({ app }) => {
-      const types: string[] = [];
-      app.workspace.iterateAllLeaves((leaf) => {
-        if (leaf.view.containerEl.ownerDocument === document)
-          types.push(leaf.view.getViewType());
-      });
-      return types.sort();
-    });
-    const ribbon = obsidian.page.getByLabel("Open CoForge Stream - Kanban", {
-      exact: true,
-    });
-    const opened = obsidian.page
-      .context()
-      .waitForEvent("page", { timeout: 15000 });
-    await ribbon.click();
-    const firstWindow = await opened;
-    await obsidian.waitFor(({ app, pluginId }) => {
-      const leaf = app.workspace
-        .getLeavesOfType(`${pluginId}-view-stream-kanban`)
-        .find((leaf) => leaf.view.containerEl.ownerDocument !== document);
-      if (
-        !leaf?.view.containerEl.querySelector(".cf-stream-surface") ||
-        leaf.view.containerEl.ownerDocument.title !== "CoForge Stream - Kanban"
-      )
-        return false;
-      Reflect.set(
-        window,
-        "__coforgeTestCaptureDocument",
-        leaf.view.containerEl.ownerDocument,
+    await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    const pages = obsidian.page.context().pages().length;
+    const icons: string[] = [];
+    for (const [surface, title] of [
+      ["kanban", "Kanban"],
+      ["chat", "Chat"],
+      ["leaderboards", "Leaderboards"],
+      ["community", "Community"],
+    ]) {
+      const ribbon = obsidian.page.getByLabel(
+        `Open CoForge Stream - ${title}`,
+        { exact: true },
       );
-      return true;
-    });
-    await obsidian.page.bringToFront();
-    const openedAgain = obsidian.page
-      .context()
-      .waitForEvent("page", { timeout: 15000 });
-    await ribbon.click();
-    const secondWindow = await openedAgain;
-    expect(secondWindow).not.toBe(firstWindow);
-    const state = await obsidian.waitFor(({ app, pluginId }) => {
+      const markup = await ribbon
+        .locator("svg")
+        .first()
+        .evaluate((el) => el.innerHTML);
+      expect(markup.trim()).not.toBe("");
+      icons.push(markup);
+      await ribbon.click();
+      await browserExpect(
+        obsidian.page.locator(`.cf-stream-surface-${surface}`),
+      ).toBeVisible();
+      const rendered = await obsidian.eval(
+        ({ app, pluginId }, surface: string) => {
+          const leaf = app.workspace.getLeavesOfType(
+            `${pluginId}-view-stream-${surface}`,
+          )[0];
+          const root =
+            leaf?.view.containerEl.querySelector<HTMLElement>(
+              ".cf-stream-surface",
+            );
+          if (!leaf || !root) throw new Error("Public surface missing");
+          const style = getComputedStyle(root);
+          return {
+            main: leaf.view.containerEl.ownerDocument === document,
+            scoped: Boolean(root.closest(".ps--coforge")),
+            background: style.backgroundColor,
+            fontSize: style.fontSize,
+            interactive: root.querySelectorAll("button,input,textarea,a")
+              .length,
+            text: root.textContent,
+          };
+        },
+        surface,
+      );
+      expect(rendered).toMatchObject({
+        main: true,
+        scoped: true,
+        fontSize: "16px",
+        interactive: 0,
+      });
+      expect(rendered.background).not.toBe("rgba(0, 0, 0, 0)");
+      expect(rendered.text).toContain("!register");
+      expect(rendered.text).not.toContain("PRIVATE_");
+    }
+    expect(new Set(icons).size).toBe(4);
+    await obsidian.page
+      .getByLabel("Open CoForge Stream - Kanban", { exact: true })
+      .click();
+    await obsidian.waitFor(({ app, pluginId }) => {
       const leaves = app.workspace.getLeavesOfType(
         `${pluginId}-view-stream-kanban`,
       );
-      const detached = leaves.filter(
-        (leaf) => leaf.view.containerEl.ownerDocument !== document,
-      );
-      const docs = [
-        ...new Set(detached.map((leaf) => leaf.view.containerEl.ownerDocument)),
-      ];
-      if (
-        detached.length !== 2 ||
-        docs.length !== 2 ||
-        docs.some((doc) => !doc.querySelector(".cf-stream-surface"))
-      )
-        return null;
-      const titles = docs.map((doc) => doc.title).sort();
-      if (
-        titles[0] !== "CoForge Stream - Kanban" ||
-        titles[1] !== "CoForge Stream - Kanban (2)"
-      )
-        return null;
-      const mainTypes: string[] = [];
-      app.workspace.iterateAllLeaves((leaf) => {
-        if (leaf.view.containerEl.ownerDocument === document)
-          mainTypes.push(leaf.view.getViewType());
-      });
-      return {
-        titles,
-        slots: detached
-          .map((leaf) => Reflect.get(leaf.view.getState(), "windowSlot"))
-          .sort(),
-        public: docs.every((doc) =>
-          Boolean(doc.querySelector(".cf-stream-surface")),
-        ),
-        private: docs.some((doc) => Boolean(doc.querySelector(".cf-sidebar"))),
-        nativeStatus: docs.some((doc) =>
-          Boolean(doc.querySelector(".coforge-native-statusbar")),
-        ),
-        mainPublicLeaves: leaves.filter(
-          (leaf) => leaf.view.containerEl.ownerDocument === document,
-        ).length,
-        mainTypes: mainTypes.sort(),
-      };
-    });
-    expect(state).toMatchObject({
-      titles: ["CoForge Stream - Kanban", "CoForge Stream - Kanban (2)"],
-      slots: [1, 2],
-      public: true,
-      private: false,
-      nativeStatus: false,
-      mainPublicLeaves: 0,
-      mainTypes: mainBefore,
-    });
-    await browserExpect(workbench).toBeVisible();
-    await browserExpect(firstWindow).toHaveTitle("CoForge Stream - Kanban");
-    await browserExpect(secondWindow).toHaveTitle(
-      "CoForge Stream - Kanban (2)",
-    );
-    const retargeted = await obsidian.eval(async ({ app, pluginId }) => {
-      const firstDocument: Document | undefined = Reflect.get(
-        window,
-        "__coforgeTestCaptureDocument",
-      );
-      const type = `${pluginId}-view-stream-kanban`;
-      const leaf = app.workspace
-        .getLeavesOfType(type)
-        .find(
+      return (
+        leaves.length === 2 &&
+        leaves.every(
           (leaf) =>
-            leaf.view.containerEl.ownerDocument !== document &&
-            leaf.view.containerEl.ownerDocument !== firstDocument,
-        );
-      if (!leaf) throw new Error("Second capture missing");
-      await leaf.setViewState({
-        type,
-        active: true,
-        state: { projectId: "CFP-002" },
-      });
+            leaf.view.containerEl.ownerDocument === document &&
+            Boolean(
+              leaf.view.containerEl.querySelector(".cf-stream-surface-kanban"),
+            ),
+        )
+      );
+    });
+    const state = await obsidian.eval(({ app, pluginId }) => {
+      const leaves = app.workspace.getLeavesOfType(
+        `${pluginId}-view-stream-kanban`,
+      );
       return {
-        slot: Reflect.get(leaf.view.getState(), "windowSlot"),
-        surface: Reflect.get(leaf.view.getState(), "windowSurface"),
+        count: leaves.length,
+        allMain: leaves.every(
+          (leaf) => leaf.view.containerEl.ownerDocument === document,
+        ),
+        workbench: app.workspace.getLeavesOfType(
+          `${pluginId}-view-project-workbench`,
+        ).length,
+        grid: getComputedStyle(
+          leaves.at(-1)!.view.containerEl.querySelector(".cf-stream-kanban")!,
+        ).display,
       };
     });
-    expect(retargeted).toEqual({ slot: 2, surface: "kanban" });
-    await browserExpect(secondWindow).toHaveTitle(
-      "CoForge Stream - Kanban (2)",
+    expect(state).toEqual({
+      count: 2,
+      allMain: true,
+      workbench: 1,
+      grid: "grid",
+    });
+    expect(obsidian.page.context().pages()).toHaveLength(pages);
+    await obsidian.screenshot("public-main-tab-styled");
+    expect(obsidian.errors()).toEqual([]);
+  });
+  test("guards a manually detached public capture and opens later commands in the main workspace", async ({
+    obsidian,
+  }) => {
+    await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await obsidian.runCommand("open-stream-kanban");
+    await browserExpect(
+      obsidian.page.locator(".cf-stream-surface-kanban"),
+    ).toBeVisible();
+    const popup = obsidian.page.context().waitForEvent("page");
+    await obsidian.eval(({ app, pluginId }) => {
+      const leaf = app.workspace.getLeavesOfType(
+        `${pluginId}-view-stream-kanban`,
+      )[0];
+      if (!leaf) throw new Error("Public tab missing");
+      app.workspace.moveLeafToPopout(leaf);
+    });
+    const capture = await popup;
+    await browserExpect(capture).toHaveTitle("CoForge Stream - Kanban");
+    await obsidian.eval(({ app, pluginId }) => {
+      const leaf = app.workspace.getLeavesOfType(
+        `${pluginId}-view-stream-kanban`,
+      )[0];
+      if (!leaf) throw new Error("Capture missing");
+      app.workspace.setActiveLeaf(leaf);
+      app.commands.executeCommandById(`${pluginId}:open-stream-chat`);
+    });
+    await obsidian.waitFor(({ app, pluginId }) =>
+      app.workspace
+        .getLeavesOfType(`${pluginId}-view-stream-chat`)
+        .some((leaf) => leaf.view.containerEl.ownerDocument === document),
     );
     await obsidian.eval(async ({ app, pluginId }) => {
-      const firstDocument: Document | undefined = Reflect.get(
-        window,
-        "__coforgeTestCaptureDocument",
-      );
-      const leaf = app.workspace
-        .getLeavesOfType(`${pluginId}-view-stream-kanban`)
-        .find((leaf) => leaf.view.containerEl.ownerDocument === firstDocument);
+      const leaf = app.workspace.getLeavesOfType(
+        `${pluginId}-view-stream-kanban`,
+      )[0];
       if (!leaf) throw new Error("Capture missing");
-      const doc = leaf.view.containerEl.ownerDocument;
-      Reflect.set(window, "__coforgeTestCaptureDocument", doc);
       await leaf.setViewState({ type: "markdown", active: true });
     });
-    await obsidian.waitFor(() => {
-      const doc: Document | undefined = Reflect.get(
-        window,
-        "__coforgeTestCaptureDocument",
-      );
-      return doc?.body.classList.contains("coforge-stream-blocked");
-    });
-    expect(
-      await obsidian.eval(() => {
-        const doc: Document | undefined = Reflect.get(
-          window,
-          "__coforgeTestCaptureDocument",
-        );
-        return doc?.title;
-      }),
-    ).toBe("CoForge Stream - Kanban");
-    await browserExpect(
-      secondWindow.locator(".cf-stream-surface"),
-    ).toBeVisible();
-    const closed = Promise.all([
-      firstWindow.waitForEvent("close", { timeout: 15000 }),
-      secondWindow.waitForEvent("close", { timeout: 15000 }),
-    ]);
+    await browserExpect(capture.locator(".cf-stream-curtain")).toBeVisible();
+    await browserExpect(capture).toHaveTitle("CoForge Stream - Kanban");
+    const closed = capture.waitForEvent("close");
     await obsidian.disablePlugin();
     await closed;
-    expect(firstWindow.isClosed()).toBe(true);
-    expect(secondWindow.isClosed()).toBe(true);
     expect(obsidian.page.isClosed()).toBe(false);
-    expect(
-      await obsidian.page.locator(".coforge-native-statusbar").count(),
-    ).toBe(0);
     await obsidian.enablePlugin();
-    await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
-    await browserExpect(
-      obsidian.page.locator(".coforge-native-statusbar"),
-    ).toHaveCount(1);
-    await obsidian.reloadPlugin();
-    await browserExpect(
-      obsidian.page.locator(".coforge-native-statusbar"),
-    ).toHaveCount(1);
     expect(obsidian.errors()).toEqual([]);
   });
   test("keeps project prompts and planned scripts in canonical private notes across reload", async ({

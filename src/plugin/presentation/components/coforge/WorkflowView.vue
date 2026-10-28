@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { useWorkflow } from '../../composables/coforge/use-workflow';
-import CfIcon from './CfIcon.vue';
-import WorkflowHistory from './WorkflowHistory.vue';
-import WorkflowStages from './WorkflowStages.vue';
-import WorkflowWorkbench from './WorkflowWorkbench.vue';
-import HerdrPanel from './HerdrPanel.vue';
+import { useWorkflow } from "../../composables/coforge/use-workflow";
+import CfIcon from "./CfIcon.vue";
+import WorkflowHistory from "./WorkflowHistory.vue";
+import WorkflowStages from "./WorkflowStages.vue";
+import WorkflowWorkbench from "./WorkflowWorkbench.vue";
+import HerdrPanel from "./HerdrPanel.vue";
+import HerdrWorkflowRecovery from "./HerdrWorkflowRecovery.vue";
 
 const model = useWorkflow();
 </script>
@@ -13,21 +14,30 @@ const model = useWorkflow();
     <header class="cf-page-heading cf-workflow-heading">
       <div>
         <h1>Agent workflow</h1>
-        <p>Configure each step, dispatch eligible requests and review every agent attempt.</p>
+        <p>
+          Configure each step, dispatch eligible requests and review every agent
+          attempt.
+        </p>
       </div>
       <div class="cf-workflow-inline cf-workflow-heading-actions">
         <button
-          type="button" class="cf-btn cf-btn-secondary" :disabled="!model.canRunNext"
-          title="Dispatch the next eligible idea from an enabled stage" @click="model.runNext()"
+          type="button"
+          class="cf-btn cf-btn-secondary"
+          :disabled="!model.canRunNext"
+          title="Dispatch the next eligible idea from an enabled stage"
+          @click="model.runNext()"
         >
           <CfIcon name="play" size="sm" /> Run next
         </button>
         <button
-          type="button" class="cf-btn" :class="model.paused ? 'cf-btn-primary' : 'cf-btn-secondary'" :disabled="model.store.busy"
+          type="button"
+          class="cf-btn"
+          :class="model.paused ? 'cf-btn-primary' : 'cf-btn-secondary'"
+          :disabled="model.store.busy"
           @click="model.togglePause()"
         >
           <CfIcon :name="model.paused ? 'play' : 'pause'" size="sm" />
-          {{ model.paused ? 'Resume automation' : 'Pause automation' }}
+          {{ model.paused ? "Resume automation" : "Pause automation" }}
         </button>
       </div>
     </header>
@@ -36,7 +46,10 @@ const model = useWorkflow();
       <span>{{ model.error }}</span>
     </div>
     <div class="cf-workflow-summary">
-      <span class="cf-workflow-live-dot" :class="{ 'is-paused': model.paused }" />
+      <span
+        class="cf-workflow-live-dot"
+        :class="{ 'is-paused': model.paused }"
+      />
       <strong>{{ model.summaryLabel }}</strong>
       <span>{{ model.enabledCount }} of 4 stages automated</span>
       <span class="cf-workflow-dot-separator">·</span>
@@ -50,6 +63,7 @@ const model = useWorkflow();
       <WorkflowStages :model="model" />
       <WorkflowWorkbench :model="model" />
     </div>
+    <HerdrWorkflowRecovery />
     <WorkflowHistory :model="model" />
     <HerdrPanel />
   </div>

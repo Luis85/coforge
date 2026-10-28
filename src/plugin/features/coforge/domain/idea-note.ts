@@ -82,7 +82,7 @@ export function ideaFileName(idea: Pick<Idea, 'id' | 'title'>): string {
 const str = text({ max: 6000 });
 const item = text({ max: 2000 });
 const items = (max: number) => optional(nullable(list(item, { max })));
-const provider = oneOf(['demo', 'claude'] as const);
+const provider = oneOf(['demo', 'claude', 'herdr'] as const);
 const noteShape = shape({
   contexts: optional(ideaContextsCheck),
   type: oneOf([IDEA_MARKER] as const), id: text({ pattern: /^CF-\d{3,7}$/ }), title: text({ trim: true, min: 1, max: 200 }),

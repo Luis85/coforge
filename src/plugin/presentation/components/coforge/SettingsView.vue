@@ -125,11 +125,13 @@ const model = useSettings();
           :fields="model.limits"
           icon="gauge"
           heading="Run limits"
-          text="Bound each real CLI invocation. A failed run waits for your attention before retrying."
+          text="Native Claude Code receives the turn and USD caps. CoForge applies the wait timeout to managed Herdr attempts."
         >
           <p class="cf-settings-help">
-            These limits are sent to the local CLI. The provider controls
-            billing and account usage.
+            Herdr agent spending and turn limits are configured externally.
+            These native CLI caps do not enforce Herdr spending. A timeout or
+            cancellation ends CoForge’s wait; inspect the original Herdr agent
+            before acknowledging recovery.
           </p>
         </SettingsNumberSection>
         <div class="cf-settings-save">

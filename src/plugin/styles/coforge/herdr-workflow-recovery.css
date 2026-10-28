@@ -1,0 +1,41 @@
+.cf-herdr-recovery {
+  border: 1px solid var(--cf-border);
+  border-radius: var(--radius-m);
+  padding: 20px;
+  margin-block: 24px;
+  background: var(--cf-surface);
+}
+.cf-herdr-recovery h2 {
+  font-size: 16px;
+  margin: 0 0 12px;
+}
+.cf-herdr-recovery > p {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.cf-herdr-recovery article {
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--cf-border);
+}
+.cf-herdr-recovery h3 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+.cf-herdr-recovery article > p {
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.cf-herdr-recovery label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.65;
+  margin-block: 16px;
+}
+.cf-herdr-recovery label > input {
+  margin-top: 4px;
+  flex-shrink: 0;
+}

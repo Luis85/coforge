@@ -14,6 +14,10 @@ import {
   taskCost,
   type AICostTask,
 } from "../../../features/coforge/domain/ai-costs";
+import {
+  formatTokens,
+  tokenSummary,
+} from "../../../features/coforge/domain/ai-usage";
 export function useAICosts() {
   const { host } = useCoforge();
   const store = useAICostStore();
@@ -104,6 +108,7 @@ export function useAICosts() {
         project: group[0]?.projectName ?? "",
         title: group[0]?.featureTitle ?? "",
         summary,
+        tokens: tokenSummary(group),
         displayCost:
           summary.reported + summary.manual > 0
             ? formatUsd(summary.nanos)
@@ -122,6 +127,30 @@ export function useAICosts() {
       tasks.value.slice(store.page * 50, (store.page + 1) * 50),
     ),
     summary,
+    tokenTotals: computed(() => tokenSummary(tasks.value)),
+    tokenCount: formatTokens,
+    tokens: (task: AICostTask) => {
+      const usage =
+        task.provider !== "demo" && task.usageSource === "provider"
+          ? task.usage
+          : undefined;
+      const count = (value: number | undefined) =>
+        task.provider === "demo" ? "Simulation" : formatTokens(value);
+      const provenance = (value: number | undefined) =>
+        task.provider === "demo"
+          ? "Simulation"
+          : value === undefined
+            ? "Unavailable"
+            : "Provider reported";
+      return {
+        input: count(usage?.inputTokens),
+        output: count(usage?.outputTokens),
+        cacheRead: count(usage?.cacheReadInputTokens),
+        cacheWrite: count(usage?.cacheCreationInputTokens),
+        inputSource: provenance(usage?.inputTokens),
+        outputSource: provenance(usage?.outputTokens),
+      };
+    },
     features,
     money: formatUsd,
     available: computed(() => Boolean(actions())),

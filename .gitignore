@@ -5,7 +5,7 @@
 !/CoForge/Public/
 !/CoForge/Public/**
 /coforge-state*.json
-/coforge-herdr*.json
+coforge-herdr*.json
 /coforge-music*.json
 
 # Local credentials; reviewed templates may remain in source control.

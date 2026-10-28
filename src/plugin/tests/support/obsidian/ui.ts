@@ -5,7 +5,7 @@ import { element, hasDom } from './dom';
 import { track } from './events';
 
 /** Kit-only logs; `createTestApp` clears them so each test starts empty. */
-export const uiLog = { notices: [] as Notice[], menus: [] as Menu[] };
+export const uiLog = { notices: [] as Notice[], menus: [] as Menu[], icons: new Map<string, string>() };
 
 export class Notice {
   noticeEl!: HTMLElement;
@@ -129,6 +129,9 @@ export class Menu extends Component {
 
 /** Records the icon id on the element; real Lucide SVGs are not rendered. */
 export function setIcon(parent: HTMLElement, icon: string): void { parent.setAttribute('data-icon', icon); }
+export function addIcon(id: string, svg: string): void { uiLog.icons.set(id, svg); }
+export function removeIcon(id: string): void { uiLog.icons.delete(id); }
+export function getIconIds(): string[] { return [...uiLog.icons.keys()]; }
 export function setTooltip(target: HTMLElement, tooltip: string): void { target.setAttribute('aria-label', tooltip); }
 
 /** Timer-based like the host, so `vi.useFakeTimers()` controls it. */

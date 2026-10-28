@@ -10,6 +10,7 @@ import type {
   StreamViewActions,
 } from "../../features/coforge/application/stream-surface-ports";
 import { protectStreamWindow } from "./stream-window-privacy";
+import { registerStreamIcons } from "./stream-icons";
 import {
   StreamWindowSlots,
   streamWindowSlot,
@@ -30,6 +31,7 @@ export function registerStreamViews(
   ) => Promise<void>,
   failure: () => void,
 ) {
+  registerStreamIcons(plugin);
   const mainDocument = plugin.app.workspace.containerEl.ownerDocument;
   const allowed = new Set(
     STREAM_SURFACES.map(
@@ -97,10 +99,11 @@ export function registerStreamViews(
         this.disposeView();
         views.add(this);
         this.contentEl.empty();
+        this.containerEl.classList.add("ps--coforge");
         this.contentEl.classList.add("cf-stream-view-content");
         this.syncWindow();
         const projection = sourceForProject(this.projectId);
-        const root = this.contentEl.createDiv();
+        const root = this.contentEl.createDiv({ cls: "cf-stream-root" });
         const app = createApp(StreamSurfaceView, {
           surface: definition.id,
           source: projection.source,
@@ -163,26 +166,38 @@ export function registerStreamViews(
     }
     plugin.registerView(type, (leaf) => new StreamView(leaf));
   }
-  async function openWindow(
+  async function openTab(
     surface: StreamSurface,
     reuse: boolean,
   ): Promise<WorkspaceLeaf> {
     if (closed) throw new Error("Stream views are closed. Reopen CoForge.");
     const definition = STREAM_SURFACES.find((item) => item.id === surface);
     if (!definition) throw new Error("Choose a public stream view.");
-    if (typeof plugin.app.workspace.openPopoutLeaf !== "function")
-      throw new Error("Detached stream views require desktop Obsidian.");
     const type = `${plugin.manifest.id}-view-stream-${surface}`;
     const existing = reuse
       ? plugin.app.workspace
           .getLeavesOfType(type)
-          .find((leaf) => leaf.view.containerEl.ownerDocument !== mainDocument)
+          .find((leaf) => leaf.view.containerEl.ownerDocument === mainDocument)
       : undefined;
-    const leaf: WorkspaceLeaf =
-      existing ??
-      plugin.app.workspace.openPopoutLeaf({
-        size: { width: surface === "kanban" ? 1200 : 720, height: 800 },
-      });
+    let leaf = existing;
+    if (!leaf) {
+      const main = plugin.app.workspace.getMostRecentLeaf(
+        plugin.app.workspace.rootSplit,
+      );
+      if (main) plugin.app.workspace.setActiveLeaf(main, { focus: false });
+      leaf = main
+        ? plugin.app.workspace.getLeaf("tab")
+        : plugin.app.workspace.createLeafInParent(
+            plugin.app.workspace.rootSplit,
+            0,
+          );
+      if (leaf.view.containerEl.ownerDocument !== mainDocument) {
+        leaf.detach();
+        throw new Error(
+          "The public tab could not be created in the main workspace. Open a main tab and try again.",
+        );
+      }
+    }
     if (!existing)
       await leaf.setViewState({
         type,
@@ -195,13 +210,13 @@ export function registerStreamViews(
   }
   const actions: StreamViewActions = {
     async open(surface) {
-      // Explicit Open, ribbon and command interactions always create a fresh native window.
-      await openWindow(surface, false);
+      // Explicit Open, ribbon and command interactions always create a fresh main-workspace tab.
+      await openTab(surface, false);
     },
     async showProject(projectId) {
       if (!/^CFP-\d{3,7}$/.test(projectId))
         throw new Error("Choose an available project first.");
-      const leaf = await openWindow("kanban", true);
+      const leaf = await openTab("kanban", true);
       const type = `${plugin.manifest.id}-view-stream-kanban`;
       await leaf.setViewState({ type, active: true, state: { projectId } });
     },

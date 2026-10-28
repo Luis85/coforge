@@ -122,6 +122,13 @@ it("preserves AI task costs and human annotations, rejects concurrent edits and 
       status: "failed",
       startedAt: "2026-10-27T10:00:00.000Z",
       reportedUsd: 0.125,
+      usage: {
+        inputTokens: 12,
+        outputTokens: 0,
+        cacheReadInputTokens: 4,
+        cacheCreationInputTokens: 0,
+      },
+      usageSource: "provider" as const,
     },
   ];
   await storage.save(tasks);
@@ -142,7 +149,14 @@ it("preserves AI task costs and human annotations, rejects concurrent edits and 
   expect(parseYaml(splitNote(kit.read(file.path)).yaml!)).toMatchObject({
     custom: "keep",
   });
-  expect(await new VaultAICosts(plugin).load()).toHaveLength(2);
+  const reopened = await new VaultAICosts(plugin).load();
+  expect(reopened).toHaveLength(2);
+  expect(reopened[0]?.usage).toEqual({
+    inputTokens: 12,
+    outputTokens: 0,
+    cacheReadInputTokens: 4,
+    cacheCreationInputTokens: 0,
+  });
   await kit.app.vault.delete(file);
   await expect(storage.load()).rejects.toThrow("preserved");
 });

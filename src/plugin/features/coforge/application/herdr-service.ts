@@ -13,6 +13,7 @@ import type { StudioStore } from "./studio-store";
 import type { Timers } from "./ports";
 import { recordOperation } from "./population";
 import { findProject, ideaProjectId } from "../domain/projects";
+import type { HerdrAdmission } from './herdr-admission';
 
 /** Explicit local dispatch; observed agent completion never advances the canonical CoForge review workflow. */
 export class HerdrService implements HerdrActions {
@@ -26,6 +27,7 @@ export class HerdrService implements HerdrActions {
     private readonly gateway: HerdrGateway,
     private readonly storage: HerdrStorage,
     private readonly timers?: Timers,
+    private readonly admission?: HerdrAdmission,
   ) {}
   snapshot(): HerdrState {
     return structuredClone(this.state);
@@ -46,12 +48,14 @@ export class HerdrService implements HerdrActions {
         }
       }
   }
-  private persist(): Promise<void> {
-    return this.storage.save({
+  private async persist(): Promise<void> {
+    await this.storage.save({
       settings: this.state.settings,
       records: this.state.records,
     });
+    this.syncHolds();
   }
+  private syncHolds(): void { this.admission?.replaceHolds('manual', this.state.records.filter(record => ['pending', 'uncertain'].includes(record.status)).map(record => record.id)); }
   async start(): Promise<void> {
     const saved = await this.storage.load();
     if (this.closed) return;
@@ -66,6 +70,8 @@ export class HerdrService implements HerdrActions {
       await this.persist();
     }
     this.ready = true;
+    this.syncHolds();
+    this.admission?.initialize('manual', this.state.records.filter(record => ['pending', 'uncertain'].includes(record.status)).map(record => record.id));
     this.publish();
   }
   private async event(
@@ -76,7 +82,7 @@ export class HerdrService implements HerdrActions {
       recordOperation(state, code, "committed", undefined, 1, id),
     );
   }
-  private async command(work: () => Promise<void>): Promise<void> {
+  private async command(work: () => Promise<void>, mutation = false): Promise<void> {
     if (!this.ready)
       throw new Error(
         "Herdr recovery records are still loading or could not be read. Restore them before continuing.",
@@ -85,6 +91,7 @@ export class HerdrService implements HerdrActions {
       throw new Error("Herdr controls are closed. Reopen CoForge.");
     if (this.state.busy)
       throw new Error("A Herdr interaction is already in progress.");
+    const release = mutation ? this.admission?.acquire() : undefined;
     this.state.busy = true;
     this.state.error = "";
     this.publish();
@@ -95,6 +102,7 @@ export class HerdrService implements HerdrActions {
         error instanceof Error ? error.message : "Herdr could not be updated.";
       throw error;
     } finally {
+      release?.();
       this.state.busy = false;
       this.publish();
     }
@@ -120,7 +128,7 @@ export class HerdrService implements HerdrActions {
       this.state.observation = null;
       this.state.checkedAt = null;
       await this.event("herdr-settings-saved");
-    });
+    }, true);
   }
   private async read(): Promise<void> {
     const value = await this.gateway.read(this.state.settings);
@@ -231,6 +239,7 @@ export class HerdrService implements HerdrActions {
     const next = [...this.state.records, record].slice(-100);
     await this.storage.save({ settings: this.state.settings, records: next });
     this.state.records = next;
+    this.syncHolds();
     let delivered = false;
     try {
       await this.event("herdr-action-requested", record.id);
@@ -283,7 +292,7 @@ export class HerdrService implements HerdrActions {
         review.target,
         review.ideaId,
       );
-    });
+    }, true);
   }
   createWorkspace(projectId: string): Promise<void> {
     return this.command(async () => {
@@ -297,7 +306,7 @@ export class HerdrService implements HerdrActions {
           project.settings.projectName,
         ),
       );
-    });
+    }, true);
   }
   startAgent(
     projectId: string,
@@ -322,7 +331,7 @@ export class HerdrService implements HerdrActions {
       await this.mutate("agent-start", projectId, () =>
         this.gateway.startAgent(this.state.settings, pane, provider),
       );
-    });
+    }, true);
   }
   focus(paneId: string): Promise<void> {
     return this.command(async () => {
@@ -342,10 +351,11 @@ export class HerdrService implements HerdrActions {
         () => this.gateway.interrupt(this.state.settings, target),
         target,
       );
-    });
+    }, true);
   }
   acknowledge(id: string): Promise<void> {
     return this.command(async () => {
+      this.admission?.assertRecovery();
       const record = this.state.records.find((record) => record.id === id);
       if (
         !record ||
@@ -362,11 +372,13 @@ export class HerdrService implements HerdrActions {
       );
       await this.storage.save({ settings: this.state.settings, records });
       this.state.records = records;
+      this.syncHolds();
       await this.event("herdr-action-reviewed", id);
     });
   }
   async dispose(): Promise<void> {
     this.closed = true;
+    this.admission?.close('manual');
     if (this.timer !== undefined) this.timers?.clearInterval(this.timer);
     this.gateway.dispose();
     this.listeners.clear();

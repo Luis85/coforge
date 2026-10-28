@@ -22,11 +22,12 @@ export const riceInput = shape({
 }, { strict: true });
 
 export const settingsPatch = shape({
+  herdrAgent: optional(oneOf(['claude'] as const)),
   stageAgents: optional(stageAgentsCheck),
   stagePrompts: optional(stagePromptsCheck),
   agentPrompt: optional(text({ trim: true, max: 8000 })),
   projectName: optional(text({ trim: true, min: 1, max: 80 })), projectBrief: optional(text({ trim: true, min: 10, max: 8000 })),
-  provider: optional(oneOf(['demo', 'claude'] as const)),
+  provider: optional(oneOf(['demo', 'claude', 'herdr'] as const)),
   automation: optional(shape({ screen: optional(boolean), score: optional(boolean), plan: optional(boolean), implement: optional(boolean) }, { strict: true })),
   paused: optional(boolean), intervalSeconds: optional(number({ integer: true, min: 2, max: 3600 })),
   minVotes: optional(number({ integer: true, min: 0, max: 10000 })), maxTurns: optional(number({ integer: true, min: 1, max: 50 })),

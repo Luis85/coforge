@@ -1,6 +1,6 @@
 import { StudioError, errorMessage } from '../domain/errors';
 import { recordOperation } from './population';
-import type { AgentJob, AgentStage, IdeaAction, Provider } from '../domain/types';
+import type { AgentJob, AgentStage, IdeaAction } from '../domain/types';
 import { riceValue, STAGE_LABELS, STAGES } from '../domain/types';
 import { assertStage, heuristicSignals, isActiveJob, nextEligible, statusDuring } from '../domain/workflow';
 import type { InternalState, StageResult, StageRunner, Timers } from './ports';
@@ -9,10 +9,17 @@ import { addEvent, type StudioStore } from './studio-store';
 import { copySettings, findProject, ideaProjectId, projectIdeas, projectPaths, projectSettings } from '../domain/projects';
 import { ideaFingerprint } from '../domain/integrity';
 import { agentModelCheck, stageAgent } from '../domain/stage-agents';
+import { stageUsageCheck, hasTokenUsage, type StageUsage } from '../domain/ai-usage';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
   if (project.unavailable) throw new StudioError('Restore this project note before running agents.', 409);
+  if (provider === 'herdr') {
+    if (!state.runtime.herdrWorkflow?.ready) throw new StudioError(state.runtime.herdrWorkflow?.message || 'Connect Herdr and load its recovery journals before running workflow steps.', 409);
+    if (!project.projectPath) throw new StudioError('Set this project’s workspace before running Herdr workflow steps.', 409);
+    if (stage === 'implement' && !project.allowImplementation) throw new StudioError('Real implementation is disabled for this project.', 409);
+    return;
+  }
   if (provider !== 'claude') return;
   if (!state.runtime.cliAvailable) throw new StudioError('Claude Code CLI is not available. Install it, sign in locally, then check the runtime in CoForge settings.', 409);
   if (!project.projectPath && (stage === 'plan' || stage === 'implement'))
@@ -57,7 +64,7 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { runners: Record<Provider, StageRunner>; timers: Timers; onError?: (error: Error) => void }
+export interface EngineOptions { runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner }; timers: Timers; onError?: (error: Error) => void }
 
 /** One worker, a FIFO queue of at most 50 jobs, optional timed automation and explicit cancellation. */
 export class WorkflowEngine {
@@ -95,6 +102,7 @@ export class WorkflowEngine {
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
       const agent = stageAgent(settings, stage);
+      if (agent.provider === 'herdr' && !this.options.runners.herdr) throw new StudioError('Herdr workflow execution is unavailable in this host.', 409);
       if (automatic && settings.paused) throw new StudioError('Automation is paused.', 409);
       assertStage(idea, stage);
       if (state.jobs.some(j => j.ideaId === ideaId && isActiveJob(j))) throw new StudioError('This idea already has a queued or running job.', 409);
@@ -103,7 +111,7 @@ export class WorkflowEngine {
       delete idea.lastError;
       state.manualHolds = state.manualHolds.filter(id => id !== ideaId);
       const queued: AgentJob = {
-        id: crypto.randomUUID(), ideaId, projectId, stage, status: 'queued', provider: agent.provider, ...(agent.provider === 'claude' ? { model: agent.model } : {}), startedAt: new Date().toISOString(),
+        id: crypto.randomUUID(), ideaId, projectId, stage, status: 'queued', provider: agent.provider, ...(agent.provider !== 'demo' ? { model: agent.model } : {}), ...(agent.provider === 'herdr' ? { herdrAgent: agent.herdrAgent ?? 'claude' } : {}), startedAt: new Date().toISOString(),
         logs: [`${STAGE_LABELS[stage]} queued for ${ideaId} (${agent.provider}).`],
       };
       state.jobs.push(queued);
@@ -189,21 +197,23 @@ export class WorkflowEngine {
       assertStage(idea, job.stage);
       job.status = 'running'; job.startedAt = new Date().toISOString();
       const agent = stageAgent(projectSettings(state, projectId), job.stage);
-      if (job.provider === 'claude') job.model = agentModelCheck(job.model ?? agent.model);
+      if (job.provider !== 'demo') job.model = agentModelCheck(job.model ?? agent.model);
       else delete job.model;
       recordOperation(state, 'job-started');
       state.runtime.activeJobId = job.id;
       if (job.stage === 'implement') idea.status = 'building';
       idea.updatedAt = job.startedAt;
-      return { idea: structuredClone(idea), settings: { ...copySettings(projectSettings(state, projectId)), provider: job.provider, model: job.model ?? agent.model },
+      return { idea: structuredClone(idea), settings: { ...copySettings(projectSettings(state, projectId)), provider: job.provider, model: job.model ?? agent.model, ...(job.herdrAgent ? { herdrAgent: job.herdrAgent } : {}) },
         integration: { ...state.integration, ...projectPaths(findProject(state, projectId)) } };
     });
     if (!snapshot) return;
     const fingerprint = ideaFingerprint(snapshot.idea);
     const runner = this.options.runners[next.provider];
+    if (!runner) throw new Error('The selected workflow runner is unavailable.');
     const result = await runner({
-      stage: next.stage, ...snapshot, signal: controller.signal,
+      jobId: next.id, stage: next.stage, ...snapshot, signal: controller.signal,
       onUsage: cost => this.recordCost(next.id, cost),
+      onTokenUsage: usage => this.recordTokens(next.id, usage),
       onLog: message => {
         void this.store.transaction(state => {
           const job = state.jobs.find(j => j.id === next.id);
@@ -212,6 +222,7 @@ export class WorkflowEngine {
       },
     });
     if (result.costUsd !== undefined) await this.recordCost(next.id, result.costUsd);
+    if (result.usage !== undefined) await this.recordTokens(next.id, result.usage);
     controller.signal.throwIfAborted();
     await this.store.transaction(state => {
       const job = state.jobs.find(j => j.id === next.id);
@@ -241,5 +252,13 @@ export class WorkflowEngine {
 
   private report(error: unknown): void {
     this.options.onError?.(error instanceof Error ? error : new Error(String(error)));
+  }
+  private async recordTokens(id: string, input: StageUsage): Promise<void> {
+    const usage = stageUsageCheck(input); if (!hasTokenUsage(usage)) return;
+    await this.store.transaction(state => {
+      const job = state.jobs.find(job => job.id === id); if (!job) throw new Error('The task disappeared before its token usage was saved.');
+      const next = { ...job.usage, ...usage };
+      if (JSON.stringify(next) !== JSON.stringify(job.usage)) { job.usage = next; recordOperation(state, 'ai-usage-reported', 'committed', undefined, 1, id); }
+    });
   }
 }
