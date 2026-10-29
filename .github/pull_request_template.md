@@ -1,37 +1,38 @@
 ## Summary
 
-CoWorkers now has a dedicated vault-wide inventory under Build & Improve, with role/name/ID search, availability filtering, retained drafts, create/edit/save, duplicate, archive, canonical-note access and dependency information. Council Definitions focuses on project teams and councils and links to CoWorkers. Existing agent/v1 identities, memberships, captured revisions and the enforced CoForge MCP-only policy remain compatible.
+Add thirteen MCP tools for maintained CoWorker discovery/delegation and current-vault assistance. Assistants can create retryable analytical tasks, review preflight, dispatch with captured definitions/provider/model, inspect durable runs/published contributions and cancel work.
 
-Build & Improve comes before Stream, Community and Insights. Each group has an accessible collapse control and restores its state from CoForge localStorage, including a safe fallback for malformed or unavailable storage. The normal 740px desktop navigation still fits without unnecessary scrolling.
-
-Remove the board decision-summary section and its unused component/helper/styles; review and moderation remain in the filter tabs. Ask the Council gains a searchable vault file picker that appends a deduplicated wikilink list without replacing input, reading file contents or submitting work.
-
-Review all 90 view contracts: parent properties are clickable vault links, generated tools receive stable parent IDs, route ownership is checked against the source navigation contract, and stale Council/project-band documentation is corrected. Initial Council reads wait for an idle, ready runtime so startup cannot silently skip history refresh.
+Wrap sixteen official read-only Obsidian CLI commands with exact current-vault verification, bounded output/time and cancellation. Ordinary Markdown authoring uses Obsidian's atomic vault API with prior-content checks. Managed/watched/public notes retain dedicated service gates. Isolated Council sessions cannot access operator tools.
 
 ## Requirements and traceability
 
-- Owner requests dated 2026-10-29 in BRIEF.md and DESIGN.md.
-- Task: docs/project-tasks/2026-10-29-workspace-management.md.
-- Imported requirement/vi-* catalogue has no outstanding obligation for these owner corrections; generated traceability is unchanged.
-- No user vault notes, settings, jobs or cleanup backups are included.
+- Owner requests dated 2026-10-29 in BRIEF.md: roster, definition-based subagents, assistant capability review and current-vault CLI.
+- Task/evidence: docs/project-tasks/2026-10-29-mcp-coworkers.md.
+- Imported requirement/vi-* catalogue has no entries for this increment; generated traceability is unchanged.
+- Existing Council definition/execution policies and final human code review remain authoritative.
 
 ## Validation
 
-- Regression failures reproduced for board removal, collapse persistence, parent ownership and deferred initial reads; corresponding focused tests pass.
-- Core editor/catalogue tests: 6 files, 19 passed. Navigation groups: 5 passed. Final readiness/file-picker checks: 4 passed.
-- Browser layout, Council intake, CoWorker flows and UI quality: 14 passed. Corrected light/dark theme restoration after reload: 2 passed. Complete Council example flows on the pinned runtime: 2 passed.
-- Native canonical note editing/rename and human-byte preservation, card menus and lifecycle passed. After the runtime-readiness fix, initialization/history passed (1 test) and persisted navigation/reload passed in both themes (2 tests).
-- Fresh native smoke: status passed, view opened, errors [], hostErrorCount 0; app/installer 1.14.4, launcher 3.2.1.
-- Source limits/locale parity and source lint passed. All 90 view contracts validate; git diff --check and self-review are clean.
-- npm run verify:project: exit 0; 5 passed, 0 failed, 0 skipped; artifact build and prototype embedding passed. The UI-effects generator reports no declared visual definitions. Verification uses Node 24.21.0 and npm 11.19.1.
-- Full native CI: 22 files / 29 tests passed. Final browser CI is rerunning after aligning the narrow-pane accessibility assertion with the owner-requested group order and collapse controls.
+- npm ci: 691 packages added; 0 vulnerabilities.
+- Focused regression suite: 6 files / 32 tests passed. Final CLI/process suite: 11 passed, including exact host content despite CLI newline formatting, custom configuration folders, legitimate note text beginning with Error and redacted native failures.
+- Initial check:fast: typecheck, source lint, zero-warning ESLint and maker types passed; 2 synthetic project fixtures failed due to missing repository paths. Fixed and confirmed in the focused suite; 107 other files / 367 tests passed in the initial related run.
+- Initial full verification found four existing view-catalog failures (275 files / 969 tests passed, 6 tests skipped). Fixed two abbreviated panel parent links and regenerated stale sitemap JSON from canonical notes. check:views and all 9 view-catalog tests now pass.
+- Final npm run verify:project: exit 0; check: ok, 5 passed / 0 failed / 0 skipped gates (769.2s). Product tests passed, artifact build completed and prototype embedding passed (1 test). UI effects reports no declared visual definitions.
+- git diff --check: clean. Manual self-review completed; no unsafe casts, weakened gates or oversized files.
+- Final npm run typecheck and focused zero-warning ESLint on the completed tools/schema/tests: exit 0.
 
 ## UI evidence
 
-Reviewed desktop/mobile CoWorker captures in both themes, reports/navigation-space/, and the 40-screenshot reports/ui-gallery/. Browser checks cover WCAG 2.1 A/AA, keyboard operation and reflow. No screenshot baseline or test threshold changed.
+No interface changes; test:ui-quality and ui:gallery not applicable.
 
-Local browser runs used a freshly built clickdummy.html served by an ignored loopback helper after Windows hit preview startup timeouts. CI retains the standard build-and-test commands.
+## Obsidian evidence
+
+- Pinned smoke: status passed, errors [], hostErrorCount 0; app/installer 1.14.4, launcher 3.2.1. Evidence: .obsidian-sandbox/logs/.
+- npm run test:obsidian -- plugin-lifecycle: 1 passed.
+- npm run test:obsidian -- coforge-mcp-vault: 1 passed; real HTTP MCP creates exact private CRLF bytes, handles identical retries/stale conflicts and writes no client registration.
+- Native evidence: reports/obsidian/ (ignored). No personal vault or real client settings touched.
+- Reused-sandbox final smoke: status passed, plugin errors []; hostErrorCount 2 from Obsidian core command-list callbacks (null parent/getContainer). Native MCP spec has no errors.
 
 ## Untested scope
 
-No live provider/model or external-service sessions were invoked. Existing canonical wire schemas and storage locations are preserved. Final full/native qualification and green CI gate merging and local installation.
+No live billable provider, real client activation or operator-installed CLI invocation. CLI process behavior uses an injected port; native note writes/MCP lifecycle use the pinned host. Local Node 24.20.0 / npm 11.21.1 differs from pinned Node 24.21.0 / npm 11.19.1. No commit, push, release or deployment performed.

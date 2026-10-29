@@ -8,6 +8,8 @@ vi.mock('obsidian', () => import('@test/obsidian'));
 import { App, Plugin } from 'obsidian';
 import { createTestApp } from '@test/obsidian';
 import { McpModule } from '../../../infrastructure/coforge/mcp-module';
+import { CouncilModule } from '../../../infrastructure/coforge/council-module';
+import { InvocationGate } from '../../../features/coforge/application/invocation-gate';
 import { McpStepRunner } from '../../../features/coforge/application/mcp-step-runner';
 import { StudioService } from '../../../features/coforge/application/studio';
 import { record } from '../../../features/coforge/domain/check';
@@ -27,13 +29,15 @@ async function fixture() {
   const studio = new StudioService(new MemoryStorage(createSeed()), { timers, runners: { demo: async () => ({}), claude: async () => ({}) },
     probeRuntime: async () => ({ cliAvailable: false, projectPath: null, allowImplementation: false }) });
   await studio.start(); await studio.updateProject({ projectPath: project });
+  const council = new CouncilModule(plugin, studio, timers, new InvocationGate());
+  await council.start();
   const make = () => {
     const runner = new McpStepRunner({ start: async () => {}, acknowledge: async (workspaceId, attemptId) => { acknowledged.push(`${workspaceId}:${attemptId}`); }, assertReviewable: async () => {}, acquire: async () => { throw new Error('Not used'); } }, timers);
-    return new McpModule(plugin, studio, runner, { directory, vaultPath: root, userSettings, checkNode: async () => {} });
+    return new McpModule(plugin, studio, runner, { directory, vaultPath: root, userSettings, checkNode: async () => {} }, council.actions);
   };
   const acknowledged: string[] = [];
   const module = make(); await module.start();
-  stops.push(async () => { await module.dispose(); await studio.stop(); await rm(root, { recursive: true, force: true }); });
+  stops.push(async () => { await module.dispose(); await council.dispose(); await studio.stop(); await rm(root, { recursive: true, force: true }); });
   return { root, directory, project, userSettings, studio, module, make, acknowledged, projectId: studio.state().activeProjectId! };
 }
 it('activates both config scopes, serves the shipped stdio bridge, reloads safely and removes owned registrations', async () => {
@@ -54,11 +58,21 @@ it('activates both config scopes, serves the shipped stdio bridge, reloads safel
   expect(record(JSON.parse(await readFile(f.userSettings, 'utf8')))).toMatchObject({ keep: true, mcpServers: servers });
   const output = await new Promise<string>((resolve, reject) => {
     const child = execFile(process.execPath, [join(f.directory, 'coforge-mcp-bridge.cjs'), join(f.directory, 'coforge-mcp-connection.json')], { windowsHide: true, timeout: 10000 }, (error, stdout) => { if (error) reject(error); else resolve(stdout); });
-    child.stdin?.end(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } } }) + '\n' + JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }) + '\n');
+    child.stdin?.end([
+      { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-11-25', capabilities: {}, clientInfo: { name: 'test', version: '1' } } },
+      { jsonrpc: '2.0', id: 2, method: 'tools/list' },
+      { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'coforge_roster', arguments: { projectId: f.projectId } } },
+      { jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'coforge_obsidian_status', arguments: {} } },
+    ].map(value => JSON.stringify(value)).join('\n') + '\n');
   });
   const responses = output.trim().split('\n').map(line => record(JSON.parse(line)));
   expect(responses[0]).toMatchObject({ id: 1, result: { serverInfo: { name: 'coforge' } } });
-  expect(responses[1]).toMatchObject({ id: 2, result: { tools: expect.arrayContaining([expect.objectContaining({ name: 'coforge_submit_result' })]) } });
+  expect(responses[1]).toMatchObject({ id: 2, result: { tools: expect.arrayContaining([
+    expect.objectContaining({ name: 'coforge_submit_result' }), expect.objectContaining({ name: 'coforge_roster' }), expect.objectContaining({ name: 'coforge_dispatch_task' }),
+    expect.objectContaining({ name: 'coforge_obsidian_cli' }), expect.objectContaining({ name: 'coforge_obsidian_note' }),
+  ]) } });
+  expect(responses.find(response => response.id === 3)).toMatchObject({ result: { structuredContent: { projectId: f.projectId, coworkers: [], teams: [] } } });
+  expect(responses.find(response => response.id === 4)).toMatchObject({ result: { structuredContent: { available: false } } });
   const closing = f.module.dispose();
   expect(f.module.status().active).toBe(false);
   await closing;

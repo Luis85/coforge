@@ -29,6 +29,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 21000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "activity.md"
     },
     {
@@ -66,6 +78,18 @@
         "cost-review"
       ],
       "privacy": "Private USD usage and captured execution identities; never included in public viewer projections. Prompts, source bodies and local paths are not analytics fields.",
+      "order": 23000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "ai-cost-attribution.md"
     },
     {
@@ -104,6 +128,18 @@
         "group": "studio",
         "key": "ai-costs"
       },
+      "order": 22000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "ai-costs.md"
     },
     {
@@ -141,6 +177,18 @@
         "group": "studio",
         "key": "board"
       },
+      "order": 24000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "board.md"
     },
     {
@@ -177,6 +225,18 @@
         "group": "studio",
         "key": "broadcast"
       },
+      "order": 32000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "broadcast.md"
     },
     {
@@ -213,6 +273,18 @@
         "group": "broadcast",
         "key": "displays"
       },
+      "order": 33000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "broadcast-displays.md"
     },
     {
@@ -248,6 +320,18 @@
         "group": "broadcast",
         "key": "history"
       },
+      "order": 34000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "broadcast-history.md"
     },
     {
@@ -285,6 +369,18 @@
         "group": "broadcast",
         "key": "live"
       },
+      "order": 35000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "broadcast-live.md"
     },
     {
@@ -324,6 +420,18 @@
         "group": "broadcast",
         "key": "music"
       },
+      "order": 36000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "broadcast-music.md"
     },
     {
@@ -361,6 +469,18 @@
         "group": "broadcast",
         "key": "scenes"
       },
+      "order": 37000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "broadcast-scenes.md"
     },
     {
@@ -400,6 +520,18 @@
         "group": "broadcast",
         "key": "setup"
       },
+      "order": 38000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "broadcast-setup.md"
     },
     {
@@ -434,6 +566,18 @@
         "group": "studio",
         "key": "community"
       },
+      "order": 40000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "community.md"
     },
     {
@@ -460,6 +604,18 @@
         "community"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 42000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "community-badges.md"
     },
     {
@@ -488,6 +644,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 41000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "community-profile.md"
     },
     {
@@ -523,6 +691,18 @@
         "group": "studio",
         "key": "community-settings"
       },
+      "order": 43000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "community-settings.md"
     },
     {
@@ -559,6 +739,18 @@
         "group": "studio",
         "key": "council"
       },
+      "order": 44000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council.md"
     },
     {
@@ -631,6 +823,18 @@
         "Council"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 46000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-definition-transfer.md"
     },
     {
@@ -671,6 +875,18 @@
         "group": "council",
         "key": "definitions"
       },
+      "order": 45000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-definitions.md"
     },
     {
@@ -746,6 +962,18 @@
         "recovery"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 47000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-execution.md"
     },
     {
@@ -780,6 +1008,18 @@
         "group": "council",
         "key": "folders"
       },
+      "order": 48000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-folders.md"
     },
     {
@@ -817,6 +1057,18 @@
         "group": "council",
         "key": "inboxes"
       },
+      "order": 49000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-inboxes.md"
     },
     {
@@ -853,6 +1105,18 @@
         "group": "council",
         "key": "messages"
       },
+      "order": 50000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-messages.md"
     },
     {
@@ -895,6 +1159,18 @@
         "group": "council",
         "key": "monitor"
       },
+      "order": 51000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-monitor.md"
     },
     {
@@ -926,6 +1202,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private execution evidence and request workflow; no discussion publication or public mutation capability.",
+      "order": 52000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-plan-handoff.md"
     },
     {
@@ -955,6 +1243,18 @@
         "Council"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 57000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-proposal-transfer.md"
     },
     {
@@ -988,6 +1288,18 @@
         "recovery"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 53000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-recovery.md"
     },
     {
@@ -1033,6 +1345,18 @@
         "group": "council",
         "key": "scheduler"
       },
+      "order": 54000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-scheduler.md"
     },
     {
@@ -1068,6 +1392,18 @@
         "group": "council",
         "key": "submit"
       },
+      "order": 55000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-submit.md"
     },
     {
@@ -1104,6 +1440,17 @@
         "recovery"
       ],
       "privacy": "Private source paths, questions, project identities and run evidence; excluded from public projections.",
+      "order": 56750,
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-task-history.md"
     },
     {
@@ -1134,6 +1481,17 @@
         "Council"
       ],
       "privacy": "Lists private vault file names only; no contents are read or sent.",
+      "order": 56500,
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-vault-files.md"
     },
     {
@@ -1169,6 +1527,18 @@
         "group": "council",
         "key": "workflows"
       },
+      "order": 56000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "council-workflows.md"
     },
     {
@@ -1210,6 +1580,18 @@
         "group": "studio",
         "key": "coworkers"
       },
+      "order": 58000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "coworkers.md"
     },
     {
@@ -1244,6 +1626,18 @@
         "group": "studio",
         "key": "economy"
       },
+      "order": 59000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "economy.md"
     },
     {
@@ -1279,6 +1673,18 @@
         "group": "economy",
         "key": "commands"
       },
+      "order": 60000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "economy-commands.md"
     },
     {
@@ -1311,6 +1717,18 @@
         "group": "economy",
         "key": "earning"
       },
+      "order": 61000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "economy-earning.md"
     },
     {
@@ -1349,6 +1767,18 @@
         "group": "economy",
         "key": "fulfillment"
       },
+      "order": 62000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "economy-fulfillment.md"
     },
     {
@@ -1386,6 +1816,18 @@
         "group": "economy",
         "key": "lootboxes"
       },
+      "order": 63000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "economy-lootboxes.md"
     },
     {
@@ -1422,6 +1864,18 @@
         "group": "economy",
         "key": "rewards"
       },
+      "order": 64000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "economy-rewards.md"
     },
     {
@@ -1459,6 +1913,18 @@
         "group": "studio",
         "key": "finance"
       },
+      "order": 65000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "finance.md"
     },
     {
@@ -1492,6 +1958,18 @@
         "finance"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 66000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "finance-entry.md"
     },
     {
@@ -1527,6 +2005,18 @@
         "broadcast"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 39000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "guided-setup.md"
     },
     {
@@ -1555,6 +2045,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 67000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "help.md"
     },
     {
@@ -1592,6 +2094,18 @@
         "group": "workflow",
         "key": "herdr"
       },
+      "order": 88000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "herdr.md"
     },
     {
@@ -1622,6 +2136,18 @@
         "recovery"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 90000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "herdr-recovery.md"
     },
     {
@@ -1654,6 +2180,18 @@
         "group": "idea",
         "key": "activity"
       },
+      "order": 27000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "idea-activity.md"
     },
     {
@@ -1686,6 +2224,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 25000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "idea-create.md"
     },
     {
@@ -1716,6 +2266,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 26000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "idea-detail.md"
     },
     {
@@ -1749,6 +2311,18 @@
         "group": "idea",
         "key": "increment"
       },
+      "order": 28000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "idea-increment.md"
     },
     {
@@ -1784,6 +2358,18 @@
         "group": "idea",
         "key": "overview"
       },
+      "order": 29000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "idea-overview.md"
     },
     {
@@ -1816,6 +2402,18 @@
         "group": "idea",
         "key": "plan"
       },
+      "order": 31000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "idea-plan.md"
     },
     {
@@ -1847,6 +2445,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private request metadata; custom fields are never added to public projections.",
+      "order": 30000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "idea-request-values.md"
     },
     {
@@ -1880,6 +2490,18 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 9000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "native-claude.md"
     },
     {
@@ -1912,6 +2534,18 @@
         "workflow-configuration"
       ],
       "privacy": "Private workflow context and code; loopback authentication is stored only in ignored plugin data.",
+      "order": 10000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "native-mcp.md"
     },
     {
@@ -1945,6 +2579,18 @@
         "public-sharing"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 8000,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "native-settings.md"
     },
     {
@@ -1979,6 +2625,18 @@
         "viewer-intake"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 11000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "native-twitch.md"
     },
     {
@@ -2012,6 +2670,18 @@
         "viewer-intake"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 12000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "native-twitch-authorization.md"
     },
     {
@@ -2040,6 +2710,18 @@
         "setup"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 13000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "native-vault.md"
     },
     {
@@ -2074,6 +2756,18 @@
         "public-sharing"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 14000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "native-website.md"
     },
     {
@@ -2110,6 +2804,18 @@
         "group": "studio",
         "key": "operations"
       },
+      "order": 68000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "operations.md"
     },
     {
@@ -2147,6 +2853,18 @@
         "group": "studio",
         "key": "population"
       },
+      "order": 69000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "population.md"
     },
     {
@@ -2178,6 +2896,18 @@
         "multi-project"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 72000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "project-create.md"
     },
     {
@@ -2214,6 +2944,18 @@
         "group": "studio",
         "key": "projects"
       },
+      "order": 71000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "projects.md"
     },
     {
@@ -2247,6 +2989,18 @@
         "group": "public",
         "key": "chat"
       },
+      "order": 15000,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "public-chat.md"
     },
     {
@@ -2280,6 +3034,18 @@
         "group": "public",
         "key": "community"
       },
+      "order": 16000,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "public-community.md"
     },
     {
@@ -2314,6 +3080,18 @@
         "group": "public",
         "key": "kanban"
       },
+      "order": 17000,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "public-kanban.md"
     },
     {
@@ -2347,6 +3125,18 @@
         "group": "public",
         "key": "leaderboards"
       },
+      "order": 18000,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "public-leaderboards.md"
     },
     {
@@ -2378,6 +3168,18 @@
         "public-sharing"
       ],
       "privacy": "Explicit public whitelist; read-only.",
+      "order": 19000,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "public-website.md"
     },
     {
@@ -2418,6 +3220,18 @@
         "group": "studio",
         "key": "schedule"
       },
+      "order": 73000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "schedule.md"
     },
     {
@@ -2456,6 +3270,18 @@
         "group": "studio",
         "key": "settings"
       },
+      "order": 74000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "settings.md"
     },
     {
@@ -2486,6 +3312,18 @@
         "recovery"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 75000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "settings-data.md"
     },
     {
@@ -2526,6 +3364,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private requests and note evidence stay within the vault. Cleanup uses exact IDs and never changes credentials, external game files or retained public request policy.",
+      "order": 76000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "settings-example-cleanup.md"
     },
     {
@@ -2557,6 +3407,18 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 77000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "settings-repository.md"
     },
     {
@@ -2592,6 +3454,18 @@
         "request-to-recognition"
       ],
       "privacy": "Private project configuration and request metadata; custom fields are excluded from public projections.",
+      "order": 78000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "settings-request-object.md"
     },
     {
@@ -2622,6 +3496,18 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 79000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "settings-runtime.md"
     },
     {
@@ -2657,6 +3543,18 @@
         "group": "studio",
         "key": "statistics"
       },
+      "order": 80000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "statistics.md"
     },
     {
@@ -2692,6 +3590,18 @@
         "group": "studio",
         "key": "stream"
       },
+      "order": 81000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "stream.md"
     },
     {
@@ -2730,6 +3640,18 @@
         "group": "stream",
         "key": "channel"
       },
+      "order": 82000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "stream-channel.md"
     },
     {
@@ -2769,6 +3691,18 @@
         "group": "stream",
         "key": "connection"
       },
+      "order": 84000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "stream-connection.md"
     },
     {
@@ -2805,6 +3739,18 @@
         "group": "stream",
         "key": "messages"
       },
+      "order": 86000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "stream-messages.md"
     },
     {
@@ -2839,6 +3785,18 @@
         "Council"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 20000,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "studio.md"
     },
     {
@@ -2869,6 +3827,18 @@
         "broadcast"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 85000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "twitch-channel.md"
     },
     {
@@ -2900,6 +3870,18 @@
         "moderation"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 83000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "twitch-moderation.md"
     },
     {
@@ -2933,6 +3915,18 @@
         "moderation"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 70000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "viewer-detail.md"
     },
     {
@@ -2972,6 +3966,18 @@
         "group": "studio",
         "key": "workflow"
       },
+      "order": 87000,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "workflow.md"
     },
     {
@@ -3010,6 +4016,18 @@
         "group": "workflow",
         "key": "runs"
       },
+      "order": 89000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "workflow-runs.md"
     },
     {
@@ -3053,6 +4071,18 @@
           "key": "settings"
         }
       ],
+      "order": 91000,
+      "type": "PBI",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "workflow-settings.md"
     },
     {
@@ -3084,6 +4114,18 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 92000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "workflow-step.md"
     },
     {
@@ -3114,6 +4156,18 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "order": 93000,
+      "type": "Task",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
       "file": "workflow-transfer.md"
     }
   ]

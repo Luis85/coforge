@@ -123,7 +123,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
   const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id), id => storage.file(id));
-  const mcp = new McpModule(plugin, studio, mcpRunner);
+  const mcp = new McpModule(plugin, studio, mcpRunner, undefined, council.actions, () => council.privateFolders());
   const taskScheduler = new TaskScheduler(new TaskSchedulerStateStorage(plugin), taskSchedulerHost(plugin, studio, council.actions), timers);
   const workflowTriggers = new WorkflowTriggers(new WorkflowTriggerStateStorage(plugin), workflowTriggerHost(plugin, studio, council.actions, id => storage.file(id)?.path));
   councilPrivateFolders = () => council.privateFolders();

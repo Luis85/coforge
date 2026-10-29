@@ -24,7 +24,7 @@ it('exposes captured context and bound inputs but rejects independent opinions a
   const f = await fixture();
   const context = record((await f.call('coforge_invocation')).result);
   expect(context).toMatchObject({ structuredContent: { projectId: 'CFP-001', prompt: 'Captured source and allowed context', inputArtifacts: [] } });
-  for (const name of ['coforge_read_input', 'coforge_projects', 'coforge_begin_step', 'coforge_write_file', 'coforge_approve']) {
+  for (const name of ['coforge_read_input', 'coforge_projects', 'coforge_begin_step', 'coforge_write_file', 'coforge_approve', 'coforge_roster', 'coforge_dispatch_task', 'coforge_run', 'coforge_artifact', 'coforge_obsidian_cli', 'coforge_obsidian_note']) {
     const result = record((await f.call(name, name === 'coforge_read_input' ? { artifactId: 'another-opinion' } : {})).result);
     expect(result.isError).toBe(true);
   }
