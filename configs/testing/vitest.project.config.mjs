@@ -14,8 +14,8 @@ const testKit = { '@test/obsidian': fileURLToPath(new URL('../../src/plugin/test
 // `npm run make` writes the tests of the features it creates to src/plugin/tests/unit/generated.
 export default defineConfig({ ...shared, resolve: { ...shared.resolve, alias: { ...shared.resolve?.alias, ...testKit } }, plugins: [...shared.plugins, hostBoundary], test: {
   include: ["src/plugin/tests/project/**/*.test.{ts,mjs}", "src/plugin/tests/unit/generated/**/*.test.ts"], environment: 'node', fileParallelism: false,
-  reporters: process.env.CI ? ['default', 'json'] : undefined,
-  outputFile: { json: fileURLToPath(new URL('../../reports/product-tests.json', import.meta.url)) },
+  ...(process.env.CI ? { reporters: ['default', 'json'],
+    outputFile: { json: fileURLToPath(new URL('../../reports/product-tests.json', import.meta.url)) } } : {}),
   // Playwright specs (npm run test:e2e) run in a browser, never in Vitest.
   exclude: [...configDefaults.exclude, 'tests/e2e/**'],
   setupFiles: ["src/plugin/tests/project/ui-bootstrap.mjs"],

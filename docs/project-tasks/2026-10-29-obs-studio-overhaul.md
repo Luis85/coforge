@@ -89,6 +89,10 @@ No universal third-party plugin editor, global installation or personal vault ac
 - `node tooling/quality/lint-source.mjs`: passed after the public-text guard fix.
   Source-size/locale checks and view-catalogue navigation coverage passed.
 - Impeccable mechanical detector: `[]`, exit 0. No screenshot baselines changed.
+- Latest authored main-branch parent/order changes were preserved. Short/full wiki
+  parent links now normalize to the same known target; all 12 catalogue tests pass,
+  including malformed links, missing parents, ownership, cycles and generated sync.
+  CI retains exact JSON product-test results without relaxing output/test limits.
 - Local full `verify:project` attempts encountered the unchanged 600-second
   ESLint/product-test limits under Windows resource contention. Typecheck, lint
   and maker-types passed in the last local full attempt; final pinned CI, including

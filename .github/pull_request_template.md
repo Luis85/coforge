@@ -13,6 +13,10 @@ All writers share stream admission and durable recovery. Reload pauses automatio
 - Task and detailed evidence: docs/project-tasks/2026-10-29-obs-studio-overhaul.md.
 - Imported req-* / vi-* obligations: none; generated traceability is unchanged.
 - Updated component contracts and regenerated the combined 104-view catalogue.
+- Preserve authored short/full wiki parent links from main while normalizing their
+  identities; missing targets, ownership drift and cycles remain rejected. The
+  catalogue regression suite passes all 12 tests. CI retains a JSON product-test
+  report alongside bounded console diagnostics without changing any gate limit.
 
 ## Validation
 

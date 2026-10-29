@@ -23,6 +23,11 @@ function coverageMappings(view) {
   return mappings;
 }
 
+/** Parent spellings normalize to catalogue identities without rewriting their authored notes. */
+export function parentReferenceId(value) {
+  return typeof value === 'string' ? value.match(/^\[\[(?:docs\/components\/views\/)?([a-z][a-z0-9-]*)\]\]$/)?.[1] ?? value : value;
+}
+
 /** Markdown files are the sole authored source; sitemap output contains no independent inventory. */
 export function readCatalogue(root) {
   return readdirSync(resolve(root, FOLDER)).filter((file) => file.endsWith(".md")).sort().map((file) => {
@@ -30,7 +35,7 @@ export function readCatalogue(root) {
     const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]+)$/);
     if (!match) throw new Error(`${file}: expected frontmatter plus Markdown`);
     const data = parse(match[1]);
-    const parent = typeof data.parent === 'string' ? data.parent.match(/^\[\[docs\/components\/views\/([a-z][a-z0-9-]*)\]\]$/)?.[1] ?? data.parent : data.parent;
+    const parent = parentReferenceId(data.parent);
     return { ...data, parent, body: match[2].trim(), file };
   });
 }
