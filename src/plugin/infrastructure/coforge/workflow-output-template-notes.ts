@@ -70,7 +70,7 @@ function parseNote(markdown: string) {
         (item) => isScalar(item.key) && item.key.value === "coforge",
       )
     : undefined;
-  let range: { start: number; end: number } | undefined;
+  let range: { start: number; end: number; indent: string } | undefined;
   if (pair) {
     if (
       !isScalar(pair.key) ||
@@ -82,7 +82,12 @@ function parseNote(markdown: string) {
       throw new Error(
         "The output template metadata has no safe editable range.",
       );
-    range = { start: pair.key.range[0], end: pair.value.range[2] };
+    const start = pair.key.range[0];
+    range = {
+      start,
+      end: pair.value.range[1],
+      indent: yaml.slice(yaml.lastIndexOf("\n", start - 1) + 1, start),
+    };
   }
   return {
     yaml,
@@ -132,17 +137,35 @@ export function writeWorkflowOutputTemplateNote(
       );
   }
   const eol = note.prefix.includes("\r\n") ? "\r\n" : "\n";
+  const indent = note.range?.indent ?? "";
+  if (!/^ *$/u.test(indent))
+    throw new Error(
+      "Convert the output template frontmatter to block properties before editing. The note is preserved.",
+    );
   const property = stringify({ coforge: config }, { lineWidth: 0 })
-    .replaceAll("\n", eol)
-    .replace(/\r?\n$/u, "");
+    .replace(/\n$/u, "")
+    .replaceAll("\n", eol + indent);
   const trailing = note.range ? note.yaml.slice(note.range.end) : "";
   const yaml = note.range
     ? note.yaml.slice(0, note.range.start) +
       property +
-      (trailing && !/^[\r\n]/u.test(trailing) ? eol : "") +
+      (trailing && !/^[\r\n]/u.test(trailing) && !/^[ \t]*#/u.test(trailing)
+        ? eol
+        : "") +
       trailing
     : note.yaml +
       (note.yaml && !/[\r\n]$/u.test(note.yaml) ? eol : "") +
       property;
-  return `${note.prefix}${yaml}${note.suffix}${authored.markdown}`;
+  const next = `${note.prefix}${yaml}${note.suffix}${authored.markdown}`;
+  const checked = readWorkflowOutputTemplateNote(next);
+  if (
+    checked.id !== id ||
+    checked.projectId !== projectId ||
+    checked.name !== authored.name ||
+    checked.markdown !== authored.markdown
+  )
+    throw new Error(
+      "The output template could not be safely serialized. The note is preserved.",
+    );
+  return next;
 }
