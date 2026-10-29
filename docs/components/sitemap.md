@@ -103,6 +103,15 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
     - [Twitch settings](views/stream-connection.md) — subpage
       - [Twitch channel editor](views/twitch-channel.md) — panel
     - [Bot messages](views/stream-messages.md) — subpage
+  - [Twitch operations](views/twitch-operations.md) — page
+    - [Twitch action review](views/twitch-operations-action.md) — panel
+      - [Twitch action fields](views/twitch-operations-fields.md) — panel
+    - [Twitch activity](views/twitch-operations-activity.md) — panel
+    - [Twitch breaks and raid preview](views/twitch-operations-broadcast.md) — panel
+    - [Twitch data and access](views/twitch-operations-data.md) — panel
+    - [Twitch action history](views/twitch-operations-history.md) — panel
+    - [Twitch dataset records](views/twitch-operations-records.md) — panel
+    - [Private Twitch report](views/twitch-operations-report.md) — panel
 
 ## User goals and routes
 
@@ -197,6 +206,15 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [CoForge studio](views/studio.md) | Reach the private workspace for the task at hand. | Obsidian CoForge view | streamer |
 | [Twitch channel editor](views/twitch-channel.md) | Save the metadata viewers will see on Twitch. | Stream chat / Twitch settings / channel metadata | streamer |
 | [Chat moderation](views/twitch-moderation.md) | Review and confirm one specific Twitch moderation action. | stream moderation details | streamer |
+| [Twitch operations](views/twitch-operations.md) | Manage the Twitch channel without leaving CoForge. | studio.view = twitch-operations | streamer |
+| [Twitch action review](views/twitch-operations-action.md) | Prepare and confirm an exact channel-bound action. | Twitch operations / action editor | streamer |
+| [Twitch activity](views/twitch-operations-activity.md) | Acknowledge observed activity and link screened requests. | Twitch operations / Activity | streamer |
+| [Twitch breaks and raid preview](views/twitch-operations-broadcast.md) | Time ad breaks and inspect a raid destination before confirming. | Twitch operations / Breaks & raids / readiness | streamer |
+| [Twitch data and access](views/twitch-operations-data.md) | Inspect dataset permissions, freshness and collection gaps. | Twitch operations / Data & access | streamer |
+| [Twitch action fields](views/twitch-operations-fields.md) | Enter validated action values with optional limits kept secondary. | Twitch operations / action editor / fields | streamer |
+| [Twitch action history](views/twitch-operations-history.md) | Inspect durable outcomes and asynchronous content receipts. | Twitch operations / action history | streamer |
+| [Twitch dataset records](views/twitch-operations-records.md) | Inspect current Twitch records and prepare targeted actions. | Twitch operations / dataset | streamer |
+| [Private Twitch report](views/twitch-operations-report.md) | Review retained evidence with recorded stream data. | Twitch operations / Content / report | streamer |
 | [Viewer profile](views/viewer-detail.md) | Review a viewer’s private record and participation controls. | population.selectedId | streamer |
 | [Agent workflow](views/workflow.md) | Manage this project's agent process from configuration through execution. | studio.settingsTool = workflow (compatibility: studio.view = workflow) | streamer |
 | [Workflow runs](views/workflow-runs.md) | Resolve the next checkpoint or attempt outcome. | studio.workflowTool = runs | streamer |
@@ -208,7 +226,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 
 - **Council**: [The Council](views/council.md), [Ask the Council](views/council-ask.md), [Definition import and export](views/council-definition-transfer.md), [Teams and councils](views/council-definitions.md), [Event triggers](views/council-events.md), [Council execution controls](views/council-execution.md), [Council folders](views/council-folders.md), [Watched inboxes](views/council-inboxes.md), [Team messages](views/council-messages.md), [Council run monitor](views/council-monitor.md), [Council plan handoff](views/council-plan-handoff.md), [Proposal workflow transfer](views/council-proposal-transfer.md), [Council recovery tools](views/council-recovery.md), [Task scheduler](views/council-scheduler.md), [Submit existing note](views/council-submit.md), [Council task history](views/council-task-history.md), [Council input file picker](views/council-vault-files.md), [Council workflows](views/council-workflows.md), [CoWorkers](views/coworkers.md), [CoForge studio](views/studio.md)
 - **analytical-task**: [Ask the Council](views/council-ask.md), [Council task history](views/council-task-history.md)
-- **broadcast**: [Stream studio](views/broadcast.md), [OBS audio](views/broadcast-audio.md), [Stream displays](views/broadcast-displays.md), [Stream history](views/broadcast-history.md), [Live broadcast](views/broadcast-live.md), [Stream music](views/broadcast-music.md), [OBS scenes and sources](views/broadcast-scenes.md), [Stream setup](views/broadcast-setup.md), [OBS show plan](views/broadcast-show.md), [OBS sources and layouts](views/broadcast-sources.md), [Guided stream setup](views/guided-setup.md), [Stream schedule](views/schedule.md), [Stream chat](views/stream.md), [Bot messages](views/stream-messages.md), [CoForge studio](views/studio.md), [Twitch channel editor](views/twitch-channel.md)
+- **broadcast**: [Stream studio](views/broadcast.md), [OBS audio](views/broadcast-audio.md), [Stream displays](views/broadcast-displays.md), [Stream history](views/broadcast-history.md), [Live broadcast](views/broadcast-live.md), [Stream music](views/broadcast-music.md), [OBS scenes and sources](views/broadcast-scenes.md), [Stream setup](views/broadcast-setup.md), [OBS show plan](views/broadcast-show.md), [OBS sources and layouts](views/broadcast-sources.md), [Guided stream setup](views/guided-setup.md), [Stream schedule](views/schedule.md), [Stream chat](views/stream.md), [Bot messages](views/stream-messages.md), [CoForge studio](views/studio.md), [Twitch channel editor](views/twitch-channel.md), [Twitch operations](views/twitch-operations.md), [Twitch action review](views/twitch-operations-action.md), [Twitch activity](views/twitch-operations-activity.md), [Twitch breaks and raid preview](views/twitch-operations-broadcast.md), [Twitch data and access](views/twitch-operations-data.md), [Twitch action history](views/twitch-operations-history.md), [Twitch dataset records](views/twitch-operations-records.md), [Private Twitch report](views/twitch-operations-report.md)
 - **community**: [Community recognition](views/community.md), [Contributor badges](views/community-badges.md), [Contributor recognition profile](views/community-profile.md), [Community settings](views/community-settings.md), [Viewers and players](views/population.md), [Public](views/public.md), [Public Twitch chat](views/public-chat.md), [Public community](views/public-community.md), [Public stream Kanban](views/public-kanban.md), [Public leaderboards](views/public-leaderboards.md), [Viewer profile](views/viewer-detail.md)
 - **community-economy**: [Economy](views/economy.md), [Command prices](views/economy-commands.md), [Presence earning](views/economy-earning.md), [Manual perk fulfillment](views/economy-fulfillment.md), [Loot boxes](views/economy-lootboxes.md), [Reward catalog](views/economy-rewards.md)
 - **cost-review**: [Agent, team and Council costs](views/ai-cost-attribution.md), [AI costs](views/ai-costs.md)
@@ -222,6 +240,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 - **stream-analysis**: [Stream history](views/broadcast-history.md), [Stream statistics](views/statistics.md)
 - **stream-planning**: [Stream schedule](views/schedule.md)
 - **task-scheduling**: [Task scheduler](views/council-scheduler.md)
+- **twitch-channel-operations**: [Twitch operations](views/twitch-operations.md), [Twitch action review](views/twitch-operations-action.md), [Twitch activity](views/twitch-operations-activity.md), [Twitch breaks and raid preview](views/twitch-operations-broadcast.md), [Twitch data and access](views/twitch-operations-data.md), [Twitch action fields](views/twitch-operations-fields.md), [Twitch action history](views/twitch-operations-history.md), [Twitch dataset records](views/twitch-operations-records.md), [Private Twitch report](views/twitch-operations-report.md)
 - **viewer-intake**: [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Viewers and players](views/population.md), [Stream chat](views/stream.md), [Chat](views/stream-channel.md), [Twitch settings](views/stream-connection.md), [Bot messages](views/stream-messages.md)
 - **workflow-configuration**: [Herdr workspace controls](views/herdr.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [Project settings](views/settings.md), [Project details](views/settings-general.md), [Repository & build access](views/settings-repository.md), [Local connections](views/settings-runtime.md), [Agent workflow](views/workflow.md), [Workflow settings](views/workflow-settings.md), [Workflow step editor](views/workflow-step.md), [Workflow import and export](views/workflow-transfer.md)
 - **workflow-event-automation**: [Event triggers](views/council-events.md)

@@ -83,6 +83,7 @@ export interface StudioProject {
 export interface AppState {
   obsShow?: import('./obs-show').ObsShowState;
   obsSetup?: import('./obs-setup').ObsSetupState;
+  twitchOperations?: import('./twitch-operations').TwitchOperationsState;
   /** Private entrypoint-assigned provenance. Provider choice never implies sample content. */
   requestOrigins?: Record<string, import('./example-content').RequestOrigin>;
   /** Committed cleanup cutoff per request ID; newer generations keep their own cost history. */

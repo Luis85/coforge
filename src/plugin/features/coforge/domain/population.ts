@@ -39,6 +39,8 @@ export interface Player {
 }
 export const OPERATION_CODES = [
   ...OBS_SHOW_OPERATION_CODES,
+  'twitch-operation-requested', 'twitch-operation-confirmed', 'twitch-operation-failed', 'twitch-operation-uncertain', 'twitch-operation-inspected',
+  'twitch-activity-observed', 'twitch-activity-acknowledged', 'twitch-activity-linked', 'twitch-template-saved', 'twitch-template-removed', 'twitch-retention-updated',
   'workflow-nudge-requested', 'workflow-nudge-submitted', 'workflow-nudge-unknown', 'workflow-nudge-recovered',
   'economy-configuration-updated', 'economy-perk-fulfilled',
   'project-visibility-updated',

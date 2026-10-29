@@ -14,6 +14,7 @@ import { CONTRIBUTOR_COLORS } from './types';
 import { exampleRemovalCutoffsCheck, requestOriginsCheck } from './example-content';
 import { obsShowStateCheck } from './obs-show-check';
 import { obsSetupStateCheck } from './obs-setup-check';
+import { twitchOperationsCheck } from './twitch-operations-validation';
 
 export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: string }>; lastRequests: Record<string, string>; chatRemovals?: import('./chat-removal').ChatRemovalHistory }
 /** Everything except the idea notes. Stored as one JSON file in the plugin folder. */
@@ -63,6 +64,7 @@ const integration: Check<IntegrationSettings> = shape({
 const persisted: Check<PersistedStudio> = shape({
   obsShow: optional(obsShowStateCheck),
   obsSetup: optional(obsSetupStateCheck),
+  twitchOperations: optional(twitchOperationsCheck),
   requestOrigins: optional(requestOriginsCheck),
   exampleRemovalCutoffs: optional(exampleRemovalCutoffsCheck),
   sampleEventIds: optional(list(text({ min: 1, max: 100 }))),

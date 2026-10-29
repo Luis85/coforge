@@ -110,6 +110,7 @@ export interface StudioHostActions {
   streamHistory?: import('./stream-metrics-ports').StreamHistoryActions;
   obs?: import('../domain/obs').ObsActions;
   twitch?: import('../domain/twitch').TwitchActions;
+  twitchOperations?: import('../domain/twitch-operations').TwitchOperationsActions;
   diagnostics?(): string;
   exportDiagnostics?(): Promise<string>;
   setSecret(name: string, value: string): boolean;
