@@ -32,8 +32,13 @@ export async function captureObsStudioVisuals(
       const root = document.querySelector(".cf-studio");
       if (!(root instanceof HTMLElement))
         throw new Error("Contained CoForge studio is unavailable.");
-      root.style.width = `${Math.min(size.width, root.parentElement?.clientWidth ?? size.width)}px`;
-      root.style.height = `${Math.min(930, root.parentElement?.clientHeight ?? 930)}px`;
+      const container = root.closest("[data-plugin-ui]");
+      if (!(container instanceof HTMLElement))
+        throw new Error("Contained leaf sizing container is unavailable.");
+      container.style.width = `${Math.min(size.width, container.parentElement?.clientWidth ?? size.width)}px`;
+      container.style.height = `${Math.min(930, container.parentElement?.clientHeight ?? 930)}px`;
+      root.style.width = "100%";
+      root.style.height = "100%";
     }, size);
     const capture = async (name: string, target?: Locator) => {
       if (target)
@@ -151,6 +156,11 @@ export async function captureObsStudioVisuals(
     if (root instanceof HTMLElement) {
       root.style.width = "";
       root.style.height = "";
+      const container = root.closest("[data-plugin-ui]");
+      if (container instanceof HTMLElement) {
+        container.style.width = "";
+        container.style.height = "";
+      }
     }
   });
 }

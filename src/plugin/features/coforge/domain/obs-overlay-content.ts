@@ -37,7 +37,11 @@ export function overlayText(state: AppState, definition: ObsOverlayDefinition, n
     if (!definition.publicConfirmed || !definition.excerpt?.trim()) throw new IntegrationFailure('validation', 'Write and explicitly approve the Council excerpt for public display.');
     value = `${board.project}\nCouncil excerpt\n${definition.excerpt}`;
   }
-  if (!value || value.length > 4000 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value))
+  const unsupportedControl = [...value].some(character => {
+    const code = character.charCodeAt(0);
+    return code < 32 && ![9, 10, 13].includes(code);
+  });
+  if (!value || value.length > 4000 || unsupportedControl)
     throw new IntegrationFailure('validation', 'The public overlay text is empty, oversized or contains unsupported control characters.');
   return value;
 }

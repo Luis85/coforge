@@ -6,7 +6,7 @@ import type {
   ObsOverlayPreview,
 } from "../../features/coforge/domain/obs-overlay";
 export const useObsOverlayUi = defineStore("coforge-obs-overlay-ui", () => {
-  const id = ref(crypto.randomUUID());
+  const id = ref<string>(crypto.randomUUID());
   const name = ref("");
   const kind = ref<ObsOverlayKind>("request");
   const projectId = ref("");

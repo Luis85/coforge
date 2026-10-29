@@ -7,6 +7,15 @@ import { copyVaultTree } from '../dev/obsidian-sandbox.mjs';
 
 export { withSession, closeOnAbort } from './obsidian-session-lifecycle.mjs';
 
+/** Keep the tracked Electron main PID alive until its owned tree has been stopped.
+ * Closing CDP first can end the main process before renderer helpers release scratch files on Windows. */
+export async function closeHostClient(client, { stop = stopHost } = {}) {
+  const failures = [];
+  try { await stop(client.proc); } catch (error) { failures.push(error); }
+  try { await client.browser.close(); } catch (error) { failures.push(error); }
+  if (failures.length) throw new AggregateError(failures, 'OBSIDIAN_CLIENT_CLOSE_FAILED');
+}
+
 /** One real Obsidian process on a fresh copy of a synthetic vault under .nq/.
  * The plugin is installed disabled so callers can observe its whole load after attaching. */
 export function createObsidianSession({ root = process.cwd(), host, chromium, vaultSource, pluginDirectory = 'dist', pluginEnabled = false,
@@ -37,7 +46,7 @@ export function createObsidianSession({ root = process.cwd(), host, chromium, va
       client.page = await workspacePage(client.browser);
       await onReady(client);
     },
-    disconnect: client => client.browser.close(),
+    disconnect: client => closeHostClient(client),
     async cleanup() {
       const failures = [];
       try { await stopHost(state.launched?.proc); } catch (error) { failures.push(error); }

@@ -189,6 +189,12 @@ describe("Public OBS overlays in the contained host", () => {
       await overlay
         .getByRole("button", { name: "Publish reviewed overlay", exact: true })
         .click();
+      await browserExpect(
+        overlay.getByText(
+          "OBS confirmed the public text update and the overlay mapping was saved.",
+          { exact: true },
+        ),
+      ).toBeVisible();
       await expect
         .poll(() => server.state.inputSettings.get("Council public text")?.text)
         .toBe(outgoing);

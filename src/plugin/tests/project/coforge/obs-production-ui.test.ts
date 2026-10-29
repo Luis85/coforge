@@ -232,7 +232,9 @@ it("reads sampled monitors, changes audio only on explicit input, and hides fram
       useObsProductionUi(fixture.pinia).selectedInput = "overlay";
       await flushPromises();
       expect(editor.text()).toContain("This URL contains hidden credentials");
-      expect(editor.get('input[type="url"]').element.value).toBe("");
+      expect(
+        editor.get<HTMLInputElement>('input[type="url"]').element.value,
+      ).toBe("");
       await editor
         .get('input[type="url"]')
         .setValue("https://example.test/overlay?token=%5Bredacted%5D");

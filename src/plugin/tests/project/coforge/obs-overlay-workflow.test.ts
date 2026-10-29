@@ -33,6 +33,14 @@ async function kit() {
   return { store, storage, state, calls, workflow, definition, idea, production, stopMusic: () => { playing = null; }, setMusic: (value: ObsOverlayNowPlaying) => { playing = value; } };
 }
 describe('CoForge public OBS overlay composer', () => {
+  it('keeps readable line breaks but rejects nonprinting control characters before public output', async () => {
+    const app = await kit();
+    const definition = { ...app.definition, kind: 'council-excerpt', excerpt: 'Reviewed first line\nReviewed second line\twith a tab' };
+    const preview = await app.workflow.preview(definition);
+    expect(preview.text).toContain(definition.excerpt);
+    await expect(app.workflow.preview({ ...definition, excerpt: 'Hidden\u0001control' })).rejects.toThrow('control');
+    expect(app.calls).toEqual([]);
+  });
   it('previews exact public text without effects, then explicitly publishes in literal text mode', async () => {
     const app = await kit();
     const preview = await app.workflow.preview(app.definition);
