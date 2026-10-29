@@ -67,6 +67,14 @@ running, paused, human-waiting and attention states. Keep explicit review and
 execution gates. Workflow setup includes an Ask Council action; the owner chose
 to wait for the answer and make it available to later workflow steps.
 
+Council follow-through (owner request, 2026-10-29): perform a researched IA review
+and a subagent-driven improvement increment through end-to-end qualification,
+polishing, PR and merge only when green. Organize the existing Council tasks into
+Ask, Activity, Setup and Automation with visible secondary navigation; retain
+stable internal routes and existing project/vault scopes. Make readiness,
+context recipients, answer reading and recovery discoverable. Started workflows
+must not silently adopt later Council/provider/project-instruction edits.
+
 The Idea board appears first in Build navigation, followed by The Council and
 Agent workflow (owner correction, 2026-10-28).
 
