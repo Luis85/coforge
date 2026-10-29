@@ -32,14 +32,16 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
 - B: final workflow suite: 8 files / 36 passed; core reliability/legacy suite: 4 files / 29 passed.
 - C: product CRLF/seed/unchanged scale: 3 files / 7 passed; kit metadata/vault: 2 files / 11 passed.
   The unchanged 10k case completed in 538ms with all assertions and its 60s limit retained.
-- View contracts: 95 documented, navigation coverage valid; catalogue suite: 1 file/11 passed.
+- View contracts: 108 documented, navigation coverage valid; catalogue suite: 1 file/11 passed.
 - Independent source closeout confirmed prior actionable A/B findings resolved.
 - Integrated typecheck: passed. Source lint: passed across 1,635 owned inputs.
 - Isolated browser confirmation: 36 passed, including UI quality, both themes,
   narrow/wide captures and the complete Council functional journey. Detector: [].
-- Native first run: Ask and first-use setup bodies passed, but all 3 sessions failed
-  Windows teardown (STOP_TIMEOUT/locked Chromium files); one legacy pause assertion
-  also had ambiguous scope and is corrected. Cleanup qualification remains pending.
+- Native Council confirmation: 3 files / 3 passed, including first-use setup, mixed-order
+  simulation, reload and confirmed teardown. Native identity and cleanup regressions:
+  3 files / 14 passed; framework shutdown/lifecycle checks: 21 passed.
+- Latest main integrated, preserving Service Design and OBS/Twitch features; combined
+  runtime smoke and canonical local/CI qualification are running.
 - Canonical gate, final native confirmation and CI are pending on the final commit;
   no full green claim is made from focused or partially successful runs.
 - git diff --check: clean.
@@ -50,7 +52,7 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
 - First integrated browser run exposed a shared-port collision; those results are not
   accepted as qualification. COFORGE_E2E_PORT now isolates the confirmation run.
 - Final wide/narrow light/dark browser matrix and UI quality: 36 passed on isolated port 4197.
-- Gallery capture/review and final native confirmation: pending.
+- Gallery capture/review and combined-runtime smoke: pending.
 - No screenshot baselines were accepted or changed.
 
 ## Obsidian evidence
@@ -59,8 +61,9 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
   through the UI, then reviews its audience and planned invocations without admission.
 - Native Ask spec covers review, explicit mixed-order simulation, answer reading,
   reload, cost attribution and saved workflow context/readiness.
-- First coordinated native run exposed strict teardown failures; final run and pinned
-  smoke remain pending and are not counted as passed yet.
+- Final Council run: 3 passed with confirmed contained-profile teardown. Actual vault,
+  PID/profile/port and source/installed asset hashes are retained in native evidence.
+- Combined-runtime pinned smoke remains pending.
 
 ## Untested scope
 

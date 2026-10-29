@@ -178,7 +178,7 @@ writes, unknown cancellation marker writes, stop races, reload and metadata-only
 acknowledgement after pending/completed code review. Independent subagent review
 confirmed all previously reported source findings resolved before integrated visual QA.
 
-The view catalogue now has 95 authored contracts; navigation coverage validates and
+The view catalogue initially had 95 authored contracts; navigation coverage validates and
 the focused catalogue suite passed (1 file / 11 tests).
 
 ### Integrated visual/flow closeout batch
@@ -204,3 +204,16 @@ without weakening the timeout or the complete functional journey.
 
 Remaining integrated/native results and CI/merge evidence for the final commit will
 be recorded here. No failed or isolated run is reported as a green full gate.
+
+
+### Final qualification in progress
+
+Isolated browser confirmation: 36 passed in 9.4 minutes; typecheck and source lint
+passed; design detector returned an empty finding list. Final native Council run:
+3 files / 3 passed, including first-use setup and confirmed clean teardown. Native
+identity/cleanup product checks: 14 passed; shutdown/lifecycle framework checks: 21 passed.
+
+Integrated main through Service Design #43, preserving OBS/Twitch and Service Design
+features, protected folder ownership and initialization. Combined catalogue: 108
+contracts with valid navigation coverage. The interrupted pre-integration local check
+is not counted; the full gate is restarted on the combined source.
