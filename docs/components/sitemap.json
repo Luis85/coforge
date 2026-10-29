@@ -1453,7 +1453,7 @@
       "audience": "streamer",
       "kind": "panel",
       "route": "Ask the Council / Ingested tasks",
-      "parent": "council-ask",
+      "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilAskView.vue",
       "entry": [
         "Open The Council and review Ingested tasks below the question form."
@@ -1480,7 +1480,7 @@
         "recovery"
       ],
       "privacy": "Private source paths, questions, project identities and run evidence; excluded from public projections.",
-      "order": 56750,
+      "order": 56687.5,
       "status": "",
       "started": "",
       "finished": "",
@@ -1500,7 +1500,7 @@
       "audience": "streamer",
       "kind": "panel",
       "route": "Ask the Council / Add vault files",
-      "parent": "council-ask",
+      "parent": "council",
       "component": "src/plugin/presentation/components/coforge/VaultFilePicker.vue",
       "entry": [
         "Expand Add vault files below the Council question input."
@@ -1521,7 +1521,7 @@
         "Council"
       ],
       "privacy": "Lists private vault file names only; no contents are read or sent.",
-      "order": 56500,
+      "order": 56375,
       "status": "",
       "started": "",
       "finished": "",
@@ -3101,7 +3101,7 @@
         "key": "chat"
       },
       "order": 15000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
@@ -3146,7 +3146,7 @@
         "key": "community"
       },
       "order": 16000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
@@ -3192,7 +3192,7 @@
         "key": "kanban"
       },
       "order": 17000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
@@ -3237,7 +3237,7 @@
         "key": "leaderboards"
       },
       "order": 18000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
@@ -3280,7 +3280,7 @@
       ],
       "privacy": "Explicit public whitelist; read-only.",
       "order": 19000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",

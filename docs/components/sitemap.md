@@ -49,8 +49,6 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
   - [Community settings](views/community-settings.md) — page
   - [The Council](views/council.md) — page
     - [Ask the Council](views/council-ask.md) — subpage
-      - [Council task history](views/council-task-history.md) — panel
-      - [Council input file picker](views/council-vault-files.md) — panel
     - [Teams and councils](views/council-definitions.md) — subpage
       - [Definition import and export](views/council-definition-transfer.md) — panel
     - [Event triggers](views/council-events.md) — subpage
@@ -63,6 +61,8 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
       - [Council recovery tools](views/council-recovery.md) — panel
     - [Task scheduler](views/council-scheduler.md) — subpage
     - [Submit existing note](views/council-submit.md) — subpage
+    - [Council task history](views/council-task-history.md) — panel
+    - [Council input file picker](views/council-vault-files.md) — panel
     - [Council workflows](views/council-workflows.md) — subpage
       - [Proposal workflow transfer](views/council-proposal-transfer.md) — panel
   - [CoWorkers](views/coworkers.md) — page
