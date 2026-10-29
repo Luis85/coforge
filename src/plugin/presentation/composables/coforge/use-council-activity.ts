@@ -18,11 +18,19 @@ export function useCouncilActivity() {
     const dispatching = run.attempts.filter(attempt => attempt.status === 'dispatching');
     let names = dispatching.map(attempt => run.invocations.find(item => item.id === attempt.invocationId)?.agentId ?? 'CoWorker');
     try { const plan = decodeCouncilPlan(run); names = dispatching.map(attempt => plan.invocations.find(item => item.id === attempt.invocationId)?.agent.name ?? 'CoWorker'); } catch { /* Durable evidence can outlive a readable definition. */ }
-    return `${run.limits?.simulation ? 'Simulation · ' : ''}${model.runState(run)} · ${run.cursor}/${run.invocations.length} steps completed or skipped${names.length ? ` · Responding: ${names.join(', ')}` : ''}`;
+    const states = { queued: 'Queued', running: 'Collecting answers', publishing: 'Publishing answers', attention: 'Needs attention', 'waiting-human': 'Waiting for your decision', completed: 'Completed', cancelled: 'Cancelled' };
+    const responding = names.slice(0, 3).join(', ') + (names.length > 3 ? ` and ${names.length - 3} more` : '');
+    return `${run.limits?.simulation ? 'Simulation · ' : ''}${model.display.title(run)} · ${states[run.state]}${run.hasGaps ? ' with missing contributions' : ''} · ${run.cursor}/${run.invocations.length} steps completed or skipped${responding ? ` · Responding: ${responding}` : ''}`;
   });
+  const lastActivity = computed(() => [...runs.value].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0]);
   return reactive({ active, queued, attention, latest, current,
-    updated: computed(() => latest.value ? new Date(latest.value.updatedAt).toLocaleString() : ''),
+    lastActivity,
+    updated: computed(() => lastActivity.value ? new Date(lastActivity.value.updatedAt).toLocaleString() : ''),
     execution: computed(() => !model.store.state?.executor ? 'Choose an execution desktop' : model.store.state.paused ? 'Execution paused' : model.store.state.preferences.pausedProjectIds?.includes(model.projectId) ? 'Project execution paused' : 'Execution resumed'),
-    inspect: () => { if (latest.value) model.store.inspectedRun = latest.value.id; model.selectPage('monitor'); },
+    inspect: () => {
+      model.store.projectFilter = model.projectId; model.store.stateFilter = ''; model.store.teamFilter = ''; model.store.targetFilter = ''; model.store.sourceFilter = '';
+      model.store.inspectedRun = latest.value?.id ?? '';
+      model.selectPage('monitor');
+    },
   });
 }

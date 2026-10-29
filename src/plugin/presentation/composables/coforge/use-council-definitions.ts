@@ -11,9 +11,10 @@ import { useCouncilEditorStore } from "../../stores/coforge-council-editor";
 import { useStudioStore } from '../../stores/coforge-studio';
 import { useCouncilDefinitionDrafts } from "./council-definition-drafts";
 import { useCouncilConnectionForm } from "./council-connection-form";
+import { councilSetupReadiness } from './council-setup-readiness';
+import { useCouncilCatalogueProjection } from './council-catalogue-projection';
 import type {
   CouncilCatalogueActions,
-  CouncilCatalogueSnapshot,
 } from "../../../features/coforge/application/council-catalogue";
 import {
   agentDefinitionCheck,
@@ -32,10 +33,7 @@ export function useCouncilDefinitions(props: {
   const store = useCouncilEditorStore(props.mode === 'coworkers' ? 'coworkers' : 'council');
   const studio = useStudioStore();
   const drafts = useCouncilDefinitionDrafts(store, () => props.projectId);
-  const catalogue = reactive<CouncilCatalogueSnapshot>({
-    valid: [],
-    invalid: [],
-  });
+  const { catalogue, snapshot, load } = useCouncilCatalogueProjection({ store, projectId: () => props.projectId, read: () => props.catalogue.list(), action, refreshed: drafts.refresh });
   const agents = computed(() =>
     catalogue.valid.filter((item) => item.definition.schema === "agent/v1"),
   );
@@ -56,6 +54,7 @@ export function useCouncilDefinitions(props: {
           .includes(store.search.trim().toLowerCase()),
     ),
   );
+  const readiness = computed(() => councilSetupReadiness(catalogue, props.projectId));
   async function action(work: () => Promise<void>) {
     if (store.busy) return;
     store.busy = true;
@@ -71,10 +70,6 @@ export function useCouncilDefinitions(props: {
     } finally {
       store.busy = false;
     }
-  }
-  function snapshot(value: CouncilCatalogueSnapshot) {
-    catalogue.valid = value.valid;
-    catalogue.invalid = value.invalid;
   }
   const select = drafts.select;
   const fresh = drafts.fresh;
@@ -96,8 +91,9 @@ export function useCouncilDefinitions(props: {
   }
   function createCouncil() {
     const selectedTeam = store.draft?.schema === 'team/v1' ? store.draft.id : store.draft?.schema === 'council/v1' ? store.draft.teamId : '';
-    const owner = (teams.value.find(entry => entry.definition.id === selectedTeam) ?? teams.value.find(entry => entry.definition.enabled && entry.definition.schema === 'team/v1' && entry.definition.members.length))?.definition;
-    if (!owner || owner.schema !== "team/v1" || !owner.members.length) {
+    const owner = (readiness.value.usableTeams.find(entry => entry.definition.id === selectedTeam) ?? readiness.value.usableTeams[0])?.definition;
+    const members = owner?.schema === 'team/v1' ? owner.members.filter(id => readiness.value.agents.some(entry => entry.definition.id === id)) : [];
+    if (!owner || owner.schema !== "team/v1" || !owner.enabled || !members.length) {
       store.error =
         "Add saved CoWorkers to the project team before creating a council.";
       return;
@@ -107,7 +103,7 @@ export function useCouncilDefinitions(props: {
         `council-${crypto.randomUUID()}`,
         "New council",
         owner,
-        owner.members,
+        members,
       ),
       enabled: false,
     });
@@ -230,11 +226,6 @@ export function useCouncilDefinitions(props: {
         .name ?? id
     );
   }
-  const load = () =>
-    action(async () => {
-      snapshot(await props.catalogue.list());
-      drafts.refresh(catalogue.valid);
-    });
   const setup = () =>
     action(async () => {
       snapshot(await props.catalogue.setup(props.projectId));
@@ -342,6 +333,8 @@ export function useCouncilDefinitions(props: {
     store,
     catalogueActions: props.catalogue,
     catalogue,
+    projectId: computed(() => props.projectId),
+    readiness,
     agents,
     teams,
     entries,

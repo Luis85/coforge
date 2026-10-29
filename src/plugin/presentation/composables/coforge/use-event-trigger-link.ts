@@ -1,10 +1,5 @@
-import { useCouncilStore } from "../../stores/coforge-council";
-import { useStudioStore } from "../../stores/coforge-studio";
+import { useCouncilEntry } from './use-council-entry';
 export function useEventTriggerLink() {
-  const council = useCouncilStore();
-  const studio = useStudioStore();
-  return () => {
-    council.tab = "events";
-    studio.navigate("council");
-  };
+  const openCouncil = useCouncilEntry();
+  return () => openCouncil({ page: 'events' });
 }

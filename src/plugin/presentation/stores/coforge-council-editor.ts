@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import type { CouncilDefinitionDocument } from "../../features/coforge/domain/council-definitions";
-import type { CouncilImportPreview } from "../../features/coforge/application/council-catalogue";
+import type { CouncilCatalogueSnapshot, CouncilImportPreview } from "../../features/coforge/application/council-catalogue";
 export interface CouncilDefinitionDraft {
   projectId: string;
   definition: CouncilDefinitionDocument;
@@ -22,6 +22,9 @@ export function useCouncilEditorStore(scope: 'council' | 'coworkers' = 'council'
     const error = ref("");
     const notice = ref("");
     const busy = ref(false);
+    const catalogueLoaded = ref(false);
+    const catalogueLoading = ref(false);
+    const catalogue = reactive<CouncilCatalogueSnapshot>({ valid: [], invalid: [] });
     const importJson = ref("");
     const exportJson = ref("");
     const preview = ref<CouncilImportPreview | null>(null);
@@ -36,6 +39,9 @@ export function useCouncilEditorStore(scope: 'council' | 'coworkers' = 'council'
       error,
       notice,
       busy,
+      catalogueLoaded,
+      catalogueLoading,
+      catalogue,
       importJson,
       exportJson,
       preview,

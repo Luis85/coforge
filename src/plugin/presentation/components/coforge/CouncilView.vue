@@ -60,12 +60,10 @@ const model = useCouncil();
     >
       Exit example
     </button>
-    <CfSubpageNav
-      label="Council workspace"
-      :items="model.service ? model.pages : model.pages.filter(page => page.id === 'ask')"
-      :selected="model.store.tab"
-      @select="model.selectPage($event)"
-    />
+    <div :ref="model.navigation.bindNavigation" class="cf-council-navigation" @focusin="model.navigation.revealFocus($event)">
+      <CfSubpageNav label="Council tasks" :items="model.service ? model.navigation.tasks : model.navigation.tasks.filter(task => task.id === 'ask')" :selected="model.navigation.selected" @select="model.selectPage(model.navigation.pageForFamily($event))" />
+      <CfSubpageNav label="Council workspace" :items="model.service ? model.navigation.pages : model.navigation.pages.filter(page => page.id === 'ask')" :selected="model.store.tab" @select="model.selectPage($event)" />
+    </div>
     <CouncilActivity v-if="model.service" />
     <p
       v-if="model.store.error || model.store.state?.error"
@@ -99,7 +97,7 @@ const model = useCouncil();
       >
         <p>
           Before submitting work or changing inboxes and definition folders,
-          open Run monitor and designate this desktop for execution. Execution
+          open Runs & answers and designate this desktop for execution. Execution
           stays paused until you explicitly resume it.
         </p>
         <button
@@ -107,10 +105,9 @@ const model = useCouncil();
           class="cf-btn cf-btn-secondary"
           @click="model.selectPage('monitor')"
         >
-          Open Run monitor
+          Open Runs & answers
         </button>
       </section>
-      <CouncilExecutionControls v-if="model.store.tab === 'monitor'" />
       <template v-if="model.store.tab === 'definitions'">
         <CouncilDefinitions
           teams-only
@@ -150,12 +147,20 @@ const model = useCouncil();
           model.store.tab === 'submit' || model.store.tab === 'inboxes'
         "
       />
-      <CouncilMonitor v-else-if="model.store.tab === 'monitor'" />
+      <template v-else-if="model.store.tab === 'monitor'">
+        <CouncilMonitor />
+        <details class="cf-council-execution-settings" :open="model.ask.executionNeeded">
+          <summary>Execution controls</summary>
+          <CouncilExecutionControls />
+        </details>
+      </template>
       <TaskSchedulerView v-else-if="model.store.tab === 'scheduler'" />
       <WorkflowTriggersView v-else-if="model.store.tab === 'events'" />
-      <CouncilFolderSettings
+
+    </template>
+    <CouncilFolderSettings
         open
-        v-if="model.store.state"
+        v-if="model.service && model.store.state"
         v-show="model.store.tab === 'folders'"
         :actions="model.service.definitionFolders"
         :folders="
@@ -164,6 +169,5 @@ const model = useCouncil();
         "
         :preferences-revision="model.store.state.preferences.revision"
       />
-    </template>
   </div>
 </template>

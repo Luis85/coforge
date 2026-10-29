@@ -8,21 +8,18 @@ for (const theme of ["light", "dark"]) {
       page,
     }) => {
       const errors = await openCouncilReview(page, scenario, theme);
-      await page
-        .getByRole("button", { name: "Run monitor", exact: true })
-        .click();
+      await openCouncilPage(page, 'Run monitor');
       await page
         .getByRole("button", {
           name: "Use this desktop for execution",
           exact: true,
         })
         .click();
-      await page
-        .getByRole("button", { name: "Run monitor", exact: true })
-        .click();
+      await openCouncilPage(page, 'Run monitor');
       await page
         .getByRole("button", { name: "Inspect captured evidence", exact: true })
         .click();
+      if (scenario === 'publishing') await page.getByText('Technical details and recovery', { exact: true }).click();
       await page
         .getByText("Export or reassign retained results", { exact: true })
         .click();
@@ -55,7 +52,7 @@ for (const theme of ["light", "dark"]) {
         );
         await expect(
           page
-            .getByRole("region", { name: "Captured run evidence", exact: true })
+            .getByRole("region", { name: "Council answers", exact: true })
             .locator("article"),
         ).toHaveCount(1);
       } else {
@@ -168,16 +165,14 @@ test("a changed saved definition cannot replace the displayed Council preflight 
   page,
 }) => {
   await openCouncilReview(page, "default", "light");
-  await page.getByRole("button", { name: "Run monitor", exact: true }).click();
+  await openCouncilPage(page, 'Run monitor');
   await page
     .getByRole("button", {
       name: "Use this desktop for execution",
       exact: true,
     })
     .click();
-  await page
-    .getByRole("button", { name: "Submit existing note", exact: true })
-    .click();
+  await openCouncilPage(page, 'Submit existing note');
   await page
     .getByRole("button", { name: "Run preflight", exact: true })
     .click();
@@ -203,9 +198,6 @@ test("a changed saved definition cannot replace the displayed Council preflight 
   await page.getByRole('button', { name: 'The Council', exact: true }).click();
   await openCouncilPage(page, 'Submit existing note');
   await page
-    .getByRole("button", { name: "Submit existing note", exact: true })
-    .click();
-  await page
     .getByText("Test with deterministic simulation", { exact: true })
     .click();
   await page
@@ -218,6 +210,6 @@ test("a changed saved definition cannot replace the displayed Council preflight 
   await expect(
     page.getByRole("region", { name: "Invocation preview", exact: true }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "Run monitor", exact: true }).click();
+  await openCouncilPage(page, 'Run monitor');
   await expect(page.locator(".cf-council-runs > li")).toHaveCount(0);
 });

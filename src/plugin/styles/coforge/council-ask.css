@@ -1,4 +1,22 @@
 /* Council starts with the user's question and its retained task evidence. */
+.cf-council-navigation { display: grid; min-width: 0; }
+.ps--coforge .cf-studio .cf-main .cf-council-navigation nav.cf-subpage-nav { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; margin: 0; padding-block: 4px; scroll-padding-inline: 8px; }
+.ps--coforge .cf-studio .cf-main .cf-council-navigation nav.cf-subpage-nav button { flex: 0 0 auto; white-space: nowrap; }
+.ps--coforge .cf-studio .cf-main .cf-council-navigation nav[aria-label="Council tasks"] button { font-size: 14px; }
+.ps--coforge .cf-studio .cf-main .cf-council-navigation nav[aria-label="Council workspace"] button { font-size: 12px; }
+.cf-council-readiness-list { list-style: none; padding: 0; margin: 16px 0; }
+.cf-council-readiness-list > li { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px 24px; padding-block: 16px; border-block-end: 1px solid var(--cf-border); }
+.cf-council-readiness-list > li > div { flex: 1 1 240px; min-width: 0; }
+.cf-council-readiness-list p { margin: 6px 0 0; font-size: 13px; }
+.cf-council-readiness-list span { font-size: 12px; line-height: 1.7; color: var(--cf-muted); }
+.cf-council-setup ol.cf-council-readiness-list { padding-left: 0; }
+.cf-council-answers { padding-block: 24px; border-block-end: 1px solid var(--cf-border); min-width: 0; scroll-margin-top: 24px; }
+.cf-council-answers:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: 4px; }
+.cf-council-answers > header h3 { font-size: 22px; line-height: 1.4; overflow-wrap: anywhere; }
+.cf-council-answers > header p { font-size: 13px; line-height: 1.7; }
+.cf-council-answer { padding-block: 20px; min-width: 0; overflow-wrap: anywhere; }
+.cf-council-answer h4 { font-size: 17px; margin-block: 0 10px; }
+.cf-council-answer summary, .cf-council-execution-settings > summary { cursor: pointer; font-size: 12px; line-height: 1.7; padding-block: 10px; }
 .cf-council-recipients { padding-block: 16px; border-block: 1px solid var(--cf-border); min-width: 0; }
 .cf-council-recipients h3 { margin: 0 0 8px; font-size: 17px; overflow-wrap: anywhere; }
 .cf-council-recipients p { font-size: 12px; line-height: 1.7; }
@@ -11,6 +29,7 @@
 .cf-council-recipients ol { padding-left: 20px; font-size: 12px; line-height: 1.8; }
 .cf-council-activity { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-block: 16px; border-block-end: 1px solid var(--cf-border); }
 .cf-council-activity > div { display: grid; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.cf-council-activity [role="status"] { display: grid; gap: 6px; }
 .cf-council-activity strong { font-size: 14px; }
 .cf-council-activity time { font-size: 11px; color: var(--cf-muted); }
 .cf-council-activity span, .cf-council-activity p { margin: 0; font-size: 12px; line-height: 1.7; }

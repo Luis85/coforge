@@ -46,14 +46,16 @@ for (const theme of ['light', 'dark']) {
     await page.getByRole('button', { name: 'Use this desktop for execution', exact: true }).click();
     await expect(page.getByLabel('Simulation destination', { exact: true })).toHaveValue(/^CoForge\/Tests\/task-.+-simulation\.md$/);
     await page.getByRole('button', { name: 'Queue simulation', exact: true }).click();
-    await expect(page.getByRole('navigation', { name: 'Council workspace', exact: true }).getByRole('button', { name: 'Ask the Council', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('navigation', { name: 'Council workspace', exact: true }).getByRole('button', { name: 'New question', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByLabel('Task title', { exact: true })).toHaveValue('');
     await expect(history).toContainText('Simulation · queued · execution paused');
     await page.getByRole('button', { name: 'Resume Council execution', exact: true }).click();
     await expect(history).toContainText('6/6 steps completed or skipped');
     await capture(page, theme, 'history');
-    const inspect = history.getByRole('button', { name: 'Inspect task Advice on the next game milestone', exact: true });
+    const inspect = history.getByRole('button', { name: 'Read answers for Advice on the next game milestone', exact: true });
     await inspect.click();
+    await expect(page.getByRole('region', { name: 'Council answers', exact: true })).toContainText('Advice on the next game milestone');
+    await expect(page.getByRole('region', { name: 'Council answers', exact: true })).toContainText('Product designer');
     await expect(page.getByRole('region', { name: 'Captured run evidence', exact: true })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Council workspace', exact: true })).toBeVisible();
     expect(errors).toEqual([]);

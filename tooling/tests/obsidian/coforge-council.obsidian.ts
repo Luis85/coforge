@@ -127,9 +127,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
         exact: true,
       })
       .click();
-    await view
-      .getByRole("button", { name: "Submit existing note", exact: true })
-      .click();
+    await openCouncilPage(view, 'Submit existing note');
     await view
       .getByRole("combobox", { name: "Project team", exact: true })
       .selectOption({ label: "Studio team" });
@@ -157,9 +155,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
     await view
       .getByRole("button", { name: "Resume Council execution", exact: true })
       .click();
-    await view
-      .getByRole("button", { name: "Run monitor", exact: true })
-      .click();
+    await openCouncilPage(view, 'Run monitor');
     await browserExpect(view.locator(".cf-council-runs")).toContainText(
       "completed",
       { timeout: 20000 },
@@ -191,9 +187,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
     await browserExpect(
       view.getByRole("status").filter({ hasText: "Execution paused" }),
     ).toBeVisible();
-    await view
-      .getByRole("button", { name: "Run monitor", exact: true })
-      .click();
+    await openCouncilPage(view, 'Run monitor');
     await browserExpect(view.locator(".cf-council-runs")).toContainText(
       "completed",
     );

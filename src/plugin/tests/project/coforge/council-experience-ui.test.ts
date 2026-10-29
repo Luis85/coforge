@@ -2,7 +2,7 @@
 import { flushPromises } from '@vue/test-utils';
 import { expect, it, vi } from 'vitest';
 vi.mock('obsidian', () => import('@test/obsidian'));
-import { councilAskFixture, askButton } from './council-ask-fixture';
+import { councilAskFixture, askButton, visitCouncilPage } from './council-ask-fixture';
 
 it('selects a Council directly and shows its recipients before saving or dispatching', async () => {
   const f = await councilAskFixture();
@@ -27,11 +27,11 @@ it('exposes every Council page without a disclosure and keeps a question through
   const f = await councilAskFixture();
   try {
     f.ui.taskQuestion = 'Keep this draft';
-    const navigation = f.wrapper.get('nav[aria-label="Council workspace"]');
-    expect(navigation.findAll('button')).toHaveLength(10);
+    const navigation = f.wrapper.get('nav[aria-label="Council tasks"]');
+    expect(navigation.findAll('button')).toHaveLength(4);
     expect(f.wrapper.find('.cf-council-advanced').exists()).toBe(false);
-    await askButton(f.wrapper, 'Definitions').trigger('click'); await flushPromises();
-    await askButton(f.wrapper, 'Ask the Council').trigger('click'); await flushPromises();
+    await visitCouncilPage(f.wrapper, 'Definitions');
+    await visitCouncilPage(f.wrapper, 'Ask the Council');
     expect(f.ui.taskQuestion).toBe('Keep this draft');
     expect(f.module.actions.snapshot().runs).toHaveLength(0);
     expect(f.wrapper.get('[aria-label="Council activity"]').text()).toContain('Execution paused');

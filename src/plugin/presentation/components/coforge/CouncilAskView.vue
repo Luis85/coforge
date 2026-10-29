@@ -174,16 +174,16 @@ const model = useCouncilModel();
       "
       task-intake
     />
-    <CouncilExecutionControls v-if="model.service" />
+    <CouncilExecutionControls v-if="model.service && model.ask.executionNeeded" />
     <section class="cf-council-task-history" aria-label="Council task history">
       <header>
-        <h2>Ingested tasks</h2>
+        <h2>Task history</h2>
         <p>
-          All projects · retained runs from direct submissions and watched
-          intake, plus saved task notes. Each retained ingestion generation
-          remains separate.
+          Saved questions and retained runs. Every submission generation stays separate;
+          switch scope to find work from another project.
         </p>
       </header>
+      <label class="cf-field"><span>Show tasks</span><select v-model="model.store.taskHistoryScope" aria-label="Task history scope"><option value="project">This project</option><option value="all">All projects and inbox observations</option></select></label>
       <p v-if="model.store.taskHistoryError" role="alert">
         {{ model.store.taskHistoryError }}
       </p>
@@ -235,10 +235,10 @@ const model = useCouncilModel();
             v-if="item.runId"
             type="button"
             class="cf-btn cf-btn-secondary"
-            :aria-label="`Inspect task ${item.title}`"
+            :aria-label="item.canReadAnswers ? `Read answers for ${item.title}` : `Inspect task ${item.title}`"
             @click="model.ask.inspect(item)"
           >
-            Inspect task
+            {{ item.canReadAnswers ? 'Read answers' : 'Inspect task' }}
           </button>
           <button
             v-else-if="item.task"

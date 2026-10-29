@@ -12,6 +12,20 @@ export const askButton = (wrapper: VueWrapper, label: string) => {
   if (!button) throw new Error(`Missing Council action: ${label}`);
   return button;
 };
+export async function visitCouncilPage(wrapper: VueWrapper, name: string) {
+  const pages: Record<string, [string, string]> = {
+    'Ask the Council': ['Ask', 'New question'], Definitions: ['Setup', 'Councils & roster'],
+    'Submit existing note': ['Ask', 'Existing note'], 'Watched inboxes': ['Automation', 'Watched inboxes'],
+    'Task scheduler': ['Automation', 'Schedules'], 'Event triggers': ['Automation', 'Event triggers'],
+    'Run monitor': ['Activity', 'Runs & answers'], 'Council workflows': ['Automation', 'Proposal workflows'],
+    'Team messages': ['Activity', 'Team messages'], 'Definition folders': ['Setup', 'Storage folders'],
+  };
+  const page = pages[name]; if (!page) throw new Error(`Unknown Council page ${name}`);
+  await askButton(wrapper, page[0]).trigger('click'); await flushPromises();
+  const button = wrapper.get('nav[aria-label="Council workspace"]').findAll('button').find(button => button.text() === page[1]);
+  if (!button) throw new Error(`Missing Council page ${name}`);
+  await button.trigger('click'); await flushPromises();
+}
 export async function councilAskFixture(executor = true, provider: 'claude' | 'demo' = 'claude') {
   const fixture = await councilControlsFixture(executor);
   const catalogue = await fixture.module.actions.catalogue.list();
@@ -40,6 +54,6 @@ export async function councilAskFixture(executor = true, provider: 'claude' | 'd
       await form.get('select').setValue('advice');
       await flushPromises();
     },
-    async dispose() { wrapper.unmount(); stop(); studio.dispose(); disposePinia(pinia); await fixture.dispose(); },
+    async dispose(unmount = true) { if (unmount) wrapper.unmount(); stop(); studio.dispose(); disposePinia(pinia); await fixture.dispose(); },
   };
 }

@@ -74,18 +74,14 @@ for (const theme of ["light", "dark"]) {
     ).toContainText("Solutions");
     await expect(page.locator(".cf-council-round")).toHaveCount(2);
     await capture(page, "definitions", theme);
-    await page
-      .getByRole("button", { name: "Run monitor", exact: true })
-      .click();
+    await openCouncilPage(page, 'Run monitor');
     await page
       .getByRole("button", {
         name: "Use this desktop for execution",
         exact: true,
       })
       .click();
-    await page
-      .getByRole("button", { name: "Submit existing note", exact: true })
-      .click();
+    await openCouncilPage(page, 'Submit existing note');
     await page
       .getByRole("combobox", { name: "Project team", exact: true })
       .selectOption({ label: "Example studio team" });
@@ -119,12 +115,10 @@ for (const theme of ["light", "dark"]) {
       "6/6 steps completed or skipped",
     );
     await expect(
-      page.getByRole("region", { name: "Captured run evidence", exact: true }),
+      page.getByRole("region", { name: "Council answers", exact: true }),
     ).toContainText("Simulation");
     await capture(page, "monitor", theme);
-    await page
-      .getByRole("button", { name: "Council workflows", exact: true })
-      .click();
+    await openCouncilPage(page, 'Council workflows');
     await expect(
       page.getByLabel("Proposal workflow name", { exact: true }),
     ).toHaveValue("Example council proposal");
@@ -238,16 +232,14 @@ test("creates three specialists, a team and a six-invocation council entirely th
   await expect(page.locator(".cf-council-definition-list")).toContainText(
     "UI-only council",
   );
-  await page.getByRole("button", { name: "Run monitor", exact: true }).click();
+  await openCouncilPage(page, 'Run monitor');
   await page
     .getByRole("button", {
       name: "Use this desktop for execution",
       exact: true,
     })
     .click();
-  await page
-    .getByRole("button", { name: "Submit existing note", exact: true })
-    .click();
+  await openCouncilPage(page, 'Submit existing note');
   await page
     .getByRole("combobox", { name: "Project team", exact: true })
     .selectOption({ label: "UI-only team" });
