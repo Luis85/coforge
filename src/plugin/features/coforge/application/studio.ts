@@ -178,21 +178,25 @@ export class StudioService {
 
   async updateIntegration(input: unknown): Promise<IntegrationSettings> {
     const patch = integrationPatch(input);
-    const integration = await this.store.transaction(state => {
-      validateFolderLayout({ ...state.integration, ...patch }, this.host.privateFolders?.() ?? []);
-      if (patch.claudeBin && patch.claudeBin !== state.integration.claudeBin && state.jobs.some(isActiveJob))
-        throw new StudioError('Finish or cancel all project runs before changing the Claude executable.', 409);
-      if ((patch.projectPath !== undefined || patch.worktreeFolder !== undefined || patch.allowImplementation !== undefined)
-        && (state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)) || projectHasPendingWorkflow(state, state.activeProjectId)))
-        throw new StudioError('Finish or stop this project’s queued runs and workflow before editing its repository configuration.', 409);
-      if (patch.ideasFolder && patch.ideasFolder !== state.integration.ideasFolder && state.jobs.some(isActiveJob))
-        throw new StudioError('Finish or cancel queued runs before moving the ideas folder.', 409);
-      state.integration = { ...state.integration, ...patch };
-      return state.integration;
-    });
-    await this.store.updateRuntime(this.runtimeConfig());
-    for (const listener of this.integrationListeners) listener(integration);
-    return integration;
+    const release = this.host.noteFolders?.reserve?.(patch.ideasFolder ? [patch.ideasFolder] : []);
+    try {
+      const integration = await this.store.transaction(state => {
+        validateFolderLayout({ ...state.integration, ...patch }, this.host.privateFolders?.() ?? []);
+        this.host.noteFolders?.assertAvailable?.([patch.ideasFolder ?? state.integration.ideasFolder]);
+        if (patch.claudeBin && patch.claudeBin !== state.integration.claudeBin && state.jobs.some(isActiveJob))
+          throw new StudioError('Finish or cancel all project runs before changing the Claude executable.', 409);
+        if ((patch.projectPath !== undefined || patch.worktreeFolder !== undefined || patch.allowImplementation !== undefined)
+          && (state.jobs.some(job => job.projectId === state.activeProjectId && isActiveJob(job)) || projectHasPendingWorkflow(state, state.activeProjectId)))
+          throw new StudioError('Finish or stop this project’s queued runs and workflow before editing its repository configuration.', 409);
+        if (patch.ideasFolder && patch.ideasFolder !== state.integration.ideasFolder && state.jobs.some(isActiveJob))
+          throw new StudioError('Finish or cancel queued runs before moving the ideas folder.', 409);
+        state.integration = { ...state.integration, ...patch };
+        return state.integration;
+      });
+      await this.store.updateRuntime(this.runtimeConfig());
+      for (const listener of this.integrationListeners) listener(integration);
+      return integration;
+    } finally { release?.(); }
   }
 
   /** Checks the native Claude Code executable. No model request is made. */

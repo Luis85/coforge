@@ -1,49 +1,52 @@
 ## Summary
 
-A streamer can create and operate a single-PC OBS studio from CoForge instead of returning to OBS for routine production. Reviewed setup creates six starter scenes and supported sources; the live desk adds sampled program/preview monitors, transitions, audio controls, recording/replay/virtual-camera operations and visible health.
-
-Source/device/layout/filter editors, output setup and rehearsal support the first stream. Durable show plans provide ordered manual cues and explicit event bindings. Public displays composes approved requests, accepted work, recognition, now-playing metadata and fixed reviewed Council excerpts into owned OBS text sources.
-
-All writers share stream admission and durable recovery. Reload pauses automation and never repeats uncertain actions. Output presets require an acknowledged restart/rehearsal; stream keys are write-only secret references. Public text uses explicit captured review, ownership checks and revocation handling. Existing Twitch operations from merged PR #39 are preserved and qualified together.
+Add Service Design to Build & Improve. Each project owns one Service Blueprint with ordered journey steps, five core layers, actors, touchpoints, systems, pain points and opportunities. The grid and searchable entity editor save canonical frontmatter-plus-Markdown notes with stable IDs and wikilinks in a configurable private vault root.
 
 ## Requirements and traceability
 
-- Owner authorization: BRIEF.md, OBS overhaul direction dated 2026-10-29; all three increments, subagents, E2E, improvement/polish and merge when green.
-- Owner requirement: docs/requirements/OBS Studio Integration.md, pbl-id 6.
-- Task and detailed evidence: docs/project-tasks/2026-10-29-obs-studio-overhaul.md.
-- Imported req-* / vi-* obligations: none; generated traceability is unchanged.
-- Updated component contracts and regenerated the combined 104-view catalogue.
-- Preserve authored short/full wiki parent links from main while normalizing their
-  identities; missing targets, ownership drift and cycles remain rejected. The
-  catalogue regression suite passes all 12 tests. CI retains a JSON product-test
-  report alongside bounded console diagnostics without changing any gate limit.
+- Owner-approved scope and storage decisions are recorded in BRIEF.md (2026-10-29).
+- No imported req-* or vi-* applies: design/traceability.json contains no requirements/interactions and is unchanged.
+- Acceptance and the researched six-increment improvement plan are in docs/project-tasks/2026-10-29-service-design*.md.
+- The new view contract and generated sitemap document navigation and recovery.
 
 ## Validation
 
-- Application regressions: 4 files / 25 tests passed. Native adapter/overlay regressions: 3 files / 35 tests passed before the final audio/control-character additions.
-- Public overlay suite: 17 tests passed. Final audio UI/session/native regressions: 3 files / 12 tests passed, after reproducing the milliseconds and Audio-page refresh defects first.
-- Combined OBS/Twitch integration: shared logging, production journal and cue admission suites passed 13 tests; view catalogue reports 104 contracts and valid navigation coverage.
-- Native shutdown/lifecycle/dev-session regressions: 21 passed. Numeric PID/scratch guards remain intact; no cleanup retry budget increased.
-- Source-size/locale checks and zero-warning source lint passed. Impeccable detector returned [], exit 0. No screenshot baselines or quality thresholds changed.
-- The PR's check, ui, real-obsidian and security jobs qualify the final combined commit; merge is conditional on all succeeding. The project CI gate passed before integration; final combined qualification is tracked in the current checks.
-- Local full verify:project: typecheck, source lint and maker-types passed; ESLint/product stages exceeded the unchanged 600-second limits under Windows resource contention. Intermediate failing-first tests were corrected and passed their focused reruns. Local timeouts are not counted as passing qualification.
+- npm ci: 691 packages added, 692 audited, 0 vulnerabilities.
+- Domain/vault suite: 2 files, 17 tests passed; all kinds/ownership, graph validation, input capture, exact Markdown/unknown properties, stale/atomic conflicts, write failures, retained roots, invalid settings, reserved paths and Git-ignore protection.
+- Component suite: 4 passed; all kinds, links, ordering, focus, search/count behavior, per-project retained drafts, replacement confirmation, stale edits and captured in-flight project.
+- Integration/startup/public policy: 3 files, 26 tests passed; both overlapping configuration orders and failed-write reservation release covered while Council watched request notes remain compatible.
+- Project typecheck and focused source/test ESLint: passed with zero warnings.
+- Merged-main focused regression run: 5 files, 40 tests passed (12.26s), covering domain, vault, UI, integration and startup/disposal.
+- npm run verify:artifacts: production build passed (7.89s); prototype embedding 1 passed, 0 failed. test:ui-effects explicitly reports no declared visual obligations.
+- Latest OBS-main integration: 8 focused files and 74 tests passed; typecheck and zero-warning ESLint passed. Service Design and all OBS host ports/imports are preserved, with no additional managed Markdown root needed.
+- Merged-main typecheck passed; npm run check:source passed for 3294 inputs and 226 translated keys.
+- npm run check:views: 105 views documented; navigation coverage valid; sitemap current. Normalized two incoming Council view parent references to the existing catalogue schema.
+- git diff --check: clean.
+- Pinned CI npm run verify:project: 5 gates passed, 0 failed, 0 skipped in 252.9s; production build and prototype embedding passed. Community review: 16 pass, 0 warn, 0 fail. Qualification receipts are linked from PR #43.
+- Local full product-test stage exceeded its 600-second process deadline; typecheck, both lint gates and maker types passed. The reported Herdr worktree case passed in isolation (5 passed, 1 existing Windows-only symlink skip). No test assertions, timeouts or output limits were relaxed; pinned CI qualified the complete suite.
 
 ## UI evidence
 
-- Initial test:ui-quality: 8 passed. Later local runs reached the unchanged 120-second server-start limit; complete final browser/accessibility qualification runs in CI.
-- ui:gallery: 40 captures in reports/ui-gallery; representative desktop dark/narrow light captures reviewed.
-- Connected contained-host matrix: 18 captures, all reviewed; final horizontal overflow 0px. Fixed the narrow public-text preview overflow and the health-summary definition-list semantics.
-- Evidence: reports/obsidian/cases/coforge-obs-overlays--publishes-only-reviewed-Council-text-refreshes-it-from-a-show-cue-and-revokes-the-owned-copy-on-privacy-changes/connected-visual-review.json (ignored, also retained by native CI artifacts).
+- npm run test:ui-quality -- --config .nq/service-design-ui.config.ts: 8 passed (46.1s), no skipped/unexpected tests. The ignored wrapper uses isolated port 4281 because another process owns 4181; assertions are unchanged. Report: reports/e2e/service-design-ui-quality.json.
+- npm run ui:gallery: 40 captures, failures []; desktop light and narrow dark studio captures reviewed. This covers the existing clickdummy plus new navigation; feature-native captures are separate.
+- Focused real-host Service Design spec: 1 passed, exit 0, complete create/link/configure/reload/conflict/reopen path and clean teardown.
+- Five native WCAG 2.1 A/AA scans: zero violations. Wide/narrow and light/dark maps have 32px gutters, 24px editor-heading spacing and zero page/editor overflow; narrow table scrolling stays inside its region.
+- Stable captures and geometry/Axe JSON: reports/service-design-review/. A fresh independent reviewer inspected all five captures and returned ship for the captured UI/product scope, with no material findings.
+- The owner's layout feedback exposed a missing shared page-frame selector. Fixed the gutters, section spacing and table alignment, and added measured host regressions. Mechanical detector: [] findings.
+- The extra destination exposed 14px of navigation overflow in a 740px pane. Two compact-only outer-padding changes recover 16px; labels, fonts and control targets stay intact. The focused navigation/focus/workspace/view-intent batch passed all 33 tests, with zero overflow in light and dark. Results and reviewed captures: reports/navigation-space/.
 
 ## Obsidian evidence
 
-- Actual pinned Obsidian 1.14.4, launcher 3.2.1, real loopback simulated OBS WebSocket server.
-- Production case passed in 23.28s: reviewed scene/source creation, audio, recording/pause/resume/stop, replay, show cue and reload without replay or broadcast.
-- Overlay case passed in 38.808s, clean teardown and errors []: GDI v3, exact reviewed public text, private-prompt exclusion, durable mapping, cue refresh, reload and owned-text clearing after a privacy change.
-- Final complete native suite and smoke are required CI jobs. No public broadcast was used as a test.
+- npm run test:obsidian: 24 files passed, 31 tests passed, 365.52s, exit 0. Includes lifecycle, privacy, navigation, MCP and Service Design. Reports: reports/obsidian/.
+- Pinned Obsidian CI after latest-main integration: 25 files, 32 tests passed (208.66s), followed by a successful agent-loop smoke.
+- An earlier local Service Design/navigation rerun completed all three test bodies, but exited 1 from OBSIDIAN_STOP_TIMEOUT during Windows session cleanup. This is recorded as a failed local command; the subsequently integrated main preserves its host-shutdown fixes, and final-head native qualification is provided by CI.
+- Pinned contained host: Obsidian app/installer 1.14.4, launcher 3.2.1.
+- npm run -s dev:obsidian -- --allow-download --json: status passed, errors [], hostErrorCount 0, pluginConsole [], exit 0. Read dev.log/debug-report.json and reviewed last-run.png. Its Windows shutdown reported OBSIDIAN_STOP_TIMEOUT after the successful summary; the full suite later completed cleanly.
 
-## Untested scope and limits
+## Review and untested scope
 
-Physical capture devices, real stream-service credentials and a public broadcast require streamer acceptance. Monitors and meters are sampled; no continuous audiovisual transport is claimed. WebSocket bootstrap, OS/vendor dialogs and a one-time restart after profile presets remain explicit setup exceptions. Supported editors do not claim universal third-party plugin parity. An unresolved external OBS copy remains visible as needing inspection/clearing; past recordings cannot be revoked.
+Independent subagents reviewed product/method coverage, UX/accessibility, data integrity, privacy/reliability and integration boundaries, then a fresh reviewer checked the corrected renders. Findings drove graph/concurrency checks, private-root reservations, focus, stable totals, indexed cells, searchable relationships, Markdown preview and service-scenario guidance.
 
-Local Node 24.20.0/npm 11.19.0 differ from the pins; automatic provisioning found no official win32-x64 Node 24.21.0 build. CI uses the repository pins. No personal vault, global installation, release publication or force push.
+No personal vault, credentials, live Twitch/OBS session or AI provider was used. Dedicated visual evidence covers a populated three-step map and a wide dark recovery editor; it is not an exhaustive visual state matrix. No multiple blueprints, deletion/cascades, directional arrows, AI authoring or diagram export is introduced. Local Node 24.20.0/npm 11.21.1 differ from pinned CI Node 24.21.0/npm 11.19.1; CI qualifies the pinned toolchain. Global PRODUCT.md has a pre-existing legacy schema and was preserved. check:presentation exited 0 and reported two pre-existing concerns in unmodified VaultFilePicker.vue.
+
+Latest main is integrated. PR #43 is the live qualification and merge ledger; merge requires green checks on its current head.
