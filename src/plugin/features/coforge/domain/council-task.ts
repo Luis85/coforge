@@ -14,7 +14,7 @@ const projectId = text({
 });
 const title = text({ min: 1, max: 160, trim: true, pattern: /^[^\p{Cc}]+$/u });
 const target = shape(
-  { kind: oneOf(["council"]), id: projectId, teamId: projectId },
+  { kind: oneOf(["agent", "council"]), id: projectId, teamId: projectId },
   { strict: true },
 );
 export const councilTaskInputCheck = shape(

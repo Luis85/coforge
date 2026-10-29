@@ -14,6 +14,9 @@ import { MCP_BRIDGE_SOURCE } from './mcp-bridge-source';
 import { McpStepFiles } from './mcp-step-files';
 import { McpWorkflowTools } from './mcp-workflow-tools';
 import { McpVaultTools } from './mcp-vault-tools';
+import { McpCoworkerTools } from './mcp-coworker-tools';
+import type { CouncilActions } from '../../features/coforge/application/council-ports';
+import { McpObsidianTools } from './mcp-obsidian-tools';
 
 const entryCheck = shape({ command: text({ min: 1, max: 1000 }), args: list(text({ min: 1, max: 4096 }), { min: 2, max: 2 }) }, { strict: true });
 const registrationCheck = shape({ name: text({ min: 1, max: 100 }), phase: oneOf(['pending', 'active', 'attention'] as const),
@@ -43,6 +46,7 @@ export class McpModule implements McpActions {
   private saved: Registration | undefined;
   private acknowledgedTasks: string[] = [];
   private readonly server: LocalMcpServer;
+  private readonly obsidian: McpObsidianTools;
   private readonly registration = new McpRegistration();
   private token = '';
   private endpoint = '';
@@ -54,10 +58,25 @@ export class McpModule implements McpActions {
   private closing: Promise<void> | undefined;
   private ready = false;
   private pending: Promise<unknown> = Promise.resolve();
-  constructor(private readonly plugin: Plugin, private readonly studio: StudioService, private readonly runner: McpStepRunner, private readonly environment?: McpEnvironment) {
+  constructor(private readonly plugin: Plugin, private readonly studio: StudioService, private readonly runner: McpStepRunner, private readonly environment?: McpEnvironment, council?: CouncilActions, privateFolders: () => readonly string[] = () => []) {
     const authorize = () => { if (!this.status().active) throw new Error('CoForge MCP is inactive.'); };
     const workflow = new McpWorkflowTools(studio, runner, new McpStepFiles(), authorize);
-    this.server = new LocalMcpServer(new McpVaultTools(studio, workflow, authorize));
+    this.obsidian = new McpObsidianTools(plugin, {
+      authorize,
+      identity: () => {
+        const adapter = plugin.app.vault.adapter;
+        if (!localAdapter(adapter)) throw new Error('Obsidian CLI requires a local desktop vault.');
+        const name = plugin.app.vault.getName();
+        const app = plugin.app;
+        const selector = 'appId' in app && typeof app.appId === 'string' && /^[a-f0-9]{16}$/iu.test(app.appId) ? app.appId : name;
+        return { root: adapter.getBasePath(), selector, name };
+      },
+      publicFolder: () => studio.integration().publicFolder,
+      blockedWriteFolders: () => ['CoForge', studio.integration().ideasFolder, ...privateFolders(),
+        ...Object.values(council?.snapshot().preferences.definitionFolders ?? {}), ...(council?.snapshot().preferences.bindings.map(binding => binding.path) ?? [])],
+    });
+    this.server = new LocalMcpServer(new McpVaultTools(studio, workflow, authorize,
+      [...(council ? [new McpCoworkerTools(studio, council, authorize)] : []), this.obsidian]));
   }
   private command<T>(work: () => Promise<T>): Promise<T> {
     const next = this.pending.then(work); this.pending = next.catch(() => undefined); return next;
@@ -134,7 +153,7 @@ export class McpModule implements McpActions {
     return this.command(async () => {
       if (this.disposed || !this.ready) throw new Error(this.failure || 'MCP is unavailable.');
       const saved = this.saved;
-      this.server.revoke(); this.token = ''; await this.server.close(); this.endpoint = '';
+      this.server.revoke(); this.obsidian.revoke(); this.token = ''; await this.server.close(); this.endpoint = '';
       if (saved) saved.phase = 'attention'; await this.publish(); await this.persist();
       for (const job of this.studio.state().jobs.filter(item => item.provider === 'mcp' && ['queued', 'running'].includes(item.status))) await this.studio.cancel(job.id);
       if (saved) await this.registration.remove(saved.paths, saved.name, saved.entry);
@@ -157,7 +176,7 @@ export class McpModule implements McpActions {
   }
   dispose(): Promise<void> { return this.closing ??= this.close(); }
   private async close(): Promise<void> {
-    this.disposed = true; await this.pending; await this.server.close(); await this.runner.dispose(); this.token = ''; this.endpoint = '';
+    this.disposed = true; this.obsidian.revoke(); await this.pending; await this.server.close(); await this.runner.dispose(); this.token = ''; this.endpoint = '';
     if (this.directory) await this.publish().catch(() => undefined);
   }
 }

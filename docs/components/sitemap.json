@@ -1413,7 +1413,7 @@
       "audience": "streamer",
       "kind": "panel",
       "route": "Ask the Council / Ingested tasks",
-      "parent": "council",
+      "parent": "council-ask",
       "component": "src/plugin/presentation/components/coforge/CouncilAskView.vue",
       "entry": [
         "Open The Council and review Ingested tasks below the question form."
@@ -1460,7 +1460,7 @@
       "audience": "streamer",
       "kind": "panel",
       "route": "Ask the Council / Add vault files",
-      "parent": "council",
+      "parent": "council-ask",
       "component": "src/plugin/presentation/components/coforge/VaultFilePicker.vue",
       "entry": [
         "Expand Add vault files below the Council question input."

@@ -346,6 +346,22 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ## Decisions
 
+- 2026-10-29: expose the maintained CoWorker roster and definition-based subagent
+  dispatch through the existing vault MCP server. Assistants can author private
+  tasks for a CoWorker or council, preflight them, explicitly dispatch, inspect
+  durable runs and published contributions, and request cancellation. Use the
+  existing execution kernel, provider/model definitions, project/team scope,
+  finite limits, submission deduplication and human review/recovery gates.
+  Authoring never starts execution; dispatch respects the operator's paused state.
+  Invocation-scoped Council tools retain their narrower isolation. Existing
+  request workflow tools remain the route for screened implementation work.
+  Also wrap the official Obsidian CLI for agents to inspect the current CoForge
+  vault: explicitly bind and verify its identity on every call. Expose bounded
+  inventory, search, Markdown and note-metadata reads. Ordinary note authoring uses
+  Obsidian's atomic vault API with exact previous-content checks; managed CoForge
+  notes, watched sources, public exports and host configuration keep their existing
+  service/permission gates.
+
 - 2026-10-28: ship one local MCP server for all projects in a CoForge vault, explicitly activated once from the plugin.
   Activation registers it in the vault's `.mcp.json` and Claude Code's user-level `~/.claude.json`.
   Discover projects through the shared server and require an explicit project ID on project/task tools;
