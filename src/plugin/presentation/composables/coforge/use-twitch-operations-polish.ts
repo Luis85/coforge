@@ -31,7 +31,11 @@ export function twitchContentUrl(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined;
   try {
     const url = new URL(value);
-    if (url.protocol !== 'https:' || url.username || url.password || url.port || !['twitch.tv', 'www.twitch.tv', 'clips.twitch.tv'].includes(url.hostname)) return undefined;
+    if (url.protocol !== 'https:') return undefined;
+    if (url.username.length > 0 || url.password.length > 0) return undefined;
+    if (url.port) return undefined;
+    const hosts = ['twitch.tv', 'www.twitch.tv', 'clips.twitch.tv'];
+    if (!hosts.includes(url.hostname)) return undefined;
     return url.href;
   } catch { return undefined; }
 }
