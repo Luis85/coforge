@@ -7,6 +7,7 @@ import type { BroadcastPage, StreamPage, WorkflowPage } from "./studio-pages";
 
 export type StudioView =
   | "council"
+  | "coworkers"
   | "board"
   | "stream"
   | "workflow"

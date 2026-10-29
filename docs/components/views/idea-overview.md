@@ -5,7 +5,7 @@ goal: "Understand and qualify the submitted request."
 audience: "streamer"
 kind: "subpage"
 route: "studio.drawerTab = overview"
-parent: "idea-detail"
+parent: "[[docs/components/views/idea-detail]]"
 component: "src/plugin/presentation/components/coforge/IdeaOverviewTab.vue"
 entry: ["Open a request’s details, then choose Overview."]
 actions: ["Read request and context","Inspect or edit captured custom values","Inspect screening","Edit RICE","Run next stage"]

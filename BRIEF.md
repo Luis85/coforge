@@ -68,6 +68,24 @@ Remove the repeated project-work-context banner from work views. The project
 switcher remains the active-project identity and navigation control; private
 visibility stays indicated there and in project settings.
 
+Board correction (owner, 2026-10-29): remove the board decision-summary section
+(`cf-board-decisions`). The backlog proceeds directly to its existing filter tabs
+and toolbar; Needs review and Flagged remain available through those tabs.
+
+Workspace management (owner, 2026-10-29): rename the Build navigation group to
+Build & Improve, first in navigation, followed by Stream, Community and Insights.
+Each main navigation group can collapse independently, with its
+state saved in CoForge's localStorage. Review the view documentation and correct
+its owning-parent relationships against the actual interface.
+
+Reusable Council agents are called CoWorkers in the interface. Provide a dedicated
+CoWorkers page in Build & Improve for inventory, creation, editing and management.
+Keep existing canonical definitions, stable IDs, memberships, revisions and tool
+restrictions compatible. Teams and councils retain their project scope.
+
+Ask the Council includes a vault-file picker that adds selected notes as a list of
+wikilinks to the task input, preserving the existing input and submission gates.
+
 The private Kanban card menu includes Send to the Council. It prepares an assessment
 of the screened item, its open gaps and possible next steps, preserves an existing
 Council draft until explicitly replaced, and requires the usual review and submission.

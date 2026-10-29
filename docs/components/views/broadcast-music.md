@@ -5,7 +5,7 @@ goal: "Choose and control the local audio for this stream."
 audience: "streamer"
 kind: "subpage"
 route: "studio.broadcastTool = music"
-parent: "broadcast"
+parent: "[[docs/components/views/broadcast]]"
 component: "src/plugin/presentation/components/coforge/StreamMusic.vue"
 entry: ["Open Stream studio, then choose Music."]
 actions: ["Refresh library","Select playlist","Play, pause or stop","Seek or set volume","Edit playlist","Open metadata note"]

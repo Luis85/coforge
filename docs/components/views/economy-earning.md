@@ -5,7 +5,7 @@ goal: "Set base and subscriber currency rates for eligible tracked chat presence
 audience: "streamer"
 kind: "subpage"
 route: "economy.page = earning"
-parent: "economy"
+parent: "[[docs/components/views/economy]]"
 component: "src/plugin/presentation/components/coforge/EconomyEarning.vue"
 entry: ["Choose Earning inside Economy."]
 actions: ["Set the base rate", "Enable or disable a separate subscriber total rate"]

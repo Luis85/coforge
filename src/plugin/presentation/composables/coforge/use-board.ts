@@ -4,7 +4,6 @@ import { rankedIdeas, STATUS_LABELS } from '../../../features/coforge/domain/typ
 import { requestCategoryNames } from '../../../features/coforge/domain/request-categories';
 import { useStudioStore } from '../../stores/coforge-studio';
 import { contributorName } from './format';
-import { projectWorkSummary } from './project-work-summary';
 
 export type BoardFilter = 'all' | 'review' | 'flagged' | 'rejected';
 export type BoardSort = 'rice' | 'votes' | 'newest';
@@ -74,16 +73,12 @@ function createBoard() {
 
   return reactive({
     store, query, filter, category, layout, sort, requestKind, filtered, isFiltered, tabs, columns, rows,
-    summary: computed(() => projectWorkSummary(store.state)),
     categories: computed(() => [...new Set([...requestCategoryNames(store.activeProject?.settings.requestObject), ...ideas.value.map(idea => idea.category)])]), sortOptions: SORT_OPTIONS,
     projectEmpty: computed(() => ideas.value.length === 0),
     emptyTitle: computed(() => (isFiltered.value ? 'No ideas match this view.' : 'Your next game starts with an idea.')),
     emptyText: computed(() => (isFiltered.value ? 'Try a different search or filter.' : 'Submit an idea here, or type !request in the stream chat.')),
     emptyAction: computed(() => (isFiltered.value ? 'Clear filters' : 'Add the first idea')),
     setFilter: (next: BoardFilter) => { filter.value = next; },
-    showDecision: (next: 'review' | 'flagged') => {
-      query.value = ''; category.value = ''; requestKind.value = 'all'; filter.value = next;
-    },
     setLayout: (next: BoardLayout) => { layout.value = next; },
     clearQuery: () => { query.value = ''; },
     startNew: () => { store.creating = true; },

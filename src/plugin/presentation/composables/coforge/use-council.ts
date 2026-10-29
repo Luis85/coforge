@@ -70,7 +70,10 @@ export function useCouncil() {
     stop = service.subscribe((state) => {
       if (!closed) store.state = state;
     });
-    void run(refresh);
+    let started = false;
+    watch(() => [store.busy, store.state?.ready] as const, ([busy, ready]) => {
+      if (!busy && ready && !started) { started = true; void run(refresh); }
+    }, { immediate: true });
   });
   onBeforeUnmount(() => {
     closed = true;
@@ -221,6 +224,7 @@ export function useCouncil() {
         void run(refresh);
     },
     service,
+    listVaultFiles: host.listVaultFiles,
     teams,
     targets,
     refresh: () => run(refresh),

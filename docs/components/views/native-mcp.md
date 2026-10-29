@@ -5,7 +5,7 @@ goal: "Activate one MCP connection for every CoForge project in this vault."
 audience: "streamer"
 kind: "panel"
 route: "native settings / Local MCP server"
-parent: "native-settings"
+parent: "[[docs/components/views/native-settings]]"
 component: "src/plugin/presentation/components/coforge/PluginSettingsMcp.vue"
 entry: ["Open Obsidian Settings → Community plugins → CoForge → Local MCP server."]
 actions: ["Activate MCP","Deactivate MCP","Acknowledge inspected workspace recovery"]

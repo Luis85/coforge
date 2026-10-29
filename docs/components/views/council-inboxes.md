@@ -5,7 +5,7 @@ goal: "Activate reviewed note intake for a project destination."
 audience: "streamer"
 kind: "subpage"
 route: "council.tab = inboxes"
-parent: "council"
+parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/CouncilSubmission.vue"
 entry: ["Open The Council, expand Advanced Council tools, then choose Watched inboxes."]
 actions: ["Configure folder","Preview existing files","Select candidates","Activate or pause","Confirm generation reset"]

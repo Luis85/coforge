@@ -5,7 +5,7 @@ goal: "Resolve the next checkpoint or attempt outcome."
 audience: "streamer"
 kind: "subpage"
 route: "studio.workflowTool = runs"
-parent: "workflow"
+parent: "[[docs/components/views/workflow]]"
 component: "src/plugin/presentation/components/coforge/ConfiguredWorkflowExecution.vue"
 entry: ["Open Agent workflow, then choose Workflow runs."]
 actions: ["Select request run","Inspect captured steps and results","Complete required checklist","Inspect attempt history","Recover Herdr attempt"]

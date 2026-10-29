@@ -5,7 +5,7 @@ goal: "Save a question and review the Council's proposed work before submitting.
 audience: "streamer"
 kind: "subpage"
 route: "council.tab = ask"
-parent: "council"
+parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/CouncilAskView.vue"
 entry: ["Choose The Council in the studio navigation.","Choose Ask the Council from another Council task."]
 actions: ["Write title and question","Choose project team and council","Save task and review","Submit reviewed task","Start a new task","Review task history"]

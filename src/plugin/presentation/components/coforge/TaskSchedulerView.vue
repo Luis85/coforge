@@ -5,10 +5,10 @@ const model = useTaskScheduler();
 </script>
 <template>
   <section class="cf-council-section" aria-label="Task scheduler">
-    <header class="cf-page-heading"><div><h2>Task scheduler</h2><p>Recurring prompts, timers and scheduled reviews for agents, assigned team members and councils.</p></div>
+    <header class="cf-page-heading"><div><h2>Task scheduler</h2><p>Recurring prompts, timers and scheduled reviews for CoWorkers, assigned team members and councils.</p></div>
       <div class="cf-settings-actions"><button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.available || model.store.busy" @click="model.refresh()">Refresh schedules</button><button type="button" class="cf-btn cf-btn-primary" :disabled="!model.canManage || model.store.busy || !!model.store.form" @click="model.create()">New scheduled task</button></div>
     </header>
-    <p v-if="!model.available">Open CoForge in desktop Obsidian to save and run private task schedules. Configure teams, agents and councils in Definitions.</p>
+    <p v-if="!model.available">Open CoForge in desktop Obsidian to save and run private task schedules. Configure CoWorkers in CoWorkers and teams and councils in Definitions.</p>
     <button v-if="!model.available && model.canPreview" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.explore()">Explore scheduler example</button>
     <p v-if="model.store.example" role="status">Scheduler example · in-memory schedules and simulated admission receipts only. No vault files, native agents or external services are changed.</p>
     <button v-if="model.store.example" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.exitExample()">Exit scheduler example</button>

@@ -13,7 +13,7 @@ const model = useCouncilFolderEditor(props);
   <details class="cf-council-section">
     <summary>Definition folders</summary>
     <p class="cf-settings-help">
-      Choose private vault folders for new agents, teams and councils. Preview
+      Choose private vault folders for new CoWorkers, teams and councils. Preview
       validates protected scopes and current definitions. Saving never moves or
       deletes human files.
     </p>

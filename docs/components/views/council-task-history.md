@@ -5,7 +5,7 @@ goal: "Find a saved question or retained ingestion and resolve its next action."
 audience: "streamer"
 kind: "panel"
 route: "Ask the Council / Ingested tasks"
-parent: "council-ask"
+parent: "[[docs/components/views/council-ask]]"
 component: "src/plugin/presentation/components/coforge/CouncilAskView.vue"
 entry: ["Open The Council and review Ingested tasks below the question form."]
 actions: ["Search tasks","Review saved task","Inspect task","Show 50 more tasks","Refresh Council"]

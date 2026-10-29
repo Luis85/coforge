@@ -5,7 +5,7 @@ goal: "Inspect a viewer’s private participation record."
 audience: "streamer"
 kind: "page"
 route: "studio.view = population"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/PopulationView.vue"
 entry: ["Choose Viewers in the studio navigation."]
 actions: ["Search and filter","Select viewer","Refresh private notes","Clear filters","Page results"]

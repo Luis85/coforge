@@ -5,7 +5,7 @@ goal: "Learn the request-to-recognition loop."
 audience: "streamer"
 kind: "dialog"
 route: "studio.help = true"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/HelpDialog.vue"
 entry: ["Choose How it works in the studio navigation."]
 actions: ["Read guide","Explore workflow","Close"]
@@ -16,7 +16,7 @@ privacy: "Private vault workspace; excluded from public projections."
 
 # Studio guide
 
-The guide introduces the same Stream, Build, Community and Insights task groups as the sidebar, then follows the ordered request-to-recognition journey. Its workflow shortcut uses the guarded destination helper. Example commands remain illustrative and include an explicit project ID.
+The guide introduces the same Build & Improve, Stream, Community and Insights task groups as the sidebar, then follows the ordered request-to-recognition journey. Its workflow shortcut uses the guarded destination helper. Example commands remain illustrative and include an explicit project ID.
 
 ## Purpose
 

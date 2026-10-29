@@ -5,7 +5,7 @@ goal: "Prepare a saved plan for a future stream."
 audience: "streamer"
 kind: "page"
 route: "studio.view = schedule"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/ScheduleView.vue"
 entry: ["Choose Schedule in the studio navigation."]
 actions: ["New stream plan","Select plan","Save stream plan or discard changes","Open Markdown note","Refresh","Review saved preparation","Apply project, channel, scenes or playlist"]

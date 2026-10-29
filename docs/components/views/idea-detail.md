@@ -5,7 +5,7 @@ goal: "Decide the next valid action for one request."
 audience: "streamer"
 kind: "dialog"
 route: "studio.selectedIdea"
-parent: "board"
+parent: "[[docs/components/views/board]]"
 component: "src/plugin/presentation/components/coforge/IdeaDrawer.vue"
 entry: ["On Idea board, open a request card or request row."]
 actions: ["Choose detail tab","Run eligible stage","Cancel active run","Close"]

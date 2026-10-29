@@ -3,9 +3,9 @@ import { expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 
-export async function captureCouncil(page: Page, name: string, theme: string) {
+export async function captureCouncil(page: Page, name: string, theme: string, selector = '.cf-council') {
   await mkdir("reports/council", { recursive: true });
-  const council = page.locator(".cf-council");
+  const council = page.locator(selector);
   for (const width of [1280, 360]) {
     await page.setViewportSize({ width, height: 900 });
     expect(
@@ -21,7 +21,7 @@ export async function captureCouncil(page: Page, name: string, theme: string) {
   expect(
     (
       await new AxeBuilder({ page })
-        .include(".cf-council")
+        .include(selector)
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
         .analyze()
     ).violations,

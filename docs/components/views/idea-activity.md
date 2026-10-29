@@ -5,7 +5,7 @@ goal: "Trace what happened to this request."
 audience: "streamer"
 kind: "subpage"
 route: "studio.drawerTab = activity"
-parent: "idea-detail"
+parent: "[[docs/components/views/idea-detail]]"
 component: "src/plugin/presentation/components/coforge/IdeaActivityTab.vue"
 entry: ["Open a request’s details, then choose Activity."]
 actions: ["Read chronological events","Inspect attempts"]

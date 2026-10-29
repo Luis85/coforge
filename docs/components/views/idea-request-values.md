@@ -5,7 +5,7 @@ goal: "Read and maintain private structured values using the request's original 
 audience: "streamer"
 kind: "panel"
 route: "Request overview / Captured request object"
-parent: "idea-overview"
+parent: "[[docs/components/views/idea-overview]]"
 component: "src/plugin/presentation/components/coforge/RequestValuesPanel.vue"
 entry: ["Open Overview on a request created with a Request Object."]
 actions: ["Read captured class and values","Edit optional values","Save request fields","Discard field changes"]

@@ -5,7 +5,7 @@ goal: "Review a portable definition before replacing or sharing it."
 audience: "streamer"
 kind: "panel"
 route: "workflow transfer preview"
-parent: "workflow-settings"
+parent: "[[docs/components/views/workflow-settings]]"
 component: "src/plugin/presentation/components/coforge/WorkflowDefinitionTransfer.vue"
 entry: ["Within Workflow settings, choose Import JSON or Preview workflow export."]
 actions: ["Paste JSON","Validate and preview","Apply draft","Preview export"]

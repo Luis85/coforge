@@ -5,7 +5,7 @@ goal: "Preserve or recover the selected run's retained execution evidence."
 audience: "streamer"
 kind: "panel"
 route: "council.inspectedRun recovery tools"
-parent: "council-monitor"
+parent: "[[docs/components/views/council-monitor]]"
 component: "src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue"
 entry: ["Within The Council → Run monitor, select a run to inspect its recovery tools."]
 actions: ["Record allowance extension","Prepare private run export","Publish retained results to selected note","Remove settled history with export and consent"]

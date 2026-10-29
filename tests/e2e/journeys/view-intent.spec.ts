@@ -309,8 +309,8 @@ test("task navigation leads with stream work and keeps settings reachable in a s
           .getBoundingClientRect().top - el.getBoundingClientRect().bottom,
     ),
   ).toBeLessThanOrEqual(2);
-  await expect(navigation.getByRole("button").first()).toHaveText("Stream studio");
-  for (const label of ["Stream", "Build", "Community", "Insights"])
+  await expect(navigation.locator('.cf-nav-item').first()).toHaveText(/^Idea board/);
+  for (const label of ["Build & Improve", "Stream", "Community", "Insights"])
     await expect(
       navigation.getByRole("group", {
         name: `${label} navigation`,

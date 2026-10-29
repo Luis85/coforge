@@ -5,7 +5,7 @@ goal: "Compare retained attempt costs by captured agent, team or Council identit
 audience: "streamer"
 kind: "panel"
 route: "AI costs / Cost attribution"
-parent: "ai-costs"
+parent: "[[docs/components/views/ai-costs]]"
 component: "src/plugin/presentation/components/coforge/AICostAttribution.vue"
 entry: ["Open AI costs and review Who used the AI budget."]
 actions: ["Filter by agent", "Filter by team", "Filter by Council", "Regroup the same attempts", "Inspect partial coverage", "Clear attribution filters"]

@@ -5,7 +5,7 @@ goal: "Save this project’s brief and workspace boundaries."
 audience: "streamer"
 kind: "page"
 route: "studio.view = settings"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/SettingsView.vue"
 entry: ["Choose Project settings in the studio navigation."]
 actions: ["Edit brief and prompt","Configure repository","Save or discard","Open Workflow settings"]

@@ -5,7 +5,7 @@ goal: "Edit the exact OBS scene and its existing sources."
 audience: "streamer"
 kind: "subpage"
 route: "studio.broadcastTool = scenes"
-parent: "broadcast"
+parent: "[[docs/components/views/broadcast]]"
 component: "src/plugin/presentation/components/coforge/ObsSceneManager.vue"
 entry: ["Open Stream studio, then choose Scenes."]
 actions: ["Select scene","Create, rename, copy or delete","Switch program","Edit source visibility, order or membership","Refresh"]

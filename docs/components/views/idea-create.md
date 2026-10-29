@@ -5,7 +5,7 @@ goal: "Record a request in the selected project."
 audience: "streamer"
 kind: "dialog"
 route: "studio.creating = true"
-parent: "board"
+parent: "[[docs/components/views/board]]"
 component: "src/plugin/presentation/components/coforge/NewIdeaDrawer.vue"
 entry: ["On Idea board, choose New request (or Add idea to inbox on Kanban)."]
 actions: ["Enter title and description","Choose category","Fill optional captured project fields","Create","Cancel"]

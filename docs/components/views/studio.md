@@ -22,11 +22,14 @@ Reach the private workspace for the task at hand.
 
 The shell owns navigation, header, notifications and overlays. Stream studio opens initially. Shared chat and background processing survive project selection.
 
-Navigation follows Stream, Build, Community and Insights. Project and Community
+Navigation follows Build & Improve, Stream, Community and Insights. Project and Community
 settings sit with the work they configure. Projects opens through the persistent
 project switcher. The top bar identifies the actual data scope: project identity
-for Build work, Channel workspace for shared tools, and Vault workspace for
-cross-project data. See the [information architecture](../INFORMATION-ARCHITECTURE.md).
+for Build & Improve work, Channel workspace for shared tools, and Vault workspace for
+cross-project data. CoWorkers has a dedicated vault-wide inventory in Build &
+Improve. Group headers collapse their destinations independently; the plugin's
+localStorage restores their state on reload. See the
+[information architecture](../INFORMATION-ARCHITECTURE.md).
 
 ## Entry and next action
 

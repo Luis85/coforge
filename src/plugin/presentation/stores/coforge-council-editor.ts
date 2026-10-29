@@ -9,8 +9,8 @@ export interface CouncilDefinitionDraft {
   saved: string;
 }
 
-export const useCouncilEditorStore = defineStore(
-  "coforge-council-editor",
+export function useCouncilEditorStore(scope: 'council' | 'coworkers' = 'council') { return defineStore(
+  `coforge-${scope}-editor`,
   () => {
     const draft = ref<CouncilDefinitionDocument | null>(null);
     const revision = ref<string | undefined>();
@@ -41,4 +41,4 @@ export const useCouncilEditorStore = defineStore(
       preview,
     };
   },
-);
+)(); }

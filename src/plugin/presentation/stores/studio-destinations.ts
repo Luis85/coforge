@@ -43,6 +43,7 @@ export const STUDIO_DESTINATIONS = {
     group: "build",
     scope: "vault",
   },
+  coworkers: { label: 'CoWorkers', icon: 'user-round', group: 'build', scope: 'vault' },
   workflow: {
     label: "Agent workflow",
     icon: "workflow",
@@ -117,8 +118,8 @@ export const STUDIO_DESTINATIONS = {
 
 export const STUDIO_GROUPS: ReadonlyArray<{ id: StudioGroup; label: string }> =
   [
+    { id: "build", label: "Build & Improve" },
     { id: "stream", label: "Stream" },
-    { id: "build", label: "Build" },
     { id: "community", label: "Community" },
     { id: "insights", label: "Insights" },
   ];

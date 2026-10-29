@@ -33,7 +33,7 @@ it("requires a current folder preview, preserves failed drafts and saves only ex
     global: { plugins: [createPinia()] },
   });
   await wrapper
-    .get('input[aria-label="Agent definitions folder"]')
+    .get('input[aria-label="CoWorker definitions folder"]')
     .setValue("Private/Agents");
   expect(
     wrapper
@@ -51,7 +51,7 @@ it("requires a current folder preview, preserves failed drafts and saves only ex
   await flushPromises();
   expect(wrapper.get('[role="alert"]').text()).toContain("Settings changed");
   const input = wrapper.get(
-    'input[aria-label="Agent definitions folder"]',
+    'input[aria-label="CoWorker definitions folder"]',
   ).element;
   if (!(input instanceof HTMLInputElement))
     throw new Error("Expected folder input.");

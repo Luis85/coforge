@@ -34,6 +34,10 @@ describe("Kanban actions in native Obsidian", () => {
     const card = view
       .locator(".cf-idea-card")
       .filter({ hasText: "A useful menu fixture request" });
+    await browserExpect(card).toBeVisible();
+    await browserExpect(view.locator(".cf-board-decisions")).toHaveCount(0);
+    await browserExpect(view.getByRole("tab", { name: /^Needs review/ })).toBeVisible();
+    await browserExpect(view.getByRole("tab", { name: /^Flagged/ })).toBeVisible();
     await card.click({ button: "right" });
     const menu = view.locator('.cf-card-menu[role="menu"]');
     await browserExpect(menu).toBeVisible();

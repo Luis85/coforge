@@ -5,7 +5,7 @@ goal: "Operate the current broadcast with explicit stream controls."
 audience: "streamer"
 kind: "page"
 route: "studio.view = broadcast"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/BroadcastView.vue"
 entry: ["Choose Stream studio in the studio navigation."]
 actions: ["Prepare","Go live","Pause or resume","Stop","Choose stream subpage"]

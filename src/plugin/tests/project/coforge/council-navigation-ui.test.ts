@@ -73,7 +73,7 @@ it.each([true, false])(
       }
       await visit("Definition folders");
       const folder = wrapper.get(
-        'input[aria-label="Agent definitions folder"]',
+        'input[aria-label="CoWorker definitions folder"]',
       );
       expect(folder.isVisible()).toBe(true);
       await folder.setValue("Private/Specialists");

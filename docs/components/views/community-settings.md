@@ -5,7 +5,7 @@ goal: "Save community names, XP and reputation rules, and ranks."
 audience: "streamer"
 kind: "page"
 route: "studio.view = community-settings"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/CommunitySettingsView.vue"
 entry: ["Choose Community settings in the studio navigation."]
 actions: ["Edit names","Edit XP and reputation rules and named ranks","Open Economy for currency income and prices","Save or discard"]

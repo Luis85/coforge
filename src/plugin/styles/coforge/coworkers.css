@@ -1,0 +1,26 @@
+.cf-coworkers-page { padding: var(--cf-space-xl); max-width: 1440px; margin-inline: auto; }
+.cf-coworker-toolbar { display: flex; align-items: end; gap: var(--cf-space-md); flex-wrap: wrap; padding-block: var(--cf-space-md); }
+.cf-coworker-toolbar > .cf-field:first-child { flex: 1; min-width: 180px; }
+.cf-coworker-workspace { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(300px, 1.4fr); gap: var(--cf-space-xl); margin-top: var(--cf-space-md); }
+.cf-coworker-library, .cf-coworker-editor { min-width: 0; }
+.ps--coforge .cf-studio .cf-main nav.cf-coworker-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--cf-space-md); margin-top: var(--cf-space-md); }
+.ps--coforge .cf-coworker-cards > .cf-coworker-card { width: 100%; min-width: 0; }
+.cf-coworker-library > section { margin-top: var(--cf-space-lg); }
+.cf-coworker-card { display: flex; flex-direction: column; align-items: start; gap: var(--cf-space-xs); text-align: left; white-space: normal; padding: var(--cf-space-md); height: auto; min-height: 180px; border: 1px solid var(--cf-border); border-radius: var(--radius-m); background: var(--cf-surface); color: var(--cf-text); overflow-wrap: anywhere; }
+.cf-coworker-card:hover { border-color: var(--text-accent); }
+.cf-coworker-card[aria-current='true'] { background: var(--cf-accent-soft); border-color: var(--text-accent); }
+.cf-coworker-card small { color: var(--cf-muted); font-weight: 400; }
+.cf-coworker-avatar { color: var(--text-accent); padding: var(--cf-space-sm); border-radius: var(--radius-s); background: var(--cf-accent-soft); }
+.cf-coworker-editor { border-inline-start: 1px solid var(--cf-border); padding-inline-start: var(--cf-space-xl); }
+.cf-coworker-editor h2 { margin-bottom: var(--cf-space-md); font-size: 20px; }
+.cf-coworker-editor fieldset { display: grid; gap: var(--cf-space-md); min-width: 0; border: 0; margin: 0; padding: 0; }
+.cf-coworker-editor .cf-settings-actions { display: flex; flex-wrap: wrap; gap: var(--cf-space-sm); }
+.cf-coworker-editor form { overflow-wrap: anywhere; }
+@container plugin-shell-leaf (max-width: 1000px) {
+  .cf-coworker-workspace { grid-template-columns: minmax(0, 1fr); }
+  .cf-coworker-editor { border-inline-start: 0; border-top: 1px solid var(--cf-border); padding-inline-start: 0; padding-top: var(--cf-space-lg); }
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-coworkers-page { padding: var(--cf-space-md); }
+  .cf-coworker-toolbar > .cf-field { width: 100%; }
+}

@@ -5,7 +5,7 @@ goal: "Create the canonical project identity and workspace configuration."
 audience: "streamer"
 kind: "panel"
 route: "projects.adding = true"
-parent: "projects"
+parent: "[[docs/components/views/projects]]"
 component: "src/plugin/presentation/components/coforge/ProjectsView.vue"
 entry: ["Open Projects from the project selector, then choose Add project."]
 actions: ["Enter name, path and brief","Add optional URLs","Create","Cancel"]

@@ -5,7 +5,7 @@ goal: "Choose the next request that needs attention."
 audience: "streamer"
 kind: "page"
 route: "studio.view = board"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/IdeaBoard.vue"
 entry: ["Choose Idea board in the studio navigation."]
 actions: ["Filter and search","Switch Kanban or table","Open request","Create request","Use valid context actions"]
@@ -39,7 +39,7 @@ Journey tags: `request-to-recognition`, `multi-project`.
 
 ## Workspace redesign
 
-The sidebar switcher identifies the canonical project and private visibility; the work surface has no repeated project banner. The decision summary counts current project requests awaiting screening, moderation or final review; review and moderation counts open their existing filters without running work. Accepted totals count request state, not agent attempts.
+The sidebar switcher identifies the canonical project and private visibility; the work surface has no repeated project banner or decision-summary section. Filter tabs and the toolbar follow the heading. Needs review and Flagged retain current-project counts and open their existing filters without running work.
 
 ## Project privacy
 

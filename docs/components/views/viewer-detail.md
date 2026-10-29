@@ -5,7 +5,7 @@ goal: "Review a viewer’s private record and participation controls."
 audience: "streamer"
 kind: "panel"
 route: "population.selectedId"
-parent: "population"
+parent: "[[docs/components/views/population]]"
 component: "src/plugin/presentation/components/coforge/PlayerDetails.vue"
 entry: ["Open Viewers, then select a viewer name in the directory."]
 actions: ["Inspect stats","Open private note","Apply eligible participation control"]

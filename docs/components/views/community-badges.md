@@ -5,7 +5,7 @@ goal: "Understand the milestones behind a contributor’s badges."
 audience: "streamer"
 kind: "panel"
 route: "community selected contributor badges"
-parent: "community-profile"
+parent: "[[docs/components/views/community-profile]]"
 component: "src/plugin/presentation/components/coforge/CommunityBadges.vue"
 entry: ["Within the selected contributor on Community, inspect earned and locked badges."]
 actions: ["Inspect earned and locked badges"]

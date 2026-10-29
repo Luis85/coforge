@@ -5,7 +5,7 @@ goal: "Understand the known cost and usage of agent work."
 audience: "streamer"
 kind: "page"
 route: "studio.view = ai-costs"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/AICostsView.vue"
 entry: ["Choose AI costs in the studio navigation."]
 actions: ["Refresh","Filter project, agent, team or Council","Regroup captured identities","Inspect feature and attempt","Record manual cost"]

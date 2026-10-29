@@ -47,7 +47,7 @@ const model = useCouncilModel();
       >
     </div>
     <p v-if="model.store.teamFilter || model.store.targetFilter">
-      Existing project workflows have no reusable-agent or team identity and are
+      Existing project workflows have no CoWorker or team identity and are
       excluded by these filters.
     </p>
     <div class="cf-council-fields">
@@ -56,10 +56,10 @@ const model = useCouncilModel();
         ><input v-model="model.store.teamFilter" placeholder="Exact team ID"
       /></label>
       <label class="cf-field"
-        ><span>Agent filter</span
+        ><span>CoWorker filter</span
         ><input
           v-model="model.store.targetFilter"
-          placeholder="Agent ID contains…"
+          placeholder="CoWorker ID contains…"
       /></label>
       <label class="cf-field"
         ><span>Source filter</span

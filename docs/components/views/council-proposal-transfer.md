@@ -5,7 +5,7 @@ goal: "Review a portable v2 proposal workflow before applying it."
 audience: "streamer"
 kind: "panel"
 route: "Council workflows / transfer preview"
-parent: "council-workflows"
+parent: "[[docs/components/views/council-workflows]]"
 component: "src/plugin/presentation/components/coforge/WorkflowV2Transfer.vue"
 entry: ["Within The Council → Council workflows, open the workflow transfer controls."]
 actions: ["Preview import","Apply draft","Preview export"]

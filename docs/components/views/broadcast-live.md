@@ -5,7 +5,7 @@ goal: "Keep the current broadcast running with visible health and explicit contr
 audience: "streamer"
 kind: "subpage"
 route: "studio.broadcastTool = live"
-parent: "broadcast"
+parent: "[[docs/components/views/broadcast]]"
 component: "src/plugin/presentation/components/coforge/BroadcastControls.vue"
 entry: ["Open Stream studio, then choose Broadcast."]
 actions: ["Prepare","Go live","BRB or resume","Stop","Refresh observed state"]

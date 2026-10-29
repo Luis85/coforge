@@ -5,7 +5,7 @@ goal: "Configure stream participation prices, earning and rewards."
 audience: "streamer"
 kind: "page"
 route: "studio.view = economy"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/EconomyView.vue"
 entry: ["Open Economy from the Community navigation group."]
 actions: ["Choose a local Economy page", "Save rules", "Discard configuration draft"]

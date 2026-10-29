@@ -5,7 +5,7 @@ goal: "Save an explicit proposal workflow for this project."
 audience: "streamer"
 kind: "subpage"
 route: "council.tab = workflows"
-parent: "council"
+parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/WorkflowV2Editor.vue"
 entry: ["Open The Council, expand Advanced Council tools, then choose Council workflows."]
 actions: ["Load saved","Edit steps and collections","Preview import or export","Save or discard"]

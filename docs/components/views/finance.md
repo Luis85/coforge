@@ -5,7 +5,7 @@ goal: "Maintain the private stream ledger."
 audience: "streamer"
 kind: "page"
 route: "studio.view = finance"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/FinanceView.vue"
 entry: ["Choose Finances in the studio navigation."]
 actions: ["Filter month or stream","Add or edit","Pause or activate plan","Confirm or cancel deletion","Refresh"]

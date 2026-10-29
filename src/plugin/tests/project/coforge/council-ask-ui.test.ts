@@ -13,6 +13,12 @@ it.each([true, false])('opens on advice intake and ingested history without writ
   const fixture = await councilControlsFixture(executor);
   const pinia = createPinia();
   useStudioStore(pinia).state = fixture.studio.state();
+  const council = useCouncilStore(pinia);
+  council.busy = true;
+  const ready = fixture.module.actions.snapshot();
+  vi.spyOn(fixture.module.actions, 'snapshot').mockReturnValue({ ...ready, ready: false });
+  let announce: ((state: typeof ready) => void) | undefined;
+  vi.spyOn(fixture.module.actions, 'subscribe').mockImplementation(listener => { announce = listener; return () => {}; });
   const preflight = vi.spyOn(fixture.module.actions, 'preflight');
   const submit = vi.spyOn(fixture.module.actions, 'submit');
   const before = await Promise.all(fixture.app.vault.getMarkdownFiles().map(async file => [file.path, await fixture.app.vault.read(file)]));
@@ -23,6 +29,14 @@ it.each([true, false])('opens on advice intake and ingested history without writ
   const wrapper = mount(CouncilView, { global: { plugins: [pinia], provide: { [coforgeKey as symbol]: context }, directives: { 'cf-icon': () => {} } } });
   try {
     await flushPromises();
+    expect(council.tasksLoaded).toBe(false);
+    council.busy = false;
+    await flushPromises();
+    expect(council.tasksLoaded).toBe(false);
+    vi.mocked(fixture.module.actions.snapshot).mockReturnValue(ready);
+    announce?.(ready);
+    await flushPromises();
+    expect(council.tasksLoaded).toBe(true);
     expect(useCouncilStore(pinia).tab).toBe('ask');
     expect(wrapper.findAll('h2').map(heading => heading.text())).toContain('Ingested tasks');
     expect(wrapper.findAll('label').some(label => label.text().includes('Task title'))).toBe(true);

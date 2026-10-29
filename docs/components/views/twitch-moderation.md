@@ -5,7 +5,7 @@ goal: "Review and confirm one specific Twitch moderation action."
 audience: "streamer"
 kind: "panel"
 route: "stream moderation details"
-parent: "stream-channel"
+parent: "[[docs/components/views/stream-channel]]"
 component: "src/plugin/presentation/components/coforge/TwitchModeration.vue"
 entry: ["Within Stream chat → Chat, expand Moderation or choose a moderation action on a Twitch message."]
 actions: ["Choose delete, timeout or ban","Review exact target","Confirm or cancel"]

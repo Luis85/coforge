@@ -5,7 +5,7 @@ goal: "Save the process that new requests will follow."
 audience: "streamer"
 kind: "subpage"
 route: "studio.workflowTool = settings (compatibility: studio.view = workflow-settings)"
-parent: "workflow"
+parent: "[[docs/components/views/workflow]]"
 component: "src/plugin/presentation/components/coforge/WorkflowEditorView.vue"
 entry: ["Open Agent workflow, then choose Workflow settings."]
 actions: ["Add or select step","Reorder or replace","Edit prompts and provider","Preview import or export","Save or discard"]

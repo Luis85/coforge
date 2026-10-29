@@ -5,7 +5,7 @@ goal: "Define virtual account rewards and manually delivered perks with purchase
 audience: "streamer"
 kind: "subpage"
 route: "economy.page = rewards"
-parent: "economy"
+parent: "[[docs/components/views/economy]]"
 component: "src/plugin/presentation/components/coforge/EconomyRewards.vue"
 entry: ["Choose Rewards inside Economy."]
 actions: ["Add virtual reward", "Add manual perk", "Set purchase price", "Edit benefits or fulfillment instructions", "Remove a draft reward"]

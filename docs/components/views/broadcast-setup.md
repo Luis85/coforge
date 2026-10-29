@@ -5,7 +5,7 @@ goal: "Complete connection and readiness checks before going live."
 audience: "streamer"
 kind: "subpage"
 route: "studio.broadcastTool = setup"
-parent: "broadcast"
+parent: "[[docs/components/views/broadcast]]"
 component: "src/plugin/presentation/components/coforge/BroadcastSetup.vue"
 entry: ["Open Stream studio, then choose Setup."]
 actions: ["Guided setup","Connect or open OBS","Save profile and secret password","Choose scenes","Review readiness","Open Twitch settings"]

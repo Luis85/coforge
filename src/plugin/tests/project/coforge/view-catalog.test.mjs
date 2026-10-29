@@ -30,6 +30,19 @@ describe("view catalogue", () => {
     expect(() => validateCatalogue(catalogue, root)).not.toThrow();
   });
 
+  it('authors parent relationships as clickable vault links while exposing normalized IDs to tools', () => {
+    for (const view of catalogue.filter(view => view.parent !== null)) {
+      expect(readFileSync(resolve(root, 'docs/components/views', view.file), 'utf8')).toContain(`parent: "[[docs/components/views/${view.parent}]]"`);
+      expect(catalogue.some(parent => parent.id === view.parent)).toBe(true);
+    }
+  });
+
+  it('rejects ownership drift for root pages, local subpages and public entry points', () => {
+    for (const [id, parent] of [['board', 'council'], ['council-ask', 'studio'], ['public-kanban', 'studio'], ['workflow-settings', 'settings']]) {
+      expect(() => sourceCoverage(catalogue.map(view => view.id === id ? { ...view, parent } : view), root)).toThrow(/parent|ownership/);
+    }
+  });
+
   it("documents every live route and nested navigation state exactly once", () => {
     const views = catalogue;
     expect(views.length).toBeGreaterThan(40);

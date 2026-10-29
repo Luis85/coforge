@@ -5,7 +5,7 @@ goal: "Verify the native runtime is available for this project."
 audience: "streamer"
 kind: "panel"
 route: "Project settings / runtime check"
-parent: "settings"
+parent: "[[docs/components/views/settings]]"
 component: "src/plugin/presentation/components/coforge/SettingsRuntimeSection.vue"
 entry: ["Within Project settings, inspect Local connections and choose Check Claude Code."]
 actions: ["Check runtime","Inspect readiness or error"]

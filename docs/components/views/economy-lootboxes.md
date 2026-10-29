@@ -5,7 +5,7 @@ goal: "Define purchasable weighted reward outcomes with visible exact odds."
 audience: "streamer"
 kind: "subpage"
 route: "economy.page = lootboxes"
-parent: "economy"
+parent: "[[docs/components/views/economy]]"
 component: "src/plugin/presentation/components/coforge/EconomyLootboxes.vue"
 entry: ["Choose Loot boxes inside Economy."]
 actions: ["Add loot box", "Set purchase price", "Add reward outcomes and weights", "Review effective odds", "Remove draft outcome or box"]
