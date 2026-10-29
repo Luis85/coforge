@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useCouncil } from '../../composables/coforge/use-council';
 import CoWorkerInventory from './CoWorkerInventory.vue';
-const model = useCouncil();
+const model = useCouncil({ workspace: false });
 </script>
 <template>
   <div class="cf-coworkers-page">
