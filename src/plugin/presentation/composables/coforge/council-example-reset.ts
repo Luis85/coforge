@@ -2,10 +2,13 @@ import { useCouncilStore } from "../../stores/coforge-council";
 import { useCouncilEditorStore } from "../../stores/coforge-council-editor";
 import { useWorkflowV2Store } from "../../stores/coforge-workflow-v2";
 import { resetTaskSchedulerExample } from './task-scheduler-example-reset';
+import { emptyWorkflowTriggerDraft, useWorkflowTriggersStore } from '../../stores/coforge-workflow-triggers';
 
 /** Used only while Council is bound to its browser-only example service. */
 export function resetCouncilExample() {
   resetTaskSchedulerExample();
+  const triggers = useWorkflowTriggersStore();
+  if (triggers.example) triggers.$patch({ example: false, draft: emptyWorkflowTriggerDraft(), id: '', revision: 0, acknowledge: false });
   useCouncilStore().$patch({
     example: false,
     state: null,

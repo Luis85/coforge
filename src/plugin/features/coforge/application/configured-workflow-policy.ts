@@ -13,7 +13,7 @@ export function configuredIdea(state: InternalState, id: string): Idea {
   if (findProject(state, ideaProjectId(idea)).unavailable) throw new Error('Restore this project note before continuing.');
   return idea;
 }
-export function configuredInputs(run: WorkflowRun, step: AiWorkflowStep): WorkflowArtifact[] {
+export function configuredInputs(run: WorkflowRun, step: Pick<AiWorkflowStep, 'inputs'>): WorkflowArtifact[] {
   const invalid = new Set(run.invalidatedArtifactIds);
   const preceding = run.artifacts.filter(artifact => !invalid.has(artifact.id) && artifact.proposalRevision === run.proposalRevision &&
     run.definition.steps.findIndex(item => item.id === artifact.stepId) < run.cursor);

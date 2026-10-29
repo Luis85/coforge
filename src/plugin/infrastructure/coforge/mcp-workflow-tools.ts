@@ -6,6 +6,7 @@ import { record, shape, text } from '../../features/coforge/domain/check';
 import { workflowDefinition } from '../../features/coforge/domain/configured-workflow';
 import type { McpTool } from './mcp-server';
 import type { McpStepFiles } from './mcp-step-files';
+import { McpToolError } from './mcp-errors';
 
 const id = text({ min: 1, max: 100 });
 const identifier = { type: 'string', minLength: 1, maxLength: 100 };
@@ -42,6 +43,8 @@ export class McpWorkflowTools {
     return idea;
   }
   private task(projectId: string, taskId: string) {
+    const queued = this.studio.state().jobs.find(job => job.id === taskId && job.projectId === projectId && job.provider === 'mcp' && job.status === 'queued');
+    if (queued) throw new McpToolError('TASK_NOT_READY', 'The task is queued behind another active invocation. Wait before polling again.', 'coforge_step_context', 1000);
     const task = this.runner.task(projectId, taskId);
     const state = this.studio.store.internalSnapshot();
     const job = state.jobs.find(item => item.id === taskId && item.projectId === projectId && item.provider === 'mcp' && item.status === 'running');
@@ -82,13 +85,14 @@ export class McpWorkflowTools {
       const active = this.studio.state().jobs.find(job => job.ideaId === ideaId && ['queued', 'running'].includes(job.status));
       if (active) {
         if (active.provider !== 'mcp') throw new Error('This request already has a native attempt.');
-        return { jobId: active.id, status: active.status };
+        return { jobId: active.id, taskId: active.id, status: active.status, nextTool: 'coforge_step_context', retryAfterMs: active.status === 'queued' ? 1000 : 0 };
       }
       if (idea.workflowRun && !idea.workflowRun.external) throw new Error('Finish the existing native workflow before starting an external workflow.');
       if (!idea.workflowRun) await this.studio.engine.startMcpWorkflow(ideaId);
       else await this.studio.runWorkflowStep(ideaId);
-      const job = [...this.studio.state().jobs].reverse().find(item => item.ideaId === ideaId && item.provider === 'mcp');
-      return { jobId: job?.id, workflow: this.idea(projectId, ideaId).workflowRun };
+      const workflow = this.idea(projectId, ideaId).workflowRun;
+      const job = this.studio.state().jobs.find(item => item.ideaId === ideaId && item.provider === 'mcp' && item.workflow?.attemptId === workflow?.activeAttemptId);
+      return { ...(job ? { jobId: job.id, taskId: job.id, status: job.status, nextTool: 'coforge_step_context', retryAfterMs: job.status === 'queued' ? 1000 : 0 } : { status: workflow?.state, nextTool: 'coforge_request', nextAction: 'Inspect workflow progress. Human steps and recovery require Obsidian.' }), workflow };
     }
     if (name === 'coforge_submit_result') {
       const input = record(raw);

@@ -37,6 +37,7 @@ it.each(["cancel", "dispose"] as const)(
       () => ({
         prepare: async () => {},
         allowedRecipients: () => [],
+        agentRecipients: () => [],
         invalidateAuthority: () => {},
       }),
     );

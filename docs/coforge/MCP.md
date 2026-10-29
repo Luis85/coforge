@@ -12,6 +12,7 @@ The plugin materializes its shipped `coforge-mcp-bridge.cjs` in its installed di
 | --- | --- |
 | `coforge_projects` | Discover every project's stable ID, name and availability through the single connection |
 | `coforge_project` | Project brief, workflow definition, request summaries and active MCP task IDs |
+| `coforge_help` | Starting point, default workflow sequence, next-tool hints and boundaries |
 | `coforge_request` | Request detail, artifacts, jobs and current review state |
 | `coforge_begin_step` | Reserve the next step; returns the active attempt without replay if already queued/running |
 | `coforge_step_context` | Pinned prompt/input, output schema, access profile and available task file tools |
@@ -30,6 +31,13 @@ External workflow runs are marked separately and never automatically switch to n
 No shell, arbitrary path, Git metadata, dependency manifest/lockfile edits, credential-file access, moderation, manual approval or final acceptance tool is exposed. File tools reject traversal, links, binary/oversized files and stale overwrite preconditions. File listings and literal searches have finite limits. Community and repository content remains untrusted.
 
 CoForge cannot constrain an external client's own tools, conversation history, model, cost or turns. Use an appropriately restricted external client. CoForge bounds its own task duration and file access, records the provider as **External MCP client**, and leaves model/cost/token usage unavailable; a manual cost can be recorded separately. It never trusts model-authored cost or test claims.
+
+Start with `coforge_help`, then `coforge_projects`. Tool replies include both text
+JSON and MCP `structuredContent`. Queued tasks return `TASK_NOT_READY`, the next
+tool and a polling delay. Keep the same task ID rather than reserving duplicate
+work. Council-created native agents automatically use a separate invocation-scoped
+CoForge-only policy; see [The Council](THE-COUNCIL.md). Their tools cannot discover
+other projects, read unbound opinions, or start arbitrary workflows.
 
 Deactivation revokes the vault credential, stops the listener and cancels external tasks across all projects before removing the exact owned entry from both settings files. Unrelated entries and external edits are preserved. Plugin unload closes the listener and clears the descriptor. Reload restores the active vault connection but does not replay interrupted steps. Inspect saved attempts/workspaces, stop the original client, then acknowledge the interrupted workspace in native MCP settings before explicitly retrying. This acknowledgement neither reruns work nor accepts code. If a `.coforge-lock` remains after a crash, inspect both configuration files before removing that stale lock and retrying registration.
 

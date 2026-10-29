@@ -18,6 +18,7 @@ export const WORKFLOW_ACCESS_LABELS = {
   editworktree: "Edit isolated worktree",
 } as const;
 export const WORKFLOW_KIND_LABELS = {
+  nudge: "Nudge agent",
   ai: "AI step",
   approval: "Manual approval",
   checklist: "Manual checklist",
@@ -66,6 +67,7 @@ export function createWorkflowStep(
     instructions: "",
   };
   if (kind === "approval") return { ...base, kind };
+  if (kind === "nudge") return { ...base, name: "Nudge agent", kind, instructions: "Review the captured request and report your findings.", teamId: "", agentId: "", automatic: false, inputs: [] };
   if (kind === "checklist")
     return {
       ...base,

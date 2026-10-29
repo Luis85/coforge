@@ -37,7 +37,7 @@ export class StudioService {
   private readonly integrationListeners = new Set<(integration: IntegrationSettings) => void>();
   constructor(storage: StudioStorage, private readonly host: StudioHost) {
     this.store = new StudioStore(storage, host.events, host.observerFailed, host.beforeCommit);
-    this.engine = new WorkflowEngine(this.store, { runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}), ...(host.assertWorkflowReviewable ? { assertWorkflowReviewable: host.assertWorkflowReviewable } : {}) });
+    this.engine = new WorkflowEngine(this.store, { agentTasks: host.agentTasks, runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}), ...(host.assertWorkflowReviewable ? { assertWorkflowReviewable: host.assertWorkflowReviewable } : {}) });
   }
 
   async start(): Promise<{ invalidNotes: string[] }> {
@@ -106,6 +106,7 @@ export class StudioService {
   runWorkflowStep(ideaId: string) { return this.engine.runWorkflowStep(ideaId); }
   completeWorkflowManual(ideaId: string, expectedRevision: number, checkedIds: string[], note = '') { return this.engine.completeWorkflowManual(ideaId, expectedRevision, checkedIds, note); }
   stopWorkflow(ideaId: string) { return this.engine.stopWorkflow(ideaId); }
+  acknowledgeWorkflowNudge(ideaId: string, revision: number, consent: boolean) { return this.engine.acknowledgeWorkflowNudge(ideaId, revision, consent); }
 
   async applyProjectNoteChange(change: { kind: 'upsert'; project: StudioProject } | { kind: 'remove'; id: string }): Promise<void> {
     const id = change.kind === 'upsert' ? change.project.id : change.id;

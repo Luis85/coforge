@@ -157,7 +157,7 @@ export function createCouncilActions(host: CouncilActionHost): CouncilActions {
         host.publish();
       }),
     preflight: (target, path) => host.context.preflight(target, path),
-    submit: (target, path, expectedIdentity) =>
+    submit: (target, path, expectedIdentity, automationEvent, executionCeiling) =>
       host.serial(() =>
         host.admissions.submit(
           target,
@@ -165,6 +165,8 @@ export function createCouncilActions(host: CouncilActionHost): CouncilActions {
           false,
           undefined,
           expectedIdentity,
+          automationEvent,
+          executionCeiling,
         ),
       ),
     simulate: (target, path, destination, expectedIdentity) =>

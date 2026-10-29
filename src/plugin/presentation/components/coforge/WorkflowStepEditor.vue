@@ -3,6 +3,7 @@ import { useWorkflowEditorForm } from "../../composables/coforge/use-workflow-ed
 import { WORKFLOW_KIND_LABELS } from "../../stores/workflow-editor-draft";
 import WorkflowAiStepFields from "./WorkflowAiStepFields.vue";
 import WorkflowManualStepFields from "./WorkflowManualStepFields.vue";
+import WorkflowNudgeFields from "./WorkflowNudgeFields.vue";
 const model = useWorkflowEditorForm();
 </script>
 <template>
@@ -30,7 +31,7 @@ const model = useWorkflowEditorForm();
         ><input v-model="model.selected.name" maxlength="100" required /></label
       ><WorkflowAiStepFields
         v-if="model.selected.kind === 'ai'"
-      /><WorkflowManualStepFields v-else />
+      /><WorkflowNudgeFields v-else-if="model.selected.kind === 'nudge'" /><WorkflowManualStepFields v-else />
       <details class="cf-workflow-reference">
         <summary>Step reference</summary>
         <code>{{ model.selected.id }}</code>

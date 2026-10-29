@@ -2,6 +2,7 @@
 import type { CouncilCatalogueActions } from "../../../features/coforge/application/council-catalogue";
 import type { WorkflowV2Actions } from "../../../features/coforge/application/workflow-v2-ports";
 import { useWorkflowV2Editor } from "../../composables/coforge/use-workflow-v2-editor";
+import { useEventTriggerLink } from '../../composables/coforge/use-event-trigger-link';
 import WorkflowV2Steps from "./WorkflowV2Steps.vue";
 import WorkflowV2Transfer from "./WorkflowV2Transfer.vue";
 const props = defineProps<{
@@ -10,6 +11,7 @@ const props = defineProps<{
   projectId: string;
 }>();
 const model = useWorkflowV2Editor(props);
+const openEventTriggers = useEventTriggerLink();
 </script>
 <template>
   <section
@@ -213,6 +215,7 @@ const model = useWorkflowV2Editor(props);
       </fieldset>
     </form>
     <WorkflowV2Transfer />
+    <button type="button" class="cf-btn cf-btn-secondary" @click="openEventTriggers()">Attach an event trigger</button>
     <section
       v-if="model.store.revision"
       aria-label="Proposal workflow preflight"

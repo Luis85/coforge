@@ -3,7 +3,7 @@ import type { StudioService } from './application/studio';
 export type CoforgeApplication = Pick<StudioService,
   'getEconomy' | 'saveEconomyConfiguration' | 'fulfillEconomyPerk' |
   'previewExampleCleanup' | 'removeExampleContent' | 'exampleCleanupWarning' |
-  'saveWorkflow' | 'startWorkflow' | 'runWorkflowStep' | 'completeWorkflowManual' | 'stopWorkflow' |
+  'saveWorkflow' | 'startWorkflow' | 'runWorkflowStep' | 'completeWorkflowManual' | 'stopWorkflow' | 'acknowledgeWorkflowNudge' |
   'ready' | 'state' | 'subscribe' | 'onEvent' | 'integration' | 'sendChat' | 'ingest' | 'simulate' | 'openStreamStudio' | 'openTwitchBranding' | 'updateStreamSetup' |
   'blockPlayer' | 'updateCommunitySettings' | 'saveStreamMessage' | 'activateStreamMessage' | 'removeStreamMessage' |
   'createProject' | 'updateProject' | 'selectProject' | 'createIdea' | 'updateRequestValues' | 'vote' | 'act' | 'adjustRice' |

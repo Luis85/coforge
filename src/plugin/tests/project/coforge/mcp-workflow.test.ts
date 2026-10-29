@@ -75,7 +75,8 @@ it('discovers projects through one connection and requires explicit project rout
   await expect(vault.call('coforge_request', { ideaId: f.idea.id })).rejects.toThrow();
   await expect(vault.call('coforge_request', { projectId: other.id, ideaId: f.idea.id })).rejects.toThrow();
   expect(await vault.call('coforge_request', { projectId: f.projectId, ideaId: f.idea.id })).toMatchObject({ request: { id: f.idea.id, projectId: f.projectId } });
-  for (const tool of vault.tools().filter(tool => tool.name !== 'coforge_projects')) expect(record(tool.inputSchema).required).toContain('projectId');
+  expect(await vault.call('coforge_help', {})).toMatchObject({ nextTool: 'coforge_projects', steps: expect.any(Array) });
+  for (const tool of vault.tools().filter(tool => !['coforge_projects', 'coforge_help'].includes(tool.name))) expect(record(tool.inputSchema).required).toContain('projectId');
 });
 it('rejects malformed results, stale requests, wrong projects and unknown tools without advancing', async () => {
   const f = await fixture();
@@ -103,6 +104,7 @@ it('acknowledges one completed project step while another project is queued, wit
   const other = await f.studio.createProject({ projectName: 'Queued game', projectBrief: 'A second project with queued external work.', projectPath: '/other' });
   await f.studio.store.transaction(state => { state.ideas.push({ ...structuredClone(f.idea), id: 'CF-999', number: 999, projectId: other.id }); });
   const queued = record(await f.tools.call(other.id, 'coforge_begin_step', { ideaId: 'CF-999' }));
+  await expect(f.tools.call(other.id, 'coforge_step_context', { taskId: queued.jobId })).rejects.toMatchObject({ code: 'TASK_NOT_READY', nextTool: 'coforge_step_context', retryAfterMs: 1000 });
   let acknowledged = false;
   const completion = f.tools.call(f.projectId, 'coforge_submit_result', { taskId: first.taskId, output: { verdict: 'clear', reason: 'A game feature', signals: [] } }).then(result => { acknowledged = true; return result; });
   try {

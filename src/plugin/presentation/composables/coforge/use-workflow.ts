@@ -1,4 +1,4 @@
-import { computed, reactive } from "vue";
+import { computed, reactive, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useConfiguredWorkflowUiStore } from "../../stores/coforge-configured-workflow";
 import { workflowAttemptRows } from "./configured-workflow-history";
@@ -18,7 +18,7 @@ import {
 export function useWorkflow() {
   const store = useStudioStore();
   const actions = useStudioActions();
-  const { monitorError: error, historyExpanded: expanded } = storeToRefs(
+  const { monitorError: error, historyExpanded: expanded, nudgeRecoveryKey, nudgeRecoveryConsent } = storeToRefs(
     useConfiguredWorkflowUiStore(),
   );
   const settings = computed(() => store.state?.settings ?? defaultSettings());
@@ -39,6 +39,8 @@ export function useWorkflow() {
       store.projectIdeas[0],
   );
   const run = computed(() => selected.value?.workflowRun);
+  watch(() => `${run.value?.id}:${run.value?.revision}`, key => { if (key !== nudgeRecoveryKey.value) { nudgeRecoveryKey.value = key; nudgeRecoveryConsent.value = false; } });
+  const uncertainNudges = computed(() => run.value?.attempts.filter(attempt => attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt) ?? []);
   const definition = computed(
     () => run.value?.definition ?? savedDefinition.value,
   );
@@ -55,6 +57,7 @@ export function useWorkflow() {
   const blocked = computed(() => {
     const idea = selected.value;
     if (!idea) return "Select a request to run its workflow.";
+    if (uncertainNudges.value.length) return 'Inspect and acknowledge the uncertain agent-task admission before a fresh attempt.';
     if (["shipped", "rejected", "flagged"].includes(idea.status))
       return "This request is closed or held for moderation.";
     if (
@@ -105,6 +108,9 @@ export function useWorkflow() {
     run,
     definition,
     currentStep,
+    uncertainNudges, nudgeRecoveryConsent,
+    changeNudgeRecovery: (event: Event) => { const target = event.target; if (target && 'checked' in target && typeof target.checked === 'boolean') nudgeRecoveryConsent.value = target.checked; },
+    acknowledgeNudge: () => { if (selected.value && run.value) perform(() => actions.acknowledgeWorkflowNudge(selected.value!.id, run.value!.revision, nudgeRecoveryConsent.value)); },
     blocked,
     paused: computed(() => settings.value.paused),
     intervalSeconds: computed(

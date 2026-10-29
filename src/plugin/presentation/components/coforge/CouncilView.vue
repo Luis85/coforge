@@ -11,6 +11,7 @@ import CouncilFolderSettings from "./CouncilFolderSettings.vue";
 import CouncilAskView from "./CouncilAskView.vue";
 import ProjectWorkContext from "./ProjectWorkContext.vue";
 import TaskSchedulerView from "./TaskSchedulerView.vue";
+import WorkflowTriggersView from "./WorkflowTriggersView.vue";
 import { DEFAULT_COUNCIL_FOLDERS } from "../../../features/coforge/domain/council-definition-folders";
 const model = useCouncil();
 </script>
@@ -169,6 +170,7 @@ const model = useCouncil();
       />
       <CouncilMonitor v-else-if="model.store.tab === 'monitor'" />
       <TaskSchedulerView v-else-if="model.store.tab === 'scheduler'" />
+      <WorkflowTriggersView v-else-if="model.store.tab === 'events'" />
       <CouncilFolderSettings
         open
         v-if="model.store.state"

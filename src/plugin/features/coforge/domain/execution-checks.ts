@@ -1,4 +1,5 @@
 import { assertExecutionRunConsistency } from "./execution-consistency";
+import { automationContextCheck } from './automation-context';
 import {
   executionAllowanceCheck,
   executionAllowanceAuditCheck,
@@ -135,6 +136,7 @@ export const executionAdmissionCheck = shape(
     projectId: id,
     teamId: id,
     context: text({ max: 160000 }),
+    automationEvent: optional(automationContextCheck),
     invocations: list(invocationCheck, { max: 100 }),
     definitionSnapshot: optional(text({ max: 400000 })),
     limits: optional(limitsCheck),
@@ -155,6 +157,7 @@ const runCheck = shape(
     projectId: id,
     teamId: id,
     context: text({ max: 160000 }),
+    automationEvent: optional(automationContextCheck),
     invocations: list(invocationCheck, { max: 100 }),
     cursor: number({ min: 0, max: 100, integer: true }),
     state: oneOf([

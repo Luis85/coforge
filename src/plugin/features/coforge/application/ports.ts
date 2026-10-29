@@ -57,6 +57,7 @@ export interface Timers {
 
 /** Host capabilities the studio needs but must not implement itself. */
 export interface StudioHost {
+  agentTasks?: import('./agent-task').AgentTaskPort;
   /** Private immutable reward tickets are reserved before command effects. */
   economyReservations?: import("../domain/command-economy").EconomyReservationPort;
   /** A host publication lease spans persistence and notification, including initialization. */
@@ -74,8 +75,10 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  workflowTriggers?: import('./workflow-trigger-ports').WorkflowTriggerActions;
   taskScheduler?: import('./task-scheduler-ports').TaskSchedulerActions;
   previewTaskScheduler?(): import('./task-scheduler-ports').TaskSchedulerActions;
+  previewWorkflowTriggers?(): import('./workflow-trigger-ports').WorkflowTriggerActions;
   mcp?: import('./mcp-ports').McpActions;
   council?: import('./council-ports').CouncilActions;
   previewCouncil?(): import('./council-ports').CouncilActions;

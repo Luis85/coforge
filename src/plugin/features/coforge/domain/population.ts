@@ -37,6 +37,7 @@ export interface Player {
   rewardClaims: string[];
 }
 export const OPERATION_CODES = [
+  'workflow-nudge-requested', 'workflow-nudge-submitted', 'workflow-nudge-unknown', 'workflow-nudge-recovered',
   'economy-configuration-updated', 'economy-perk-fulfilled',
   'project-visibility-updated',
   'reply-privacy-cancelled',

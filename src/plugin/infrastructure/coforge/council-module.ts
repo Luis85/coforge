@@ -134,12 +134,12 @@ export class CouncilModule {
       this.kernel,
       catalogue,
       (paths) => this.protect(paths),
-      (target, path, key) => this.admissions.submit(target, path, false, key),
+      (target, path, key, automationEvent) => this.admissions.submit(target, path, false, key, undefined, automationEvent),
       {
         resolve: (id, teamId) => this.workflows.messageRecipient(id, teamId),
-        dispatch: async (id, path, key) => {
+        dispatch: async (id, path, key, automationEvent) => {
           await this.assertExecutor();
-          await this.workflows.start(id, path, false, undefined, key);
+          await this.workflows.start(id, path, false, undefined, key, undefined, automationEvent);
         },
       },
     );

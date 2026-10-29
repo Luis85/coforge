@@ -197,6 +197,23 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   uncertainty recovery and final human code review remain authoritative.
 - If a previous occurrence is still active, skip the next occurrence and display the reason.
 
+### Agent tools and event automation (owner decisions, 2026-10-28)
+
+- Make CoForge MCP action tools the enforced default for Council agents. Disable native file,
+  shell, browser, delegation and other MCP action tools in the host-controlled launch profile.
+  Each invocation receives only its captured context, authorized inputs and approved agent-task
+  recipients; independent opinions cannot inspect prior opinions or browse the vault-wide server.
+- Expose the enforced policy in agent setup and provide usable CoForge-only setup instructions
+  for external Claude sessions. The host still owns permissions, limits and final code review.
+- Attach saved workflows to named project or application events. Support both request development
+  workflows and Council/v2 workflows. Request workflows require an existing request supplied by
+  the event or explicitly selected in the binding; generic events never create an Idea implicitly.
+- Workflow nudges create an attributed task for an explicitly selected agent with the supplied
+  prompt. Existing delegation membership, recipient and finite-budget checks remain authoritative.
+- Only the designated open desktop dispatches event automation while execution is resumed.
+  Enable bindings explicitly; preserve event/definition snapshots, deduplicate admissions, hold
+  uncertain outcomes without replay, and bound event chains to prevent trigger loops.
+
 ### Streaming workspace increment (owner decisions, 2026-10-27)
 
 - Four read-only stream views (Kanban, Twitch chat, leaderboards, community) each have a ribbon icon that

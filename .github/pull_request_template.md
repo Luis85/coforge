@@ -1,39 +1,44 @@
 ## Summary
 
-Rebuild CoForge around Stream, Build, Community and Insights, with 87 checked view contracts, an expressive theme-compatible interface, guarded drafts and explicit private/public boundaries.
+Windows build promotion rechecks the destination after compilation and retries transient rename locks. Persistent failures preserve the previous build, complete candidate and recovery backup. The repair is applied in C:\Projects\coforge, where the merged plugin built and installed successfully without changing plugin data.
 
-- Put Idea board before Council and Agent workflow; nest Workflow settings under Agent workflow.
-- Make Council advice intake and ingested-task history the entry journey. Add card assessments and per-round round robin or actual concurrent fan out.
-- Attribute AI usage and costs to captured agents, teams and councils, including retries, failures, delegation, unknown usage and simulations.
-- Configure per-project request classes, categories and typed fields. New requests capture their definition; existing notes keep their schema and exact human content.
-- Add private projects and revoke owned local exports, queued derived replies and viewer projections when privacy changes.
-- Add Economy command fees/benefits, observed base/subscriber income, virtual rewards, weighted lootboxes, purchases and revision-guarded manual fulfillment.
-- Preview and remove proven sample/simulator content while preserving authored/Twitch data, ambiguous history, real costs and replay evidence.
+Council native agents expose only invocation-scoped CoForge MCP action tools: captured task context, bound inputs and approved nudges. Built-in action tools and other MCP servers are disabled. Nudges enter the existing message authority after contribution persistence. Authentication is preserved; ordinary hooks, ambient memory/instructions and skill commands are disabled. Vault MCP adds starting guidance and structured task/queue hints.
 
-## Requirements and review
+Event triggers attach a saved project or Council workflow to application/project facts. Bindings pin definitions, reserve evidence before admission and bound causation chains. Missed/paused/cooldown/overlapping events skip with recorded reasons; uncertain outcomes require recovery without replay. Project workflow nudge steps create an independent task for one allowed team agent with inherited ceilings. Human decisions and code review remain authoritative.
 
-Owner decisions are recorded in BRIEF.md. Generated traceability declares no req-* or vi-* obligations; none were invented or marked complete. Canonical view contracts and the 85-view sitemap are in docs/components.
+## Requirements and traceability
 
-The studio task and expanded product review link independent product, UX/accessibility, privacy/reliability and maintenance reviews. The polishing pass repaired stale scope/filter labels, reflow/contrast issues, draft replacement, reactive copies, cleanup reversal, receipt provenance, public reply races, complete catalog pages and interrupted-write recovery. No thresholds, assertions or screenshot baselines were weakened.
+- Owner requests and confirmations, 2026-10-28, recorded in BRIEF.md.
+- Task: docs/project-tasks/2026-10-28-agent-tools-event-workflows.md.
+- Generated traceability has zero pending req-* / vi-* obligations; no generated verification status was hand-edited.
+- Surface: docs/components/views/council-events.md; sitemap regenerated. Guides: docs/coforge/THE-COUNCIL.md and MCP.md.
 
-Integrate main's vault MCP tools and scheduled tasks (#30) into the same hierarchy. Preserve explicit external stepping and genuine unknown/manual costs, protect unacknowledged MCP recovery during cleanup, reject legacy inbox loops before writes/admission, and include the scheduler in temporary-example reset. Task scheduler stays under advanced Council tools; external client access to private projects is explicitly distinguished from viewer visibility.
+## Commands and evidence
 
-## Verification before main integration
+- node --test tooling/tests/build.checks.mjs tooling/tests/build-promotion.checks.mjs: 9 passed, 0 failed. Includes transient/persistent locks, rollback, destination creation during compilation and installer recovery.
+- Primary npm run build:local: production build and three-asset install succeeded; merged hashes matched. reports/mcp/install-primary-fixed.log.
+- Targeted policy/session/server/provider/event tests: 15 passed. Workflow/UI/MCP compatibility tests: 13 passed. Native host admission integration passes for agent nudges and both workflow types, pinned definitions and private source preservation.
+- npm run typecheck: exit 0, reports/mcp/typecheck-release.log.
+- npm run check:source: line limits and locale parity passed; 2933 inputs, 226 translated keys.
+- npm run check:views: 76 views documented; navigation coverage valid; sitemap current.
+- npm run test:ui-quality -- --config reports/mcp/playwright.config.mjs tests/e2e/journeys/workflow-triggers.spec.ts: eight general WCAG/reflow/keyboard checks passed. New journey initially exposed an example-rendering bug and locator mismatch, both fixed. Final polished journey rerun: 2 passed (43.9s), both themes at desktop/360px, draft retention, revision review and zero axe violations. Port 4193 used because default 4181 was occupied; no gate was weakened.
+- npm run ui:gallery: 40 screenshots captured; gallery/index and both event themes/widths reviewed. No baselines changed or committed.
+- Native Claude Code 2.1.281 offline probe used dummy credentials and a local mock API. Initial safe mode suppressed explicit MCP servers. Final catalogue contains only mcp__coforge__coforge_invocation, mcp__coforge__coforge_read_input, mcp__coforge__coforge_nudge_agent and StructuredOutput; an actual invocation call succeeded. No paid model request. reports/mcp/native-policy-proof-fixed.log.
+- Self-review heuristic: no findings in 85 changed files against origin/main b9f2a5d; git diff --check passed. Diff reviewed for authority, persistence ordering, privacy, typed boundaries, lifecycle and file limits.
+- Earlier iteration failures and fixes remain recorded in reports/mcp/check-agent-events.log; final full verification follows below.
 
-- npm run verify:project: exit 0. Check summary **5 passed, 0 failed, 0 skipped in 890.4s**; production build **1,685 modules**, 7.03s; prototype embedding **1 passed, 0 failed**. UI-effects explicitly skip because no generated visual definitions exist.
-- The first expanded full gate found one redundant Set spread and repeated catalog-fixture I/O exceeding the unchanged test timeout. Both were repaired. Targeted gate/catalog regression: **2 files, 9 tests passed (1.75s)**; the full gate above then passed.
-- npm run test:ui-quality: **8 passed (1.1m)**, both themes, narrow reflow, keyboard focus and Axe.
-- npm run ui:gallery: **40 captures, failures []**; representative states and native settings inspected. These are working-tree evidence, never baselines.
-- Focused Economy browser: **4 passed (1.8m)** with 20 captures; Request Object: **2 passed (49.1s)** with 12 captures; linked card assessment: both themes passed; Council intake, round-order, privacy and actor-cost flows have dedicated browser evidence.
-- The 178-case local run was stopped when main advanced: 64 cases passed and 7 old collected Council progress-label assertions failed. Those assertions were corrected without dropping numeric checks. Fresh complete merged UI CI must pass before merge.
-- Self-review is clean with no approved exceptions. Ten new fixture/helper files were classified in tests/suites.json rather than suppressing the inventory guard. git diff --check passes.
+## Final verification
 
-## Host and CI evidence
+npm run verify:project: exit 0. Full check: 5 passed, 0 failed, 0 skipped in 782.2s. Production candidate built successfully; prototype embedding: 1 passed, 0 failed. Generated UI-effect checks are explicitly skipped because no visual definitions are declared. Final Council profile refinement: 10 targeted policy/session/provider tests passed and targeted ESLint passed. reports/mcp/verify-agent-events.log and final-policy-tests.log.
 
-Local Obsidian is not provisioned; no host download or personal vault was used. New contained-host journeys cover Council advice/mixed rounds/cost attribution, Request Object preservation, private export revocation/captures and Economy purchases/draws/fulfillment. Existing native workflows were updated for nested settings and Council navigation. The e2e label requires fresh complete browser, gallery and real-Obsidian CI on this PR head before merge. Final command results and CI artifact links are maintained in the PR description.
+Verified test build installed to C:/Projects/coforge/.obsidian/plugins/coforge. All three asset hashes match; five existing non-asset files are byte-for-byte unchanged. Source remains on local branch codex/agent-tools-event-workflows; the primary checkout has the build hotfix. reports/mcp/install-verified-build.log.
 
-Merged focused qualification includes MCP/workflow/costs (4 files, 29 tests), legacy intake/current-policy guards (4 files, 18 tests), scheduler prewrite/race handling (3 files, 19 tests), UI routing/drafts plus fresh scheduler/MCP browser cases. The merged full gate is running; pre-integration results above are baseline evidence only.
+## UI and Obsidian evidence
 
-## Limits
+reports/ui-gallery/index.json and gallery.html; reports/workflow-triggers/form-{light,dark}-{1280,360}.png.
 
-Live Twitch/OBS/Claude/Herdr accounts, anonymous video watch time, real-world perk delivery and personal-vault scale were not exercised. Presence uses complete observed live chat snapshots; unavailable subscription evidence uses the base rate. Perks require manual fulfillment. Already deployed Pages need republishing. Ambiguous legacy requests and uncertain recovery records remain preserved. Local Node is v24.20.0; CI uses pinned v24.21.0. Six existing Windows-skipped Unix fake-CLI cases remain unchanged and run on Linux CI.
+npm run -s dev:obsidian -- --json and npm run test:obsidian report obsidian-launcher 3.2.1 is not provisioned. Nothing was downloaded or launched. In-memory Obsidian tests cover canonical definitions, reviewed admissions, private source notes and inherited limits. Real host rendering/reload remains unqualified.
+
+## Untested scope
+
+Live model reasoning, real-account authentication and billing were not exercised. Administrator-managed Claude policy remains authoritative. Structured-output/completion controls are provider primitives, distinct from arbitrary action tools. External clients retain their own tool/history/model policy; Council uses its own narrower profile. No live Twitch/OBS/Herdr sessions. Windows retains six Unix-only fake-CLI skips. Local Node v24.20.0; .nvmrc pins v24.21.0. Reports, scratch files and assets remain ignored. Current feature changes are local; no new PR opened or merged.

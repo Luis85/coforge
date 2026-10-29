@@ -28,7 +28,7 @@ export class CouncilInvocationHost {
     private readonly kernel: () => Pick<ExecutionKernel, "recordTelemetry">,
     private readonly messaging: () => Pick<
       CouncilMessagingModule,
-      "prepare" | "allowedRecipients" | "invalidateAuthority"
+      "prepare" | "allowedRecipients" | "agentRecipients" | "invalidateAuthority"
     >,
     private readonly recheck?: (
       run: ExecutionRun,
@@ -63,6 +63,9 @@ export class CouncilInvocationHost {
         },
         {
           gate: this.batches.get(run.id) ?? this.gate,
+          mcpScope: { identity: { projectId: run.projectId, runId: run.id, attemptId: attempt.id, agentId: invocation.agentId, teamId: run.teamId, roundId: invocation.roundId },
+            inputs: run.artifacts.filter(artifact => attempt.dispatch.inputArtifactIds.includes(artifact.id)).map(({ id, agentId, roundId, markdown }) => ({ id, agentId, roundId, markdown })) },
+          agentRecipients: () => this.messaging().agentRecipients(attempt.id),
           timing,
           timers: this.timers,
           beforeInvoke: async () => {

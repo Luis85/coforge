@@ -15,6 +15,7 @@ export const COUNCIL_PAGES = [
   { id: "submit", label: "Submit existing note" },
   { id: "inboxes", label: "Watched inboxes" },
   { id: "scheduler", label: "Task scheduler" },
+  { id: "events", label: "Event triggers" },
   { id: "monitor", label: "Run monitor" },
   { id: "workflows", label: "Council workflows" },
   { id: "messages", label: "Team messages" },

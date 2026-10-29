@@ -39,6 +39,8 @@ import { DEFAULT_COUNCIL_FOLDERS } from "./vault-council-definitions";
 import { readIdeaNote } from "./vault-storage";
 import type { MessageRecipient } from "../../features/coforge/domain/team-messages";
 import { assertReviewedWorkflowIdentity } from "../../features/coforge/application/reviewed-preflight";
+import { attachAutomationEvent } from '../../features/coforge/application/automation-admission';
+import type { AutomationContext } from '../../features/coforge/domain/automation-context';
 import {
   captureInvocationProject,
   projectInvocationInstructions,
@@ -88,7 +90,7 @@ export class CouncilWorkflowModule {
         return this.storage.save(id, checked, expected);
       },
       preflight: (id, path, simulation) => this.preflight(id, path, simulation),
-      start: (id, path, simulation, destination, expectedIdentity) =>
+      start: (id, path, simulation, destination, expectedIdentity, automationEvent) =>
         this.start(
           id,
           path,
@@ -96,6 +98,7 @@ export class CouncilWorkflowModule {
           destination,
           undefined,
           expectedIdentity,
+          automationEvent,
         ),
     };
   }
@@ -258,6 +261,7 @@ export class CouncilWorkflowModule {
     destination?: string,
     submissionKey?: string,
     expectedIdentity?: string,
+    automationEvent?: AutomationContext,
   ): Promise<ExecutionRun> {
     await this.assertExecutor();
     const preview = await this.preflight(projectId, path, simulation);
@@ -315,7 +319,7 @@ export class CouncilWorkflowModule {
       markdown: identified.body,
     };
     return this.kernel.admit(
-      workflowV2Admission(
+      attachAutomationEvent(workflowV2Admission(
         preview,
         crypto.randomUUID(),
         submissionKey ??
@@ -325,7 +329,7 @@ export class CouncilWorkflowModule {
             identified.generation,
           ),
         simulation,
-      ),
+      ), automationEvent),
     );
   }
   async startAgain(

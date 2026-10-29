@@ -1,6 +1,8 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { record, text } from '../../features/coforge/domain/check';
+import { CheckError } from '../../features/coforge/domain/check';
+import { McpToolError } from './mcp-errors';
 
 export interface McpTool {
   name: string;
@@ -119,8 +121,13 @@ export class LocalMcpServer {
     catch { json(response, 200, rpcError(input.id, -32602, 'tools/call requires a name and object arguments.')); return; }
     try {
       const result = await this.dispatcher.call(name, args);
-      reply({ content: [{ type: 'text', text: JSON.stringify(result ?? null) }] });
-    } catch {
+      const structured = result && typeof result === 'object' && !Array.isArray(result) ? result : { value: result ?? null };
+      reply({ content: [{ type: 'text', text: JSON.stringify(result ?? null) }], structuredContent: structured });
+    } catch (error) {
+      if (error instanceof McpToolError || error instanceof CheckError) {
+        const safe = error instanceof McpToolError ? error : new McpToolError('INVALID_ARGUMENTS', 'Arguments do not match this tool’s input schema. Inspect tools/list and correct the request.');
+        reply({ isError: true, content: [{ type: 'text', text: safe.message }], structuredContent: { error: { code: safe.code, message: safe.message, ...(safe.nextTool ? { nextTool: safe.nextTool } : {}), ...(safe.retryAfterMs ? { retryAfterMs: safe.retryAfterMs } : {}) } } }); return;
+      }
       // Arbitrary native causes can contain paths, secrets or note content.
       reply({ isError: true, content: [{ type: 'text', text: 'CoForge could not complete this tool call. Inspect the request and workflow state in the plugin before retrying.' }] });
     }

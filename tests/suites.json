@@ -1067,6 +1067,7 @@
         "tooling/tests/setup-*.checks.mjs",
         "src/shared/tests/npm-*.checks.mjs",
         "tooling/tests/build.checks.mjs",
+        "tooling/tests/build-promotion.checks.mjs",
         "tooling/tests/identity-*.checks.mjs",
         "tooling/tests/harness-*.checks.mjs"
       ],

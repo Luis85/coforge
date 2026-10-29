@@ -17,6 +17,7 @@ import { PublicStreamSource } from '../../src/plugin/features/coforge/applicatio
 import { createWorkspacePreview } from './workspace-preview';
 import { createCouncilPreview } from './council-preview';
 import { createTaskSchedulerPreview } from './task-scheduler-preview';
+import { createWorkflowTriggersPreview } from './workflow-triggers-preview';
 
 /** Browser-only storage: the sample workspace in memory, nothing is persisted. */
 class PreviewStorage implements StudioStorage {
@@ -70,6 +71,7 @@ export function createPreviewCoforge(): CoforgeContext {
   let musicExample: ReturnType<typeof createMusicPreview> | undefined;
   let councilExample: ReturnType<typeof createCouncilPreview> | undefined;
   let taskExample: ReturnType<typeof createTaskSchedulerPreview> | undefined;
+  let triggersExample: ReturnType<typeof createWorkflowTriggersPreview> | undefined;
   void studio.start().then(() => streamSource.start()).catch((error: unknown) => { failure = error instanceof Error ? error.message : String(error); });
   return {
     studio, startupError: () => failure, onNotice: () => () => undefined,
@@ -80,6 +82,7 @@ export function createPreviewCoforge(): CoforgeContext {
       previewFinance: () => financeExample,
       previewCouncil: () => councilExample ??= createCouncilPreview(studio.store, new URLSearchParams(window.location.search).get('council-review')),
       previewTaskScheduler: () => taskExample ??= createTaskSchedulerPreview(councilExample ??= createCouncilPreview(studio.store)),
+      previewWorkflowTriggers: () => triggersExample ??= createWorkflowTriggersPreview(studio.store, councilExample ??= createCouncilPreview(studio.store)),
       previewHerdr: () => herdrExample,
       previewMusic: () => musicExample ??= createMusicPreview(),
       previewLiveStudio: () => liveExample ??= createLiveStudioPreview(studio.store),
@@ -90,7 +93,7 @@ export function createPreviewCoforge(): CoforgeContext {
         if (example === "schedule") scheduleExample = createWorkspacePreview(studio.store, timers);
         if (example === "music") musicExample = undefined;
         if (example === "live-studio") liveExample = undefined;
-        if (example === "council") { councilExample = undefined; void taskExample?.dispose(); taskExample = undefined; }
+        if (example === "council") { councilExample = undefined; void taskExample?.dispose(); taskExample = undefined; void triggersExample?.dispose(); triggersExample = undefined; }
         if (example === "task-scheduler") { void taskExample?.dispose(); taskExample = undefined; }
         if (example === "herdr") herdrExample = createHerdrPreview(studio.store);
       },

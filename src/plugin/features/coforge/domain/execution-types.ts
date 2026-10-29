@@ -1,4 +1,5 @@
 import type { StageUsage } from "./ai-usage";
+import type { AutomationContext } from './automation-context';
 import type { CouncilPromptOrder } from "./council-prompt-order";
 import type { TeamMessageDraft } from "./team-messages";
 import type { ExecutionMessagingState } from "./execution-outbox";
@@ -87,6 +88,7 @@ export interface ExecutionCheckpoint {
   order?: number;
 }
 export interface ExecutionAdmission {
+  automationEvent?: AutomationContext;
   id: string;
   submissionKey: string;
   subject: ExecutionSubject;
