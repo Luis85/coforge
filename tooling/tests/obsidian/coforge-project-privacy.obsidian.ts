@@ -1,11 +1,12 @@
 import { expect as browserExpect } from '@playwright/test';
 import { describe, expect } from 'vitest';
 import { test } from './support/obsidian-fixture';
+import { openProjectSettings } from '../../../tests/e2e/support/settings-navigation';
 
 describe('Private project publication in the contained host', () => {
   test('revokes owned exports with automatic publication off, keeps owner notes and withholds all viewer captures after reload', async ({ obsidian }) => {
     let view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
-    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await openProjectSettings(view, 'Data & examples');
     await view.getByRole('button', { name: 'Load sample workspace', exact: true }).click();
     await view.locator('.cf-settings-reset-confirm').getByRole('button', { name: 'Load sample workspace', exact: true }).click();
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Mosslight');
@@ -19,6 +20,7 @@ describe('Private project publication in the contained host', () => {
     expect(original.automatic).toBe(false);
     await obsidian.runCommand('publish-viewer-board');
     await expect.poll(() => obsidian.eval(async ({ app }) => await app.vault.adapter.exists('CoForge/Public/board.json') ? app.vault.adapter.read('CoForge/Public/board.json') : '')).toContain('Mosslight');
+    await openProjectSettings(view, 'General');
     await view.getByRole('combobox', { name: 'Project visibility', exact: true }).selectOption('private');
     await view.getByRole('button', { name: 'Save settings', exact: true }).click();
     await browserExpect(view.getByText('Settings saved', { exact: true })).toBeVisible();

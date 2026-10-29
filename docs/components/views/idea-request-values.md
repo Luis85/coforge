@@ -18,6 +18,7 @@ states:
   - Captured values
   - Unsaved draft
   - Stale request
+  - Another studio action is pending
   - Save failure
   - Closed request
 journeys:
@@ -50,6 +51,8 @@ Open Request overview. Optional text, number, date, checkbox and select controls
 ## States and recovery
 
 Failed saves retain the draft and show the error. A changed request blocks saving until the streamer discards stale changes and reviews the latest values. Closed requests are read-only. Navigation preserves an unfinished per-request draft.
+
+Save request fields is disabled while another studio action is pending. Edits remain visible and the save action becomes available when the studio is idle; it never submits automatically. During its own write, the field controls and discard action are disabled to retain one coherent attempt. After a successful save, the canonical values replace the draft, fresh screening is required, and the save action returns to its clean disabled state. Transient busy state does not turn off an otherwise eligible input or erase a draft.
 
 ## Composition and boundaries
 

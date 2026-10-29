@@ -11,7 +11,6 @@ const openEventTriggers = useEventTriggerLink();
 </script>
 <template>
   <div class="cf-workflow-settings-page" :class="{ 'is-embedded': embedded }">
-    <button type="button" class="cf-btn cf-btn-secondary" @click="openEventTriggers()">Attach an event trigger</button>
     <header
       class="cf-page-heading"
       :class="{ 'cf-workflow-subpage-heading': embedded }"
@@ -24,6 +23,7 @@ const openEventTriggers = useEventTriggerLink();
           prepares future runs; it never starts an agent.
         </p>
       </div>
+      <button type="button" class="cf-btn cf-btn-secondary" @click="openEventTriggers()">Attach an event trigger</button>
     </header>
     <p>
       Reuse agents and councils in a proposal process through

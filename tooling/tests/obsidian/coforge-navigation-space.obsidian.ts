@@ -1,6 +1,8 @@
 import { expect as browserExpect } from '@playwright/test';
 import { describe, expect } from 'vitest';
 import { test } from './support/obsidian-fixture';
+import { openWorkflowSettings } from '../../../tests/e2e/support/workflow-navigation';
+import { settingsPageButton } from '../../../tests/e2e/support/settings-navigation';
 
 describe('Navigation room in the contained native studio', () => {
   for (const theme of ['light', 'dark']) test(`fits a short desktop pane and keeps private identity without a banner in ${theme}`, async ({ obsidian }) => {
@@ -29,9 +31,23 @@ describe('Navigation room in the contained native studio', () => {
     }, theme);
     const nav = view.locator('.cf-sidebar nav');
     await browserExpect(view.locator('.cf-sidebar')).toHaveCSS('width', '240px');
-    const geometry = await nav.evaluate(element => ({ height: element.clientHeight, overflow: element.scrollHeight - element.clientHeight }));
+    const geometry = await nav.locator('.cf-navigation-groups').evaluate(element => ({ height: element.clientHeight, overflow: element.scrollHeight - element.clientHeight }));
     expect(geometry.overflow).toBeLessThanOrEqual(1);
     await browserExpect(nav.getByRole('button', { name: 'Operations', exact: true })).toBeVisible();
+    const settings = nav.getByRole('button', { name: 'Project settings', exact: true });
+    await browserExpect(nav.locator('.cf-nav-item').last()).toHaveText('Project settings');
+    await browserExpect(nav.getByRole('button', { name: 'Agent workflow', exact: true })).toHaveCount(0);
+    await settings.focus(); await settings.press('Enter');
+    await browserExpect(view.getByRole('heading', { level: 1, name: 'Project settings', exact: true })).toBeVisible();
+    await openWorkflowSettings(view);
+    await browserExpect(settings).toHaveAttribute('aria-current', 'page');
+    await view.getByLabel('Workflow name', { exact: true }).fill('Protected native settings draft');
+    await settingsPageButton(view, 'Requests').click();
+    await browserExpect(settingsPageButton(view, 'Agent workflow')).toHaveAttribute('aria-current', 'page');
+    await browserExpect(view.getByLabel('Workflow name', { exact: true })).toHaveValue('Protected native settings draft');
+    await view.getByRole('button', { name: 'Discard workflow changes', exact: true }).click();
+    await settingsPageButton(view, 'Requests').click();
+    await browserExpect(view.getByLabel('Request note class', { exact: true })).toBeVisible();
     expect(obsidian.errors()).toEqual([]);
     await obsidian.screenshot(`navigation-${theme}`);
   });

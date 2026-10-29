@@ -64,3 +64,25 @@ it('preserves an authored values draft when another edit changes the request, an
     expect(action(env.wrapper, 'Save request fields').attributes('disabled')).toBeDefined();
   } finally { await env.dispose(); }
 });
+
+it('holds a captured-field save while another studio action is pending and makes the retained draft savable when idle', async () => {
+  const env = await fixture();
+  let finish: (() => void) | undefined;
+  const pending = env.store.mutate(() => new Promise<void>(resolve => { finish = resolve; }));
+  try {
+    await control(env.wrapper, 'Audience').setValue('A retained audience draft');
+    await flushPromises();
+    expect(action(env.wrapper, 'Save request fields').attributes('disabled')).toBeDefined();
+    expect(env.studio.state().ideas[0]?.requestObject?.values.audience).toBe('Makers');
+    expect(control(env.wrapper, 'Audience').element).toHaveProperty('value', 'A retained audience draft');
+    finish?.();
+    await pending;
+    await flushPromises();
+    expect(action(env.wrapper, 'Save request fields').attributes('disabled')).toBeUndefined();
+    await env.wrapper.get('form').trigger('submit');
+    await flushPromises();
+    expect(env.studio.state().ideas[0]?.requestObject?.values.audience).toBe('A retained audience draft');
+    expect(action(env.wrapper, 'Save request fields').attributes('disabled')).toBeDefined();
+    expect(env.wrapper.get('[role="status"]').text()).toContain('Request fields saved.');
+  } finally { finish?.(); await pending; await env.dispose(); }
+});

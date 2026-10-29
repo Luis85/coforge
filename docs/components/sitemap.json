@@ -2069,7 +2069,7 @@
       "parent": "workflow",
       "component": "src/plugin/presentation/components/coforge/HerdrPanel.vue",
       "entry": [
-        "Open Agent workflow, then choose Herdr workspaces."
+        "Open Project settings, Agent workflow, then Herdr workspaces."
       ],
       "actions": [
         "Refresh identities",
@@ -2438,6 +2438,7 @@
         "Captured values",
         "Unsaved draft",
         "Stale request",
+        "Another studio action is pending",
         "Save failure",
         "Closed request"
       ],
@@ -2959,13 +2960,52 @@
       "file": "projects.md"
     },
     {
+      "id": "public",
+      "title": "Public",
+      "goal": "Identify the read-only viewer-facing projections and their shared privacy boundary.",
+      "audience": "viewer / OBS capture",
+      "kind": "shell",
+      "route": "Documentation family / public views",
+      "parent": null,
+      "component": "src/plugin/features/coforge/domain/stream-surfaces.ts",
+      "entry": [
+        "Open an individual public capture tab or the deployed viewer website through its documented entry."
+      ],
+      "actions": [
+        "Find a public-view component contract",
+        "Read the shared projection boundary"
+      ],
+      "states": [
+        "Public projection available",
+        "No eligible public data"
+      ],
+      "journeys": [
+        "public-sharing",
+        "community"
+      ],
+      "privacy": "Independent public projection family; read-only, with no private studio controls or mutation capabilities.",
+      "order": 14500,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
+      "file": "public.md"
+    },
+    {
       "id": "public-chat",
       "title": "Public Twitch chat",
       "goal": "Show the current Twitch conversation on stream.",
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "Obsidian stream surface = chat",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/presentation/components/coforge/StreamLiveChat.vue",
       "entry": [
         "Use the Stream Chat ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
@@ -3010,7 +3050,7 @@
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "Obsidian stream surface = community",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/presentation/components/coforge/StreamCommunity.vue",
       "entry": [
         "Use the Stream Community ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
@@ -3055,7 +3095,7 @@
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "Obsidian stream surface = kanban",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/presentation/components/coforge/StreamRequestBoard.vue",
       "entry": [
         "Use the Stream Kanban ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
@@ -3101,7 +3141,7 @@
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "Obsidian stream surface = leaderboards",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/presentation/components/coforge/StreamLeaderboards.vue",
       "entry": [
         "Use the Stream Leaderboards ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
@@ -3146,7 +3186,7 @@
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "public export / index.html",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/features/coforge/domain/public-site.ts",
       "entry": [
         "Open the deployed viewer website or the generated public export index.html."
@@ -3237,20 +3277,22 @@
     {
       "id": "settings",
       "title": "Project settings",
-      "goal": "Save this project’s brief and workspace boundaries.",
+      "goal": "Configure the selected project and manage its agent workflow.",
       "audience": "streamer",
       "kind": "page",
       "route": "studio.view = settings",
       "parent": "studio",
       "component": "src/plugin/presentation/components/coforge/SettingsView.vue",
       "entry": [
-        "Choose Project settings in the studio navigation."
+        "Choose Project settings at the bottom of the studio navigation."
       ],
       "actions": [
         "Edit brief and prompt",
         "Configure repository",
         "Save or discard",
-        "Open Workflow settings"
+        "Manage Agent workflow",
+        "Inspect runtime",
+        "Open Data & examples"
       ],
       "states": [
         "No project",
@@ -3286,25 +3328,28 @@
     },
     {
       "id": "settings-data",
-      "title": "Backup and sample tools",
-      "goal": "Export a private studio backup or explicitly replace this project’s requests with sample data.",
+      "title": "Data & examples",
+      "goal": "Export a private studio backup, load sample content or review example cleanup.",
       "audience": "streamer",
-      "kind": "panel",
-      "route": "Project settings / data tools",
+      "kind": "subpage",
+      "route": "studio.settingsTool = data",
       "parent": "settings",
       "component": "src/plugin/presentation/components/coforge/SettingsDataSection.vue",
       "entry": [
-        "Within Project settings, use Backup and sample tools."
+        "Open Project settings, then Data & examples."
       ],
       "actions": [
-        "Export private JSON backup",
-        "Request sample replacement",
-        "Keep data or confirm replacement"
+        "Export private studio backup",
+        "Load sample workspace",
+        "Keep my data",
+        "Preview example cleanup"
       ],
       "states": [
         "Ready",
         "Confirmation required",
         "Pending work blocks replacement",
+        "Unsaved project changes block sample loading",
+        "No project",
         "Failure"
       ],
       "journeys": [
@@ -3312,6 +3357,10 @@
         "recovery"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "settings",
+        "key": "data"
+      },
       "order": 75000,
       "type": "PBI",
       "status": "",
@@ -3332,11 +3381,11 @@
       "goal": "Review and explicitly remove sample and local-test content while preserving real requests.",
       "audience": "streamer",
       "kind": "panel",
-      "route": "Project settings / Backup and sample tools / Example cleanup",
+      "route": "Project settings / Data & examples / Example cleanup",
       "parent": "settings-data",
       "component": "src/plugin/presentation/components/coforge/ExampleContentCleanup.vue",
       "entry": [
-        "Open Project settings, then Preview example cleanup under Backup and sample tools."
+        "Open Project settings, Data & examples, then Preview example cleanup."
       ],
       "actions": [
         "Preview exact tracked requests",
@@ -3379,16 +3428,66 @@
       "file": "settings-example-cleanup.md"
     },
     {
+      "id": "settings-general",
+      "title": "Project details",
+      "goal": "Set project identity, visibility, brief and shared agent instructions.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.settingsTool = general",
+      "parent": "settings",
+      "component": "src/plugin/presentation/components/coforge/SettingsGeneralSection.vue",
+      "entry": [
+        "Open Project settings, then General."
+      ],
+      "actions": [
+        "Edit project name and description",
+        "Choose public or private visibility",
+        "Edit the general agent prompt",
+        "Save or discard project settings"
+      ],
+      "states": [
+        "No project",
+        "Saved",
+        "Unsaved draft",
+        "Invalid draft",
+        "External configuration change",
+        "Publication blocked"
+      ],
+      "journeys": [
+        "setup",
+        "multi-project",
+        "workflow-configuration"
+      ],
+      "privacy": "Private configuration; project visibility controls discovery, viewer requests and public projection eligibility.",
+      "coverage": {
+        "group": "settings",
+        "key": "general"
+      },
+      "order": 74500,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
+      "file": "settings-general.md"
+    },
+    {
       "id": "settings-repository",
-      "title": "Project repository settings",
+      "title": "Repository & build access",
       "goal": "Set the repository boundary used by agent work.",
       "audience": "streamer",
-      "kind": "panel",
-      "route": "Project settings / repository",
+      "kind": "subpage",
+      "route": "studio.settingsTool = repository",
       "parent": "settings",
       "component": "src/plugin/presentation/components/coforge/SettingsRepositorySection.vue",
       "entry": [
-        "Within Project settings, edit the Agent workspace fields."
+        "Open Project settings, then Repository."
       ],
       "actions": [
         "Edit workspace and repository fields",
@@ -3407,6 +3506,10 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "settings",
+        "key": "repository"
+      },
       "order": 77000,
       "type": "PBI",
       "status": "",
@@ -3423,15 +3526,15 @@
     },
     {
       "id": "settings-request-object",
-      "title": "Project Request Object",
+      "title": "Request Object",
       "goal": "Configure categories, class and optional properties captured by new requests.",
       "audience": "streamer",
-      "kind": "panel",
-      "route": "Project settings / Request Object",
+      "kind": "subpage",
+      "route": "studio.settingsTool = requests",
       "parent": "settings",
       "component": "src/plugin/presentation/components/coforge/SettingsRequestObjectSection.vue",
       "entry": [
-        "Open Project settings and review Request Object."
+        "Open Project settings, then Requests."
       ],
       "actions": [
         "Maintain project categories",
@@ -3454,6 +3557,10 @@
         "request-to-recognition"
       ],
       "privacy": "Private project configuration and request metadata; custom fields are excluded from public projections.",
+      "coverage": {
+        "group": "settings",
+        "key": "requests"
+      },
       "order": 78000,
       "type": "PBI",
       "status": "",
@@ -3470,19 +3577,21 @@
     },
     {
       "id": "settings-runtime",
-      "title": "Project runtime check",
-      "goal": "Verify the native runtime is available for this project.",
+      "title": "Local connections",
+      "goal": "Inspect observed local runtime, repository access and community chat readiness.",
       "audience": "streamer",
-      "kind": "panel",
-      "route": "Project settings / runtime check",
+      "kind": "subpage",
+      "route": "studio.settingsTool = runtime",
       "parent": "settings",
       "component": "src/plugin/presentation/components/coforge/SettingsRuntimeSection.vue",
       "entry": [
-        "Within Project settings, inspect Local connections and choose Check Claude Code."
+        "Open Project settings, Runtime, then Check Claude Code."
       ],
       "actions": [
-        "Check runtime",
-        "Inspect readiness or error"
+        "Check Claude Code",
+        "Inspect observed readiness",
+        "Configure repository",
+        "Manage Herdr workspaces"
       ],
       "states": [
         "Not checked",
@@ -3496,6 +3605,10 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
+      "coverage": {
+        "group": "settings",
+        "key": "runtime"
+      },
       "order": 79000,
       "type": "PBI",
       "status": "",
@@ -3934,12 +4047,12 @@
       "title": "Agent workflow",
       "goal": "Manage this project's agent process from configuration through execution.",
       "audience": "streamer",
-      "kind": "page",
-      "route": "studio.view = workflow",
-      "parent": "studio",
+      "kind": "subpage",
+      "route": "studio.settingsTool = workflow (compatibility: studio.view = workflow)",
+      "parent": "settings",
       "component": "src/plugin/presentation/components/coforge/WorkflowView.vue",
       "entry": [
-        "Choose Agent workflow in the studio navigation."
+        "Choose Project settings at the bottom of navigation, then Agent workflow."
       ],
       "actions": [
         "Inspect execution",
@@ -3962,10 +4075,16 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
-      "coverage": {
-        "group": "studio",
-        "key": "workflow"
-      },
+      "coverage": [
+        {
+          "group": "studio",
+          "key": "workflow"
+        },
+        {
+          "group": "settings",
+          "key": "workflow"
+        }
+      ],
       "order": 87000,
       "type": "Feature",
       "status": "",
@@ -3990,7 +4109,7 @@
       "parent": "workflow",
       "component": "src/plugin/presentation/components/coforge/ConfiguredWorkflowExecution.vue",
       "entry": [
-        "Open Agent workflow, then choose Workflow runs."
+        "Open Project settings, Agent workflow, then Workflow runs."
       ],
       "actions": [
         "Select request run",
@@ -4040,14 +4159,15 @@
       "parent": "workflow",
       "component": "src/plugin/presentation/components/coforge/WorkflowEditorView.vue",
       "entry": [
-        "Open Agent workflow, then choose Workflow settings."
+        "Open Project settings, Agent workflow, then Workflow settings."
       ],
       "actions": [
         "Add or select step",
         "Reorder or replace",
         "Edit prompts and provider",
         "Preview import or export",
-        "Save or discard"
+        "Save or discard",
+        "Attach an event trigger"
       ],
       "states": [
         "No project",

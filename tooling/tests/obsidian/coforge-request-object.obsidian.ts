@@ -1,6 +1,7 @@
 import { expect as browserExpect } from '@playwright/test';
 import { describe, expect } from 'vitest';
 import { test } from './support/obsidian-fixture';
+import { openProjectSettings } from '../../../tests/e2e/support/settings-navigation';
 
 function body(text: string) {
   return text.replace(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/, '');
@@ -15,7 +16,7 @@ describe('Project Request Object in the contained host', () => {
     await view.getByLabel('Description', { exact: true }).fill('A contained project with custom request categories and fields.');
     await view.getByRole('button', { name: 'Create project', exact: true }).click();
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Native Request Object');
-    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await openProjectSettings(view, 'Requests');
     await view.getByLabel('Request note class', { exact: true }).fill('Business Idea');
     await view.getByLabel('Request categories', { exact: true }).fill('Strategy\nCommercial');
     await view.getByRole('button', { name: 'Add request field', exact: true }).click();
@@ -56,7 +57,7 @@ describe('Project Request Object in the contained host', () => {
     expect(edited).toContain('owner-property: "preserve this exact quoting"');
     expect(edited).toContain('target_audience: Local makers');
     await view.getByRole('button', { name: 'Close idea details', exact: true }).click();
-    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await openProjectSettings(view, 'Requests');
     await view.getByLabel('Request note class', { exact: true }).fill('Feature Idea');
     await view.getByLabel('Request categories', { exact: true }).fill('Product');
     await view.getByRole('button', { name: 'Save settings', exact: true }).click();
@@ -64,7 +65,7 @@ describe('Project Request Object in the contained host', () => {
     expect(await obsidian.eval(({ app }, path) => app.vault.adapter.read(path), original.path)).toBe(edited);
     await obsidian.reloadPlugin();
     view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
-    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await openProjectSettings(view, 'Requests');
     await browserExpect(view.getByLabel('Request note class', { exact: true })).toHaveValue('Feature Idea');
     await browserExpect(view.getByLabel('Request categories', { exact: true })).toHaveValue('Product');
     await view.getByRole('button', { name: /^Idea board/ }).first().click();

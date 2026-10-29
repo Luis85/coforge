@@ -1,17 +1,19 @@
 ---
 id: settings-runtime
-title: Project runtime check
-goal: Verify the native runtime is available for this project.
+title: Local connections
+goal: Inspect observed local runtime, repository access and community chat readiness.
 audience: streamer
-kind: panel
-route: Project settings / runtime check
+kind: subpage
+route: studio.settingsTool = runtime
 parent: "[[docs/components/views/settings]]"
 component: src/plugin/presentation/components/coforge/SettingsRuntimeSection.vue
 entry:
-  - Within Project settings, inspect Local connections and choose Check Claude Code.
+  - Open Project settings, Runtime, then Check Claude Code.
 actions:
-  - Check runtime
-  - Inspect readiness or error
+  - Check Claude Code
+  - Inspect observed readiness
+  - Configure repository
+  - Manage Herdr workspaces
 states:
   - Not checked
   - Checking
@@ -22,6 +24,9 @@ journeys:
   - setup
   - workflow-configuration
 privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: settings
+  key: runtime
 order: 79000
 type: PBI
 status: ""
@@ -36,17 +41,17 @@ assignee: ""
 iteration: ""
 ---
 
-# Project runtime check
+# Local connections
 
 ## Purpose
 
-Verify the native runtime is available for this project.
+Inspect observed local runtime, repository access and community chat readiness.
 
-Runtime diagnostics do not start workflow execution or expand permissions.
+The Runtime subpage displays Local connections: native Claude Code availability, the saved game repository, saved implementation permission and community chat status. The chat observation is channel-wide; the repository and implementation permission belong to the selected project. Unsaved General, Requests and Repository drafts do not change this evidence. Runtime diagnostics do not start workflow execution or expand permissions.
 
 ## Entry and next action
 
-Within Project settings, inspect Local connections and choose Check Claude Code. Available actions: Check runtime; Inspect readiness or error. Return through the owning [Project settings](settings.md) surface.
+Open Project settings, choose Runtime, inspect Local connections and choose Check Claude Code. Configure repository opens the local Repository task; Manage Herdr workspaces opens Agent workflow → Herdr workspaces. These actions retain the shared settings draft and navigate without saving or starting a provider request. Native executable configuration and credentials remain in Obsidian’s CoForge integration settings. Return through the owning [Project settings](settings.md) surface.
 
 ## States and recovery
 
@@ -60,4 +65,4 @@ Journey tags: `setup`, `workflow-configuration`.
 
 ## Workspace redesign
 
-Runtime observations use an aligned evidence list with tabular numeric treatment. Observed capabilities remain separate from saved configuration.
+Runtime observations use an aligned evidence list. Literal saved paths use monospace; a missing-path explanation uses normal text. Observed capabilities remain separate from saved configuration, with direct navigation to the controls that can resolve a missing setup.

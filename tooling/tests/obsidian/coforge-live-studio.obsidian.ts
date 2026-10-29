@@ -1,6 +1,7 @@
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
+import { openAgentWorkflow } from '../../../tests/e2e/support/workflow-navigation';
 
 describe("Live studio in the contained vault", () => {
   test("records manual income in the private canonical EUR ledger", async ({
@@ -91,7 +92,7 @@ describe("Live studio in the contained vault", () => {
     await view.getByLabel(/^Project path/).fill('/synthetic/game');
     await view.getByLabel('Description', { exact: true }).fill('Contained host integration checks.');
     await view.getByRole('button', { name: 'Create project', exact: true }).click();
-    await view.getByRole("button", { name: "Agent workflow", exact: true }).click();
+    await openAgentWorkflow(view);
     await view.getByRole("navigation", { name: "Agent workflow pages", exact: true }).getByRole("button", { name: "Herdr workspaces", exact: true }).click();
     const herdr = view.locator(".cf-herdr");
     await browserExpect(herdr).toContainText("start the chosen Herdr session");

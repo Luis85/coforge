@@ -95,7 +95,6 @@ describe("CoForge studio view", () => {
     expect(wrapper.text()).toContain("Let us pet the forest foxes");
     for (const label of [
       "Stream chat",
-      "Agent workflow",
       "Community",
       "Project settings",
       "Idea board",

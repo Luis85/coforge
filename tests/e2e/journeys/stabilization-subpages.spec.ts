@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { councilPageButton } from '../support/council-navigation';
+import { openAgentWorkflow } from '../support/workflow-navigation';
 
 async function capture(page: Page, scope: string, label: string, name: string) {
   const button = label === 'Council workspace'
@@ -91,9 +92,7 @@ test("focused chat and workflow pages are keyboard reachable", async ({ page }) 
   await page.locator('.cf-sidebar').getByRole('button', { name: 'Stream chat', exact: true }).click();
   for (const name of ["Chat", "Twitch settings", "Bot messages"])
     await capture(page, ".cf-stream-page", "Stream tools", name);
-  await page
-    .getByRole("button", { name: "Agent workflow", exact: true })
-    .click();
+  await openAgentWorkflow(page);
   for (const name of ["Workflow runs", "Herdr workspaces", "Workflow settings"])
     await capture(page, ".cf-workflow-page", "Agent workflow pages", name);
 });

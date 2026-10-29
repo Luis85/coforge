@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
+import { openProjectSettings } from '../support/settings-navigation';
+import { openAgentWorkflow } from '../support/workflow-navigation';
 for (const theme of ["light", "dark"])
   test(`Herdr controls and reviewed dispatch in ${theme}`, async ({ page }) => {
     await page.goto("/#surface=node-1");
@@ -15,16 +17,15 @@ for (const theme of ["light", "dark"])
     await page
       .getByRole("button", { name: "Project settings", exact: true })
       .click();
-    await page.getByLabel(/^Project path/).fill("/synthetic/game");
     await page
       .getByLabel("General agent prompt", { exact: true })
       .fill("Keep the game accessible.");
+    await openProjectSettings(page, 'Repository');
+    await page.getByLabel(/^Project path/).fill("/synthetic/game");
     await page
       .getByRole("button", { name: "Save settings", exact: true })
       .click();
-    await page
-      .getByRole("button", { name: "Agent workflow", exact: true })
-      .click();
+    await openAgentWorkflow(page);
     await page
       .getByRole("navigation", { name: "Agent workflow pages" })
       .getByRole("button", { name: "Herdr workspaces", exact: true })

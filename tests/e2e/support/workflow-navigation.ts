@@ -1,9 +1,15 @@
 import { expect, type Locator, type Page } from '@playwright/test';
+import { openProjectSettings } from './settings-navigation';
 
-/** Browser and native journeys enter settings through its owning workflow workspace. */
+/** Workflow execution and configuration belong to the project's settings workspace. */
+export async function openAgentWorkflow(surface: Page | Locator) {
+  if (await surface.locator('.cf-workflow-page').isVisible()) return;
+  await openProjectSettings(surface, 'Agent workflow');
+  await expect(surface.locator('.cf-workflow-page')).toBeVisible();
+}
+
 export async function openWorkflowSettings(surface: Page | Locator) {
-  if (!await surface.locator('.cf-workflow-settings-page').isVisible())
-    await surface.locator('.cf-sidebar').getByRole('button', { name: 'Agent workflow', exact: true }).click();
+  await openAgentWorkflow(surface);
   const pages = surface.getByRole('navigation', { name: 'Agent workflow pages', exact: true });
   await pages.getByRole('button', { name: 'Workflow settings', exact: true }).click();
   await expect(surface.locator('.cf-workflow-settings-page')).toBeVisible();
@@ -12,7 +18,7 @@ export async function openWorkflowSettings(surface: Page | Locator) {
 
 /** A parent sidebar entry may restore settings; execution requests name the local runs page. */
 export async function openWorkflowRuns(surface: Page | Locator) {
-  await surface.locator('.cf-sidebar').getByRole('button', { name: 'Agent workflow', exact: true }).click();
+  await openAgentWorkflow(surface);
   const pages = surface.getByRole('navigation', { name: 'Agent workflow pages', exact: true });
   await pages.getByRole('button', { name: 'Workflow runs', exact: true }).click();
   await expect(pages.getByRole('button', { name: 'Workflow runs', exact: true })).toHaveAttribute('aria-current', 'page');
