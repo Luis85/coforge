@@ -20,7 +20,7 @@ Review all 90 view contracts: parent properties are clickable vault links, gener
 - Regression failures reproduced for board removal, collapse persistence, parent ownership and deferred initial reads; corresponding focused tests pass.
 - Core editor/catalogue tests: 6 files, 19 passed. Navigation groups: 5 passed. Final readiness/file-picker checks: 4 passed.
 - Browser layout, Council intake, CoWorker flows and UI quality: 14 passed. Corrected light/dark theme restoration after reload: 2 passed. Complete Council example flows on the pinned runtime: 2 passed.
-- Native canonical note editing/rename and human-byte preservation, card menus and lifecycle passed. Final initialization/history scenario passed after the ready-runtime fix; the remaining final native recheck is pending.
+- Native canonical note editing/rename and human-byte preservation, card menus and lifecycle passed. After the runtime-readiness fix, initialization/history passed (1 test) and persisted navigation/reload passed in both themes (2 tests).
 - Fresh native smoke: status passed, view opened, errors [], hostErrorCount 0; app/installer 1.14.4, launcher 3.2.1.
 - Source limits/locale parity and source lint passed. All 90 view contracts validate; git diff --check and self-review are clean.
 - Full npm run verify:project is rerunning after the final regex lint fix. Final results and CI evidence will be recorded here before merge. Verification uses Node 24.21.0 and npm 11.19.1.

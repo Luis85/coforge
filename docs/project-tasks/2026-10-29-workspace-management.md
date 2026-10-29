@@ -35,6 +35,8 @@ Obsidian, self-review, then complete the existing green-merge/local-install flow
 
 ## Evidence
 
+Delivery and full qualification: [PR #34](https://github.com/Luis85/coforge/pull/34).
+
 Board removal, group persistence, clickable parents/ownership and deferred initial
 refresh all reproduced failing regressions before their fixes. Core editor and
 catalogue checks: 19 passed; group persistence: 5 passed; final readiness and file
