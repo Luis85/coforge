@@ -183,7 +183,7 @@ export async function ingestChat(store: StudioStore, raw: ChatInput, reservation
     else if (parsed.type === 'register') result = registerPlayer(state, userId, now);
     else if (problem) { result = { ok: false, message: problem }; chat.kind = 'error'; recordOperation(state, 'participation-rejected', 'none', userId); }
     else if (parsed.type === 'request' || parsed.type === 'bug') { result = request(state, { ...input, source }, userId, parsed.projectId, parsed.text, now, parsed.type === 'bug' ? 'bug' : 'feature'); chat.kind = result.ok ? 'request' : 'error'; }
-    else if (parsed.type === 'vote') { result = addVote(state, parsed.ideaId, { ...input, source }); chat.kind = result.ok ? 'vote' : 'error'; if (result.ok && !result.duplicate) recordOperation(state, 'vote-counted', 'committed', userId); }
+    else if (parsed.type === 'vote') { result = addVote(state, parsed.ideaId, { ...input, source }); chat.kind = result.ok ? 'vote' : 'error'; if (result.ok && !result.duplicate) recordOperation(state, 'vote-counted', 'committed', userId, 1, parsed.ideaId); }
     else if (parsed.type === 'context') { result = addRequestContext(state, parsed.ideaId, parsed.text, userId, username, now, messageKey ? contextEventId(messageKey) : undefined); chat.kind = result.ok ? 'context' : 'error'; }
     else if (parsed.type === 'shop' || parsed.type === 'odds' || parsed.type === 'redeem' || parsed.type === 'lootbox') result = economyCatalog(state, parsed, userId, source !== 'simulator');
     else if (parsed.type === 'invalid') { result = { ok: false, message: parsed.message }; chat.kind = 'error'; }

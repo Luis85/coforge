@@ -57,6 +57,7 @@ import { WorkflowTriggers } from '../../features/coforge/application/workflow-tr
 import { WorkflowTriggerStateStorage } from './workflow-trigger-storage';
 import { workflowTriggerHost } from './workflow-trigger-host';
 import { workflowAgentTasks } from './workflow-agent-task';
+import { alertsModule } from './alerts-module';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -123,6 +124,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
   const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id), id => storage.file(id));
+  const alerts = alertsModule(plugin, studio);
   const mcp = new McpModule(plugin, studio, mcpRunner, undefined, council.actions, () => council.privateFolders());
   const taskScheduler = new TaskScheduler(new TaskSchedulerStateStorage(plugin), taskSchedulerHost(plugin, studio, council.actions), timers);
   const workflowTriggers = new WorkflowTriggers(new WorkflowTriggerStateStorage(plugin), workflowTriggerHost(plugin, studio, council.actions, id => storage.file(id)?.path));
@@ -180,6 +182,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    alerts: alerts.actions,
     workflowTriggers,
     taskScheduler,
     mcp,
@@ -234,6 +237,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       try { await protectPrivateData(plugin); ({ invalidNotes } = await studio.start()); }
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
       if (disposed) { await studio.stop(); return; }
+      await alerts.start().catch(() => notify('Alerts could not start. Open Alerts to inspect the error; restore its saved configuration or free its local port, then reload CoForge.', true));
+      if (disposed) return;
       await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));
       if (disposed) return;
       await council.start();
@@ -271,13 +276,14 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     },
     async dispose() {
       disposed = true;
+      const closingAlerts = alerts.dispose();
       const closingTasks = taskScheduler.dispose();
       const closingMcp = mcp.dispose();
       const closingTriggers = workflowTriggers.dispose();
       stopCouncilCosts();
       if (councilCostTimer !== undefined) timers.clearTimeout(councilCostTimer);
       invocations.dispose();
-      await Promise.all([closingTasks, closingMcp, closingTriggers]);
+      await Promise.all([closingAlerts, closingTasks, closingMcp, closingTriggers]);
       await council.dispose();
       stopHerdrRuntime();
       stopStatusbar();

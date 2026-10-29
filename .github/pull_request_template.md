@@ -1,36 +1,42 @@
 ## Summary
 
-The Stream chat contributor count included all 48 profiles loaded by the sample workspace. Scope chat messages and contributor counts to Twitch by default and to simulator data during explicit local testing. Ending a local test restores Twitch history and keeps the draft and stored data.
+CoForge now provides a stable local Alerts URL for an OBS Browser Source. Streamers save literal text templates with variables and vault GIF/image, audio or video files, fire them manually, or explicitly bind them to supported committed CoForge events.
+
+The Stream → Alerts page puts on-air dispatch first, shows connected browser pages and reports accepted delivery without claiming playback. The read-only overlay stays transparent while idle, queues bounded live cues, clears on disconnect/Stop/unload, and never replays missed alerts. Public request variables follow privacy/screening rules; media URLs use opaque identifiers instead of vault paths.
 
 ## Requirements and traceability
 
-- Owner bug report (2026-10-29): example workspace contributors remain in the local Twitch chat contributor count.
-- BRIEF.md: sample data and local testing require explicit actions; stream chat and community are shared across projects.
-- No imported req-* or vi-* obligation applies: design/traceability.json has no requirements or interactions. Generated traceability is unchanged.
-- Updated the Stream chat view contract in docs/components/views/stream.md.
+- Owner Alerts request and manual-plus-automatic trigger confirmation (2026-10-29), recorded in BRIEF.md.
+- ALERTS-01–07 plus dedicated service, module, storage, HTTP, player, UI and native regression scenarios.
+- No imported req-* or vi-* obligation applies: design/traceability.json contains no requirements/interactions. Generated traceability is unchanged.
+- Component contracts: Alerts and Public Alerts, under the independent Public family where applicable.
+- Researched multi-agent review and implemented increments: docs/project-tasks/2026-10-29-alerts-polish.md.
 
 ## Validation
 
-- Before the fix: chat-panel-ui.test.ts had 3 failed tests, reproducing sample-history leakage, the mixed contributor count and local-test selection behavior.
-- npm test -- src/plugin/tests/project/coforge/chat-panel-ui.test.ts src/plugin/tests/project/coforge/twitch-controls.test.ts src/plugin/tests/project/coforge/example-cleanup.test.ts: 3 files passed, 14 tests passed.
-- npm run verify:project: exit 0. npm run check: 5 passed, 0 failed, 0 skipped in 859.7s (typecheck, lint, zero-warning ESLint, full product tests, maker types). Production build completed; prototype embedding: 1 passed, 0 failed. test:ui-effects explicitly skipped because the project declares no visual definitions.
-- npm run check:views: 92 views documented; navigation coverage valid; sitemap current.
+- Focused final eight-suite run: 8 files passed, 40 tests passed (29.22s).
+- npm run typecheck:project: exit 0.
+- Focused runtime and presentation ESLint: zero errors/warnings.
+- npm run test:obsidian -- coforge-alerts: 1 native journey passed (23.42s), including GIF/WAV/WebM decoding/playback, volume, literal text, reload/reconnect/no replay, source shutdown, detached-window inputs, accessibility and extreme combined-media/text geometry.
+- Existing native navigation regression: 2 cases passed, light and dark, preserving compact navigation after adding Alerts.
+- View catalogue: 94 views documented; navigation coverage valid; sitemap current.
 - git diff --check: clean.
-- Self-review: source filtering happens before the 100-message limit; empty state and auto-scroll use the same source; bot identity is excluded from contributor counts. No storage writes, note changes, host API changes, unsafe casts or weakened gates.
+- Final canonical project gate and CI qualification are in progress; this draft is not ready to merge until their results are recorded and green.
 
 ## UI evidence
 
-- npm run test:ui-quality: 8 passed (1.2m), exit 0.
-- npm run ui:gallery: captured 40 screenshots; failures []; exit 0. Reviewed desktop light and narrow dark studio captures in reports/ui-gallery/. The gallery covers the existing clickdummy; focused component tests verify the changed runtime chat projection.
-- Component regressions cover all 48 saved sample profiles, a real Twitch contributor amid more than 100 example messages, and entering/leaving a local test with unchanged stored state and draft.
+- Native captures: reports/obsidian/cases/coforge-alerts--fires-a-saved-alert-into-its-public-browser-source-and-preserves-the-URL-after-reload/ (wide light, narrow dark, expanded invalid editor and public combined-media geometry).
+- Scoped native axe checks: identical WCAG tags, zero violations in dispatch and expanded validation states. Electron CDP requires documented same-page axe execution; a no-frames assertion preserves its complete Alerts scope.
+- Initial native axe evidence identified a primary-button contrast defect; the scoped semantic-token fix passes the unchanged check.
+- ui:gallery generated 40 captures with failures []; reviewed wide light and narrow dark. npm run test:ui-quality: 8 passed (1.0m), exit 0. Final gallery refresh pending.
 
 ## Obsidian evidence
 
-- npm run -s dev:obsidian -- --allow-download --json provisioned pinned Obsidian app/installer 1.14.4 and launcher 3.2.1 inside this checkout. Plugin loaded/reloaded with errors [], but the first host startup had two core command-list errors and could not open a tab group.
-- Repeated npm run -s dev:obsidian -- --json using the saved sandbox workspace: status passed, view.opened true, errors [], hostErrorCount 0, pluginConsole []. Exit 0.
-- Reviewed .obsidian-sandbox/logs/last-run.png and read dev.log/debug-report.json. The smoke opens the public Kanban; sample contributor behavior is covered by component tests.
-- Full test:obsidian not run: no lifecycle or host API changes.
+- Pinned Obsidian app/installer 1.14.4 and launcher 3.2.1, installed only in contained cache/sandbox directories.
+- Native load/reload smoke: status passed, errors [], hostErrorCount 0, pluginConsole []. Final smoke refresh pending.
+- Native Alerts and navigation evidence above uses contained vaults only.
+- Real-Obsidian CI now installs pinned Chromium for the separate browser-source media journey.
 
 ## Untested scope
 
-No personal vault or live Twitch connection was used. The fix is built and installed only in the contained sandbox; the user's personal local plugin was not updated. Node 24.20.0 / npm 11.21.1 differs from the pinned Node 24.21.0 / npm 11.19.1. The owner authorized pushing a PR, merging after green CI, and then updating the repository-root local plugin. No release publication requested.
+No personal vault, live Twitch broadcast or user OBS scene collection was used. Accepted browser-source delivery and tested browser media playback are distinct from observing a real OBS program output. The local Windows toolchain is Node 24.20.0/npm 11.19.0; qualified CI uses pinned Node 24.21.0/npm 11.19.1. No release/tag/public hosting or personal-vault installation is requested.

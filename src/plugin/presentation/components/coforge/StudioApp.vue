@@ -28,6 +28,7 @@ import ToastStack from "./ToastStack.vue";
 import ProjectsView from "./ProjectsView.vue";
 import CouncilView from "./CouncilView.vue";
 import CoWorkersView from './CoWorkersView.vue';
+import AlertsView from './AlertsView.vue';
 
 const model = useStudioApp();
 </script>
@@ -74,6 +75,7 @@ const model = useStudioApp();
               <IdeaBoard />
             </template>
             <StreamPage v-else-if="model.shell.store.view === 'stream'" />
+            <AlertsView v-else-if="model.shell.store.view === 'alerts'" />
             <BroadcastView v-else-if="model.shell.store.view === 'broadcast'" />
             <StreamStatisticsView
               v-else-if="model.shell.store.view === 'statistics'"

@@ -216,6 +216,26 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ## Surfaces (from the design)
 
+### OBS Alerts (owner request, 2026-10-29)
+
+- Provide an Alerts URL for an OBS Browser Source. From the plugin, the streamer
+  dispatches saved viewer-facing text templates with variables, GIFs/images,
+  audio/music and video to react to stream events.
+- Include manual dispatch and explicitly enabled automatic bindings to existing
+  CoForge events (owner confirmation). Provide template authoring, testing,
+  duration/volume controls and a stop/clear action in the Stream navigation.
+- The overlay is transparent while idle, queues alerts, and runs while CoForge is
+  active on the same desktop as OBS. Save its local URL across plugin reloads.
+  Missed alerts are not replayed after reopening or reconnecting.
+- Serve only prepared public alert content and explicitly selected supported media;
+  preserve project privacy and screening boundaries for automatic event variables.
+  Alert definitions stay private; a source URL grants read-only overlay access.
+- Keep manual dispatch prominent during a stream, show live source connections,
+  and distinguish sending a cue from observing playback. Check media before
+  dispatch and explain source lifetime, audio routing and reconnect behavior.
+  Ordinary unrelated template saves preserve playback. Unsupported automatic
+  event/variable combinations are rejected before saving an enabled binding.
+
 ### Studio architecture and redesign (owner decisions, 2026-10-28)
 
 - Overhaul the information architecture documented in `docs/components`, then redesign every view as part of one system around user goals, correct data and useful insights.

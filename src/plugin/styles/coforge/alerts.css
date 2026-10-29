@@ -1,0 +1,58 @@
+.ps--coforge .cf-alerts-page :is(p, small) { color: var(--cf-muted); line-height: 1.7; overflow-wrap: anywhere; }
+.ps--coforge .cf-alerts-page h2 { font-size: 20px; margin: 0 0 var(--cf-space-md); }
+.ps--coforge .cf-studio .cf-alerts-page .cf-btn-primary {
+  background: var(--cf-text); color: var(--cf-bg); border-color: var(--cf-text);
+}
+.ps--coforge .cf-studio .cf-alerts-page .cf-btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--cf-text) 92%, var(--cf-bg));
+  border-color: color-mix(in srgb, var(--cf-text) 92%, var(--cf-bg));
+}
+.ps--coforge .cf-studio .cf-alerts-page .cf-btn-primary:focus-visible {
+  outline: 2px solid var(--cf-text); outline-offset: 3px;
+}
+.ps--coforge .cf-alerts-source { padding-bottom: var(--cf-space-lg); border-bottom: 1px solid var(--cf-border); }
+.ps--coforge .cf-alerts-source p { max-width: 85ch; }
+.ps--coforge .cf-alerts-notice:empty { margin: 0; }
+.ps--coforge .cf-alerts-connection { margin-bottom: var(--cf-space-sm); }
+.ps--coforge .cf-alerts-connection p { margin-block: var(--cf-space-xs); }
+.ps--coforge .cf-alerts-connection p:first-child { display: flex; align-items: center; gap: var(--cf-space-sm); color: var(--cf-text); }
+.ps--coforge .cf-alerts-connection p:last-child { font-size: 12px; }
+.ps--coforge .cf-alerts-page summary { width: fit-content; max-width: 100%; padding-block: var(--cf-space-sm); font-weight: 600; cursor: pointer; }
+.ps--coforge .cf-alerts-page summary::marker { color: var(--cf-accent); }
+.ps--coforge .cf-alerts-page summary:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: 2px; }
+.ps--coforge .cf-alerts-url-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--cf-space-md); align-items: end; margin-top: var(--cf-space-md); }
+.ps--coforge .cf-alerts-url-row .cf-field { margin-bottom: 0; }
+.ps--coforge .cf-alerts-setup-help { padding-left: var(--cf-space-lg); color: var(--cf-muted); line-height: 1.7; }
+.ps--coforge .cf-alerts-setup-help li { margin-block: var(--cf-space-sm); }
+.ps--coforge .cf-alerts-page .cf-field { display: grid; gap: var(--cf-space-sm); margin: 0 0 var(--cf-space-md); min-width: 0; }
+.ps--coforge .cf-alerts-page .cf-field > span { font-weight: 600; }
+.ps--coforge .cf-alerts-page .cf-field :is(input, textarea, select) {
+  width: 100%; min-width: 0; max-width: 100%; padding: var(--cf-space-sm); height: auto; min-height: 36px;
+  color: var(--cf-text); background: var(--cf-surface); border: 1px solid var(--cf-border-strong); border-radius: var(--radius-s);
+}
+.ps--coforge .cf-alerts-workspace { display: grid; grid-template-columns: minmax(190px, 0.6fr) minmax(0, 1.4fr); gap: var(--cf-space-xl); margin-top: var(--cf-space-xl); }
+.ps--coforge .cf-alerts-workspace > section { min-width: 0; }
+.ps--coforge .cf-alerts-section-heading { display: flex; align-items: center; flex-wrap: wrap; gap: var(--cf-space-sm); margin-bottom: var(--cf-space-md); }
+.ps--coforge .cf-alerts-section-heading h2 { margin: 0; flex: 1; }
+.ps--coforge .cf-alerts-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--cf-space-sm); }
+.ps--coforge .cf-alerts-list button { display: grid; gap: var(--cf-space-xs); text-align: start; width: 100%; height: auto; white-space: normal; overflow-wrap: anywhere; padding: var(--cf-space-md); background: transparent; border: 1px solid var(--cf-border); box-shadow: none; }
+.ps--coforge .cf-studio .cf-alerts-list button { text-align: start; justify-items: start; justify-content: stretch; }
+.ps--coforge .cf-alerts-list button[aria-current] { background: var(--cf-accent-surface); border-color: var(--cf-accent); }
+.ps--coforge .cf-alerts-list span { color: var(--cf-muted); font-size: 12px; }
+.ps--coforge .cf-alerts-editor fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.ps--coforge .cf-alerts-editor legend { font-weight: 600; padding: 0; }
+.ps--coforge .cf-alerts-template { padding-block: var(--cf-space-md); }
+.ps--coforge .cf-alerts-template form { margin-top: var(--cf-space-md); }
+.ps--coforge .cf-alerts-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: var(--cf-space-md); }
+.ps--coforge .cf-alerts-check { display: flex; gap: var(--cf-space-sm); align-items: center; }
+.ps--coforge .cf-alerts-dispatch { margin-bottom: var(--cf-space-md); padding-bottom: var(--cf-space-lg); border-bottom: 1px solid var(--cf-border); }
+.ps--coforge .cf-alerts-dispatch h2:focus { outline: none; }
+.ps--coforge .cf-alerts-dispatch .cf-alerts-meta { font-size: 12px; margin-top: calc(-1 * var(--cf-space-sm)); }
+.ps--coforge .cf-alerts-dispatch .cf-alerts-text-preview { color: var(--cf-text); white-space: pre-wrap; font-size: 22px; font-weight: 600; }
+.ps--coforge .cf-alerts-delete { margin-block: var(--cf-space-lg); padding: var(--cf-space-md); border: 1px solid var(--cf-danger); border-radius: var(--radius-m); }
+@container plugin-shell-leaf (max-width: 850px) {
+  .ps--coforge .cf-alerts-workspace { grid-template-columns: minmax(0, 1fr); }
+  .ps--coforge .cf-alerts-list { max-height: 240px; overflow-y: auto; }
+  .ps--coforge .cf-alerts-url-row { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+  .ps--coforge .cf-alerts-url-row .cf-field { width: 100%; }
+}
