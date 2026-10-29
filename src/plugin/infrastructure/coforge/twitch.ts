@@ -10,7 +10,12 @@ export interface TwitchSocket {
   onerror: ((event: Event) => unknown) | null;
   close(): void;
 }
-export interface TwitchTransport { request: HttpRequest; socket: (url: string) => TwitchSocket; token: () => Promise<string>; timers: Timers; random?: () => number; onIntakeError?: () => void; onRemoval?(input: ChatRemoval): Promise<void>; onOwnMessage?(input: TwitchChatInput): Promise<void> }
+export interface TwitchEventSubscription { type: string; version: string; condition: Record<string, string> }
+export interface TwitchTransport {
+  request: HttpRequest; socket: (url: string) => TwitchSocket; token: () => Promise<string>; timers: Timers; random?: () => number;
+  onIntakeError?: () => void; onRemoval?(input: ChatRemoval): Promise<void>; onOwnMessage?(input: TwitchChatInput): Promise<void>;
+  subscriptions?: readonly TwitchEventSubscription[]; onNotification?(frame: unknown): Promise<void>;
+}
 export interface TwitchConnectionStatus { phase: 'connecting' | 'connected' | 'reconnecting' | 'error'; message: string; transferred?: boolean }
 const EVENTSUB = 'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30';
 const CHAT_SUBSCRIPTIONS = ['channel.chat.message', 'channel.chat.message_delete', 'channel.chat.clear_user_messages', 'channel.chat.clear'] as const;
@@ -95,10 +100,11 @@ export function startTwitch(config: TwitchConfig, transport: TwitchTransport, on
         keepalive = Math.max(10, Math.min(600, typeof session.keepalive_timeout_seconds === 'number' ? session.keepalive_timeout_seconds : 30)) * 1000;
         arm(keepalive + 1500);
         if (!transferred) {
-          for (const type of CHAT_SUBSCRIPTIONS) {
+          const subscriptions = transport.subscriptions ?? CHAT_SUBSCRIPTIONS.map(type => ({ type, version: '1', condition: { broadcaster_user_id: config.broadcasterId, user_id: config.botUserId } }));
+          for (const subscriptionInput of subscriptions) {
           const response = await transport.request({ url: 'https://api.twitch.tv/helix/eventsub/subscriptions', method: 'POST',
             headers: { Authorization: 'Bearer ' + token, 'Client-Id': config.clientId, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type, version: '1', condition: { broadcaster_user_id: config.broadcasterId, user_id: config.botUserId }, transport: { method: 'websocket', session_id: session.id } }) });
+            body: JSON.stringify({ ...subscriptionInput, transport: { method: 'websocket', session_id: session.id } }) });
           assertResponse(response);
           if (!current()) return;
           const subscriptions = object(response.json).data;
@@ -111,6 +117,7 @@ export function startTwitch(config: TwitchConfig, transport: TwitchTransport, on
       } else if (kind === 'session_keepalive') { if (connection.welcomed) arm(keepalive + 1500); }
       else if (kind === 'notification' && connection.welcomed) {
         arm(keepalive + 1500);
+        await transport.onNotification?.(parsed);
         const input = parseTwitchNotification(parsed);
         const condition = object(object(payload.subscription).condition);
         const event = object(payload.event); const type = object(payload.subscription).type;

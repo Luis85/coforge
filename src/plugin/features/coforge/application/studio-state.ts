@@ -88,6 +88,7 @@ export function assemble(loaded: LoadedStudio): InternalState {
         }
       : reply,
   );
+  if (rest.twitchOperations) rest.twitchOperations.intents = rest.twitchOperations.intents.map(intent => intent.status === 'sending' ? { ...intent, status: 'uncertain' as const, error: 'The previous session ended before Twitch confirmed the action. Inspect Twitch; this action will not be replayed.' } : intent);
   const streamMessages = (data.streamMessages ?? []).map((message) => {
     const next = { ...message };
     delete next.nextDueAt;

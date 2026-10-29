@@ -1,0 +1,75 @@
+/* Twitch tasks inherit the studio's native theme and operating-page frame. */
+.ps--coforge .cf-content > .cf-twitch-operations-page {
+  padding: var(--cf-page-top) var(--cf-page-gutter) var(--cf-page-bottom);
+  width: 100%;
+  max-width: var(--cf-page-max-width);
+  min-width: 0;
+  margin-inline: auto;
+}
+.cf-twitch-operations-page { overflow-wrap: anywhere; }
+.cf-twitch-operations-page :is(h2, h3) { margin-bottom: var(--cf-space-sm); }
+.cf-twitch-operations-page h2 { font-size: 19px; }
+.cf-twitch-operations-page h3 { font-size: 15px; }
+.cf-twitch-operations-page p { max-width: 72ch; line-height: 1.65; }
+.cf-twitch-operation-workspace { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--cf-space-xl); align-items: start; }
+.cf-twitch-operation-workspace > * { min-width: 0; }
+.cf-twitch-operation-editor { border-top: 1px solid var(--cf-border); padding-top: var(--cf-space-lg); }
+.cf-twitch-operation-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: var(--cf-space-md); margin-block: var(--cf-space-md); }
+.cf-twitch-operations-page :is(input, select, textarea) { width: 100%; min-width: 0; }
+.cf-twitch-operations-page textarea { min-height: 90px; }
+.cf-twitch-operation-lookup, .cf-twitch-operation-read-toolbar, .cf-twitch-operation-retention { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--cf-space-sm); margin-block: var(--cf-space-md); }
+.cf-twitch-operation-lookup > label, .cf-twitch-operation-read-toolbar > label { flex: 1 1 180px; }
+.cf-twitch-operation-retention > label { max-width: 260px; }
+.cf-twitch-operation-optional, .cf-twitch-operation-hint, .cf-twitch-operation-freshness { color: var(--cf-muted); font-size: 12px; }
+.cf-twitch-operation-freshness { margin-block: var(--cf-space-md) !important; font-variant-numeric: tabular-nums; }
+.cf-twitch-operation-empty { padding-block: var(--cf-space-lg); color: var(--cf-muted); }
+.cf-twitch-operation-review, .cf-twitch-operation-recovery { padding: var(--cf-space-lg); margin-block: var(--cf-space-lg); background: var(--cf-warning-surface); border-radius: var(--cf-section-radius); }
+.cf-twitch-operation-review > p, .cf-twitch-operation-recovery > p { margin-block: var(--cf-space-sm) !important; }
+.cf-twitch-operation-recovery > div { margin-top: var(--cf-space-lg); padding-top: var(--cf-space-md); border-top: 1px solid var(--cf-border); }
+.cf-twitch-operation-recovery .cf-field { margin-block: var(--cf-space-md); }
+.cf-twitch-operation-record-list { list-style: none; padding: 0; margin: 0; }
+.cf-twitch-operation-record-list > li { padding-block: var(--cf-space-lg); border-top: 1px solid var(--cf-border); }
+.cf-twitch-operations-page dl { display: grid; grid-template-columns: minmax(90px, 0.7fr) minmax(0, 1.3fr); gap: var(--cf-space-sm) var(--cf-space-md); margin: var(--cf-space-md) 0; }
+.cf-twitch-operations-page dt { color: var(--cf-muted); }
+.cf-twitch-operations-page dd { margin: 0; white-space: pre-wrap; user-select: text; }
+.cf-twitch-operation-timeline { list-style: none; padding: 0; margin-block: var(--cf-space-lg); }
+.cf-twitch-operation-timeline > li { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: var(--cf-space-md); padding-block: var(--cf-space-md); border-top: 1px solid var(--cf-border); }
+.cf-twitch-operation-timeline > li > div { display: grid; gap: var(--cf-space-xs); min-width: 0; }
+.cf-twitch-operation-timeline :is(time, small) { color: var(--cf-muted); font-size: 12px; }
+.cf-twitch-operation-activity > .cf-field { max-width: 480px; margin-top: var(--cf-space-md); }
+.cf-twitch-operation-activity > header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--cf-space-md); }
+.cf-twitch-operation-error { color: var(--cf-danger); margin-block: var(--cf-space-md) !important; }
+.cf-twitch-operation-notice { color: var(--cf-text); background: var(--cf-success-surface); padding: var(--cf-space-md); margin-block: var(--cf-space-md) !important; border-radius: var(--radius-m); }
+.cf-twitch-operation-coverage { color: var(--cf-muted); margin-block: var(--cf-space-md) !important; }
+.cf-twitch-operation-catalogue > p { margin-block: var(--cf-space-md) !important; }
+.cf-twitch-operation-catalogue td p { font-size: 12px; margin-top: var(--cf-space-xs) !important; }
+.cf-twitch-operation-catalogue td small { display: block; }
+.cf-twitch-operation-catalogue .cf-data-scroll { margin-block: var(--cf-space-lg); }
+.cf-twitch-operation-plan { margin-bottom: var(--cf-space-lg); padding-bottom: var(--cf-space-lg); border-bottom: 1px solid var(--cf-border); }
+.cf-twitch-operation-plan > .cf-field { max-width: 600px; margin-top: var(--cf-space-md); }
+.cf-twitch-operation-plan > button { margin-top: var(--cf-space-md); }
+.cf-twitch-operation-report { margin-block: var(--cf-space-lg); padding-bottom: var(--cf-space-lg); border-bottom: 1px solid var(--cf-border); }
+.cf-twitch-operation-history { margin-top: var(--cf-space-xl); }
+.cf-twitch-operation-report-text { max-height: 340px; overflow: auto; white-space: pre-wrap; font-size: 12px; }
+.cf-twitch-operation-templates { margin-top: var(--cf-space-lg); padding-top: var(--cf-space-md); border-top: 1px solid var(--cf-border); }
+.cf-twitch-operation-templates > :is(.cf-field, button, p) { margin-block: var(--cf-space-md); }
+.cf-twitch-operation-advanced { margin-block: var(--cf-space-md); padding-block: var(--cf-space-md); border-top: 1px solid var(--cf-border); border-bottom: 1px solid var(--cf-border); }
+.cf-twitch-operation-advanced > summary { cursor: pointer; font-weight: 600; padding-block: var(--cf-space-xs); }
+.cf-twitch-operation-advanced > p { margin-top: var(--cf-space-sm) !important; color: var(--cf-muted); font-size: 12px; }
+.cf-twitch-operation-review:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: 2px; }
+.cf-twitch-operation-broadcast { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cf-space-xl); margin-block: var(--cf-space-lg); padding-bottom: var(--cf-space-lg); border-bottom: 1px solid var(--cf-border); }
+.cf-twitch-operation-broadcast > section { min-width: 0; }
+.cf-twitch-operation-broadcast .cf-field { margin-top: var(--cf-space-md); }
+.cf-twitch-operation-broadcast [role="timer"] { font-size: 24px; font-variant-numeric: tabular-nums; font-weight: 650; }
+.cf-twitch-operation-raid-preview { margin-top: var(--cf-space-md); padding-top: var(--cf-space-md); border-top: 1px solid var(--cf-border); }
+.cf-twitch-operation-activity-link { flex-basis: 100%; }
+.cf-twitch-operation-activity-link .cf-field { margin-block: var(--cf-space-md); }
+.cf-twitch-operations-page details:not([open]) > :not(summary) { display: none; }
+@container plugin-shell-leaf (max-width: 900px) {
+  .cf-twitch-operation-workspace { grid-template-columns: minmax(0, 1fr); }
+  .cf-twitch-operation-broadcast { grid-template-columns: minmax(0, 1fr); }
+}
+@container plugin-shell-leaf (max-width: 480px) {
+  .cf-twitch-operations-page dl { grid-template-columns: minmax(0, 1fr); gap: var(--cf-space-xs); }
+  .cf-twitch-operations-page dd { margin-bottom: var(--cf-space-sm); }
+}
