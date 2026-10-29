@@ -15,6 +15,7 @@ describe("operational evidence", () => {
     expect(log.snapshot()).toHaveLength(OPERATION_CODES.length); expect(logger.statistics.rejected).toBe(0);
     expect(log.snapshot().find(record => record.code === 'coforge.obs-scene-action-confirmed')?.operation).toBe('coforge.scene.scene-create');
     expect(log.snapshot().find(record => record.code === 'coforge.tools.workflow-nudge-submitted')?.operation).toBe('coforge.tools.workflow');
+    expect(log.snapshot().find(record => record.code === 'coforge.production.obs-production-confirmed')?.operation).toBe('coforge.production.broadcast');
     logger.dispose();
   });
   it("publishes only after a successful commit and bounds records without losing counters", async () => {

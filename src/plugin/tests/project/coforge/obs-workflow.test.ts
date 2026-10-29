@@ -62,6 +62,23 @@ function fakeObs() {
   };
 }
 describe("streamer OBS workflow", () => {
+  it('blocks broadcast preparation until saved output restart and rehearsal are acknowledged', async () => {
+    const { store } = await emptyStore();
+    const obs = fakeObs();
+    const workflow = new ObsWorkflow(store, obs.port);
+    workflow.start();
+    await workflow.configure({ liveSceneId: 'live', breakSceneId: 'brb' });
+    await workflow.connect();
+    await store.transaction(state => { state.obsShow = { plans: [], history: [], automationEnabled: false, lastEventSequence: 0, markers: [], outputRestartRequired: true }; });
+    await expect(workflow.prepare()).rejects.toThrow('Restart OBS');
+    expect(store.snapshot().runtime.obs?.busy).toBe(false);
+    expect(obs.calls).toEqual([]);
+    await store.transaction(state => { state.obsShow!.outputRestartRequired = false; });
+    await workflow.prepare();
+    expect(store.snapshot().runtime.obs?.prepared).toBe(true);
+    expect(obs.calls).toEqual([]);
+    workflow.dispose();
+  });
   it('coalesces installation probes from multiple views without rejecting the second caller', async () => {
     const { store } = await emptyStore();
     const obs = fakeObs();

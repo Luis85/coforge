@@ -1,0 +1,368 @@
+/* The private production desk follows the current Obsidian theme in every leaf. */
+.cf-production-desk,
+.cf-production-studio-setup,
+.cf-production-source-editor,
+.cf-production-show {
+  min-width: 0;
+  padding-top: var(--cf-space-xl);
+}
+.cf-production-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--cf-space-md);
+  margin-bottom: var(--cf-space-lg);
+}
+.cf-production-heading > div {
+  min-width: 0;
+}
+.cf-production-heading h2 {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+.cf-production-heading p,
+.cf-production-section > p,
+.cf-production-sampling {
+  max-width: 75ch;
+}
+.cf-broadcast-page
+  :is(
+    .cf-production-desk,
+    .cf-production-studio-setup,
+    .cf-production-source-editor,
+    .cf-production-show
+  )
+  p {
+  font-size: 13px;
+}
+.cf-production-heading button {
+  flex-shrink: 0;
+}
+.cf-production-empty {
+  padding: var(--cf-space-md);
+  background: var(--cf-info-surface);
+  border-radius: var(--radius-m);
+}
+.cf-production-monitors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--cf-space-md);
+}
+.cf-production-monitor {
+  margin: 0;
+  min-width: 0;
+  background: var(--cf-surface);
+  border-radius: var(--radius-m);
+  overflow: hidden;
+}
+.cf-production-monitor figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cf-space-sm);
+  padding: var(--cf-space-sm) var(--cf-space-md);
+  color: var(--cf-text);
+  border-bottom: 1px solid var(--cf-border);
+}
+.cf-production-monitor figcaption strong {
+  font-size: 15px;
+}
+.cf-production-monitor figcaption span {
+  font-size: 12px;
+  color: var(--cf-muted);
+}
+.cf-production-monitor.is-program figcaption strong {
+  color: var(--cf-danger);
+}
+.cf-production-monitor img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+}
+.cf-production-monitor-empty {
+  display: grid;
+  place-items: center;
+  min-height: 140px;
+  aspect-ratio: 16 / 9;
+  padding: var(--cf-space-lg);
+  color: var(--cf-muted);
+  text-align: center;
+  line-height: 1.6;
+}
+.cf-broadcast-page .cf-production-monitor > p {
+  margin: 0;
+  padding: var(--cf-space-sm) var(--cf-space-md);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.cf-production-sampling {
+  color: var(--cf-muted);
+}
+.cf-production-switcher,
+.cf-production-fields {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--cf-space-md);
+  margin: var(--cf-space-md) 0;
+}
+.cf-production-switcher .cf-field,
+.cf-production-fields .cf-field {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.cf-production-switcher .cf-production-duration {
+  flex: 0 1 130px;
+}
+.cf-production-switcher .cf-project-repository-toggle {
+  align-self: center;
+}
+.cf-production-section,
+.cf-production-audio,
+.cf-production-outputs {
+  margin-top: var(--cf-space-xl);
+  padding-top: var(--cf-space-lg);
+  border-top: 1px solid var(--cf-border);
+  min-width: 0;
+}
+.cf-production-section > h3 {
+  margin-bottom: var(--cf-space-sm);
+  font-size: 17px;
+}
+.cf-production-channel {
+  padding: var(--cf-space-md) 0;
+  border-bottom: 1px solid var(--cf-border);
+}
+.cf-production-channel-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-sm);
+  align-items: baseline;
+  margin-bottom: var(--cf-space-sm);
+}
+.cf-production-channel-title span {
+  font-size: 12px;
+  color: var(--cf-muted);
+}
+.cf-production-channel-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-md);
+  align-items: center;
+}
+.cf-production-fader {
+  display: flex;
+  flex: 1 1 280px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-sm);
+  min-width: 0;
+}
+.cf-production-fader > span {
+  flex-basis: 100%;
+  font-size: 12px;
+}
+.cf-production-fader input {
+  flex: 1 1 140px;
+  min-width: 0;
+  accent-color: var(--cf-accent);
+}
+.cf-production-fader output {
+  min-width: 70px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.cf-production-meter {
+  display: flex;
+  flex: 0 1 200px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cf-space-sm);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--cf-muted);
+}
+.cf-production-meter meter {
+  width: 100%;
+  accent-color: var(--cf-green);
+}
+.cf-production-meter small {
+  flex-basis: 100%;
+}
+.cf-production-advanced {
+  margin: var(--cf-space-md) 0;
+  padding: var(--cf-space-sm) 0;
+}
+.cf-production-advanced > summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cf-text);
+}
+.cf-production-advanced fieldset,
+.cf-production-studio-setup fieldset {
+  border: 0;
+  padding: var(--cf-space-sm) 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-sm) var(--cf-space-md);
+  min-width: 0;
+}
+.cf-production-advanced legend,
+.cf-production-studio-setup legend {
+  padding: var(--cf-space-sm) 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.cf-production-output-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cf-space-md);
+  padding: var(--cf-space-md) 0;
+  border-bottom: 1px solid var(--cf-border);
+}
+.cf-production-output-row > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cf-space-xs);
+}
+.cf-production-output-row span {
+  font-size: 12px;
+  color: var(--cf-muted);
+}
+.cf-production-output-row .cf-settings-actions {
+  margin: 0;
+}
+.cf-production-properties {
+  margin: var(--cf-space-md) 0;
+}
+.cf-production-properties > div {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) minmax(0, 2fr);
+  gap: var(--cf-space-md);
+  padding: var(--cf-space-sm) 0;
+  border-bottom: 1px solid var(--cf-border);
+}
+.cf-production-properties dt {
+  font-weight: 600;
+  font-size: 12px;
+}
+.cf-production-properties dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.cf-production-transform-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--cf-space-md);
+  margin: var(--cf-space-md) 0;
+}
+.cf-production-layout-canvas {
+  margin: var(--cf-space-md) 0;
+}
+.cf-production-layout-image {
+  display: block;
+  position: relative;
+  padding: 0;
+  width: 100%;
+  max-width: 960px;
+  overflow: hidden;
+  border: 1px solid var(--cf-border);
+  background: var(--cf-surface);
+  cursor: crosshair;
+}
+.cf-production-layout-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.cf-production-layout-origin {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--cf-accent-text);
+  outline: 2px solid var(--cf-accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.cf-production-starter-scenes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cf-space-sm);
+  margin: var(--cf-space-md) 0;
+  padding: 0;
+  list-style: none;
+}
+.cf-production-starter-scenes li {
+  padding: var(--cf-space-sm) var(--cf-space-md);
+  border-radius: var(--radius-s);
+  background: var(--cf-accent-surface);
+  color: var(--cf-text);
+  font-size: 12px;
+}
+.cf-production-step-list {
+  margin: var(--cf-space-md) 0;
+  padding-left: 24px;
+}
+.cf-production-step-list li {
+  padding: var(--cf-space-sm) 0;
+  overflow-wrap: anywhere;
+}
+.cf-production-step-list li > span {
+  display: block;
+  margin-bottom: var(--cf-space-sm);
+}
+.cf-production-review {
+  margin: var(--cf-space-lg) 0;
+  padding: var(--cf-space-lg);
+  background: var(--cf-accent-surface);
+  border-radius: var(--radius-m);
+}
+.cf-production-review ul,
+.cf-production-review ol {
+  line-height: 1.8;
+  padding-left: 22px;
+}
+.cf-production-plan-editor {
+  margin-top: var(--cf-space-lg);
+}
+.cf-production-save {
+  margin-top: var(--cf-space-lg);
+}
+.cf-production-save > span {
+  color: var(--cf-muted);
+  font-size: 12px;
+}
+@container plugin-shell-leaf (max-width: 850px) {
+  .cf-production-monitors {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cf-production-heading {
+    flex-wrap: wrap;
+  }
+  .cf-production-output-row {
+    align-items: flex-start;
+  }
+}
+@container plugin-shell-leaf (max-width: 500px) {
+  .cf-production-fields .cf-field,
+  .cf-production-switcher .cf-field {
+    flex-basis: 100%;
+  }
+  .cf-production-transform-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cf-production-review {
+    padding: var(--cf-space-md);
+  }
+  .cf-production-properties > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--cf-space-xs);
+  }
+}

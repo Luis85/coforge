@@ -3,6 +3,7 @@ import { OBS_OPERATION_CODES } from './obs';
 import { MUSIC_OPERATION_CODES } from './music';
 import { HERDR_OPERATION_CODES } from './herdr';
 import { SCHEDULE_OPERATION_CODES } from './schedule';
+import { OBS_SHOW_OPERATION_CODES } from './obs-show';
 export interface EconomyRules {
   coinsPerMinute: number;
   xpPerMinute: number;
@@ -37,6 +38,7 @@ export interface Player {
   rewardClaims: string[];
 }
 export const OPERATION_CODES = [
+  ...OBS_SHOW_OPERATION_CODES,
   'workflow-nudge-requested', 'workflow-nudge-submitted', 'workflow-nudge-unknown', 'workflow-nudge-recovered',
   'economy-configuration-updated', 'economy-perk-fulfilled',
   'project-visibility-updated',

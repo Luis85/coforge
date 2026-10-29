@@ -1,36 +1,43 @@
 ## Summary
 
-Expose thirteen MCP tools for maintained CoWorker delegation and current-vault assistance. Assistants discover reusable definitions and project memberships, save retryable analytical tasks, review preflight, dispatch the captured definition/provider/model, monitor durable runs, retrieve published contributions and cancel work.
+Create and run a complete single-PC OBS studio from CoForge: reviewed starter scenes and sources, supported device/layout/audio/output editing, sampled program/preview monitors, recording/replay/virtual-camera controls, durable show plans and explicit event cues. Public displays adds a reviewed OBS text-overlay composer for public requests, accepted work, recognition, now-playing metadata and authored Council excerpts.
 
-Wrap sixteen official read-only Obsidian CLI commands with explicit current-vault targeting, path verification, bounded execution and cancellation. Read replies separate exact host content from formatted CLI output. Ordinary Markdown authoring uses Obsidian's atomic vault API with prior-content checks. Managed/watched/public notes retain dedicated service gates; isolated Council sessions cannot access operator tools.
+All OBS writers share durable admission and uncertain-outcome recovery. Reload pauses automation and retains partial results without replay. Saved output presets hold broadcast preparation until the operator acknowledges restart and rehearsal; credentials remain write-only secret references.
 
 ## Requirements and traceability
 
-- Owner requests dated 2026-10-29 in BRIEF.md: roster, definition-based subagents, assistant capability review and current-vault CLI.
-- Task/evidence: docs/project-tasks/2026-10-29-mcp-coworkers.md.
-- No imported req-* or vi-* obligation applies; generated traceability is unchanged.
-- Existing Council definition/execution policies and final human code review remain authoritative.
-- Integrated main's Project settings/navigation changes. Corrected two Council panel parent links and regenerated the 92-view catalogue from canonical notes.
+- Owner authorization: BRIEF.md, OBS overhaul direction dated 2026-10-29; all three increments, subagents, E2E, improvement/polish and merge when green.
+- Owner requirement: docs/requirements/OBS Studio Integration.md, pbl-id 6.
+- Task/evidence: docs/project-tasks/2026-10-29-obs-studio-overhaul.md.
+- Imported req-* / vi-* IDs: none; generated traceability has no requirements and is unchanged.
 
 ## Validation
 
-- Before integration: npm run verify:project exited 0; check: ok, 5 passed / 0 failed / 0 skipped gates (769.2s). Product tests passed, artifact build completed and prototype embedding passed (1 test).
-- Focused MCP regression suite: 6 files / 32 tests passed; final CLI/process suite: 11 passed, including exact read/edit preconditions, custom configuration folders, preserved Error-prefixed note text and redacted process failures.
-- Final typecheck and focused zero-warning ESLint passed.
-- After integration: check:views validates 92 contracts and the current sitemap. Integrated MCP/catalogue regressions and full CI qualification are running.
-- git diff --check: clean. Self-review found no unsafe casts, weakened gates or oversized files.
+- npm ci: 691 packages installed; audit 0 vulnerabilities.
+- Focused native protocol/adapter/socket tests: passed; includes actual loopback WebSocket transport and simulated OBS readback failures.
+- Focused application tests: 24 passed before final overlay/music binding additions; final qualification pending.
+- Focused UI: 4 files / 7 tests passed; targeted UI ESLint exit 0, zero warnings.
+- Cross-view quick controls/operation catalogue: 2 files / 5 tests passed. Shared stream/cue admission: 2 files / 12 tests passed before final additions.
+- First full verify:project: failed (1 gate passed, 4 failed); intermediate type/lint errors and product-suite 604s timeout during concurrent implementation. Fixes and final rerun pending; no full success claimed.
+- Source line limits and view catalogue passed before final overlay additions; final rerun pending.
+- git diff --check: clean on the reviewed intermediate tree; final rerun pending.
 
 ## UI evidence
 
-This PR changes no runtime interface. Project settings/navigation changes are inherited from main. UI-quality/gallery evidence for this PR is requested through the e2e CI label.
+- npm run test:ui-quality: 8 passed (both themes, narrow reflow and keyboard focus).
+- npm run ui:gallery: 40 captures in reports/ui-gallery; reviewed desktop dark and narrow light studio captures.
+- Actual connected native-host show-cue screenshot reviewed. Connected overlay/desk visual QA and final confirmation pending.
+- No screenshot baselines changed.
 
 ## Obsidian evidence
 
-- Native MCP and lifecycle cases: 2 passed. Real HTTP MCP creates exact private CRLF bytes, handles identical retries/stale conflicts and writes no client registration.
-- Fresh pinned smoke: status passed, errors [], hostErrorCount 0; app/installer 1.14.4, launcher 3.2.1.
-- Reused-sandbox smoke: status passed, plugin errors []; two Obsidian core command-list callback errors (null parent/getContainer), recorded separately.
-- Evidence: reports/obsidian/ and .obsidian-sandbox/logs/ (ignored). Full native CI requested through e2e.
+- Focused contained OBS production journey: 1 file / 1 test passed (19.65s), errors []. Actual Obsidian 1.14.4 with a loopback simulated OBS server: six scenes/source setup, mute, recording/pause/resume/stop, replay, saved/manual cue and reload without replay or broadcast.
+- Pinned launcher 3.2.1 / app and installer 1.14.4 provisioned within this worktree.
+- Initial dev smoke failed INVALID_LOG_CATALOG; new production catalogue split and regression tests fix the capacity overflow without weakening logging guards.
+- Full native run interrupted while final overlay implementation was changing; final full suite and dev smoke pending.
 
-## Untested scope
+## Untested scope and limits
 
-No live billable provider, real client activation or operator-installed CLI invocation. CLI process behavior uses an injected port; note writes/MCP lifecycle use the pinned real host. Local Node 24.20.0 / npm 11.21.1 differs from pinned Node 24.21.0 / npm 11.19.1; CI uses the pins. No personal vault or real client settings touched. No release publication requested.
+No public broadcast, real stream keys/accounts or physical capture devices used in agent QA. Screenshots are sampled, not continuous audiovisual transport. WebSocket bootstrap, OS/vendor permissions and a one-time OBS restart after profile presets remain explicit setup steps. The supported editors do not claim universal third-party plugin parity. OBS is an external public copy; unresolved owned-text clearing is visible and never claimed complete. Past broadcast recordings cannot be revoked.
+
+Local Node 24.20.0/npm 11.19.0 differ from the project pins; automatic provisioning found no official win32-x64 Node 24.21.0 build. CI qualification uses repository pins. No personal vault, global install, release publication or force push.

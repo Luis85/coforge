@@ -60,6 +60,7 @@ export interface Settings {
   requestCooldownSeconds: number;
 }
 export interface RuntimeInfo {
+  obsProduction?: import('./obs-production').ObsProductionSnapshot;
   /** Transient fail-closed publication holds; only an explicit public reconciliation clears them. */
   publicationDeniedProjectIds?: string[];
   herdrWorkflow?: { ready: boolean; busy: boolean; message: string };
@@ -80,6 +81,8 @@ export interface StudioProject {
   unavailable?: boolean;
 }
 export interface AppState {
+  obsShow?: import('./obs-show').ObsShowState;
+  obsSetup?: import('./obs-setup').ObsSetupState;
   /** Private entrypoint-assigned provenance. Provider choice never implies sample content. */
   requestOrigins?: Record<string, import('./example-content').RequestOrigin>;
   /** Committed cleanup cutoff per request ID; newer generations keep their own cost history. */
