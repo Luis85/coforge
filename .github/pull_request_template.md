@@ -40,10 +40,14 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
 - Native Council confirmation: 3 files / 3 passed, including first-use setup, mixed-order
   simulation, reload and confirmed teardown. Native identity and cleanup regressions:
   3 files / 14 passed; framework shutdown/lifecycle checks: 21 passed.
-- Latest main integrated, preserving Service Design and OBS/Twitch features; combined
-  runtime smoke and canonical local/CI qualification are running.
-- Canonical gate, final native confirmation and CI are pending on the final commit;
-  no full green claim is made from focused or partially successful runs.
+- Combined runtime smoke: status passed, errors [], hostErrorCount 0, pluginConsole [].
+- Final workflow input regression: observed failing first; then 3 files / 28 passed,
+  scoped ESLint 0. Canonical request fields/viewer context stay present with no earlier results.
+- Latest main integrated, preserving Service Design and OBS/Twitch features.
+- Canonical verify:project and root installation passed in pinned CI on 8af7ccc.
+  Exact final-head check, ui and real-obsidian results are retained on PR #44;
+  merge is gated on all three succeeding. Local complete check uses the supported
+  --timeout 3600000 orchestration deadline, with unchanged test limits and isolation.
 - git diff --check: clean.
 
 ## UI evidence
@@ -52,7 +56,8 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
 - First integrated browser run exposed a shared-port collision; those results are not
   accepted as qualification. COFORGE_E2E_PORT now isolates the confirmation run.
 - Final wide/narrow light/dark browser matrix and UI quality: 36 passed on isolated port 4197.
-- Gallery capture/review and combined-runtime smoke: pending.
+- Fresh gallery: 40 captures, no capture failures; wide/narrow light/dark inspected.
+  Council task journeys are separately covered by the 36-case matrix.
 - No screenshot baselines were accepted or changed.
 
 ## Obsidian evidence
@@ -63,7 +68,7 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
   reload, cost attribution and saved workflow context/readiness.
 - Final Council run: 3 passed with confirmed contained-profile teardown. Actual vault,
   PID/profile/port and source/installed asset hashes are retained in native evidence.
-- Combined-runtime pinned smoke remains pending.
+- Combined-runtime pinned smoke: status passed, errors [], hostErrorCount 0, pluginConsole [].
 
 ## Untested scope
 

@@ -1,6 +1,6 @@
 # Task: Make Council setup, recipients and activity understandable
 
-- Status: in progress — implementation and review complete; clean full-gate qualification remains outstanding.
+- Status: implementation complete; qualification and delivery continued in [the next increment](2026-10-29-council-next-increment.md) and [PR #44](https://github.com/Luis85/coforge/pull/44).
 - Journey: BRIEF.md Council entry journey and configurable workflows.
 
 ## Why

@@ -1,6 +1,6 @@
 # Task: Deliver a coherent Council workspace and reliable workflow handoff
 
-- Status: in progress
+- Status: implementation and polish complete; final qualification/merge record: [PR #44](https://github.com/Luis85/coforge/pull/44).
 - Owner request: a researched IA review, subagent implementation, end-to-end qualification,
   final improvement pass, and a pull request merged only after green checks.
 - Scope: The Council, its relationship to CoWorkers and request workflow setup, and
@@ -217,3 +217,18 @@ Integrated main through Service Design #43, preserving OBS/Twitch and Service De
 features, protected folder ownership and initialization. Combined catalogue: 108
 contracts with valid navigation coverage. The interrupted pre-integration local check
 is not counted; the full gate is restarted on the combined source.
+
+### Final source closeout
+
+Independent IA and workflow reviews resolved all actionable source findings.
+Canonical request category/kind/Request Object and viewer attribution/text/time now
+remain in Council context even with no earlier results; internal viewer IDs and
+derived outputs stay excluded. The regression failed first, then 3 files / 28 tests
+passed with zero-warning scoped ESLint. Final navigation-copy and Loading/Unavailable
+contract corrections leave 108 valid view contracts. No design or gate weakening.
+
+Combined-runtime smoke: status passed, errors [], hostErrorCount 0, pluginConsole [].
+Fresh ui:gallery: 40 captures, zero capture failures; reviewed across themes/widths.
+The pinned CI canonical verify:project and root installation passed on 8af7ccc.
+Final exact-head check/ui/real-obsidian logs and merge outcome are retained on PR #44.
+The PR remains gated on all three succeeding; source is frozen except qualification fixes.
