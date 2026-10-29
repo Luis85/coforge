@@ -14,6 +14,14 @@ Keep the standard centered 1440px operating frame and existing leaf-relative gut
 
 The studio navigates by Build & Improve, Stream, Community and Insights, in that order. Stream and community work are channel-wide. CoWorkers are reusable across the vault; teams, councils, backlogs, workflows and repository settings retain their project context. Local navigation divides distinct tasks; it neither saves drafts nor dispatches work.
 
+Project settings is a persistent navigation entry at the bottom, outside the
+collapsible task groups. It owns General, Requests, Repository, Agent workflow,
+Runtime, and Data & examples. Agent workflow retains Workflow runs, Herdr
+workspaces and Workflow settings as nested tasks. Keep one Project settings H1;
+use subordinate headings for its tasks and retain explicit project/workflow save
+boundaries. Label the all-project private backup separately from project-specific
+sample replacement. Integration credentials remain in native Obsidian settings.
+
 The expanded project navigation is 240px wide. Keep destination labels on one line
 and use compact spacing in shorter panes; section grouping remains accessible.
 Genuinely short panes may scroll without clipping controls. Project identity and

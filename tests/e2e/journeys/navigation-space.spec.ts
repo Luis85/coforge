@@ -8,6 +8,7 @@ for (const theme of ['light', 'dark']) test(`project navigation stays readable w
   const host = page.locator('[data-plugin-ui="coforge"]').first();
   const studio = page.locator('.cf-studio');
   const sidebar = page.locator('.cf-sidebar'); const nav = sidebar.getByRole('navigation', { name: 'CoForge navigation', exact: true });
+  const groups = nav.locator('.cf-navigation-groups');
   await mkdir('reports/navigation-space', { recursive: true });
   // Exercise the disconnected native-host copy without contacting Twitch.
   await sidebar.locator('.cf-streamer-profile small').evaluate(element => { element.textContent = 'Twitch authorization expired or was revoked. Reconnect this account.'; });
@@ -16,13 +17,13 @@ for (const theme of ['light', 'dark']) test(`project navigation stays readable w
     await studio.evaluate(element => { element.style.height = '740px'; element.style.minHeight = '0'; });
     expect(await sidebar.evaluate(element => element.getBoundingClientRect().height)).toBe(740);
     await expect(sidebar).toHaveCSS('width', '240px');
-    expect(await nav.evaluate(element => element.scrollHeight - element.clientHeight)).toBeLessThanOrEqual(1);
+    expect(await groups.evaluate(element => element.scrollHeight - element.clientHeight)).toBeLessThanOrEqual(1);
     expect(await sidebar.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
     const rows = await nav.locator('.cf-nav-item > span:nth-child(2)').evaluateAll(elements => elements.map(element => ({ height: element.getBoundingClientRect().height, lineHeight: parseFloat(getComputedStyle(element).lineHeight) })));
     expect(rows.every(row => row.height <= row.lineHeight + 1)).toBe(true);
     await sidebar.screenshot({ path: `reports/navigation-space/sidebar-${theme}-${width}.png` });
   }
-  for (const label of ['Idea board', 'The Council', 'Agent workflow', 'Project settings']) {
+  for (const label of ['Idea board', 'The Council', 'Project settings']) {
     await sidebar.getByRole('button', { name: label === 'Idea board' ? /^Idea board/ : label, exact: label !== 'Idea board' }).first().click();
     await expect(page.locator('.cf-project-work-context')).toHaveCount(0);
     await expect(page.locator('.cf-board-decisions')).toHaveCount(0);

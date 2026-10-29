@@ -15,12 +15,13 @@ export function useStudioNavigation() {
       ...group,
       expanded: state.expanded(group.id),
       controls: `${prefix}-navigation-${group.id}`,
-      items: shell.nav.filter((item) => item.group === group.id),
+      items: shell.nav.filter((item) => item.group === group.id && item.view !== "settings"),
     })).filter((group) => group.items.length),
   );
   return {
     shell,
     groups,
+    settings: computed(() => shell.nav.find(item => item.view === "settings")),
     toggleGroup: state.toggle,
     navigate: (view: StudioView) => {
       if (shell.store.navigate(view) && view === "council") council.tab = "ask";

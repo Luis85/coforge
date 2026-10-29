@@ -49,6 +49,7 @@ export const STUDIO_DESTINATIONS = {
     icon: "workflow",
     group: "build",
     scope: "project",
+    parent: "settings",
   },
   "workflow-settings": {
     label: "Workflow settings",
@@ -130,7 +131,8 @@ export function studioDestination(view: StudioView): Destination {
 
 /** Compatibility locators share the owning root's frame and global navigation item. */
 export function studioRoot(view: StudioView): StudioView {
-  return studioDestination(view).parent ?? view;
+  const parent = studioDestination(view).parent;
+  return parent ? studioRoot(parent) : view;
 }
 
 /** Projects has its own switcher; focused subpages stay in their owning root. */

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
-import { openWorkflowSettings } from '../support/workflow-navigation';
+import { openAgentWorkflow, openWorkflowSettings } from '../support/workflow-navigation';
 
 const views = [
   ["01-studio", "Stream studio", ".cf-broadcast-page"],
@@ -10,7 +10,7 @@ const views = [
   ["05-schedule", "Schedule", ".cf-stream-schedule-page"],
   ["06-board", "Idea board", ".cf-board-page"],
   ["07-chat", "Stream chat", ".cf-stream-page"],
-  ["08-workflow", "Agent workflow", ".cf-workflow-page"],
+  ["08-workflow", "Agent workflow", ".cf-settings-page"],
   ["09-community", "Community", ".cf-community-page"],
   ["09b-economy", "Economy", ".cf-economy-page"],
   ["10-viewers", "Viewers", ".cf-population-page"],
@@ -22,7 +22,7 @@ const views = [
     ".cf-community-settings-page",
   ],
   ["14-project-settings", "Project settings", ".cf-settings-page"],
-  ["14b-workflow-settings", "Workflow settings", ".cf-workflow-page"],
+  ["14b-workflow-settings", "Workflow settings", ".cf-settings-page"],
 ] as const;
 for (const [step, label, selector] of views) {
   test(`view intent: ${label} remains usable at desktop and narrow widths`, async ({
@@ -36,6 +36,7 @@ for (const [step, label, selector] of views) {
     if (label === "Projects")
       await page.locator(".cf-project-switcher").click();
     else if (label === 'Workflow settings') await openWorkflowSettings(page);
+    else if (label === 'Agent workflow') await openAgentWorkflow(page);
     else
       await page
         .getByRole("button", {
@@ -48,7 +49,7 @@ for (const [step, label, selector] of views) {
     await expect(view).toBeVisible();
     if (label === 'Workflow settings') {
       await expect(view.locator('.cf-workflow-settings-page')).toBeVisible();
-      await expect(view.getByRole('heading', { name: 'Workflow settings', level: 2, exact: true })).toBeVisible();
+      await expect(view.getByRole('heading', { name: 'Workflow settings', exact: true })).toBeVisible();
     }
     await expect(view.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(view.locator(".cf-page-heading p").first()).toBeVisible();

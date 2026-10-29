@@ -5,7 +5,7 @@ goal: Recognize visible community contributions.
 audience: viewer / OBS capture
 kind: public
 route: Obsidian stream surface = leaderboards
-parent:
+parent: "[[docs/components/views/public]]"
 component: src/plugin/presentation/components/coforge/StreamLeaderboards.vue
 entry:
   - Use the Stream Leaderboards ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture.
@@ -59,6 +59,8 @@ The surface shows all three rankings: supported ideas, idea makers and accepted-
 The three ranking groups keep their named metric and explicit values. The first ranked contribution receives a subtle theme accent while visible rank numbers and native list semantics preserve meaning without color. Empty rankings explain the next participation step.
 
 Source: [src/plugin/presentation/components/coforge/StreamLeaderboards.vue](../../../src/plugin/presentation/components/coforge/StreamLeaderboards.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
+
+Documentation parent: [Public](public.md). This family groups the public projections; the capture retains its independent entry and does not inherit the private studio shell.
 
 Journey tags: `public-sharing`, `community`.
 

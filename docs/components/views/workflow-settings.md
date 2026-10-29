@@ -8,13 +8,14 @@ route: "studio.workflowTool = settings (compatibility: studio.view = workflow-se
 parent: "[[docs/components/views/workflow]]"
 component: src/plugin/presentation/components/coforge/WorkflowEditorView.vue
 entry:
-  - Open Agent workflow, then choose Workflow settings.
+  - Open Project settings, Agent workflow, then Workflow settings.
 actions:
   - Add or select step
   - Reorder or replace
   - Edit prompts and provider
   - Preview import or export
   - Save or discard
+  - Attach an event trigger
 states:
   - No project
   - Standard defaults
@@ -54,7 +55,7 @@ Each project owns a v1 definition with stable step IDs. Existing runs keep captu
 
 ## Entry and next action
 
-Open [Agent workflow](workflow.md), then choose Workflow settings in its local navigation. Available actions: Add or select step; Reorder or replace; Edit prompts and provider; Preview import or export; Save or discard. Workflow runs and Herdr workspaces remain sibling tasks in the same workspace.
+Open [Project settings](settings.md), choose [Agent workflow](workflow.md), then Workflow settings in its local navigation. Available actions: Add or select step; Reorder or replace; Edit prompts and provider; Preview import or export; Save or discard; Attach an event trigger. Workflow runs and Herdr workspaces remain sibling tasks in the same workspace. The Council link and event-trigger action navigate to their owning tools through the existing draft guard; neither action dispatches work.
 
 ## States and recovery
 
@@ -62,7 +63,7 @@ No project; Standard defaults; Saved; Unsaved draft; Validation error; Active-wo
 
 ## Composition and boundaries
 
-Source: [src/plugin/presentation/components/coforge/WorkflowEditorView.vue](../../../src/plugin/presentation/components/coforge/WorkflowEditorView.vue), embedded inside [WorkflowView](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). Agent workflow owns the H1, shared page frame and local navigation; the editor owns an H2 and its authoring controls. Workflow settings has no global sidebar entry.
+Source: [src/plugin/presentation/components/coforge/WorkflowEditorView.vue](../../../src/plugin/presentation/components/coforge/WorkflowEditorView.vue), embedded inside [WorkflowView](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). Project settings owns the H1 and main-navigation entry; Agent workflow and its editor use subordinate headings with their own local navigation and authoring controls. Workflow settings has no separate global sidebar entry.
 
 The internal `studio.view = workflow-settings` locator remains a compatibility alias for existing guarded navigation. It selects this same local task; it does not create a second page or host tab. Both the compatibility locator and `workflowTool = settings` are covered by this one canonical view contract.
 
@@ -70,4 +71,4 @@ Journey tags: `workflow-configuration`.
 
 ## Workspace redesign
 
-The selected project and saved or unsaved state precede a dedicated step catalogue and authoring area. Configuration, import preview and save actions retain separate visual levels and existing draft guards.
+The selected project and saved or unsaved state precede a dedicated step catalogue and authoring area. Attach an event trigger sits in the Workflow settings header beside its explanatory context. Configuration, import preview and save actions retain separate visual levels and existing draft guards.

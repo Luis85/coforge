@@ -21,12 +21,11 @@ it("leads with Build & Improve and keeps configuration beside its owning journey
       "Community navigation",
       "Insights navigation",
     ]);
-    expect(groups[0]?.text()).toContain("Project settings");
+    expect(groups[0]?.text()).not.toContain("Project settings");
+    expect(groups[0]?.text()).not.toContain("Agent workflow");
     expect(groups[0]?.findAll('.cf-nav-item').map(button => button.text().trim()).slice(0, 2)).toEqual([expect.stringContaining('Idea board'), 'The Council']);
     expect(groups[2]?.text()).toContain("Community settings");
-    expect(wrapper.find(".cf-sidebar-bottom").text()).not.toContain(
-      "Project settings",
-    );
+    expect(wrapper.get('nav[aria-label="CoForge navigation"]').findAll('.cf-nav-item').at(-1)?.text()).toBe('Project settings');
     expect(wrapper.findAll('button[aria-current="page"]')).toHaveLength(1);
     const saveCount = fixture.storage.saves;
     await wrapper.get('button[title="Community settings"]').trigger("click");
@@ -92,7 +91,7 @@ it("keeps the dirty workflow and current destination when another journey is sel
     await wrapper.get('button[title="Stream studio"]').trigger("click");
     expect(fixture.store.view).toBe("workflow-settings");
     expect(wrapper.get('button[aria-current="page"]').text()).toBe(
-      "Agent workflow",
+      "Project settings",
     );
     expect(fixture.store.dirtyWorkflow).toBe(true);
     expect(fixture.runner).not.toHaveBeenCalled();

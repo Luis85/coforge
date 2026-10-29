@@ -21,11 +21,21 @@
   flex: 1;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
+  gap: var(--cf-space-sm);
+  padding-bottom: var(--cf-space-sm);
+}
+.ps--coforge .cf-navigation-groups {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   gap: var(--cf-space-sm);
   padding-bottom: var(--cf-space-sm);
 }
+.ps--coforge .cf-settings-destination { flex-shrink: 0; width: 100%; }
 .ps--coforge .cf-nav-group {
   display: flex;
   flex-direction: column;
@@ -65,6 +75,7 @@
 @container coforge-navigation (max-height: 860px) {
   .cf-sidebar .cf-project-switcher { margin-block: 2px; }
   .ps--coforge .cf-studio .cf-sidebar > nav { gap: 0; padding-bottom: 0; }
+  .ps--coforge .cf-navigation-groups { gap: 0; padding-bottom: 0; }
   .ps--coforge .cf-sidebar .cf-nav-group { gap: 0; }
   .ps--coforge .cf-sidebar .cf-nav-group-items { gap: 0; }
   .ps--coforge .cf-sidebar .cf-nav-group + .cf-nav-group { padding-top: 0; }

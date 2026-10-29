@@ -8,13 +8,14 @@ import HerdrWorkflowRecovery from "./HerdrWorkflowRecovery.vue";
 import CfSubpageNav from "./CfSubpageNav.vue";
 import WorkflowEditorView from "./WorkflowEditorView.vue";
 import { WORKFLOW_PAGES } from "../../stores/studio-pages";
+withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 const model = useWorkflow();
 </script>
 <template>
-  <div class="cf-workflow-page">
+  <div class="cf-workflow-page" :class="{ 'is-embedded': embedded }">
     <header class="cf-page-heading cf-workflow-heading">
       <div>
-        <h1>Agent workflow</h1>
+        <component :is="embedded ? 'h2' : 'h1'">Agent workflow</component>
         <p>
           Monitor captured runs, manage Herdr workspaces and configure this
           project’s workflow.

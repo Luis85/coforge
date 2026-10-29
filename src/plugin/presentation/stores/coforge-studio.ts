@@ -3,7 +3,8 @@ import { computed, ref } from "vue";
 import type { AppState } from "../../features/coforge/domain/types";
 import { configurationProblem } from "./configuration-guard";
 import { projectIdeas as scopedIdeas } from "../../features/coforge/domain/projects";
-import type { BroadcastPage, StreamPage, WorkflowPage } from "./studio-pages";
+import type { BroadcastPage, StreamPage, WorkflowPage, SettingsPage } from "./studio-pages";
+import { studioRoot } from "./studio-destinations";
 
 export type StudioView =
   | "council"
@@ -73,6 +74,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   const dirtyEconomy = ref(false);
   const streamTool = ref<StreamPage>("channel");
   const workflowTool = ref<WorkflowPage>("runs");
+  const settingsTool = ref<SettingsPage>("general");
   const broadcastTool = ref<BroadcastPage>("live");
   const setupStep = ref(0);
   const historySelection = ref("");
@@ -190,7 +192,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   function configurationIssue(next?: StudioView): string {
     return configurationProblem(
       {
-        settings: dirtySettings.value,
+        settings: dirtySettings.value && (!next || studioRoot(next) !== "settings"),
         "community-settings": dirtyCommunitySettings.value,
         "workflow-settings": dirtyWorkflow.value,
           economy: dirtyEconomy.value,
@@ -209,12 +211,14 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     return true;
   }
   function navigate(next: StudioView) {
+    if (next === "settings" && studioRoot(view.value) === "settings") return true;
     const destination =
-      next === "workflow" &&
+      (next === "workflow" || (next === "settings" && settingsTool.value === "workflow")) &&
       (view.value === "workflow-settings" || workflowTool.value === "settings")
         ? "workflow-settings"
-        : next;
+        : next === "settings" && settingsTool.value === "workflow" ? "workflow" : next;
     if (!changeView(destination)) return false;
+    if (destination === "workflow" || destination === "workflow-settings") settingsTool.value = "workflow";
     if (destination === "workflow-settings") workflowTool.value = "settings";
     return true;
   }
@@ -222,8 +226,15 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     if (navigate("stream")) streamTool.value = next;
   }
   function openWorkflowTool(next: WorkflowPage) {
-    if (changeView(next === "settings" ? "workflow-settings" : "workflow"))
+    if (changeView(next === "settings" ? "workflow-settings" : "workflow")) {
+      settingsTool.value = "workflow";
       workflowTool.value = next;
+    }
+  }
+  function openSettingsTool(next: SettingsPage) {
+    if (next === "workflow") {
+      if (navigate("workflow")) settingsTool.value = next;
+    } else if (changeView("settings")) settingsTool.value = next;
   }
   function select(id: string | null, tab: IdeaDrawerTab = "overview") {
     selected.value = id;
@@ -289,6 +300,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     workflowRequestSelection,
     streamTool,
     workflowTool,
+    settingsTool,
     broadcastTool,
     setupStep,
     setupRequested,
@@ -324,6 +336,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     navigate,
     openStreamTool,
     openWorkflowTool,
+    openSettingsTool,
     select,
     mutate,
     dispose,

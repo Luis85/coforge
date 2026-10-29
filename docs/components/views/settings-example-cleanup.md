@@ -4,11 +4,11 @@ title: Example content cleanup
 goal: Review and explicitly remove sample and local-test content while preserving real requests.
 audience: streamer
 kind: panel
-route: Project settings / Backup and sample tools / Example cleanup
+route: Project settings / Data & examples / Example cleanup
 parent: "[[docs/components/views/settings-data]]"
 component: src/plugin/presentation/components/coforge/ExampleContentCleanup.vue
 entry:
-  - Open Project settings, then Preview example cleanup under Backup and sample tools.
+  - Open Project settings, Data & examples, then Preview example cleanup.
 actions:
   - Preview exact tracked requests
   - Inspect historical candidates
@@ -84,6 +84,6 @@ are preserved; the scheduler's example timer and cached receipts are discarded.
 
 ## Composition and boundaries
 
-The panel belongs to [Backup and sample tools](settings-data.md). It owns preview
+The Finish experimenting panel belongs to [Data & examples](settings-data.md). It owns preview
 and confirmation state in a composable, while application services validate exact
 selection and storage owns full-note comparison and transactional retirement.

@@ -30,6 +30,16 @@ export const WORKFLOW_PAGES = [
 ] as const;
 export type WorkflowPage = (typeof WORKFLOW_PAGES)[number]["id"];
 
+export const SETTINGS_PAGES = [
+  { id: "general", label: "General" },
+  { id: "requests", label: "Requests" },
+  { id: "repository", label: "Repository" },
+  { id: "workflow", label: "Agent workflow" },
+  { id: "runtime", label: "Runtime" },
+  { id: "data", label: "Data & examples" },
+] as const;
+export type SettingsPage = (typeof SETTINGS_PAGES)[number]["id"];
+
 export const STREAM_PAGES = [
   { id: "channel", label: "Chat" },
   { id: "connection", label: "Twitch settings" },

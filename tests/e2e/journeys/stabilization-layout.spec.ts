@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
 import { councilPageButton } from '../support/council-navigation';
-import { openWorkflowSettings } from '../support/workflow-navigation';
+import { openAgentWorkflow, openWorkflowSettings } from '../support/workflow-navigation';
 
 const views = [
   ["studio", "Stream studio", ".cf-broadcast-page"],
@@ -12,7 +12,7 @@ const views = [
   ["schedule", "Schedule", ".cf-stream-schedule-page"],
   ["board", "Idea board", ".cf-board-page"],
   ["chat", "Stream chat", ".cf-stream-page"],
-  ["workflow", "Agent workflow", ".cf-workflow-page"],
+  ["workflow", "Agent workflow", ".cf-settings-page"],
   ["council", "The Council", ".cf-council"],
   ["community", "Community", ".cf-community-page"],
   ["economy", "Economy", ".cf-economy-page"],
@@ -21,7 +21,7 @@ const views = [
   ["projects", "Projects", ".cf-projects-page"],
   ["community-settings", "Community settings", ".cf-community-settings-page"],
   ["settings", "Project settings", ".cf-settings-page"],
-  ["workflow-settings", "Workflow settings", ".cf-workflow-page"],
+  ["workflow-settings", "Workflow settings", ".cf-settings-page"],
 ] as const;
 
 for (const theme of ["light", "dark"]) {
@@ -37,6 +37,7 @@ for (const theme of ["light", "dark"]) {
       }, theme);
       if (id === "projects") await page.locator(".cf-project-switcher").click();
       else if (id === "workflow-settings") await openWorkflowSettings(page);
+      else if (id === "workflow") await openAgentWorkflow(page);
       else await page.locator(".cf-sidebar").getByRole("button", {
         name: id === "board" ? /^Idea board/ : label, exact: id !== "board",
       }).first().click();
@@ -48,8 +49,8 @@ for (const theme of ["light", "dark"]) {
       await expect(view).toBeVisible();
       if (id === 'workflow-settings') {
         await expect(view.locator('.cf-workflow-settings-page')).toBeVisible();
-        await expect(view.getByRole('heading', { name: 'Workflow settings', level: 2, exact: true })).toBeVisible();
-        await expect(view.getByRole('heading', { name: 'Agent workflow', level: 1, exact: true })).toBeVisible();
+        await expect(view.getByRole('heading', { name: 'Workflow settings', exact: true })).toBeVisible();
+        await expect(view.getByRole('heading', { name: 'Agent workflow', level: 2, exact: true })).toBeVisible();
         await expect(view.getByRole('heading', { level: 1 })).toHaveCount(1);
         await expect(view.locator('.cf-project-work-context')).toHaveCount(0);
         await expect(page.locator('.cf-project-switcher .cf-project-selector-id')).toContainText('CFP-001');

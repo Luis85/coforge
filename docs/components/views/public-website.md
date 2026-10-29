@@ -5,7 +5,7 @@ goal: Follow screened progress and recognition outside Obsidian.
 audience: viewer / OBS capture
 kind: public
 route: public export / index.html
-parent:
+parent: "[[docs/components/views/public]]"
 component: src/plugin/features/coforge/domain/public-site.ts
 entry:
   - Open the deployed viewer website or the generated public export index.html.
@@ -58,6 +58,8 @@ No screened cards; Awaiting screening count; No leaders; Generated timestamp. In
 The project identity and participation commands lead the page, followed by the generated timestamp and an explicit Refresh board link. Section links jump to the idea board, leaderboards and badges. Reading never triggers a timed reload, preserving keyboard focus and expanded plans. The standalone palette supports light/dark preferences with readable semantic text; request columns use stage headings while retained cards own their content surface.
 
 Source: [src/plugin/features/coforge/domain/public-site.ts](../../../src/plugin/features/coforge/domain/public-site.ts). The exported document owns its standalone HTML and CSS. It uses the explicit public projection and exposes no private mutation controls.
+
+Documentation parent: [Public](public.md). The website is part of the public-view family while retaining its independent exported document and deployment lifecycle. Private native website settings remain under CoForge integration settings.
 
 Journey tags: `public-sharing`.
 

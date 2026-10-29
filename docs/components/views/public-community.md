@@ -5,7 +5,7 @@ goal: Explain visible participation and community rewards.
 audience: viewer / OBS capture
 kind: public
 route: Obsidian stream surface = community
-parent:
+parent: "[[docs/components/views/public]]"
 component: src/plugin/presentation/components/coforge/StreamCommunity.vue
 entry:
   - Use the Stream Community ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture.
@@ -59,6 +59,8 @@ No contributors; Configured names and ranks; Earned badges. When data is unavail
 Contributor recognition occupies the main column; the participation and rank guide has its own secondary surface. Badge descriptions and reward rules remain explicit, including the distinction between tracked chat presence and verified video watch time.
 
 Source: [src/plugin/presentation/components/coforge/StreamCommunity.vue](../../../src/plugin/presentation/components/coforge/StreamCommunity.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
+
+Documentation parent: [Public](public.md). This family groups the public projections; the capture retains its independent entry and does not inherit the private studio shell.
 
 Journey tags: `public-sharing`, `community`.
 

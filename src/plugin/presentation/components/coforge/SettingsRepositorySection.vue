@@ -7,7 +7,7 @@ const model = useSettingsForm();
   <section class="cf-settings-section" aria-labelledby="cf-project-repository">
     <div class="cf-settings-description">
       <h2 id="cf-project-repository">
-        <CfIcon name="folder-git-2" /> Agent workspace
+        <CfIcon name="folder-git-2" /> Repository &amp; build access
       </h2>
       <p>
         This project’s game files live here. The path may be outside the vault;
@@ -19,6 +19,7 @@ const model = useSettingsForm();
         ><span>Project path</span
         ><input
           v-model="model.draft.projectPath"
+          aria-label="Project path"
           type="text"
           maxlength="1000"
           spellcheck="false"
