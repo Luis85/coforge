@@ -75,6 +75,14 @@ their existing CoForge workspace, with honest API availability and recoverable a
   exact-head full project/browser/native qualification remains mandatory in PR checks.
 - The local browser rerun uses an ignored configuration on port 4192 to avoid the OBS
   session's 4181. It preserves the committed checks, browser, viewport matrix and timeouts.
+- The isolated rerun passed all 6/6 browser regressions. Pinned CI at `8a665f1` passed
+  the full project gate (5 passed, 0 failed, 0 skipped), release build/prototype embedding,
+  all 199 browser checks, and all 31 native cases. Final exact-head checks remain linked
+  in PR #39 rather than being inferred from earlier runs.
+- Final correctness regressions reproduced stale sampled stream IDs overwriting newer
+  EventSub facts and ad-management grants incorrectly implying ad-read permission.
+  Both are fixed; API, core, events and controller suites passed 59/59 tests afterward.
+  The permission alternatives are shared by capability projection and the HTTP adapter.
 - PR #38 was superseded by a clean reviewed diff after GitGuardian flagged an intermediate
   `URL.password` validation expression as a generic password. No credential existed;
   explicit URL checks preserved behavior. PR #39's security scan passed without exclusions
@@ -84,3 +92,6 @@ their existing CoForge workspace, with honest API availability and recoverable a
 
 Live-account approval and real Twitch mutations require streamer-operated acceptance.
 Always-on collection and unsupported Creator Dashboard data remain outside this increment.
+The optional local maintainability command returned `METRIC_TOOL_VERSION`; required CI
+gates retain their pinned tools and existing thresholds. Local broad runs and toolchain
+differences above are not represented as passing local qualification.

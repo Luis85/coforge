@@ -2,11 +2,19 @@ import { boolean, CheckError, list, number, oneOf, optional, record, shape, text
 import { TWITCH_ACTIONS } from './twitch-operations-catalogue';
 import { TWITCH_ACTION_NAMES, type TwitchAction, type TwitchOperationField, type TwitchOperationsState, type TwitchValue } from './twitch-operations';
 
-/** A management grant also permits its matching read endpoint. */
+export const TWITCH_READ_SCOPE_ALTERNATIVES: Readonly<Record<string, string>> = {
+  'moderation:read': 'channel:manage:moderators', 'channel:read:broadcast': 'channel:manage:broadcast',
+  'moderator:read:automod_settings': 'moderator:manage:automod_settings', 'moderator:read:blocked_terms': 'moderator:manage:blocked_terms',
+  'moderator:read:unban_requests': 'moderator:manage:unban_requests', 'moderator:read:shield_mode': 'moderator:manage:shield_mode',
+  'moderator:read:warnings': 'moderator:manage:warnings', 'channel:read:redemptions': 'channel:manage:redemptions',
+  'channel:read:polls': 'channel:manage:polls', 'channel:read:predictions': 'channel:manage:predictions',
+  'channel:read:vips': 'channel:manage:vips',
+};
+/** Only documented endpoint-specific alternatives imply read access; ad management does not. */
 export function twitchScopeGranted(scopes: readonly string[], scope: string): boolean {
   if (scopes.includes(scope)) return true;
-  const alternatives: Record<string, string> = { 'moderation:read': 'channel:manage:moderators', 'channel:read:broadcast': 'channel:manage:broadcast' };
-  return scopes.includes(alternatives[scope] ?? scope.replace(':read:', ':manage:'));
+  const alternative = TWITCH_READ_SCOPE_ALTERNATIVES[scope];
+  return alternative !== undefined && scopes.includes(alternative);
 }
 
 function parameter(value: unknown, field: TwitchOperationField): TwitchValue {

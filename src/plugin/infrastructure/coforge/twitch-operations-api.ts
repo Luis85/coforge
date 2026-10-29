@@ -1,19 +1,13 @@
 import type { IntegrationSettings } from '../../features/coforge/domain/types';
 import type { TwitchAction, TwitchOperationsPort, TwitchParameters, TwitchRaidTarget, TwitchReadResult, TwitchResource } from '../../features/coforge/domain/twitch-operations';
 import { TWITCH_ACTIONS, TWITCH_RESOURCES } from '../../features/coforge/domain/twitch-operations-catalogue';
-import { validateTwitchAction } from '../../features/coforge/domain/twitch-operations-validation';
+import { TWITCH_READ_SCOPE_ALTERNATIVES, validateTwitchAction } from '../../features/coforge/domain/twitch-operations-validation';
 import { TwitchAccounts } from './twitch-auth';
 import { object, TwitchError, type HttpRequest, type HttpResponse } from './twitch-http';
 import { TwitchOperationsHttp, twitchResult, type TwitchEndpointRequest } from './twitch-operations-http';
 import { twitchReadEndpoint, twitchWriteEndpoint } from './twitch-operations-endpoints';
 
 const NO_CONTENT = new Set(['automod-resolve', 'blocked-term-remove', 'raid-cancel', 'reward-delete', 'schedule-delete', 'schedule-vacation', 'announcement', 'shoutout', 'moderator-add', 'moderator-remove', 'vip-add', 'vip-remove']);
-const READ_EQUIVALENTS: Readonly<Record<string, string>> = {
-  'moderator:read:automod_settings': 'moderator:manage:automod_settings', 'moderator:read:blocked_terms': 'moderator:manage:blocked_terms',
-  'moderator:read:unban_requests': 'moderator:manage:unban_requests', 'moderator:read:shield_mode': 'moderator:manage:shield_mode',
-  'channel:read:redemptions': 'channel:manage:redemptions', 'channel:read:polls': 'channel:manage:polls',
-  'channel:read:predictions': 'channel:manage:predictions', 'channel:read:vips': 'channel:manage:vips', 'moderation:read': 'channel:manage:moderators',
-};
 
 /** Private typed channel operations using only declared, validated Helix endpoints. */
 export class TwitchOperationsApi implements TwitchOperationsPort {
@@ -85,7 +79,7 @@ export class TwitchOperationsApi implements TwitchOperationsPort {
   private async readScopes(required: readonly string[]): Promise<string[]> {
     await this.accounts.token('streamer', []);
     const granted = this.accounts.identity('streamer')?.scopes ?? [];
-    return required.map(scope => granted.includes(scope) ? scope : granted.includes(READ_EQUIVALENTS[scope] ?? '') ? READ_EQUIVALENTS[scope]! : scope);
+    return required.map(scope => granted.includes(scope) ? scope : granted.includes(TWITCH_READ_SCOPE_ALTERNATIVES[scope] ?? '') ? TWITCH_READ_SCOPE_ALTERNATIVES[scope]! : scope);
   }
 
   private async assertManagedReward(id: string, scopes: readonly string[], context: { channelId: string; clientId: string }): Promise<void> {

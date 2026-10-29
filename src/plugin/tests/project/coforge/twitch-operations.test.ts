@@ -18,6 +18,13 @@ async function setup() {
 }
 
 describe('Twitch operations durable review boundary', () => {
+  it('requires separate ad read consent even when the broadcaster may snooze ads', async () => {
+    const env = await setup(); env.context.scopes = ['channel:manage:ads'];
+    expect(env.service.snapshot().capabilities.find(item => item.resource === 'ads')).toMatchObject({ available: false, missingScopes: ['channel:read:ads'] });
+    await expect(env.service.refresh('ads')).rejects.toThrow('read permission');
+    expect(env.read).not.toHaveBeenCalled();
+    expect(env.service.preview({ name: 'ad-snooze', parameters: {} }).action.name).toBe('ad-snooze');
+  });
   it('persists exact reviewed intent before a single external action and rejects preview replay', async () => {
     const env = await setup();
     env.execute.mockImplementation(async action => {

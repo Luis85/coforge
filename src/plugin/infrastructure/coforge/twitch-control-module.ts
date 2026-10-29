@@ -77,7 +77,7 @@ export class TwitchControlModule {
     }, activity => {
       if (this.closed || generation !== this.generation) return Promise.resolve();
       const streamId = this.store.snapshot().runtime.twitch?.tracking?.streamId;
-      return this.service.ingest({ ...activity, ...(streamId ? { streamId } : {}) }).then(() => {
+      return this.service.ingest({ ...activity, ...(streamId && !activity.streamId ? { streamId } : {}) }).then(() => {
         for (const resource of operationsEventResources(activity.type)) this.queueRefresh(resource, generation);
       });
     }, status => {

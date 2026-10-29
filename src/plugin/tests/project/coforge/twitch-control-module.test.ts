@@ -48,6 +48,23 @@ function pollProgress(env: Awaited<ReturnType<typeof setup>>, id: string): void 
 }
 
 describe('Twitch operations runtime composition', () => {
+  it('preserves the newer EventSub stream identity when the sampled live state is still stale', async () => {
+    const env = await setup(); const twitch = env.studio.state().runtime.twitch;
+    if (!twitch) throw new Error('Expected a connected Twitch fixture');
+    await env.studio.store.updateRuntime({ twitch: { ...twitch, tracking: { phase: 'live', message: 'Previous sampled broadcast', streamId: '111' } } });
+    const subscription = env.requests.find(input => input.url.includes('/eventsub/subscriptions') && JSON.parse(input.body ?? '{}').type === 'stream.online');
+    const session = String(JSON.parse(subscription!.body!).transport.session_id);
+    const socket = env.sockets[Number(session.replace('session-', ''))]!;
+    const emit = (id: string, type: string, event: Record<string, string>) => socket.message({ metadata: { message_type: 'notification', message_id: id, message_timestamp: new Date().toISOString() }, payload: { subscription: { type, condition: { broadcaster_user_id: '123' } }, event: { broadcaster_user_id: '123', ...event } } });
+    emit('new-live', 'stream.online', { id: '222', type: 'live' });
+    await vi.advanceTimersByTimeAsync(0);
+    emit('new-subscriber', 'channel.subscribe', { user_id: '99', user_name: 'Viewer' });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(env.module.operations.snapshot().activities.filter(item => ['new-live', 'new-subscriber'].includes(item.id))).toEqual([
+      expect.objectContaining({ id: 'new-live', streamId: '222' }),
+      expect.objectContaining({ id: 'new-subscriber', streamId: '222' }),
+    ]);
+  });
   it('persists one reviewed channel-bound poll operation and reads it through the authenticated adapter', async () => {
     const env = await setup();
     const preview = env.module.operations.preview({ name: 'poll-create', parameters: { title: 'Next build?', choices: ['Garden', 'Castle'], duration: 60 } });
