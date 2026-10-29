@@ -108,7 +108,7 @@ const model = useCouncilModel();
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
-        :disabled="model.store.busy || !model.store.reassignPath"
+        :disabled="model.store.busy || model.settling || !model.store.reassignPath"
         @click="model.reassign(model.selectedRun.id)"
       >
         Publish retained results to selected note

@@ -37,5 +37,5 @@ export function councilProgressAnnouncement(run: {
   invocations: readonly { roundId: string; agentId: string }[];
 }): string {
   const next = run.invocations[run.cursor];
-  return `${councilRunState(run)}. ${run.cursor} of ${run.invocations.length} contributions published.${next ? ` Current action: ${next.roundId}, ${next.agentId}.` : ""}`;
+  return `${councilRunState(run)}. ${run.cursor} of ${run.invocations.length} steps completed or skipped.${next ? ` Current action: ${next.roundId}, ${next.agentId}.` : ""}`;
 }

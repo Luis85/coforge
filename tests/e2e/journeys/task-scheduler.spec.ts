@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 import { mkdir } from 'node:fs/promises';
+import { openCouncilPage } from '../support/council-navigation';
 
 for (const theme of ['light', 'dark']) test(`task scheduler preserves drafts and makes routing, recurrence and recovery clear in ${theme}`, async ({ page }) => {
   test.setTimeout(90000);
@@ -9,8 +10,8 @@ for (const theme of ['light', 'dark']) test(`task scheduler preserves drafts and
   await page.evaluate(value => { document.body.classList.toggle('theme-light', value === 'light'); document.body.classList.toggle('theme-dark', value === 'dark'); }, theme);
   await page.getByRole('button', { name: 'The Council', exact: true }).first().click();
   await page.getByRole('button', { name: 'Explore Council example', exact: true }).click();
-  const nav = page.getByRole('navigation', { name: 'Council workspace', exact: true });
-  await nav.getByRole('button', { name: 'Task scheduler', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Ask the Council for advice', exact: true })).toBeVisible();
+  await openCouncilPage(page, 'Task scheduler');
   await page.getByRole('button', { name: 'Explore scheduler example', exact: true }).click();
   await page.getByRole('button', { name: 'New scheduled task', exact: true }).click();
   const form = page.getByRole('form', { name: 'Scheduled task settings', exact: true });
@@ -22,8 +23,8 @@ for (const theme of ['light', 'dark']) test(`task scheduler preserves drafts and
   await form.getByRole('combobox', { name: 'Timing', exact: true }).selectOption('weekly');
   await form.getByLabel('Saved timezone', { exact: true }).fill('Europe/Berlin');
   await form.getByLabel('Fri', { exact: true }).check();
-  await nav.getByRole('button', { name: 'Definitions', exact: true }).click();
-  await nav.getByRole('button', { name: 'Task scheduler', exact: true }).click();
+  await openCouncilPage(page, 'Definitions');
+  await openCouncilPage(page, 'Task scheduler');
   await expect(form.getByLabel('Task prompt', { exact: true })).toHaveValue('Review boundaries and record actionable improvements.');
   await form.getByLabel('Saved timezone', { exact: true }).fill('Not/AZone');
   await form.getByRole('button', { name: 'Save schedule', exact: true }).click();
@@ -48,5 +49,9 @@ for (const theme of ['light', 'dark']) test(`task scheduler preserves drafts and
   await page.getByRole('button', { name: 'Archive Weekly architecture review', exact: true }).click();
   await expect(list).not.toContainText('Weekly architecture review');
   await page.getByLabel('Show archived schedules', { exact: true }).check(); await expect(list).toContainText('Archived');
+  await region.getByRole('button', { name: 'Exit scheduler example', exact: true }).click();
+  await expect(region.getByRole('button', { name: 'Explore scheduler example', exact: true })).toBeVisible();
+  await region.getByRole('button', { name: 'Explore scheduler example', exact: true }).click();
+  await expect(region).not.toContainText('Weekly architecture review');
   expect(errors).toEqual([]);
 });

@@ -32,6 +32,43 @@
       "file": "activity.md"
     },
     {
+      "id": "ai-cost-attribution",
+      "title": "Agent, team and Council costs",
+      "goal": "Compare retained attempt costs by captured agent, team or Council identity.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "AI costs / Cost attribution",
+      "parent": "ai-costs",
+      "component": "src/plugin/presentation/components/coforge/AICostAttribution.vue",
+      "entry": [
+        "Open AI costs and review Who used the AI budget."
+      ],
+      "actions": [
+        "Filter by agent",
+        "Filter by team",
+        "Filter by Council",
+        "Regroup the same attempts",
+        "Inspect partial coverage",
+        "Clear attribution filters"
+      ],
+      "states": [
+        "Attributed",
+        "Legacy unattributed",
+        "Unknown cost",
+        "Provider reported",
+        "Manual fallback",
+        "Simulation",
+        "Not started without provider contact",
+        "Filtered empty",
+        "More than 50 identities"
+      ],
+      "journeys": [
+        "cost-review"
+      ],
+      "privacy": "Private USD usage and captured execution identities; never included in public viewer projections. Prompts, source bodies and local paths are not analytics fields.",
+      "file": "ai-cost-attribution.md"
+    },
+    {
       "id": "ai-costs",
       "title": "AI costs",
       "goal": "Understand the known cost and usage of agent work.",
@@ -45,7 +82,8 @@
       ],
       "actions": [
         "Refresh",
-        "Filter project",
+        "Filter project, agent, team or Council",
+        "Regroup captured identities",
         "Inspect feature and attempt",
         "Record manual cost"
       ],
@@ -54,7 +92,9 @@
         "Reported amount",
         "Manual amount",
         "Unavailable amount",
-        "Partial token coverage"
+        "Partial token coverage",
+        "Legacy unattributed",
+        "Not started without provider contact"
       ],
       "journeys": [
         "cost-review"
@@ -453,7 +493,7 @@
     {
       "id": "community-settings",
       "title": "Community settings",
-      "goal": "Save the community’s naming and earning rules.",
+      "goal": "Save community names, XP and reputation rules, and ranks.",
       "audience": "streamer",
       "kind": "page",
       "route": "studio.view = community-settings",
@@ -464,7 +504,8 @@
       ],
       "actions": [
         "Edit names",
-        "Edit earning rules and named ranks",
+        "Edit XP and reputation rules and named ranks",
+        "Open Economy for currency income and prices",
         "Save or discard"
       ],
       "states": [
@@ -487,7 +528,7 @@
     {
       "id": "council",
       "title": "The Council",
-      "goal": "Choose a specialist collaboration task.",
+      "goal": "Ask for specialist advice and follow each task to attributed results.",
       "audience": "streamer",
       "kind": "page",
       "route": "studio.view = council",
@@ -497,7 +538,9 @@
         "Choose The Council in the studio navigation."
       ],
       "actions": [
-        "Choose subpage",
+        "Ask a question",
+        "Review task history",
+        "Open advanced tools",
         "Refresh",
         "Explore labelled example"
       ],
@@ -517,6 +560,48 @@
         "key": "council"
       },
       "file": "council.md"
+    },
+    {
+      "id": "council-ask",
+      "title": "Ask the Council",
+      "goal": "Save a question and review the Council's proposed work before submitting.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = ask",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/CouncilAskView.vue",
+      "entry": [
+        "Choose The Council in the studio navigation.",
+        "Choose Ask the Council from another Council task."
+      ],
+      "actions": [
+        "Write title and question",
+        "Choose project team and council",
+        "Save task and review",
+        "Submit reviewed task",
+        "Start a new task",
+        "Review task history"
+      ],
+      "states": [
+        "No project or council",
+        "Unsaved question",
+        "Saved note",
+        "Preflight unavailable",
+        "Reviewed preview",
+        "Queued",
+        "Execution paused",
+        "Write conflict"
+      ],
+      "journeys": [
+        "Council",
+        "analytical-task"
+      ],
+      "privacy": "Private analytical task notes and execution evidence; excluded from public projections.",
+      "coverage": {
+        "group": "council",
+        "key": "ask"
+      },
+      "file": "council-ask.md"
     },
     {
       "id": "council-definition-transfer",
@@ -558,11 +643,12 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilDefinitions.vue",
       "entry": [
-        "Open The Council, then choose Definitions."
+        "Open The Council, expand Advanced Council tools, then choose Definitions."
       ],
       "actions": [
         "Create agent, team or council",
         "Create default team",
+        "Choose per-round prompt order",
         "Select or search",
         "Save or discard",
         "Duplicate or archive",
@@ -593,10 +679,10 @@
       "audience": "streamer",
       "kind": "panel",
       "route": "Council executor controls",
-      "parent": "council-monitor",
+      "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilExecutionControls.vue",
       "entry": [
-        "Within The Council → Run monitor, use the inline Execution controls section."
+        "Use the inline Execution controls on Ask the Council or Advanced Council tools → Run monitor."
       ],
       "actions": [
         "Check runtime",
@@ -628,7 +714,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilFolderSettings.vue",
       "entry": [
-        "Open The Council, then choose Definition folders."
+        "Open The Council, expand Advanced Council tools, then choose Definition folders."
       ],
       "actions": [
         "Review mappings",
@@ -662,7 +748,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilSubmission.vue",
       "entry": [
-        "Open The Council, then choose Watched inboxes."
+        "Open The Council, expand Advanced Council tools, then choose Watched inboxes."
       ],
       "actions": [
         "Configure folder",
@@ -699,7 +785,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilMessages.vue",
       "entry": [
-        "Open The Council, then choose Team messages."
+        "Open The Council, expand Advanced Council tools, then choose Team messages."
       ],
       "actions": [
         "Select team and recipients",
@@ -735,7 +821,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilMonitor.vue",
       "entry": [
-        "Open The Council, then choose Run monitor."
+        "Open The Council, expand Advanced Council tools, then choose Run monitor."
       ],
       "actions": [
         "Check and designate executor",
@@ -870,7 +956,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/TaskSchedulerView.vue",
       "entry": [
-        "Open The Council → Task scheduler."
+        "Open The Council → Advanced Council tools → Task scheduler."
       ],
       "actions": [
         "Create or edit task",
@@ -907,7 +993,7 @@
     },
     {
       "id": "council-submit",
-      "title": "Submit and preflight",
+      "title": "Submit existing note",
       "goal": "Submit a reviewed note to the intended collaboration destination.",
       "audience": "streamer",
       "kind": "subpage",
@@ -915,7 +1001,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilSubmission.vue",
       "entry": [
-        "Open The Council, then choose Submit and preflight."
+        "Open The Council, expand Advanced Council tools, then choose Submit existing note."
       ],
       "actions": [
         "Choose source and target",
@@ -941,6 +1027,42 @@
       "file": "council-submit.md"
     },
     {
+      "id": "council-task-history",
+      "title": "Council task history",
+      "goal": "Find a saved question or retained ingestion and resolve its next action.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Ask the Council / Ingested tasks",
+      "parent": "council-ask",
+      "component": "src/plugin/presentation/components/coforge/CouncilAskView.vue",
+      "entry": [
+        "Open The Council and review Ingested tasks below the question form."
+      ],
+      "actions": [
+        "Search tasks",
+        "Review saved task",
+        "Inspect task",
+        "Show 50 more tasks",
+        "Refresh Council"
+      ],
+      "states": [
+        "Empty",
+        "Saved note with no retained run",
+        "Queued or running",
+        "Completed",
+        "Failed or unknown outcome",
+        "Latest inbox observation",
+        "Saved-note catalogue unavailable"
+      ],
+      "journeys": [
+        "Council",
+        "analytical-task",
+        "recovery"
+      ],
+      "privacy": "Private source paths, questions, project identities and run evidence; excluded from public projections.",
+      "file": "council-task-history.md"
+    },
+    {
       "id": "council-workflows",
       "title": "Council workflows",
       "goal": "Save an explicit proposal workflow for this project.",
@@ -950,7 +1072,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/WorkflowV2Editor.vue",
       "entry": [
-        "Open The Council, then choose Council workflows."
+        "Open The Council, expand Advanced Council tools, then choose Council workflows."
       ],
       "actions": [
         "Load saved",
@@ -974,6 +1096,218 @@
         "key": "workflows"
       },
       "file": "council-workflows.md"
+    },
+    {
+      "id": "economy",
+      "title": "Economy",
+      "goal": "Configure stream participation prices, earning and rewards.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = economy",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/EconomyView.vue",
+      "entry": [
+        "Open Economy from the Community navigation group."
+      ],
+      "actions": [
+        "Choose a local Economy page",
+        "Save rules",
+        "Discard configuration draft"
+      ],
+      "states": [
+        "Loading",
+        "Saved",
+        "Dirty",
+        "Stale configuration",
+        "Save failed"
+      ],
+      "journeys": [
+        "community-economy"
+      ],
+      "privacy": "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.",
+      "coverage": {
+        "group": "studio",
+        "key": "economy"
+      },
+      "file": "economy.md"
+    },
+    {
+      "id": "economy-commands",
+      "title": "Command prices",
+      "goal": "Set fees and success benefits for every supported stream command.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "economy.page = commands",
+      "parent": "economy",
+      "component": "src/plugin/presentation/components/coforge/EconomyCommands.vue",
+      "entry": [
+        "Choose Command prices inside Economy."
+      ],
+      "actions": [
+        "Select a command",
+        "Set fee and virtual benefits",
+        "Assign bonus rewards and boxes",
+        "Inspect captured usage"
+      ],
+      "states": [
+        "Free",
+        "Priced",
+        "No rewards configured",
+        "Recent usage empty",
+        "Dirty configuration"
+      ],
+      "journeys": [
+        "community-economy"
+      ],
+      "privacy": "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.",
+      "coverage": {
+        "group": "economy",
+        "key": "commands"
+      },
+      "file": "economy-commands.md"
+    },
+    {
+      "id": "economy-earning",
+      "title": "Presence earning",
+      "goal": "Set base and subscriber currency rates for eligible tracked chat presence.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "economy.page = earning",
+      "parent": "economy",
+      "component": "src/plugin/presentation/components/coforge/EconomyEarning.vue",
+      "entry": [
+        "Choose Earning inside Economy."
+      ],
+      "actions": [
+        "Set the base rate",
+        "Enable or disable a separate subscriber total rate"
+      ],
+      "states": [
+        "Zero income",
+        "Inherited subscriber rate",
+        "Separate subscriber total",
+        "Dirty configuration"
+      ],
+      "journeys": [
+        "community-economy"
+      ],
+      "privacy": "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.",
+      "coverage": {
+        "group": "economy",
+        "key": "earning"
+      },
+      "file": "economy-earning.md"
+    },
+    {
+      "id": "economy-fulfillment",
+      "title": "Manual perk fulfillment",
+      "goal": "Record manually completed perks from captured awards and purchases.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "economy.page = fulfillment",
+      "parent": "economy",
+      "component": "src/plugin/presentation/components/coforge/EconomyFulfillment.vue",
+      "entry": [
+        "Choose Fulfillment inside Economy."
+      ],
+      "actions": [
+        "Filter pending or fulfilled records",
+        "Find viewer or perk",
+        "Page records",
+        "Write a private fulfillment note",
+        "Record as fulfilled",
+        "Cancel the local note"
+      ],
+      "states": [
+        "Empty queue",
+        "Pending",
+        "Fulfilled",
+        "Note dirty",
+        "Write failed",
+        "Concurrent entry changed"
+      ],
+      "journeys": [
+        "community-economy"
+      ],
+      "privacy": "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.",
+      "coverage": {
+        "group": "economy",
+        "key": "fulfillment"
+      },
+      "file": "economy-fulfillment.md"
+    },
+    {
+      "id": "economy-lootboxes",
+      "title": "Loot boxes",
+      "goal": "Define purchasable weighted reward outcomes with visible exact odds.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "economy.page = lootboxes",
+      "parent": "economy",
+      "component": "src/plugin/presentation/components/coforge/EconomyLootboxes.vue",
+      "entry": [
+        "Choose Loot boxes inside Economy."
+      ],
+      "actions": [
+        "Add loot box",
+        "Set purchase price",
+        "Add reward outcomes and weights",
+        "Review effective odds",
+        "Remove draft outcome or box"
+      ],
+      "states": [
+        "No rewards",
+        "No boxes",
+        "Incomplete weights",
+        "Zero-weight outcome",
+        "Effective reward odds",
+        "Dirty configuration"
+      ],
+      "journeys": [
+        "community-economy"
+      ],
+      "privacy": "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.",
+      "coverage": {
+        "group": "economy",
+        "key": "lootboxes"
+      },
+      "file": "economy-lootboxes.md"
+    },
+    {
+      "id": "economy-rewards",
+      "title": "Reward catalog",
+      "goal": "Define virtual account rewards and manually delivered perks with purchase prices.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "economy.page = rewards",
+      "parent": "economy",
+      "component": "src/plugin/presentation/components/coforge/EconomyRewards.vue",
+      "entry": [
+        "Choose Rewards inside Economy."
+      ],
+      "actions": [
+        "Add virtual reward",
+        "Add manual perk",
+        "Set purchase price",
+        "Edit benefits or fulfillment instructions",
+        "Remove a draft reward"
+      ],
+      "states": [
+        "Empty catalog",
+        "Selected reward",
+        "Virtual account benefit",
+        "Manual perk",
+        "Dirty configuration"
+      ],
+      "journeys": [
+        "community-economy"
+      ],
+      "privacy": "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.",
+      "coverage": {
+        "group": "economy",
+        "key": "rewards"
+      },
+      "file": "economy-rewards.md"
     },
     {
       "id": "finance",
@@ -1222,6 +1556,7 @@
       "actions": [
         "Enter title and description",
         "Choose category",
+        "Fill optional captured project fields",
         "Create",
         "Cancel"
       ],
@@ -1315,6 +1650,7 @@
       ],
       "actions": [
         "Read request and context",
+        "Inspect or edit captured custom values",
         "Inspect screening",
         "Edit RICE",
         "Run next stage"
@@ -1366,6 +1702,37 @@
         "key": "plan"
       },
       "file": "idea-plan.md"
+    },
+    {
+      "id": "idea-request-values",
+      "title": "Captured request fields",
+      "goal": "Read and maintain private structured values using the request's original schema.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Request overview / Captured request object",
+      "parent": "idea-overview",
+      "component": "src/plugin/presentation/components/coforge/RequestValuesPanel.vue",
+      "entry": [
+        "Open Overview on a request created with a Request Object."
+      ],
+      "actions": [
+        "Read captured class and values",
+        "Edit optional values",
+        "Save request fields",
+        "Discard field changes"
+      ],
+      "states": [
+        "Captured values",
+        "Unsaved draft",
+        "Stale request",
+        "Save failure",
+        "Closed request"
+      ],
+      "journeys": [
+        "request-to-recognition"
+      ],
+      "privacy": "Private request metadata; custom fields are never added to public projections.",
+      "file": "idea-request-values.md"
     },
     {
       "id": "native-claude",
@@ -1882,7 +2249,9 @@
       "actions": [
         "Read board",
         "Expand plan or community context",
-        "Read leaderboards and badges"
+        "Read leaderboards and badges",
+        "Navigate sections",
+        "Refresh board"
       ],
       "states": [
         "No screened cards",
@@ -1976,15 +2345,15 @@
     },
     {
       "id": "settings-data",
-      "title": "Project data tools",
-      "goal": "Export or explicitly replace this project’s workspace data.",
+      "title": "Backup and sample tools",
+      "goal": "Export a private studio backup or explicitly replace this project’s requests with sample data.",
       "audience": "streamer",
       "kind": "panel",
       "route": "Project settings / data tools",
       "parent": "settings",
       "component": "src/plugin/presentation/components/coforge/SettingsDataSection.vue",
       "entry": [
-        "Within Project settings, use the Project data section."
+        "Within Project settings, use Backup and sample tools."
       ],
       "actions": [
         "Export private JSON backup",
@@ -2003,6 +2372,46 @@
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
       "file": "settings-data.md"
+    },
+    {
+      "id": "settings-example-cleanup",
+      "title": "Example content cleanup",
+      "goal": "Review and explicitly remove sample and local-test content while preserving real requests.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Project settings / Backup and sample tools / Example cleanup",
+      "parent": "settings-data",
+      "component": "src/plugin/presentation/components/coforge/ExampleContentCleanup.vue",
+      "entry": [
+        "Open Project settings, then Preview example cleanup under Backup and sample tools."
+      ],
+      "actions": [
+        "Preview exact tracked requests",
+        "Inspect historical candidates",
+        "Select exact historical request IDs",
+        "Keep content",
+        "Confirm removal",
+        "Refresh a stale preview"
+      ],
+      "states": [
+        "Closed",
+        "Loading preview",
+        "Paused automation required",
+        "Pending work blocked",
+        "Preview",
+        "Historical origin unknown",
+        "Working",
+        "Failed with selection retained",
+        "Committed",
+        "Recovery archive retained"
+      ],
+      "journeys": [
+        "setup",
+        "multi-project",
+        "request-to-recognition"
+      ],
+      "privacy": "Private requests and note evidence stay within the vault. Cleanup uses exact IDs and never changes credentials, external game files or retained public request policy.",
+      "file": "settings-example-cleanup.md"
     },
     {
       "id": "settings-repository",
@@ -2034,6 +2443,41 @@
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
       "file": "settings-repository.md"
+    },
+    {
+      "id": "settings-request-object",
+      "title": "Project Request Object",
+      "goal": "Configure categories, class and optional properties captured by new requests.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Project settings / Request Object",
+      "parent": "settings",
+      "component": "src/plugin/presentation/components/coforge/SettingsRequestObjectSection.vue",
+      "entry": [
+        "Open Project settings and review Request Object."
+      ],
+      "actions": [
+        "Maintain project categories",
+        "Set class label",
+        "Add or remove fields",
+        "Choose field types and defaults",
+        "Reorder fields",
+        "Save or discard project settings"
+      ],
+      "states": [
+        "Unconfigured legacy default",
+        "Schema draft",
+        "Reserved or duplicate key",
+        "Invalid default",
+        "Saved for new requests",
+        "Stale project configuration"
+      ],
+      "journeys": [
+        "multi-project",
+        "request-to-recognition"
+      ],
+      "privacy": "Private project configuration and request metadata; custom fields are excluded from public projections.",
+      "file": "settings-request-object.md"
     },
     {
       "id": "settings-runtime",
@@ -2379,7 +2823,7 @@
     {
       "id": "workflow",
       "title": "Agent workflow",
-      "goal": "Resolve the next execution decision for this project.",
+      "goal": "Manage this project's agent process from configuration through execution.",
       "audience": "streamer",
       "kind": "page",
       "route": "studio.view = workflow",
@@ -2393,7 +2837,8 @@
         "Complete checkpoint",
         "Pause or resume",
         "Inspect history",
-        "Open Workflow settings"
+        "Configure workflow",
+        "Manage Herdr workspaces"
       ],
       "states": [
         "No project",
@@ -2457,12 +2902,12 @@
       "title": "Workflow settings",
       "goal": "Save the process that new requests will follow.",
       "audience": "streamer",
-      "kind": "page",
-      "route": "studio.view = workflow-settings",
-      "parent": "studio",
+      "kind": "subpage",
+      "route": "studio.workflowTool = settings (compatibility: studio.view = workflow-settings)",
+      "parent": "workflow",
       "component": "src/plugin/presentation/components/coforge/WorkflowEditorView.vue",
       "entry": [
-        "Choose Workflow settings in the studio navigation."
+        "Open Agent workflow, then choose Workflow settings."
       ],
       "actions": [
         "Add or select step",
@@ -2483,10 +2928,16 @@
         "workflow-configuration"
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
-      "coverage": {
-        "group": "studio",
-        "key": "workflow-settings"
-      },
+      "coverage": [
+        {
+          "group": "studio",
+          "key": "workflow-settings"
+        },
+        {
+          "group": "workflow",
+          "key": "settings"
+        }
+      ],
       "file": "workflow-settings.md"
     },
     {

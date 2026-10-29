@@ -4,10 +4,14 @@ import {
   type StreamSurface,
 } from "../../../features/coforge/domain/stream-surfaces";
 import { useCoforge } from "../../context/coforge-context";
+import { useTemporaryExample } from "./use-temporary-example";
 export function useStreamDisplays() {
   const { host, studio } = useCoforge();
   const preview = ref<StreamSurface | null>(null);
   const error = ref("");
+  const beginExample = useTemporaryExample("public-displays", () => {
+    preview.value = null;
+  });
   return reactive({
     definitions: STREAM_SURFACES,
     preview,
@@ -30,6 +34,7 @@ export function useStreamDisplays() {
         });
     },
     showPreview: (surface: StreamSurface) => {
+      beginExample();
       preview.value = surface;
     },
     closePreview: () => {

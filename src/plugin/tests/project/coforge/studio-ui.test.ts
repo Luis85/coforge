@@ -103,7 +103,7 @@ describe("CoForge studio view", () => {
       await nav(wrapper, label).trigger("click");
       await flushPromises();
       expect(wrapper.find(".cf-topbar strong").text()).toBe(
-        label === "Project settings" ? "Settings" : label,
+        label,
       );
     }
     expect(errors).toEqual([]);

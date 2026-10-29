@@ -20,3 +20,8 @@ export interface TaskSchedulerActions {
   openSource(occurrenceId: string): Promise<void>;
   refresh(): Promise<void>;
 }
+
+/** The host proves this policy rejection occurred before it attempted provider admission. */
+export class TaskDispatchPolicyError extends Error {
+  constructor(message: string) { super(message); this.name = 'TaskDispatchPolicyError'; }
+}

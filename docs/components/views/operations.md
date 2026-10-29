@@ -23,6 +23,8 @@ Find the recorded outcome of a failed or uncertain action.
 
 Records distinguish committed, no-change and uncertain effects. Exports exclude chat text, identities, credentials, paths and note content.
 
+The leading evidence summary counts unconfirmed events in the retained log. Its shortcut clears the event-type filter and selects unconfirmed effects. This is historical evidence, not a count of currently unresolved actions: current recovery belongs to the owning tool. Cumulative counters and retained-record coverage remain separately labelled.
+
 ## Entry and next action
 
 Choose Operations in the studio navigation. Available actions: Filter event and effect; Clear filters; Inspect records; Export safe diagnostics. Return through the owning [CoForge studio](studio.md) surface.

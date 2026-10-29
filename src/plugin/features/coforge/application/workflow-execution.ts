@@ -138,6 +138,7 @@ export function executionTaskPrompt(input: StageInput): string {
           title: input.idea.title,
           description: input.idea.description,
           category: input.idea.category,
+          ...(input.idea.requestObject ? { requestObject: input.idea.requestObject } : {}),
           contexts:
             input.idea.contexts?.map(({ authorName, text, createdAt }) => ({
               authorName,

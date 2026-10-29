@@ -100,6 +100,17 @@ export class McpModule implements McpActions {
       .slice(-25).map(job => ({ projectId: job.projectId ?? 'CFP-001', taskId: job.id, ideaId: job.ideaId, step: job.workflow?.step.name ?? job.stage }));
     return { active, recovery, message: this.failure || (active ? 'Active for all projects in this vault. Restart or reconnect your MCP client to load the tools.' : this.saved ? 'Inactive. Inspect the MCP settings files, then deactivate to clean up or activate to retry registration.' : 'Inactive. Activate once to connect all CoForge projects in this vault.') };
   }
+  /** Cleanup must preserve every selected attempt's explicit recovery route, including rows outside the UI limit. */
+  assertExampleCleanup(ideaIds: readonly string[]): void {
+    const selected = new Set(ideaIds);
+    for (const job of this.studio.state().jobs) {
+      if (job.provider !== 'mcp' || !selected.has(job.ideaId)) continue;
+      if (['queued', 'running'].includes(job.status)) throw new Error('Finish or cancel the selected request’s active MCP work before cleanup.');
+      if (job.workflow?.workspaceId && ['failed', 'cancelled'].includes(job.status)
+        && (!this.ready || this.disposed || !this.acknowledgedTasks.includes(job.id)))
+        throw new Error('Inspect and explicitly acknowledge the selected request’s MCP workspace recovery before cleanup.');
+    }
+  }
   activate(): Promise<void> {
     return this.command(async () => {
       if (this.disposed || !this.ready) throw new Error(this.failure || 'MCP is still loading.');
@@ -138,7 +149,10 @@ export class McpModule implements McpActions {
       if (!job?.workflow?.workspaceId || !['failed', 'cancelled'].includes(job.status) || jobs.some(item => item.projectId === job.projectId && ['queued', 'running'].includes(item.status)))
         throw new Error('Finish or cancel this project’s active attempts and inspect the original failed MCP workspace before recovery.');
       await this.runner.acknowledge(job.workflow.workspaceId, job.workflow.attemptId);
-      this.acknowledgedTasks = [...new Set([...this.acknowledgedTasks, taskId])].slice(-1000); await this.persist();
+      const previous = this.acknowledgedTasks;
+      this.acknowledgedTasks = [...new Set([...previous, taskId])].slice(-1000);
+      try { await this.persist(); }
+      catch (error) { this.acknowledgedTasks = previous; throw error; }
     });
   }
   dispose(): Promise<void> { return this.closing ??= this.close(); }

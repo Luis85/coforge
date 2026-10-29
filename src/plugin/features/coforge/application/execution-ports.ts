@@ -34,6 +34,8 @@ export interface ExecutionKernelHost {
     attempt: ExecutionAttempt,
     timing?: ExecutionTimingHooks,
   ): Promise<ExecutionResponse>;
+  /** Trusted exclusive group lane; members may overlap without interleaving other run/provider lanes. */
+  withInvocationBatch?(run: ExecutionRun, work: () => Promise<void>): Promise<void>;
   publish(run: ExecutionRun, artifact: ExecutionArtifact): Promise<void>;
   cancelInvocation?(runId: string): void;
   /** Trusted host validation and root-budget reservation share the artifact's durable commit. */

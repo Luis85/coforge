@@ -5,7 +5,8 @@ import {
   projectInvocationInstructions,
   type InvocationProjectContext,
 } from "../../features/coforge/application/invocation-project-context";
-import type { Plugin } from "obsidian";
+import type { Plugin, TFile } from "obsidian";
+import { CouncilIdeaLinks } from "./council-idea-links";
 import type { StudioService } from "../../features/coforge/application/studio";
 import type { CouncilCatalogueActions } from "../../features/coforge/application/council-catalogue";
 import {
@@ -33,6 +34,7 @@ import type { CouncilSourceNotes } from "./council-source-notes";
 
 /** Source snapshots and live host policy are checked separately from editable definitions. */
 export class CouncilRunContext {
+  readonly linkedIdeas: CouncilIdeaLinks;
   constructor(
     private readonly plugin: Plugin,
     private readonly studio: StudioService,
@@ -44,7 +46,10 @@ export class CouncilRunContext {
     private readonly projectPaused: (id: string) => boolean,
     private readonly definitionFolders: () => readonly string[] = () =>
       Object.values(DEFAULT_COUNCIL_FOLDERS),
-  ) {}
+    ideaFile?: (id: string) => TFile | null,
+  ) {
+    this.linkedIdeas = new CouncilIdeaLinks(plugin, studio, ideaFile);
+  }
   sourcePath(path: string): string {
     const normalized = normalizeVaultFolder(path);
     if (
@@ -127,6 +132,12 @@ export class CouncilRunContext {
       throw new Error(
         "Submit a nonempty note and clear Draft before dispatch.",
       );
+    const linkedIdea = await this.linkedIdeas.validate(
+      path,
+      note.sourceId,
+      plan.definition.projectId,
+      note.body,
+    );
     for (const item of plan.invocations) {
       if (!simulation && item.agent.provider === "herdr")
         throw new Error(
@@ -173,6 +184,7 @@ export class CouncilRunContext {
         generation: note.generation,
         revision: note.sourceRevision,
         markdown: note.body,
+        ...(linkedIdea ? { linkedIdea } : {}),
       },
       invocations: plan.invocations.length,
       warnings: simulation
@@ -194,6 +206,37 @@ export class CouncilRunContext {
     );
     const note = await this.sources.read(path);
     if (note.draft) throw new ExecutionBlockError("source-draft");
+    if (run.subject.kind === "idea" && run.subject.ideaRevision) {
+      const link = {
+        ideaId: run.subject.ideaId,
+        revision: run.subject.ideaRevision,
+      };
+      await this.linkedIdeas.assertCaptured(
+        run.subject.sourceId,
+        run.projectId,
+        link,
+        run.subject.markdown,
+      );
+      if (
+        !run.projectionTarget ||
+        run.projectionTarget.sourceId === run.subject.sourceId
+      ) {
+        const linked = await this.linkedIdeas.validate(
+          path,
+          note.sourceId,
+          run.projectId,
+          note.body,
+        );
+        if (!linked || JSON.stringify(linked) !== JSON.stringify(link))
+          throw new ExecutionBlockError("source-changed");
+      }
+    } else
+      await this.linkedIdeas.validate(
+        path,
+        note.sourceId,
+        run.projectId,
+        note.body,
+      );
     if (!executionSourceRevisionAccepted(run, note.sourceRevision))
       throw new ExecutionBlockError("source-changed");
   }

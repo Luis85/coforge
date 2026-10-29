@@ -1,7 +1,8 @@
+import { routeIntake, type IntakeBinding } from '../../features/coforge/domain/intake-bindings';
 import type { Plugin } from 'obsidian';
 import type { StudioService } from '../../features/coforge/application/studio';
 import type { CouncilActions, CouncilRuntimeSnapshot } from '../../features/coforge/application/council-ports';
-import type { TaskSchedulerHost } from '../../features/coforge/application/task-scheduler-ports';
+import { TaskDispatchPolicyError, type TaskSchedulerHost } from '../../features/coforge/application/task-scheduler-ports';
 import { resolveCouncilPlan, type CouncilTarget } from '../../features/coforge/application/council-execution';
 import { reviewedCouncilIdentity } from '../../features/coforge/application/reviewed-preflight';
 import { SCHEDULED_TASK_FOLDER, scheduledOccurrencePath, type TaskDraft } from '../../features/coforge/domain/scheduled-task';
@@ -20,6 +21,14 @@ export function taskSchedulerHost(plugin: Plugin, studio: StudioService, council
   const configured = () => {
     const state = refresh();
     if (!state.ready || !state.executor) throw new Error('Designate this desktop in Council → Run monitor before changing task schedules.');
+  };
+  const assertUnwatched = (sourcePath: string, captured: readonly IntakeBinding[]) => {
+    const bindings = [...captured, ...refresh().preferences.bindings];
+    if (bindings.some(binding => routeIntake([binding], sourcePath)))
+      throw new TaskDispatchPolicyError('A watched inbox would ingest this scheduled source. Move or remove the overlapping inbox binding, then inspect this occurrence before enabling future scheduling. Saved inbox preferences were preserved.');
+  };
+  const recheckUnwatched = async (sourcePath: string, captured: readonly IntakeBinding[]) => {
+    await council.assertExecutor?.(); configured(); assertUnwatched(sourcePath, captured);
   };
   const path = (value: string) => {
     const normalized = normalizeVaultFolder(value);
@@ -48,7 +57,11 @@ export function taskSchedulerHost(plugin: Plugin, studio: StudioService, council
     active: runId => { if (!latest) refresh(); return activeRuns.has(runId); },
     openSource: async value => { const file = path(value); await plugin.app.workspace.getLeaf('tab').openFile(file); },
     async dispatch(task, occurrence, signal) {
-      await council.assertExecutor?.(); configured(); signal.throwIfAborted(); await validate(task);
+      await council.assertExecutor?.(); configured(); signal.throwIfAborted();
+      const sourcePath = scheduledOccurrencePath(occurrence.id);
+      const capturedBindings = structuredClone(refresh().preferences.bindings);
+      assertUnwatched(sourcePath, capturedBindings);
+      await validate(task);
       let markdown = `# ${task.title}\n\n${task.prompt}\n\n`;
       for (const value of task.contextPaths) {
         signal.throwIfAborted(); const file = path(value); const content = await plugin.app.vault.read(file);
@@ -57,11 +70,12 @@ export function taskSchedulerHost(plugin: Plugin, studio: StudioService, council
       }
       signal.throwIfAborted();
       await protectCouncilPrivatePaths(plugin, [SCHEDULED_TASK_FOLDER], studio.integration().publicFolder);
-      const sourcePath = scheduledOccurrencePath(occurrence.id);
+      await recheckUnwatched(sourcePath, capturedBindings);
       if (plugin.app.vault.getAbstractFileByPath(sourcePath)) throw new Error('The occurrence source already exists. Inspect the previous admission before recovery.');
       signal.throwIfAborted(); await plugin.app.vault.create(sourcePath, markdown);
+      await recheckUnwatched(sourcePath, capturedBindings); signal.throwIfAborted();
       const preview = await council.preflight(target(task), sourcePath);
-      configured(); signal.throwIfAborted();
+      await recheckUnwatched(sourcePath, capturedBindings); signal.throwIfAborted();
       const run = await council.submit(target(task), sourcePath, reviewedCouncilIdentity(preview));
       return { runId: run.id, sourcePath };
     },

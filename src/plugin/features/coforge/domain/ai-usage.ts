@@ -30,6 +30,7 @@ export function hasTokenUsage(usage: StageUsage | undefined): boolean {
 }
 export interface UsageTask {
   provider: string;
+  status?: string;
   usage?: StageUsage;
   usageSource?: "provider";
 }
@@ -46,7 +47,7 @@ export function tokenSummary(tasks: readonly UsageTask[]) {
   let completeInputTasks = 0;
   let realTasks = 0;
   for (const task of tasks) {
-    if (task.provider === "demo") continue;
+    if (task.provider === "demo" || task.status === 'not-started') continue;
     realTasks++;
     if (task.usageSource !== "provider" || !task.usage) continue;
     const usage = task.usage;

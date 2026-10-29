@@ -1,0 +1,25 @@
+.cf-request-object-settings { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.cf-request-object-settings > header { max-width: 70ch; }
+.cf-request-object-settings > header h2 { font-size: 22px; line-height: 1.4; }
+.cf-request-object-settings > header p { margin-top: 8px; color: var(--cf-muted); font-size: 13px; line-height: 1.7; }
+.cf-request-object-settings > .cf-field { max-width: 600px; }
+.cf-request-schema-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.cf-request-schema-heading h3 { font-size: 17px; }
+.cf-request-schema-heading > span { font-size: 12px; color: var(--cf-muted); }
+.cf-request-schema-list { display: grid; gap: 22px; margin: 0; padding: 0; list-style: none; }
+.cf-request-schema-list > li { display: grid; gap: 16px; min-width: 0; padding: 20px; border-radius: var(--cf-section-radius); background: var(--cf-surface); }
+.cf-request-schema-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(120px, 0.6fr); gap: 16px; }
+.cf-request-schema-checkbox { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.cf-request-object-fields { display: grid; gap: 16px; min-width: 0; }
+.cf-request-object-fields .cf-request-checkbox-field { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+.cf-request-checkbox-field input { flex-shrink: 0; width: auto; }
+.cf-new-request-properties { display: grid; gap: 14px; padding-block: 20px; border-block: 1px solid var(--cf-border); }
+.cf-new-request-properties h3 { font-size: 17px; }
+.cf-new-request-properties > p { font-size: 12px; line-height: 1.6; color: var(--cf-muted); }
+.cf-request-values-editor { display: grid; gap: 18px; padding: 20px; background: var(--cf-info-surface); border-radius: var(--cf-section-radius); }
+.cf-request-values-editor h3 { font-size: 20px; }
+.cf-request-values-editor p { color: var(--cf-muted); font-size: 12px; line-height: 1.7; }
+@container plugin-shell-leaf (max-width: 850px) {
+  .cf-request-schema-row { grid-template-columns: minmax(0, 1fr); }
+  .cf-request-schema-list > li { padding: 16px; }
+}

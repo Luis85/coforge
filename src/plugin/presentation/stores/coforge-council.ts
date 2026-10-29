@@ -1,3 +1,4 @@
+import type { LinkedCouncilIdea } from "../../features/coforge/domain/council-linked-idea";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import type { CouncilRuntimeSnapshot } from "../../features/coforge/application/council-ports";
@@ -5,11 +6,28 @@ import type { CouncilCatalogueSnapshot } from "../../features/coforge/applicatio
 import type { CouncilPreflight } from "../../features/coforge/application/council-execution";
 import type { IntakeCandidate } from "../../features/coforge/domain/intake-bindings";
 import type { CouncilPage } from "./studio-pages";
+import type { CouncilTaskRecord } from "../../features/coforge/application/council-tasks";
 
 export const useCouncilStore = defineStore("coforge-council", () => {
+  const example = ref(false);
   const state = ref<CouncilRuntimeSnapshot | null>(null);
   const catalogue = ref<CouncilCatalogueSnapshot>({ valid: [], invalid: [] });
-  const tab = ref<CouncilPage>("definitions");
+  const tab = ref<CouncilPage>("ask");
+  const taskAssessmentApplying = ref(false);
+  const taskLinkedIdea = ref<LinkedCouncilIdea | null>(null);
+  const pendingIdeaAssessment = ref<{ linkedIdea: LinkedCouncilIdea; title: string; projectId: string } | null>(null);
+  const taskTitle = ref("");
+  const taskQuestion = ref("");
+  const taskTeam = ref("");
+  const taskCouncil = ref("");
+  const taskDraftKey = ref(crypto.randomUUID());
+  const taskConfirmedSavedDraftKey = ref("");
+  const taskReviewDraftKey = ref("");
+  const taskProjectId = ref("");
+  const taskSource = ref("");
+  const tasks = ref<CouncilTaskRecord[]>([]);
+  const tasksLoaded = ref(false);
+  const taskHistoryError = ref("");
   const source = ref("");
   const destination = ref("CoForge/Tests/");
   const target = ref("");
@@ -49,9 +67,25 @@ export const useCouncilStore = defineStore("coforge-council", () => {
   const allowanceScope = ref("");
   const allowanceReason = ref("");
   return {
+    example,
     state,
     catalogue,
     tab,
+    taskAssessmentApplying,
+    taskLinkedIdea,
+    pendingIdeaAssessment,
+    taskTitle,
+    taskQuestion,
+    taskTeam,
+    taskCouncil,
+    taskDraftKey,
+    taskConfirmedSavedDraftKey,
+    taskReviewDraftKey,
+    taskProjectId,
+    taskSource,
+    tasks,
+    tasksLoaded,
+    taskHistoryError,
     source,
     destination,
     target,

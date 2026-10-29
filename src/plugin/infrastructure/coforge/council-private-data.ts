@@ -1,3 +1,4 @@
+import { SCHEDULED_TASK_FOLDER } from "../../features/coforge/domain/scheduled-task";
 import type { Plugin } from "obsidian";
 import {
   normalizeVaultFolder,
@@ -51,6 +52,12 @@ export async function protectCouncilPrivatePaths(
     );
 }
 import type { IntakeBinding } from "../../features/coforge/domain/intake-bindings";
+import type { IntakeFolderPolicy } from "../../features/coforge/domain/intake-bindings";
+import { COUNCIL_TASK_FOLDER } from "../../features/coforge/domain/council-task";
+import {
+  DEFAULT_COUNCIL_FOLDERS,
+  type CouncilDefinitionFolders,
+} from "../../features/coforge/domain/council-definition-folders";
 /** All registered private locations participate in later public-folder validation. */
 export function councilRegisteredPrivateFolders(
   definitions: readonly string[],
@@ -64,7 +71,37 @@ export function councilRegisteredPrivateFolders(
       ...sources,
       "CoForge/Messages",
       "CoForge/Tests",
-      "CoForge/Scheduled Tasks",
+      COUNCIL_TASK_FOLDER,
+      SCHEDULED_TASK_FOLDER,
     ]),
   ];
+}
+
+export function councilModulePrivateFolders(
+  ready: boolean,
+  definitions: () => readonly string[],
+  configured: CouncilDefinitionFolders | undefined,
+  bindings: readonly IntakeBinding[],
+  sources: readonly string[],
+): string[] {
+  return councilRegisteredPrivateFolders(
+    ready
+      ? definitions()
+      : Object.values(configured ?? DEFAULT_COUNCIL_FOLDERS),
+    bindings,
+    sources,
+  );
+}
+
+export function councilFolderPolicy(
+  plugin: Plugin,
+  publicFolder: string,
+  definitions: readonly string[],
+): IntakeFolderPolicy {
+  return {
+    publicFolder,
+    configFolder: plugin.app.vault.configDir,
+    definitionFolders: definitions,
+    outputFolders: ["CoForge/Tests", "CoForge/Messages", COUNCIL_TASK_FOLDER, SCHEDULED_TASK_FOLDER],
+  };
 }

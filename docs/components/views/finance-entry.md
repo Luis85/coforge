@@ -30,6 +30,10 @@ Within Finances, use the entry form or choose Edit beside an existing entry. Ava
 
 New; Editing; Invalid amount; Stale ledger; Saving. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+The editor has its own neutral workspace surface next to the ledger. Entry type determines actual-payment attribution or recurring-plan fields. Edits retain existing validation, conflict detection and explicit deletion confirmation.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/FinanceEntryForm.vue](../../../src/plugin/presentation/components/coforge/FinanceEntryForm.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

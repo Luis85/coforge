@@ -49,7 +49,7 @@ const plan = useIdeaPlan(props);
   <div v-else class="cf-idea-empty">
     <CfIcon name="list-checks" size="lg" />
     <h3>No plan yet</h3>
-    <p>After screening and scoring, the planning agent will save its implementation steps and acceptance criteria here.</p>
+    <p>A planning step can save proposed changes and acceptance criteria here. Open the workflow to inspect this request’s configured process.</p>
     <button v-if="idea.status === 'ranked'" type="button" class="cf-btn cf-btn-secondary" :disabled="drawer.isBusy" @click="drawer.act('plan')">
       Create a plan <CfIcon name="arrow-right" />
     </button>

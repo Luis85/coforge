@@ -15,6 +15,7 @@ export async function sendOperatorMessage(
   await store.transaction((state) => {
     state.botReplies.push({
       id,
+      publicProjectIds: [],
       text: input.text,
       channelId: input.channelId,
       senderId: input.senderId,

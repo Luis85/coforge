@@ -24,6 +24,8 @@ Let external agents perform Screen, Score, Plan and Build against canonical CoFo
 
 Open the [native integration settings](native-settings.md) and activate MCP once. Node.js 22+ must be on PATH. Activation registers one bundled stdio bridge in the vault's `.mcp.json` and the user's `~/.claude.json`. Reconnect the client, discover projects with `coforge_projects`, and pass the chosen project ID to workflow tools. New projects appear automatically without further registration.
 
+An activated client can read requests and use the exposed workflow tools across all projects, including private ones. This local integration is separate from public viewer visibility; keep its credentials private.
+
 ## States and recovery
 
 Activation and deactivation are serialized and show actionable configuration errors. Both client files are preflighted; unrelated entries survive. Conflicting or malformed configuration is preserved. An interrupted activation stays inactive until explicitly retried or removed. Changing a game repository does not require a registration change; an in-flight task still rejects a changed repository identity.

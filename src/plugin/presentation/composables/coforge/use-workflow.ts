@@ -14,7 +14,7 @@ import {
   configuredStepProblem,
   CONFIGURED_RUN_LABELS,
 } from "./configured-workflow-display";
-/** The execution monitor reads each run's frozen definition; editing is a different destination. */
+/** Shared workflow workspace; execution reads captured definitions and settings edit future runs. */
 export function useWorkflow() {
   const store = useStudioStore();
   const actions = useStudioActions();
@@ -49,8 +49,9 @@ export function useWorkflow() {
     workflowAttemptRows(store.projectIdeas, store.projectJobs),
   );
   const provider = computed(() =>
-    workflowProviderSummary({ ...settings.value, workflow: definition.value }),
+    workflowProviderSummary({ ...settings.value, workflow: definition.value }, run.value?.external),
   );
+  const enabledCount = computed(() => run.value?.external ? 0 : definition.value.steps.filter(step => step.kind === 'ai' && step.automatic).length);
   const blocked = computed(() => {
     const idea = selected.value;
     if (!idea) return "Select a request to run its workflow.";
@@ -95,6 +96,9 @@ export function useWorkflow() {
     value && ["finished", "stopped"].includes(value.state);
   return reactive({
     store,
+    page: computed(() =>
+      store.view === "workflow-settings" ? "settings" : store.workflowTool,
+    ),
     error,
     expanded,
     selected,
@@ -109,14 +113,11 @@ export function useWorkflow() {
     providerIcon: computed(() => provider.value.icon),
     providerLabel: computed(() => provider.value.label),
     providerTitle: computed(() => provider.value.title),
-    enabledCount: computed(
-      () =>
-        definition.value.steps.filter(
-          (step) => step.kind === "ai" && step.automatic,
-        ).length,
-    ),
+    enabledCount,
+    automaticStepLabel: computed(() => run.value?.external ? 'AI steps require explicit client calls' : `${enabledCount.value} AI steps automatic`),
+    cadenceLabel: computed(() => run.value?.external ? 'Project automation does not advance this run' : `New automatic runs · ${savedDefinition.value.limits.intervalSeconds}s interval`),
     summaryLabel: computed(() =>
-      settings.value.paused ? "Automation paused" : "Automation resumed",
+      run.value?.external ? 'External MCP run' : settings.value.paused ? "Automation paused" : "Automation resumed",
     ),
     runLabel: computed(() =>
       run.value ? CONFIGURED_RUN_LABELS[run.value.state] : "Not started",
@@ -199,10 +200,12 @@ export function useWorkflow() {
       )
         store.workflowRequestSelection = event.target.value;
     },
-    editWorkflow: () => store.navigate("workflow-settings"),
+    selectPage: (page: import("../../stores/studio-pages").WorkflowPage) =>
+      store.openWorkflowTool(page),
+    editWorkflow: () => store.openWorkflowTool("settings"),
     editPrompt: (id: string) => {
       store.workflowStepSelection = id;
-      store.navigate("workflow-settings");
+      store.openWorkflowTool("settings");
     },
     openIdea: (id: string) => {
       void actions.openIdea(id);

@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
+import { councilPageButton } from '../support/council-navigation';
+import { openWorkflowSettings } from '../support/workflow-navigation';
 
 const views = [
   ["studio", "Stream studio", ".cf-broadcast-page"],
@@ -13,12 +15,13 @@ const views = [
   ["workflow", "Agent workflow", ".cf-workflow-page"],
   ["council", "The Council", ".cf-council"],
   ["community", "Community", ".cf-community-page"],
+  ["economy", "Economy", ".cf-economy-page"],
   ["viewers", "Viewers", ".cf-population-page"],
   ["operations", "Operations", ".cf-operations-page"],
   ["projects", "Projects", ".cf-projects-page"],
   ["community-settings", "Community settings", ".cf-community-settings-page"],
   ["settings", "Project settings", ".cf-settings-page"],
-  ["workflow-settings", "Workflow settings", ".cf-workflow-settings-page"],
+  ["workflow-settings", "Workflow settings", ".cf-workflow-page"],
 ] as const;
 
 for (const theme of ["light", "dark"]) {
@@ -33,6 +36,7 @@ for (const theme of ["light", "dark"]) {
         document.body.classList.add(`theme-${theme}`);
       }, theme);
       if (id === "projects") await page.locator(".cf-project-switcher").click();
+      else if (id === "workflow-settings") await openWorkflowSettings(page);
       else await page.locator(".cf-sidebar").getByRole("button", {
         name: id === "board" ? /^Idea board/ : label, exact: id !== "board",
       }).first().click();
@@ -42,6 +46,15 @@ for (const theme of ["light", "dark"]) {
       if (id === "schedule") await page.getByRole("button", { name: "Explore example schedule", exact: true }).click();
       const view = page.locator(selector);
       await expect(view).toBeVisible();
+      if (id === 'workflow-settings') {
+        await expect(view.locator('.cf-workflow-settings-page')).toBeVisible();
+        await expect(view.getByRole('heading', { name: 'Workflow settings', level: 2, exact: true })).toBeVisible();
+        await expect(view.getByRole('heading', { name: 'Agent workflow', level: 1, exact: true })).toBeVisible();
+        await expect(view.getByRole('heading', { level: 1 })).toHaveCount(1);
+        await expect(view.locator('.cf-project-work-context')).toHaveCount(1);
+        await expect(view.locator('.cf-workflow-settings-page')).toHaveCSS('padding-top', '0px');
+        await expect(view.locator('.cf-workflow-settings-page')).toHaveCSS('padding-left', '0px');
+      }
       if (id === "ai-costs" || id === "schedule") {
         const input = page.getByLabel(id === "ai-costs" ? "Find a feature or task" : "Plan name", { exact: true });
         await expect(input).toHaveCSS("border-top-width", "1px");
@@ -79,7 +92,8 @@ test("Council definition editor and cost filters reflow within a narrow desktop 
   await expect(page.locator("html")).toHaveAttribute("data-prototype-ready", "true");
   await page.getByRole("button", { name: "The Council", exact: true }).first().click();
   await page.getByRole("button", { name: "Explore Council example", exact: true }).click();
-  const subpage = page.getByRole("navigation", { name: "Council workspace", exact: true }).getByRole("button", { name: "Definitions", exact: true });
+  const subpage = await councilPageButton(page, 'Definitions');
+  await subpage.click();
   await page.locator(".cf-council h1").click();
   expect(await subpage.evaluate(el => getComputedStyle(el).outlineStyle)).toBe("none");
   await subpage.focus();

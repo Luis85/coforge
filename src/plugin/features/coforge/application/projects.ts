@@ -1,4 +1,4 @@
-import { record } from '../domain/check';
+import { oneOf, record } from '../domain/check';
 import { StudioError } from '../domain/errors';
 import { settingsPatch } from '../domain/inputs';
 import { omit } from '../domain/objects';
@@ -18,11 +18,12 @@ import { projectHasPendingWorkflow } from './workflow-configuration';
 function values(input: unknown) {
   const source = record(input);
   if (source.workflow !== undefined) throw new StudioError('Use Workflow settings to save a workflow with its source revision.', 409);
-  const settings = settingsPatch(omit(source, 'projectPath', 'worktreeFolder', 'allowImplementation', 'repositoryUrl', 'websiteUrl'));
+  const settings = settingsPatch(omit(source, 'projectPath', 'worktreeFolder', 'allowImplementation', 'repositoryUrl', 'websiteUrl', 'visibility'));
   if (settings.agentPrompt !== undefined) settings.agentPrompt = cleanText(settings.agentPrompt, 8000);
   if (settings.stagePrompts !== undefined) settings.stagePrompts = normalizeStagePrompts(settings.stagePrompts);
   if (settings.stageAgents !== undefined) settings.stageAgents = normalizeStageAgents(settings.stageAgents);
   const paths = {
+    ...(source.visibility === undefined ? {} : { visibility: oneOf(['public', 'private'] as const)(source.visibility) }),
     ...(source.projectPath === undefined ? {} : { projectPath: validateProjectPath(source.projectPath) }),
     ...(source.worktreeFolder === undefined ? {} : { worktreeFolder: validateProjectPath(source.worktreeFolder) }),
     ...(source.allowImplementation === undefined ? {} : { allowImplementation: source.allowImplementation }),
@@ -30,7 +31,7 @@ function values(input: unknown) {
     ...(source.websiteUrl === undefined ? {} : { websiteUrl: validateProjectUrl(source.websiteUrl) }),
   };
   if (paths.allowImplementation !== undefined && typeof paths.allowImplementation !== 'boolean') throw new StudioError('Real implementation must be enabled or disabled.');
-  return { settings, paths: { ...paths, ...(typeof paths.allowImplementation === 'boolean' ? { allowImplementation: paths.allowImplementation } : {}) } };
+  return { settings, paths: { ...omit(paths, 'allowImplementation'), ...(typeof paths.allowImplementation === 'boolean' ? { allowImplementation: paths.allowImplementation } : {}) } };
 }
 
 export async function addProject(store: StudioStore, input: unknown): Promise<StudioProject> {
@@ -47,6 +48,7 @@ export async function addProject(store: StudioStore, input: unknown): Promise<St
     const project: StudioProject = {
       id: projectIdFor(state.nextProjectNumber++), createdAt: now, updatedAt: now, projectPath,
       repositoryUrl: patch.paths.repositoryUrl ?? '', websiteUrl: patch.paths.websiteUrl ?? '',
+      visibility: patch.paths.visibility ?? 'public',
       worktreeFolder: patch.paths.worktreeFolder ?? '', allowImplementation: patch.paths.allowImplementation === true,
       settings: { ...defaults, ...patch.settings, projectName, projectBrief,
         automation: { ...defaults.automation, ...patch.settings.automation }, paused: true },
@@ -69,13 +71,16 @@ export async function editProject(store: StudioStore, id: string, input: unknown
     const previousPrompt = project.settings.agentPrompt;
     const previousStages = JSON.stringify(project.settings.stagePrompts ?? {});
     const previousAgents = JSON.stringify([project.settings.provider, project.settings.model, project.settings.stageAgents ?? {}]);
+    const previousVisibility = project.visibility ?? 'public';
     if (project.unavailable) throw new StudioError('Restore this project note before editing it.', 409);
-    if (projectHasPendingWorkflow(state, id)) throw new StudioError('Finish, stop or review this project’s workflow runs before changing project settings. Future workflow definitions can still be edited in Workflow settings.', 409);
-    if (state.jobs.some(job => job.projectId === id && isActiveJob(job))) throw new StudioError('Finish or cancel this project’s queued runs before editing its configuration.', 409);
     const settings = { ...project.settings, ...patch.settings, automation: { ...project.settings.automation, ...patch.settings.automation } };
+    const visibilityOnly = patch.paths.visibility !== undefined && projectConfigurationIdentity({ ...project, ...patch.paths, settings, visibility: project.visibility }) === projectConfigurationIdentity(project);
+    if (!visibilityOnly && projectHasPendingWorkflow(state, id)) throw new StudioError('Finish, stop or review this project’s workflow runs before changing project settings. Future workflow definitions can still be edited in Workflow settings.', 409);
+    if (!visibilityOnly && state.jobs.some(job => job.projectId === id && isActiveJob(job))) throw new StudioError('Finish or cancel this project’s queued runs before editing its configuration.', 409);
     settings.projectName = cleanLine(settings.projectName, 80);
     settings.projectBrief = cleanText(settings.projectBrief, 8000);
     Object.assign(project, patch.paths, { settings, updatedAt: new Date().toISOString() });
+    if (previousVisibility !== (project.visibility ?? 'public')) recordOperation(state, 'project-visibility-updated', 'committed', undefined, 1, project.id);
     if (previousPrompt !== settings.agentPrompt) recordOperation(state, 'project-prompt-updated', 'committed', undefined, 1, project.id);
     if (previousStages !== JSON.stringify(settings.stagePrompts ?? {})) recordOperation(state, 'project-stage-prompts-updated', 'committed', undefined, 1, project.id);
     if (previousAgents !== JSON.stringify([settings.provider, settings.model, settings.stageAgents ?? {}])) recordOperation(state, 'project-stage-agents-updated', 'committed', undefined, 1, project.id);

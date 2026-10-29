@@ -31,6 +31,10 @@ Choose Stream chat in the studio navigation. Available actions: Choose Chat; Cho
 
 Disconnected; Connecting; Live chat; Local command test. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+The conversation is the primary workspace, with moderation and the viewer command reference grouped beside it. Twitch settings and bot messages remain local pages. Viewer guidance describes registration and project IDs without a hard-coded community identity.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/StreamPage.vue](../../../src/plugin/presentation/components/coforge/StreamPage.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

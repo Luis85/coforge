@@ -112,5 +112,18 @@ jobs:
             reports/e2e/
             reports/stabilization/operating-views/
             reports/stabilization-subpages/
+            reports/example-cleanup/
+            reports/product-audit/
+            reports/ui-intent/after/
+            reports/council-ask/
+            reports/council-prompt-order/
+            reports/agent-costs/
+            reports/project-privacy/
+            reports/request-object/
+            reports/council-card-assessment/
+            reports/economy/
+            reports/task-scheduler/
+            reports/merged-native-mcp/
+            reports/idea-drawer-layout/
           retention-days: 14
           if-no-files-found: warn

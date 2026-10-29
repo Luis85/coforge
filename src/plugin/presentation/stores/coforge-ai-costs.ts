@@ -8,6 +8,10 @@ export const useAICostStore = defineStore("coforge-ai-costs", () => {
   const feature = ref("");
   const search = ref("");
   const source = ref("");
+  const agent = ref('');
+  const team = ref('');
+  const council = ref('');
+  const dimension = ref<import('../../features/coforge/domain/ai-cost-groups').CostDimension>('agent');
   const editing = ref<AICostTask | null>(null);
   const expected = ref("");
   const amount = ref("");
@@ -23,6 +27,7 @@ export const useAICostStore = defineStore("coforge-ai-costs", () => {
     feature,
     search,
     source,
+    agent, team, council, dimension,
     editing,
     expected,
     amount,

@@ -33,6 +33,10 @@ Open Stream studio, then choose Public displays. Select a project through the st
 
 Native actions are unavailable in the browser example; previews remain inspectable. An open/project-change error appears beside the launcher. Detached public window names remain stable as projects change; a capture window pauses if another pane or dialog appears and closes on plugin unload. After reload, reopen a public tab and detach it again.
 
+## Presentation and information hierarchy
+
+Each of the four display choices has a named launch and preview action. The preview is framed inside private studio controls; the detached public window remains the capture target. Public content receives only the public projection.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/StreamDisplaysPanel.vue](../../../src/plugin/presentation/components/coforge/StreamDisplaysPanel.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

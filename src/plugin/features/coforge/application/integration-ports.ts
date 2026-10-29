@@ -15,5 +15,7 @@ export interface LivePresencePort {
   liveStream(): Promise<{ id: string; startedAt: string } | null>;
   chatters(): Promise<string[]>;
   chattersProfiles?(): Promise<Array<{ id: string; name: string }>>;
+  /** Complete filtered current-channel subscriber IDs; raw numeric Twitch IDs in and out. */
+  subscriptions?(userIds: readonly string[]): Promise<string[]>;
   restrictions(userIds: readonly string[]): Promise<ChannelRestriction[]>;
 }

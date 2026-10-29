@@ -9,10 +9,19 @@ const model = usePopulation();
       <div>
         <h1>Viewers and players</h1>
         <p>Review profiles, game stats and participation controls. Viewer notes stay private.</p>
-        <p>{{ model.total }} observed · {{ model.registeredTotal }} registered · {{ model.coins.toLocaleString() }} {{ model.currencyName }} in circulation</p>
       </div>
       <button v-if="model.notesAvailable" type="button" class="cf-btn cf-btn-secondary" :disabled="model.working" @click="model.refreshNotes()">Refresh viewer notes</button>
     </header>
+    <section class="cf-decision-brief" aria-label="Viewer participation overview">
+      <div>
+        <h2>{{ model.total.toLocaleString() }} observed · {{ model.registeredTotal.toLocaleString() }} registered</h2>
+        <p>Observed viewers become players with <code>!register</code>. Presence records describe chat activity.</p>
+      </div>
+      <dl><div><dt>{{ model.currencyName }} in circulation</dt><dd>{{ model.coins.toLocaleString() }}</dd></div></dl>
+      <button v-if="model.total > model.registeredTotal" type="button" class="cf-btn cf-btn-secondary" @click="model.showUnregistered()">
+        Review {{ model.total - model.registeredTotal }} not registered
+      </button>
+    </section>
     <p class="cf-population-tracking" role="status">{{ model.tracking }}</p>
     <p v-if="model.notesStatus" class="cf-population-tracking">Private notes: {{ model.notesStatus.saved }} synced · {{ model.notesStatus.pending }} pending<span v-if="model.notesStatus.failed"> · sync needs attention; review vault access or duplicate identities, then refresh</span>.</p>
     <div class="cf-population-toolbar">
@@ -32,6 +41,7 @@ const model = usePopulation();
         </select></label
       >
     </div>
+    <button v-if="model.filtered && model.matching" type="button" class="cf-btn cf-btn-ghost" aria-label="Clear viewer filters" @click="model.clearFilters()">Clear viewer filters</button>
     <section v-if="!model.total" class="cf-population-empty cf-intent-empty" aria-label="No observed viewers">
       <p>No viewers have been observed yet. Connect Twitch in Stream chat to populate this directory. Viewers join the game with <code>!register</code>.</p>
       <button type="button" class="cf-btn cf-btn-primary" @click="model.openChat()">Open Stream chat</button>

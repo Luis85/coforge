@@ -1,10 +1,20 @@
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import {
   comparisonCandidates,
   metricSeries,
   statisticsSummary,
 } from "../../../features/coforge/domain/stream-statistics";
-import { STATISTICS_METRICS, statisticsMetric } from "../../../features/coforge/domain/statistics-metrics";
+import {
+  STATISTICS_METRICS,
+  statisticsMetric,
+} from "../../../features/coforge/domain/statistics-metrics";
 import {
   summarizeStream,
   type StreamHistory,
@@ -13,6 +23,7 @@ import {
 import { useCoforge } from "../../context/coforge-context";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { elapsedTime, statisticNumber, streamDate } from "./statistics-format";
+import { useTemporaryExample } from "./use-temporary-example";
 const comparisonRows = [
   { key: "meanViewers", label: "Mean observed viewers", decimals: 1 },
   { key: "peakViewers", label: "Peak observed viewers", decimals: 0 },
@@ -42,29 +53,45 @@ export function useStreamStatistics() {
   let initialized = false;
   let closed = false;
   const ordered = (values: StreamSummary[]) =>
-    [...values].sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
-  const selected = computed(() => entries.value.find((stream) => stream.id === store.statisticsStream));
-  const candidates = computed(() => (selected.value ? comparisonCandidates(selected.value, entries.value) : []));
+    [...values].sort(
+      (a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt),
+    );
+  const selected = computed(() =>
+    entries.value.find((stream) => stream.id === store.statisticsStream),
+  );
+  const candidates = computed(() =>
+    selected.value ? comparisonCandidates(selected.value, entries.value) : [],
+  );
   const metric = computed(() => statisticsMetric(store.statisticsMetric));
-  const series = computed(() => histories.value.map((history) => metricSeries(history, store.statisticsMetric)));
+  const series = computed(() =>
+    histories.value.map((history) =>
+      metricSeries(history, store.statisticsMetric),
+    ),
+  );
   async function load() {
     const current = ++revision;
     loading.value = true;
     error.value = "";
     histories.value = [];
-    const ids = [store.statisticsStream, ...store.statisticsComparisons].filter(Boolean);
+    const ids = [store.statisticsStream, ...store.statisticsComparisons].filter(
+      Boolean,
+    );
     try {
       const result = await Promise.allSettled(
         ids.map((id) =>
           example.value
-            ? Promise.resolve(examples.find((history) => history.id === id) ?? null)
+            ? Promise.resolve(
+                examples.find((history) => history.id === id) ?? null,
+              )
             : host.streamHistory!.read(id),
         ),
       );
       if (closed || current !== revision) return;
       const primary = result[0];
       if (!primary || primary.status !== "fulfilled" || !primary.value)
-        throw new Error("The selected stream history could not be read. Refresh or choose another stream.");
+        throw new Error(
+          "The selected stream history could not be read. Refresh or choose another stream.",
+        );
       const first = primary.value;
       histories.value = [
         first,
@@ -82,16 +109,22 @@ export function useStreamStatistics() {
           ),
       ];
       if (histories.value.length !== ids.length)
-        error.value = "One comparison history is unavailable. Its line is omitted; remove it or refresh.";
+        error.value =
+          "One comparison history is unavailable. Its line is omitted; remove it or refresh.";
       entries.value = ordered(
         entries.value.map((entry) => {
-          const history = histories.value.find((history) => history.id === entry.id);
+          const history = histories.value.find(
+            (history) => history.id === entry.id,
+          );
           return history ? summarizeStream(history) : entry;
         }),
       );
     } catch (problem) {
       if (!closed && current === revision)
-        error.value = problem instanceof Error ? problem.message : "Stream statistics could not be loaded.";
+        error.value =
+          problem instanceof Error
+            ? problem.message
+            : "Stream statistics could not be loaded.";
     } finally {
       if (!closed && current === revision) loading.value = false;
     }
@@ -109,7 +142,9 @@ export function useStreamStatistics() {
       const allowed = candidates.value.map((stream) => stream.id);
       const comparisons = changed
         ? allowed.slice(0, 1)
-        : store.statisticsComparisons.filter((id) => allowed.includes(id)).slice(0, 3);
+        : store.statisticsComparisons
+            .filter((id) => allowed.includes(id))
+            .slice(0, 3);
       if (comparisons.join("|") !== store.statisticsComparisons.join("|")) {
         store.statisticsComparisons = comparisons;
         return;
@@ -130,7 +165,9 @@ export function useStreamStatistics() {
     const previous = store.statisticsStream;
     try {
       error.value = "";
-      const streams = example.value ? examples.map(summarizeStream) : await host.streamHistory!.list();
+      const streams = example.value
+        ? examples.map(summarizeStream)
+        : await host.streamHistory!.list();
       if (closed || current !== listRevision) return;
       entries.value = ordered(streams);
       if (!entries.value.some((stream) => stream.id === store.statisticsStream))
@@ -150,7 +187,8 @@ export function useStreamStatistics() {
       if (previous && previous === store.statisticsStream) await load();
     } catch {
       if (!closed && current === listRevision)
-        error.value = "Stream histories could not be listed. Check CoForge/Streams and try again.";
+        error.value =
+          "Stream histories could not be listed. Check CoForge/Streams and try again.";
     } finally {
       if (!closed && current === listRevision) listing.value = false;
     }
@@ -182,6 +220,26 @@ export function useStreamStatistics() {
     closed = true;
     revision++;
   });
+  const exitExample = () => {
+    if (!example.value) return;
+    revision++;
+    listRevision++;
+    example.value = false;
+    examples = [];
+    histories.value = [];
+    entries.value = [];
+    store.statisticsStream = "";
+    store.statisticsComparisons = [];
+    store.statisticsCursor = 0;
+    store.statisticsPage = 0;
+    loading.value = false;
+    listing.value = false;
+    error.value = "";
+    notice.value = "";
+    host.discardPreview?.("statistics");
+    if (host.streamHistory) void refresh();
+  };
+  const beginExample = useTemporaryExample("statistics", exitExample);
   return reactive({
     comparisonRows,
     store,
@@ -198,8 +256,13 @@ export function useStreamStatistics() {
     failedComparisons: computed(() =>
       histories.value.length
         ? store.statisticsComparisons
-            .filter((id) => !histories.value.some((history) => history.id === id))
-            .map((id) => ({ id, date: entries.value.find((entry) => entry.id === id)?.startedAt }))
+            .filter(
+              (id) => !histories.value.some((history) => history.id === id),
+            )
+            .map((id) => ({
+              id,
+              date: entries.value.find((entry) => entry.id === id)?.startedAt,
+            }))
         : [],
     ),
     canPreview: Boolean(host.previewStreamStatistics),
@@ -213,8 +276,11 @@ export function useStreamStatistics() {
     elapsed: elapsedTime,
     title: computed(
       () =>
-        histories.value[0]?.samples.find((sample) => sample.twitch.channel)?.twitch.channel?.title ||
-        (selected.value ? `Stream on ${streamDate(selected.value.startedAt)}` : "Choose a recorded stream"),
+        histories.value[0]?.samples.find((sample) => sample.twitch.channel)
+          ?.twitch.channel?.title ||
+        (selected.value
+          ? `Stream on ${streamDate(selected.value.startedAt)}`
+          : "Choose a recorded stream"),
     ),
     summaries: computed(() =>
       histories.value.map((history) => ({
@@ -224,17 +290,23 @@ export function useStreamStatistics() {
       })),
     ),
     rows: computed(
-      () => series.value[0]?.points.slice(store.statisticsPage * 50, (store.statisticsPage + 1) * 50) ?? [],
+      () =>
+        series.value[0]?.points.slice(
+          store.statisticsPage * 50,
+          (store.statisticsPage + 1) * 50,
+        ) ?? [],
     ),
     rowCount: computed(() => series.value[0]?.points.length ?? 0),
     refresh: () => {
       if (host.streamHistory || example.value) void refresh();
     },
     preview: () => {
+      beginExample();
       examples = host.previewStreamStatistics?.() ?? [];
       example.value = true;
       void refresh();
     },
+    exitExample,
     addComparison: (event: Event) => {
       const target = event.target;
       if (
@@ -243,24 +315,35 @@ export function useStreamStatistics() {
         !store.statisticsComparisons.includes(target.value) &&
         store.statisticsComparisons.length < 3
       ) {
-        store.statisticsComparisons = [...store.statisticsComparisons, target.value];
+        store.statisticsComparisons = [
+          ...store.statisticsComparisons,
+          target.value,
+        ];
         target.value = "";
       }
     },
     removeComparison: (id: string) => {
-      store.statisticsComparisons = store.statisticsComparisons.filter((value) => value !== id);
+      store.statisticsComparisons = store.statisticsComparisons.filter(
+        (value) => value !== id,
+      );
     },
     previousPage: () => {
       store.statisticsPage = Math.max(0, store.statisticsPage - 1);
     },
     nextPage: () => {
-      if ((store.statisticsPage + 1) * 50 < (series.value[0]?.points.length ?? 0)) store.statisticsPage++;
+      if (
+        (store.statisticsPage + 1) * 50 <
+        (series.value[0]?.points.length ?? 0)
+      )
+        store.statisticsPage++;
     },
     export: () => {
       if (!example.value && host.streamHistory && store.statisticsStream)
         void store
           .mutate(async () => {
-            const path = await host.streamHistory!.export(store.statisticsStream);
+            const path = await host.streamHistory!.export(
+              store.statisticsStream,
+            );
             notice.value = `Stream JSON exported to ${path}`;
           })
           .catch(() => {

@@ -71,7 +71,7 @@
     display: block;
   }
 }
-@container plugin-shell-leaf (max-width: 1030px) {
+@container plugin-shell-leaf (max-width: 800px) {
   .ps--coforge .cf-nav-group-label {
     display: none;
   }

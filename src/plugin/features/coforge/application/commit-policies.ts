@@ -3,12 +3,14 @@ import { synchronizeProject } from "../domain/projects";
 import { enforceIntegrity } from "./studio-state";
 import { settleContributionRewards } from "./economy";
 import { trimPopulation } from "./population";
+import { cancelPrivateReplies } from './public-reply-policy';
 
 /** Pure aggregate policies run before persistence. Store orchestration knows only the resulting state/events. */
 export function prepareStudioCommit(previous: InternalState, next: InternalState, options: SaveOptions) {
   synchronizeProject(next);
   const quarantined = enforceIntegrity(next, new Set(options.fromNotes ?? []));
   settleContributionRewards(previous, next, options.fromNotes);
+  cancelPrivateReplies(next);
   const events = next.population.operations.filter((record) => record.sequence >= previous.population.nextSequence);
   trimPopulation(next);
   next.events = next.events.slice(-500);

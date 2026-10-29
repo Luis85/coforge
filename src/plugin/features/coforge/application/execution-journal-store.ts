@@ -85,13 +85,13 @@ export class ExecutionJournalStore {
     if (
       this.journal.runs.some(
         (run) =>
-          run.timing?.active ||
+          run.timing?.active || run.timing?.parallel?.length ||
           run.attempts.some((attempt) => attempt.status === "dispatching"),
       )
     )
       await this.mutate((next) => {
         for (const run of next.runs) {
-          if (run.timing) delete run.timing.active;
+          if (run.timing) { delete run.timing.active; delete run.timing.parallel; }
           for (const attempt of run.attempts)
             if (attempt.status === "dispatching") {
               attempt.status = "unknown";

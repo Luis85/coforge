@@ -29,6 +29,8 @@ it.each([
   ["CoForge/Public/Requests", "Website"],
   ["Requests/Backlog", "REQUESTS\\./Backlog/"],
   ["Requests", "CoForge/Projects"],
+  ["Requests", "CoForge/Recovery"],
+  ["Requests", "coforge/recovery/ExampleCleanup"],
   ["Requests", ".custom-config/Exports"],
 ])(
   "rejects overlapping private/public boundaries before either can be written: %s / %s",

@@ -44,7 +44,7 @@ async function setup() {
         ? { status: 503, json: {} }
         : { status: 200, json: { data: [{ user_id: "99" }], pagination: {} } };
     if (input.url.includes("/moderation/banned?"))
-      return { status: 200, json: { data: response.banned ? [{ user_id: "99", expires_at: "" }] : [] } };
+      return { status: 200, json: { data: response.banned ? [{ user_id: "99", expires_at: "" }] : [], pagination: {} } };
     throw new Error("Unexpected HTTP call");
   };
   const accounts = new TwitchAccounts(request, { getSecret: () => "test-token", setSecret: () => undefined }, () =>

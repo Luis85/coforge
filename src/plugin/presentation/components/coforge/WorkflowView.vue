@@ -6,6 +6,8 @@ import ConfiguredWorkflowExecution from "./ConfiguredWorkflowExecution.vue";
 import HerdrPanel from "./HerdrPanel.vue";
 import HerdrWorkflowRecovery from "./HerdrWorkflowRecovery.vue";
 import CfSubpageNav from "./CfSubpageNav.vue";
+import ProjectWorkContext from "./ProjectWorkContext.vue";
+import WorkflowEditorView from "./WorkflowEditorView.vue";
 import { WORKFLOW_PAGES } from "../../stores/studio-pages";
 const model = useWorkflow();
 </script>
@@ -15,21 +17,15 @@ const model = useWorkflow();
       <div>
         <h1>Agent workflow</h1>
         <p>
-          Run this project’s saved steps, complete human decisions and review
-          every attempt. Configure the process separately in Workflow settings.
+          Monitor captured runs, manage Herdr workspaces and configure this
+          project’s workflow.
         </p>
       </div>
       <div class="cf-workflow-inline cf-workflow-heading-actions">
         <button
           type="button"
           class="cf-btn cf-btn-secondary"
-          @click="model.editWorkflow()"
-        >
-          <CfIcon name="list-settings" size="sm" />Workflow settings</button
-        ><button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          v-if="model.store.workflowTool === 'runs'"
+          v-if="model.page === 'runs' && model.store.activeProject"
           :disabled="model.store.busy"
           @click="model.togglePause()"
         >
@@ -39,28 +35,33 @@ const model = useWorkflow();
         </button>
       </div>
     </header>
-    <p v-if="model.error" role="alert" class="cf-inline-error">
+    <ProjectWorkContext />
+    <p
+      v-if="model.error && model.page === 'runs'"
+      role="alert"
+      class="cf-inline-error"
+    >
       {{ model.error }}
     </p>
     <CfSubpageNav
       label="Agent workflow pages"
       :items="WORKFLOW_PAGES"
-      :selected="model.store.workflowTool"
-      @select="model.store.workflowTool = $event"
+      :selected="model.page"
+      @select="model.selectPage($event)"
     />
     <div
-      v-show="model.store.workflowTool === 'runs'"
+      v-show="model.page === 'runs'"
       class="cf-subpage-panel"
       role="region"
       aria-label="Request workflow runs"
     >
-      <div class="cf-workflow-summary">
+      <div v-if="model.store.activeProject" class="cf-workflow-summary">
         <span
           class="cf-workflow-live-dot"
           :class="{ 'is-paused': model.paused }"
         /><strong>{{ model.summaryLabel }}</strong
-        ><span>{{ model.enabledCount }} AI steps automatic</span
-        ><span>New automatic runs · {{ model.intervalSeconds }}s interval</span
+        ><span>{{ model.automaticStepLabel }}</span
+        ><span>{{ model.cadenceLabel }}</span
         ><span class="cf-workflow-mode-tag" :title="model.providerTitle"
           ><CfIcon :name="model.providerIcon" size="sm" />{{
             model.providerLabel
@@ -72,12 +73,19 @@ const model = useWorkflow();
       /><HerdrWorkflowRecovery />
     </div>
     <div
-      v-show="model.store.workflowTool === 'herdr'"
+      v-show="model.page === 'herdr'"
       class="cf-subpage-panel"
       role="region"
       aria-label="Herdr workspace administration"
     >
       <HerdrPanel open />
     </div>
+    <section
+      v-if="model.page === 'settings'"
+      class="cf-subpage-panel cf-workflow-settings-panel"
+      aria-label="Project workflow settings"
+    >
+      <WorkflowEditorView embedded />
+    </section>
   </div>
 </template>

@@ -1,3 +1,4 @@
+import { openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect, type Page } from "@playwright/test";
 async function openEditor(page: Page) {
   await page.goto("/#surface=node-1");
@@ -5,10 +6,7 @@ async function openEditor(page: Page) {
     "data-prototype-ready",
     "true",
   );
-  await page
-    .getByRole("button", { name: "Workflow settings", exact: true })
-    .first()
-    .click();
+  await openWorkflowSettings(page);
 }
 async function step(page: Page, id: string, provider: string, model: string) {
   await page.locator(`[data-step-id="${id}"] .cf-workflow-step-select`).click();
@@ -37,16 +35,11 @@ test("configures explicit mixed step agents independently and restores the stand
   await expect(page.locator(".cf-topbar .cf-provider-pill")).toContainText(
     "Mixed providers",
   );
-  await page
-    .getByRole("button", { name: "Agent workflow", exact: true })
-    .click();
+  await openWorkflowRuns(page);
   await expect(
     page.getByRole("list", { name: "Captured workflow steps", exact: true }),
   ).toContainText("haiku");
-  await page
-    .getByRole("button", { name: "Workflow settings", exact: true })
-    .first()
-    .click();
+  await openWorkflowSettings(page);
   await page
     .locator('[data-step-id="screen"] .cf-workflow-step-select')
     .click();
@@ -83,10 +76,7 @@ test("keeps each project’s explicit step models separate", async ({ page }) =>
   await expect(page.locator(".cf-project-switcher")).toContainText(
     "Orbit garden",
   );
-  await page
-    .getByRole("button", { name: "Workflow settings", exact: true })
-    .first()
-    .click();
+  await openWorkflowSettings(page);
   await expect(page.getByLabel("AI provider", { exact: true })).toHaveValue(
     "demo",
   );
@@ -96,10 +86,7 @@ test("keeps each project’s explicit step models separate", async ({ page }) =>
   await page
     .getByRole("button", { name: "Settings for Mosslight", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Workflow settings", exact: true })
-    .first()
-    .click();
+  await openWorkflowSettings(page);
   await page
     .locator('[data-step-id="screen"] .cf-workflow-step-select')
     .click();
@@ -122,9 +109,7 @@ test("keeps an invalid explicit model draft and prevents navigation from discard
   await expect(
     page.getByRole("button", { name: "Save workflow", exact: true }),
   ).toBeDisabled();
-  await page
-    .getByRole("button", { name: "Agent workflow", exact: true })
-    .click();
+  await page.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Workflow runs', exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Workflow settings", exact: true }),
   ).toBeVisible();
@@ -133,9 +118,7 @@ test("keeps an invalid explicit model draft and prevents navigation from discard
   );
   await page.getByLabel("AI model", { exact: true }).fill("haiku");
   await save(page);
-  await page
-    .getByRole("button", { name: "Agent workflow", exact: true })
-    .click();
+  await openWorkflowRuns(page);
   await expect(
     page.getByRole("list", { name: "Captured workflow steps", exact: true }),
   ).toContainText("haiku");

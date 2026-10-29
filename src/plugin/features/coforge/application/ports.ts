@@ -17,6 +17,11 @@ export type NoteIdea = Omit<Idea, 'voters' | 'increment'>;
 
 export interface LoadedStudio { data: PersistedStudio | null; notes: NoteIdea[]; invalidNotes: string[]; projects?: StudioProject[] }
 export interface SaveOptions {
+  /** Atomically commit command note effects with wallet, receipts and frozen rewards. */
+  atomicCommand?: true;
+  requestValuesEdit?: { ideaId: string; expectedInputIdentity: string };
+  /** Exact whole-note fingerprints reviewed before removing example requests. */
+  exampleCleanup?: { notes: Record<string, string> };
   /** Ideas whose note already holds the new values (external edits): do not write them back. */
   fromNotes?: readonly string[];
   /** Every idea was replaced (sample workspace): retire all previous notes, even when an ID is reused. */
@@ -32,6 +37,8 @@ export interface SaveOptions {
 export interface StudioStorage {
   load(): Promise<LoadedStudio>;
   save(next: InternalState, previous: InternalState | null, options?: SaveOptions): Promise<void>;
+  previewExampleNotes?(ids: readonly string[]): Promise<Record<string, string>>;
+  exampleCleanupWarning?(): string | undefined;
 }
 
 export type ExternalNoteChange = { kind: 'upsert'; idea: NoteIdea } | { kind: 'remove'; id: string };
@@ -50,6 +57,11 @@ export interface Timers {
 
 /** Host capabilities the studio needs but must not implement itself. */
 export interface StudioHost {
+  /** Private immutable reward tickets are reserved before command effects. */
+  economyReservations?: import("../domain/command-economy").EconomyReservationPort;
+  /** A host publication lease spans persistence and notification, including initialization. */
+  beforeCommit?(next: AppState, previous: AppState | null): Promise<void | (() => void)>;
+  assertExampleCleanup?(ideaIds: readonly string[]): void | (() => void) | Promise<void | (() => void)>;
   privateFolders?(): readonly string[];
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;
   runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
@@ -84,6 +96,8 @@ export interface StudioHostActions {
   previewLiveStudio?(): import('./studio-example').StudioExample;
   obsScenes?: import('../domain/obs-scenes').ObsSceneActions;
   previewStreamStatistics?(): import('../domain/stream-metrics').StreamHistory[];
+  /** Browser-only temporary service disposal; never a vault or live integration mutation. */
+  discardPreview?(example: "finance" | "ai-costs" | "schedule" | "music" | "statistics" | "live-studio" | "council" | "herdr" | "task-scheduler"): void;
   streamHistory?: import('./stream-metrics-ports').StreamHistoryActions;
   obs?: import('../domain/obs').ObsActions;
   twitch?: import('../domain/twitch').TwitchActions;

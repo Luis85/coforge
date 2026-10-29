@@ -35,3 +35,7 @@ No pending attempt; Waiting; Unknown outcome; Stale result; Recoverable. Inspect
 Source: [src/plugin/presentation/components/coforge/HerdrWorkflowRecovery.vue](../../../src/plugin/presentation/components/coforge/HerdrWorkflowRecovery.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `recovery`.
+
+## Workspace redesign
+
+Recovery receives the shared attention surface while preserving exact task evidence and explicit acknowledgement. No interface change retries an uncertain external action.

@@ -3,6 +3,7 @@ import { OPERATION_CODES, type PopulationState } from "./population";
 import { communityEnvironmentCheck, defaultCommunityEnvironment } from "./community-environment";
 import { omit } from "./objects";
 import { OBS_SCENE_KINDS } from './obs-scenes';
+import { economyStateCheck } from './command-economy-check';
 const count = number({ integer: true, min: 0, max: Number.MAX_SAFE_INTEGER });
 const rate = number({ integer: true, min: 0, max: 100_000 });
 export const economyRulesCheck = shape(
@@ -34,9 +35,12 @@ const player = shape({
   reputation: count,
   presenceSeconds: count,
   rewardedMinutes: count,
+  registeredPresenceSeconds: optional(count),
+  rewardedXpMinutes: optional(count),
   rewardClaims: list(text({ max: 100 })),
 });
 const population = shape({
+  economy: optional(economyStateCheck),
   players: list(player),
   rules: economyRulesCheck,
   environment: communityEnvironmentCheck,

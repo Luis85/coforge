@@ -40,6 +40,7 @@ it.each([true, false])(
       global: {
         plugins: [pinia],
         provide: { [coforgeKey as symbol]: context },
+        directives: { 'cf-icon': () => undefined },
       },
     });
     try {
@@ -55,9 +56,9 @@ it.each([true, false])(
       };
       expect(
         wrapper.find('[aria-label="Council execution controls"]').isVisible(),
-      ).toBe(false);
+      ).toBe(true);
       if (!executor) {
-        await visit("Submit and preflight");
+        await visit("Submit existing note");
         const prerequisite = wrapper.get(
           '[aria-label="Council execution prerequisite"]',
         );

@@ -68,6 +68,7 @@ export async function councilControlsFixture(executor = true) {
   const target = { kind: "agent" as const, id: "agent", teamId: "team" };
   return {
     app,
+    plugin,
     kit,
     module,
     studio,

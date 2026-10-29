@@ -35,3 +35,7 @@ Invalid import; Valid preview; Unsaved draft; Export ready. Inspect an error bes
 Source: [src/plugin/presentation/components/coforge/WorkflowV2Transfer.vue](../../../src/plugin/presentation/components/coforge/WorkflowV2Transfer.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`.
+
+## Workspace redesign
+
+Proposal transfer uses the Council inspection disclosure hierarchy, literal source and explicit draft replacement. Imported definitions never start execution.

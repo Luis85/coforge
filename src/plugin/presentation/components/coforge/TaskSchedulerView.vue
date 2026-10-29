@@ -11,6 +11,7 @@ const model = useTaskScheduler();
     <p v-if="!model.available">Open CoForge in desktop Obsidian to save and run private task schedules. Configure teams, agents and councils in Definitions.</p>
     <button v-if="!model.available && model.canPreview" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.explore()">Explore scheduler example</button>
     <p v-if="model.store.example" role="status">Scheduler example · in-memory schedules and simulated admission receipts only. No vault files, native agents or external services are changed.</p>
+    <button v-if="model.store.example" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.exitExample()">Exit scheduler example</button>
     <template v-if="model.available">
       <p v-if="!model.store.state">Loading task schedules…</p>
       <p v-if="!model.canManage">Designate this desktop in Run monitor before creating or changing schedules. <button type="button" class="cf-btn cf-btn-secondary" @click="model.openMonitor()">Open Run monitor</button></p>

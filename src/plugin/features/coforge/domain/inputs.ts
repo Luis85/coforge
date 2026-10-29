@@ -1,9 +1,10 @@
 import { boolean, number, oneOf, optional, shape, text } from './check';
-import { CATEGORIES } from './types';
+import { categoryNameCheck } from './request-categories';
 import { stagePromptsCheck } from './stage-prompts';
 import { agentModelCheck, stageAgentsCheck } from './stage-agents';
 import { workflowDefinitionCheck } from './configured-workflow';
 import { normalizeVaultFolder } from './vault-folder-policy';
+import { requestObjectDefinitionCheck, requestValuesInputCheck } from './request-object';
 
 const username = text({ trim: true, min: 1, max: 50 });
 
@@ -13,9 +14,12 @@ export const chatInput = shape({
 });
 
 export const newIdeaInput = shape({
+  projectId: optional(text({ pattern: /^CFP-\d{3,7}$/u })),
+  requestValues: optional(requestValuesInputCheck),
+  requestObjectRevision: optional(text({ min: 1, max: 100 })),
   requestKind: optional(oneOf(['feature', 'bug'] as const)),
   title: text({ trim: true, min: 5, max: 120 }), description: text({ trim: true, max: 3000 }),
-  category: oneOf(CATEGORIES), username,
+  category: categoryNameCheck, username,
 });
 
 export const riceInput = shape({
@@ -24,6 +28,7 @@ export const riceInput = shape({
 }, { strict: true });
 
 export const settingsPatch = shape({
+  requestObject: optional(requestObjectDefinitionCheck),
   workflow: optional(workflowDefinitionCheck),
   herdrAgent: optional(oneOf(['claude'] as const)),
   stageAgents: optional(stageAgentsCheck),

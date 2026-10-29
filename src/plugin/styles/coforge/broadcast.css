@@ -1,9 +1,12 @@
 .cf-broadcast-page p { font-size: 12px; line-height: 1.7; color: var(--cf-muted); margin: 10px 0; }
 .cf-broadcast-page h2 { font-size: 18px; color: var(--cf-text); }
-.cf-broadcast-console { padding: 24px; border: 1px solid var(--cf-border); border-radius: var(--radius-l); }
-.cf-broadcast-console h2 { font-size: 26px; margin: 12px 0 8px; }
-.cf-broadcast-state { font-size: 11px; font-weight: 700; color: var(--cf-muted); }
+.cf-broadcast-console { padding: 28px; border: 1px solid var(--cf-border); border-radius: var(--radius-l); background: color-mix(in srgb, var(--cf-accent) 6%, var(--cf-bg)); }
+.cf-broadcast-console.is-live { background: color-mix(in srgb, var(--cf-danger) 6%, var(--cf-bg)); border-color: color-mix(in srgb, var(--cf-danger) 35%, var(--cf-border)); }
+.cf-broadcast-console.is-uncertain { background: color-mix(in srgb, var(--cf-orange) 8%, var(--cf-bg)); border-color: var(--cf-orange); }
+.cf-broadcast-console h2 { font-size: 32px; margin: 12px 0 8px; letter-spacing: -0.025em; }
+.cf-broadcast-state { display: inline-flex; padding: 4px 9px; border-radius: var(--radius-s); background: var(--cf-bg); border: 1px solid var(--cf-border); font-size: 11px; font-weight: 700; color: var(--cf-text); }
 .cf-broadcast-state.is-live { color: var(--color-red); }
+.cf-broadcast-console .cf-broadcast-guidance { color: var(--cf-text); max-width: 70ch; font-size: 13px; }
 .cf-broadcast-actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 22px 0; }
 .cf-studio .cf-go-live { min-width: 110px; }
 .cf-broadcast-preparation { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; margin-top: 30px; }
@@ -12,6 +15,9 @@
 .cf-readiness-list li { border-bottom: 1px solid var(--cf-border); padding: 14px 0; }
 .cf-readiness-list li > div { display: flex; justify-content: space-between; gap: 14px; font-size: 12px; }
 .cf-readiness-list li span { color: var(--cf-muted); }
+.cf-readiness-list li.is-ready span { color: var(--text-success); }
+.cf-readiness-list li.is-needed span { color: var(--text-warning, var(--cf-text)); font-weight: 700; }
+.cf-readiness-list li > div > span { padding: 2px 8px; background: var(--cf-surface); border-radius: var(--radius-s); }
 .cf-readiness-list p { margin-bottom: 0; overflow-wrap: anywhere; }
 .cf-broadcast-preparation form { display: flex; flex-direction: column; gap: 18px; margin-top: 20px; }
 .cf-obs-password { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--cf-border); }
@@ -26,6 +32,9 @@
 .cf-stream-history .cf-field { max-width: 600px; margin: 18px 0; }
 .cf-stream-history select { width: 100%; min-width: 0; min-height: 38px; padding: 8px; background: var(--cf-surface); color: var(--cf-text); border: 1px solid var(--cf-border-strong); border-radius: var(--radius-s); }
 .cf-stream-history p { overflow-wrap: anywhere; }
+.cf-stream-history { border-top: 0; padding-top: 0; }
+.cf-stream-history > h2 { margin-bottom: 16px; }
+.cf-broadcast-preparation > section:first-child { padding: 24px; border: 1px solid var(--cf-border); border-radius: var(--radius-l); background: var(--cf-surface); align-self: start; }
 .cf-channel-branding a { color: var(--text-accent); font-size: 12px; overflow-wrap: anywhere; }
 @container plugin-shell-leaf (max-width: 850px) { .cf-broadcast-preparation { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
 @container plugin-shell-leaf (max-width: 600px) { .cf-broadcast-console { padding: 16px; } .cf-broadcast-console h2 { font-size: 22px; } }

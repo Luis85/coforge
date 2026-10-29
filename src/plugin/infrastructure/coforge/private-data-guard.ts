@@ -62,7 +62,7 @@ export async function protectPrivateData(
     await append("CoForge/.gitignore", "*\n!Public/\n!Public/**\n!.gitignore");
     await append(
       `${pluginFolder}/.gitignore`,
-      "coforge-*.json\ndata.json\n*.log",
+      "coforge-*.json\ncoforge-economy-reservations/\ndata.json\n*.log",
     );
     if (layout) {
       await ensureFolder(layout.ideasFolder, true);

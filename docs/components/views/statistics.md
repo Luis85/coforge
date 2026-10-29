@@ -31,6 +31,12 @@ Choose Statistics in the studio navigation. Available actions: Select stream; Ch
 
 No recordings; Unavailable measurement; Missing-data gap; Selected sample; Example. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+The selected recording leads with mean and peak observed viewers, observed Twitch messages and missing recorded minutes. These summaries use retained observations. The selected metric shows available and unavailable observation counts before the chart; unavailable values stay distinct from zero. Comparison recordings and exact sample inspection remain available below.
+
+Temporary browser examples provide an explicit **Exit example** control. Exiting discards that example’s drafts and cached sample edits without mutating live services or vault content. Ordinary navigation keeps editable preview drafts; the explicit sample-cleanup action also closes temporary examples for the current studio pane. Native services are never replaced by preview services.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/StreamStatisticsView.vue](../../../src/plugin/presentation/components/coforge/StreamStatisticsView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

@@ -35,3 +35,7 @@ Missing path; Invalid workspace; Authorization disabled; Unsaved; Saved. Inspect
 Source: [src/plugin/presentation/components/coforge/SettingsRepositorySection.vue](../../../src/plugin/presentation/components/coforge/SettingsRepositorySection.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `setup`, `workflow-configuration`.
+
+## Workspace redesign
+
+Repository configuration shares the larger project-settings section heading and spacing while paths retain literal formatting and existing permission boundaries.

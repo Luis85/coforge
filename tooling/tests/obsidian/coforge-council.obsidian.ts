@@ -1,3 +1,4 @@
+import { openCouncilPage } from '../../../tests/e2e/support/council-navigation';
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
@@ -29,6 +30,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
     await view
       .getByRole("button", { name: "The Council", exact: true })
       .click();
+    await openCouncilPage(view, 'Definitions');
     await view
       .getByRole("button", { name: "Create default team", exact: true })
       .click();
@@ -115,7 +117,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
         "# Original human source\n\nKeep these bytes.\n",
       );
     });
-    await view.getByRole("navigation", { name: "Council workspace", exact: true }).getByRole("button", { name: "Run monitor", exact: true }).click();
+    await openCouncilPage(view, 'Run monitor');
     await view
       .getByRole("button", {
         name: "Use this desktop for execution",
@@ -123,7 +125,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
       })
       .click();
     await view
-      .getByRole("button", { name: "Submit and preflight", exact: true })
+      .getByRole("button", { name: "Submit existing note", exact: true })
       .click();
     await view
       .getByRole("combobox", { name: "Project team", exact: true })
@@ -182,7 +184,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
     await view
       .getByRole("button", { name: "The Council", exact: true })
       .click();
-    await view.getByRole("navigation", { name: "Council workspace", exact: true }).getByRole("button", { name: "Run monitor", exact: true }).click();
+    await openCouncilPage(view, 'Run monitor');
     await browserExpect(
       view.getByRole("status").filter({ hasText: "Execution paused" }),
     ).toBeVisible();

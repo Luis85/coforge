@@ -104,6 +104,7 @@ export function assemble(loaded: LoadedStudio): InternalState {
   for (const reply of botReplies) if (reply.streamMessageId && reply.status === "pending") reply.status = "cancelled";
   return {
     ...rest,
+    ...(data.requestOrigins ? { requestOrigins: Object.fromEntries(Object.entries(data.requestOrigins).filter(([id]) => ids.has(id))) } : {}),
     streamMessages,
     population: data.population ?? emptyPopulation(),
     botReplies,

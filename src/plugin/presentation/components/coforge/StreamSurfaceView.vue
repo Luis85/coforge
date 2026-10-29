@@ -61,7 +61,7 @@ const model = useStreamSurface(props);
           <code
             >!request {{ model.state.value.board.projectId }} &lt;idea&gt;</code
           >
-          · <code>!vote CF-123</code> to support a request</span
+          · <code>!vote &lt;request-id&gt;</code> to support a request</span
         ><span v-else> · <code>!projects</code> to find a game</span>
       </p>
     </footer>

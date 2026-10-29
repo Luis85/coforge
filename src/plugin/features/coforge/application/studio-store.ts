@@ -11,7 +11,10 @@ import { streamSurfaceSnapshot } from '../domain/stream-surfaces';
 import { viewerNoteProfiles } from '../domain/viewer-notes';
 import { collectCostTasks } from '../domain/ai-cost-snapshot';
 import type { HerdrRecord } from '../domain/herdr';
+import type { HerdrCostTarget } from '../domain/ai-cost-attribution';
 import { recoverConfiguredRuns } from '../domain/configured-workflow-run';
+import { projectIsPublic } from '../domain/project-publicity';
+import { publicReplyBlocked } from './public-reply-policy';
 export { addEvent, assemble, enforceIntegrity, mergeNote } from './studio-state';
 type Listener = (state: AppState) => void | Promise<void>;
 
@@ -23,14 +26,19 @@ export class StudioStore {
   private readonly changeListeners = new Set<() => void>();
   private revision = 0;
   private readonly events: StudioEvents;
-  constructor(private readonly storage: StudioStorage, sink?: StudioEventSink, private readonly observerFailed: () => void = () => {}) { this.events = new StudioEvents(sink, observerFailed); }
+  constructor(private readonly storage: StudioStorage, sink?: StudioEventSink, private readonly observerFailed: () => void = () => {}, private readonly beforeCommit?: (next: AppState, previous: AppState | null) => Promise<void | (() => void)>) { this.events = new StudioEvents(sink, observerFailed); }
   subscribeEvents(listener: StudioEventListener): () => void { return this.events.subscribe(listener); }
   disposeObservers(): void { this.events.dispose(); this.listeners.clear(); this.changeListeners.clear(); }
   subscribeChanges(listener: () => void): () => void { this.changeListeners.add(listener); return () => { this.changeListeners.delete(listener); }; }
   streamSurfaceSnapshot(liveSince: number, projectId?: string) { return streamSurfaceSnapshot(this.current(), { channelId: this.current().integration.twitchBroadcasterId, liveSince, projectId }); }
   nativeStatusSnapshot() { const state = this.current(); return { twitch: state.runtime.twitch?.phase, running: state.jobs.filter(job => job.status === 'running').length, queued: state.jobs.filter(job => job.status === 'queued').length }; }
   viewerNotesSnapshot(ids?: ReadonlySet<string>) { return viewerNoteProfiles(this.current(), ids); }
-  aiCostSnapshot(records: readonly HerdrRecord[]) { return collectCostTasks(this.current(), records); }
+  aiCostSnapshot(records: readonly HerdrRecord[], managed: readonly HerdrCostTarget[] = []) { return collectCostTasks(this.current(), records, managed); }
+  previewExampleNotes(ids: readonly string[]): Promise<Record<string, string>> {
+    if (!this.storage.previewExampleNotes) return Promise.resolve({});
+    return this.storage.previewExampleNotes(ids);
+  }
+  exampleCleanupWarning(): string | undefined { return this.storage.exampleCleanupWarning?.(); }
 
   async init(): Promise<{ invalidNotes: string[] }> {
     let loaded: LoadedStudio;
@@ -54,9 +62,13 @@ export class StudioStore {
     state.settings.paused = true; // Unattended execution never resumes merely because the plugin restarted.
     for (const project of state.projects) project.settings.paused = true;
     synchronizeProject(state);
-    await this.storage.save(state, null, { fromNotes: state.ideas.filter(idea => !idea.lastError && loaded.notes.find(note => note.id === idea.id)?.projectId).map(idea => idea.id) });
-    this.state = state;
-    this.emit();
+    const release = await this.beforeCommit?.(state, null);
+    try {
+      await this.storage.save(state, null, { fromNotes: state.ideas.filter(idea => !idea.lastError && loaded.notes.find(note => note.id === idea.id)?.projectId).map(idea => idea.id) });
+      this.state = state;
+      this.emit();
+    }
+    finally { if (typeof release === 'function') release(); }
     return { invalidNotes: loaded.invalidNotes };
   }
 
@@ -65,6 +77,17 @@ export class StudioStore {
     return structuredClone(omit(this.current(), 'integration', 'ingestMeta', 'manualHolds'));
   }
   internalSnapshot(): InternalState { return structuredClone(this.current()); }
+  denyPublicProjects(ids: readonly string[]): void {
+    if (!this.state || !ids.length) return;
+    this.state = { ...this.state, runtime: { ...this.state.runtime, publicationDeniedProjectIds: [...new Set([...(this.state.runtime.publicationDeniedProjectIds ?? []), ...ids])] } };
+    this.emit();
+  }
+  clearPublicationDenial(id: string): void {
+    if (!this.state?.runtime.publicationDeniedProjectIds?.includes(id)) return;
+    this.state = { ...this.state, runtime: { ...this.state.runtime, publicationDeniedProjectIds: this.state.runtime.publicationDeniedProjectIds.filter(value => value !== id) } };
+    this.emit();
+  }
+  exampleCostRemovalCutoffs(): Record<string, string> { return { ...this.current().exampleRemovalCutoffs }; }
   integrationSnapshot(): InternalState['integration'] { return { ...this.current().integration }; }
   liveChatSnapshot() {
     const state = this.current(); return { phase: state.runtime.twitch?.phase, connectedAt: state.runtime.twitch?.connectedAt,
@@ -77,21 +100,36 @@ export class StudioStore {
   pendingBotReply(): InternalState['botReplies'][number] | undefined {
     const reply = this.current().botReplies.find(reply => reply.status === 'pending'); return reply ? structuredClone(reply) : undefined;
   }
+  publicReplyAllowed(id: string): boolean {
+    const reply = this.current().botReplies.find(item => item.id === id);
+    return Boolean(reply && !publicReplyBlocked(this.current(), reply));
+  }
   recurringSnapshot(): { messages: InternalState['streamMessages']; pending: boolean } {
     const state = this.current(); return { messages: structuredClone(state.streamMessages), pending: state.botReplies.some(reply => Boolean(reply.streamMessageId) && reply.status === 'pending') };
   }
 
-  transaction<T>(mutate: (state: InternalState) => T, options: SaveOptions = {}): Promise<T> {
+  transaction<T>(mutate: (state: InternalState) => T | Promise<T>, options: SaveOptions = {}): Promise<T> {
     const work = this.pending.then(async () => {
       const previous = this.current();
       const next = structuredClone(previous);
-      const result = mutate(next);
+      const result = await mutate(next);
       const { events, fromNotes } = prepareStudioCommit(previous, next, options);
-      await this.storage.save(next, previous, { ...options, ...(fromNotes ? { fromNotes } : {}) });
-      this.state = next;
-      this.events.publish(events, ++this.revision);
-      this.emit();
-      return result;
+      const revoked = previous.projects.filter(project => projectIsPublic({ projects: previous.projects }, project.id) && !projectIsPublic({ projects: next.projects }, project.id)).map(project => project.id);
+      this.denyPublicProjects(revoked);
+      const mergeDenials = () => {
+        const denied = [...new Set([...(next.runtime.publicationDeniedProjectIds ?? []), ...(this.current().runtime.publicationDeniedProjectIds ?? [])])];
+        if (denied.length) next.runtime.publicationDeniedProjectIds = denied;
+      };
+      mergeDenials();
+      const release = await this.beforeCommit?.(next, previous);
+      try {
+        await this.storage.save(next, previous, { ...options, ...(fromNotes ? { fromNotes } : {}) });
+        mergeDenials();
+        this.state = next;
+        this.events.publish(events, ++this.revision);
+        this.emit();
+        return result;
+      } finally { if (typeof release === 'function') release(); }
     });
     this.pending = work.catch(() => undefined);
     return work;

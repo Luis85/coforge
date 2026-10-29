@@ -27,6 +27,10 @@
   overflow-wrap: anywhere;
   margin-block: 8px;
 }
+.cf-stream-display-list > section { min-width: 0; padding: 22px; background: var(--cf-surface); border-radius: var(--radius-l); }
+.cf-stream-display-list > section h3 { font-size: 17px; }
+.cf-stream-display-list .cf-settings-actions { margin-top: 16px; }
+.cf-stream-display-preview > p { color: var(--cf-text); }
 .cf-stream-display-preview {
   padding-top: 20px;
   border-top: 1px solid var(--cf-border);

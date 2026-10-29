@@ -37,3 +37,7 @@ An unsaved folder change blocks both write/setup actions with **Save the new vie
 Source: [src/plugin/presentation/components/coforge/PluginSettingsWebsite.vue](../../../src/plugin/presentation/components/coforge/PluginSettingsWebsite.vue). Use Obsidian’s native settings container, CoForge settings rows and shared field/button styles. These controls share the native settings form rather than the studio content container.
 
 Journey tags: `public-sharing`.
+
+## Project privacy
+
+Automatic publication is separate from revocation: switching it off does not permit stale owned local exports to retain revoked project data. Existing deployed pages still require an explicit streamer republish.

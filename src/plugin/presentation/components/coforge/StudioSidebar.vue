@@ -3,15 +3,15 @@ import { useStudioNavigation } from "../../composables/coforge/use-studio-naviga
 import BrandMark from "./BrandMark.vue";
 import CfIcon from "./CfIcon.vue";
 
-const { shell: model, groups } = useStudioNavigation();
+const { shell: model, groups, navigate } = useStudioNavigation();
 </script>
 <template>
   <aside class="cf-sidebar">
     <button
       type="button"
       class="cf-brand"
-      aria-label="CoForge board"
-      @click="model.store.navigate('board')"
+      aria-label="CoForge studio"
+      @click="model.store.navigate('broadcast')"
     >
       <BrandMark />
       <span>CoForge</span>
@@ -19,6 +19,8 @@ const { shell: model, groups } = useStudioNavigation();
     <button
       type="button"
       class="cf-project-switcher"
+      :class="{ 'is-active': model.store.view === 'projects' }"
+      :aria-current="model.store.view === 'projects' ? 'page' : undefined"
       title="Manage projects"
       @click="model.manageProjects()"
     >
@@ -52,12 +54,13 @@ const { shell: model, groups } = useStudioNavigation();
           class="cf-nav-item"
           :class="{ 'is-active': item.active }"
           :aria-current="item.active ? 'page' : undefined"
-          :title="item.label"
-          :disabled="
-            !model.store.activeProject &&
-            (item.view === 'board' || item.view === 'workflow')
+          :title="
+            item.disabled
+              ? `Select a project to open ${item.label}`
+              : item.label
           "
-          @click="model.store.navigate(item.view)"
+          :disabled="item.disabled"
+          @click="navigate(item.view)"
         >
           <CfIcon :name="item.icon" />
           <span>{{ item.label }}</span>
@@ -72,37 +75,12 @@ const { shell: model, groups } = useStudioNavigation();
       <button
         type="button"
         class="cf-nav-item"
-        :class="{ 'is-active': model.store.view === 'community-settings' }"
-        :aria-current="
-          model.store.view === 'community-settings' ? 'page' : undefined
-        "
-        aria-label="Community settings"
-        title="Community settings"
-        @click="model.store.navigate('community-settings')"
-      >
-        <CfIcon name="users-round" /><span>Community settings</span>
-      </button>
-      <button
-        type="button"
-        class="cf-nav-item"
         aria-label="How it works"
         title="How it works"
         @click="model.store.help = true"
       >
         <CfIcon name="circle-help" />
         <span>How it works</span>
-      </button>
-      <button
-        type="button"
-        class="cf-nav-item"
-        :class="{ 'is-active': model.store.view === 'settings' }"
-        :aria-current="model.store.view === 'settings' ? 'page' : undefined"
-        aria-label="Project settings"
-        title="Project settings"
-        @click="model.store.navigate('settings')"
-      >
-        <CfIcon name="settings" />
-        <span>Project settings</span>
       </button>
       <div class="cf-streamer-profile">
         <div>

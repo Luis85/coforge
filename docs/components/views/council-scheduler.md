@@ -7,7 +7,7 @@ kind: "subpage"
 route: "council.tab = scheduler"
 parent: "council"
 component: "src/plugin/presentation/components/coforge/TaskSchedulerView.vue"
-entry: ["Open The Council → Task scheduler."]
+entry: ["Open The Council → Advanced Council tools → Task scheduler."]
 actions: ["Create or edit task","Set timer or recurrence","Enable or pause","Run now","Archive or restore","Inspect source and run","Acknowledge uncertain admission"]
 states: ["Desktop unavailable","Labelled example","Non-executor","Execution paused","Empty","Draft","Enabled","Archived","Skipped occurrence","Uncertain admission","Storage error"]
 journeys: ["Council","task-scheduling"]
@@ -23,7 +23,7 @@ Send recurring prompts or timed tasks through the existing Council execution ker
 
 ## Entry and next action
 
-Open [The Council](council.md), choose Task scheduler, designate the desktop in Run monitor and configure recipient definitions. Create a schedule, choose its project/team/recipient, prompt and optional context notes, then select a timer, interval, daily or weekly time. Save paused or explicitly enable future scheduling. Resume Council execution separately.
+Open [The Council](council.md), expand Advanced Council tools and choose Task scheduler. Ask the Council remains the main landing page and task history. Designate the desktop in Run monitor and configure recipient definitions. Create a schedule, choose its project/team/recipient, prompt and optional context notes, then select a timer, interval, daily or weekly time. Save paused or explicitly enable future scheduling. Resume Council execution separately.
 
 ## States and recovery
 
@@ -33,6 +33,6 @@ Unknown admission outcomes disable future scheduling without replay. Inspect the
 
 ## Composition and boundaries
 
-Use existing Council fields, responsive grids, controls and per-view Pinia state. The browser example is explicitly in memory and does not invoke providers or write vault files. Occurrences snapshot prompt and optional note context into private managed notes, preserving originals. Limits and final human review remain outside editable schedules.
+Use existing Council fields, responsive grids, controls and per-view Pinia state. The browser example is explicitly in memory and does not invoke providers or write vault files. Exit scheduler example or explicit global example cleanup discards its drafts and receipts and stops the example timer; ordinary navigation preserves drafts. Authored native schedules and their drafts are retained. Occurrences snapshot prompt and optional note context into private managed notes, preserving originals. Limits and final human review remain outside editable schedules.
 
 Source: [TaskSchedulerView.vue](../../../src/plugin/presentation/components/coforge/TaskSchedulerView.vue). Full semantics: [Task scheduling](../../coforge/TASK-SCHEDULER.md).

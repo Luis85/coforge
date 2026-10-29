@@ -5,6 +5,7 @@ import {
   type PublicIdea,
 } from "./public-board";
 import { createEmptyState } from "./seed";
+import { projectIsPublic } from './project-publicity';
 import { defaultEconomyRules, type EconomyRules } from "./population";
 import {
   defaultCommunityEnvironment,
@@ -87,7 +88,7 @@ export function streamSurfaceSnapshot(
     context.projectId === undefined
       ? undefined
       : state.projects?.find(
-          (project) => project.id === context.projectId && !project.unavailable,
+          (project) => project.id === context.projectId && projectIsPublic(state, project.id),
         );
   const scoped =
     context.projectId === undefined

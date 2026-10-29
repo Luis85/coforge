@@ -32,9 +32,15 @@ export interface Player {
   reputation: number;
   presenceSeconds: number;
   rewardedMinutes: number;
+  registeredPresenceSeconds?: number;
+  rewardedXpMinutes?: number;
   rewardClaims: string[];
 }
 export const OPERATION_CODES = [
+  'economy-configuration-updated', 'economy-perk-fulfilled',
+  'project-visibility-updated',
+  'reply-privacy-cancelled',
+  'example-content-removed',
   'workflow-definition-updated',
   'workflow-run-started', 'workflow-run-stopped', 'workflow-run-finished', 'workflow-run-awaiting-review',
   'workflow-manual-waiting', 'workflow-manual-completed',
@@ -109,6 +115,7 @@ export interface RewardEntry {
   ideaId?: string;
 }
 export interface PopulationState {
+  economy?: import('./command-economy').EconomyState;
   players: Player[];
   rules: EconomyRules;
   rewards: RewardEntry[];

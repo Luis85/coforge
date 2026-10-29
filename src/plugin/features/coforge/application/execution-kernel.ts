@@ -21,7 +21,7 @@ export type {
   ExecutionJournalPort,
 } from "./execution-ports";
 
-/** Shared execution facade: all destinations use one journal authority and one invocation lane. */
+/** Shared execution facade: one journal authority and one exclusive call/round-batch lane. */
 export class ExecutionKernel {
   private readonly store: ExecutionJournalStore;
   private readonly publication: ExecutionPublication;
@@ -106,6 +106,7 @@ export class ExecutionKernel {
     return this.invocations.step(id);
   }
   repair(id: string): Promise<void> {
+    if (this.invocations.activeId === id) return Promise.reject(new Error("Wait for all active round members before repairing publication."));
     return this.publication.repair(id);
   }
   retry(id: string, acknowledgeUnknown = false): Promise<void> {
@@ -144,6 +145,7 @@ export class ExecutionKernel {
     return this.evidence.recordTelemetry(runId, attemptId, usage, costUsd);
   }
   continueSnapshot(id: string, currentRevision: string): Promise<void> {
+    if (this.invocations.activeId === id) return Promise.reject(new Error("Wait for all active round members before recovery."));
     return this.recovery.continueSnapshot(id, currentRevision);
   }
   skipInvocation(
@@ -151,6 +153,7 @@ export class ExecutionKernel {
     reason: string,
     acknowledgeUnknown = false,
   ): Promise<void> {
+    if (this.invocations.activeId === id) return Promise.reject(new Error("Wait for all active round members before skipping."));
     return this.recovery.skipInvocation(id, reason, acknowledgeUnknown);
   }
   exportRun(id: string): string {
@@ -160,6 +163,7 @@ export class ExecutionKernel {
     return this.evidence.pruneRun(id);
   }
   reassignProjection(id: string, sourceId: string): Promise<void> {
+    if (this.invocations.activeId === id) return Promise.reject(new Error("Wait for all active round members before reassigning publication."));
     return this.publication.reassignProjection(id, sourceId);
   }
 }

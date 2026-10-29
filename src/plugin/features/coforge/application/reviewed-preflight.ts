@@ -17,6 +17,7 @@ function source(preview: Pick<CouncilPreflight, "source">) {
     revision: preview.source.revision,
     generation: preview.source.generation,
     markdown: preview.source.markdown,
+    ...(preview.source.linkedIdea ? { linkedIdea: preview.source.linkedIdea } : {}),
   };
 }
 /** A freshness fingerprint, never a capability grant. Assigning minimal note identity does not change reviewed content. */

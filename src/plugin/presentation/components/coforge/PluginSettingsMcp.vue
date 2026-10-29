@@ -5,12 +5,14 @@ import CfIcon from './CfIcon.vue';
 const model = useMcpSettings();
 </script>
 <template>
+  <section class="cf-mcp-settings" aria-label="Local MCP server">
   <h3 class="cf-setting-heading"><CfIcon name="plug" size="sm" /> Local MCP server</h3>
   <p class="cf-plugin-settings-section-intro">
     Connect an external agent to all CoForge projects in this vault through one MCP server.
     Agents discover projects and choose a project ID for Screen, Score, Plan and Build.
     Plan reads the chosen repository; Build edits a separate worktree. You review the final changes in CoForge.
     Node.js 22 or newer must be on your PATH. Keep this vault and CoForge open while using the tools.
+    Activated clients can read requests and use the exposed workflow tools across all projects, including private ones. Viewer visibility still controls viewer-facing surfaces.
   </p>
   <PluginSettingsRow name="Vault MCP connection" class="cf-mcp-setting-row">
     <template #description>
@@ -32,4 +34,5 @@ const model = useMcpSettings();
     <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.busy || !model.reviewed" @click="model.recover()">Acknowledge recovery</button>
   </PluginSettingsRow>
   <p v-if="model.error" class="cf-plugin-settings-message is-error" role="alert">{{ model.error }}</p>
+  </section>
 </template>

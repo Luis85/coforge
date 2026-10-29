@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useCouncilEditorForm } from "../../composables/coforge/use-council-definitions";
+import { setCouncilRoundPromptOrder } from "../../composables/coforge/council-round-prompt-order";
 const model = useCouncilEditorForm();
 </script>
 <template>
@@ -8,7 +9,7 @@ const model = useCouncilEditorForm();
     aria-label="Council rounds"
   >
     <div class="cf-settings-actions">
-      <h3>Sequential rounds</h3>
+      <h3>Council rounds</h3>
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
@@ -18,9 +19,10 @@ const model = useCouncilEditorForm();
       </button>
     </div>
     <p class="cf-settings-help">
-      Source and captured team context are included in every round. Only
-      selected earlier collections are included. Project and vault tools stay
-      disabled.
+      Rounds run in order. Within each round, choose whether members are
+      prompted one at a time or together. Source and captured team context are
+      included in every round. Only selected earlier collections are included.
+      Project and vault tools stay disabled.
     </p>
     <div
       v-for="(round, index) in model.store.draft.rounds"
@@ -83,8 +85,33 @@ const model = useCouncilEditorForm();
           <option value="plan">Validated implementation plan</option>
         </select></label
       >
+      <label class="cf-field">
+        <span>Prompt order</span>
+        <select
+          :aria-label="`Prompt order for ${round.name}`"
+          :value="round.promptOrder ?? 'round-robin'"
+          @change="setCouncilRoundPromptOrder(round, $event)"
+        >
+          <option value="round-robin">Round robin (sequential)</option>
+          <option value="fan-out">Fan out (concurrent)</option>
+        </select>
+        <small v-if="round.promptOrder === 'fan-out'"
+          >Fan out starts all selected members from the same captured input.
+          Later rounds wait for persisted outcomes under this round's completion
+          policy.</small
+        >
+        <small v-else
+          >Round robin prompts one member at a time. Each contribution is saved
+          before the next member starts; later rounds still wait for the
+          completion policy.</small
+        >
+      </label>
       <fieldset>
-        <legend>Participants in invocation order</legend>
+        <legend>Participants and publication order</legend>
+        <p v-if="round.promptOrder === 'fan-out'" class="cf-settings-help">
+          Concurrent responses are saved in this order, even when they finish
+          out of order.
+        </p>
         <label
           v-for="member in model.store.draft.members"
           :key="member"

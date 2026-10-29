@@ -5,6 +5,8 @@ import { useCouncilStore } from '../../stores/coforge-council';
 import { useTaskSchedulerStore } from '../../stores/coforge-task-scheduler';
 import { editTaskForm, localTaskTime, newTaskForm, taskFormInput, taskTimingLabel } from './task-scheduler-form';
 import type { ScheduledTask, TaskOccurrence } from '../../../features/coforge/domain/scheduled-task';
+import { useTemporaryExample } from './use-temporary-example';
+import { resetTaskSchedulerExample } from './task-scheduler-example-reset';
 
 function createTaskSchedulerModel() {
   const { host } = useCoforge(); const studio = useStudioStore(); const council = useCouncilStore(); const store = useTaskSchedulerStore();
@@ -25,12 +27,20 @@ function createTaskSchedulerModel() {
     finally { store.busy = false; }
   }
   function requireService() { if (!service) throw new Error('Open CoForge in desktop Obsidian to manage scheduled tasks.'); return service; }
-  async function catalogue() { const actions = councilService(); if (actions) { const value = await actions.catalogue.list(); if (!closed) council.catalogue = value; } }
+  async function catalogue() { const actions = councilService(); const current = service; if (actions) { const value = await actions.catalogue.list(); if (!closed && service === current) council.catalogue = value; } }
   onMounted(() => {
     if (service) { store.state = service.snapshot(); stops.push(service.subscribe(value => { if (!closed) store.state = value; })); }
     const actions = councilService(); if (actions) { council.state = actions.snapshot(); stops.push(actions.subscribe(value => { if (!closed) council.state = value; })); void run(catalogue); }
   });
   onBeforeUnmount(() => { closed = true; for (const stop of stops) stop(); });
+  function exitExample() {
+    if (!store.example) return;
+    for (const stop of stops.splice(0)) stop();
+    service = host.taskScheduler; available.value = !!service;
+    resetTaskSchedulerExample(); host.discardPreview?.('task-scheduler');
+    if (service) { store.state = service.snapshot(); stops.push(service.subscribe(value => { if (!closed) store.state = value; })); }
+  }
+  const beginExample = useTemporaryExample('task-scheduler', exitExample);
   const needsAcknowledgement = (id: string) => store.state?.occurrences.some(item => item.taskId === id && item.status === 'attention' && item.acknowledgedAt === undefined) ?? false;
   const edit = (task: ScheduledTask) => { if (store.form) { store.error = 'Save or discard the current draft before editing another schedule.'; return; } store.form = editTaskForm(task); store.error = ''; store.notice = ''; };
   const openMonitor = (runId = '') => { council.inspectedRun = runId; council.tab = 'monitor'; };
@@ -62,11 +72,12 @@ function createTaskSchedulerModel() {
     runNow: (task: ScheduledTask) => { void run(() => requireService().runNow(task.id), 'Manual occurrence recorded. Inspect its status below.'); },
     openSource: (item: TaskOccurrence) => { void run(() => requireService().openSource(item.id)); },
     openMonitor: () => openMonitor(), openRun: (item: TaskOccurrence) => openMonitor(item.runId),
-    definitions: () => { council.tab = 'definitions'; },
+    definitions: () => { council.tab = 'definitions'; }, exitExample,
     explore: () => { void run(async () => {
-      store.example = true; service = host.previewTaskScheduler?.(); if (!service) throw new Error('Scheduler example is unavailable.'); available.value = true;
+      const preview = host.previewTaskScheduler?.(); if (!preview) throw new Error('Scheduler example is unavailable.');
+      beginExample(); store.example = true; service = preview; available.value = true;
       store.state = service.snapshot(); stops.push(service.subscribe(value => { if (!closed) store.state = value; }));
-      const actions = councilService(); if (actions) { await actions.designateExecutor(); council.state = actions.snapshot(); stops.push(actions.subscribe(value => { if (!closed) council.state = value; })); }
+      const actions = councilService(); if (actions) { await actions.designateExecutor(); if (closed || service !== preview) return; council.state = actions.snapshot(); stops.push(actions.subscribe(value => { if (!closed) council.state = value; })); }
       await catalogue();
     }); },
   });

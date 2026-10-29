@@ -1,0 +1,39 @@
+{
+  "format": "coforge-public-board/v1",
+  "generatedAt": "2026-10-23T18:00:00.000Z",
+  "project": "Legacy public project",
+  "projectId": "CFP-001",
+  "awaitingScreening": 1,
+  "contributors": [],
+  "leaderboards": {
+    "votes": [],
+    "ideas": [],
+    "implementations": []
+  },
+  "columns": [
+    {
+      "id": "inbox",
+      "title": "Inbox",
+      "hint": "Screened requests waiting for a score",
+      "ideas": []
+    },
+    {
+      "id": "next",
+      "title": "Up next",
+      "hint": "Ranked and planned",
+      "ideas": []
+    },
+    {
+      "id": "progress",
+      "title": "In progress",
+      "hint": "Being built or reviewed",
+      "ideas": []
+    },
+    {
+      "id": "done",
+      "title": "Accepted",
+      "hint": "Accepted by the streamer",
+      "ideas": []
+    }
+  ]
+}

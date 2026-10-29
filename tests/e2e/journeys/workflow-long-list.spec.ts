@@ -1,3 +1,4 @@
+import { openWorkflowSettings } from "../support/workflow-navigation";
 import { expect, test } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -11,10 +12,7 @@ for (const width of [1280, 360])
       "data-prototype-ready",
       "true",
     );
-    await page
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .first()
-      .click();
+    await openWorkflowSettings(page);
     const workflow = {
       format: "coforge-workflow/v1",
       revision: "long-workflow",

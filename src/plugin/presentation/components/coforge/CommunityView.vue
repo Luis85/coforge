@@ -16,14 +16,23 @@ const model = useCommunity();
       </div>
     </header>
     <div class="cf-community-summary">
-      <span class="cf-community-avatar-stack">
-        <span v-for="member in model.stack" :key="member.id" class="cf-avatar cf-avatar-sm" :style="member.style">{{ member.initials }}</span>
-      </span>
-      <p>
-        <strong>{{ model.makers }} makers</strong> have contributed screened ideas, with
-        <strong>{{ model.totalVotes }} votes</strong> and <strong>{{ model.acceptedCount }} accepted increments</strong>.
-      </p>
-      <span class="cf-community-mode-label">{{ model.modeLabel }}</span>
+      <section class="cf-decision-brief" aria-label="Community contribution overview">
+        <div>
+          <h2>See who is shaping the game</h2>
+          <p>Rank by support, screened ideas or accepted work. Select a contributor to inspect the evidence behind their recognition.</p>
+          <div class="cf-community-overview-people">
+            <span class="cf-community-avatar-stack" aria-hidden="true">
+              <span v-for="member in model.stack" :key="member.id" class="cf-avatar cf-avatar-sm" :style="member.style">{{ member.initials }}</span>
+            </span>
+            <span class="cf-community-mode-label">{{ model.modeLabel }} · screened contributions</span>
+          </div>
+        </div>
+        <dl>
+          <div><dt>Makers</dt><dd>{{ model.makers }}</dd></div>
+          <div><dt>Votes received</dt><dd>{{ model.totalVotes }}</dd></div>
+          <div><dt>Accepted increments</dt><dd>{{ model.acceptedCount }}</dd></div>
+        </dl>
+      </section>
     </div>
     <div class="cf-community-layout">
       <div class="cf-community-main">

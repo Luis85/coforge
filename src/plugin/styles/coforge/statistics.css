@@ -1,5 +1,9 @@
 .cf-statistics-page p { margin: 10px 0; line-height: 1.7; font-size: 12px; color: var(--cf-muted); max-width: 80ch; }
 .cf-statistics-page h2 { font-size: 18px; }
+.cf-statistics-overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; padding: 24px; margin: 20px 0; background: color-mix(in srgb, var(--cf-accent) 7%, var(--cf-bg)); border: 1px solid var(--cf-border); border-radius: var(--radius-l); }
+.cf-statistics-overview dt { color: var(--cf-muted); font-size: 12px; line-height: 1.6; }
+.cf-statistics-overview dd { color: var(--cf-text); font-size: 28px; font-weight: 700; margin: 10px 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cf-statistics-page .cf-statistics-coverage { color: var(--cf-text); max-width: none; padding-block: 8px; }
 .cf-statistics-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; margin: 24px 0; }
 .cf-statistics-page .cf-field select { min-width: 0; width: 100%; min-height: 38px; padding: 8px 10px; color: var(--cf-text); background: var(--cf-surface); border: 1px solid var(--cf-border-strong); border-radius: var(--radius-s); }
 .cf-statistics-comparisons { border: 0; padding: 0; margin: 0 0 28px; min-width: 0; }
@@ -43,4 +47,6 @@
 .cf-statistics-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 18px; font-size: 12px; color: var(--cf-muted); }
 .cf-statistics-empty, .cf-statistics-loading { padding: 32px 0; }
 .cf-statistics-example { padding: 12px; border: 1px solid var(--cf-border); border-radius: var(--radius-s); background: var(--cf-surface); }
+@container plugin-shell-leaf (max-width: 850px) { .cf-statistics-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; } }
 @container plugin-shell-leaf (max-width: 700px) { .cf-statistics-controls { grid-template-columns: minmax(0, 1fr); gap: 16px; } .cf-statistics-chart { padding: 6px 6px 14px; } .cf-statistics-page th, .cf-statistics-page td { padding: 10px; } }
+@container plugin-shell-leaf (max-width: 480px) { .cf-statistics-overview { padding: 18px; gap: 18px; } .cf-statistics-overview dd { font-size: 22px; } }

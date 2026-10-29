@@ -14,6 +14,8 @@ import { useStudioStore } from "../../stores/coforge-studio";
 import { COUNCIL_PAGES, type CouncilPage } from "../../stores/studio-pages";
 import type { CouncilTarget } from "../../../features/coforge/application/council-execution";
 import { councilInboxActions } from "./council-inbox-actions";
+import { useTemporaryExample } from "./use-temporary-example";
+import { resetCouncilExample } from "./council-example-reset";
 import { councilArtifactLabel } from "../../../features/coforge/application/council-execution";
 import { councilSubmissionActions } from "./council-submission-actions";
 import { isWorkflowV2Run } from "../../../features/coforge/application/workflow-v2-execution";
@@ -23,6 +25,8 @@ import type {
 } from "../../../features/coforge/domain/execution-run";
 import { v1ExecutionSummary } from "../../../features/coforge/application/execution-v1-adapter";
 import { councilHistoryActions } from "./council-history-actions";
+import { useCouncilAsk } from "./use-council-ask";
+import { refreshCouncil } from "./refresh-council";
 import {
   councilRunState,
   legacyRunMatches,
@@ -31,9 +35,11 @@ import {
 
 export function useCouncil() {
   const { host, studio: application } = useCoforge();
-  let service = host.council;
   const store = useCouncilStore();
+  let service =
+    store.example && !host.council ? host.previewCouncil?.() : host.council;
   const studio = useStudioStore();
+  store.tab = "ask";
   let closed = false;
   let stop = () => {};
   async function run(work: () => Promise<void>) {
@@ -55,9 +61,8 @@ export function useCouncil() {
   }
   async function refresh() {
     if (!service) return;
-    store.state = service.snapshot();
-    const catalogue = await service.catalogue.list();
-    if (!closed) store.catalogue = catalogue;
+    const current = service;
+    await refreshCouncil(current, store, () => !closed && current === service);
   }
   onMounted(() => {
     if (!service) return;
@@ -83,6 +88,7 @@ export function useCouncil() {
       store.preview = null;
       store.team = "";
       store.target = "";
+      store.taskSource = "";
     },
   );
   watch(
@@ -142,18 +148,32 @@ export function useCouncil() {
     return service;
   }
   function explore() {
+    if (host.council || store.busy) return;
     service = host.previewCouncil?.();
     if (!service) return;
+    beginExample();
+    stop();
     model.service = service;
-    model.example = true;
+    store.example = true;
     store.state = service.snapshot();
     store.source = "CoForge/Examples/Council proposal.md";
     store.team = "team-example";
     store.target = "council-example";
+    store.taskTeam = "team-example";
+    store.taskCouncil = "council-example";
     stop = service.subscribe((state) => {
       if (!closed) store.state = state;
     });
     void run(refresh);
+  }
+  function exitExample() {
+    if (!store.example) return;
+    service?.pause();
+    stop();
+    service = host.council;
+    model.service = service;
+    resetCouncilExample();
+    host.discardPreview?.("council");
   }
   const selectedRun = computed(() =>
     store.state?.runs.find((run) => run.id === store.inspectedRun),
@@ -174,10 +194,29 @@ export function useCouncil() {
     store,
     studio,
     pages: COUNCIL_PAGES,
+    advancedPages: COUNCIL_PAGES.filter((page) => page.id !== "ask"),
+    ask: useCouncilAsk({
+      store,
+      service: requireService,
+      current: (value) => value === service,
+      available: () => Boolean(service),
+      target,
+      projectId: () => studio.state?.activeProjectId ?? "",
+      closed: () => closed,
+      refresh,
+      run,
+    }),
     selectPage: (page: CouncilPage) => {
       store.tab = page;
       if (
-        ["submit", "inboxes", "workflows", "messages", "folders"].includes(page)
+        [
+          "ask",
+          "submit",
+          "inboxes",
+          "workflows",
+          "messages",
+          "folders",
+        ].includes(page)
       )
         void run(refresh);
     },
@@ -192,9 +231,10 @@ export function useCouncil() {
         store.notice =
           "Native runtime availability was checked without a model request.";
       }),
-    example: false,
+    example: computed(() => store.example),
     canPreview: Boolean(host.previewCouncil),
     explore,
+    exitExample,
     projectId: computed(() => studio.state?.activeProjectId ?? ""),
     runs: computed(() =>
       (store.state?.runs ?? []).filter(
@@ -215,6 +255,7 @@ export function useCouncil() {
       ),
     ),
     selectedRun,
+    settling: computed(() => selectedRun.value?.attempts.some(attempt => attempt.status === 'dispatching') ?? false),
     runState: councilRunState,
     progressAnnouncement: computed(() => {
       const current =
@@ -342,6 +383,7 @@ export function useCouncil() {
           "A new submission generation was created. Active inboxes will reconcile it.";
       }),
   });
+  const beginExample = useTemporaryExample("council", exitExample);
   provide(councilModelKey, model);
   return model;
 }

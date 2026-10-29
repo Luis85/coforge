@@ -36,3 +36,7 @@ No runs; Queued; Running; Human checkpoint; Failed; Complete. Inspect an error b
 Source: [src/plugin/presentation/components/coforge/ConfiguredWorkflowExecution.vue](../../../src/plugin/presentation/components/coforge/ConfiguredWorkflowExecution.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`, `recovery`.
+
+## Workspace redesign
+
+The request title and current run state lead the execution workspace. Completed and current steps have distinct surfaces, while attempt details remain expandable and failures remain visible.

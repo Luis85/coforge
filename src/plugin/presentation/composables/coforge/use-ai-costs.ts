@@ -8,6 +8,7 @@ import {
 } from "vue";
 import { useCoforge } from "../../context/coforge-context";
 import { useAICostStore } from "../../stores/coforge-ai-costs";
+import { useTemporaryExample } from "./use-temporary-example";
 import {
   costSummary,
   formatUsd,
@@ -18,6 +19,7 @@ import {
   formatTokens,
   tokenSummary,
 } from "../../../features/coforge/domain/ai-usage";
+import { attributionCoverage, attributionId, attributionName, costAttributionGroups, costGroupDisplay, COST_DIMENSIONS, type CostDimension } from '../../../features/coforge/domain/ai-cost-groups';
 export function useAICosts() {
   const { host } = useCoforge();
   const store = useAICostStore();
@@ -76,15 +78,39 @@ export function useAICosts() {
           (!store.project || task.projectId === store.project) &&
           (!store.feature || task.featureId === store.feature) &&
           (!store.source || taskCost(task).source === store.source) &&
-          `${task.featureId} ${task.featureTitle} ${task.model ?? ""} ${task.stage} ${task.workflow?.stepName ?? ""} ${task.workflow?.stepId ?? ""} ${task.workflow?.runId ?? ""} ${task.workflow?.attemptId ?? ""}`
+          (!store.agent || (attributionId(task, 'agent') ?? '__unattributed__') === store.agent) &&
+          (!store.team || (attributionId(task, 'team') ?? '__unattributed__') === store.team) &&
+          (!store.council || (attributionId(task, 'council') ?? '__unattributed__') === store.council) &&
+          `${task.featureId} ${task.featureTitle} ${task.model ?? ""} ${task.stage} ${task.workflow?.stepName ?? ""} ${task.workflow?.stepId ?? ""} ${task.workflow?.runId ?? ""} ${task.workflow?.attemptId ?? ""} ${Object.values(task.attribution ?? {}).join(' ')}`
             .toLowerCase()
             .includes(store.search.toLowerCase()),
       )
       .sort((a, b) => b.startedAt.localeCompare(a.startedAt)),
   );
   const summary = computed(() => costSummary(tasks.value));
+  const attributionChoices = computed(() => ({ agent: costAttributionGroups(store.state.tasks, 'agent'), team: costAttributionGroups(store.state.tasks, 'team'), council: costAttributionGroups(store.state.tasks, 'council') }));
+  const exitExample = () => {
+    if (!store.example) return;
+    stop();
+    store.example = false;
+    store.state = { tasks: [], loading: false, error: "" };
+    store.editing = null;
+    store.expected = "";
+    store.amount = "";
+    store.note = "";
+    store.project = "";
+    store.feature = "";
+    store.search = "";
+    store.source = "";
+    store.agent = ''; store.team = ''; store.council = ''; store.dimension = 'agent';
+    store.page = 0;
+    store.error = "";
+    store.notice = "";
+    host.discardPreview?.("ai-costs");
+  };
+  const beginExample = useTemporaryExample("ai-costs", exitExample);
   watch(
-    () => [store.project, store.feature, store.search, store.source],
+    () => [store.project, store.feature, store.search, store.source, store.agent, store.team, store.council],
     () => {
       store.page = 0;
     },
@@ -109,12 +135,7 @@ export function useAICosts() {
         title: group[0]?.featureTitle ?? "",
         summary,
         tokens: tokenSummary(group),
-        displayCost:
-          summary.reported + summary.manual > 0
-            ? formatUsd(summary.nanos)
-            : summary.simulations === group.length
-              ? "Simulation"
-              : "Unavailable",
+        displayCost: costGroupDisplay(summary, group.length),
         count: group.length,
       };
     });
@@ -135,9 +156,9 @@ export function useAICosts() {
           ? task.usage
           : undefined;
       const count = (value: number | undefined) =>
-        task.provider === "demo" ? "Simulation" : formatTokens(value);
+        task.status === 'not-started' ? 'No provider contacted' : task.provider === "demo" ? "Simulation" : formatTokens(value);
       const provenance = (value: number | undefined) =>
-        task.provider === "demo"
+        task.status === 'not-started' ? 'Not started' : task.provider === "demo"
           ? "Simulation"
           : value === undefined
             ? "Unavailable"
@@ -152,6 +173,19 @@ export function useAICosts() {
       };
     },
     features,
+    dimensions: COST_DIMENSIONS,
+    attributionCoverage: computed(() => attributionCoverage(tasks.value)),
+    attributionGroups: computed(() => costAttributionGroups(tasks.value, store.dimension)),
+    attributionOptions: (dimension: CostDimension) => attributionChoices.value[dimension],
+    chooseDimension: (dimension: CostDimension) => { store.dimension = dimension; },
+    chooseAttribution: (dimension: CostDimension, id: string) => { store[dimension] = id; },
+    filterAttribution: (dimension: CostDimension, event: Event) => {
+      const target = event.target;
+      if (target && 'value' in target && typeof target.value === 'string') store[dimension] = target.value;
+    },
+    clearAttribution: () => { store.agent = ''; store.team = ''; store.council = ''; },
+    attribution: (task: AICostTask) => ({ agent: attributionName(task, 'agent'), team: attributionName(task, 'team'), council: attributionName(task, 'council') }),
+    status: (task: AICostTask) => task.status === 'not-started' ? 'Not started · no provider contacted' : task.status,
     money: formatUsd,
     available: computed(() => Boolean(actions())),
     canPreview: Boolean(host.previewAiCosts),
@@ -165,7 +199,7 @@ export function useAICosts() {
       return {
         ...cost,
         display:
-          cost.source === "simulation" ? "Simulation" : formatUsd(cost.nanos),
+          cost.source === 'not-started' ? 'No provider contacted' : cost.source === "simulation" ? "Simulation" : formatUsd(cost.nanos),
       };
     },
     date: (date: string) => new Date(date).toLocaleString(),
@@ -175,9 +209,12 @@ export function useAICosts() {
       });
     },
     preview: () => {
+      if (host.aiCosts || store.busy) return;
+      beginExample();
       store.example = true;
       connect();
     },
+    exitExample,
     bindAmount: (value: unknown) => {
       amountInput = focusable(value) ? value : null;
     },

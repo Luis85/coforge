@@ -30,6 +30,10 @@ Choose Guided setup in the Stream studio header; the guide opens within Setup. A
 
 Optional closed; Installation missing; WebSocket missing; Password or scopes missing; Human review needed; Ready. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+The guide uses a distinct preparation surface and a visible current step. Step labels and completion text remain readable without relying on color; all external actions remain explicit.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/GuidedStreamSetup.vue](../../../src/plugin/presentation/components/coforge/GuidedStreamSetup.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

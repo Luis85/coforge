@@ -29,7 +29,7 @@ export class ExecutionAllowanceControls {
       const run = next.runs.find((item) => item.id === runId);
       if (
         !run ||
-        run.timing?.active ||
+        run.timing?.active || run.timing?.parallel?.length ||
         ["running", "completed", "cancelled"].includes(run.state)
       )
         throw new Error(

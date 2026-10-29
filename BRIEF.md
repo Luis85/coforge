@@ -30,7 +30,7 @@ The owner requested implementation of The Council PRD and explicitly accepted al
 
 1. Reusable agents belong to the vault; teams and councils belong to a project.
 2. Setup creates a default project team; councils select ordered members from it.
-3. The standard protocol runs independent opinions, then solution proposals, sequentially.
+3. The standard protocol runs independent opinions, then solution proposals. Each round can use sequential round robin or concurrent fan out (owner revision, 2026-10-28).
 4. An optional chair adds synthesis without replacing any member's contribution.
 5. Team information becomes context without waking every member.
 6. Delegation needs explicit recipients and finite limits inherited from the root request.
@@ -42,11 +42,63 @@ The owner requested implementation of The Council PRD and explicitly accepted al
 12. One designated desktop executes work only while CoForge is active.
 
 Definitions are canonical Markdown. Run evidence and local publication/delivery intents
-are durable and private. Each contribution must be persisted and projected before the
-next invocation. Unknown provider outcomes require explicit recovery without replay.
+are durable and private. Round robin persists and projects each contribution before
+the next member; fan out prompts all members against the same captured round inputs
+and completes durable publication before the next round. Unknown provider outcomes
+require explicit recovery without replay.
 Opinion rounds cannot read previous opinions through prompts, tools or provider history.
 Editable definitions never grant capabilities or bypass final host review of code changes.
 The full release scope and acceptance scenarios are in `docs/coforge/THE-COUNCIL-PRD.md`.
+
+Council entry journey (owner revision, 2026-10-28): opening The Council starts on
+Ask the Council, with an intake for a new question/task seeking advice or opinions
+and a history of ingested tasks. Definition editing, existing-note submission,
+watched inboxes and execution administration are secondary tools. A newly authored
+question is a private analytical Markdown task, preserving the existing captured
+preflight, explicit submission and execution/recovery gates. Saved task notes and
+retained admissions must remain discoverable after reload; navigation never starts
+a provider request.
+
+The Idea board appears first in Build navigation, followed by The Council and
+Agent workflow (owner correction, 2026-10-28).
+
+The private Kanban card menu includes Send to the Council. It prepares an assessment
+of the screened item, its open gaps and possible next steps, preserves an existing
+Council draft until explicitly replaced, and requires the usual review and submission.
+It never changes the request's status or starts implementation by itself.
+
+### Project requests and privacy (owner decisions, 2026-10-28)
+
+- Each project configures its Request Object in Project settings: a plain Markdown
+  frontmatter class label such as Business Idea or Feature Idea, optional typed
+  properties, and its own maintained category list. No external class plugin is required.
+- Definitions and category changes apply to new requests only. Existing notes retain
+  their captured schema, class, values and recorded category; old categories remain
+  available when filtering that project's backlog.
+- Private projects remain usable by the owner and are excluded from viewer discovery,
+  public projections and viewer commands. Privacy changes revoke owned local exports;
+  already deployed GitHub Pages content requires republishing.
+- AI costs retain and group costs for agents, teams and councils, including failures,
+  retries and delegated work. Captured identities survive later definition edits;
+  unavailable usage stays explicitly unknown and simulations stay separately labelled.
+
+### Community economy (owner decisions, 2026-10-28)
+
+- Economy is a main-navigation page. Configure a currency fee and optional XP,
+  reputation, virtual reward or lootbox benefits for every stream command, including
+  help and registration. Fees and benefits can be zero. Failed, rejected and duplicate
+  commands do not charge or reward.
+- Viewers earn currency through observed live stream participation before game
+  registration, so they can afford registration/help fees. Presence is limited to
+  available chat-presence evidence; anonymous video viewers are not identified.
+- Configure base income per minute for normal viewers and premium income for verified
+  current-channel subscribers. Premium is the subscriber's total rate and replaces
+  base income. Unknown subscription status uses the base rate without claiming verification.
+- Rewards deliver virtual currency, XP or reputation, or perks queued for explicit
+  streamer fulfillment. Lootboxes use configurable weighted rewards and disclose odds.
+  Both command-usage bonuses and currency purchases/redemptions are supported.
+- Charges, outcomes and fulfillment records are durable and deduplicated. No real
+  payment, automatic external perk fulfillment or invented starting balance is introduced.
 
 A streamer operating a second-screen studio while on air. The studio must be
 understandable at a glance, work without credentials in a clearly labelled demo, and
@@ -92,7 +144,7 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ### Configurable workflows (owner decisions, 2026-10-28)
 
-- Give agent workflows their own private configuration view, separate from execution monitoring and project settings.
+- Give agent workflows a private Workflow settings subpage under Agent workflow, alongside Workflow runs and Herdr workspaces (owner revision, 2026-10-28). Configuration, execution monitoring and project settings remain distinct tasks.
 - Each project owns its workflow. New projects start with the standard Screen/Score/Plan/Build process.
 - The streamer can add, rename, duplicate, remove, replace and reorder all steps, including core steps.
   Support AI steps and manual approval/checklist steps. Each AI step has a prompt, provider/agent/model,
@@ -127,6 +179,13 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   or created from the library. External edits require refresh and must not be silently overwritten.
 
 ## Surfaces (from the design)
+
+### Studio architecture and redesign (owner decisions, 2026-10-28)
+
+- Overhaul the information architecture documented in `docs/components`, then redesign every view as part of one system around user goals, correct data and useful insights.
+- Use a more expressive studio: stronger color, larger summaries and more visual emphasis. Keep Obsidian theme compatibility, canonical data ownership and explicit execution/review/recovery boundaries.
+- Review the complete result from product, UX, accessibility, privacy, reliability and maintenance perspectives, apply an improvement/polishing pass, and open, qualify and merge the pull request after checks are green.
+- Provide an explicit preview-and-confirm cleanup for the loaded sample workspace and local chat-simulator content with their related history, and let the user close temporary examples. Preserve manually authored and Twitch requests even when tested with simulated AI. Older requests without reliable provenance must be identified as ambiguous and kept by default; provider choice alone never authorizes content deletion.
 
 ### Agent task scheduler (owner decisions, 2026-10-28)
 

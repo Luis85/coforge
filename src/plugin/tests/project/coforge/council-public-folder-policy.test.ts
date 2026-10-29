@@ -1,3 +1,6 @@
+import { councilControlsFixture } from "./council-controls-fixture";
+import { SCHEDULED_TASK_FOLDER } from "../../../features/coforge/domain/scheduled-task";
+import { COUNCIL_TASK_FOLDER } from "../../../features/coforge/domain/council-task";
 // @vitest-environment happy-dom
 import { expect, it, vi } from "vitest";
 vi.mock("obsidian", () => import("@test/obsidian"));
@@ -59,3 +62,20 @@ it("rechecks registered private folders at publication even when the configured 
   ).toBeNull();
   expect(kit.read("Private/Agents/Reviewer.md")).toBe("# Private instructions");
 });
+
+it.each([SCHEDULED_TASK_FOLDER, `${SCHEDULED_TASK_FOLDER}/Nested`, COUNCIL_TASK_FOLDER])(
+  "rejects a watched inbox over managed task output %s before admission or note writes",
+  async path => {
+    const f = await councilControlsFixture();
+    try {
+      const revision = f.module.actions.snapshot().preferences.revision;
+      await expect(f.module.actions.saveBindings([{
+        id: "output-loop", path, projectId: f.projectId, teamId: "team", target: { kind: "agent", id: "agent" },
+        enabled: true, recursive: true, submit: "after-stable", settleMs: 0,
+      }], revision)).rejects.toThrow(/output folder|overlaps/i);
+      expect(f.module.actions.snapshot().preferences.bindings).toHaveLength(0);
+      expect(f.module.actions.snapshot().runs).toHaveLength(0);
+      expect(f.app.vault.getAbstractFileByPath(path)).toBeNull();
+    } finally { await f.dispose(); }
+  },
+);

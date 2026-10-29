@@ -35,3 +35,7 @@ No selection; AI; Manual checkpoint; Invalid contract; Unsaved. Inspect an error
 Source: [src/plugin/presentation/components/coforge/WorkflowStepEditor.vue](../../../src/plugin/presentation/components/coforge/WorkflowStepEditor.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `workflow-configuration`.
+
+## Workspace redesign
+
+A distinct step catalogue gives selected steps a shared accent surface; the editor keeps its stable reference and AI or manual controls. At narrow pane widths catalogue and editor stack.

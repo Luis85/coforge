@@ -4,6 +4,8 @@ import type {
   StudioProject,
 } from "../../../features/coforge/domain/types";
 import type { ProjectPaths } from "../../../features/coforge/domain/projects";
+import { requestObjectDefinitionCheck } from '../../../features/coforge/domain/request-object';
+import { copyRequestObject } from './request-object-draft';
 import {
   validateProjectPath,
   validateProjectUrl,
@@ -11,10 +13,10 @@ import {
 type ProjectLinks = Pick<StudioProject, "repositoryUrl" | "websiteUrl">;
 export type SettingsDraft = Pick<
   Settings,
-  "projectName" | "projectBrief" | "agentPrompt"
+  "projectName" | "projectBrief" | "agentPrompt" | "requestObject"
 > &
   ProjectPaths &
-  ProjectLinks;
+  ProjectLinks & { visibility?: 'public' | 'private' };
 export const PROVIDERS: Array<{
   value: Provider;
   icon: string;
@@ -43,13 +45,16 @@ export const PROVIDERS: Array<{
 
 export const pickSettingsDraft = (
   settings: Settings,
-): Pick<SettingsDraft, "projectName" | "projectBrief" | "agentPrompt"> => ({
+): Pick<SettingsDraft, "projectName" | "projectBrief" | "agentPrompt" | "requestObject"> => ({
   projectName: settings.projectName,
   projectBrief: settings.projectBrief,
   agentPrompt: settings.agentPrompt,
+  requestObject: settings.requestObject ? copyRequestObject(settings.requestObject) : undefined,
 });
 export function validateSettingsDraft(draft: SettingsDraft): string | null {
+  if (draft.visibility !== undefined && draft.visibility !== 'public' && draft.visibility !== 'private') return 'Choose public or private project visibility.';
   try {
+    if (draft.requestObject) requestObjectDefinitionCheck(draft.requestObject);
     validateProjectPath(draft.projectPath);
     validateProjectPath(draft.worktreeFolder);
     validateProjectUrl(draft.repositoryUrl, true);

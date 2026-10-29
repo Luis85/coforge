@@ -37,3 +37,7 @@ The section appears only for a completed run containing a typed plan. The primar
 Source: [src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue](../../../src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue), in its framed plan-handoff details section. This task shares the selected-run context and busy/error state with the monitor; it does not add an independent navigation route or Obsidian tab.
 
 Journey tags: `Council`, `request-to-recognition`.
+
+## Workspace redesign
+
+Plan handoff remains inside the inspected run, with the Council evidence hierarchy and existing explicit target-request selection. It does not approve implementation.

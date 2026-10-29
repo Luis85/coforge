@@ -1,3 +1,4 @@
+import { openWorkflowSettings } from "../../../tests/e2e/support/workflow-navigation.ts";
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
@@ -27,9 +28,7 @@ describe("Managed Herdr workflow configuration", () => {
     await browserExpect(view.locator(".cf-project-switcher")).toContainText(
       "Contained Herdr configuration",
     );
-    await view
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .click();
+    await openWorkflowSettings(view);
     await view.getByLabel("AI provider", { exact: true }).selectOption("herdr");
     await view
       .getByLabel("Herdr agent type", { exact: true })
@@ -63,9 +62,7 @@ describe("Managed Herdr workflow configuration", () => {
     view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
-    await view
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .click();
+    await openWorkflowSettings(view);
     await browserExpect(
       view.getByLabel("AI provider", { exact: true }),
     ).toHaveValue("herdr");

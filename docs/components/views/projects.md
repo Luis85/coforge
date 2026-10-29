@@ -36,3 +36,11 @@ No projects; Adding; Selected; Unavailable; Background jobs. Inspect an error be
 Source: [src/plugin/presentation/components/coforge/ProjectsView.vue](../../../src/plugin/presentation/components/coforge/ProjectsView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `setup`, `multi-project`.
+
+## Workspace redesign
+
+Project rows give the stable project ID, request count, review workload and automation state distinct visual roles. Unavailable project notes have an explicit restore instruction beside disabled actions.
+
+## Project privacy
+
+Project visibility is explicit at creation and in each row. Existing projects with no visibility field remain public. Private projects stay fully usable in the owner studio and are excluded from viewer discovery and public request projections.

@@ -1,3 +1,4 @@
+import { openWorkflowRuns, openWorkflowSettings } from "../../../tests/e2e/support/workflow-navigation.ts";
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
@@ -26,10 +27,7 @@ describe("Configured human workflows in Obsidian", () => {
     await browserExpect(view.locator(".cf-project-switcher")).toContainText(
       "Contained human workflow",
     );
-    await view
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .first()
-      .click();
+    await openWorkflowSettings(view);
     await view
       .getByRole("button", { name: "Import JSON", exact: true })
       .click();
@@ -132,9 +130,7 @@ describe("Configured human workflows in Obsidian", () => {
     view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
-    await view
-      .getByRole("button", { name: "Agent workflow", exact: true })
-      .click();
+    await openWorkflowRuns(view);
     const manual = view.getByRole("region", {
       name: "Manual workflow step",
       exact: true,

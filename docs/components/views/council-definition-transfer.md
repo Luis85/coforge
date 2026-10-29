@@ -35,3 +35,7 @@ Invalid JSON; Replacement preview; Disabled import; Export ready. Inspect an err
 Source: [src/plugin/presentation/components/coforge/CouncilDefinitions.vue](../../../src/plugin/presentation/components/coforge/CouncilDefinitions.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`.
+
+## Workspace redesign
+
+Transfer uses the Council disclosure and inspection hierarchy, preserving literal source and its explicit preview and apply decisions.

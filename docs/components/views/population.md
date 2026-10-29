@@ -23,6 +23,8 @@ Inspect a viewer’s private participation record.
 
 Observed viewers and registered players are distinct. Profiles and moderation remain private; tracked chat-presence time is not verified video watch time.
 
+The participation overview separates observed viewers, registered players and the configured currency in circulation. Review not registered applies a reversible directory filter; it never registers or messages anyone. Clear filters restores the full directory. The selected profile leads with recorded statistics before participation and Twitch moderation controls.
+
 ## Entry and next action
 
 Choose Viewers in the studio navigation. Available actions: Search and filter; Select viewer; Refresh private notes; Clear filters; Page results. Return through the owning [CoForge studio](studio.md) surface.

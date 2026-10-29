@@ -9,6 +9,7 @@ export function createWorkspacePreview(store: StudioStore, timers: Timers) {
   let tasks: AICostTask[] = [
     {
       id: "example-screen-1",
+      attribution: { kind: 'council', agentId: 'example-designer', agentName: 'Design reviewer', agentNamespace: 'reusable', teamId: 'example-studio', teamName: 'Studio team', councilId: 'example-design', councilName: 'Design Council', runId: 'example-discussion' },
       featureId: "CF-001",
       featureTitle: "Village trading",
       projectId: "CFP-001",
@@ -29,6 +30,7 @@ export function createWorkspacePreview(store: StudioStore, timers: Timers) {
     },
     {
       id: "example-build-1",
+      attribution: { kind: 'agent', agentId: 'example-builder', agentName: 'Implementation reviewer', agentNamespace: 'reusable', teamId: 'example-studio', teamName: 'Studio team', runId: 'example-build' },
       featureId: "CF-001",
       featureTitle: "Village trading",
       projectId: "CFP-001",

@@ -288,6 +288,11 @@ export function usePopulation() {
     notice,
     working,
     openChat: () => store.openStreamTool("channel"),
+    filtered: computed(() => Boolean(query.value || filter.value !== "all")),
+    showUnregistered: () => {
+      query.value = "";
+      filter.value = "unregistered";
+    },
     clearFilters: () => {
       query.value = "";
       filter.value = "all";

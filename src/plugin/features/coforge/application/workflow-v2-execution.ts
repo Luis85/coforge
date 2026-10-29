@@ -18,6 +18,7 @@ import {
   type WorkflowV2Plan,
 } from "./workflow-v2-compiler";
 import type { WorkflowV2Preview } from "./workflow-v2-ports";
+import { assertCapturedPromptOrder } from "./captured-prompt-order";
 import type { ExecutionLocalAction } from "../domain/execution-local-action";
 import {
   teamMessageDraftCheck,
@@ -44,7 +45,8 @@ export function isWorkflowV2Run(
   }
 }
 export function decodeWorkflowV2Plan(
-  run: Pick<ExecutionRun, "definitionSnapshot" | "subject" | "projectId">,
+  run: Pick<ExecutionRun, "definitionSnapshot" | "subject" | "projectId"> &
+    Partial<Pick<ExecutionRun, "invocations">>,
 ): WorkflowV2Plan {
   if (!run.definitionSnapshot)
     throw new Error("The pinned v2 workflow definition is missing.");
@@ -52,7 +54,7 @@ export function decodeWorkflowV2Plan(
   const catalogue = record(value.catalogue);
   if (value.format !== "workflow-v2" || catalogue.projectId !== run.projectId)
     throw new Error("The pinned v2 workflow scope is invalid.");
-  return compileWorkflowV2(
+  const plan = compileWorkflowV2(
     workflowV2DefinitionCheck(value.definition),
     run.subject,
     {
@@ -62,6 +64,8 @@ export function decodeWorkflowV2Plan(
       councils: list(councilDefinitionCheck)(catalogue.councils),
     },
   );
+  assertCapturedPromptOrder(run.invocations, plan.invocations);
+  return plan;
 }
 export function workflowV2Admission(
   preview: WorkflowV2Preview,

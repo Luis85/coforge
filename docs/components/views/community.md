@@ -23,6 +23,8 @@ Understand who contributed to accepted progress.
 
 Recognition follows screened ideas and accepted increments. Votes signal demand rather than permission to build or publish.
 
+The contribution overview leads with makers, votes received and accepted increments from the same eligible contribution projection as the leaderboard. These are all-project totals, unaffected by the project switcher. Ranking modes and selected-contributor evidence remain the next step; no causal performance claim is inferred from votes.
+
 ## Entry and next action
 
 Choose Community in the studio navigation. Available actions: Select contributor; Inspect badges; Review accepted releases. Return through the owning [CoForge studio](studio.md) surface.

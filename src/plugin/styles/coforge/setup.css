@@ -1,11 +1,11 @@
 .cf-setup-reopen { margin-bottom: 24px; }
-.cf-setup-guide { border: 1px solid var(--cf-border); border-radius: var(--radius-l); padding: 24px; margin-bottom: 28px; }
+.cf-setup-guide { border: 1px solid var(--cf-border); border-radius: var(--radius-l); padding: 24px; margin-bottom: 28px; background: var(--cf-surface); }
 .cf-setup-guide > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
 .cf-setup-guide h2 { margin: 0; }
 .cf-setup-steps { display: flex; padding: 0; margin: 22px 0; gap: 8px; list-style: none; flex-wrap: wrap; }
 .cf-setup-steps li { flex: 1 1 120px; }
 .cf-setup-steps button { display: flex; flex-direction: column; align-items: flex-start; width: 100%; min-height: 58px; white-space: normal; padding: 10px; gap: 6px; border: 1px solid var(--cf-border); border-radius: var(--radius-s); background: var(--background-primary); color: var(--cf-text); text-align: left; cursor: pointer; }
-.cf-setup-steps button[aria-current="step"] { border-color: var(--text-accent); background: var(--background-modifier-hover); }
+.cf-setup-steps button[aria-current="step"] { border-color: var(--text-accent); background: var(--cf-accent-soft); }
 .cf-setup-steps small { font-size: 11px; color: var(--cf-muted); }
 .cf-setup-step { max-width: 75ch; }
 .cf-setup-step h3 { font-size: 18px; margin: 24px 0 10px; }

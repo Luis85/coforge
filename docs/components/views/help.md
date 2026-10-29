@@ -16,6 +16,8 @@ privacy: "Private vault workspace; excluded from public projections."
 
 # Studio guide
 
+The guide introduces the same Stream, Build, Community and Insights task groups as the sidebar, then follows the ordered request-to-recognition journey. Its workflow shortcut uses the guarded destination helper. Example commands remain illustrative and include an explicit project ID.
+
 ## Purpose
 
 Learn the request-to-recognition loop.
