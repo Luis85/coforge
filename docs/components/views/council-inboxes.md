@@ -8,7 +8,7 @@ route: council.tab = inboxes
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/CouncilSubmission.vue
 entry:
-  - Open The Council, expand Advanced Council tools, then choose Watched inboxes.
+  - Open The Council, choose Automation, then Watched inboxes.
 actions:
   - Configure folder
   - Preview existing files
@@ -52,7 +52,7 @@ Activation previews existing files. Reload reconciles arrivals and pauses execut
 
 ## Entry and next action
 
-Open The Council, expand Advanced Council tools, then choose Watched inboxes. Available actions: Configure folder; Preview existing files; Select candidates; Activate or pause; Confirm generation reset. Return through the owning [The Council](council.md) surface.
+Open The Council, choose Automation, then Watched inboxes. Available actions: Configure folder; Preview existing files; Select candidates; Activate or pause; Confirm generation reset. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 

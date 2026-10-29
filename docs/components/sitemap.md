@@ -51,22 +51,25 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
       - [Contributor badges](views/community-badges.md) — panel
   - [Community settings](views/community-settings.md) — page
   - [The Council](views/council.md) — page
+    - [Council activity summary](views/council-activity-summary.md) — panel
     - [Ask the Council](views/council-ask.md) — subpage
-    - [Teams and councils](views/council-definitions.md) — subpage
+      - [Council task history](views/council-task-history.md) — panel
+      - [Council input file picker](views/council-vault-files.md) — panel
+    - [Councils & roster](views/council-definitions.md) — subpage
       - [Definition import and export](views/council-definition-transfer.md) — panel
+      - [Council setup readiness](views/council-setup-readiness.md) — panel
     - [Event triggers](views/council-events.md) — subpage
     - [Council execution controls](views/council-execution.md) — panel
-    - [Council folders](views/council-folders.md) — subpage
+    - [Storage folders](views/council-folders.md) — subpage
     - [Watched inboxes](views/council-inboxes.md) — subpage
     - [Team messages](views/council-messages.md) — subpage
-    - [Council run monitor](views/council-monitor.md) — subpage
+    - [Runs & answers](views/council-monitor.md) — subpage
+      - [Council answers](views/council-answers.md) — panel
       - [Council plan handoff](views/council-plan-handoff.md) — panel
       - [Council recovery tools](views/council-recovery.md) — panel
     - [Task scheduler](views/council-scheduler.md) — subpage
     - [Submit existing note](views/council-submit.md) — subpage
-    - [Council task history](views/council-task-history.md) — panel
-    - [Council input file picker](views/council-vault-files.md) — panel
-    - [Council workflows](views/council-workflows.md) — subpage
+    - [Proposal workflows](views/council-workflows.md) — subpage
       - [Proposal workflow transfer](views/council-proposal-transfer.md) — panel
   - [CoWorkers](views/coworkers.md) — page
   - [Economy](views/economy.md) — page
@@ -141,23 +144,26 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [Contributor recognition profile](views/community-profile.md) | Understand one contributor’s credited progress. | community.selected | streamer |
 | [Community settings](views/community-settings.md) | Save community names, XP and reputation rules, and ranks. | studio.view = community-settings | streamer |
 | [The Council](views/council.md) | Ask for specialist advice and follow each task to attributed results. | studio.view = council | streamer |
+| [Council activity summary](views/council-activity-summary.md) | Understand the selected project's current Council work and find its next action. | Council project activity across local pages | streamer |
+| [Council answers](views/council-answers.md) | Read the captured discussion as attributed published contributions before inspecting execution machinery. | Council Activity / selected retained run / published answers | streamer |
 | [Ask the Council](views/council-ask.md) | Save a question and review the Council's proposed work before submitting. | council.tab = ask | streamer |
 | [Definition import and export](views/council-definition-transfer.md) | Review a portable specialist definition before saving or sharing it. | Council definitions / import and export details | streamer |
-| [Teams and councils](views/council-definitions.md) | Save project team rosters and Council discussion protocols. | council.tab = definitions | streamer |
+| [Councils & roster](views/council-definitions.md) | Save project team rosters and Council discussion protocols. | council.tab = definitions | streamer |
 | [Event triggers](views/council-events.md) | Attach a saved workflow to committed project or application events. | council.tab = events | streamer |
 | [Council execution controls](views/council-execution.md) | Choose whether this desktop may execute Council work. | Council executor controls | streamer |
-| [Council folders](views/council-folders.md) | Save the vault folders used for Council definitions. | council.tab = folders | streamer |
+| [Storage folders](views/council-folders.md) | Save the vault folders used for Council definitions. | council.tab = folders | streamer |
 | [Watched inboxes](views/council-inboxes.md) | Activate reviewed note intake for a project destination. | council.tab = inboxes | streamer |
 | [Team messages](views/council-messages.md) | Send bounded context or work to explicit team recipients. | council.tab = messages | streamer |
-| [Council run monitor](views/council-monitor.md) | Resolve the next action or recovery decision for a Council run. | council.tab = monitor | streamer |
+| [Runs & answers](views/council-monitor.md) | Read attributed answers and resolve the next action or recovery decision for retained Council work. | council.tab = monitor | streamer |
 | [Council plan handoff](views/council-plan-handoff.md) | Continue a validated Council plan in an existing request's project workflow. | council.inspectedRun completed / Continue a validated plan in the project workflow | streamer |
 | [Proposal workflow transfer](views/council-proposal-transfer.md) | Review a portable v2 proposal workflow before applying it. | Council workflows / transfer preview | streamer |
 | [Council recovery tools](views/council-recovery.md) | Preserve or recover the selected run's retained execution evidence. | council.inspectedRun recovery tools | streamer |
 | [Task scheduler](views/council-scheduler.md) | Schedule a private prompt for an agent, assigned team member or council. | council.tab = scheduler | streamer |
+| [Council setup readiness](views/council-setup-readiness.md) | Find the next missing configuration prerequisite without mistaking it for provider readiness. | Council Setup / Councils and roster / readiness | streamer |
 | [Submit existing note](views/council-submit.md) | Submit a reviewed note to the intended collaboration destination. | council.tab = submit | streamer |
-| [Council task history](views/council-task-history.md) | Find a saved question or retained ingestion and resolve its next action. | Ask the Council / Ingested tasks | streamer |
+| [Council task history](views/council-task-history.md) | Find a saved question or retained ingestion and resolve its next action. | Ask / Task history | streamer |
 | [Council input file picker](views/council-vault-files.md) | Add selected vault files as wikilinks without replacing the task input. | Ask the Council / Add vault files | streamer |
-| [Council workflows](views/council-workflows.md) | Save an explicit proposal workflow for this project. | council.tab = workflows | streamer |
+| [Proposal workflows](views/council-workflows.md) | Save an explicit proposal workflow for this project. | council.tab = workflows | streamer |
 | [CoWorkers](views/coworkers.md) | Create and maintain reusable specialists for project teams. | studio.view = coworkers | streamer |
 | [Economy](views/economy.md) | Configure stream participation prices, earning and rewards. | studio.view = economy | streamer |
 | [Command prices](views/economy-commands.md) | Set fees and success benefits for every supported stream command. | economy.page = commands | streamer |
@@ -232,8 +238,8 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 
 ## Journey coverage
 
-- **Council**: [The Council](views/council.md), [Ask the Council](views/council-ask.md), [Definition import and export](views/council-definition-transfer.md), [Teams and councils](views/council-definitions.md), [Event triggers](views/council-events.md), [Council execution controls](views/council-execution.md), [Council folders](views/council-folders.md), [Watched inboxes](views/council-inboxes.md), [Team messages](views/council-messages.md), [Council run monitor](views/council-monitor.md), [Council plan handoff](views/council-plan-handoff.md), [Proposal workflow transfer](views/council-proposal-transfer.md), [Council recovery tools](views/council-recovery.md), [Task scheduler](views/council-scheduler.md), [Submit existing note](views/council-submit.md), [Council task history](views/council-task-history.md), [Council input file picker](views/council-vault-files.md), [Council workflows](views/council-workflows.md), [CoWorkers](views/coworkers.md), [CoForge studio](views/studio.md)
-- **analytical-task**: [Ask the Council](views/council-ask.md), [Council task history](views/council-task-history.md)
+- **Council**: [The Council](views/council.md), [Council activity summary](views/council-activity-summary.md), [Council answers](views/council-answers.md), [Ask the Council](views/council-ask.md), [Definition import and export](views/council-definition-transfer.md), [Councils & roster](views/council-definitions.md), [Event triggers](views/council-events.md), [Council execution controls](views/council-execution.md), [Storage folders](views/council-folders.md), [Watched inboxes](views/council-inboxes.md), [Team messages](views/council-messages.md), [Runs & answers](views/council-monitor.md), [Council plan handoff](views/council-plan-handoff.md), [Proposal workflow transfer](views/council-proposal-transfer.md), [Council recovery tools](views/council-recovery.md), [Task scheduler](views/council-scheduler.md), [Council setup readiness](views/council-setup-readiness.md), [Submit existing note](views/council-submit.md), [Council task history](views/council-task-history.md), [Council input file picker](views/council-vault-files.md), [Proposal workflows](views/council-workflows.md), [CoWorkers](views/coworkers.md), [CoForge studio](views/studio.md)
+- **analytical-task**: [Council answers](views/council-answers.md), [Ask the Council](views/council-ask.md), [Council task history](views/council-task-history.md)
 - **broadcast**: [Alerts](views/alerts.md), [Stream studio](views/broadcast.md), [OBS audio](views/broadcast-audio.md), [Stream displays](views/broadcast-displays.md), [Stream history](views/broadcast-history.md), [Live broadcast](views/broadcast-live.md), [Stream music](views/broadcast-music.md), [OBS scenes and sources](views/broadcast-scenes.md), [Stream setup](views/broadcast-setup.md), [OBS show plan](views/broadcast-show.md), [OBS sources and layouts](views/broadcast-sources.md), [Guided stream setup](views/guided-setup.md), [Public Alerts overlay](views/public-alerts.md), [Stream schedule](views/schedule.md), [Stream chat](views/stream.md), [Bot messages](views/stream-messages.md), [CoForge studio](views/studio.md), [Twitch channel editor](views/twitch-channel.md), [Twitch operations](views/twitch-operations.md), [Twitch action review](views/twitch-operations-action.md), [Twitch activity](views/twitch-operations-activity.md), [Twitch breaks and raid preview](views/twitch-operations-broadcast.md), [Twitch data and access](views/twitch-operations-data.md), [Twitch action history](views/twitch-operations-history.md), [Twitch dataset records](views/twitch-operations-records.md), [Private Twitch report](views/twitch-operations-report.md)
 - **community**: [Community recognition](views/community.md), [Contributor badges](views/community-badges.md), [Contributor recognition profile](views/community-profile.md), [Community settings](views/community-settings.md), [Viewers and players](views/population.md), [Public](views/public.md), [Public Twitch chat](views/public-chat.md), [Public community](views/public-community.md), [Public stream Kanban](views/public-kanban.md), [Public leaderboards](views/public-leaderboards.md), [Viewer profile](views/viewer-detail.md)
 - **community-economy**: [Economy](views/economy.md), [Command prices](views/economy-commands.md), [Presence earning](views/economy-earning.md), [Manual perk fulfillment](views/economy-fulfillment.md), [Loot boxes](views/economy-lootboxes.md), [Reward catalog](views/economy-rewards.md)
@@ -242,7 +248,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 - **moderation**: [Operations](views/operations.md), [Viewers and players](views/population.md), [Chat](views/stream-channel.md), [Chat moderation](views/twitch-moderation.md), [Viewer profile](views/viewer-detail.md)
 - **multi-project**: [Request board](views/board.md), [CoWorkers](views/coworkers.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Service Design](views/service-design.md), [Project settings](views/settings.md), [Example content cleanup](views/settings-example-cleanup.md), [Project details](views/settings-general.md), [Request Object](views/settings-request-object.md)
 - **public-sharing**: [Alerts](views/alerts.md), [Stream displays](views/broadcast-displays.md), [CoForge integration settings](views/native-settings.md), [Viewer website settings](views/native-website.md), [Public](views/public.md), [Public Alerts overlay](views/public-alerts.md), [Public Twitch chat](views/public-chat.md), [Public community](views/public-community.md), [Public stream Kanban](views/public-kanban.md), [Public leaderboards](views/public-leaderboards.md), [Viewer website](views/public-website.md)
-- **recovery**: [Studio activity](views/activity.md), [Council execution controls](views/council-execution.md), [Council run monitor](views/council-monitor.md), [Council recovery tools](views/council-recovery.md), [Council task history](views/council-task-history.md), [Herdr workspace controls](views/herdr.md), [Herdr workflow recovery](views/herdr-recovery.md), [Request activity](views/idea-activity.md), [Operations](views/operations.md), [Data & examples](views/settings-data.md), [Workflow runs](views/workflow-runs.md)
+- **recovery**: [Studio activity](views/activity.md), [Council activity summary](views/council-activity-summary.md), [Council execution controls](views/council-execution.md), [Runs & answers](views/council-monitor.md), [Council recovery tools](views/council-recovery.md), [Council task history](views/council-task-history.md), [Herdr workspace controls](views/herdr.md), [Herdr workflow recovery](views/herdr-recovery.md), [Request activity](views/idea-activity.md), [Operations](views/operations.md), [Data & examples](views/settings-data.md), [Workflow runs](views/workflow-runs.md)
 - **request-to-recognition**: [Studio activity](views/activity.md), [Request board](views/board.md), [Community recognition](views/community.md), [Contributor recognition profile](views/community-profile.md), [Council plan handoff](views/council-plan-handoff.md), [Studio guide](views/help.md), [Request activity](views/idea-activity.md), [New request](views/idea-create.md), [Request details](views/idea-detail.md), [Request increment](views/idea-increment.md), [Request overview](views/idea-overview.md), [Request plan](views/idea-plan.md), [Captured request fields](views/idea-request-values.md), [Example content cleanup](views/settings-example-cleanup.md), [Request Object](views/settings-request-object.md), [CoForge studio](views/studio.md), [Agent workflow](views/workflow.md), [Workflow runs](views/workflow-runs.md)
 - **service-design**: [Service Design](views/service-design.md)
 - **setup**: [Stream setup](views/broadcast-setup.md), [Guided stream setup](views/guided-setup.md), [Studio guide](views/help.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Ideas folder setting](views/native-vault.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Project settings](views/settings.md), [Data & examples](views/settings-data.md), [Example content cleanup](views/settings-example-cleanup.md), [Project details](views/settings-general.md), [Repository & build access](views/settings-repository.md), [Local connections](views/settings-runtime.md), [Twitch settings](views/stream-connection.md), [CoForge studio](views/studio.md)

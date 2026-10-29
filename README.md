@@ -175,6 +175,12 @@ Agent and editor setup: `AGENTS.md` (all coding agents), `CLAUDE.md` and `.claud
 The in-memory host is a fast approximation, not Obsidian. Behaviour that depends on
 the real host belongs in a `tooling/tests/obsidian/*.obsidian.ts` spec.
 
+For browser checks in parallel worktrees, choose a distinct free loopback port for
+each worktree with `COFORGE_E2E_PORT` (PowerShell example:
+`$env:COFORGE_E2E_PORT = '4317'`). It sets both the preview server and browser base URL
+for `npm run test:e2e` and `npm run test:ui-quality`; unset it to use the default
+`4181`. Values must be decimal integers from 1 to 65535. Server reuse remains disabled.
+
 ## Logging and debugging
 
 - `npm run dev:obsidian` streams plugin console output and uncaught errors to the

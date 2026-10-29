@@ -14,6 +14,17 @@ Keep the standard centered 1440px operating frame and existing leaf-relative gut
 
 The studio navigates by Build & Improve, Stream, Community and Insights, in that order. Stream and community work are channel-wide. CoWorkers are reusable across the vault; teams, councils, backlogs, workflows and repository settings retain their project context. Local navigation divides distinct tasks; it neither saves drafts nor dispatches work.
 
+The Council uses four primary task tabs: Ask, Activity, Setup and Automation.
+Each exposes short, visible secondary page navigation. Keep these rows on one
+line with contained horizontal overflow in narrow leaves; use the established
+page-navigation semantics and visible keyboard focus. All existing internal page
+IDs remain stable. Ask leads with the question and its audience; Activity leads
+with human task titles and attributed published answers. Setup shows observed
+prerequisites and actions rather than permanently repeating first-use instructions.
+Routine execution administration belongs in Activity; vault-wide storage scope
+must be explicit. Status announcements carry concise state changes, with timestamps
+and extended evidence outside the live region.
+
 Project settings is a persistent navigation entry at the bottom, outside the
 collapsible task groups. It owns General, Requests, Repository, Agent workflow,
 Runtime, and Data & examples. Agent workflow retains Workflow runs, Herdr

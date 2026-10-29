@@ -1,3 +1,4 @@
+import { openCouncilPage } from '../support/council-navigation';
 import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -48,11 +49,7 @@ for (const theme of ["light", "dark"]) {
     await page
       .getByRole("button", { name: "Explore Council example", exact: true })
       .click();
-    await page.getByText("Advanced Council tools", { exact: true }).click();
-    await page
-      .getByRole("navigation", { name: "Council workspace", exact: true })
-      .getByRole("button", { name: "Definitions", exact: true })
-      .click();
+    await openCouncilPage(page, 'Definitions');
     await page
       .locator(".cf-council-definition-list")
       .getByRole("button", { name: /^Example design council/ })
@@ -75,10 +72,7 @@ for (const theme of ["light", "dark"]) {
         .filter({ hasText: "Definition saved for future runs." }),
     ).toBeVisible();
     await capture(page, "editor", theme);
-    await page
-      .getByRole("navigation", { name: "Council tasks", exact: true })
-      .getByRole("button", { name: "Ask the Council", exact: true })
-      .click();
+    await openCouncilPage(page, 'Ask the Council');
     await page
       .getByLabel("Task title", { exact: true })
       .fill("Compare both routes");
@@ -87,9 +81,6 @@ for (const theme of ["light", "dark"]) {
       .fill(
         "Give independent opinions, then propose a solution from the complete opinion collection.",
       );
-    await page
-      .getByRole("combobox", { name: "Project team", exact: true })
-      .selectOption("team-example");
     await page
       .getByRole("combobox", { name: "Council", exact: true })
       .selectOption("council-example");

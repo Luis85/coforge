@@ -1,4 +1,5 @@
 import { useCouncilIdeaDraft } from "./use-council-idea-draft";
+import { useCouncilSelection } from './council-selection';
 import { computed, reactive, ref, watch } from "vue";
 import type { CouncilActions } from "../../../features/coforge/application/council-ports";
 import type { CouncilTarget } from "../../../features/coforge/application/council-execution";
@@ -28,35 +29,16 @@ export function useCouncilAsk(host: {
     void store.example;
     return host.available();
   });
-  const history = computed(() => councilTaskHistory(store.state, store.tasks));
-  const councils = computed(() =>
-    store.catalogue.valid.filter(
-      (entry) =>
-        entry.definition.schema === "council/v1" &&
-        entry.definition.teamId === store.taskTeam &&
-        entry.definition.projectId === host.projectId() &&
-        entry.definition.enabled,
-    ),
-  );
+  const history = computed(() => councilTaskHistory(store.state, store.tasks).filter(item => store.taskHistoryScope === 'all' || Boolean(host.projectId() && item.projectId === host.projectId())));
+  const selection = useCouncilSelection(() => store.catalogue, host.projectId, () => store.taskCouncil);
+  const councils = computed(() => selection.councils.map(definition => ({ definition })));
   function composerTarget(): CouncilTarget {
-    const team = store.catalogue.valid.find(
-      (entry) =>
-        entry.definition.schema === "team/v1" &&
-        entry.definition.id === store.taskTeam &&
-        entry.definition.projectId === host.projectId() &&
-        entry.definition.enabled,
-    );
-    const council = councils.value.find(
-      (entry) => entry.definition.id === store.taskCouncil,
-    );
-    if (!team || !council)
-      throw new Error(
-        "Select an available project team and council for this question.",
-      );
+    const council = selection.selected;
+    if (!council || !selection.ready) throw new Error(selection.issue || 'Select an available Council for this question.');
     return {
       kind: "council",
-      id: council.definition.id,
-      teamId: team.definition.id,
+      id: council.id,
+      teamId: council.teamId,
     };
   }
   const councilSelected = computed(() => {
@@ -74,7 +56,7 @@ export function useCouncilAsk(host: {
         .includes(needle),
     );
   });
-  watch(search, () => {
+  watch([search, () => store.taskHistoryScope], () => {
     limit.value = 50;
   });
   watch(
@@ -135,6 +117,8 @@ export function useCouncilAsk(host: {
   return reactive({
     available,
     linkedDraft,
+    selection,
+    executionNeeded: computed(() => !store.state?.executor || Boolean(store.taskSource) || Boolean(store.state?.paused && store.state.runs.some(run => run.projectId === host.projectId() && ['queued', 'running', 'publishing'].includes(run.state)))),
     councils,
     simulationPreview: computed(
       () =>
@@ -150,12 +134,12 @@ export function useCouncilAsk(host: {
     canSave: computed(
       () =>
         available.value &&
+        store.catalogueLoaded &&
         councilSelected.value &&
         !store.busy &&
         (!store.taskProjectId || store.taskProjectId === host.projectId()) &&
         Boolean(
           host.projectId() &&
-          store.taskTeam &&
           store.taskCouncil &&
           store.taskTitle.trim() &&
           store.taskQuestion.trim(),
@@ -221,7 +205,7 @@ export function useCouncilAsk(host: {
       }),
     inspect: (item: CouncilTaskHistoryRow) => {
       if (!item.runId) return;
-      store.projectFilter = "";
+      store.projectFilter = item.projectId;
       store.stateFilter = "";
       store.teamFilter = "";
       store.targetFilter = "";

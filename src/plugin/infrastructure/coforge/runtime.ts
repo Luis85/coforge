@@ -121,7 +121,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   });
   const studio: StudioService = new StudioService(storage, {
     outputTemplates,
-    agentTasks: { create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => council.actions.cancel(id) },
+    agentTasks: { prepareCouncil: (projectId, councilId) => workflowAgentTasks(plugin, studio, council.actions).prepareCouncil!(projectId, councilId), create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => workflowAgentTasks(plugin, studio, council.actions).cancel!(id), result: id => workflowAgentTasks(plugin, studio, council.actions).result!(id) },
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
     economyReservations: storage.economyReservations,
     privateFolders: () => councilPrivateFolders(),
@@ -291,7 +291,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       if (disposed) return;
       await mcp.start();
       if (disposed) return;
-      await taskScheduler.start().catch(() => notify('Task scheduler could not start. Open Council → Task scheduler and restore its private journal before scheduling work.', true));
+      await taskScheduler.start().catch(() => notify('Task scheduler could not start. Open The Council → Automation → Schedules and restore its private journal before scheduling work.', true));
       if (disposed) return;
       await workflowTriggers.start().catch(() => notify('Workflow triggers could not start. Restore their private journal before enabling event automation.', true));
       if (disposed) return;

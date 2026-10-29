@@ -45,6 +45,7 @@ export function withWorkflowOutputTemplateUsage(
             (step.kind === "ai" ||
               step.kind === "agent" ||
               step.kind === "council") &&
+            'outputTemplateId' in step &&
             step.outputTemplateId === id
           )
             references.push({

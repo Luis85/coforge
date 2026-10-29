@@ -93,6 +93,7 @@ const model = useWorkflowEditorForm();
           Choose who completes the next part of this process.
         </p>
         <div class="cf-workflow-add-actions">
+          <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.draft.steps.length >= 40" @click="model.add('council')">Add Ask Council</button>
           <button
             type="button"
             class="cf-btn cf-btn-secondary"

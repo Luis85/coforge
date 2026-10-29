@@ -12,7 +12,9 @@ import type { WorkflowTriggerDraft, WorkflowTriggerOccurrence } from '../../../f
 import { InvocationGate } from '../../../features/coforge/application/invocation-gate';
 import { StudioService } from '../../../features/coforge/application/studio';
 import { decodeCouncilPlan } from '../../../features/coforge/application/council-execution';
+import { defaultCouncilDefinition } from '../../../features/coforge/domain/council-definitions';
 import { createSeed } from '../../../features/coforge/domain/seed';
+import { AgentTaskNotStartedError } from '../../../features/coforge/application/agent-task';
 import { MemoryStorage, nodeTimers } from './memory-storage';
 
 it('admits one allowed project agent with captured context and tighter parent limits, preserving sources and rejecting replay', async () => {
@@ -51,6 +53,55 @@ it('admits one allowed project agent with captured context and tighter parent li
     expect(module.actions.snapshot().runs).toHaveLength(runCount);
     expect(kit.read(raced.sourcePath)).toContain(input.context);
     watched = false; racedPreflight.mockRestore();
+    await module.actions.catalogue.save(defaultCouncilDefinition('workflow-council', 'Workflow Council', { ...entry.definition, members: ['reviewer'] }, ['reviewer']));
+    const pausedPort = workflowAgentTasks(plugin, studio, module.actions);
+    const councilBinding = await pausedPort.prepareCouncil!(projectId, 'workflow-council');
+    const unavailablePort = workflowAgentTasks(plugin, studio, { ...module.actions, snapshot: () => ({ ...module.actions.snapshot(), executor: false }) });
+    const unavailableInput = { ...input, councilId: 'workflow-council', councilBinding, teamId: '', agentId: '', attemptId: 'missing-executor', sourcePath: 'CoForge/Automations/nudge-missing-executor.md' };
+    await expect(unavailablePort.create(unavailableInput)).rejects.toBeInstanceOf(AgentTaskNotStartedError);
+    expect(app.vault.getAbstractFileByPath(unavailableInput.sourcePath)).toBeNull();
+    const savedAgent = (await module.actions.catalogue.list()).valid.find(item => item.definition.id === 'reviewer')!;
+    if (savedAgent.definition.schema !== 'agent/v1') throw new Error('Expected reviewer');
+    await module.actions.catalogue.save({ ...savedAgent.definition, instructions: 'Changed after the workflow capture.' }, savedAgent.revision);
+    const staleInput = { ...unavailableInput, attemptId: 'stale-council', sourcePath: 'CoForge/Automations/nudge-stale-council.md' };
+    await expect(pausedPort.create(staleInput)).rejects.toBeInstanceOf(AgentTaskNotStartedError);
+    expect(app.vault.getAbstractFileByPath(staleInput.sourcePath)).toBeNull();
+    const changedAgent = (await module.actions.catalogue.list()).valid.find(item => item.definition.id === 'reviewer')!;
+    await module.actions.catalogue.save(savedAgent.definition, changedAgent.revision);
+    const savedPrompt = studio.state().settings.agentPrompt;
+    await studio.updateSettings({ agentPrompt: 'A later project prompt.' });
+    await expect(pausedPort.create(staleInput)).rejects.toBeInstanceOf(AgentTaskNotStartedError);
+    expect(app.vault.getAbstractFileByPath(staleInput.sourcePath)).toBeNull();
+    await studio.updateSettings({ agentPrompt: savedPrompt });
+    const councilReceipt = await pausedPort.create({ ...input, councilId: 'workflow-council', councilBinding, teamId: '', agentId: '', attemptId: 'council-attempt', sourcePath: 'CoForge/Automations/nudge-council-attempt.md' });
+    const child = module.actions.snapshot().runs.find(item => item.id === councilReceipt.runId)!;
+    expect(child).toMatchObject({ state: 'queued', projectId, teamId: entry.definition.id, attempts: [] });
+    expect(child.invocations).toHaveLength(2);
+    expect(await pausedPort.result!(councilReceipt.runId)).toEqual({ state: 'pending' });
+    expect(module.actions.snapshot().paused).toBe(true);
+    const completedChild = structuredClone(child);
+    completedChild.state = 'completed'; completedChild.cursor = child.invocations.length;
+    completedChild.artifacts = child.invocations.map((invocation, index) => ({
+      id: `answer-${index}`, runId: child.id, invocationId: invocation.id, attemptId: `attempt-${index}`,
+      roundId: invocation.roundId, agentId: invocation.agentId, agentRevision: invocation.agentRevision,
+      provider: invocation.provider, model: invocation.model, inputArtifactIds: [], createdAt: new Date().toISOString(),
+      markdown: `Advice for ${invocation.roundId}`, simulated: false,
+    })).reverse();
+    completedChild.attempts = completedChild.artifacts.map(artifact => ({
+      id: artifact.attemptId, invocationId: artifact.invocationId, status: 'published', startedAt: artifact.createdAt,
+      dispatch: { prompt: 'Captured request', inputArtifactIds: [] }, artifactId: artifact.id,
+    }));
+    const cancelCompleted = vi.fn(async () => {});
+    const completedPort = workflowAgentTasks(plugin, studio, { ...module.actions, cancel: cancelCompleted, snapshot: () => ({ ...module.actions.snapshot(), runs: [completedChild] }) });
+    const answer = await completedPort.result!(child.id);
+    expect(answer).toMatchObject({ state: 'completed', sourceId: councilReceipt.sourceId, projectId, markdown: expect.stringContaining('Reviewer · Opinions') });
+    if (answer.state !== 'completed') throw new Error('Expected a published answer');
+    expect(answer.markdown.indexOf('Opinions')).toBeLessThan(answer.markdown.indexOf('Solutions'));
+    await completedPort.cancel!(child.id); expect(cancelCompleted).not.toHaveBeenCalled();
+    completedChild.attempts[0]!.status = 'responded';
+    expect(await completedPort.result!(child.id)).toEqual({ state: 'attention' });
+    completedChild.attempts[0]!.status = 'published'; completedChild.artifacts[0]!.simulated = true;
+    expect(await completedPort.result!(child.id)).toEqual({ state: 'attention' });
     const host = workflowTriggerHost(plugin, studio, actions, () => undefined);
     const idea = studio.state().ideas.find(idea => idea.status === 'inbox')!;
     const definition = { ...defaultWorkflowDefinition(studio.state().settings), revision: 'event-manual', steps: [{ id: 'review', name: 'Review', instructions: 'Human decides.', kind: 'approval' as const }] };

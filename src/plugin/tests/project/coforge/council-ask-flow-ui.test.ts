@@ -46,7 +46,7 @@ it('saves and reviews a question without execution, then admits explicitly and s
     await history.get('button[aria-label="Inspect task Advice for our game"]').trigger('click');
     await flushPromises();
     expect(env.ui.tab).toBe('monitor');
-    expect(env.ui.projectFilter).toBe(''); expect(env.ui.stateFilter).toBe('');
+    expect(env.ui.projectFilter).toBe(env.projectId); expect(env.ui.stateFilter).toBe('');
     expect(env.ui.inspectedRun).toBe(runs[0]!.id);
   } finally { await env.dispose(); }
 });

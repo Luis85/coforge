@@ -8,7 +8,7 @@ route: council.inspectedRun completed / Continue a validated plan in the project
 parent: "[[docs/components/views/council-monitor]]"
 component: src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue
 entry:
-  - Within The Council → Run monitor, inspect a completed run with a typed plan and expand Continue a validated plan in the project workflow.
+  - Within The Council → Activity → Runs & answers, inspect a completed run with a typed plan and expand Continue a validated plan in the project workflow.
 actions:
   - Select validated plan artifact
   - Select existing project request
@@ -47,7 +47,7 @@ The selected typed plan becomes an attributed input to the existing request's sa
 
 ## Entry and next action
 
-Within The Council → Run monitor, choose **Inspect captured evidence** for a completed run with a typed plan. Expand **Continue a validated plan in the project workflow**, choose the validated plan artifact and an existing request in that run's project, then choose **Hand selected plan to project workflow**.
+Within The Council → Activity → Runs & answers, choose **Inspect captured evidence** for a completed run with a typed plan. Expand **Continue a validated plan in the project workflow**, choose the validated plan artifact and an existing request in that run's project, then choose **Hand selected plan to project workflow**.
 
 Inspect the resulting request in [Workflow runs](workflow-runs.md). Its host permissions, configured steps and mandatory final code review remain authoritative. Return through the owning [Council run monitor](council-monitor.md) surface.
 

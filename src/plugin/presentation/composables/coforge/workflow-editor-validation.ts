@@ -25,6 +25,7 @@ const labels: Record<string, string> = {
   items: "Checklist items",
   teamId: "Project team",
   agentId: "Agent recipient",
+  councilId: "Council",
   steps: "Workflow steps",
   "limits.timeoutSeconds": "Step timeout",
   "limits.intervalSeconds": "Automatic run interval",
@@ -32,10 +33,12 @@ const labels: Record<string, string> = {
   "limits.maxBudgetUsd": "Native CLI budget",
 };
 function targetFor(cause: unknown, step: boolean): string {
-  if (cause instanceof CheckError)
-    return step && !cause.path.startsWith("items[")
+  if (cause instanceof CheckError) {
+    const target = step && !cause.path.startsWith("items[")
       ? cause.path.split(/[.[\]]/u)[0] || "name"
       : cause.path;
+    return target === 'contextMode' ? 'inputs' : target;
+  }
   const message = cause instanceof Error ? cause.message : "";
   return message.includes("code-change")
     ? "access"
@@ -75,7 +78,8 @@ export function workflowEditorIssues(
       });
     }
     if (
-      (step.kind === "ai" || step.kind === "nudge") &&
+      (step.kind === "ai" || step.kind === "nudge" || step.kind === 'council') &&
+      (step.kind !== 'council' || !step.contextMode || step.contextMode === 'selected') &&
       step.inputs?.some((role) => !available.has(role))
     )
       issues.push({
@@ -90,6 +94,7 @@ export function workflowEditorIssues(
       available.add(step.output);
       if (step.access === "editworktree") available.add("codechange");
     }
+    if (step.kind === 'council') available.add('markdown');
   });
   try {
     workflowDefinitionCheck(definition);

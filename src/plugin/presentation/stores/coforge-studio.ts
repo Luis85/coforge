@@ -49,6 +49,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     temporaryExampleRevision.value++;
   };
   const view = ref<StudioView>("broadcast");
+  const navigationRevision = ref(0);
   const selected = ref<string | null>(null);
   const drawerTab = ref<IdeaDrawerTab>("overview");
   const chatDraft = ref({
@@ -210,6 +211,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
       return false;
     }
     view.value = next;
+    navigationRevision.value++;
     activityOpen.value = false;
     return true;
   }
@@ -281,6 +283,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     temporaryExampleExpired,
     closeTemporaryExamples,
     view,
+    navigationRevision,
     selected,
     drawerTab,
     chatDraft,

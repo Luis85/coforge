@@ -2,6 +2,7 @@ import { boolean, list, number, oneOf, optional, shape, text, timestamp } from '
 import { automationContextCheck, type AutomationContext } from './automation-context';
 import { contextEventId } from './integrity';
 import { requestObjectIdentity } from './request-object';
+import { workflowCouncilBindingsCheck, type WorkflowCouncilBinding } from './workflow-council-binding';
 import { WORKFLOW_OUTPUTS, workflowDefinitionCheck, workflowIdCheck, workflowStepCheck, type AiWorkflowStep, type WorkflowDefinition, type WorkflowOutput } from './configured-workflow';
 import type { AppState, Idea, ImplementationPlan, Increment, RiceScore, Screening } from './types';
 import { workflowOutputTemplateCheck, workflowOutputTemplateListCheck, type WorkflowOutputTemplate } from './workflow-output-templates';
@@ -26,10 +27,12 @@ export interface WorkflowArtifact {
   hostSnapshot?: boolean;
 }
 export interface WorkflowAttempt {
-  id: string; stepId: string; stepName: string; kind: 'ai' | 'approval' | 'checklist' | 'nudge';
+  id: string; stepId: string; stepName: string; kind: 'ai' | 'approval' | 'checklist' | 'nudge' | 'council';
   status: 'queued' | 'running' | 'waiting-human' | 'succeeded' | 'failed' | 'cancelled';
   inputs: string[]; startedAt: string; finishedAt?: string; jobId?: string; checkedIds?: string[]; note?: string; error?: string;
   nudgeState?: 'reserved' | 'submitted' | 'unknown' | 'cancelled'; nudgeRunId?: string; nudgeSourcePath?: string; nudgeAcknowledgedAt?: string;
+  councilSourceId?: string;
+  councilCancellation?: 'requested' | 'confirmed' | 'unknown';
 }
 export interface WorkflowRun {
   outputTemplates?: WorkflowOutputTemplate[];
@@ -38,6 +41,7 @@ export interface WorkflowRun {
   id: string; ideaId: string; projectId: string; definition: WorkflowDefinition; proposalRevision: string; revision: number; cursor: number;
   state: 'ready' | 'running' | 'waiting-human' | 'attention' | 'finished' | 'awaiting-review' | 'stopped';
   attempts: WorkflowAttempt[]; artifacts: WorkflowArtifact[]; workspaceId?: string; activeAttemptId?: string;
+  councilBindings?: WorkflowCouncilBinding[];
   createdAt: string; updatedAt: string; error?: string; invalidatedArtifactIds?: string[];
   projectContext?: { name: string; brief: string; agentPrompt: string; projectPath: string; worktreeFolder: string };
 }
@@ -72,11 +76,14 @@ export function workflowArtifactCheck(value: unknown): WorkflowArtifact {
   if (checked.contentHash !== workflowArtifactHash(checked)) throw new Error('The workflow artifact content changed.');
   return checked;
 }
-const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: text({ min: 1, max: 100 }), kind: oneOf(['ai', 'approval', 'checklist', 'nudge'] as const),
+const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: text({ min: 1, max: 100 }), kind: oneOf(['ai', 'approval', 'checklist', 'nudge', 'council'] as const),
+  councilSourceId: optional(workflowIdCheck),
+  councilCancellation: optional(oneOf(['requested', 'confirmed', 'unknown'] as const)),
   nudgeState: optional(oneOf(['reserved', 'submitted', 'unknown', 'cancelled'] as const)), nudgeRunId: optional(workflowIdCheck), nudgeSourcePath: optional(text({ max: 1000 })), nudgeAcknowledgedAt: optional(timestamp),
   status: oneOf(['queued', 'running', 'waiting-human', 'succeeded', 'failed', 'cancelled'] as const), inputs: list(workflowIdCheck, { max: 200 }), startedAt: timestamp,
   finishedAt: optional(timestamp), jobId: optional(workflowIdCheck), checkedIds: optional(list(workflowIdCheck, { max: 40 })), note: optional(text({ max: 3000 })), error: optional(text({ max: 4000 })) }, { strict: true });
 const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: workflowIdCheck, definition: workflowDefinitionCheck, proposalRevision: workflowIdCheck,
+  councilBindings: optional(workflowCouncilBindingsCheck),
   outputTemplates: optional(workflowOutputTemplateListCheck),
   automationEvent: optional(automationContextCheck),
   external: optional(boolean),
@@ -87,6 +94,7 @@ const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: wor
 export function workflowRunCheck(value: unknown): WorkflowRun {
   if (workflowSerializedSize(value) > WORKFLOW_RUN_LIMIT_BYTES) throw new Error('This workflow run exceeds 2 MiB. Preserve/export its evidence and start a fresh run; nothing was truncated.');
   const checked = run(value);
+  if (new Set(checked.councilBindings?.map(item => item.stepId)).size !== (checked.councilBindings?.length ?? 0) || checked.councilBindings?.some(item => item.binding.projectId !== checked.projectId || !checked.definition.steps.some(step => step.id === item.stepId && step.kind === 'council' && step.councilId === item.binding.councilId))) throw new Error('The workflow Council captures do not match its definition.');
   const selectedTemplates = [...new Set(checked.definition.steps.flatMap(step => step.kind === 'ai' && step.outputTemplateId ? [step.outputTemplateId] : []))];
   if (selectedTemplates.length !== (checked.outputTemplates?.length ?? 0) || selectedTemplates.some(id => checked.outputTemplates?.filter(template => template.id === id && template.projectId === checked.projectId).length !== 1)) throw new Error('The captured output templates do not match this workflow project and definition.');
   if (checked.cursor > checked.definition.steps.length || new Set(checked.attempts.map(item => item.id)).size !== checked.attempts.length ||
@@ -123,15 +131,17 @@ export const workflowArtifactHash = (value: Omit<WorkflowArtifact, 'contentHash'
 export function recoverConfiguredRuns(state: Pick<AppState, 'ideas' | 'jobs'>): void {
   for (const idea of state.ideas) {
     const run = idea.workflowRun;
+    for (const attempt of run?.attempts ?? []) if (attempt.councilCancellation === 'requested') { attempt.councilCancellation = 'unknown'; if (run) { run.error = 'CoForge closed before Council cancellation was confirmed. Inspect the original discussion and acknowledge recovery.'; run.revision++; run.updatedAt = new Date().toISOString(); } }
     if (!run || run.state !== 'running') continue;
     const attempt = run.attempts.find(item => item.id === run.activeAttemptId);
-    if (!attempt || !['ai', 'nudge'].includes(attempt.kind)) continue;
+    if (!attempt || !['ai', 'nudge', 'council'].includes(attempt.kind)) continue;
+    if (attempt.kind === 'council' && attempt.nudgeState === 'submitted' && attempt.nudgeRunId) continue;
     run.state = 'attention';
     run.error = 'CoForge closed during this step. Inspect its original resources before an explicit retry.';
     run.updatedAt = new Date().toISOString();
     run.revision++;
     attempt.status = 'failed'; attempt.error = run.error; attempt.finishedAt = run.updatedAt;
-    if (attempt.kind === 'nudge') { attempt.nudgeState = 'unknown'; run.error = 'CoForge closed during agent-task admission. Inspect the source/run and acknowledge recovery before a fresh nudge.'; attempt.error = run.error; }
+    if (attempt.kind === 'nudge' || attempt.kind === 'council') { attempt.nudgeState = 'unknown'; run.error = 'CoForge closed during agent-task admission. Inspect the source/run and acknowledge recovery before a fresh nudge.'; attempt.error = run.error; }
     delete run.activeAttemptId;
   }
 }

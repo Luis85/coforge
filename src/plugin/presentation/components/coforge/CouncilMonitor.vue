@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { useCouncilModel } from "../../composables/coforge/use-council";
-import MarkdownBody from "./MarkdownBody.vue";
+import CouncilAnswers from "./CouncilAnswers.vue";
+import CouncilRunControls from './CouncilRunControls.vue';
 import CouncilRecoveryTools from "./CouncilRecoveryTools.vue";
 const model = useCouncilModel();
 </script>
 <template>
   <section class="cf-council-section" aria-label="Council run monitor">
-    <h2>Runs and recovery</h2>
+    <h2>Runs &amp; answers</h2>
+    <CouncilAnswers />
     <p role="status" aria-live="polite" aria-atomic="true" class="cf-sr-only">
       {{ model.progressAnnouncement }}
     </p>
+    <section :ref="model.display.bindRuns" tabindex="-1" aria-label="Council runs" class="cf-council-run-list">
+    <h3>Runs</h3>
     <div class="cf-council-fields">
       <label class="cf-field"
         ><span>Project filter</span
@@ -75,7 +79,7 @@ const model = useCouncilModel();
     <ol class="cf-council-runs">
       <li v-for="run in model.runs" :key="run.id">
         <div>
-          <strong>{{ run.subject.sourceId }}</strong
+          <strong>{{ model.display.title(run) }}</strong
           ><span>
             · {{ model.runState(run)
             }}{{ run.pauseRequested ? " · Paused" : "" }} · {{ run.cursor }}/{{
@@ -85,9 +89,9 @@ const model = useCouncilModel();
           >
         </div>
         <p>
-          {{ run.invocations[run.cursor]?.roundId }}
-          {{ run.invocations[run.cursor]?.agentId }}
+          {{ model.display.council(run) }} · {{ model.display.project(run) }}
         </p>
+        <details><summary>Source reference</summary><code>{{ run.subject.sourceId }}</code></details>
         <p v-if="run.reason" role="status">{{ run.reason }}</p>
         <div class="cf-settings-actions">
           <button
@@ -95,42 +99,9 @@ const model = useCouncilModel();
             class="cf-btn cf-btn-ghost"
             @click="model.store.inspectedRun = run.id"
           >
-            Inspect captured evidence</button
-          ><button
-            v-if="run.state === 'publishing'"
-            type="button"
-            class="cf-btn cf-btn-primary"
-            :disabled="model.store.busy || !model.store.state?.executor || run.attempts.some(attempt => attempt.status === 'dispatching')"
-            @click="model.repair(run.id)"
+            {{ run.state === 'completed' ? 'Read answers' : 'Inspect captured evidence' }}</button
           >
-            Repair note publication</button
-          ><button
-            v-if="run.state === 'queued' || run.state === 'running'"
-            type="button"
-            class="cf-btn cf-btn-secondary"
-            :disabled="model.store.busy"
-            @click="model.pauseRun(run.id, !run.pauseRequested)"
-          >
-            {{
-              run.pauseRequested ? "Resume this run" : "Pause this run"
-            }}</button
-          ><button
-            v-if="run.state !== 'completed' && run.state !== 'cancelled'"
-            type="button"
-            class="cf-btn cf-btn-ghost"
-            :disabled="model.store.busy"
-            @click="model.cancel(run.id)"
-          >
-            Cancel future work</button
-          ><button
-            v-if="run.state === 'completed' || run.state === 'cancelled'"
-            type="button"
-            class="cf-btn cf-btn-secondary"
-            :disabled="model.store.busy"
-            @click="model.runAgain(run.subject.sourceId)"
-          >
-            Run again as new generation
-          </button>
+          <CouncilRunControls v-if="model.selectedRun?.id !== run.id" :run="run" />
         </div>
       </li>
     </ol>
@@ -150,8 +121,12 @@ const model = useCouncilModel();
         Use Agent workflow for existing workflow controls and final code review.
       </p>
     </section>
+    </section>
     <section v-if="model.selectedRun" aria-label="Captured run evidence">
-      <h3>Run {{ model.selectedRun.id }}</h3>
+      <h3>Run references &amp; recovery</h3>
+      <details :open="model.selectedRun.state === 'attention' || !!model.checkpoint">
+        <summary>Technical details and recovery</summary>
+        <p>Run <code>{{ model.selectedRun.id }}</code></p>
       <p>
         Project {{ model.selectedRun.projectId }} · Team
         {{ model.selectedRun.teamId }} · Source revision
@@ -236,45 +211,12 @@ const model = useCouncilModel();
         <pre>{{ model.selectedRun.subject.markdown }}</pre>
         <pre>{{ model.selectedRun.context }}</pre>
       </details>
-      <article
-        v-for="artifact in model.selectedRun.artifacts"
-        :key="artifact.id"
-      >
-        <h4>{{ model.artifactLabel(model.selectedRun, artifact) }}</h4>
-        <p>
-          {{ artifact.skipped ? "Missing contribution · " : ""
-          }}{{ artifact.simulated ? "Simulation · " : ""
-          }}{{ artifact.provider }} / {{ artifact.model }} ·
-          {{ artifact.createdAt }} ·
-          {{
-            artifact.costUsd === undefined
-              ? "Cost unknown"
-              : `$${artifact.costUsd.toFixed(4)} USD reported`
-          }}
-        </p>
-        <MarkdownBody :source="artifact.markdown" />
-        <p
-          v-if="artifact.messageRejection"
-          role="status"
-          class="cf-inline-error"
-        >
-          Contribution retained; outgoing messages blocked.
-          {{ artifact.messageRejection.reason }}
-        </p>
-        <p v-else-if="artifact.messagesRejected" role="status">
-          Contribution retained; outgoing messages were rejected. Inspect the
-          retained drafts and current policy before requesting more work.
-        </p>
-        <details>
-          <summary>Attribution and included inputs</summary>
-          <pre>{{ JSON.stringify(artifact, null, 2) }}</pre>
-        </details>
-      </article>
       <details>
         <summary>Attempt history</summary>
         <pre>{{ JSON.stringify(model.selectedRun.attempts, null, 2) }}</pre>
       </details>
       <CouncilRecoveryTools />
+      </details>
     </section>
   </section>
 </template>

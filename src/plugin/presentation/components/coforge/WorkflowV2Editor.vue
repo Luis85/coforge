@@ -107,7 +107,7 @@ const openEventTriggers = useEventTriggerLink();
           >
         </div>
         <p v-if="!model.teams.length" class="cf-inline-error">
-          Create a project team in Definitions before saving an executable
+          Create a project roster in Setup → Councils &amp; roster before saving an executable
           proposal workflow.
         </p>
         <p class="cf-workflow-policy">
@@ -309,7 +309,7 @@ const openEventTriggers = useEventTriggerLink();
         <summary>Simulate proposal workflow</summary>
         <p>
           Writes marked fake outputs to a new explicit test note. Human
-          checkpoints still require input in the run monitor.
+          checkpoints still require input in Activity → Runs &amp; answers.
         </p>
         <label class="cf-field"
           ><span>Proposal simulation destination</span

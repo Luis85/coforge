@@ -14,9 +14,11 @@ export interface CouncilTaskHistoryRow {
   at: string;
   runId?: string;
   task?: CouncilTaskRecord;
+  canReadAnswers?: boolean;
 }
-const capturedTitle = (markdown: string, fallback?: string) => {
-  const body = markdown.replace(
+export const councilTaskTitle = (markdown: string, fallback?: string, simulation = false) => {
+  const source = simulation ? markdown.replace(/^# Simulation\r?\n\r?\n/u, '') : markdown;
+  const body = source.replace(
     /^\uFEFF?---[\t ]*\r?\n[\s\S]*?\r?\n---[\t ]*(?:\r?\n|$)/u,
     "",
   );
@@ -61,7 +63,8 @@ export function councilTaskHistory(
       id: `run:${run.id}`,
       kind: "run",
       runId: run.id,
-      title: capturedTitle(run.subject.markdown, task?.title),
+      canReadAnswers: run.state === 'completed',
+      title: councilTaskTitle(run.subject.markdown, task?.title, run.limits?.simulation),
       source: task?.path ?? observed?.path ?? run.subject.sourceId,
       projectId: run.projectId,
       status: `${run.limits?.simulation ? 'Simulation · ' : ''}${runStatus(run, snapshot?.paused ?? true)}`,

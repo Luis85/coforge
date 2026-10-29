@@ -11,9 +11,9 @@ const model = useCouncilFolderEditor(props);
 </script>
 <template>
   <details class="cf-council-section">
-    <summary>Definition folders</summary>
+    <summary>Storage folders</summary>
     <p class="cf-settings-help">
-      Choose private vault folders for new CoWorkers, teams and councils. Preview
+      These vault-wide folders apply to every project. Choose private vault folders for new CoWorkers, teams and councils. Preview
       validates protected scopes and current definitions. Saving never moves or
       deletes human files.
     </p>

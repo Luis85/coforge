@@ -27,7 +27,7 @@ export interface ObsidianSession {
 export function createObsidianSession(options: {
   root?: string; host: ObsidianHost; chromium: BrowserType; vaultSource: string; pluginDirectory?: string;
   pluginEnabled?: boolean; args?: string[]; keepScratch?: boolean; onReady?: (client: ObsidianClient) => Promise<void>;
-}): ObsidianSession;
+}): ObsidianSession & { evidence(): Record<string, unknown> };
 export function withSession<R>(session: ObsidianSession, use: (client: ObsidianClient) => Promise<R>): Promise<R>;
 export function closeOnAbort(session: ObsidianSession, signal: AbortSignal | undefined): { settled(): Promise<void>; dispose(): void };
 

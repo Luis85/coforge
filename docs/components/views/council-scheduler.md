@@ -8,7 +8,7 @@ route: council.tab = scheduler
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/TaskSchedulerView.vue
 entry:
-  - Open The Council → Advanced Council tools → Task scheduler.
+  - Open The Council → Automation → Schedules.
 actions:
   - Create or edit task
   - Set timer or recurrence
@@ -58,13 +58,13 @@ Send recurring prompts or timed tasks through the existing Council execution ker
 
 ## Entry and next action
 
-Open [The Council](council.md), expand Advanced Council tools and choose Task scheduler. Ask the Council remains the main landing page and task history. Designate the desktop in Run monitor and configure recipient definitions. Create a schedule, choose its project/team/recipient, prompt and optional context notes, then select a timer, interval, daily or weekly time. Save paused or explicitly enable future scheduling. Resume Council execution separately.
+Open [The Council](council.md), choose Automation and then Schedules. Ask the Council remains the main landing page and task history. Designate the desktop in Activity → Runs & answers and configure recipient definitions. Create a schedule, choose its project/team/recipient, prompt and optional context notes, then select a timer, interval, daily or weekly time. Save paused or explicitly enable future scheduling. Resume Council execution separately.
 
 ## States and recovery
 
 Definitions, occurrence reservations and receipts are persisted privately. Missed occurrences and active-run overlaps are skipped with reasons. Timers execute only while the designated desktop and plugin are open. Calendar schedules retain their IANA timezone; missing DST times are skipped and repeated times run once.
 
-Unknown admission outcomes disable future scheduling without replay. Inspect the recorded source and Run monitor, stop/recover the original work, then explicitly acknowledge before enabling new occurrences. Stale edits and persistence failures retain the form. Archiving affects future scheduling and preserves existing run evidence; restoring leaves it paused.
+Unknown admission outcomes disable future scheduling without replay. Inspect the recorded source and Activity → Runs & answers, stop/recover the original work, then explicitly acknowledge before enabling new occurrences. Stale edits and persistence failures retain the form. Archiving affects future scheduling and preserves existing run evidence; restoring leaves it paused.
 
 ## Composition and boundaries
 

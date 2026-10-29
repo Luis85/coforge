@@ -38,7 +38,7 @@ it.each([true, false])('opens on advice intake and ingested history without writ
     await flushPromises();
     expect(council.tasksLoaded).toBe(true);
     expect(useCouncilStore(pinia).tab).toBe('ask');
-    expect(wrapper.findAll('h2').map(heading => heading.text())).toContain('Ingested tasks');
+    expect(wrapper.findAll('h2').map(heading => heading.text())).toContain('Task history');
     expect(wrapper.findAll('label').some(label => label.text().includes('Task title'))).toBe(true);
     expect(wrapper.findAll('label').some(label => label.text().includes('Your question or task'))).toBe(true);
     expect(wrapper.findAll('button').some(button => button.text().trim() === 'Save task and review')).toBe(true);

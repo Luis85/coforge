@@ -8,7 +8,7 @@ route: council.inspectedRun recovery tools
 parent: "[[docs/components/views/council-monitor]]"
 component: src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue
 entry:
-  - Within The Council → Run monitor, select a run to inspect its recovery tools.
+  - Within The Council → Activity → Runs & answers, select a run to inspect its recovery tools.
 actions:
   - Record allowance extension
   - Prepare private run export
@@ -49,7 +49,7 @@ Recovery preserves exact contributions and intents. Expand **Export or reassign 
 
 ## Entry and next action
 
-Within The Council → Run monitor, choose **Inspect captured evidence** for a run. Expand **Extend an exhausted execution allowance** or **Export or reassign retained results** for the corresponding task. Unknown-outcome acknowledgement and publication retries remain with the run's monitor controls. Return through the owning [Council run monitor](council-monitor.md) surface.
+Within The Council → Activity → Runs & answers, choose **Inspect captured evidence** for a run. Expand **Extend an exhausted execution allowance** or **Export or reassign retained results** for the corresponding task. Unknown-outcome acknowledgement and publication retries remain with the run's monitor controls. Return through the owning [Council run monitor](council-monitor.md) surface.
 
 A completed run with a typed plan also exposes the separate [plan handoff](council-plan-handoff.md) task.
 

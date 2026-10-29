@@ -1,49 +1,91 @@
 ## Summary
 
-Add project-scoped Markdown answer/output templates with plugin create, read/preview/open, edit and confirmed delete controls. Request AI steps and proposal agent/council steps select one template; admission retains its exact content and revision for existing runs and retries. Missing templates produce a visible automatic-admission hold without creating a run or provider attempt.
+The Council previously put ten daily-use, setup and automation destinations at one
+level, and reading an answer required navigating execution references. Group those
+capabilities under Ask, Activity, Setup and Automation, with visible secondary pages,
+observed setup readiness, explicit history scope and attributed published answers.
 
-Overhaul workflow authoring and operation: purpose-first steps, manageable proposal sections, visible agent/access/automation summaries, actionable field-repair links, explicit next actions, captured configuration/history, dependency-aware deletion, and predictable keyboard focus. Complete a second research-informed improvement plan and independent review, fixing measured accessibility, reflow and note-integrity defects.
+Ask Council in request workflows waits for a retained child discussion and supplies
+its report to later steps. Capture the Council/provider/project-context identity at
+workflow start; preserve confirmed receipts, stop intent and uncertain cancellation
+without replay. Add explicit earlier-result context modes and durable discussion links.
+
+Batch silent test-vault metadata linking and preserve CRLF frontmatter scalars so the
+existing 10,000-note Council scale check measures intake rather than quadratic fixture
+setup. An optional isolated browser-test port prevents cross-worktree preview collisions.
 
 ## Requirements and traceability
 
-- Owner requests on 2026-10-29; BRIEF.md records project ownership, Markdown CRUD, full workflow UX review, researched subagent increments and merge only after green checks.
-- No imported req-* or vi-* obligation applies: the arrays are empty; generated traceability is unchanged.
-- Plans and linked primary-source research: docs/project-tasks/2026-10-29-workflow-templates-ux.md and docs/project-tasks/2026-10-29-workflow-second-review.md.
-- Updated workflow view contracts and generated sitemap: 102 views documented, valid navigation coverage.
-- Integrated current main without force: preserved Twitch operations and the owner's later documentation ownership/order edits; only unsupported shorthand links were expanded to canonical clickable links.
+- Owner Council usability, waiting workflow action and subagent-driven next-increment
+  requests dated 2026-10-29 in BRIEF.md.
+- Research, IA contract, increments, acceptance and evidence:
+  docs/project-tasks/2026-10-29-council-next-increment.md.
+- No imported req-* or vi-* obligation applies; generated traceability is unchanged.
+- All ten internal Council page IDs remain. CoWorkers stay vault-wide; councils/rosters
+  stay project-scoped. Markdown ownership, finite limits, executor designation,
+  explicit submission/recovery and final human code review remain authoritative.
 
 ## Validation
 
-Final current-revision aggregate results and merge status are recorded on [PR41](https://github.com/Luis85/coforge/pull/41). Required CI must be green before merge; result lines below are from commands actually run.
-
-- Pinned local Node 24.21.0 / npm 11.19.1 provisioned in ignored .nq using checksum/integrity verification. npm ci --ignore-scripts: 691 added, 692 audited, 0 vulnerabilities. No dependency or lockfile changes.
-- Combined-runtime npm run verify:project in CI: 5 passed, 0 failed, 0 skipped in 165.6s; release build and prototype embedding passed. Later full diagnostics showed 1119 passed / 4 failed, all four caused by concurrently updated catalogue links. After canonicalization, focused catalogue: 1 file / 11 tests passed, including all four failing assertions; final aggregate CI requalifies the final revision.
-- Backend second pass: 13 focused tests passed; exact captured-source regression passed. Canonical storage, cross-project rejection, stale edits, immutable v1/v2 snapshots, automatic admission holds and explicit recovery covered.
-- Final Markdown codec integrity: 4 storage tests passed after reproducing indented YAML corruption. Indentation/comments and unknown properties are retained; the assembled note is validated before write; unsupported root flow layout leaves original bytes unchanged.
-- Frontend focused regression: 7 files / 20 tests passed; exact checklist repair 3/3; focus/discard regressions 2 files / 9 tests; contextual action-label regressions 4/4. Targeted ESLint passed with zero warnings.
-- Dependency query, late project response, runtime wiring and lifecycle subset: 4 files / 7 tests passed. Source line limits/locale parity passed; git diff --check clean.
-- JSON and JUnit reports now supplement the original reporters; CI retains them without changing assertions, warning behavior, timeouts, isolation or output limits.
+- A: broader Council suite: 10 files / 26 passed; lifecycle/scope/entry/readiness: 5 files / 13
+  passed; additional deferred outcomes: 3 passed; corrected type assertions: 2 files / 5 passed.
+- B: final workflow suite: 8 files / 36 passed; core reliability/legacy suite: 4 files / 29 passed.
+- C: product CRLF/seed/unchanged scale: 3 files / 7 passed; kit metadata/vault: 2 files / 11 passed.
+  The unchanged 10k case completed in 538ms with all assertions and its 60s limit retained.
+- View contracts: 111 documented, navigation coverage valid; catalogue suite: 1 file/11 passed.
+- Independent source closeout confirmed prior actionable A/B findings resolved.
+- Integrated typecheck: passed. Source lint: passed across 1,635 owned inputs.
+- Isolated browser confirmation: 36 passed, including UI quality, both themes,
+  narrow/wide captures and the complete Council functional journey. Detector: [].
+- Native Council confirmation: 3 files / 3 passed, including first-use setup, mixed-order
+  simulation, reload and confirmed teardown. Native identity and cleanup regressions:
+  3 files / 14 passed; framework shutdown/lifecycle checks: 21 passed.
+- Combined runtime smoke: status passed, errors [], hostErrorCount 0, pluginConsole [].
+- Final workflow input regression: observed failing first; then 3 files / 28 passed,
+  scoped ESLint 0. Canonical request fields/viewer context stay present with no earlier results.
+- Latest main integrated through OBS Alerts #42, preserving Service Design, workflow
+  templates/UX and OBS/Twitch features. Final catalogue: 111 valid view contracts.
+- Post-template integration typecheck exited 0; contained native smoke passed with
+  errors [], hostErrorCount 0 and pluginConsole [].
+- Candidate c7d5be0 passed pinned CI: 1265 product tests, 209 browser tests,
+  35 real-Obsidian tests, release/root installation and a 40-image gallery.
+- Integrated concurrent main workflow-template/UX #41, preserving captured templates
+  and Council provenance/recovery; mixed workflow regression covers both snapshots.
+  Integration batch: 11 files / 54 passed; usage + mixed recheck: 2 files / 3 passed;
+  scoped ESLint exited 0. Valid field guards retain both v1/v2 workflow formats.
+- Local full check: typecheck, source lint, ESLint and maker types passed; product
+  stage had 1258 passed, 6 existing Windows skips, and a 5000ms timeout in the unchanged
+  Herdr Git-worktree test. This is not counted as a full local pass. The unchanged
+  file passed its valid rerun: 5 passed, 1 existing Windows symlink skip; no budget change.
+  Exact final-head check, ui and real-obsidian results are retained on PR #44;
+  merge is gated on all three succeeding. Local complete check uses the supported
+  --timeout 3600000 orchestration deadline, with unchanged test limits and isolation.
+- git diff --check origin/main: clean (PR scope; upstream bytes retained).
 
 ## UI evidence
 
-- Requested source-backed browser flows: 4/4 passed, covering template CRUD/attachment, project references, manual checkpoint/keyboard behavior in both themes, shared proposal templates/review invalidation and long-name reflow.
-- Actual 320px proof with valid 100-character names: selected source, captured source and whole run page each clientWidth 224 / scrollWidth 224; overflowingElements []. The prior measured 1121px overflow was corrected.
-- Proposal axe verified the contextual button-label fix; labels include the visible Duplicate step / Remove step words. No additional measured defect remains.
-- npm run test:ui-quality -- --config .nq/playwright-isolated.config.ts: 8 passed (53.6s), exit 0. Only local port/baseURL changed to 4183 because an unrelated job owned 4181; tests, timeouts and retries unchanged. CI keeps the default config/port.
-- npm run ui:gallery: exit 0, 40 captures. Reviewed representative gallery frames, final light/dark library/editor images, captured/selected Markdown, native completed run and exact narrow-pane geometry. No baselines updated or committed.
-- Proofs: reports/workflow-output-templates/; catalogue gallery: reports/ui-gallery/. CI uploads current proof images and JSON alongside the existing reports.
+- Current-run baseline and integrated captures: reports/council-next/ (ignored).
+- First integrated browser run exposed a shared-port collision; those results are not
+  accepted as qualification. COFORGE_E2E_PORT now isolates the confirmation run.
+- Final wide/narrow light/dark browser matrix and UI quality: 36 passed on isolated port 4197.
+- Fresh gallery: 40 captures, no capture failures; wide/narrow light/dark inspected.
+  Council task journeys are separately covered by the 36-case matrix.
+- No screenshot baselines were accepted or changed.
 
 ## Obsidian evidence
 
-- Pinned app/installer 1.14.4 and launcher 3.2.1, contained vaults/profiles only.
-- Combined branch native CI: 32 tests passed; reload smoke passed with errors [] and hostErrorCount 0 after the native test waited for actual settings-save completion. Runtime navigation/draft guards stayed intact.
-- Local native project subset: 3/3 passed (30.50s); the previously failing request case passed in 13.426s. Actual template CRUD/edit/delete/reload/snapshot journey also passed locally (21.742s), and its completed-run screenshot was inspected.
-- Captured current/prior run template content is displayed from snapshots only, including exact source; no live note lookup or provider dispatch is introduced by inspection.
+- Native setup spec authors/enables/saves a simulation CoWorker, roster and Council
+  through the UI, then reviews its audience and planned invocations without admission.
+- Native Ask spec covers review, explicit mixed-order simulation, answer reading,
+  reload, cost attribution and saved workflow context/readiness.
+- Final Council run: 3 passed with confirmed contained-profile teardown. Actual vault,
+  PID/profile/port and source/installed asset hashes are retained in native evidence.
+- Combined-runtime pinned smoke: status passed, errors [], hostErrorCount 0, pluginConsole [].
 
-## Self-review and limitations
+## Untested scope
 
-Canonical notes retain stable IDs and unrelated frontmatter. Conflicts retain drafts. Named project facts follow successful writes; observer failure cannot turn a successful save into a retry. Private folders and public projections remain separate. Host permissions, finite execution limits, uncertainty recovery, validated output contracts and final human code review remain authoritative.
-
-Local preliminary aggregate/browser runs hit unchanged time budgets under host load; one legacy light proposal journey still timed out locally after its business assertions, while its dark counterpart and all four requested flows passed. These are distinguished from required full current-head CI results. No test, lint rule, timeout, output bound or screenshot baseline was weakened. Native deletion follows the user's Obsidian preference with exact-content/target rechecks; the host has no atomic compare-and-delete API.
-
-No paid model, live Herdr/Twitch/OBS service or personal vault was used. No release/tag/global install was requested. The plugin build is produced locally and in CI; the personal installed plugin is not modified.
+No billable provider call, personal vault or real client activation is part of QA.
+The combined workflow report retains the existing 16,000-character Markdown contract;
+complete oversized answers stay in the child and hold the parent without truncation.
+Local Node 24.20.0 / npm 11.21.1 differ from the pins; canonical CI uses Node 24.21.0 / npm 11.19.1.
+Full assistive-technology certification and a release publication are outside scope.

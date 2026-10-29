@@ -8,6 +8,7 @@ it("reports saved request and proposal step dependencies without reading templat
   const request = definition([
     { ...ai("report"), name: "Write report", outputTemplateId: "answer" },
     { ...ai("copy"), name: "Second report", outputTemplateId: "answer" },
+    { id: 'ask-request', kind: 'council', name: 'Request Council', instructions: 'Review the request.', councilId: 'answer', contextMode: 'none', automatic: false },
   ]);
   const proposal: WorkflowV2Definition = {
     format: "coforge-workflow/v2",
@@ -23,6 +24,7 @@ it("reports saved request and proposal step dependencies without reading templat
     },
     collections: [],
     steps: [
+      { kind: 'agent', id: 'prepare', name: 'Prepare proposal', instructions: 'Prepare', agentId: 'agent', access: 'none', inputs: [], output: 'markdown', outputTemplateId: 'answer' },
       {
         kind: "council",
         id: "review",
@@ -56,6 +58,12 @@ it("reports saved request and proposal step dependencies without reading templat
     {
       workflow: "proposal",
       workflowName: "Council review",
+      stepId: "prepare",
+      stepName: "Prepare proposal",
+    },
+    {
+      workflow: "proposal",
+      workflowName: "Council review",
       stepId: "review",
       stepName: "Review together",
     },
@@ -68,7 +76,7 @@ it("reports saved request and proposal step dependencies without reading templat
     (await actions.references?.("CFP-001", "answer"))?.references.map(
       (item) => item.stepId,
     ),
-  ).toEqual(["copy", "report", "review"]);
+  ).toEqual(["copy", "report", "prepare", "review"]);
   const partial = {
     request,
     proposal,

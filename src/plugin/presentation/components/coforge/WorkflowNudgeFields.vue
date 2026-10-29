@@ -7,7 +7,7 @@ const model = useWorkflowNudge();
   <div v-if="model.step" class="cf-workflow-ai-fields">
     <p class="cf-settings-help">
       Creates a separate task for one agent. This step finishes when the task is
-      admitted; follow its result in Council → Run monitor.
+      admitted; follow its result in The Council → Activity → Runs &amp; answers.
     </p>
     <p v-if="model.error" role="alert">{{ model.error }}</p>
     <div class="cf-workflow-field-grid">

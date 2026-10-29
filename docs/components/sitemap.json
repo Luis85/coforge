@@ -873,7 +873,7 @@
       "actions": [
         "Ask a question",
         "Review task history",
-        "Open advanced tools",
+        "Choose a workspace tab",
         "Refresh",
         "Explore labelled example"
       ],
@@ -907,6 +907,71 @@
       "file": "council.md"
     },
     {
+      "id": "council-activity-summary",
+      "title": "Council activity summary",
+      "goal": "Understand the selected project's current Council work and find its next action.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Council project activity across local pages",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/CouncilActivity.vue",
+      "entry": [
+        "Open any Council page with the desktop service or labelled example available."
+      ],
+      "actions": [
+        "View activity in the counted project"
+      ],
+      "states": [
+        "No admitted work",
+        "Execution desktop needed",
+        "Paused",
+        "Active or queued",
+        "Needs attention or a decision",
+        "Completed"
+      ],
+      "journeys": [
+        "Council",
+        "recovery"
+      ],
+      "privacy": "Private project execution evidence; excluded from public projections.",
+      "order": 44010,
+      "file": "council-activity-summary.md"
+    },
+    {
+      "id": "council-answers",
+      "title": "Council answers",
+      "goal": "Read the captured discussion as attributed published contributions before inspecting execution machinery.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Council Activity / selected retained run / published answers",
+      "parent": "council-monitor",
+      "component": "src/plugin/presentation/components/coforge/CouncilAnswers.vue",
+      "entry": [
+        "Choose Read answers on a completed task or retained discussion."
+      ],
+      "actions": [
+        "Read published contributions",
+        "Return to the run list",
+        "Use the selected run's existing operational controls",
+        "Inspect contribution reference and reported usage"
+      ],
+      "states": [
+        "No published answers yet",
+        "Awaiting publication",
+        "Published answers",
+        "Simulation",
+        "Missing contribution",
+        "Rejected proposed messages"
+      ],
+      "journeys": [
+        "Council",
+        "analytical-task"
+      ],
+      "privacy": "Private captured questions, attributed answers and usage; excluded from public projections.",
+      "order": 51010,
+      "file": "council-answers.md"
+    },
+    {
       "id": "council-ask",
       "title": "Ask the Council",
       "goal": "Save a question and review the Council's proposed work before submitting.",
@@ -921,7 +986,7 @@
       ],
       "actions": [
         "Write title and question",
-        "Choose project team and council",
+        "Choose Council and inspect recipients",
         "Save task and review",
         "Submit reviewed task",
         "Start a new task",
@@ -958,7 +1023,7 @@
       "parent": "council-definitions",
       "component": "src/plugin/presentation/components/coforge/CouncilDefinitions.vue",
       "entry": [
-        "Within The Council → Definitions, expand Import and export definitions."
+        "Within The Council → Setup → Councils & roster, expand Import and export definitions."
       ],
       "actions": [
         "Paste JSON",
@@ -992,7 +1057,7 @@
     },
     {
       "id": "council-definitions",
-      "title": "Teams and councils",
+      "title": "Councils & roster",
       "goal": "Save project team rosters and Council discussion protocols.",
       "audience": "streamer",
       "kind": "subpage",
@@ -1000,7 +1065,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilDefinitions.vue",
       "entry": [
-        "Open The Council, expand Advanced Council tools, then choose Definitions."
+        "Open The Council, choose Setup, then Councils & roster."
       ],
       "actions": [
         "Manage CoWorkers",
@@ -1052,7 +1117,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/WorkflowTriggersView.vue",
       "entry": [
-        "Open The Council → Event triggers.",
+        "Open The Council → Automation → Event triggers.",
         "Choose Attach an event trigger in either workflow editor."
       ],
       "actions": [
@@ -1095,7 +1160,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilExecutionControls.vue",
       "entry": [
-        "Use the inline Execution controls on Ask the Council or Advanced Council tools → Run monitor."
+        "Use the inline Execution controls on Ask the Council or Activity → Runs & answers."
       ],
       "actions": [
         "Check runtime",
@@ -1131,7 +1196,7 @@
     },
     {
       "id": "council-folders",
-      "title": "Council folders",
+      "title": "Storage folders",
       "goal": "Save the vault folders used for Council definitions.",
       "audience": "streamer",
       "kind": "subpage",
@@ -1139,7 +1204,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilFolderSettings.vue",
       "entry": [
-        "Open The Council, expand Advanced Council tools, then choose Definition folders."
+        "Open The Council, choose Setup, then Storage folders."
       ],
       "actions": [
         "Review mappings",
@@ -1185,7 +1250,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilSubmission.vue",
       "entry": [
-        "Open The Council, expand Advanced Council tools, then choose Watched inboxes."
+        "Open The Council, choose Automation, then Watched inboxes."
       ],
       "actions": [
         "Configure folder",
@@ -1234,7 +1299,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilMessages.vue",
       "entry": [
-        "Open The Council, expand Advanced Council tools, then choose Team messages."
+        "Open The Council, choose Activity, then Team messages."
       ],
       "actions": [
         "Select team and recipients",
@@ -1274,15 +1339,15 @@
     },
     {
       "id": "council-monitor",
-      "title": "Council run monitor",
-      "goal": "Resolve the next action or recovery decision for a Council run.",
+      "title": "Runs & answers",
+      "goal": "Read attributed answers and resolve the next action or recovery decision for retained Council work.",
       "audience": "streamer",
       "kind": "subpage",
       "route": "council.tab = monitor",
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilMonitor.vue",
       "entry": [
-        "Open The Council, expand Advanced Council tools, then choose Run monitor."
+        "Open The Council, choose Activity, then Runs & answers."
       ],
       "actions": [
         "Check and designate executor",
@@ -1336,7 +1401,7 @@
       "parent": "council-monitor",
       "component": "src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue",
       "entry": [
-        "Within The Council → Run monitor, inspect a completed run with a typed plan and expand Continue a validated plan in the project workflow."
+        "Within The Council → Activity → Runs & answers, inspect a completed run with a typed plan and expand Continue a validated plan in the project workflow."
       ],
       "actions": [
         "Select validated plan artifact",
@@ -1379,7 +1444,7 @@
       "parent": "council-workflows",
       "component": "src/plugin/presentation/components/coforge/WorkflowV2Transfer.vue",
       "entry": [
-        "Within The Council → Council workflows, open the workflow transfer controls."
+        "Within The Council → Automation → Proposal workflows, open the workflow transfer controls."
       ],
       "actions": [
         "Preview import",
@@ -1420,7 +1485,7 @@
       "parent": "council-monitor",
       "component": "src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue",
       "entry": [
-        "Within The Council → Run monitor, select a run to inspect its recovery tools."
+        "Within The Council → Activity → Runs & answers, select a run to inspect its recovery tools."
       ],
       "actions": [
         "Record allowance extension",
@@ -1465,7 +1530,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/TaskSchedulerView.vue",
       "entry": [
-        "Open The Council → Advanced Council tools → Task scheduler."
+        "Open The Council → Automation → Schedules."
       ],
       "actions": [
         "Create or edit task",
@@ -1513,6 +1578,41 @@
       "file": "council-scheduler.md"
     },
     {
+      "id": "council-setup-readiness",
+      "title": "Council setup readiness",
+      "goal": "Find the next missing configuration prerequisite without mistaking it for provider readiness.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Council Setup / Councils and roster / readiness",
+      "parent": "council-definitions",
+      "component": "src/plugin/presentation/components/coforge/CouncilSetupReadiness.vue",
+      "entry": [
+        "Open The Council → Setup → Councils & roster."
+      ],
+      "actions": [
+        "Manage CoWorkers",
+        "Create default team",
+        "Edit project roster",
+        "Review Council"
+      ],
+      "states": [
+        "Loading catalogue",
+        "Catalogue unavailable",
+        "Project needed",
+        "No enabled CoWorkers",
+        "No roster",
+        "Empty or disabled roster",
+        "Missing or invalid Council",
+        "Configured Council"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Private catalogue facts; reusable CoWorkers are vault-wide and rosters/councils belong to the project.",
+      "order": 45010,
+      "file": "council-setup-readiness.md"
+    },
+    {
       "id": "council-submit",
       "title": "Submit existing note",
       "goal": "Submit a reviewed note to the intended collaboration destination.",
@@ -1522,7 +1622,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilSubmission.vue",
       "entry": [
-        "Open The Council, expand Advanced Council tools, then choose Submit existing note."
+        "Open The Council, choose Ask, then Existing note."
       ],
       "actions": [
         "Choose source and target",
@@ -1565,16 +1665,17 @@
       "goal": "Find a saved question or retained ingestion and resolve its next action.",
       "audience": "streamer",
       "kind": "panel",
-      "route": "Ask the Council / Ingested tasks",
-      "parent": "council",
+      "route": "Ask / Task history",
+      "parent": "council-ask",
       "component": "src/plugin/presentation/components/coforge/CouncilAskView.vue",
       "entry": [
-        "Open The Council and review Ingested tasks below the question form."
+        "Open The Council and review Task history beside or below the question form."
       ],
       "actions": [
+        "Choose project or all-project scope",
         "Search tasks",
         "Review saved task",
-        "Inspect task",
+        "Read answers or inspect task",
         "Show 50 more tasks",
         "Refresh Council"
       ],
@@ -1613,7 +1714,7 @@
       "audience": "streamer",
       "kind": "panel",
       "route": "Ask the Council / Add vault files",
-      "parent": "council",
+      "parent": "council-ask",
       "component": "src/plugin/presentation/components/coforge/VaultFilePicker.vue",
       "entry": [
         "Expand Add vault files below the Council question input."
@@ -1649,7 +1750,7 @@
     },
     {
       "id": "council-workflows",
-      "title": "Council workflows",
+      "title": "Proposal workflows",
       "goal": "Save an explicit proposal workflow for this project.",
       "audience": "streamer",
       "kind": "subpage",
@@ -1657,7 +1758,7 @@
       "parent": "council",
       "component": "src/plugin/presentation/components/coforge/WorkflowV2Editor.vue",
       "entry": [
-        "Open The Council, expand Advanced Council tools, then choose Council workflows."
+        "Open The Council, choose Automation, then Proposal workflows."
       ],
       "actions": [
         "Load saved",

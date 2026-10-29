@@ -8,6 +8,8 @@ export interface VaultObserver {
   changed(file: TFile, data: string, immediate: boolean): void;
   deleted(file: TFile): void;
   renamed(file: TFile, oldPath: string): void;
+  /** Kit-only: all silent seed entries are indexed and their caches are parsed. */
+  seeded?(): void;
 }
 export interface TrashRecord { readonly path: string; readonly system: boolean; readonly data: string | null }
 
@@ -164,6 +166,7 @@ export class Vault extends Events {
   seed(files: Readonly<Record<string, string>>): void {
     for (const [path, data] of Object.entries(files)) this.adapter.put(path, data);
     this.reconcile(true);
+    this.observer?.seeded?.();
   }
   private creatable(path: string): void {
     if (this.adapter.files.has(path) || this.adapter.folders.has(path)) throw new Error('File already exists.');

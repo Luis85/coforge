@@ -10,6 +10,7 @@ import {
   type CoforgeContext,
 } from "../../../presentation/context/coforge-context";
 import { councilControlsFixture } from "./council-controls-fixture";
+import { visitCouncilPage } from './council-ask-fixture';
 
 it.each([true, false])(
   "separates Council goals and preserves drafts (designated desktop: %s)",
@@ -45,18 +46,10 @@ it.each([true, false])(
     });
     try {
       await flushPromises();
-      const navigation = wrapper.get('nav[aria-label="Council workspace"]');
-      const visit = async (name: string) => {
-        const button = navigation
-          .findAll("button")
-          .find((item) => item.text() === name);
-        if (!button) throw new Error(`Missing Council page ${name}`);
-        await button.trigger("click");
-        await flushPromises();
-      };
+      const visit = (name: string) => visitCouncilPage(wrapper, name);
       expect(
-        wrapper.find('[aria-label="Council execution controls"]').isVisible(),
-      ).toBe(true);
+        wrapper.find('[aria-label="Council execution controls"]').exists(),
+      ).toBe(!executor);
       if (!executor) {
         await visit("Submit existing note");
         const prerequisite = wrapper.get(
@@ -79,7 +72,7 @@ it.each([true, false])(
       await folder.setValue("Private/Specialists");
       await visit("Run monitor");
       expect(
-        wrapper.get('[aria-label="Council execution controls"]').isVisible(),
+        wrapper.find('[aria-label="Council execution controls"]').exists(),
       ).toBe(true);
       expect(folder.isVisible()).toBe(false);
       await visit("Definition folders");

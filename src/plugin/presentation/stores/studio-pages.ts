@@ -13,16 +13,16 @@ export const BROADCAST_PAGES = [
 export type BroadcastPage = (typeof BROADCAST_PAGES)[number]["id"];
 
 export const COUNCIL_PAGES = [
-  { id: "ask", label: "Ask the Council" },
-  { id: "definitions", label: "Definitions" },
-  { id: "submit", label: "Submit existing note" },
+  { id: "ask", label: "New question" },
+  { id: "definitions", label: "Councils & roster" },
+  { id: "submit", label: "Existing note" },
   { id: "inboxes", label: "Watched inboxes" },
-  { id: "scheduler", label: "Task scheduler" },
+  { id: "scheduler", label: "Schedules" },
   { id: "events", label: "Event triggers" },
-  { id: "monitor", label: "Run monitor" },
-  { id: "workflows", label: "Council workflows" },
+  { id: "monitor", label: "Runs & answers" },
+  { id: "workflows", label: "Proposal workflows" },
   { id: "messages", label: "Team messages" },
-  { id: "folders", label: "Definition folders" },
+  { id: "folders", label: "Storage folders" },
 ] as const;
 export type CouncilPage = (typeof COUNCIL_PAGES)[number]["id"];
 

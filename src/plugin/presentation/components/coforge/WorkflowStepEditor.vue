@@ -4,6 +4,7 @@ import { WORKFLOW_KIND_LABELS } from "../../stores/workflow-editor-draft";
 import WorkflowAiStepFields from "./WorkflowAiStepFields.vue";
 import WorkflowManualStepFields from "./WorkflowManualStepFields.vue";
 import WorkflowNudgeFields from "./WorkflowNudgeFields.vue";
+import WorkflowCouncilFields from './WorkflowCouncilFields.vue';
 const model = useWorkflowEditorForm();
 </script>
 <template>
@@ -37,6 +38,8 @@ const model = useWorkflowEditorForm();
         v-if="model.selected.kind === 'ai'"
       /><WorkflowNudgeFields
         v-else-if="model.selected.kind === 'nudge'"
+      /><WorkflowCouncilFields
+        v-else-if="model.selected.kind === 'council'"
       /><WorkflowManualStepFields v-else />
       <details class="cf-workflow-reference">
         <summary>Step reference</summary>

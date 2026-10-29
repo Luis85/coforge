@@ -1,6 +1,6 @@
 ---
 id: council-definitions
-title: Teams and councils
+title: "Councils & roster"
 goal: Save project team rosters and Council discussion protocols.
 audience: streamer
 kind: subpage
@@ -8,7 +8,7 @@ route: council.tab = definitions
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/CouncilDefinitions.vue
 entry:
-  - Open The Council, expand Advanced Council tools, then choose Definitions.
+  - Open The Council, choose Setup, then Councils & roster.
 actions:
   - Manage CoWorkers
   - Create team or council
@@ -45,7 +45,7 @@ assignee: ""
 iteration: ""
 ---
 
-# Teams and councils
+# Councils & roster
 
 ## Purpose
 
@@ -61,7 +61,7 @@ Each Council round selects Round robin (sequential members) or Fan out (concurre
 
 ## Entry and next action
 
-Open The Council, expand Advanced Council tools, then choose Definitions. Create
+Open The Council, choose Setup, then Councils & roster. Create
 teams or councils, select their CoWorker membership and configure each round. Save
 or discard drafts, duplicate or archive definitions, and preview import or export.
 Manage CoWorkers opens the dedicated vault inventory. Return through the owning
@@ -80,3 +80,10 @@ Journey tags: `Council`.
 ## Workspace redesign
 
 The saved-definition catalogue is a separate, searchable surface beside focused definition authoring; selected entries use the shared accent treatment. Narrow panes stack the catalogue above the editor.
+
+## Configuration readiness
+
+[Council setup readiness](council-setup-readiness.md) identifies enabled CoWorkers,
+a usable project roster and compiled Council definitions. Its actions lead to the
+existing management controls. Provider availability is checked separately; definition
+authoring never grants tools or starts execution.

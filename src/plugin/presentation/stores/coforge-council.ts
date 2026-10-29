@@ -7,12 +7,21 @@ import type { CouncilPreflight } from "../../features/coforge/application/counci
 import type { IntakeCandidate } from "../../features/coforge/domain/intake-bindings";
 import type { CouncilPage } from "./studio-pages";
 import type { CouncilTaskRecord } from "../../features/coforge/application/council-tasks";
+export interface CouncilEntryIntent { page: CouncilPage; navigationRevision: number; runId?: string; projectId?: string }
 
 export const useCouncilStore = defineStore("coforge-council", () => {
   const example = ref(false);
   const state = ref<CouncilRuntimeSnapshot | null>(null);
   const catalogue = ref<CouncilCatalogueSnapshot>({ valid: [], invalid: [] });
+  const catalogueLoaded = ref(false);
+  const catalogueLoading = ref(false);
+  const catalogueError = ref('');
   const tab = ref<CouncilPage>("ask");
+  const entryIntent = ref<CouncilEntryIntent | null>(null);
+  const viewMounted = ref(false);
+  const familyPages = ref<Record<'ask' | 'activity' | 'setup' | 'automation', CouncilPage>>({ ask: 'ask', activity: 'monitor', setup: 'definitions', automation: 'inboxes' });
+  const taskHistoryScope = ref<'project' | 'all'>('project');
+  const runScopeInitialized = ref(false);
   const taskAssessmentApplying = ref(false);
   const taskLinkedIdea = ref<LinkedCouncilIdea | null>(null);
   const pendingIdeaAssessment = ref<{ linkedIdea: LinkedCouncilIdea; title: string; projectId: string } | null>(null);
@@ -70,7 +79,15 @@ export const useCouncilStore = defineStore("coforge-council", () => {
     example,
     state,
     catalogue,
+    catalogueLoaded,
+    catalogueLoading,
+    catalogueError,
     tab,
+    entryIntent,
+    viewMounted,
+    familyPages,
+    taskHistoryScope,
+    runScopeInitialized,
     taskAssessmentApplying,
     taskLinkedIdea,
     pendingIdeaAssessment,

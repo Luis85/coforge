@@ -1,6 +1,6 @@
 ---
 id: council-folders
-title: Council folders
+title: Storage folders
 goal: Save the vault folders used for Council definitions.
 audience: streamer
 kind: subpage
@@ -8,7 +8,7 @@ route: council.tab = folders
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/CouncilFolderSettings.vue
 entry:
-  - Open The Council, expand Advanced Council tools, then choose Definition folders.
+  - Open The Council, choose Setup, then Storage folders.
 actions:
   - Review mappings
   - Edit folders
@@ -39,7 +39,7 @@ assignee: ""
 iteration: ""
 ---
 
-# Council folders
+# Storage folders
 
 ## Purpose
 
@@ -49,7 +49,7 @@ Folder configuration is separate from definition authoring and cannot enable exe
 
 ## Entry and next action
 
-Open The Council, expand Advanced Council tools, then choose Definition folders. Available actions: Review mappings; Edit folders; Save mapping. Return through the owning [The Council](council.md) surface.
+Open The Council, choose Setup, then Storage folders. Available actions: Review mappings; Edit folders; Save mapping. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 
@@ -64,3 +64,7 @@ Journey tags: `Council`.
 ## Workspace redesign
 
 Folder configuration uses a focused disclosure, labelled fields and preview grouping. Saving still reconciles definitions without moving or deleting authored files.
+
+Storage folders are vault-wide, even while a project is selected. Configuration
+changes do not silently move or rewrite existing definitions, enable execution or
+expand capabilities. The local folder draft stays mounted across Council task families.

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CouncilCatalogueActions } from "../../../features/coforge/application/council-catalogue";
 import { useCouncilDefinitions } from "../../composables/coforge/use-council-definitions";
+import CouncilSetupReadiness from "./CouncilSetupReadiness.vue";
 import CouncilDefinitionEditor from "./CouncilDefinitionEditor.vue";
 
 const props = defineProps<{
@@ -17,7 +18,7 @@ const model = useCouncilDefinitions(props);
   >
     <header class="cf-page-heading">
       <div>
-        <h2>{{ teamsOnly ? 'Teams and councils' : 'CoWorkers, teams and councils' }}</h2>
+        <h2>{{ teamsOnly ? 'Councils & roster' : 'CoWorkers, teams and councils' }}</h2>
         <p>
           Reuse specialist instructions and configure ordered discussions.
           Definitions are private Markdown notes.
@@ -28,27 +29,27 @@ const model = useCouncilDefinitions(props);
       {{ model.store.error }}
     </p>
     <p v-if="model.store.notice" role="status">{{ model.store.notice }}</p>
+    <CouncilSetupReadiness v-if="teamsOnly" />
     <div class="cf-settings-actions">
       <button
         v-if="!teamsOnly"
         type="button"
         class="cf-btn cf-btn-primary"
-        :disabled="model.store.busy"
+        :disabled="model.store.busy || !model.store.catalogueLoaded"
         @click="model.createAgent()"
       >
         Create CoWorker</button
-      ><button v-else type="button" class="cf-btn cf-btn-secondary" @click="model.manageCoWorkers()">Manage CoWorkers</button
       ><button
         type="button"
         class="cf-btn cf-btn-secondary"
-        :disabled="model.store.busy"
+        :disabled="model.store.busy || !projectId || !model.store.catalogueLoaded"
         @click="model.createTeam()"
       >
         Create team</button
       ><button
         type="button"
         class="cf-btn cf-btn-secondary"
-        :disabled="model.store.busy"
+        :disabled="model.store.busy || !model.store.catalogueLoaded || !model.readiness.usableTeams.length"
         @click="model.createCouncil()"
       >
         Create council</button
@@ -59,21 +60,6 @@ const model = useCouncilDefinitions(props);
         @click="model.load()"
       >
         Refresh definitions
-      </button>
-    </div>
-    <div v-if="!model.teams.length" class="cf-empty-state">
-      <h3>Set up this project's team</h3>
-      <p>
-        Create the default team, then add saved CoWorkers to its roster before
-        assembling a council.
-      </p>
-      <button
-        type="button"
-        class="cf-btn cf-btn-secondary"
-        :disabled="model.store.busy || !projectId"
-        @click="model.setup()"
-      >
-        Create default team
       </button>
     </div>
     <div v-if="model.catalogue.invalid.length" role="status">
@@ -91,7 +77,9 @@ const model = useCouncilDefinitions(props);
           ><span>Search definitions</span
           ><input v-model="model.store.search" type="search" maxlength="100"
         /></label>
-        <p v-if="!model.entries.length" class="cf-settings-help">
+        <p v-if="model.store.catalogueLoading" class="cf-settings-help" role="status">Loading saved definitions…</p>
+        <p v-else-if="!model.store.catalogueLoaded" class="cf-settings-help">Saved definitions are unavailable. Refresh definitions to retry; your authored drafts are kept.</p>
+        <p v-else-if="!model.entries.length" class="cf-settings-help">
           {{
             model.store.search
               ? "No matching definitions. Clear the search to see the catalogue."

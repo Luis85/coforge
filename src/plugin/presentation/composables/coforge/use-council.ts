@@ -10,8 +10,9 @@ import {
 } from "vue";
 import { useCoforge } from "../../context/coforge-context";
 import { useCouncilStore } from "../../stores/coforge-council";
+import { consumeCouncilEntry } from './use-council-entry';
 import { useStudioStore } from "../../stores/coforge-studio";
-import { COUNCIL_PAGES, type CouncilPage } from "../../stores/studio-pages";
+import { type CouncilPage } from "../../stores/studio-pages";
 import type { CouncilTarget } from "../../../features/coforge/application/council-execution";
 import { councilInboxActions } from "./council-inbox-actions";
 import { useTemporaryExample } from "./use-temporary-example";
@@ -26,6 +27,9 @@ import type {
 import { v1ExecutionSummary } from "../../../features/coforge/application/execution-v1-adapter";
 import { councilHistoryActions } from "./council-history-actions";
 import { useCouncilAsk } from "./use-council-ask";
+import { useCouncilRunSelection } from "./council-run-selection";
+import { useCouncilNavigation } from "./council-navigation";
+import { useCouncilRunDisplay } from "./council-run-display";
 import { refreshCouncil } from "./refresh-council";
 import {
   councilRunState,
@@ -33,13 +37,17 @@ import {
   councilProgressAnnouncement,
 } from "./council-monitor-display";
 
-export function useCouncil() {
+export function useCouncil(options: { workspace?: boolean } = {}) {
   const { host, studio: application } = useCoforge();
   const store = useCouncilStore();
+  useCouncilRunSelection(store);
   let service =
     store.example && !host.council ? host.previewCouncil?.() : host.council;
   const studio = useStudioStore();
-  store.tab = "ask";
+  if (options.workspace !== false) {
+    consumeCouncilEntry(store, studio);
+    store.viewMounted = true;
+  }
   let closed = false;
   let stop = () => {};
   async function run(work: () => Promise<void>) {
@@ -76,6 +84,7 @@ export function useCouncil() {
     }, { immediate: true });
   });
   onBeforeUnmount(() => {
+    if (options.workspace !== false) store.viewMounted = false;
     closed = true;
     stop();
   });
@@ -92,24 +101,6 @@ export function useCouncil() {
       store.team = "";
       store.target = "";
       store.taskSource = "";
-    },
-  );
-  watch(
-    () => store.inspectedRun,
-    () => {
-      store.exportedRun = "";
-      store.pruneConsent = false;
-      store.reassignPath = "";
-      store.acknowledge = false;
-      store.skipReason = "";
-      store.checkpointItems = [];
-      store.checkpointNote = "";
-      store.handoffIdeaId = "";
-      store.handoffArtifactId = "";
-      store.allowanceCalls = 0;
-      store.allowanceMinutes = 0;
-      store.allowanceScope = "";
-      store.allowanceReason = "";
     },
   );
   const teams = computed(() =>
@@ -179,7 +170,7 @@ export function useCouncil() {
     host.discardPreview?.("council");
   }
   const selectedRun = computed(() =>
-    store.state?.runs.find((run) => run.id === store.inspectedRun),
+    store.state?.runs.find((run) => run.id === store.inspectedRun && (!store.projectFilter || run.projectId === store.projectFilter)),
   );
   const checkpoint = computed(() =>
     selectedRun.value?.checkpoints?.find(
@@ -196,8 +187,8 @@ export function useCouncil() {
   const model = reactive({
     store,
     studio,
-    pages: COUNCIL_PAGES,
-    advancedPages: COUNCIL_PAGES.filter((page) => page.id !== "ask"),
+    navigation: useCouncilNavigation(store, () => studio.state?.activeProjectId),
+    display: useCouncilRunDisplay(store, () => selectedRun.value, () => studio.state?.projects ?? []),
     ask: useCouncilAsk({
       store,
       service: requireService,

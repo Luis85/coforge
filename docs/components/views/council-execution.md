@@ -8,7 +8,7 @@ route: Council executor controls
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/CouncilExecutionControls.vue
 entry:
-  - Use the inline Execution controls on Ask the Council or Advanced Council tools → Run monitor.
+  - Use the inline Execution controls on Ask the Council or Activity → Runs & answers.
 actions:
   - Check runtime
   - Designate desktop
@@ -48,7 +48,7 @@ Only one designated desktop executes while active. Reload pauses execution and u
 
 ## Entry and next action
 
-Use the inline Execution controls on [Ask the Council](council-ask.md) or Advanced Council tools → [Run monitor](council-monitor.md). Available actions: Check runtime; Designate desktop; Pause or resume execution; Pause or resume selected project. Return through the owning [The Council](council.md) surface.
+Use the inline Execution controls on [Ask the Council](council-ask.md) or Activity → [Runs & answers](council-monitor.md). Available actions: Check runtime; Designate desktop; Pause or resume execution; Pause or resume selected project. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 

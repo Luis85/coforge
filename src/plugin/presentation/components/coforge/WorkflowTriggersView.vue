@@ -32,7 +32,7 @@ const model = useWorkflowTriggers();
         Refresh trigger journal
       </button>
       <p v-if="!model.owned">
-        Designate this desktop in Run monitor before changing triggers.
+        Designate this desktop in Activity → Runs &amp; answers before changing triggers.
       </p>
       <form @submit.prevent="model.save()">
         <fieldset

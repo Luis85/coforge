@@ -2,6 +2,7 @@
 import { useCouncilModel } from "../../composables/coforge/use-council";
 import CouncilSubmission from "./CouncilSubmission.vue";
 import CouncilExecutionControls from "./CouncilExecutionControls.vue";
+import CouncilRecipients from './CouncilRecipients.vue';
 import VaultFilePicker from './VaultFilePicker.vue';
 const model = useCouncilModel();
 </script>
@@ -103,19 +104,6 @@ const model = useCouncilModel();
           <VaultFilePicker v-model="model.store.taskQuestion" :list-files="model.listVaultFiles" />
           <div class="cf-council-fields">
             <label class="cf-field"
-              ><span>Project team</span
-              ><select v-model="model.store.taskTeam">
-                <option value="">Select team</option>
-                <option
-                  v-for="entry in model.teams"
-                  :key="entry.definition.id"
-                  :value="entry.definition.id"
-                >
-                  {{ entry.definition.name }}
-                </option>
-              </select></label
-            >
-            <label class="cf-field"
               ><span>Council</span
               ><select v-model="model.store.taskCouncil">
                 <option value="">Select council</option>
@@ -129,20 +117,15 @@ const model = useCouncilModel();
               </select></label
             >
           </div>
+          <CouncilRecipients :selection="model.ask.selection" />
           <p v-if="!model.projectId" class="cf-settings-help">
-            Tasks belong to a project. Create or select one before choosing its
-            team and council.
+            Create or select a project before choosing its Council.
           </p>
-          <p v-else-if="!model.teams.length" class="cf-settings-help">
-            This project has no available team yet. Configure a team and
-            council, then return to your question here.
-          </p>
-          <p
-            v-if="model.store.taskTeam && !model.ask.councils.length"
-            class="cf-settings-help"
-          >
-            This team has no available council. Manage teams and councils to
-            configure its members and discussion protocol.
+          <p v-else-if="model.service && model.store.catalogueLoading" class="cf-settings-help" role="status">Loading saved Council configuration…</p>
+          <p v-else-if="model.service && !model.store.catalogueLoaded" class="cf-settings-help">{{ model.store.catalogueError || 'Council configuration has not loaded. Refresh Council to retrieve saved definitions; availability is not inferred from an unavailable catalogue.' }} Your question is kept.</p>
+          <p v-else-if="model.service && !model.ask.councils.length" class="cf-settings-help">
+            No enabled Council is available for this project. Open Setup → Councils &amp; roster to
+            configure its members and discussion rounds. Your question stays here.
           </p>
           <p class="cf-settings-help">
             Saving creates a private task note. It does not submit a run,
@@ -181,7 +164,7 @@ const model = useCouncilModel();
           class="cf-btn cf-btn-ghost"
           @click="model.selectPage('definitions')"
         >
-          Manage teams and councils
+          Set up councils
         </button>
       </div>
     </section>
@@ -193,16 +176,16 @@ const model = useCouncilModel();
       "
       task-intake
     />
-    <CouncilExecutionControls v-if="model.service" />
+    <CouncilExecutionControls v-if="model.service && model.ask.executionNeeded" />
     <section class="cf-council-task-history" aria-label="Council task history">
       <header>
-        <h2>Ingested tasks</h2>
+        <h2>Task history</h2>
         <p>
-          All projects · retained runs from direct submissions and watched
-          intake, plus saved task notes. Each retained ingestion generation
-          remains separate.
+          Saved questions and retained runs. Every submission generation stays separate;
+          switch scope to find work from another project.
         </p>
       </header>
+      <label class="cf-field"><span>Show tasks</span><select v-model="model.store.taskHistoryScope" aria-label="Task history scope"><option value="project">This project</option><option value="all">All projects and inbox observations</option></select></label>
       <p v-if="model.store.taskHistoryError" role="alert">
         {{ model.store.taskHistoryError }}
       </p>
@@ -254,10 +237,10 @@ const model = useCouncilModel();
             v-if="item.runId"
             type="button"
             class="cf-btn cf-btn-secondary"
-            :aria-label="`Inspect task ${item.title}`"
+            :aria-label="item.canReadAnswers ? `Read answers for ${item.title}` : `Inspect task ${item.title}`"
             @click="model.ask.inspect(item)"
           >
-            Inspect task
+            {{ item.canReadAnswers ? 'Read answers' : 'Inspect task' }}
           </button>
           <button
             v-else-if="item.task"

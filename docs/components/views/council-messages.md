@@ -8,7 +8,7 @@ route: council.tab = messages
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/CouncilMessages.vue
 entry:
-  - Open The Council, expand Advanced Council tools, then choose Team messages.
+  - Open The Council, choose Activity, then Team messages.
 actions:
   - Select team and recipients
   - Compose
@@ -51,7 +51,7 @@ Information adds context without waking every member. Delegation has explicit re
 
 ## Entry and next action
 
-Open The Council, expand Advanced Council tools, then choose Team messages. Available actions: Select team and recipients; Compose; Choose information or delegation; Send. Return through the owning [The Council](council.md) surface.
+Open The Council, choose Activity, then Team messages. Available actions: Select team and recipients; Compose; Choose information or delegation; Send. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 

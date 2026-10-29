@@ -12,7 +12,7 @@ entry:
 actions:
   - Ask a question
   - Review task history
-  - Open advanced tools
+  - Choose a workspace tab
   - Refresh
   - Explore labelled example
 states:
@@ -47,11 +47,11 @@ iteration: ""
 
 Ask for specialist advice and follow each task to attributed results.
 
-Ask the Council is the first page, with a new-question intake and task history. Definitions, existing-note submission, watched inboxes, monitoring, proposal workflows, messages and storage folders remain focused tasks under Advanced Council tools.
+The workspace has four visible task families. Ask opens on a new question and task history; Existing note is its second page. Activity owns Runs & answers and Team messages. Setup owns Councils & roster and the explicitly vault-wide Storage folders. Automation owns Watched inboxes, Schedules, Event triggers and Proposal workflows. Each family exposes focused secondary navigation; the ten internal page IDs stay stable.
 
 ## Entry and next action
 
-Choose The Council in the studio navigation to open [Ask the Council](council-ask.md). Write a question or review [Ingested tasks](council-task-history.md). Expand Advanced Council tools for configuration, existing-note submission or detailed recovery. Return through the owning [CoForge studio](studio.md) surface.
+Choose The Council in the studio navigation to open [Ask the Council](council-ask.md). Write a question or review [Task history](council-task-history.md). Choose a workspace tab for configuration, existing-note submission or detailed recovery. Return through the owning [CoForge studio](studio.md) surface.
 
 ## States and recovery
 
@@ -68,7 +68,7 @@ Journey tags: `Council`.
 ## Workspace redesign
 
 The sidebar switcher identifies the selected project. Questions name their project
-team and council explicitly; no repeated project band precedes the form. The
+Council explicitly and resolve its owning team internally; no repeated project band precedes the form. The
 question form includes a vault-file picker for an appended wikilink list. Task
 history leads the first page; advanced authoring, submission, watched intake,
 execution, messages and folder administration retain focused local tasks. Reusable

@@ -1,6 +1,6 @@
 ---
 id: council-workflows
-title: Council workflows
+title: Proposal workflows
 goal: Save an explicit proposal workflow for this project.
 audience: streamer
 kind: subpage
@@ -8,7 +8,7 @@ route: council.tab = workflows
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/WorkflowV2Editor.vue
 entry:
-  - Open The Council, expand Advanced Council tools, then choose Council workflows.
+  - Open The Council, choose Automation, then Proposal workflows.
 actions:
   - Load saved
   - Edit steps and collections
@@ -42,7 +42,7 @@ assignee: ""
 iteration: ""
 ---
 
-# Council workflows
+# Proposal workflows
 
 ## Purpose
 
@@ -52,7 +52,7 @@ Version 2 composes reusable agents, councils and checkpoints. Generic note subje
 
 ## Entry and next action
 
-Open The Council, expand Advanced Council tools, then choose Council workflows. Available actions: Load saved; Edit steps and collections; Preview import or export; Save or discard. Return through the owning [The Council](council.md) surface.
+Open The Council, choose Automation, then Proposal workflows. Available actions: Load saved; Edit steps and collections; Preview import or export; Save or discard. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 
@@ -67,6 +67,11 @@ Journey tags: `Council`.
 ## Workspace redesign
 
 The proposal workflow shares the catalogue and authoring workspace visual language with reusable definitions. Its typed input and checkpoint controls remain separate from ordinary project workflow execution.
+
+Proposal workflows compose analytical agents, Councils and human checkpoints for note
+or request subjects. Request development remains in [Project settings → Agent workflow](workflow.md),
+where Ask Council is a waiting bridge to a captured discussion; proposal authoring is
+not a second place to configure code implementation or final review.
 
 Numbered collapsible steps expose purpose and instructions first; result bindings
 use readable step and collection labels. Agent and council steps can select one
