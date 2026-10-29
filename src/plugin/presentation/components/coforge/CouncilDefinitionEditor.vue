@@ -74,4 +74,3 @@ const model = useCouncilEditorForm();
         </fieldset>
       </form>
 </template>
-

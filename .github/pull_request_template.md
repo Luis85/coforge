@@ -34,4 +34,3 @@ Local browser runs used a freshly built clickdummy.html served by an ignored loo
 ## Untested scope
 
 No live provider/model or external-service sessions were invoked. Existing canonical wire schemas and storage locations are preserved. Final full/native qualification and green CI gate merging and local installation.
-
