@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils';
 import { expect, it } from 'vitest';
 import IdeaBoard from '../../../presentation/components/coforge/IdeaBoard.vue';
-import ProjectWorkContext from '../../../presentation/components/coforge/ProjectWorkContext.vue';
+import StudioSidebar from '../../../presentation/components/coforge/StudioSidebar.vue';
 import { createSeed } from '../../../features/coforge/domain/seed';
 import { workflowUiFixture } from './workflow-ui-fixture';
 
@@ -29,14 +29,14 @@ it('opens the matching review filter from project decision counts without changi
   } finally { wrapper.unmount(); await fixture.dispose(); }
 });
 
-it('keeps a dirty configuration and its destination when changing project from context', async () => {
+it('keeps a dirty configuration and its destination when changing project from the switcher', async () => {
   const fixture = await workflowUiFixture();
   fixture.store.view = 'workflow-settings';
   fixture.store.dirtyWorkflow = true;
-  const wrapper = mount(ProjectWorkContext, { global: { plugins: [fixture.pinia], stubs: { CfIcon: true } } });
+  const wrapper = mount(StudioSidebar, { global: { plugins: [fixture.pinia, fixture.provider], stubs: { CfIcon: true } } });
   try {
     expect(wrapper.text()).toContain(fixture.project.id);
-    await wrapper.get('button').trigger('click');
+    await wrapper.get('.cf-project-switcher').trigger('click');
     expect(fixture.store.view).toBe('workflow-settings');
     expect(fixture.store.dirtyWorkflow).toBe(true);
     expect(fixture.store.toasts.at(-1)?.message).toContain('workflow settings');

@@ -33,7 +33,7 @@ No project; Standard defaults; Saved; Unsaved draft; Validation error; Active-wo
 
 ## Composition and boundaries
 
-Source: [src/plugin/presentation/components/coforge/WorkflowEditorView.vue](../../../src/plugin/presentation/components/coforge/WorkflowEditorView.vue), embedded inside [WorkflowView](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). Agent workflow owns the H1, selected-project context, shared page frame and local navigation; the editor owns an H2 and its authoring controls. Workflow settings has no global sidebar entry.
+Source: [src/plugin/presentation/components/coforge/WorkflowEditorView.vue](../../../src/plugin/presentation/components/coforge/WorkflowEditorView.vue), embedded inside [WorkflowView](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). Agent workflow owns the H1, shared page frame and local navigation; the editor owns an H2 and its authoring controls. Workflow settings has no global sidebar entry.
 
 The internal `studio.view = workflow-settings` locator remains a compatibility alias for existing guarded navigation. It selects this same local task; it does not create a second page or host tab. Both the compatibility locator and `workflowTool = settings` are covered by this one canonical view contract.
 

@@ -5,7 +5,6 @@ import WorkflowStepList from "./WorkflowStepList.vue";
 import WorkflowStepEditor from "./WorkflowStepEditor.vue";
 import WorkflowDefinitionLimits from "./WorkflowDefinitionLimits.vue";
 import WorkflowDefinitionTransfer from "./WorkflowDefinitionTransfer.vue";
-import ProjectWorkContext from "./ProjectWorkContext.vue";
 withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 const model = useWorkflowEditor();
 const openEventTriggers = useEventTriggerLink();
@@ -26,7 +25,6 @@ const openEventTriggers = useEventTriggerLink();
         </p>
       </div>
     </header>
-    <ProjectWorkContext v-if="!embedded" />
     <p>
       Reuse agents and councils in a proposal process through
       <button

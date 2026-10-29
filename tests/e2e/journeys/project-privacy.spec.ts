@@ -14,8 +14,9 @@ async function privateProject(page: Page, theme: string) {
   await form.getByLabel(/^Project path/).fill('/synthetic/private-owner');
   await form.getByLabel('Description', { exact: true }).fill('This owner-only project must stay out of every derived viewer projection.');
   await form.getByRole('button', { name: 'Create project', exact: true }).click();
-  await expect(page.locator('.cf-project-work-context')).toContainText('Private project');
-  return page.locator('.cf-project-work-context code').innerText();
+  await expect(page.locator('.cf-project-switcher')).toContainText('Private');
+  await expect(page.locator('.cf-project-work-context')).toHaveCount(0);
+  return page.locator('.cf-project-switcher .cf-project-selector-id').innerText();
 }
 for (const theme of ['light', 'dark']) {
   test(`private owner projects retain manual work and explicit visibility in ${theme}`, async ({ page }) => {

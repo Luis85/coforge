@@ -51,7 +51,8 @@ for (const theme of ["light", "dark"]) {
         await expect(view.getByRole('heading', { name: 'Workflow settings', level: 2, exact: true })).toBeVisible();
         await expect(view.getByRole('heading', { name: 'Agent workflow', level: 1, exact: true })).toBeVisible();
         await expect(view.getByRole('heading', { level: 1 })).toHaveCount(1);
-        await expect(view.locator('.cf-project-work-context')).toHaveCount(1);
+        await expect(view.locator('.cf-project-work-context')).toHaveCount(0);
+        await expect(page.locator('.cf-project-switcher .cf-project-selector-id')).toContainText('CFP-001');
         await expect(view.locator('.cf-workflow-settings-page')).toHaveCSS('padding-top', '0px');
         await expect(view.locator('.cf-workflow-settings-page')).toHaveCSS('padding-left', '0px');
       }
