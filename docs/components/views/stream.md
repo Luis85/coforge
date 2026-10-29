@@ -46,7 +46,7 @@ iteration: ""
 
 Manage the conversation with viewers.
 
-Conversation, connection configuration and recurring messages have separate local subpages. Local tests remain labelled and excluded from public capture chat.
+Conversation, connection configuration and recurring messages have separate local subpages. Twitch chat and its contributor count exclude sample and local-test identities, including while disconnected. Choosing Test commands locally shows the separate local-test history and contributors; End local test restores Twitch history without deleting stored examples or clearing the draft. Local tests remain labelled and excluded from public capture chat.
 
 ## Entry and next action
 
