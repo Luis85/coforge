@@ -11,7 +11,9 @@ Do not skip a step because the change looks small. Report what actually ran.
    is unknown in this checkout, continue with step 2.
 2. Run `npm run verify:project` (it runs `npm run check` first). Run `npm run test:ui-quality` and
    `npm run ui:gallery` for any UI change, and `npm run -s dev:obsidian -- --json` when
-   the host is involved and Obsidian is already provisioned (never download it yourself).
+   the host is involved. If missing, provision the pinned host with
+   `npm run -s dev:obsidian -- --allow-download --json` under `AGENTS.md`'s contained
+   sandbox authorization; keep the existing version/checksum and vault guards.
    A failing or skipped step goes in the pull request as it is.
 3. Re-read your own diff (`git diff` plus `git status` for new files) against `AGENTS.md`:
    - Does each changed behaviour have a test that fails without it? No `it.todo`, skipped

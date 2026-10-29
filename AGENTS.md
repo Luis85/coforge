@@ -24,8 +24,9 @@ Run these before you claim a change works, and show the output:
    changed since the last commit). `node bin/app check --plan` shows which gates a
    diff needs.
 2. UI changes: `npm run test:ui-quality` passes and `npm run ui:gallery` is reviewed.
-3. For behaviour that touches the host (commands, views, settings, vault writes), when
-   Obsidian is already provisioned: `npm run -s dev:obsidian -- --json` reports
+3. For behaviour that touches the host (commands, views, settings, vault writes),
+   provision the pinned Obsidian host if needed as described below, then
+   `npm run -s dev:obsidian -- --json` reports
    `"status": "passed"` and no `errors`; lifecycle or host-API changes also need
    `npm run test:obsidian`.
 4. `npm run verify:project` (what CI runs).
@@ -119,8 +120,12 @@ contained sandbox vault, reloads the plugin once and prints one JSON summary:
 `status`, `errors` (deduplicated, with `src/...` frames), `pluginConsole`,
 `commands`, and paths to `last-run.png` (screenshot), `dev.log` and
 `debug-report.json` under `.obsidian-sandbox/logs/`. Read those files for detail.
-Exit code 2 means Obsidian is not provisioned: ask the user to run it once
-with `--allow-download` (agents never download it themselves). Specs: `tooling/tests/obsidian/*.obsidian.ts`, run with
+Exit code 2 means Obsidian is not provisioned. Agents may run
+`npm run -s dev:obsidian -- --allow-download --json` to download the pinned launcher
+and Obsidian host into `.native-runner/` and `.native-cache/` for contained sandbox
+tests. Keep the existing version/checksum validation and isolated vault/profile
+guards. This authorization does not cover personal vaults, global installs or
+arbitrary downloads. Specs: `tooling/tests/obsidian/*.obsidian.ts`, run with
 `npm run test:obsidian -- <filter>`; evidence lands in `reports/obsidian/`.
 Guide: `docs/framework/testing/OBSIDIAN-DEV-LOOP.md`.
 

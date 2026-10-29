@@ -1,0 +1,38 @@
+{
+  "format": "coforge-public-board/v1",
+  "generatedAt": "2026-10-26T20:58:35.763Z",
+  "project": "Community game",
+  "columns": [
+    {
+      "id": "inbox",
+      "title": "Inbox",
+      "hint": "Screened requests waiting for a score",
+      "ideas": []
+    },
+    {
+      "id": "next",
+      "title": "Up next",
+      "hint": "Ranked and planned",
+      "ideas": []
+    },
+    {
+      "id": "progress",
+      "title": "In progress",
+      "hint": "Being built or reviewed",
+      "ideas": []
+    },
+    {
+      "id": "done",
+      "title": "Accepted",
+      "hint": "Accepted by the streamer",
+      "ideas": []
+    }
+  ],
+  "awaitingScreening": 0,
+  "leaderboards": {
+    "votes": [],
+    "ideas": [],
+    "implementations": []
+  },
+  "contributors": []
+}

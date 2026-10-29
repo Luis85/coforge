@@ -47,11 +47,12 @@ export function launcherInstallCommand(env = process.env) {
   if (npm && /\.[cm]?js$/.test(npm)) return { command: process.execPath, args: [npm, ...args] };
   return { command: process.platform === 'win32' ? 'npm.cmd' : 'npm', args };
 }
-function installLauncher(root, log) {
-  const { command, args } = launcherInstallCommand();
+export function installLauncher(root, log, { run = spawnSync, env = process.env, platform = process.platform } = {}) {
+  const { command, args } = launcherInstallCommand(env);
   log(`Provisioning obsidian-launcher ${LAUNCHER_VERSION} into .native-runner (explicit opt-in).`);
-  const run = spawnSync(command, args, { cwd: root, stdio: ['ignore', 'inherit', 'inherit'], env: projectInstallEnvironment().env, shell: process.platform === 'win32' });
-  if (run.error || run.status !== 0) throw new Error(`OBSIDIAN_LAUNCHER_INSTALL_FAILED: ${run.error?.message ?? run.status}`);
+  const shell = platform === 'win32' && /\.(cmd|bat)$/iu.test(command);
+  const result = run(command, args, { cwd: root, stdio: ['ignore', 'inherit', 'inherit'], env: projectInstallEnvironment().env, shell });
+  if (result.error || result.status !== 0) throw new Error(`OBSIDIAN_LAUNCHER_INSTALL_FAILED: ${result.error?.message ?? result.status}`);
 }
 /** Downloads run in a separate launcher CLI process: an in-process undici socket assertion was
  * observed to crash the whole Node process through the agent proxy, which no retry could catch. */

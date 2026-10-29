@@ -1,44 +1,33 @@
 ## Summary
 
-Windows build promotion rechecks the destination after compilation and retries transient rename locks. Persistent failures preserve the previous build, complete candidate and recovery backup. The repair is applied in C:\Projects\coforge, where the merged plugin built and installed successfully without changing plugin data.
+Opening the repository-root vault can fail with an edited-public-export warning because its shipped public board predates project IDs. Recognize that exact historical renderer and projection on startup without rewriting the export or canonical notes. Edited HTML, unsupported fields and invalid identities still fail closed; private-project startup still retires verified generated files.
 
-Council native agents expose only invocation-scoped CoForge MCP action tools: captured task context, bound inputs and approved nudges. Built-in action tools and other MCP servers are disabled. Nudges enter the existing message authority after contribution persistence. Authentication is preserved; ordinary hooks, ambient memory/instructions and skill commands are disabled. Vault MCP adds starting guidance and structured task/queue hints.
+The owner authorized agents to download pinned Obsidian tooling for contained tests. Update AGENTS.md and the canonical debug/self-review skills while retaining version validation, isolated vault/profile guards and the ban on arbitrary/global installs.
 
-Event triggers attach a saved project or Council workflow to application/project facts. Bindings pin definitions, reserve evidence before admission and bound causation chains. Missed/paused/cooldown/overlapping events skip with recorded reasons; uncertain outcomes require recovery without replay. Project workflow nudge steps create an independent task for one allowed team agent with inherited ceilings. Human decisions and code review remain authoritative.
+Provisioning also exposed a Windows shell-quoting bug when Node/npm paths contain spaces. Invoke the native Node executable directly with argv; only the npm.cmd fallback uses a shell.
 
 ## Requirements and traceability
 
-- Owner requests and confirmations, 2026-10-28, recorded in BRIEF.md.
-- Task: docs/project-tasks/2026-10-28-agent-tools-event-workflows.md.
-- Generated traceability has zero pending req-* / vi-* obligations; no generated verification status was hand-edited.
-- Surface: docs/components/views/council-events.md; sitemap regenerated. Guides: docs/coforge/THE-COUNCIL.md and MCP.md.
+- Startup compatibility and project-publication/privacy requirements in BRIEF.md.
+- Owner authorization to change the download rule, 2026-10-29.
+- Task: docs/project-tasks/2026-10-29-public-export-startup.md.
+- No generated req-* / vi-* verification fields changed.
 
-## Commands and evidence
+## Validation
 
-- node --test tooling/tests/build.checks.mjs tooling/tests/build-promotion.checks.mjs: 9 passed, 0 failed. Includes transient/persistent locks, rollback, destination creation during compilation and installer recovery.
-- Primary npm run build:local: production build and three-asset install succeeded; merged hashes matched. reports/mcp/install-primary-fixed.log.
-- Targeted policy/session/server/provider/event tests: 15 passed. Workflow/UI/MCP compatibility tests: 13 passed. Native host admission integration passes for agent nudges and both workflow types, pinned definitions and private source preservation.
-- npm run typecheck: exit 0, reports/mcp/typecheck-release.log.
-- npm run check:source: line limits and locale parity passed; 2933 inputs, 226 translated keys.
-- npm run check:views: 76 views documented; navigation coverage valid; sitemap current.
-- npm run test:ui-quality -- --config reports/mcp/playwright.config.mjs tests/e2e/journeys/workflow-triggers.spec.ts: eight general WCAG/reflow/keyboard checks passed. New journey initially exposed an example-rendering bug and locator mismatch, both fixed. Final polished journey rerun: 2 passed (43.9s), both themes at desktop/360px, draft retention, revision review and zero axe violations. Port 4193 used because default 4181 was occupied; no gate was weakened.
-- npm run ui:gallery: 40 screenshots captured; gallery/index and both event themes/widths reviewed. No baselines changed or committed.
-- Native Claude Code 2.1.281 offline probe used dummy credentials and a local mock API. Initial safe mode suppressed explicit MCP servers. Final catalogue contains only mcp__coforge__coforge_invocation, mcp__coforge__coforge_read_input, mcp__coforge__coforge_nudge_agent and StructuredOutput; an actual invocation call succeeded. No paid model request. reports/mcp/native-policy-proof-fixed.log.
-- Self-review heuristic: no findings in 85 changed files against origin/main b9f2a5d; git diff --check passed. Diff reviewed for authority, persistence ordering, privacy, typed boundaries, lifecycle and file limits.
-- Earlier iteration failures and fixes remain recorded in reports/mcp/check-agent-events.log; final full verification follows below.
+- Before fix: 2 startup compatibility regressions failed with the exact reported warning; 3 protection cases passed.
+- After fix: 25 startup/privacy regression tests passed, including byte preservation, edited/malformed projections, hidden unsupported context and private-export revocation.
+- Native Windows installer regression reproduced the C:\Program failure before the fix; installer/harness tests now 7 passed.
+- Real Obsidian 1.14.4 on Windows: 4 files / 4 tests passed, covering the historical-export upgrade and reload, privacy, plugin loading and lifecycle. Historical JSON/HTML and human notes stayed byte-for-byte unchanged.
+- Dev smoke: status passed, plugin loaded/enabled, errors []; its automatic view-opening helper reported a host tab-group error, so the dedicated native upgrade test provides the actual studio-view evidence.
+- Source line limits/locale parity passed. Self-review and git diff --check passed.
+- npm run verify:project is running; final result will be recorded before merge.
+- Global suite-inventory check reports pre-existing missing framework scripts/docs. New fixtures are classified correctly and self-review is clean.
 
-## Final verification
+## UI and host evidence
 
-npm run verify:project: exit 0. Full check: 5 passed, 0 failed, 0 skipped in 782.2s. Production candidate built successfully; prototype embedding: 1 passed, 0 failed. Generated UI-effect checks are explicitly skipped because no visual definitions are declared. Final Council profile refinement: 10 targeted policy/session/provider tests passed and targeted ESLint passed. reports/mcp/verify-agent-events.log and final-policy-tests.log.
-
-Verified test build installed to C:/Projects/coforge/.obsidian/plugins/coforge. All three asset hashes match; five existing non-asset files are byte-for-byte unchanged. Source remains on local branch codex/agent-tools-event-workflows; the primary checkout has the build hotfix. reports/mcp/install-verified-build.log.
-
-## UI and Obsidian evidence
-
-reports/ui-gallery/index.json and gallery.html; reports/workflow-triggers/form-{light,dark}-{1280,360}.png.
-
-npm run -s dev:obsidian -- --json and npm run test:obsidian report obsidian-launcher 3.2.1 is not provisioned. Nothing was downloaded or launched. In-memory Obsidian tests cover canonical definitions, reviewed admissions, private source notes and inherited limits. Real host rendering/reload remains unqualified.
+No current UI or public-site rendering is changed; the frozen historical renderer is used only for exact ownership comparison. Native evidence is under reports/obsidian/cases/ and .obsidian-sandbox/logs/. No screenshot baseline was changed.
 
 ## Untested scope
 
-Live model reasoning, real-account authentication and billing were not exercised. Administrator-managed Claude policy remains authoritative. Structured-output/completion controls are provider primitives, distinct from arbitrary action tools. External clients retain their own tool/history/model policy; Council uses its own narrower profile. No live Twitch/OBS/Herdr sessions. Windows retains six Unix-only fake-CLI skips. Local Node v24.20.0; .nvmrc pins v24.21.0. Reports, scratch files and assets remain ignored. Current feature changes are local; no new PR opened or merged.
+No personal vault was opened. Live external services/model sessions were not invoked. Windows provisioning and the product startup path are exercised locally; Linux CI provides cross-platform verification. Reports, downloaded host/cache and build assets remain ignored.

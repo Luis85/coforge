@@ -14,6 +14,7 @@ import {
 import { renderPublicSite } from "../../features/coforge/domain/public-site";
 import { renderLegacyPublicSite } from "./public-site-legacy";
 import { publicExportBoardCheck } from "./public-export-board-check";
+import { renderPreProjectPublicSite } from './public-site-pre-projects';
 
 export const PUBLIC_DATA_FILES = ["board.json", "index.html"] as const;
 type DataFile = (typeof PUBLIC_DATA_FILES)[number];
@@ -116,11 +117,15 @@ export class PublicExportOwnership {
       }
       marked = true;
       // Parsing the whole known renderer is stricter than trusting a filename or footer marker.
-      const board = publicExportBoardCheck(input);
+      const preProject = !Object.hasOwn(input, 'projectId');
+      const board = publicExportBoardCheck(preProject ? { ...input, projectId: '' } : input);
+      // That renderer predates community contexts; never adopt data it would hide.
+      const matches = preProject
+        ? board.columns.every(column => column.ideas.every(idea => idea.contexts === undefined)) && html === renderPreProjectPublicSite(board)
+        : html === renderPublicSite(board) || html === renderLegacyPublicSite(board);
       if (
         !html ||
-        (html !== renderPublicSite(board) &&
-          html !== renderLegacyPublicSite(board))
+        !matches
       )
         throw new Error("edited");
       return {
