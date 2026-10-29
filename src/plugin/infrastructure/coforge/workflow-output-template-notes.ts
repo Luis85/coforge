@@ -149,7 +149,7 @@ export function writeWorkflowOutputTemplateNote(
   const yaml = note.range
     ? note.yaml.slice(0, note.range.start) +
       property +
-      (trailing && !/^[\r\n]/u.test(trailing) && !/^[ \t]*#/u.test(trailing)
+      (trailing && !/^[\r\n]/u.test(trailing) && !/^[ \t]+#/u.test(trailing)
         ? eol
         : "") +
       trailing

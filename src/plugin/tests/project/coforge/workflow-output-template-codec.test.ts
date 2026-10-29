@@ -17,6 +17,10 @@ const cases = [
     "indented flow metadata",
     `  custom: "keep exact" # owner\n  coforge: { ${config} } # keep metadata comment\n  after: "keep after" # after`,
   ],
+  [
+    "indented block metadata followed by a standalone comment",
+    '  custom: "keep exact" # owner\n  coforge:\n    schema: coforge-output-template/v1\n    id: answer\n    projectId: CFP-001\n    name: Before\n# keep metadata comment\n  after: "keep after" # after',
+  ],
 ] as const;
 
 it.each(cases)(
