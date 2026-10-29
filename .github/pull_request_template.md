@@ -1,47 +1,49 @@
 ## Summary
 
-Add a private Twitch operations workspace with eight task areas, 24 datasets and 32 reviewed channel actions. Streamers inspect activity, moderate chat, manage rewards/redemptions/polls/predictions, time ad breaks, preview raids, manage channel roles, create clips/markers, publish selected local schedule fields and export private stream reports.
+A streamer can create and operate a single-PC OBS studio from CoForge instead of returning to OBS for routine production. Reviewed setup creates six starter scenes and supported sources; the live desk adds sampled program/preview monitors, transitions, audio controls, recording/replay/virtual-camera operations and visible health.
 
-Actions capture the exact broadcaster/account/parameters, persist intent before sending and hold unknown outcomes without replay. Read consent stays separate from action permission. EventSub updates already-open datasets through bounded coalesced reads; snapshots retain their selection and source age. OBS production remains owned by the coordinated OBS increment.
+Source/device/layout/filter editors, output setup and rehearsal support the first stream. Durable show plans provide ordered manual cues and explicit event bindings. Public displays composes approved requests, accepted work, recognition, now-playing metadata and fixed reviewed Council excerpts into owned OBS text sources.
+
+All writers share stream admission and durable recovery. Reload pauses automation and never repeats uncertain actions. Output presets require an acknowledged restart/rehearsal; stream keys are write-only secret references. Public text uses explicit captured review, ownership checks and revocation handling. Existing Twitch operations from merged PR #39 are preserved and qualified together.
 
 ## Requirements and traceability
 
-- Owner approval: 2026-10-29 Twitch integration increments in BRIEF.md.
-- Task and evidence: docs/project-tasks/2026-10-29-twitch-command-centre.md.
-- No imported req-* or vi-* IDs apply; generated traceability declares no requirements/interactions.
-- Added nine canonical component contracts and regenerated the 101-view sitemap.
-- Merged main's Twitch contributor-scope correction f1d166a cleanly.
+- Owner authorization: BRIEF.md, OBS overhaul direction dated 2026-10-29; all three increments, subagents, E2E, improvement/polish and merge when green.
+- Owner requirement: docs/requirements/OBS Studio Integration.md, pbl-id 6.
+- Task and detailed evidence: docs/project-tasks/2026-10-29-obs-studio-overhaul.md.
+- Imported req-* / vi-* obligations: none; generated traceability is unchanged.
+- Updated component contracts and regenerated the combined 104-view catalogue.
+- Preserve authored short/full wiki parent links from main while normalizing their
+  identities; missing targets, ownership drift and cycles remain rejected. The
+  catalogue regression suite passes all 12 tests. CI retains a JSON product-test
+  report alongside bounded console diagnostics without changing any gate limit.
 
 ## Validation
 
-- npm ci: 691 packages added, 692 audited, 0 vulnerabilities.
-- Independent adapter/control review: 33/33 targeted tests passed; targeted ESLint exited 0.
-- Independent core/workspace/broadcast review: 34/34 targeted tests passed.
-- Host-readiness, logging and report regressions: 3/3 passed. Final API/core/event/controller suites: 59/59 passed after stream-identity and explicit ad-read-consent fixes.
-- Pinned CI at 8a665f1 passed npm run verify:project (5 passed, 0 failed, 0 skipped plus release build/embedding), all 199 browser checks and all 31 native cases. Final exact-head qualification is recorded in PR checks; local broad runs exceeded their budgets.
-- Initial CI passed all product tests/typecheck/ESLint/maker types; one oxlint spread warning was fixed. Browser CI passed 193/199 and found timer-list semantics and short navigation overflow; both fixes retain the same assertions.
-- git diff --check: clean after trailing whitespace cleanup.
+- Application regressions: 4 files / 25 tests passed. Native adapter/overlay regressions: 3 files / 35 tests passed before the final audio/control-character additions.
+- Public overlay suite: 17 tests passed. Final audio UI/session/native regressions: 3 files / 12 tests passed, after reproducing the milliseconds and Audio-page refresh defects first.
+- Combined OBS/Twitch integration: shared logging, production journal and cue admission suites passed 13 tests; view catalogue reports 104 contracts and valid navigation coverage.
+- Native shutdown/lifecycle/dev-session regressions: 21 passed. Numeric PID/scratch guards remain intact; no cleanup retry budget increased.
+- Source-size/locale checks and zero-warning source lint passed. Impeccable detector returned [], exit 0. No screenshot baselines or quality thresholds changed.
+- The PR's check, ui, real-obsidian and security jobs qualify the final combined commit; merge is conditional on all succeeding. The project CI gate passed before integration; final combined qualification is tracked in the current checks.
+- Local full verify:project: typecheck, source lint and maker-types passed; ESLint/product stages exceeded the unchanged 600-second limits under Windows resource contention. Intermediate failing-first tests were corrected and passed their focused reruns. Local timeouts are not counted as passing qualification.
 
 ## UI evidence
 
-- npm run test:ui-quality: 8/8 passed.
-- Isolated final browser regressions: 6/6 passed, including short navigation plus Twitch WCAG A/AA and reflow across light/dark at 1440px and 420px.
-- npm run ui:gallery: 40 captures in reports/ui-gallery; reviewed desktop/light and narrow/dark alongside Twitch captures.
-- Impeccable detector: [].
-- Improvement pass fixed reward-form hierarchy, draft invalidation, review focus, content links, permission selection, exact record targets, stale AutoMod queues and report boundaries.
+- Initial test:ui-quality: 8 passed. Later local runs reached the unchanged 120-second server-start limit; complete final browser/accessibility qualification runs in CI.
+- ui:gallery: 40 captures in reports/ui-gallery; representative desktop dark/narrow light captures reviewed.
+- Connected contained-host matrix: 18 captures, all reviewed; final horizontal overflow 0px. Fixed the narrow public-text preview overflow and the health-summary definition-list semantics.
+- Evidence: reports/obsidian/cases/coforge-obs-overlays--publishes-only-reviewed-Council-text-refreshes-it-from-a-show-cue-and-revokes-the-owned-copy-on-privacy-changes/connected-visual-review.json (ignored, also retained by native CI artifacts).
 
 ## Obsidian evidence
 
-- Pinned Obsidian 1.14.4, launcher 3.2.1; contained vaults only.
-- Focused native Twitch UI/lifecycle: 1 file / 1 test passed. Full pinned native CI: 24 files / 31 tests passed. Draft preservation and plugin reload produce errors [].
-- Fresh final smoke: status passed, errors [], hostErrorCount 0, view.opened true.
-- Fixed the reload harness's missing workspace-layout readiness wait with a failing-before regression; early smoke host errors are resolved by the final fresh run.
-- Evidence: reports/obsidian and .obsidian-sandbox-twitch-final/logs (ignored).
+- Actual pinned Obsidian 1.14.4, launcher 3.2.1, real loopback simulated OBS WebSocket server.
+- Production case passed in 23.28s: reviewed scene/source creation, audio, recording/pause/resume/stop, replay, show cue and reload without replay or broadcast.
+- Overlay case passed in 38.808s, clean teardown and errors []: GDI v3, exact reviewed public text, private-prompt exclusion, durable mapping, cue refresh, reload and owned-text clearing after a privacy change.
+- Final complete native suite and smoke are required CI jobs. No public broadcast was used as a test.
 
-## Untested scope
+## Untested scope and limits
 
-Real Twitch consent, actual channel mutation, Affiliate/Partner eligibility and real ad/raid/reward effects need streamer-operated account acceptance. No live Twitch mutations or personal vaults were used. Always-on collection, unsupported revenue/payout data and viewer Channel Points balances are excluded. Local Node 24.20.0/npm 11.19.0 differ from pins; provisioning reports no official Windows Node 24.21.0 build. CI retains the configured pins and full E2E checks.
+Physical capture devices, real stream-service credentials and a public broadcast require streamer acceptance. Monitors and meters are sampled; no continuous audiovisual transport is claimed. WebSocket bootstrap, OS/vendor dialogs and a one-time restart after profile presets remain explicit setup exceptions. Supported editors do not claim universal third-party plugin parity. An unresolved external OBS copy remains visible as needing inspection/clearing; past recordings cannot be revoked.
 
-Supersedes PR #38. Its scanner finding refers to a URL.password validation expression in an intermediate commit, not a credential. This branch contains the same final implementation as a clean reviewed diff, with explicit URL checks and no scanner exclusions or force-push.
-
-Optional local maintainability diagnostics returned METRIC_TOOL_VERSION; required CI gates keep their pinned tools and thresholds.
+Local Node 24.20.0/npm 11.19.0 differ from the pins; automatic provisioning found no official win32-x64 Node 24.21.0 build. CI uses the repository pins. No personal vault, global installation, release publication or force push.

@@ -4,9 +4,11 @@ import type { ObsConnection } from "../../features/coforge/domain/obs";
 import { record } from "../../features/coforge/domain/check";
 import { IntegrationFailure } from "../../features/coforge/domain/integration-failure";
 import type { ObsSceneRequest } from './obs-scenes-data';
+import type { ObsProductionRequest } from './obs-production-rpc';
+import { OBS_PRODUCTION_EVENTS } from './obs-production-events';
 
 export type ObsRequest =
-  "GetVersion" | "GetSceneList" | "GetStreamStatus" | "GetStats" | "SetCurrentProgramScene" | "StartStream" | "StopStream" | ObsSceneRequest;
+  "GetVersion" | "GetSceneList" | "GetStreamStatus" | "GetStats" | "SetCurrentProgramScene" | "StartStream" | "StopStream" | ObsSceneRequest | ObsProductionRequest;
 export interface ObsSocket {
   onmessage: ((event: MessageEvent) => unknown) | null;
   onclose: ((event: CloseEvent) => unknown) | null;
@@ -194,7 +196,7 @@ export class ObsClient {
       this.socket?.send(
         JSON.stringify({
           op: 1,
-          d: { rpcVersion: 1, eventSubscriptions: 207, ...(authentication ? { authentication } : {}) },
+          d: { rpcVersion: 1, eventSubscriptions: OBS_PRODUCTION_EVENTS, ...(authentication ? { authentication } : {}) },
         }),
       );
     } else if (frame.op === 2 && !this.ready) {

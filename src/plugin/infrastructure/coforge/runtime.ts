@@ -13,6 +13,8 @@ import { operationsLog } from './operations-log';
 import type { StructuredLogger } from '../../application/logging';
 import { ObsAdapter } from './obs-adapter';
 import { ObsWorkflow } from '../../features/coforge/application/obs-workflow';
+import { createObsStudioModule } from './obs-studio-module';
+import { obsNowPlaying } from './obs-now-playing';
 import { StreamRecorder } from '../../features/coforge/application/stream-recorder';
 import { StreamHistoryStorage } from './stream-history-storage';
 import { LiveStudioMonitor } from '../../features/coforge/application/live-studio-monitor';
@@ -142,6 +144,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   });
   const obs = new ObsWorkflow(studio.store, obsAdapter);
   const music = new MusicService(new VaultMusic(plugin), new LocalMusicPlayer(plugin.app.vault), code => studio.store.transaction(state => recordOperation(state, code)));
+  const obsStudio = createObsStudioModule(studio.store, obsAdapter, obs, () => obsNowPlaying(music));
   const herdrAdmission = new HerdrAdmission();
   const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers, herdrAdmission);
   const herdrWorkflows = new HerdrWorkflowService(studio.store, herdr, herdrAdmission, new HerdrWorkflowStateStorage(plugin), new LocalHerdrWorkflowGateway(), new LocalHerdrAttemptFiles(undefined, workspaces), timers);
@@ -199,6 +202,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     } },
     obs,
     obsScenes: obs.sceneActions,
+    obsProduction: obsStudio.production,
+    obsShow: obsStudio.show,
+    obsSetup: obsStudio.setup,
+    obsOverlays: obsStudio.overlays,
     diagnostics, exportDiagnostics: () => saveJson('diagnostics', diagnostics()),
     twitch: twitch.actions,
     twitchOperations: twitch.operations,
@@ -260,6 +267,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       streamSource.start();
       viewerNotes.start();
       obs.start();
+      await obsStudio.start();
+      if (disposed) return;
       const updateHerdr = () => { if (!disposed) void studio.store.updateRuntime({ herdrWorkflow: herdrWorkflowReadiness(herdr.snapshot(), herdrWorkflows.snapshot(), Date.now()) }).catch(() => report('coforge.observer')); };
       const stopManual = herdr.subscribe(updateHerdr);
       const stopWorkflow = herdrWorkflows.subscribe(updateHerdr);
@@ -272,6 +281,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     },
     async dispose() {
       disposed = true;
+      obsStudio.dispose();
       const closingTasks = taskScheduler.dispose();
       const closingMcp = mcp.dispose();
       const closingTriggers = workflowTriggers.dispose();

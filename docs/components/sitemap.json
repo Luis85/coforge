@@ -240,6 +240,41 @@
       "file": "broadcast.md"
     },
     {
+      "id": "broadcast-audio",
+      "title": "OBS audio",
+      "goal": "Hear and adjust the intended OBS mix without leaving the studio.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = audio",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/ObsAudioMixer.vue",
+      "entry": [
+        "Open Stream studio, then choose Audio."
+      ],
+      "actions": [
+        "Refresh observed audio inputs",
+        "Change mute and volume",
+        "Configure supported monitoring, sync and audio tracks"
+      ],
+      "states": [
+        "Disconnected",
+        "Unsupported input",
+        "Observed",
+        "Applying",
+        "Unconfirmed outcome"
+      ],
+      "journeys": [
+        "broadcast"
+      ],
+      "privacy": "Private operator controls; never included in public displays.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "audio"
+      },
+      "order": 37100,
+      "file": "broadcast-audio.md"
+    },
+    {
       "id": "broadcast-displays",
       "title": "Stream displays",
       "goal": "Open the read-only surface intended for OBS capture.",
@@ -252,6 +287,8 @@
         "Open Stream studio, then choose Public displays."
       ],
       "actions": [
+        "Preview and explicitly publish approved text into a supported OBS Text source",
+        "Save, refresh, clear or remove an owned text-overlay mapping",
         "Show selected project on stream Kanban",
         "Open Kanban, chat, leaderboards or community tab",
         "Preview public surface",
@@ -533,6 +570,81 @@
       "assignee": "",
       "iteration": "",
       "file": "broadcast-setup.md"
+    },
+    {
+      "id": "broadcast-show",
+      "title": "OBS show plan",
+      "goal": "Prepare and explicitly run finite production cues with durable outcomes.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = show",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/ObsShowPlan.vue",
+      "entry": [
+        "Open Stream studio, then choose Show plan."
+      ],
+      "actions": [
+        "Create and edit a show plan",
+        "Run a selected cue",
+        "Inspect step outcomes and acknowledge a partial cue",
+        "Explicitly enable or pause supported event bindings",
+        "Add a private moment marker"
+      ],
+      "states": [
+        "Empty",
+        "Draft",
+        "Ready",
+        "Running",
+        "Partially applied",
+        "Unconfirmed",
+        "Automation paused"
+      ],
+      "journeys": [
+        "broadcast"
+      ],
+      "privacy": "Show definitions, execution history and markers stay private in the vault.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "show"
+      },
+      "order": 37300,
+      "file": "broadcast-show.md"
+    },
+    {
+      "id": "broadcast-sources",
+      "title": "OBS sources and layouts",
+      "goal": "Create supported sources and arrange the selected scene with explicit live impact.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.broadcastTool = sources",
+      "parent": "broadcast",
+      "component": "src/plugin/presentation/components/coforge/ObsSourceEditor.vue",
+      "entry": [
+        "Open Stream studio, then choose Sources & layouts."
+      ],
+      "actions": [
+        "Create a supported source",
+        "Edit supported source properties and device choices",
+        "Inspect and edit source transforms",
+        "Manage supported source filters"
+      ],
+      "states": [
+        "Disconnected",
+        "No selection",
+        "Unsupported properties",
+        "Shared source",
+        "Unconfirmed outcome"
+      ],
+      "journeys": [
+        "broadcast"
+      ],
+      "privacy": "Private controls and local device references; excluded from public projections.",
+      "coverage": {
+        "group": "broadcast",
+        "key": "sources"
+      },
+      "order": 37200,
+      "file": "broadcast-sources.md"
     },
     {
       "id": "community",
@@ -1413,7 +1525,7 @@
       "audience": "streamer",
       "kind": "panel",
       "route": "Ask the Council / Ingested tasks",
-      "parent": "council-ask",
+      "parent": "council",
       "component": "src/plugin/presentation/components/coforge/CouncilAskView.vue",
       "entry": [
         "Open The Council and review Ingested tasks below the question form."
@@ -1440,7 +1552,7 @@
         "recovery"
       ],
       "privacy": "Private source paths, questions, project identities and run evidence; excluded from public projections.",
-      "order": 56750,
+      "order": 56687.5,
       "status": "",
       "started": "",
       "finished": "",
@@ -1460,7 +1572,7 @@
       "audience": "streamer",
       "kind": "panel",
       "route": "Ask the Council / Add vault files",
-      "parent": "council-ask",
+      "parent": "council",
       "component": "src/plugin/presentation/components/coforge/VaultFilePicker.vue",
       "entry": [
         "Expand Add vault files below the Council question input."
@@ -1481,7 +1593,7 @@
         "Council"
       ],
       "privacy": "Lists private vault file names only; no contents are read or sent.",
-      "order": 56500,
+      "order": 56375,
       "status": "",
       "started": "",
       "finished": "",
@@ -3030,7 +3142,7 @@
         "key": "chat"
       },
       "order": 15000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
@@ -3075,7 +3187,7 @@
         "key": "community"
       },
       "order": 16000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
@@ -3121,7 +3233,7 @@
         "key": "kanban"
       },
       "order": 17000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
@@ -3166,7 +3278,7 @@
         "key": "leaderboards"
       },
       "order": 18000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
@@ -3209,7 +3321,7 @@
       ],
       "privacy": "Explicit public whitelist; read-only.",
       "order": 19000,
-      "type": "Epic",
+      "type": "Feature",
       "status": "",
       "started": "",
       "finished": "",
