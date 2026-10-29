@@ -31,7 +31,8 @@ it('admits one allowed project agent with captured context and tighter parent li
     if (entry.definition.schema !== 'team/v1') throw new Error('Expected team');
     await module.actions.catalogue.save({ ...entry.definition, members: ['reviewer'], allowedRecipients: ['reviewer'] }, entry.revision);
     // Keep the actual kernel paused; no provider is started by this admission integration test.
-    const actions = { ...module.actions, snapshot: () => ({ ...module.actions.snapshot(), paused: false }) };
+    let watched = false;
+    const actions = { ...module.actions, snapshot: () => { const state = module.actions.snapshot(); return { ...state, paused: false, preferences: watched ? { ...state.preferences, bindings: [{ id: 'raced-watch', path: 'CoForge/Automations', projectId, teamId: entry.definition.id, target: { kind: 'agent' as const, id: 'reviewer' }, enabled: true, recursive: true, submit: 'after-stable' as const, settleMs: 0 }] } : state.preferences }; } };
     const port = workflowAgentTasks(plugin, studio, actions);
     const input = { projectId, ideaId: 'CF-001', workflowRunId: 'workflow-one', attemptId: 'attempt-one', stepId: 'nudge', teamId: entry.definition.id, agentId: 'reviewer', prompt: 'Find risks.', context: '{"captured":"request"}', sourcePath: 'CoForge/Automations/nudge-attempt-one.md', limits: { timeoutSeconds: 30, maxTurns: 2, maxBudgetUsd: 0.2 }, signal: new AbortController().signal };
     const receipt = await port.create(input);
@@ -42,6 +43,14 @@ it('admits one allowed project agent with captured context and tighter parent li
     await expect(port.create(input)).rejects.toThrow('already exists'); expect(kit.read(receipt.sourcePath)).toBe(original);
     await expect(port.create({ ...input, attemptId: 'attempt-two', sourcePath: 'CoForge/Automations/nudge-attempt-two.md', agentId: 'outsider' })).rejects.toThrow();
     expect(app.vault.getAbstractFileByPath('CoForge/Automations/nudge-attempt-two.md')).toBeNull();
+    const originalPreflight = actions.preflight;
+    const racedPreflight = vi.spyOn(actions, 'preflight').mockImplementationOnce(async (...args) => { const result = await originalPreflight(...args); watched = true; return result; });
+    const runCount = module.actions.snapshot().runs.length;
+    const raced = { ...input, attemptId: 'raced-attempt', sourcePath: 'CoForge/Automations/nudge-raced-attempt.md' };
+    await expect(port.create(raced)).rejects.toThrow('watched inbox');
+    expect(module.actions.snapshot().runs).toHaveLength(runCount);
+    expect(kit.read(raced.sourcePath)).toContain(input.context);
+    watched = false; racedPreflight.mockRestore();
     const host = workflowTriggerHost(plugin, studio, actions, () => undefined);
     const idea = studio.state().ideas.find(idea => idea.status === 'inbox')!;
     const definition = { ...defaultWorkflowDefinition(studio.state().settings), revision: 'event-manual', steps: [{ id: 'review', name: 'Review', instructions: 'Human decides.', kind: 'approval' as const }] };
@@ -58,6 +67,13 @@ it('admits one allowed project agent with captured context and tighter parent li
     const second = await host.dispatch(v2, { ...occurrence, id: 'v2-occurrence', snapshot: v2, definitionJson: (await host.describe(v2)).definitionJson }, origin, input.signal);
     expect(module.actions.snapshot().runs.find(run => run.id === second.runId)).toMatchObject({ projectId, automationEvent: { origin }, subject: { kind: 'note' } });
     expect(second.sourcePath && kit.read(second.sourcePath)).toContain('event-one');
+    const originalWorkflowPreflight = actions.workflows.preflight;
+    const racedWorkflowPreflight = vi.spyOn(actions.workflows, 'preflight').mockImplementationOnce(async (...args) => { const result = await originalWorkflowPreflight(...args); watched = true; return result; });
+    const beforeRacedWorkflow = module.actions.snapshot().runs.length;
+    await expect(host.dispatch(v2, { ...occurrence, id: 'raced-v2', snapshot: v2, definitionJson: (await host.describe(v2)).definitionJson }, origin, input.signal)).rejects.toThrow('watched inbox');
+    expect(module.actions.snapshot().runs).toHaveLength(beforeRacedWorkflow);
+    expect(kit.read('CoForge/Automations/raced-v2.md')).toContain('event-one');
+    watched = false; racedWorkflowPreflight.mockRestore();
     await expect(host.dispatch(v2, { ...occurrence, definitionJson: '{}' }, origin, input.signal)).rejects.toThrow('changed');
     expect(kit.errors).toEqual([]);
   } finally { await module.dispose(); gate.dispose(); await studio.stop(); }

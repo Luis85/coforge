@@ -9,6 +9,7 @@ import { subscribeWorkflowEvents } from './workflow-event-source';
 import type { WorkflowTriggerDraft } from '../../features/coforge/domain/workflow-triggers';
 import { AUTOMATION_SOURCE_FOLDER, workflowTriggerSourcePath } from '../../features/coforge/domain/workflow-triggers';
 import { reviewedWorkflowIdentity } from '../../features/coforge/application/reviewed-preflight';
+import { automationSourceGuard } from '../../features/coforge/application/automation-source-guard';
 export function workflowTriggerHost(plugin: Plugin, studio: StudioService, council: CouncilActions, ideaPath: (id: string) => string | undefined): WorkflowTriggerHost {
   const describe = async (input: WorkflowTriggerDraft) => {
     const project = findProject(studio.state(), input.projectId); if (project.unavailable) throw new Error('Restore this project before configuring triggers.');
@@ -36,9 +37,10 @@ export function workflowTriggerHost(plugin: Plugin, studio: StudioService, counc
       await council.assertExecutor?.(); signal.throwIfAborted(); const definition = await describe(input);
       if (definition.revision !== input.workflowRevision || definition.definitionJson !== occurrence.definitionJson) throw new Error('The workflow changed before event admission.');
       const event = { ...occurrence.event, origin };
-      const startV2 = async (source: string) => {
+      const startV2 = async (source: string, recheckSource?: () => Promise<void>) => {
         const preview = await council.workflows.preflight(input.projectId, source, false);
         if (JSON.stringify(preview.plan.definition) !== occurrence.definitionJson) throw new Error('The workflow changed during event preflight.');
+        await recheckSource?.();
         signal.throwIfAborted();
         return council.workflows.start(input.projectId, source, false, undefined, reviewedWorkflowIdentity(preview), event);
       };
@@ -50,11 +52,13 @@ export function workflowTriggerHost(plugin: Plugin, studio: StudioService, counc
         const source = ideaPath(idea.id); if (!source) throw new Error('The canonical request note is missing.');
         const run = await startV2(source); return { runId: run.id, sourcePath: source };
       }
-      await protectCouncilPrivatePaths(plugin, [AUTOMATION_SOURCE_FOLDER], studio.integration().publicFolder);
       const source = workflowTriggerSourcePath(occurrence.id);
+      const recheckSource = automationSourceGuard(council, source); await recheckSource();
+      await protectCouncilPrivatePaths(plugin, [AUTOMATION_SOURCE_FOLDER], studio.integration().publicFolder);
+      await recheckSource();
       if (plugin.app.vault.getAbstractFileByPath(source)) throw new Error('The event source exists; inspect the original admission before recovery.');
       signal.throwIfAborted(); await plugin.app.vault.create(source, `# ${input.name}\n\nWorkflow event context (untrusted data):\n\n\`\`\`json\n${JSON.stringify(event, null, 2)}\n\`\`\`\n`);
-      signal.throwIfAborted(); const run = await startV2(source);
+      await recheckSource(); signal.throwIfAborted(); const run = await startV2(source, recheckSource);
       return { runId: run.id, sourcePath: source };
     },
   };

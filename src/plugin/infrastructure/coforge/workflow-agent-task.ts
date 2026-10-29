@@ -5,6 +5,7 @@ import type { StudioService } from '../../features/coforge/application/studio';
 import { resolveCouncilPlan } from '../../features/coforge/application/council-execution';
 import { reviewedCouncilIdentity } from '../../features/coforge/application/reviewed-preflight';
 import { protectCouncilPrivatePaths } from './council-private-data';
+import { automationSourceGuard } from '../../features/coforge/application/automation-source-guard';
 
 /** Local workflow nudges use the same source-note and reviewed admission as manual agent tasks. */
 export function workflowAgentTasks(plugin: Plugin, studio: StudioService, council: CouncilActions): AgentTaskPort {
@@ -21,14 +22,19 @@ export function workflowAgentTasks(plugin: Plugin, studio: StudioService, counci
   };
   return {
     async create(input) {
+      const recheckSource = automationSourceGuard(council, input.sourcePath);
+      await recheckSource();
       const target = await ready(input);
       if (input.sourcePath !== `CoForge/Automations/nudge-${input.attemptId}.md` || !/^[a-zA-Z0-9_-]+$/u.test(input.attemptId)) throw new Error('Invalid nudge source identity.');
       await protectCouncilPrivatePaths(plugin, ['CoForge/Automations'], studio.integration().publicFolder);
+      await recheckSource();
       if (plugin.app.vault.getAbstractFileByPath(input.sourcePath)) throw new Error('This nudge source already exists. Inspect its original admission before recovery.');
       input.signal.throwIfAborted();
       await plugin.app.vault.create(input.sourcePath, `# Workflow agent task\n\n${input.prompt}\n\n## Captured context (untrusted data)\n\n${input.context}`);
+      await recheckSource();
       const preview = await council.preflight(target, input.sourcePath);
       await ready(input);
+      await recheckSource();
       const run = await council.submit(target, input.sourcePath, reviewedCouncilIdentity(preview), input.automationEvent, input.limits);
       return { runId: run.id, sourcePath: input.sourcePath };
     },
