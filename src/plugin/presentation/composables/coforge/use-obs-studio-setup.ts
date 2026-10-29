@@ -8,14 +8,20 @@ import {
   OBS_SETUP_ROLES,
   type ObsSetupRole,
 } from "../../../features/coforge/domain/obs-setup";
-import { obsTextInputKind } from '../../../features/coforge/domain/obs-production';
+import { obsTextInputKind } from "../../../features/coforge/domain/obs-production";
 export function useObsStudioSetup() {
   const { host } = useCoforge();
   const studio = useStudioStore();
   const ui = useObsSetupUi();
   const production = useObsProduction();
   const state = computed(() => studio.state?.obsSetup);
-  const titleKind = computed(() => ['text_gdiplus_v3', 'text_gdiplus_v2', 'text_ft2_source_v2'].find(kind => obsTextInputKind(kind) && production.ui.snapshot?.inputKinds.includes(kind)));
+  const titleKind = computed(() =>
+    ["text_gdiplus_v3", "text_gdiplus_v2", "text_ft2_source_v2"].find(
+      (kind) =>
+        obsTextInputKind(kind) &&
+        production.ui.snapshot?.inputKinds.includes(kind),
+    ),
+  );
   function port() {
     if (!host.obsSetup)
       throw new Error(

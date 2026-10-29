@@ -12,7 +12,7 @@ import { useStudioStore } from "../../stores/coforge-studio";
 import { useObsProductionUi } from "../../stores/obs-production-ui";
 import { obsInputLabel, obsInputInitialProperty } from "./obs-input-label";
 import type { ObsProductionKind } from "../../../features/coforge/domain/obs-production";
-import { obsTextInputKind } from '../../../features/coforge/domain/obs-production';
+import { obsTextInputKind } from "../../../features/coforge/domain/obs-production";
 
 export function useObsProduction() {
   const { host } = useCoforge();

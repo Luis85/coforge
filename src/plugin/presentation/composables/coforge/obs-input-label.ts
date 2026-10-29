@@ -3,7 +3,7 @@ const labels: Record<string, string> = {
   image_source: "Image",
   ffmpeg_source: "Audio / video file",
   text_gdiplus_v2: "Text",
-  text_gdiplus_v3: 'Text',
+  text_gdiplus_v3: "Text",
   text_ft2_source_v2: "Text",
   wasapi_input_capture: "Microphone / audio input",
   wasapi_output_capture: "Desktop audio",
