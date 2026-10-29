@@ -57,8 +57,16 @@ test('valid 100-character workflow and template names reflow with selected and c
   await expect(captured.getByLabel(`Captured Markdown source for ${templateName}`, { exact: true })).toHaveText(markdown);
   const capturedSize = await dimensions(captured);
   const pageSize = await dimensions(page.locator('.cf-workflow-page'));
+  const overflowingElements = await page.locator('.cf-workflow-page').evaluate(root => {
+    const right = root.getBoundingClientRect().right;
+    return [...root.querySelectorAll('*')]
+      .filter(element => element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().right > right + 1)
+      .slice(0, 12)
+      .map(element => ({ tag: element.tagName, className: element.className, width: element.getBoundingClientRect().width, text: element.textContent?.trim().slice(0, 110) }));
+  });
+  await writeFile('reports/workflow-output-templates/long-name-reflow.json', JSON.stringify({ viewport: 320, workflowNameLength: workflowName.length, templateNameLength: templateName.length, selected: selectedSize, captured: capturedSize, page: pageSize, overflowingElements }, null, 2));
+  await page.locator('.cf-configured-run-heading').screenshot({ path: 'reports/workflow-output-templates/long-run-heading-320.png' });
   expect(capturedSize.scrollWidth).toBeLessThanOrEqual(capturedSize.clientWidth + 1);
   expect(pageSize.scrollWidth).toBeLessThanOrEqual(pageSize.clientWidth + 1);
   await captured.screenshot({ path: 'reports/workflow-output-templates/long-captured-source-320.png' });
-  await writeFile('reports/workflow-output-templates/long-name-reflow.json', JSON.stringify({ viewport: 320, workflowNameLength: workflowName.length, templateNameLength: templateName.length, selected: selectedSize, captured: capturedSize, page: pageSize }, null, 2));
 });

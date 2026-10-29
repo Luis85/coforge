@@ -10,10 +10,13 @@ const hostBoundary = { name: 'vitest-obsidian-boundary',
 };
 const testKit = { '@test/obsidian': fileURLToPath(new URL('../../src/plugin/tests/support/obsidian/index.ts', import.meta.url)) };
 // DOM tests (views, settings, Vue components) start with `// @vitest-environment happy-dom`.
-// Reporters are left at Vitest's defaults so coding agents automatically get the concise `agent` reporter.
+// Keep Vitest's default console reporters and retain diagnostics beyond the CLI's bounded child output.
+// JUnit also records unhandled errors, which Vitest's JSON reporter does not include.
 // `npm run make` writes the tests of the features it creates to src/plugin/tests/unit/generated.
 export default defineConfig({ ...shared, resolve: { ...shared.resolve, alias: { ...shared.resolve?.alias, ...testKit } }, plugins: [...shared.plugins, hostBoundary], test: {
   include: ["src/plugin/tests/project/**/*.test.{ts,mjs}", "src/plugin/tests/unit/generated/**/*.test.ts"], environment: 'node', fileParallelism: false,
+  reporters: [...configDefaults.reporters, 'json', 'junit'],
+  outputFile: { json: 'reports/tests/project-results.json', junit: 'reports/tests/project-results.xml' },
   // Playwright specs (npm run test:e2e) run in a browser, never in Vitest.
   exclude: [...configDefaults.exclude, 'tests/e2e/**'],
   setupFiles: ["src/plugin/tests/project/ui-bootstrap.mjs"],

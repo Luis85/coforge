@@ -57,14 +57,14 @@ const model = useWorkflowV2EditorForm();
         ><button
           type="button"
           class="cf-btn cf-btn-ghost"
-          :aria-label="`Duplicate ${step.name}`"
+          :aria-label="`Duplicate step: ${step.name}`"
           @click="model.duplicateStep(index)"
         >
           Duplicate step</button
         ><button
           type="button"
           class="cf-btn cf-btn-ghost"
-          :aria-label="`Remove ${step.name}`"
+          :aria-label="`Remove step: ${step.name}`"
           :disabled="model.store.draft.steps.length === 1"
           @click="model.store.draft.steps.splice(index, 1)"
         >

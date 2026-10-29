@@ -41,6 +41,12 @@ it("explicitly creates and saves a v2 draft without changing legacy workflows an
   await wrapper
     .get('button[aria-label="Create proposal workflow"]')
     .trigger("click");
+  const stepControls = wrapper.findAll(".cf-proposal-step-tools button");
+  expect(stepControls).toHaveLength(4);
+  for (const button of stepControls)
+    expect(button.attributes("aria-label").toLowerCase()).toContain(
+      button.text().trim().toLowerCase(),
+    );
   await wrapper
     .get('input[aria-label="Proposal workflow name"]')
     .setValue("Human review process");
