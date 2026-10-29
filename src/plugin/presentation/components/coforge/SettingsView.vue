@@ -23,9 +23,9 @@ const navigation = useSettingsNavigation(model);
     </header>
     <div class="cf-settings-layout">
       <nav class="cf-settings-navigation" aria-label="Project settings pages">
-        <button v-for="item in navigation.items" :key="item.id" type="button" :aria-labelledby="`${model.store.layoutId}-settings-${item.id}-label ${model.store.layoutId}-settings-${item.id}-description`" :aria-current="model.store.settingsTool === item.id ? 'page' : undefined" @click="navigation.select(item.id)">
+        <button v-for="item in navigation.items" :key="item.id" type="button" :aria-current="model.store.settingsTool === item.id ? 'page' : undefined" @click="navigation.select(item.id)">
           <CfIcon :name="item.icon" />
-          <span><strong :id="`${model.store.layoutId}-settings-${item.id}-label`">{{ item.label }}</strong><small :id="`${model.store.layoutId}-settings-${item.id}-description`">{{ item.description }}</small></span>
+          <span><strong :id="`${model.store.layoutId}-settings-${item.id}-label`">{{ item.label }}</strong>{{ ' ' }}<small :id="`${model.store.layoutId}-settings-${item.id}-description`">{{ item.description }}</small></span>
           <CfIcon name="chevron-right" size="xs" class="cf-settings-nav-arrow" />
         </button>
       </nav>

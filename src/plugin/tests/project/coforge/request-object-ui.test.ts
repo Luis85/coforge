@@ -26,6 +26,7 @@ it('saves a project-specific class/schema and keeps invalid field drafts separat
   const wrapper = mount(SettingsView, { global: { plugins: [fixture.pinia, fixture.provider], directives: { 'cf-icon': () => {} } } });
   try {
     await flushPromises();
+    fixture.store.openSettingsTool('requests'); await flushPromises();
     await field(wrapper, 'Request note class').setValue('Business Idea');
     await field(wrapper, 'Request categories').setValue('Strategy\nCommercial');
     await button(wrapper, 'Add request field').trigger('click');
