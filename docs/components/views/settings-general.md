@@ -1,6 +1,6 @@
 ---
 id: settings-general
-title: General project settings
+title: Project details
 goal: Set project identity, visibility, brief and shared agent instructions.
 audience: streamer
 kind: subpage
@@ -43,7 +43,7 @@ assignee: ""
 iteration: ""
 ---
 
-# General project settings
+# Project details
 
 ## Purpose
 
@@ -54,7 +54,7 @@ or repository boundaries.
 ## Entry and next action
 
 Open Project settings at the bottom of navigation, then General. Edit the project
-name, description, visibility and general agent prompt. Save project settings
+name, visibility, description and general agent prompt under Project details. Save project settings
 explicitly; General, Requests and Repository share the same retained draft.
 
 ## States and recovery

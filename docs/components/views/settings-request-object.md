@@ -1,6 +1,6 @@
 ---
 id: settings-request-object
-title: Project Request Object
+title: Request Object
 goal: Configure categories, class and optional properties captured by new requests.
 audience: streamer
 kind: subpage
@@ -44,7 +44,7 @@ assignee: ""
 iteration: ""
 ---
 
-# Project Request Object
+# Request Object
 
 ## Purpose
 
@@ -63,5 +63,7 @@ Invalid, duplicate, system-owned and prototype keys cannot save. Failed or stale
 ## Composition and boundaries
 
 The section is part of [SettingsView](../../../src/plugin/presentation/components/coforge/SettingsView.vue). The canonical project note stores the typed `request-object-definition`. New request notes capture class/schema and values through `request-class`, protected `coforge-request-schema` metadata and native custom properties. Existing request bodies, stable IDs and unrelated frontmatter remain canonical and preserved. Provider access, project routing, screening and final review gates remain unchanged.
+
+The class and categories controls use the same 720px maximum field width as the other settings forms, with full-width controls in narrow panes. Additional-field rows retain their own structured layout and wrap without changing the shared save boundary.
 
 Journey tags: `multi-project`, `request-to-recognition`.

@@ -2438,6 +2438,7 @@
         "Captured values",
         "Unsaved draft",
         "Stale request",
+        "Another studio action is pending",
         "Save failure",
         "Closed request"
       ],
@@ -3252,7 +3253,7 @@
         "Save or discard",
         "Manage Agent workflow",
         "Inspect runtime",
-        "Use backup and sample tools"
+        "Open Data & examples"
       ],
       "states": [
         "No project",
@@ -3288,8 +3289,8 @@
     },
     {
       "id": "settings-data",
-      "title": "Backup and sample tools",
-      "goal": "Export a private studio backup or explicitly replace this project’s requests with sample data.",
+      "title": "Data & examples",
+      "goal": "Export a private studio backup, load sample content or review example cleanup.",
       "audience": "streamer",
       "kind": "subpage",
       "route": "studio.settingsTool = data",
@@ -3299,14 +3300,17 @@
         "Open Project settings, then Data & examples."
       ],
       "actions": [
-        "Export private JSON backup",
-        "Request sample replacement",
-        "Keep data or confirm replacement"
+        "Export private studio backup",
+        "Load sample workspace",
+        "Keep my data",
+        "Preview example cleanup"
       ],
       "states": [
         "Ready",
         "Confirmation required",
         "Pending work blocks replacement",
+        "Unsaved project changes block sample loading",
+        "No project",
         "Failure"
       ],
       "journeys": [
@@ -3386,7 +3390,7 @@
     },
     {
       "id": "settings-general",
-      "title": "General project settings",
+      "title": "Project details",
       "goal": "Set project identity, visibility, brief and shared agent instructions.",
       "audience": "streamer",
       "kind": "subpage",
@@ -3436,7 +3440,7 @@
     },
     {
       "id": "settings-repository",
-      "title": "Project repository settings",
+      "title": "Repository & build access",
       "goal": "Set the repository boundary used by agent work.",
       "audience": "streamer",
       "kind": "subpage",
@@ -3483,7 +3487,7 @@
     },
     {
       "id": "settings-request-object",
-      "title": "Project Request Object",
+      "title": "Request Object",
       "goal": "Configure categories, class and optional properties captured by new requests.",
       "audience": "streamer",
       "kind": "subpage",
@@ -3534,8 +3538,8 @@
     },
     {
       "id": "settings-runtime",
-      "title": "Project runtime check",
-      "goal": "Verify the native runtime is available for this project.",
+      "title": "Local connections",
+      "goal": "Inspect observed local runtime, repository access and community chat readiness.",
       "audience": "streamer",
       "kind": "subpage",
       "route": "studio.settingsTool = runtime",
@@ -3545,8 +3549,10 @@
         "Open Project settings, Runtime, then Check Claude Code."
       ],
       "actions": [
-        "Check runtime",
-        "Inspect readiness or error"
+        "Check Claude Code",
+        "Inspect observed readiness",
+        "Configure repository",
+        "Manage Herdr workspaces"
       ],
       "states": [
         "Not checked",
@@ -4121,7 +4127,8 @@
         "Reorder or replace",
         "Edit prompts and provider",
         "Preview import or export",
-        "Save or discard"
+        "Save or discard",
+        "Attach an event trigger"
       ],
       "states": [
         "No project",

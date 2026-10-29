@@ -1,6 +1,6 @@
 ---
 id: settings-repository
-title: Project repository settings
+title: Repository & build access
 goal: Set the repository boundary used by agent work.
 audience: streamer
 kind: subpage
@@ -40,7 +40,7 @@ assignee: ""
 iteration: ""
 ---
 
-# Project repository settings
+# Repository & build access
 
 ## Purpose
 
@@ -50,7 +50,7 @@ Build edits stay in a separate worktree. A general prompt and editable workflow 
 
 ## Entry and next action
 
-Open Project settings, choose Repository, then edit the Agent workspace fields. Available actions: Edit workspace and repository fields; Review implementation authorization; Save project settings. Return through the owning [Project settings](settings.md) surface.
+Open Project settings and choose Repository. The Repository & build access section contains Project path, Git repository URL, Website URL and Worktree folder, followed by Allow real implementation for this project. Save settings explicitly; this save includes the retained General and Requests draft. The repository URL is metadata only and does not clone or initialize Git. Return through the owning [Project settings](settings.md) surface.
 
 ## States and recovery
 

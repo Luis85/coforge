@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
+import { openProjectSettings } from '../support/settings-navigation';
 
 async function projects(page: Page) {
   await page.goto('/#surface=node-1');
@@ -33,6 +34,7 @@ test('adds a project, keeps boards separate, and edits its external workspace pa
   await expect(page.locator('.cf-idea-card').filter({ hasText: 'A moonlit orchard path' })).toHaveCount(0);
   await page.locator('.cf-project-switcher').click();
   await page.getByRole('button', { name: 'Settings for Moon orchard', exact: true }).click();
+  await openProjectSettings(page, 'Repository');
   await expect(page.getByLabel(/^Project path/)).toHaveValue('/synthetic/games/moon-orchard');
   await page.getByLabel(/^Project path/).fill('/synthetic/games/moon-orchard-next');
   await page.getByRole('button', { name: 'Save settings', exact: true }).click();

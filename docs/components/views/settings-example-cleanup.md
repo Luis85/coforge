@@ -84,6 +84,6 @@ are preserved; the scheduler's example timer and cached receipts are discarded.
 
 ## Composition and boundaries
 
-The panel belongs to [Backup and sample tools](settings-data.md). It owns preview
+The Finish experimenting panel belongs to [Data & examples](settings-data.md). It owns preview
 and confirmation state in a composable, while application services validate exact
 selection and storage owns full-note comparison and transactional retirement.

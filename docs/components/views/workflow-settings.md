@@ -15,6 +15,7 @@ actions:
   - Edit prompts and provider
   - Preview import or export
   - Save or discard
+  - Attach an event trigger
 states:
   - No project
   - Standard defaults
@@ -54,7 +55,7 @@ Each project owns a v1 definition with stable step IDs. Existing runs keep captu
 
 ## Entry and next action
 
-Open [Project settings](settings.md), choose [Agent workflow](workflow.md), then Workflow settings in its local navigation. Available actions: Add or select step; Reorder or replace; Edit prompts and provider; Preview import or export; Save or discard. Workflow runs and Herdr workspaces remain sibling tasks in the same workspace.
+Open [Project settings](settings.md), choose [Agent workflow](workflow.md), then Workflow settings in its local navigation. Available actions: Add or select step; Reorder or replace; Edit prompts and provider; Preview import or export; Save or discard; Attach an event trigger. Workflow runs and Herdr workspaces remain sibling tasks in the same workspace. The Council link and event-trigger action navigate to their owning tools through the existing draft guard; neither action dispatches work.
 
 ## States and recovery
 
@@ -70,4 +71,4 @@ Journey tags: `workflow-configuration`.
 
 ## Workspace redesign
 
-The selected project and saved or unsaved state precede a dedicated step catalogue and authoring area. Configuration, import preview and save actions retain separate visual levels and existing draft guards.
+The selected project and saved or unsaved state precede a dedicated step catalogue and authoring area. Attach an event trigger sits in the Workflow settings header beside its explanatory context. Configuration, import preview and save actions retain separate visual levels and existing draft guards.

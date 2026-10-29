@@ -44,7 +44,7 @@ export function useRequestValuesEditor(props: { idea: Idea }) {
     finally { current.working = false; }
   }
   return reactive({
-    draft, dirty, stale, closed,
+    draft, dirty, stale, closed, busy: computed(() => store.busy),
     update: (change: RequestValueChange) => {
       if (!props.idea.requestObject?.fields.some(field => field.key === change.key)) return;
       if (change.value === undefined) delete draft.value.values[change.key];

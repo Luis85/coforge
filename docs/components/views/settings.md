@@ -15,7 +15,7 @@ actions:
   - Save or discard
   - Manage Agent workflow
   - Inspect runtime
-  - Use backup and sample tools
+  - Open Data & examples
 states:
   - No project
   - Saved
@@ -63,6 +63,8 @@ Choose Project settings at the bottom of the studio navigation. It remains reach
 
 No project; Saved; Unsaved; Saving; Invalid draft; Pending-work guard. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+General, Requests and Repository share one retained draft and Save settings action. The save status identifies that scope, while Workflow settings saves independently. Errors appear above the active task and remind the owner that the shared draft is kept while reviewing those three categories. Data & examples remains available without a selected project, including an explicit confirmation before creating sample content.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/SettingsView.vue](../../../src/plugin/presentation/components/coforge/SettingsView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
@@ -72,6 +74,8 @@ Journey tags: `setup`, `multi-project`, `workflow-configuration`.
 ## Workspace redesign
 
 The project switcher retains project identity and private visibility. One Project settings H1 frames local tasks with labelled navigation, subordinate headings and a retained settings draft. General, Requests and Repository share an explicit save boundary; workflow authoring has its own save boundary. Guarded navigation and project changes preserve dirty drafts. Runtime shows observed capabilities, and Data & examples labels all-project backup separately from selected-project replacement.
+
+Wide panes use a local task rail with short descriptions and an aligned content column. Medium panes use three task columns; narrow panes use two. These compact selectors omit descriptive copy while retaining labels and current-page treatment. Form controls stack, action rows wrap and the owning studio container supplies scrolling. Focus and selection remain distinct, and the page uses the host theme’s fonts and colors.
 
 ## Project privacy
 

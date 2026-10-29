@@ -21,6 +21,7 @@
 .cf-settings-page .cf-settings-description h2 { font-size: 21px; line-height: 1.4; margin-bottom: 8px; }
 .cf-settings-page .cf-settings-description p { max-width: 65ch; font-size: 13px; line-height: 1.7; margin-bottom: 0; }
 .cf-settings-page .cf-settings-fields { max-width: 720px; }
+.cf-settings-page .cf-request-object-settings > .cf-field { max-width: 720px; }
 .cf-settings-page .cf-settings-fields .cf-field { margin-bottom: 24px; }
 .cf-settings-page .cf-settings-fields .cf-field :is(input, textarea, select) { font-size: 13px; }
 .cf-settings-page .cf-settings-fields .cf-field > span { font-size: 13px; }
@@ -32,6 +33,7 @@
 .cf-settings-page :is(.cf-settings-runtime, .cf-settings-data) h2 { font-size: 21px; line-height: 1.4; }
 .cf-settings-page .cf-settings-runtime-list > div { font-size: 13px; }
 .cf-settings-page .cf-settings-runtime-list dd.cf-mono { font-size: 12px; }
+.cf-settings-runtime-actions { margin-top: 20px; }
 .cf-settings-page .cf-settings-save { margin-top: 32px; padding: 16px 0; align-items: flex-start; }
 .cf-settings-save-message { display: flex; align-items: flex-start; gap: 9px; flex: 1 1 240px; font-size: 12px; line-height: 1.6; }
 .cf-settings-save-message > .cf-icon { margin-top: 2px; color: var(--cf-muted); flex-shrink: 0; }

@@ -14,7 +14,7 @@ const model = useRequestValuesEditor(props);
       <p v-else>Changing values requires fresh screening. Unrelated note properties and body text stay intact.</p>
       <p v-if="model.stale" class="cf-inline-error">This request changed outside your draft. Discard changes to review the latest values before saving.</p>
       <p v-if="model.draft.error" class="cf-inline-error" role="alert">{{ model.draft.error }}</p><p v-if="model.draft.notice" role="status">{{ model.draft.notice }}</p>
-      <div v-if="idea.requestObject.fields.length" class="cf-settings-actions"><button type="submit" class="cf-btn cf-btn-primary" :disabled="!model.dirty || model.stale || model.closed || model.draft.working">Save request fields</button><button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.dirty || model.draft.working" @click="model.discard()">Discard field changes</button></div>
+      <div v-if="idea.requestObject.fields.length" class="cf-settings-actions"><button type="submit" class="cf-btn cf-btn-primary" :disabled="!model.dirty || model.stale || model.closed || model.draft.working || model.busy">Save request fields</button><button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.dirty || model.draft.working" @click="model.discard()">Discard field changes</button></div>
     </form>
   </section>
 </template>

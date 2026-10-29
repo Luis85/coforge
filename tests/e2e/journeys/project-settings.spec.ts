@@ -48,6 +48,15 @@ for (const theme of ['light', 'dark']) {
         expect(violations.map(item => ({ rule: item.id, targets: item.nodes.map(node => node.target) }))).toEqual([]);
       }
     }
+    await openProjectSettings(page, 'Runtime');
+    await page.getByRole('button', { name: 'Configure repository', exact: true }).click();
+    await expect(settingsPageButton(page, 'Repository')).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByLabel('Project path', { exact: true })).toBeVisible();
+    await openProjectSettings(page, 'Runtime');
+    await page.getByRole('button', { name: 'Manage Herdr workspaces', exact: true }).click();
+    await expect(settingsPageButton(page, 'Agent workflow')).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Herdr workspaces', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.cf-herdr')).toBeVisible();
     await openProjectSettings(page, 'General');
     await expect(page.getByLabel('Project name', { exact: true })).toHaveValue('Mosslight');
     await expect(page.getByRole('button', { name: 'Save settings', exact: true })).toBeDisabled();

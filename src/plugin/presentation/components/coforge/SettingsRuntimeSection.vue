@@ -35,7 +35,7 @@ const model = useSettingsForm();
       </div>
       <div>
         <dt>Game repository</dt>
-        <dd class="cf-mono">
+        <dd :class="{ 'cf-mono': model.store.activeProject?.projectPath }">
           {{
             model.store.activeProject?.projectPath ||
             "Not configured · set it under Repository"
@@ -69,6 +69,10 @@ const model = useSettingsForm();
         </dd>
       </div>
     </dl>
+    <div class="cf-settings-actions cf-settings-runtime-actions">
+      <button type="button" class="cf-btn cf-btn-secondary" @click="model.store.openSettingsTool('repository')">Configure repository</button>
+      <button type="button" class="cf-btn cf-btn-secondary" @click="model.store.openWorkflowTool('herdr')">Manage Herdr workspaces</button>
+    </div>
     <p class="cf-settings-help">
       Set the project path and build permission under Repository.
       Configure Herdr under Agent workflow → Herdr workspaces. The native Claude Code executable and

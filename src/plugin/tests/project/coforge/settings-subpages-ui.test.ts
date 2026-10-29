@@ -4,6 +4,32 @@ import { expect, it } from 'vitest';
 import StudioApp from '../../../presentation/components/coforge/StudioApp.vue';
 import { workflowUiFixture } from './workflow-ui-fixture';
 
+it('takes runtime setup links to the owning settings task while retaining project edits without writes', async () => {
+  const fixture = await workflowUiFixture();
+  const wrapper = mount(StudioApp, { global: { plugins: [fixture.pinia, fixture.provider], directives: { 'cf-icon': () => {} } } });
+  try {
+    await flushPromises(); fixture.store.navigate('settings'); await flushPromises();
+    await wrapper.get('input[aria-label="Project name"]').setValue('Retain these setup edits');
+    const writes = fixture.storage.saves;
+    fixture.store.openSettingsTool('runtime'); await flushPromises();
+    const repository = wrapper.findAll('button').find(button => button.text().trim() === 'Configure repository');
+    if (!repository) throw new Error('Missing runtime repository setup action');
+    await repository.trigger('click'); await flushPromises();
+    expect(fixture.store.settingsTool).toBe('repository');
+    expect(wrapper.get('input[aria-label="Project path"]').isVisible()).toBe(true);
+    fixture.store.openSettingsTool('runtime'); await flushPromises();
+    const herdr = wrapper.findAll('button').find(button => button.text().trim() === 'Manage Herdr workspaces');
+    if (!herdr) throw new Error('Missing runtime Herdr setup action');
+    await herdr.trigger('click'); await flushPromises();
+    expect(fixture.store.settingsTool).toBe('workflow');
+    expect(fixture.store.workflowTool).toBe('herdr');
+    fixture.store.openSettingsTool('general'); await flushPromises();
+    expect(wrapper.get('input[aria-label="Project name"]').element).toHaveProperty('value', 'Retain these setup edits');
+    expect(fixture.storage.saves).toBe(writes);
+    expect(fixture.runner).not.toHaveBeenCalled();
+  } finally { wrapper.unmount(); await fixture.dispose(); }
+});
+
 it('keeps a project draft across settings tasks and saves deliberately without dispatching work', async () => {
   const fixture = await workflowUiFixture();
   const wrapper = mount(StudioApp, { global: { plugins: [fixture.pinia, fixture.provider], directives: { 'cf-icon': () => {} } } });
