@@ -8,7 +8,7 @@ route: "council.tab = ask"
 parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/CouncilAskView.vue"
 entry: ["Choose The Council in the studio navigation.","Choose Ask the Council from another Council task."]
-actions: ["Write title and question","Choose project team and council","Save task and review","Submit reviewed task","Start a new task","Review task history"]
+actions: ["Write title and question","Choose Council and inspect recipients","Save task and review","Submit reviewed task","Start a new task","Review task history"]
 states: ["No project or council","Unsaved question","Saved note","Preflight unavailable","Reviewed preview","Queued","Execution paused","Write conflict"]
 journeys: ["Council","analytical-task"]
 privacy: "Private analytical task notes and execution evidence; excluded from public projections."
@@ -19,11 +19,11 @@ coverage: {"group":"council","key":"ask"}
 
 ## Purpose
 
-Write a new question or task, choose its explicit project team and council, then review the proposed work. This is the Council's first page; definition and administration tools remain secondary.
+Write a new question or task, choose its Council and inspect the participating CoWorkers, then review the proposed work. This is the Council's first page; definition and administration tools remain secondary.
 
 ## Entry and next action
 
-Choose The Council in the studio navigation. Enter Task title and Your question or task, select Project team and Council, then choose Save task and review. Saving creates a canonical private Markdown note and runs preflight; it does not admit work, contact a provider or resume execution. Submission remains a separate reviewed action. Device designation and execution pause controls are available inline.
+Choose The Council in the studio navigation. Enter Task title and Your question or task, select Council and inspect its CoWorkers and rounds, then choose Save task and review. Saving creates a canonical private Markdown note and runs preflight; it does not admit work, contact a provider or resume execution. Submission remains a separate reviewed action. Device designation and execution pause controls are available inline.
 
 ## States and recovery
 

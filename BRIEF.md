@@ -59,6 +59,14 @@ preflight, explicit submission and execution/recovery gates. Saved task notes an
 retained admissions must remain discoverable after reload; navigation never starts
 a provider request.
 
+Council usability (owner revision, 2026-10-29): use visible subpage tabs consistent
+with other studio pages. Intake selects a Council directly, resolving its owning
+team internally, and shows the chosen Council, participating CoWorkers and rounds.
+Make setup prerequisites actionable and activity visible with honest queued,
+running, paused, human-waiting and attention states. Keep explicit review and
+execution gates. Workflow setup includes an Ask Council action; the owner chose
+to wait for the answer and make it available to later workflow steps.
+
 The Idea board appears first in Build navigation, followed by The Council and
 Agent workflow (owner correction, 2026-10-28).
 

@@ -95,7 +95,8 @@ export function useCouncilDefinitions(props: {
     );
   }
   function createCouncil() {
-    const owner = teams.value[0]?.definition;
+    const selectedTeam = store.draft?.schema === 'team/v1' ? store.draft.id : store.draft?.schema === 'council/v1' ? store.draft.teamId : '';
+    const owner = (teams.value.find(entry => entry.definition.id === selectedTeam) ?? teams.value.find(entry => entry.definition.enabled && entry.definition.schema === 'team/v1' && entry.definition.members.length))?.definition;
     if (!owner || owner.schema !== "team/v1" || !owner.members.length) {
       store.error =
         "Add saved CoWorkers to the project team before creating a council.";

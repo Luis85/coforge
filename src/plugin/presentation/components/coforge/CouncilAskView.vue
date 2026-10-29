@@ -2,6 +2,7 @@
 import { useCouncilModel } from "../../composables/coforge/use-council";
 import CouncilSubmission from "./CouncilSubmission.vue";
 import CouncilExecutionControls from "./CouncilExecutionControls.vue";
+import CouncilRecipients from './CouncilRecipients.vue';
 import VaultFilePicker from './VaultFilePicker.vue';
 const model = useCouncilModel();
 </script>
@@ -103,19 +104,6 @@ const model = useCouncilModel();
           <VaultFilePicker v-model="model.store.taskQuestion" :list-files="model.listVaultFiles" />
           <div class="cf-council-fields">
             <label class="cf-field"
-              ><span>Project team</span
-              ><select v-model="model.store.taskTeam">
-                <option value="">Select team</option>
-                <option
-                  v-for="entry in model.teams"
-                  :key="entry.definition.id"
-                  :value="entry.definition.id"
-                >
-                  {{ entry.definition.name }}
-                </option>
-              </select></label
-            >
-            <label class="cf-field"
               ><span>Council</span
               ><select v-model="model.store.taskCouncil">
                 <option value="">Select council</option>
@@ -129,20 +117,13 @@ const model = useCouncilModel();
               </select></label
             >
           </div>
+          <CouncilRecipients :selection="model.ask.selection" />
           <p v-if="!model.projectId" class="cf-settings-help">
-            Tasks belong to a project. Create or select one before choosing its
-            team and council.
+            Create or select a project before choosing its Council.
           </p>
-          <p v-else-if="!model.teams.length" class="cf-settings-help">
-            This project has no available team yet. Configure a team and
-            council, then return to your question here.
-          </p>
-          <p
-            v-if="model.store.taskTeam && !model.ask.councils.length"
-            class="cf-settings-help"
-          >
-            This team has no available council. Manage teams and councils to
-            configure its members and discussion protocol.
+          <p v-else-if="!model.ask.councils.length" class="cf-settings-help">
+            No enabled Council is available for this project. Open Definitions to
+            set up your CoWorkers, project roster and first Council. Your question stays here.
           </p>
           <p class="cf-settings-help">
             Saving creates a private task note. It does not submit a run,
@@ -181,7 +162,7 @@ const model = useCouncilModel();
           class="cf-btn cf-btn-ghost"
           @click="model.selectPage('definitions')"
         >
-          Manage teams and councils
+          Set up councils
         </button>
       </div>
     </section>

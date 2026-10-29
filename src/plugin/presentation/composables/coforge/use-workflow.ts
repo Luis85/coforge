@@ -1,4 +1,5 @@
-import { computed, reactive, watch } from "vue";
+import { computed, reactive, watch, nextTick } from "vue";
+import { useCouncilStore } from '../../stores/coforge-council';
 import { storeToRefs } from "pinia";
 import { useConfiguredWorkflowUiStore } from "../../stores/coforge-configured-workflow";
 import { workflowAttemptRows } from "./configured-workflow-history";
@@ -53,7 +54,7 @@ export function useWorkflow() {
   const provider = computed(() =>
     workflowProviderSummary({ ...settings.value, workflow: definition.value }, run.value?.external),
   );
-  const enabledCount = computed(() => run.value?.external ? 0 : definition.value.steps.filter(step => step.kind === 'ai' && step.automatic).length);
+  const enabledCount = computed(() => run.value?.external ? 0 : definition.value.steps.filter(step => (step.kind === 'ai' || step.kind === 'council' || step.kind === 'nudge') && step.automatic).length);
   const blocked = computed(() => {
     const idea = selected.value;
     if (!idea) return "Select a request to run its workflow.";
@@ -108,6 +109,9 @@ export function useWorkflow() {
     run,
     definition,
     currentStep,
+    councilAttempt: computed(() => run.value?.attempts.find(attempt => attempt.id === run.value?.activeAttemptId && attempt.kind === 'council' && attempt.nudgeRunId)),
+    checkCouncil: () => { if (selected.value) perform(() => actions.runWorkflowStep(selected.value!.id)); },
+    inspectCouncil: () => { const attempt = run.value?.attempts.find(item => item.id === run.value?.activeAttemptId); if (attempt?.nudgeRunId) { const council = useCouncilStore(); council.inspectedRun = attempt.nudgeRunId; store.navigate('council'); void nextTick(() => { council.tab = 'monitor'; }); } },
     uncertainNudges, nudgeRecoveryConsent,
     changeNudgeRecovery: (event: Event) => { const target = event.target; if (target && 'checked' in target && typeof target.checked === 'boolean') nudgeRecoveryConsent.value = target.checked; },
     acknowledgeNudge: () => { if (selected.value && run.value) perform(() => actions.acknowledgeWorkflowNudge(selected.value!.id, run.value!.revision, nudgeRecoveryConsent.value)); },

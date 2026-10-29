@@ -30,7 +30,6 @@ for (const theme of ['light', 'dark']) {
     await replacement.getByRole('button', { name: 'Replace draft with item assessment', exact: true }).click();
     await expect(page.getByLabel('Task title', { exact: true })).toHaveValue(new RegExp(`Assess CF-.+: ${title}`));
     await expect(page.getByRole('region', { name: 'Council task history', exact: true })).toContainText('No tasks yet');
-    await page.getByRole('combobox', { name: 'Project team', exact: true }).selectOption('team-example');
     await page.getByRole('combobox', { name: 'Council', exact: true }).selectOption('council-example');
     await page.getByRole('button', { name: 'Save task and review', exact: true }).click();
     const review = page.getByRole('region', { name: 'Review Council task', exact: true });

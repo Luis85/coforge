@@ -16,7 +16,8 @@ export interface AiWorkflowStep extends StepBase {
 export interface ApprovalWorkflowStep extends StepBase { kind: 'approval' }
 export interface ChecklistWorkflowStep extends StepBase { kind: 'checklist'; items: Array<{ id: string; label: string; required: boolean }> }
 export interface NudgeWorkflowStep extends StepBase { kind: 'nudge'; teamId: string; agentId: string; inputs?: WorkflowOutput[]; automatic?: boolean }
-export type WorkflowStep = AiWorkflowStep | ApprovalWorkflowStep | ChecklistWorkflowStep | NudgeWorkflowStep;
+export interface CouncilWorkflowStep extends StepBase { kind: 'council'; councilId: string; inputs?: WorkflowOutput[]; automatic: boolean }
+export type WorkflowStep = AiWorkflowStep | ApprovalWorkflowStep | ChecklistWorkflowStep | NudgeWorkflowStep | CouncilWorkflowStep;
 export interface WorkflowDefinition {
   format: 'coforge-workflow/v1'; revision: string; name: string;
   limits: { timeoutSeconds: number; maxTurns: number; maxBudgetUsd: number; intervalSeconds: number };
@@ -31,9 +32,11 @@ const ai = shape({ ...base, kind: oneOf(['ai'] as const), output: oneOf(WORKFLOW
 const approval = shape({ ...base, kind: oneOf(['approval'] as const) }, { strict: true });
 const checklist = shape({ ...base, kind: oneOf(['checklist'] as const), items: list(shape({ id: workflowIdCheck, label: text({ trim: true, min: 1, max: 500 }), required: boolean }, { strict: true }), { min: 1, max: 40 }) }, { strict: true });
 const nudge = shape({ ...base, kind: oneOf(['nudge'] as const), teamId: workflowIdCheck, agentId: workflowIdCheck, inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: 5 })), automatic: optional(boolean) }, { strict: true });
+const council = shape({ ...base, kind: oneOf(['council'] as const), councilId: workflowIdCheck, inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: 5 })), automatic: boolean }, { strict: true });
 export function workflowStepCheck(value: unknown): WorkflowStep {
   const kind = record(value).kind;
-  const step = kind === 'ai' ? ai(value) : kind === 'approval' ? approval(value) : kind === 'nudge' ? nudge(value) : checklist(value);
+  const step = kind === 'ai' ? ai(value) : kind === 'approval' ? approval(value) : kind === 'nudge' ? nudge(value) : kind === 'council' ? council(value) : checklist(value);
+  if (step.kind === 'council' && (!step.instructions.trim() || new Set(step.inputs).size !== (step.inputs?.length ?? 0))) throw new Error('Ask Council needs a prompt and unique input roles.');
   if (step.kind === 'nudge' && (!step.instructions.trim() || new Set(step.inputs).size !== (step.inputs?.length ?? 0))) throw new Error('A nudge needs a prompt and unique input roles.');
   if (step.kind === 'ai' && ((step.output === 'codechange' && step.access !== 'editworktree') || new Set(step.inputs).size !== (step.inputs?.length ?? 0)))
     throw new Error('A code-change step requires worktree editing and input roles must be unique.');
@@ -49,9 +52,10 @@ export function workflowDefinitionCheck(value: unknown): WorkflowDefinition {
   const checked = definition(value);
   if (new Set(checked.steps.map(step => step.id)).size !== checked.steps.length) throw new Error('Workflow step IDs must be unique.');
   const available = new Set<WorkflowOutput>();
-  for (const step of checked.steps) if (step.kind === 'ai' || step.kind === 'nudge') {
+  for (const step of checked.steps) if (step.kind === 'ai' || step.kind === 'nudge' || step.kind === 'council') {
     if (step.inputs?.some(role => !available.has(role))) throw new Error('A required input role has no preceding producer.');
     if (step.kind === 'ai') { available.add(step.output); if (step.access === 'editworktree') available.add('codechange'); }
+    if (step.kind === 'council') available.add('markdown');
   }
   return checked;
 }

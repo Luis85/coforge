@@ -720,7 +720,7 @@
       "actions": [
         "Ask a question",
         "Review task history",
-        "Open advanced tools",
+        "Choose a workspace tab",
         "Refresh",
         "Explore labelled example"
       ],
@@ -768,7 +768,7 @@
       ],
       "actions": [
         "Write title and question",
-        "Choose project team and council",
+        "Choose Council and inspect recipients",
         "Save task and review",
         "Submit reviewed task",
         "Start a new task",

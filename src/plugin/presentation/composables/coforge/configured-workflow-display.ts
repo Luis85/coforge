@@ -18,6 +18,7 @@ export const CONFIGURED_RUN_LABELS = {
   stopped: "Workflow stopped",
 } as const;
 export function configuredAgentLabel(step: WorkflowStep): string {
+  if (step.kind === 'council') return `Ask Council · ${step.councilId || 'Choose Council'} · waits for answers`;
   if (step.kind === 'nudge') return `Agent task · ${step.agentId || 'Choose recipient'}`;
   return step.kind !== "ai"
     ? step.kind === "approval"

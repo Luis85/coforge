@@ -72,3 +72,15 @@ Journey tags: `workflow-configuration`.
 ## Workspace redesign
 
 The selected project and saved or unsaved state precede a dedicated step catalogue and authoring area. Attach an event trigger sits in the Workflow settings header beside its explanatory context. Configuration, import preview and save actions retain separate visual levels and existing draft guards.
+
+## Ask Council step
+
+Choose **Add Ask Council**, select an enabled project Council and write its question.
+The editor shows the participating CoWorkers and rounds; the owning team resolves
+internally. Save workflow explicitly. Existing runs retain their captured steps.
+
+At execution, the step admits one private child task and waits for its published
+answers. Later AI steps can bind the attributed Markdown report. Paused execution,
+human checkpoints and uncertain outcomes hold the workflow. Inspect Council activity
+or check its answer from Workflow runs. Admission is never reported as completion;
+reload retains a confirmed child instead of submitting it again.

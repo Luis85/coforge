@@ -86,6 +86,7 @@ const model = useWorkflowEditorForm();
     </ol>
     <div class="cf-workflow-step-list-tools">
       <div class="cf-workflow-add-actions">
+        <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.draft.steps.length >= 40" @click="model.add('council')">Add Ask Council</button>
         <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.draft.steps.length >= 40" @click="model.add('nudge')">Add agent nudge</button>
         <button
           type="button"

@@ -1,36 +1,71 @@
 ## Summary
 
-Expose thirteen MCP tools for maintained CoWorker delegation and current-vault assistance. Assistants discover reusable definitions and project memberships, save retryable analytical tasks, review preflight, dispatch the captured definition/provider/model, monitor durable runs, retrieve published contributions and cancel work.
+Council intake now selects a Council directly and shows the participating CoWorkers,
+providers and discussion rounds. Visible workspace tabs replace the advanced-tools
+disclosure; setup guidance and project activity make configuration and progress easier
+to follow.
 
-Wrap sixteen official read-only Obsidian CLI commands with explicit current-vault targeting, path verification, bounded execution and cancellation. Read replies separate exact host content from formatted CLI output. Ordinary Markdown authoring uses Obsidian's atomic vault API with prior-content checks. Managed/watched/public notes retain dedicated service gates; isolated Council sessions cannot access operator tools.
+Workflow settings adds Ask Council. It admits one child task, waits for complete
+published answers and supplies attributed Markdown to later steps. Confirmed children
+survive reload; uncertain admission, stale answers and cancellation retain recovery
+boundaries without automatic replay.
 
 ## Requirements and traceability
 
-- Owner requests dated 2026-10-29 in BRIEF.md: roster, definition-based subagents, assistant capability review and current-vault CLI.
-- Task/evidence: docs/project-tasks/2026-10-29-mcp-coworkers.md.
+- Owner requests dated 2026-10-29 in BRIEF.md: Council usability and Ask Council workflow action.
+- Review, acceptance and evidence: docs/project-tasks/2026-10-29-council-experience.md.
 - No imported req-* or vi-* obligation applies; generated traceability is unchanged.
-- Existing Council definition/execution policies and final human code review remain authoritative.
-- Integrated main's Project settings/navigation changes. Corrected two Council panel parent links and regenerated the 92-view catalogue from canonical notes.
+- Canonical Markdown, stable IDs, explicit review, executor designation, finite limits,
+  private evidence and final human code review remain authoritative.
 
 ## Validation
 
-- Before integration: npm run verify:project exited 0; check: ok, 5 passed / 0 failed / 0 skipped gates (769.2s). Product tests passed, artifact build completed and prototype embedding passed (1 test).
-- Focused MCP regression suite: 6 files / 32 tests passed; final CLI/process suite: 11 passed, including exact read/edit preconditions, custom configuration folders, preserved Error-prefixed note text and redacted process failures.
-- Final typecheck and focused zero-warning ESLint passed.
-- After integration: check:views validates 92 contracts and the current sitemap. Integrated MCP/catalogue regressions and full CI qualification are running.
-- git diff --check: clean. Self-review found no unsafe casts, weakened gates or oversized files.
+- Focused experience/editor/execution/integration suite: 4 files, 13 tests passed.
+- Final admission and workflow safety suite: 2 files, 9 tests passed.
+- Typecheck and focused zero-warning ESLint passed.
+- Initial npm run verify:project: typecheck, source lint, ESLint and maker types passed;
+  the product test process hit the wrapper's 600-second timeout. No passing full-gate
+  claim is made from that attempt.
+- npm run check -- --timeout 1200000: 4 gates passed, 1 failed. The full suite reported
+  279 files passed / 1 failed; 995 tests passed / 1 timed out / 6 pre-existing skips.
+  The unchanged 10,000-note intake scale test exceeded its 60-second test budget.
+- Unmodified scale-test recheck: 1 passed in 45.35s, with the same assertions and
+  timeout. No repository test limits or checks were weakened. A clean full-gate run
+  is still required before merge; the isolated pass does not turn the failed gate green.
+- Final recovery stability recheck: 8 passed, including unchanged run revisions when
+  checking the same held result repeatedly.
+- npm run verify:artifacts: passed build and prototype embedding (1 passed). Generated
+  UI-effect checks report the expected skip because no visual definitions are declared.
+- check:views: 92 views documented, navigation coverage valid, sitemap current.
+- git diff --check: clean.
 
 ## UI evidence
 
-This PR changes no runtime interface. Project settings/navigation changes are inherited from main. UI-quality/gallery evidence for this PR is requested through the e2e CI label.
+- npm run test:ui-quality: 8 passed (both themes, 360px reflow and keyboard focus).
+- Council intake and board-assessment journeys: 4 passed; corrected prompt-order
+  navigation journey rerun: 2 passed. Both themes and wide/narrow leaves were captured.
+- npm run ui:gallery: 40 captures, no failures. Reviewed the studio narrow capture and
+  Council-specific intake/history, setup and native workflow captures.
+- reports/council-review/: numbered before/after screenshots and command logs.
+- reports/council-ask/, reports/council-prompt-order/, reports/ui-gallery/: ignored QA evidence.
+- Design detector identified one existing thick accent border; reduced it to 1px.
 
 ## Obsidian evidence
 
-- Native MCP and lifecycle cases: 2 passed. Real HTTP MCP creates exact private CRLF bytes, handles identical retries/stale conflicts and writes no client registration.
-- Fresh pinned smoke: status passed, errors [], hostErrorCount 0; app/installer 1.14.4, launcher 3.2.1.
-- Reused-sandbox smoke: status passed, plugin errors []; two Obsidian core command-list callback errors (null parent/getContainer), recorded separately.
-- Evidence: reports/obsidian/ and .obsidian-sandbox/logs/ (ignored). Full native CI requested through e2e.
+- Latest pinned smoke: status passed, plugin errors []; Obsidian 1.14.4 and launcher
+  3.2.1 in the contained sandbox. The reused sandbox reports two Obsidian-core
+  command-list callback errors (null parent/getContainer), also seen in the initial
+  smoke. An earlier clean smoke reported hostErrorCount 0. The native journey has no errors.
+- npm run test:obsidian -- coforge-council-ask: 1 passed. Saves and reviews a question,
+  runs an explicit mixed-order simulation, retains history through reload, checks cost
+  attribution, then saves an Ask Council workflow step with visible recipients and no
+  new run during setup.
+- reports/obsidian/ and .obsidian-sandbox/logs/ contain ignored evidence.
 
 ## Untested scope
 
-No live billable provider, real client activation or operator-installed CLI invocation. CLI process behavior uses an injected port; note writes/MCP lifecycle use the pinned real host. Local Node 24.20.0 / npm 11.21.1 differs from pinned Node 24.21.0 / npm 11.19.1; CI uses the pins. No personal vault or real client settings touched. No release publication requested.
+No billable provider call or personal vault was used. Workflow answers use the existing
+16000-character Markdown contract; larger reports stay complete in the child run and
+hold the parent. Full assistive-technology certification is outside this review.
+Local Node 24.20.0 / npm 11.21.1 differ from pinned Node 24.21.0 / npm 11.19.1.
+No release, publication or pull request was requested.

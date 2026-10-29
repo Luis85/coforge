@@ -46,7 +46,7 @@ describe('Ask the Council in the contained host', () => {
     await view.getByRole('button', { name: 'The Council', exact: true }).click();
     const intake = view.getByRole('region', { name: 'Ask the Council for advice', exact: true });
     await browserExpect(intake).toBeVisible();
-    await browserExpect(view.locator('.cf-council-advanced')).not.toHaveAttribute('open', '');
+    await browserExpect(view.getByRole('navigation', { name: 'Council workspace', exact: true })).toBeVisible();
     await view.getByRole('button', { name: 'Refresh Council', exact: true }).click();
     await intake.getByLabel('Task title', { exact: true }).fill('Council architecture advice');
     const question = 'Compare two approaches.\n\nPreserve this **human question** and identify open gaps.';
@@ -57,7 +57,6 @@ describe('Ask the Council in the contained host', () => {
     await intake.getByRole('checkbox', { name: 'Council context.md', exact: true }).check();
     await intake.getByRole('button', { name: 'Add 1 wikilink to input', exact: true }).click();
     await browserExpect(intake.getByLabel('Your question or task', { exact: true })).toHaveValue(`${question}\n\n- [[Council context]]`);
-    await intake.getByRole('combobox', { name: 'Project team', exact: true }).selectOption('native-advice-team');
     await intake.getByRole('combobox', { name: 'Council', exact: true }).selectOption('native-advice');
     await intake.getByRole('button', { name: 'Save task and review', exact: true }).click();
     await browserExpect(view.getByRole('region', { name: 'Invocation preview', exact: true })).toContainText('4 invocations');
@@ -104,6 +103,17 @@ describe('Ask the Council in the contained host', () => {
     await browserExpect(costs).toContainText('Native advice team');
     await costs.getByRole('button', { name: 'By Council', exact: true }).click();
     await browserExpect(costs).toContainText('Native Advice Council');
+    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await view.getByRole('navigation', { name: 'Project settings pages', exact: true }).getByRole('button', { name: /Agent workflow/ }).click();
+    await view.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Workflow settings', exact: true }).click();
+    await view.getByRole('button', { name: 'Add Ask Council', exact: true }).click();
+    const step = view.getByRole('region', { name: 'Selected workflow step', exact: true });
+    await step.getByRole('combobox', { name: 'Council', exact: true }).selectOption('native-advice');
+    await browserExpect(step.getByRole('region', { name: 'Selected Council recipients', exact: true })).toContainText('Native adviser A');
+    await step.getByLabel('Question for the Council', { exact: true }).fill('Compare the request options and recommend a path.');
+    await view.getByRole('button', { name: 'Save workflow', exact: true }).click();
+    await browserExpect(view.getByRole('status').filter({ hasText: 'Workflow saved.' })).toBeVisible();
+    expect((await journal(obsidian)).runs).toHaveLength(1);
     expect(obsidian.errors()).toEqual([]);
     await obsidian.screenshot('council-advice-mixed-order-and-costs');
   });

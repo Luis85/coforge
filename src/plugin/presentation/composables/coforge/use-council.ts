@@ -197,7 +197,6 @@ export function useCouncil() {
     store,
     studio,
     pages: COUNCIL_PAGES,
-    advancedPages: COUNCIL_PAGES.filter((page) => page.id !== "ask"),
     ask: useCouncilAsk({
       store,
       service: requireService,

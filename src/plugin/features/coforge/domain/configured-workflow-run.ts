@@ -25,10 +25,11 @@ export interface WorkflowArtifact {
   hostSnapshot?: boolean;
 }
 export interface WorkflowAttempt {
-  id: string; stepId: string; stepName: string; kind: 'ai' | 'approval' | 'checklist' | 'nudge';
+  id: string; stepId: string; stepName: string; kind: 'ai' | 'approval' | 'checklist' | 'nudge' | 'council';
   status: 'queued' | 'running' | 'waiting-human' | 'succeeded' | 'failed' | 'cancelled';
   inputs: string[]; startedAt: string; finishedAt?: string; jobId?: string; checkedIds?: string[]; note?: string; error?: string;
   nudgeState?: 'reserved' | 'submitted' | 'unknown' | 'cancelled'; nudgeRunId?: string; nudgeSourcePath?: string; nudgeAcknowledgedAt?: string;
+  councilSourceId?: string;
 }
 export interface WorkflowRun {
   automationEvent?: AutomationContext;
@@ -69,7 +70,8 @@ export function workflowArtifactCheck(value: unknown): WorkflowArtifact {
   if (checked.contentHash !== workflowArtifactHash(checked)) throw new Error('The workflow artifact content changed.');
   return checked;
 }
-const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: text({ min: 1, max: 100 }), kind: oneOf(['ai', 'approval', 'checklist', 'nudge'] as const),
+const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: text({ min: 1, max: 100 }), kind: oneOf(['ai', 'approval', 'checklist', 'nudge', 'council'] as const),
+  councilSourceId: optional(workflowIdCheck),
   nudgeState: optional(oneOf(['reserved', 'submitted', 'unknown', 'cancelled'] as const)), nudgeRunId: optional(workflowIdCheck), nudgeSourcePath: optional(text({ max: 1000 })), nudgeAcknowledgedAt: optional(timestamp),
   status: oneOf(['queued', 'running', 'waiting-human', 'succeeded', 'failed', 'cancelled'] as const), inputs: list(workflowIdCheck, { max: 200 }), startedAt: timestamp,
   finishedAt: optional(timestamp), jobId: optional(workflowIdCheck), checkedIds: optional(list(workflowIdCheck, { max: 40 })), note: optional(text({ max: 3000 })), error: optional(text({ max: 4000 })) }, { strict: true });
@@ -117,13 +119,14 @@ export function recoverConfiguredRuns(state: Pick<AppState, 'ideas' | 'jobs'>): 
     const run = idea.workflowRun;
     if (!run || run.state !== 'running') continue;
     const attempt = run.attempts.find(item => item.id === run.activeAttemptId);
-    if (!attempt || !['ai', 'nudge'].includes(attempt.kind)) continue;
+    if (!attempt || !['ai', 'nudge', 'council'].includes(attempt.kind)) continue;
+    if (attempt.kind === 'council' && attempt.nudgeState === 'submitted' && attempt.nudgeRunId) continue;
     run.state = 'attention';
     run.error = 'CoForge closed during this step. Inspect its original resources before an explicit retry.';
     run.updatedAt = new Date().toISOString();
     run.revision++;
     attempt.status = 'failed'; attempt.error = run.error; attempt.finishedAt = run.updatedAt;
-    if (attempt.kind === 'nudge') { attempt.nudgeState = 'unknown'; run.error = 'CoForge closed during agent-task admission. Inspect the source/run and acknowledge recovery before a fresh nudge.'; attempt.error = run.error; }
+    if (attempt.kind === 'nudge' || attempt.kind === 'council') { attempt.nudgeState = 'unknown'; run.error = 'CoForge closed during agent-task admission. Inspect the source/run and acknowledge recovery before a fresh nudge.'; attempt.error = run.error; }
     delete run.activeAttemptId;
   }
 }

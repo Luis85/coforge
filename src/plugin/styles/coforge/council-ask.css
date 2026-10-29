@@ -1,12 +1,22 @@
 /* Council starts with the user's question and its retained task evidence. */
-.cf-council-task-navigation { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; min-width: 0; }
-.cf-council-task-navigation > nav { margin: 0; }
-.cf-council-task-navigation [aria-current="page"] { background: var(--cf-accent-surface); border-color: var(--cf-accent); }
-.cf-council-advanced { margin-left: auto; min-width: 0; }
-.cf-council-advanced > summary { cursor: pointer; padding: 10px 0; color: var(--cf-muted); font-size: 12px; line-height: 1.6; }
-.cf-council-advanced[open] { flex-basis: 100%; margin-left: 0; }
-.cf-council-advanced[open] > summary { margin-bottom: 10px; }
-.cf-council-advanced nav.cf-subpage-nav { margin-bottom: 0; }
+.cf-council-recipients { padding-block: 16px; border-block: 1px solid var(--cf-border); min-width: 0; }
+.cf-council-recipients h3 { margin: 0 0 8px; font-size: 17px; overflow-wrap: anywhere; }
+.cf-council-recipients p { font-size: 12px; line-height: 1.7; }
+.cf-council-roster { display: grid; gap: 12px; list-style: none; padding: 0; margin-block: 16px; }
+.cf-council-roster li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; overflow-wrap: anywhere; }
+.cf-council-roster strong { font-size: 14px; }
+.cf-council-roster span { grid-column: 1; font-size: 12px; }
+.cf-council-roster small { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 11px; }
+.cf-council-recipients summary { cursor: pointer; font-size: 12px; line-height: 1.7; }
+.cf-council-recipients ol { padding-left: 20px; font-size: 12px; line-height: 1.8; }
+.cf-council-activity { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-block: 16px; border-block-end: 1px solid var(--cf-border); }
+.cf-council-activity > div { display: grid; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.cf-council-activity strong { font-size: 14px; }
+.cf-council-activity time { font-size: 11px; color: var(--cf-muted); }
+.cf-council-activity span, .cf-council-activity p { margin: 0; font-size: 12px; line-height: 1.7; }
+.cf-council-setup { padding-block: 16px; border-block-end: 1px solid var(--cf-border); }
+.cf-council-setup ol { padding-left: 20px; line-height: 1.8; }
+.cf-council-setup p { max-width: 70ch; font-size: 12px; line-height: 1.7; }
 .cf-council-ask {
   display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
   align-items: start; gap: 24px; min-width: 0;
@@ -53,12 +63,10 @@
 @container plugin-shell-leaf (max-width: 600px) {
   .cf-council-task-composer { padding: 18px; }
   .cf-council-task-composer h2 { font-size: 22px; }
-  .cf-council-advanced { margin-left: 0; }
-  .cf-council-task-navigation { gap: 8px 16px; }
   .cf-council-task-composer .cf-council-fields { grid-template-columns: minmax(0, 1fr); }
 }
 
 .cf-council-draft-choice { padding: 18px; margin-block: 0 20px; border: 1px solid var(--cf-accent); border-radius: var(--cf-section-radius); background: var(--cf-bg); overflow-wrap: anywhere; }
 .cf-council-draft-choice h3 { margin: 0 0 10px; font-size: 16px; line-height: 1.5; }
 .cf-council-draft-choice p { margin: 0 0 16px; font-size: 13px; line-height: 1.7; }
-.cf-council-task-composer > .cf-settings-help[role="status"] { margin-bottom: 20px; padding-left: 12px; border-left: 3px solid var(--cf-accent); }
+.cf-council-task-composer > .cf-settings-help[role="status"] { margin-bottom: 20px; padding-left: 12px; border-left: 1px solid var(--cf-accent); }

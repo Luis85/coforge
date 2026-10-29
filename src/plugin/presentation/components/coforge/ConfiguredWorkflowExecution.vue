@@ -39,12 +39,21 @@ defineProps<{ model: WorkflowModel }>();
         This run retains an earlier saved definition. Changes in Workflow
         settings apply to new runs.
       </p>
-      <section v-if="model.uncertainNudges.length" aria-label="Agent nudge recovery">
-        <h3>Inspect the original agent task</h3>
+      <section v-if="model.councilAttempt" aria-label="Workflow Council activity">
+        <h3>Waiting for the Council</h3>
+        <p>Later steps wait for the published answer. Inspect the Council for progress, paused execution or recovery.</p>
+        <p>Child run: <code>{{ model.councilAttempt.nudgeRunId }}</code></p>
+        <div class="cf-settings-actions">
+          <button type="button" class="cf-btn cf-btn-secondary" @click="model.inspectCouncil()">Inspect Council activity</button>
+          <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.checkCouncil()">Check Council answer</button>
+        </div>
+      </section>
+      <section v-if="model.uncertainNudges.length" :aria-label="model.uncertainNudges.some(attempt => attempt.kind === 'council') ? 'Council task recovery' : 'Agent nudge recovery'">
+        <h3>Inspect the original task</h3>
         <p>The previous task may have been admitted. Inspect its source and Council run before creating a fresh task.</p>
         <ul><li v-for="attempt in model.uncertainNudges" :key="attempt.id"><code>{{ attempt.nudgeSourcePath || attempt.id }}</code><span v-if="attempt.nudgeRunId"> · run {{ attempt.nudgeRunId }}</span></li></ul>
         <label class="cf-workflow-check"><input :checked="model.nudgeRecoveryConsent" type="checkbox" @change="model.changeNudgeRecovery($event)" />I inspected the original task and accept that a fresh attempt may duplicate it.</label>
-        <button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.nudgeRecoveryConsent || model.store.busy" @click="model.acknowledgeNudge()">Acknowledge nudge recovery</button>
+        <button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.nudgeRecoveryConsent || model.store.busy" @click="model.acknowledgeNudge()">{{ model.uncertainNudges.some(attempt => attempt.kind === 'council') ? 'Acknowledge Council recovery' : 'Acknowledge nudge recovery' }}</button>
       </section>
       <ConfiguredManualStep
         v-if="

@@ -44,7 +44,7 @@ Subpages keep focused tasks together without expanding the global navigation:
 - Agent workflow: Workflow runs, Herdr workspaces and Workflow settings.
 - Economy: Command prices, Earning, Rewards, Loot boxes and Fulfillment.
 - The Council opens on Ask the Council: a question intake and retained task
-  history. Advanced Council tools contains Definitions, Submit existing note,
+  history. Visible workspace tabs include Definitions, Submit existing note,
   Watched inboxes, Task scheduler, Event triggers, Run monitor, Council workflows, Team messages and Definition
   folders.
 - Request details: Overview, Plan, Increment and Activity.

@@ -28,6 +28,15 @@ const model = useCouncilDefinitions(props);
       {{ model.store.error }}
     </p>
     <p v-if="model.store.notice" role="status">{{ model.store.notice }}</p>
+    <section v-if="teamsOnly" class="cf-council-setup" aria-label="Council setup guide">
+      <h3>Get your first Council ready</h3>
+      <ol>
+        <li><strong>Prepare CoWorkers.</strong> Save specialist instructions and choose each provider on the CoWorkers page.</li>
+        <li><strong>Build the project roster.</strong> Create the default team below, select it and add your saved CoWorkers.</li>
+        <li><strong>Create a Council.</strong> Choose its members, review the default opinion and solution rounds, enable it and save.</li>
+      </ol>
+      <p>Return to Ask the Council and select only the Council. Review your question before submission; execution stays under your control.</p>
+    </section>
     <div class="cf-settings-actions">
       <button
         v-if="!teamsOnly"
@@ -41,14 +50,14 @@ const model = useCouncilDefinitions(props);
       ><button
         type="button"
         class="cf-btn cf-btn-secondary"
-        :disabled="model.store.busy"
+        :disabled="model.store.busy || !projectId"
         @click="model.createTeam()"
       >
         Create team</button
       ><button
         type="button"
         class="cf-btn cf-btn-secondary"
-        :disabled="model.store.busy"
+        :disabled="model.store.busy || !model.teams.length"
         @click="model.createCouncil()"
       >
         Create council</button

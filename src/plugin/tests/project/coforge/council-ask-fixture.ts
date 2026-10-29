@@ -32,14 +32,12 @@ export async function councilAskFixture(executor = true, provider: 'claude' | 'd
   const wrapper = mount(CouncilView, { global: { plugins: [pinia], provide: { [coforgeKey as symbol]: context }, directives: { 'cf-icon': () => {} } } });
   await flushPromises();
   return {
-    ...fixture, wrapper, studioUi: studio, ui: useCouncilStore(pinia),
+    ...fixture, wrapper, pinia, context, studioUi: studio, ui: useCouncilStore(pinia),
     async fill(title = 'Advice for our game', question = 'Which approach preserves our project boundaries?') {
       const form = wrapper.get('[aria-label="Ask the Council for advice"]');
       await form.get('input').setValue(title);
       await form.get('textarea').setValue(question);
-      await form.findAll('select')[0]!.setValue('team');
-      await flushPromises();
-      await form.findAll('select')[1]!.setValue('advice');
+      await form.get('select').setValue('advice');
       await flushPromises();
     },
     async dispose() { wrapper.unmount(); stop(); studio.dispose(); disposePinia(pinia); await fixture.dispose(); },

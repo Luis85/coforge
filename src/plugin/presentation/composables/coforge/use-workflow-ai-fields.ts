@@ -15,6 +15,7 @@ export function useWorkflowAiFields() {
       0,
       model.draft.steps.findIndex((item) => item.id === step.value?.id),
     )) {
+      if (previous.kind === 'council') available.add('markdown');
       if (previous.kind === "ai") {
         available.add(previous.output);
         if (previous.access === "editworktree") available.add("codechange");

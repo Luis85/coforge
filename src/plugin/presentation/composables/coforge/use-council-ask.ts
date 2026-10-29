@@ -1,4 +1,5 @@
 import { useCouncilIdeaDraft } from "./use-council-idea-draft";
+import { useCouncilSelection } from './council-selection';
 import { computed, reactive, ref, watch } from "vue";
 import type { CouncilActions } from "../../../features/coforge/application/council-ports";
 import type { CouncilTarget } from "../../../features/coforge/application/council-execution";
@@ -29,34 +30,15 @@ export function useCouncilAsk(host: {
     return host.available();
   });
   const history = computed(() => councilTaskHistory(store.state, store.tasks));
-  const councils = computed(() =>
-    store.catalogue.valid.filter(
-      (entry) =>
-        entry.definition.schema === "council/v1" &&
-        entry.definition.teamId === store.taskTeam &&
-        entry.definition.projectId === host.projectId() &&
-        entry.definition.enabled,
-    ),
-  );
+  const selection = useCouncilSelection(() => store.catalogue, host.projectId, () => store.taskCouncil);
+  const councils = computed(() => selection.councils.map(definition => ({ definition })));
   function composerTarget(): CouncilTarget {
-    const team = store.catalogue.valid.find(
-      (entry) =>
-        entry.definition.schema === "team/v1" &&
-        entry.definition.id === store.taskTeam &&
-        entry.definition.projectId === host.projectId() &&
-        entry.definition.enabled,
-    );
-    const council = councils.value.find(
-      (entry) => entry.definition.id === store.taskCouncil,
-    );
-    if (!team || !council)
-      throw new Error(
-        "Select an available project team and council for this question.",
-      );
+    const council = selection.selected;
+    if (!council || !selection.ready) throw new Error(selection.issue || 'Select an available Council for this question.');
     return {
       kind: "council",
-      id: council.definition.id,
-      teamId: team.definition.id,
+      id: council.id,
+      teamId: council.teamId,
     };
   }
   const councilSelected = computed(() => {
@@ -135,6 +117,7 @@ export function useCouncilAsk(host: {
   return reactive({
     available,
     linkedDraft,
+    selection,
     councils,
     simulationPreview: computed(
       () =>
@@ -155,7 +138,6 @@ export function useCouncilAsk(host: {
         (!store.taskProjectId || store.taskProjectId === host.projectId()) &&
         Boolean(
           host.projectId() &&
-          store.taskTeam &&
           store.taskCouncil &&
           store.taskTitle.trim() &&
           store.taskQuestion.trim(),

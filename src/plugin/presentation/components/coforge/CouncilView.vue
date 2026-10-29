@@ -8,6 +8,7 @@ import CouncilMonitor from "./CouncilMonitor.vue";
 import WorkflowV2Editor from "./WorkflowV2Editor.vue";
 import CouncilMessages from "./CouncilMessages.vue";
 import CouncilFolderSettings from "./CouncilFolderSettings.vue";
+import CouncilActivity from "./CouncilActivity.vue";
 import CouncilAskView from "./CouncilAskView.vue";
 import TaskSchedulerView from "./TaskSchedulerView.vue";
 import WorkflowTriggersView from "./WorkflowTriggersView.vue";
@@ -59,31 +60,13 @@ const model = useCouncil();
     >
       Exit example
     </button>
-    <div class="cf-council-task-navigation">
-      <nav aria-label="Council tasks">
-        <button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :aria-current="model.store.tab === 'ask' ? 'page' : undefined"
-          @click="model.selectPage('ask')"
-        >
-          Ask the Council
-        </button>
-      </nav>
-      <details
-        v-if="model.service"
-        class="cf-council-advanced"
-        :open="model.store.tab !== 'ask'"
-      >
-        <summary>Advanced Council tools</summary>
-        <CfSubpageNav
-          label="Council workspace"
-          :items="model.advancedPages"
-          :selected="model.store.tab"
-          @select="model.selectPage($event)"
-        />
-      </details>
-    </div>
+    <CfSubpageNav
+      label="Council workspace"
+      :items="model.service ? model.pages : model.pages.filter(page => page.id === 'ask')"
+      :selected="model.store.tab"
+      @select="model.selectPage($event)"
+    />
+    <CouncilActivity v-if="model.service" />
     <p
       v-if="model.store.error || model.store.state?.error"
       role="alert"
@@ -109,7 +92,7 @@ const model = useCouncil();
         v-if="
           model.store.state &&
           !model.store.state.executor &&
-          model.store.tab !== 'monitor' && model.store.tab !== 'scheduler'
+          ['submit', 'inboxes', 'folders'].includes(model.store.tab)
         "
         class="cf-intent-empty"
         aria-label="Council execution prerequisite"
