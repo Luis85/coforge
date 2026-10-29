@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { mount, flushPromises } from '@vue/test-utils';
+import { mount, flushPromises, type VueWrapper } from '@vue/test-utils';
 import { expect, it, vi } from 'vitest';
 vi.mock('obsidian', () => import('@test/obsidian'));
 import WorkflowEditorView from '../../../presentation/components/coforge/WorkflowEditorView.vue';
@@ -11,11 +11,20 @@ import { createSeed } from '../../../features/coforge/domain/seed';
 import { workflowArtifactHash, workflowRunCheck } from '../../../features/coforge/domain/configured-workflow-run';
 import { testCouncilBinding } from './workflow-council-test-binding';
 
+async function openAddStep(wrapper: VueWrapper) {
+  const chooser = wrapper.get('details.cf-workflow-add-step');
+  const summary = chooser.get('summary').element;
+  if (!(summary instanceof HTMLElement)) throw new Error('Missing native add-step summary');
+  summary.click(); await flushPromises();
+  expect(chooser.element).toHaveProperty('open', true);
+}
+
 it('authors and explicitly saves an Ask Council step using only a Council selection', async () => {
   const f = await councilAskFixture();
   const wrapper = mount(WorkflowEditorView, { global: { plugins: [f.pinia], provide: { [coforgeKey as symbol]: f.context }, directives: { 'cf-icon': () => {} } } });
   try {
     await flushPromises();
+    await openAddStep(wrapper);
     await askButton(wrapper, 'Add Ask Council').trigger('click'); await flushPromises();
     const editor = wrapper.get('[aria-label="Selected workflow step"]');
     await editor.get('select').setValue('advice');
@@ -38,12 +47,29 @@ it('shows an actionable simulation readiness boundary without starting or claimi
   const f = await councilAskFixture(true, 'demo');
   const wrapper = mount(WorkflowEditorView, { global: { plugins: [f.pinia], provide: { [coforgeKey as symbol]: f.context }, directives: { 'cf-icon': () => {} } } });
   try {
+    await openAddStep(wrapper);
     await askButton(wrapper, 'Add Ask Council').trigger('click'); await flushPromises();
     const editor = wrapper.get('[aria-label="Selected workflow step"]'); await editor.get('select').setValue('advice');
     expect(editor.get('[aria-label="Live Council execution readiness"]').text()).toContain('uses Simulation');
     expect(editor.text()).toContain('Request workflows require live Claude CoWorkers');
     expect(askButton(wrapper, 'Open Council setup').exists()).toBe(true);
     expect(askButton(wrapper, 'Check runtime settings').exists()).toBe(true);
+    expect(f.module.actions.snapshot().runs).toHaveLength(0);
+  } finally { wrapper.unmount(); await f.dispose(); }
+});
+
+it('opens the Council context control when the merged validation summary reports an empty selection', async () => {
+  const f = await councilAskFixture();
+  const wrapper = mount(WorkflowEditorView, { attachTo: document.body, global: { plugins: [f.pinia], provide: { [coforgeKey as symbol]: f.context }, directives: { 'cf-icon': () => {} } } });
+  try {
+    await openAddStep(wrapper); await askButton(wrapper, 'Add Ask Council').trigger('click'); await flushPromises();
+    const editor = wrapper.get('[aria-label="Selected workflow step"]');
+    await editor.get('select[data-workflow-field="councilId"]').setValue('advice');
+    const context = editor.get('select[data-workflow-field="inputs"]'); await context.setValue('selected');
+    const repair = wrapper.get('[aria-label="Workflow validation"]').findAll('button').find(button => button.text().includes('Choose at least one earlier result role'));
+    expect(repair).toBeDefined(); await repair!.trigger('click'); await flushPromises();
+    expect(document.activeElement).toBe(context.element);
+    expect(askButton(wrapper, 'Save workflow').attributes('disabled')).toBeDefined();
     expect(f.module.actions.snapshot().runs).toHaveLength(0);
   } finally { wrapper.unmount(); await f.dispose(); }
 });

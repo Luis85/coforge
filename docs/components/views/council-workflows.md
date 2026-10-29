@@ -14,6 +14,8 @@ actions:
   - Edit steps and collections
   - Preview import or export
   - Save or discard
+  - Manage project Markdown answer templates
+  - Inspect captured step instructions
 states:
   - No project
   - No saved definition
@@ -70,3 +72,11 @@ Proposal workflows compose analytical agents, Councils and human checkpoints for
 or request subjects. Request development remains in [Project settings → Agent workflow](workflow.md),
 where Ask Council is a waiting bridge to a captured discussion; proposal authoring is
 not a second place to configure code implementation or final review.
+
+Numbered collapsible steps expose purpose and instructions first; result bindings
+use readable step and collection labels. Agent and council steps can select one
+project [answer template](workflow-output-templates.md), using the same private
+library as request-development workflows. Preflight offers the captured assembled
+step instructions as read-only source for inspection. Editing a template requires
+a fresh preview before dispatch; the host also recomputes and verifies the reviewed
+identity. Admitted runs retain the template snapshot even after edits or deletion.

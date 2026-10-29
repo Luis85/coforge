@@ -47,6 +47,29 @@ export function useWorkflowEditorVisibility(selectedId: Ref<string>) {
       list = element(value) ? value : undefined;
     },
     reveal,
+    revealIssue: (field: string, workflow = false) => {
+      void nextTick().then(() => {
+        if (closed || !editor) return;
+        const root = workflow ? editor.closest("form") : editor;
+        if (!root) return;
+        const target =
+          [...root.querySelectorAll<HTMLElement>("[data-workflow-field]")].find(
+            (item) => item.dataset.workflowField === field,
+          ) ??
+          root.querySelector<HTMLElement>(
+            "input:invalid, select:invalid, textarea:invalid",
+          ) ??
+          root.querySelector<HTMLElement>("input, select, textarea");
+        if (!target) return;
+        let ancestor = target.closest("details");
+        while (ancestor && root.contains(ancestor)) {
+          ancestor.open = true;
+          ancestor = ancestor.parentElement?.closest("details") ?? null;
+        }
+        target.scrollIntoView({ block: "center", inline: "nearest" });
+        target.focus({ preventScroll: true });
+      });
+    },
     showStepList: () => {
       list?.scrollIntoView({ block: "nearest", inline: "nearest" });
       rowButton(selectedId.value)?.focus();

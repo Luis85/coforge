@@ -21,9 +21,12 @@ export function useWorkflow() {
   const openCouncil = useCouncilEntry();
   const store = useStudioStore();
   const actions = useStudioActions();
-  const { monitorError: error, historyExpanded: expanded, nudgeRecoveryKey, nudgeRecoveryConsent } = storeToRefs(
-    useConfiguredWorkflowUiStore(),
-  );
+  const {
+    monitorError: error,
+    historyExpanded: expanded,
+    nudgeRecoveryKey,
+    nudgeRecoveryConsent,
+  } = storeToRefs(useConfiguredWorkflowUiStore());
   const settings = computed(() => store.state?.settings ?? defaultSettings());
   const savedDefinition = computed(() => workflowDefinition(settings.value));
   const selected = computed(
@@ -55,7 +58,10 @@ export function useWorkflow() {
     workflowAttemptRows(store.projectIdeas, store.projectJobs),
   );
   const provider = computed(() =>
-    workflowProviderSummary({ ...settings.value, workflow: definition.value }, run.value?.external),
+    workflowProviderSummary(
+      { ...settings.value, workflow: definition.value },
+      run.value?.external,
+    ),
   );
   const enabledCount = computed(() => run.value?.external ? 0 : definition.value.steps.filter(step => (step.kind === 'ai' || step.kind === 'council' || step.kind === 'nudge') && step.automatic).length);
   const blocked = computed(() => {
@@ -134,7 +140,11 @@ export function useWorkflow() {
     automaticStepLabel: computed(() => run.value?.external ? 'AI steps require explicit client calls' : `${enabledCount.value} ${definition.value.steps.some(step => (step.kind === 'council' || step.kind === 'nudge') && step.automatic) ? 'steps' : 'AI steps'} automatic`),
     cadenceLabel: computed(() => run.value?.external ? 'Project automation does not advance this run' : `New automatic runs · ${savedDefinition.value.limits.intervalSeconds}s interval`),
     summaryLabel: computed(() =>
-      run.value?.external ? 'External MCP run' : settings.value.paused ? "Automation paused" : "Automation resumed",
+      run.value?.external
+        ? "External MCP run"
+        : settings.value.paused
+          ? "Automation paused"
+          : "Automation resumed",
     ),
     runLabel: computed(() =>
       run.value ? CONFIGURED_RUN_LABELS[run.value.state] : "Not started",
@@ -169,17 +179,63 @@ export function useWorkflow() {
           ),
         ),
     ),
-    runNextLabel: computed(
+    runNextLabel: computed(() =>
+      !run.value && selected.value?.lastError
+        ? "Retry starting workflow"
+        : `${run.value?.state === "attention" ? "Retry" : run.value ? "Run" : "Start"} · ${currentStep.value?.name ?? "workflow"}`,
+    ),
+    nextActionHeading: computed(() => {
+      if (!run.value && selected.value?.lastError)
+        return "Workflow start needs attention";
+      if (run.value?.state === "waiting-human") return "Your decision is next";
+      if (run.value?.state === "awaiting-review")
+        return "Review the code changes";
+      if (run.value?.state === "running") return "An attempt is in progress";
+      if (run.value?.state === "finished")
+        return selected.value?.status === "shipped"
+          ? "Code changes accepted"
+          : "This workflow is complete";
+      if (run.value?.state === "stopped") return "This workflow is stopped";
+      return `${run.value?.state === "attention" ? "Review before retrying" : run.value ? "Next step" : "Start with"} · ${currentStep.value?.name ?? "workflow"}`;
+    }),
+    nextActionHelp: computed(() => {
+      if (!run.value && selected.value?.lastError)
+        return selected.value.lastError;
+      if (run.value?.state === "running")
+        return "Wait for a validated result. A delivered prompt alone does not complete a step.";
+      if (run.value?.state === "waiting-human")
+        return "Read the instructions and complete the required decision below. Completing a checkpoint does not approve code changes.";
+      if (run.value?.state === "awaiting-review")
+        return "Inspect the actual changes on the request before accepting or requesting revisions.";
+      if (run.value?.state === "finished")
+        return selected.value?.status === "shipped"
+          ? "Final review accepted this request. The completed workflow and its captured results remain available below."
+          : "Results and attempts remain available below. A new run captures the latest saved workflow.";
+      if (run.value?.state === "stopped")
+        return "The captured history is retained. Starting a new run uses the latest saved workflow.";
+      if (blocked.value) return blocked.value;
+      if (currentStep.value?.kind === 'council') return 'This step admits a captured live Council discussion and waits for its complete published answer. Council execution and recovery controls remain in The Council.';
+      if (currentStep.value?.kind === 'nudge') return 'This step creates a separate CoWorker task and continues after admission. Follow its results in The Council.';
+      return currentStep.value?.kind === "ai"
+        ? `${configuredAgentLabel(currentStep.value)}. Starting this step captures its inputs and waits for the required result.`
+        : "This step waits for explicit streamer input before the workflow advances.";
+    }),
+    progressLabel: computed(
       () =>
-        `${run.value?.state === "attention" ? "Retry" : run.value ? "Run" : "Start"} · ${currentStep.value?.name ?? "workflow"}`,
+        `${Math.min(run.value?.cursor ?? 0, definition.value.steps.length)} of ${definition.value.steps.length} steps completed`,
     ),
     steps: computed(() =>
       definition.value.steps.map((step, index) => ({
         id: step.id,
         name: step.name,
         index: index + 1,
-        agent: run.value?.external && step.kind === 'ai' ? 'External MCP client' : configuredAgentLabel(step),
-        current: Boolean(run.value && index === run.value.cursor),
+        agent:
+          run.value?.external && step.kind === "ai"
+            ? "External MCP client"
+            : configuredAgentLabel(step),
+        current:
+          index === (run.value?.cursor ?? 0) &&
+          !run.value?.state?.match(/^(finished|stopped|awaiting-review)$/u),
         completed: Boolean(run.value && index < run.value.cursor),
         state:
           run.value?.attempts

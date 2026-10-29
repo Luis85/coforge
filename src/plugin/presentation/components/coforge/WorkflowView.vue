@@ -48,6 +48,15 @@ const model = useWorkflow();
       :selected="model.page"
       @select="model.selectPage($event)"
     />
+    <p class="cf-workflow-page-intro">
+      {{
+        model.page === "settings"
+          ? "Design the process for future requests. Save the workflow and its Markdown templates independently."
+          : model.page === "herdr"
+            ? "Connect Herdr, choose a workspace and verify the target before sending work. Use Workflow runs to follow validated step results."
+            : "Choose a request, follow its next step and review the captured results. Workflow settings changes future runs."
+      }}
+    </p>
     <div
       v-show="model.page === 'runs'"
       class="cf-subpage-panel"

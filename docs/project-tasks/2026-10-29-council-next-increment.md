@@ -232,3 +232,33 @@ Fresh ui:gallery: 40 captures, zero capture failures; reviewed across themes/wid
 The pinned CI canonical verify:project and root installation passed on 8af7ccc.
 Final exact-head check/ui/real-obsidian logs and merge outcome are retained on PR #44.
 The PR remains gated on all three succeeding; source is frozen except qualification fixes.
+
+### Concurrent workflow-template integration
+
+Candidate c7d5be0 completed pinned CI: 1265 product tests, 209 browser tests,
+35 real-Obsidian tests and a 40-image gallery. Main then advanced with workflow
+Markdown templates/UX (#41, cb2884a), requiring semantic integration and a new
+exact-head qualification cycle. Preserve Council bindings/receipts/recovery alongside
+AI output-template snapshots and the new collapsed editor affordances.
+
+Local full check completed with typecheck/lint/ESLint/maker types passed; the product
+stage had 1258 passed, 6 existing Windows-specific skips and one 5-second timeout in
+the unchanged Herdr isolated-worktree case. It is not reported as a full local pass.
+The first focused rerun imported merge conflict markers and executed no tests, so
+it is invalid evidence. Rerun the unchanged file after integration; do not relax its
+budget or assertions. Pinned merged-head CI remains the canonical full-suite gate.
+
+Merged workflow-template integration catalogue: 109 contracts, valid navigation coverage.
+Editor validation treats Council as a Markdown producer, preserving downstream result
+binding alongside upstream captured output templates. Existing assertion coverage and
+all test budgets remain unchanged. Final integrated-head gate results live on PR #44.
+
+Valid unchanged Herdr file confirmation after source resolution: 5 passed, 1 existing
+Windows symlink skip, 23.87s total. The 5000ms test budget and assertions were retained.
+Original local full-suite timeout remains recorded; it is not relabelled as a full pass.
+
+Integration regression batch: 11 files / 54 passed, including Council receipt/recovery,
+legacy start ordering, mixed Council/template snapshots and the upstream template
+admission/validation/usability cases. Typecheck exposed a v1/v2 Council template-field
+union mismatch in usage inspection; a structural field guard preserves both formats.
+The final focused usage check and exact integrated-head CI qualify that correction.

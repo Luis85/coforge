@@ -10,6 +10,7 @@ export const DEFAULT_PUBLIC_FOLDER = "CoForge/Public";
 const PRIVATE_FOLDERS = [
   DEFAULT_IDEAS_FOLDER,
   "CoForge/Projects",
+  'CoForge/Output Templates',
   "CoForge/Viewers",
   "CoForge/Finance",
   "CoForge/AI-Costs",

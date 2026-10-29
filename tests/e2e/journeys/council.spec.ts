@@ -56,8 +56,8 @@ async function reachCouncilPhase(page: Page, theme: string, phase: CouncilVisual
     document.body.classList.toggle("theme-dark", value === "dark");
   }, theme);
   await page
+    .locator(".cf-sidebar")
     .getByRole("button", { name: "The Council", exact: true })
-    .first()
     .click();
   await page
     .getByRole("button", { name: "Explore Council example", exact: true })
@@ -137,6 +137,12 @@ async function reachCouncilPhase(page: Page, theme: string, phase: CouncilVisual
   ).toContainText("6 invocations and 1 human checkpoints");
   if (phase === 'workflow') return errors;
   await page
+    .locator(".cf-proposal-step")
+    .last()
+    .locator("summary")
+    .first()
+    .click();
+  await page
     .getByRole("combobox", { name: "Step kind", exact: true })
     .last()
     .selectOption("message");
@@ -181,8 +187,8 @@ test("creates three specialists, a team and a six-invocation council entirely th
     "true",
   );
   await page
+    .locator(".cf-sidebar")
     .getByRole("button", { name: "The Council", exact: true })
-    .first()
     .click();
   await page
     .getByRole("button", { name: "Explore Council example", exact: true })

@@ -29,6 +29,7 @@ import {
   vaultFoldersOverlap,
 } from "../../features/coforge/domain/vault-folder-policy";
 import { DEFAULT_COUNCIL_FOLDERS } from "./vault-council-definitions";
+import { WORKFLOW_OUTPUT_TEMPLATES_FOLDER } from '../../features/coforge/domain/workflow-output-templates';
 import type { CouncilMessagingModule } from "./council-messaging-module";
 import type { CouncilSourceNotes } from "./council-source-notes";
 
@@ -58,6 +59,7 @@ export class CouncilRunContext {
         "CoForge/Public",
         this.plugin.app.vault.configDir,
         ".git",
+        WORKFLOW_OUTPUT_TEMPLATES_FOLDER,
         ...this.definitionFolders(),
       ].some((folder) => vaultFoldersOverlap(normalized, folder))
     )

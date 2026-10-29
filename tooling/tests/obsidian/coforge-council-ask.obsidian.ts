@@ -112,6 +112,7 @@ describe('Ask the Council in the contained host', () => {
     await view.getByRole('button', { name: 'Project settings', exact: true }).click();
     await view.getByRole('navigation', { name: 'Project settings pages', exact: true }).getByRole('button', { name: /Agent workflow/ }).click();
     await view.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Workflow settings', exact: true }).click();
+    await view.getByText('Add a step', { exact: true }).click();
     await view.getByRole('button', { name: 'Add Ask Council', exact: true }).click();
     const step = view.getByRole('region', { name: 'Selected workflow step', exact: true });
     await step.getByRole('combobox', { name: 'Council', exact: true }).selectOption('native-advice');

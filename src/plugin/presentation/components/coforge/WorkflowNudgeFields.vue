@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useWorkflowNudge } from "../../composables/coforge/use-workflow-nudge";
-import { WORKFLOW_OUTPUT_LABELS } from '../../stores/workflow-editor-draft';
+import { WORKFLOW_OUTPUT_LABELS } from "../../stores/workflow-editor-draft";
 const model = useWorkflowNudge();
 </script>
 <template>
@@ -13,7 +13,11 @@ const model = useWorkflowNudge();
     <div class="cf-workflow-field-grid">
       <label class="cf-field"
         ><span>Project team</span
-        ><select v-model="model.step.teamId" required>
+        ><select
+          v-model="model.step.teamId"
+          data-workflow-field="teamId"
+          required
+        >
           <option value="">Select team</option>
           <option v-for="team in model.teams" :key="team.id" :value="team.id">
             {{ team.name }}
@@ -22,7 +26,11 @@ const model = useWorkflowNudge();
       >
       <label class="cf-field"
         ><span>Allowed agent recipient</span
-        ><select v-model="model.step.agentId" required>
+        ><select
+          v-model="model.step.agentId"
+          data-workflow-field="agentId"
+          required
+        >
           <option value="">Select agent</option>
           <option
             v-for="agent in model.agents"
@@ -38,6 +46,7 @@ const model = useWorkflowNudge();
       ><span>Task prompt</span
       ><textarea
         v-model="model.step.instructions"
+        data-workflow-field="instructions"
         rows="6"
         maxlength="8000"
         required
@@ -48,9 +57,24 @@ const model = useWorkflowNudge();
       automatically when this step is reached</label
     >
     <p class="cf-settings-help">
-      The task receives the captured request and the earlier results selected below. Agent action tools are limited to its scoped CoForge MCP
-      tools. Edit teams and allowed recipients in Council → Definitions.
+      The task receives the captured request and the earlier results selected
+      below. Agent action tools are limited to its scoped CoForge MCP tools.
+      Edit teams and allowed recipients in Council → Definitions.
     </p>
-    <fieldset v-if="model.inputs.length" class="cf-workflow-input-roles"><legend>Include earlier results</legend><label v-for="role in model.inputs" :key="role" class="cf-workflow-check"><input type="checkbox" :checked="model.step.inputs?.includes(role) ?? false" @change="model.toggleRole(role)" />{{ WORKFLOW_OUTPUT_LABELS[role] }}</label></fieldset>
+    <fieldset
+      v-if="model.inputs.length"
+      class="cf-workflow-input-roles"
+      data-workflow-field="inputs"
+      tabindex="-1"
+    >
+      <legend>Include earlier results</legend>
+      <label v-for="role in model.inputs" :key="role" class="cf-workflow-check"
+        ><input
+          type="checkbox"
+          :checked="model.step.inputs?.includes(role) ?? false"
+          @change="model.toggleRole(role)"
+        />{{ WORKFLOW_OUTPUT_LABELS[role] }}</label
+      >
+    </fieldset>
   </div>
 </template>

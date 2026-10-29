@@ -16,6 +16,7 @@ actions:
   - Preview import or export
   - Save or discard
   - Attach an event trigger
+  - Manage project Markdown answer templates
 states:
   - No project
   - Standard defaults
@@ -111,3 +112,12 @@ Completed, failed, cancelled and historical child discussions keep an inspection
 An oversized combined report remains complete in that child; stop the parent, reduce
 its Council output/protocol, and start a new workflow rather than repeating an identical
 check or silently truncating the answers.
+
+The ordered process shows its step count and selected step. Ordinary editing starts
+with the step name, instructions and expected answer; provider/access and automation
+controls are grouped separately. Add a step explains the available AI, human and Ask Council
+step kinds. Workflow tools hold explicit JSON import/export controls.
+
+[Answer and output templates](workflow-output-templates.md) is this project's
+Markdown library. Its explicit save is independent of Save workflow. Selecting a
+template changes the workflow draft; future runs capture its saved contents.

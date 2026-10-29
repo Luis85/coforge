@@ -1,4 +1,4 @@
-import { openWorkflowSettings } from "../support/workflow-navigation";
+import { openWorkflowDisclosure, openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
 for (const theme of ["light", "dark"])
@@ -104,6 +104,7 @@ test("menu explains a step-specific runtime block without dispatching work", asy
     "true",
   );
   await openWorkflowSettings(page);
+    await openWorkflowDisclosure(page, "Agent and project access");
   await page.getByLabel("AI provider", { exact: true }).selectOption("claude");
   await page
     .getByRole("button", { name: "Save workflow", exact: true })

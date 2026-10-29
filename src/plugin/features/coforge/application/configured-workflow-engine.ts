@@ -15,10 +15,12 @@ import { ConfiguredWorkflowCouncil } from './configured-workflow-council';
 import { workflowCouncilProjectContext } from './workflow-council-context';
 import type { WorkflowCouncilBinding } from '../domain/workflow-council-binding';
 import { ConfiguredWorkflowNudges } from './configured-workflow-nudges';
+import { captureWorkflowOutputTemplates, WorkflowOutputTemplateUnavailableError, type WorkflowOutputTemplateActions } from './workflow-output-templates';
 import { attachWorkflowPlan, type WorkflowPlanHandoff } from './workflow-plan-handoff';
 import { appendWorkflowArtifact, applyConfiguredOutput, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
 
 interface ConfiguredHost {
+  outputTemplates?: WorkflowOutputTemplateActions;
   agentTasks?: AgentTaskPort;
   runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   cost(id: string, value: number): Promise<void>; usage(id: string, value: StageUsage): Promise<void>;
@@ -91,6 +93,7 @@ export class ConfiguredWorkflowEngine {
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
     const inputs = configuredInputs(run, step);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
+      ...(step.outputTemplateId ? { outputTemplate: structuredClone(run.outputTemplates?.find(template => template.id === step.outputTemplateId)) } : {}),
       ...(run.automationEvent ? { automationEvent: structuredClone(run.automationEvent) } : {}),
       attemptId: id, step: structuredClone(step), inputArtifacts: structuredClone(inputs), ...(run.workspaceId ? { workspaceId: run.workspaceId } : {}) };
     const job: AgentJob = { id: crypto.randomUUID(), ideaId, projectId: run.projectId, stage: compatibilityStage(step.output), provider,
@@ -109,10 +112,12 @@ export class ConfiguredWorkflowEngine {
     let councilBindings: WorkflowCouncilBinding[] = [];
     // Legacy starts enqueue their transaction immediately, preserving existing serialized ordering.
     if (startingDefinition?.steps.some(step => step.kind === 'council') && startingIdea) councilBindings = await this.council.prepare(startingDefinition, ideaProjectId(startingIdea));
-    await this.store.transaction(state => {
+    await this.store.transaction(async state => {
       const idea = configuredIdea(state, ideaId);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
+      const definition = workflowDefinition(settings);
+      const outputTemplates = await captureWorkflowOutputTemplates(projectId, definition.steps.filter(step => step.kind === 'ai'), this.host.outputTemplates);
       if (councilBindings.length && (!startingIdea || JSON.stringify(workflowDefinition(settings)) !== JSON.stringify(startingDefinition) || workflowProposalRevision(idea) !== workflowProposalRevision(startingIdea))) throw new Error('The request or workflow changed while capturing Council setup. Review it before starting.');
       if (councilBindings.length && (!startingProject || JSON.stringify(workflowCouncilProjectContext(startingProject)) !== JSON.stringify(workflowCouncilProjectContext(findProject(state, projectId))))) throw new Error('The project context changed while capturing Council setup. Review it before starting.');
       if (!councilBindings.length && workflowDefinition(settings).steps.some(step => step.kind === 'council')) throw new Error('The Council workflow changed while starting. Review its saved setup and start again.');
@@ -130,8 +135,9 @@ export class ConfiguredWorkflowEngine {
       }
       const project = findProject(state, projectId);
       const at = time();
-      idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition: workflowDefinition(settings),
+      idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition,
         ...(councilBindings.length ? { councilBindings } : {}),
+        ...(outputTemplates.length ? { outputTemplates } : {}),
         ...(automationEvent ? { automationEvent: automationContextCheck(automationEvent) } : {}),
         ...(external ? { external: true } : {}),
         proposalRevision: workflowProposalRevision(idea), revision: 0, cursor: 0, state: 'ready', attempts: [], artifacts: [], createdAt: at, updatedAt: at,
@@ -244,7 +250,16 @@ export class ConfiguredWorkflowEngine {
     try {
       if (candidate.workflowRun) { await this.store.transaction(next => { this.queue(next, candidate.id, manual); }); await this.nudges.run(candidate.id); await this.council.run(candidate.id); }
       else await this.start(candidate.id, manual);
-    } catch { return null; }
+    } catch (cause) {
+      if (cause instanceof WorkflowOutputTemplateUnavailableError && !candidate.workflowRun) await this.store.transaction(next => {
+        const idea = next.ideas.find(item => item.id === candidate.id);
+        if (!idea || idea.workflowRun || idea.lastError || next.jobs.some(job => job.ideaId === idea.id && isActiveJob(job))) return;
+        idea.lastError = cause.message;
+        idea.updatedAt = time();
+        recordOperation(next, 'workflow-admission-blocked', 'committed', undefined, 1, idea.id);
+      });
+      return null;
+    }
     return this.store.snapshot().jobs.find(job => job.ideaId === candidate.id && job.status === 'queued') ?? null;
   }
   async run(job: AgentJob, signal: AbortSignal): Promise<void> {
