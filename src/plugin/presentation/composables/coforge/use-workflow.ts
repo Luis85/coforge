@@ -1,5 +1,6 @@
-import { computed, reactive, watch, nextTick } from "vue";
-import { useCouncilStore } from '../../stores/coforge-council';
+import { computed, reactive, watch } from "vue";
+import { useCouncilEntry } from './use-council-entry';
+import { uncertainTaskAttempt } from '../../../features/coforge/application/agent-task';
 import { storeToRefs } from "pinia";
 import { useConfiguredWorkflowUiStore } from "../../stores/coforge-configured-workflow";
 import { workflowAttemptRows } from "./configured-workflow-history";
@@ -17,6 +18,7 @@ import {
 } from "./configured-workflow-display";
 /** Shared workflow workspace; execution reads captured definitions and settings edit future runs. */
 export function useWorkflow() {
+  const openCouncil = useCouncilEntry();
   const store = useStudioStore();
   const actions = useStudioActions();
   const { monitorError: error, historyExpanded: expanded, nudgeRecoveryKey, nudgeRecoveryConsent } = storeToRefs(
@@ -41,7 +43,8 @@ export function useWorkflow() {
   );
   const run = computed(() => selected.value?.workflowRun);
   watch(() => `${run.value?.id}:${run.value?.revision}`, key => { if (key !== nudgeRecoveryKey.value) { nudgeRecoveryKey.value = key; nudgeRecoveryConsent.value = false; } });
-  const uncertainNudges = computed(() => run.value?.attempts.filter(attempt => attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt) ?? []);
+  const uncertainNudges = computed(() => run.value?.attempts.filter(uncertainTaskAttempt) ?? []);
+  const councilAttempt = computed(() => run.value?.attempts.find(attempt => attempt.id === run.value?.activeAttemptId && attempt.kind === 'council' && attempt.nudgeRunId) ?? [...(run.value?.attempts ?? [])].reverse().find(attempt => attempt.kind === 'council' && attempt.nudgeRunId));
   const definition = computed(
     () => run.value?.definition ?? savedDefinition.value,
   );
@@ -58,7 +61,7 @@ export function useWorkflow() {
   const blocked = computed(() => {
     const idea = selected.value;
     if (!idea) return "Select a request to run its workflow.";
-    if (uncertainNudges.value.length) return 'Inspect and acknowledge the uncertain agent-task admission before a fresh attempt.';
+    if (uncertainNudges.value.length) return 'Inspect and acknowledge the uncertain task or cancellation before starting more work.';
     if (["shipped", "rejected", "flagged"].includes(idea.status))
       return "This request is closed or held for moderation.";
     if (
@@ -109,9 +112,13 @@ export function useWorkflow() {
     run,
     definition,
     currentStep,
-    councilAttempt: computed(() => run.value?.attempts.find(attempt => attempt.id === run.value?.activeAttemptId && attempt.kind === 'council' && attempt.nudgeRunId)),
+    councilAttempt,
+    councilName: computed(() => { const id = councilAttempt.value?.stepId; const step = run.value?.definition.steps.find(item => item.id === id); return run.value?.councilBindings?.find(item => item.stepId === id)?.binding.councilName ?? (step?.kind === 'council' ? step.councilId : 'Council'); }),
+    canCheckCouncil: computed(() => Boolean(councilAttempt.value && councilAttempt.value.id === run.value?.activeAttemptId && ['running', 'attention'].includes(run.value?.state ?? ''))),
     checkCouncil: () => { if (selected.value) perform(() => actions.runWorkflowStep(selected.value!.id)); },
-    inspectCouncil: () => { const attempt = run.value?.attempts.find(item => item.id === run.value?.activeAttemptId); if (attempt?.nudgeRunId) { const council = useCouncilStore(); council.inspectedRun = attempt.nudgeRunId; store.navigate('council'); void nextTick(() => { council.tab = 'monitor'; }); } },
+    inspectCouncil: (childRunId = councilAttempt.value?.nudgeRunId, projectId = run.value?.projectId ?? '') => {
+      return childRunId ? openCouncil({ page: 'monitor', runId: childRunId, projectId }) : false;
+    },
     uncertainNudges, nudgeRecoveryConsent,
     changeNudgeRecovery: (event: Event) => { const target = event.target; if (target && 'checked' in target && typeof target.checked === 'boolean') nudgeRecoveryConsent.value = target.checked; },
     acknowledgeNudge: () => { if (selected.value && run.value) perform(() => actions.acknowledgeWorkflowNudge(selected.value!.id, run.value!.revision, nudgeRecoveryConsent.value)); },
@@ -124,7 +131,7 @@ export function useWorkflow() {
     providerLabel: computed(() => provider.value.label),
     providerTitle: computed(() => provider.value.title),
     enabledCount,
-    automaticStepLabel: computed(() => run.value?.external ? 'AI steps require explicit client calls' : `${enabledCount.value} AI steps automatic`),
+    automaticStepLabel: computed(() => run.value?.external ? 'AI steps require explicit client calls' : `${enabledCount.value} ${definition.value.steps.some(step => (step.kind === 'council' || step.kind === 'nudge') && step.automatic) ? 'steps' : 'AI steps'} automatic`),
     cadenceLabel: computed(() => run.value?.external ? 'Project automation does not advance this run' : `New automatic runs · ${savedDefinition.value.limits.intervalSeconds}s interval`),
     summaryLabel: computed(() =>
       run.value?.external ? 'External MCP run' : settings.value.paused ? "Automation paused" : "Automation resumed",
@@ -144,6 +151,8 @@ export function useWorkflow() {
     canRestart: computed(
       () =>
         !store.busy &&
+        !uncertainNudges.value.length &&
+        !run.value?.attempts.some(attempt => attempt.councilCancellation === 'requested') &&
         Boolean(terminal(run.value)) &&
         !selected.value?.increment?.files.length &&
         !["shipped", "rejected", "flagged"].includes(

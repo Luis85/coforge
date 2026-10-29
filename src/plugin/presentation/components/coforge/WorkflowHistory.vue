@@ -47,6 +47,7 @@ defineProps<{ model: WorkflowModel }>();
         <div class="cf-workflow-history-body">
           <p class="cf-workflow-help">Started {{ job.time }}</p>
           <div class="cf-workflow-inline">
+            <button v-if="job.councilRunId" type="button" class="cf-btn cf-btn-secondary cf-workflow-small-button" :aria-label="`Read Council discussion ${job.councilName} for ${job.stageLabel}`" @click="model.inspectCouncil(job.councilRunId, job.councilProjectId)">Read Council discussion</button>
             <button
               type="button"
               class="cf-btn cf-btn-ghost cf-workflow-small-button"

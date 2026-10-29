@@ -5,6 +5,7 @@ import { defaultWorkflowDefinition, workflowDefinitionCheck } from '../../../fea
 import { recoverConfiguredRuns } from '../../../features/coforge/domain/configured-workflow-run';
 import { MemoryStorage, nodeTimers } from './memory-storage';
 import type { AgentTaskRequest } from '../../../features/coforge/application/agent-task';
+import { testCouncilBinding } from './workflow-council-test-binding';
 const cleanups: Array<() => Promise<void>> = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0)) await cleanup(); });
 
@@ -20,7 +21,7 @@ async function fixture() {
   let uncertain = false;
   const studio = new StudioService(new MemoryStorage(state), { timers: nodeTimers(), probeRuntime: async () => ({ cliAvailable: false, projectPath: null, allowImplementation: false }),
     runners: { demo: async input => { expect(input.workflow?.inputArtifacts[0]?.markdown).toContain('Architect'); return { markdown: 'Advice used.' }; }, claude: async () => ({ markdown: '' }) },
-    agentTasks: { create: async input => { calls.push(input); if (uncertain) throw new Error('unknown'); return { runId: 'child-council', sourcePath: input.sourcePath }; }, result: async () => result, cancel: async id => { cancelled.push(id); } },
+    agentTasks: { prepareCouncil: async (projectId, councilId) => testCouncilBinding(projectId, councilId), create: async input => { calls.push(input); if (uncertain) throw new Error('unknown'); return { runId: 'child-council', sourcePath: input.sourcePath }; }, result: async () => result, cancel: async id => { cancelled.push(id); } },
   });
   await studio.start(); cleanups.push(() => studio.stop());
   return { studio, calls, cancelled, id: studio.state().ideas.find(idea => idea.status === 'inbox')!.id, setResult: (value: typeof result) => { result = value; }, uncertain: () => { uncertain = true; } };

@@ -10,8 +10,10 @@ import type { StageUsage } from '../domain/ai-usage';
 import type { StageInput, StageRunner, InternalState } from './ports';
 import { recordOperation } from './population';
 import type { StudioStore } from './studio-store';
-import type { AgentTaskPort } from './agent-task';
+import { uncertainTaskAttempt, type AgentTaskPort } from './agent-task';
 import { ConfiguredWorkflowCouncil } from './configured-workflow-council';
+import { workflowCouncilProjectContext } from './workflow-council-context';
+import type { WorkflowCouncilBinding } from '../domain/workflow-council-binding';
 import { ConfiguredWorkflowNudges } from './configured-workflow-nudges';
 import { attachWorkflowPlan, type WorkflowPlanHandoff } from './workflow-plan-handoff';
 import { appendWorkflowArtifact, applyConfiguredOutput, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
@@ -100,13 +102,24 @@ export class ConfiguredWorkflowEngine {
     return job;
   }
   async start(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff, external = false, automationEvent?: AutomationContext, expectedDefinitionJson?: string): Promise<WorkflowRun> {
+    const starting = this.store.internalSnapshot();
+    const startingIdea = starting.ideas.find(idea => idea.id === ideaId);
+    const startingProject = startingIdea ? starting.projects.find(project => project.id === ideaProjectId(startingIdea)) : undefined;
+    const startingDefinition = startingProject ? workflowDefinition(startingProject.settings) : undefined;
+    let councilBindings: WorkflowCouncilBinding[] = [];
+    // Legacy starts enqueue their transaction immediately, preserving existing serialized ordering.
+    if (startingDefinition?.steps.some(step => step.kind === 'council') && startingIdea) councilBindings = await this.council.prepare(startingDefinition, ideaProjectId(startingIdea));
     await this.store.transaction(state => {
       const idea = configuredIdea(state, ideaId);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
+      if (councilBindings.length && (!startingIdea || JSON.stringify(workflowDefinition(settings)) !== JSON.stringify(startingDefinition) || workflowProposalRevision(idea) !== workflowProposalRevision(startingIdea))) throw new Error('The request or workflow changed while capturing Council setup. Review it before starting.');
+      if (councilBindings.length && (!startingProject || JSON.stringify(workflowCouncilProjectContext(startingProject)) !== JSON.stringify(workflowCouncilProjectContext(findProject(state, projectId))))) throw new Error('The project context changed while capturing Council setup. Review it before starting.');
+      if (!councilBindings.length && workflowDefinition(settings).steps.some(step => step.kind === 'council')) throw new Error('The Council workflow changed while starting. Review its saved setup and start again.');
       if (idea.workflowRun?.attempts.some(attempt => attempt.id === idea.workflowRun?.activeAttemptId && attempt.kind === 'council' && attempt.nudgeState === 'submitted')) throw new Error('Inspect or stop the active Council task before starting another workflow.');
       if (expectedDefinitionJson !== undefined && JSON.stringify(workflowDefinition(settings)) !== expectedDefinitionJson) throw new Error('The workflow changed before trigger admission. Review the binding again.');
-      if (this.council.busy(ideaId) || this.nudges.busy(ideaId) || idea.workflowRun?.attempts.some(attempt => attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt)) throw new Error('Inspect and acknowledge the uncertain agent nudge before starting another workflow.');
+      if (this.council.busy(ideaId) || this.nudges.busy(ideaId) || idea.workflowRun?.attempts.some(uncertainTaskAttempt)) throw new Error('Inspect and acknowledge the uncertain task outcome before starting another workflow.');
+      if (idea.workflowRun?.attempts.some(attempt => attempt.councilCancellation === 'requested')) throw new Error('Wait for the original Council cancellation to finish.');
       if (state.jobs.some(job => job.ideaId === ideaId && isActiveJob(job)) || idea.workflowRun?.state === 'running' || idea.workflowRun?.state === 'waiting-human' || idea.workflowRun?.state === 'awaiting-review')
         throw new Error('Finish, stop or review the existing workflow first.');
       if (idea.increment?.files.length && idea.status === 'review') throw new Error('Review the existing code changes before starting a fresh run.');
@@ -118,6 +131,7 @@ export class ConfiguredWorkflowEngine {
       const project = findProject(state, projectId);
       const at = time();
       idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition: workflowDefinition(settings),
+        ...(councilBindings.length ? { councilBindings } : {}),
         ...(automationEvent ? { automationEvent: automationContextCheck(automationEvent) } : {}),
         ...(external ? { external: true } : {}),
         proposalRevision: workflowProposalRevision(idea), revision: 0, cursor: 0, state: 'ready', attempts: [], artifacts: [], createdAt: at, updatedAt: at,
@@ -146,7 +160,7 @@ export class ConfiguredWorkflowEngine {
       const run = idea.workflowRun!;
       if (run.state === 'stopped' || ['finished', 'awaiting-review', 'waiting-human', 'running'].includes(run.state)) throw new Error('This workflow cannot run another step in its current state.');
       if (run.state === 'attention') {
-        if (run.attempts.some(attempt => attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt)) throw new Error('Inspect and acknowledge the uncertain agent nudge before a fresh attempt.');
+        if (run.attempts.some(uncertainTaskAttempt)) throw new Error('Inspect and acknowledge the uncertain task outcome before a fresh attempt.');
         const stale = run.artifacts.filter(artifact => run.definition.steps.findIndex(step => step.id === artifact.stepId) >= run.cursor).map(artifact => artifact.id);
         run.invalidatedArtifactIds = [...new Set([...(run.invalidatedArtifactIds ?? []), ...stale])];
         run.state = 'ready'; delete run.error;
@@ -178,14 +192,14 @@ export class ConfiguredWorkflowEngine {
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async stop(ideaId: string): Promise<WorkflowRun> {
-    await this.council.cancel(ideaId);
     this.nudges.abort(ideaId);
-    await this.store.transaction(state => {
+    const councilStop = await this.store.transaction(state => {
       const idea = configuredIdea(state, ideaId);
       const run = idea.workflowRun;
       if (!run || ['finished', 'awaiting-review'].includes(run.state)) throw new Error('There is no active workflow to stop.');
       run.state = 'stopped'; touch(run);
       const attempt = run.attempts.find(item => item.id === run.activeAttemptId);
+      const councilStop = this.council.stopping(run, attempt);
       if (attempt?.kind !== 'ai' || attempt.status === 'queued') {
         if (attempt) { attempt.status = 'cancelled'; attempt.finishedAt = time(); }
         delete run.activeAttemptId;
@@ -194,7 +208,10 @@ export class ConfiguredWorkflowEngine {
       if (!run.activeAttemptId && idea.increment?.files.length) run.state = 'awaiting-review';
       recordOperation(state, 'workflow-run-stopped', 'committed', undefined, 1, run.id);
       if (run.state === 'awaiting-review') recordOperation(state, 'workflow-run-awaiting-review', 'committed', undefined, 1, run.id);
+      return councilStop;
     });
+    this.council.abort(ideaId);
+    if (councilStop) await this.council.cancel(councilStop);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async tick(projectId: string, manual: boolean, allowNew = true): Promise<AgentJob | null> {

@@ -1,6 +1,6 @@
 import type { StudioStore } from './studio-store';
 import type { InternalState } from './ports';
-import type { AgentTaskPort, AgentTaskReceipt } from './agent-task';
+import { uncertainTaskAttempt, type AgentTaskPort, type AgentTaskReceipt } from './agent-task';
 import type { NudgeWorkflowStep } from '../domain/configured-workflow';
 import type { WorkflowRun } from '../domain/configured-workflow-run';
 import { workflowProposalRevision } from '../domain/configured-workflow-run';
@@ -17,7 +17,7 @@ export class ConfiguredWorkflowNudges {
   reserve(state: InternalState, ideaId: string, step: NudgeWorkflowStep): void {
     if (!this.port) throw new Error('Agent-task nudges are unavailable in this host.');
     const idea = configuredIdea(state, ideaId); const run = idea.workflowRun!;
-    if (run.attempts.some(attempt => (attempt.kind === 'nudge' || attempt.kind === 'council') && attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt)) throw new Error('Inspect and acknowledge the uncertain agent nudge before starting a fresh attempt.');
+    if (run.attempts.some(uncertainTaskAttempt)) throw new Error('Inspect and acknowledge the uncertain task outcome before starting a fresh attempt.');
     const inputs = configuredInputs(run, step);
     const id = crypto.randomUUID();
     run.attempts.push({ id, stepId: step.id, stepName: step.name, kind: 'nudge', status: 'queued', inputs: inputs.map(input => input.id), startedAt: time() });
@@ -92,12 +92,15 @@ export class ConfiguredWorkflowNudges {
   acknowledge(ideaId: string, revision: number, consent: boolean): Promise<void> {
     return this.store.transaction(state => {
       if (!consent) throw new Error('Explicit recovery acknowledgement is required.');
-      const idea = configuredIdea(state, ideaId); const run = idea.workflowRun;
-      if (!run || run.revision !== revision || !['attention', 'stopped'].includes(run.state) || this.busy(ideaId)) throw new Error('The workflow changed. Refresh before acknowledging recovery.');
-      const attempts = run.attempts.filter(attempt => (attempt.kind === 'nudge' || attempt.kind === 'council') && attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt);
-      if (!attempts.length) throw new Error('There is no uncertain nudge to acknowledge.');
+      const idea = state.ideas.find(item => item.id === ideaId); const run = idea?.workflowRun;
+      if (!idea || !run || run.revision !== revision || !['attention', 'stopped', 'awaiting-review', 'finished'].includes(run.state) || this.busy(ideaId)) throw new Error('The workflow changed. Refresh before acknowledging recovery.');
+      const attempts = run.attempts.filter(uncertainTaskAttempt);
+      if (!attempts.length) throw new Error('There is no uncertain task or cancellation to acknowledge.');
+      const error = run.error;
       for (const attempt of attempts) attempt.nudgeAcknowledgedAt = time();
-      if (run.state !== 'stopped') run.state = 'ready'; delete run.error; delete idea.lastError; touch(run); recordOperation(state, 'workflow-nudge-recovered', 'committed', undefined, 1, run.id);
+      if (run.state === 'attention' && !['shipped', 'rejected'].includes(idea.status)) run.state = 'ready';
+      delete run.error; if (idea.lastError === error) delete idea.lastError;
+      touch(run); recordOperation(state, 'workflow-nudge-recovered', 'committed', undefined, 1, run.id);
     });
   }
   abort(ideaId: string): void { this.active.get(ideaId)?.controller.abort(); }

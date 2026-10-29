@@ -124,7 +124,7 @@ export function useStudioActions() {
         () => studio.stopWorkflow(id),
         "Workflow stop requested. Inspect any pending code changes or external agents.",
       ),
-    acknowledgeWorkflowNudge: (id: string, revision: number, consent: boolean) => attempt(() => studio.acknowledgeWorkflowNudge(id, revision, consent), 'Agent-nudge recovery acknowledged. A fresh attempt is now available.'),
+    acknowledgeWorkflowNudge: (id: string, revision: number, consent: boolean) => attempt(() => studio.acknowledgeWorkflowNudge(id, revision, consent), 'Task recovery recorded. The workflow keeps its current execution and review gates.'),
     cancelJob: (id: string) =>
       attempt(() => studio.cancel(id), "Cancellation requested."),
     sendChat: (username: string, text: string) =>

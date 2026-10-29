@@ -21,7 +21,7 @@ export function useWorkflowNudge() {
         ) ?? [];
     } catch {
       error.value =
-        "Could not load teams and agents. Open Council definitions to repair them.";
+        "Could not load teams and agents. Open The Council → Setup → Councils & roster to repair them.";
     }
   });
   const step = computed(() =>
@@ -45,7 +45,7 @@ export function useWorkflowNudge() {
         team.allowedRecipients.includes(definition.id),
     );
   });
-  const inputs = computed(() => [...new Set(editor.draft.steps.slice(0, editor.draft.steps.findIndex(item => item.id === step.value?.id)).flatMap(item => item.kind === 'ai' ? [item.output] : []))]);
+  const inputs = computed(() => [...new Set(editor.draft.steps.slice(0, editor.draft.steps.findIndex(item => item.id === step.value?.id)).flatMap(item => item.kind === 'ai' ? [item.output] : item.kind === 'council' ? ['markdown' as const] : []))]);
   return reactive({ step, teams, agents, error, inputs,
     toggleRole: (role: import('../../../features/coforge/domain/configured-workflow').WorkflowOutput) => { const current = step.value; if (current) current.inputs = current.inputs?.includes(role) ? current.inputs.filter(item => item !== role) : [...(current.inputs ?? []), role]; },
   });

@@ -19,12 +19,16 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
         const step = run.definition.steps.find(
           (step) => step.id === attempt.stepId,
         );
+        const councilName = step?.kind === 'council' ? run.councilBindings?.find(item => item.stepId === step.id)?.binding.councilName ?? step.councilId : '';
         return {
           id: attempt.id,
           ideaId: idea.id,
+          councilRunId: attempt.kind === 'council' ? attempt.nudgeRunId ?? '' : '',
+          councilProjectId: run.projectId,
+          councilName,
           status: attempt.status,
           stageLabel: attempt.stepName,
-          providerLabel: run.external && step?.kind === 'ai' ? 'External MCP client · model not reported' : step
+          providerLabel: councilName ? `Council · ${councilName}` : run.external && step?.kind === 'ai' ? 'External MCP client · model not reported' : step
             ? configuredAgentLabel(step)
             : "Runner not recorded",
           time: clock(attempt.startedAt),
@@ -50,6 +54,7 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
     .map((job) => ({
       id: job.id,
       ideaId: job.ideaId,
+      councilRunId: '', councilProjectId: job.projectId ?? '', councilName: '',
       status: job.status,
       stageLabel: STAGE_LABELS[job.stage],
       providerLabel:

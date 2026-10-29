@@ -68,7 +68,7 @@ export function createWorkflowStep(
     instructions: "",
   };
   if (kind === "approval") return { ...base, kind };
-  if (kind === 'council') return { ...base, name: 'Ask Council', kind, councilId: '', instructions: 'Review the captured request, compare options and explain risks and recommendations.', inputs: [], automatic: false };
+  if (kind === 'council') return { ...base, name: 'Ask Council', kind, councilId: '', instructions: 'Review the captured request, compare options and explain risks and recommendations.', inputs: [], contextMode: 'all', automatic: false };
   if (kind === "nudge") return { ...base, name: "Nudge agent", kind, instructions: "Review the captured request and report your findings.", teamId: "", agentId: "", automatic: false, inputs: [] };
   if (kind === "checklist")
     return {
