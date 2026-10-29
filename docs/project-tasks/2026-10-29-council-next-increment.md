@@ -152,4 +152,55 @@ remain authoritative. Only the designated open desktop executes Council work.
 
 ## Evidence and closeout
 
-To be filled with real command/CI results and accepted current-run screenshots.
+Current-run baseline captured and inspected from the labelled synthetic example:
+reports/council-next/01-before-navigation.png (ten peer destinations wrap at 1265px),
+02-before-setup.png (permanent generic guidance despite a configured Council), and
+03-before-activity.png (project summary followed by all-project/raw-ID filters).
+Source/behavioural tests establish the scope/timestamp defects that empty screenshots
+alone cannot prove.
+
+Increment C: seed/scale product checks passed (2 files, 3 tests; unchanged10k case 464ms).
+After the CRLF closeout, product CRLF/seed/scale checks passed (3 files, 7 tests; scale 538ms),
+and focused kit metadata/vault checks passed (2 files, 11 tests). Product regressions
+passed zero-warning ESLint. The four CRLF regressions were observed failing first.
+Seed batching is committed as b7ae9b0; CRLF fidelity as 43f1681. No assertion, case size,
+60-second test budget or test isolation setting changed.
+
+Increment A source/behaviour handoff: broader Council suite 10 files / 26 passed;
+IA/entry/readiness/drafts 4 files / 13 passed; lifecycle/scope/entry/readiness 5 files /
+13 passed; deferred catalogue outcome matrix 3 passed. Three test-only Vue Test Utils
+`get().exists()` type errors were corrected to `find().exists()`; focused entry/navigation
+recheck passed (2 files / 5 tests). Existing route IDs and all draft/execution gates remain.
+
+Increment B source/behaviour handoff: final workflow batch 8 files / 36 passed; core
+reliability/legacy batch 4 files / 29 passed. Failure injection covers repeated receipt
+writes, unknown cancellation marker writes, stop races, reload and metadata-only
+acknowledgement after pending/completed code review. Independent subagent review
+confirmed all previously reported source findings resolved before integrated visual QA.
+
+The view catalogue now has 95 authored contracts; navigation coverage validates and
+the focused catalogue suite passed (1 file / 11 tests).
+
+### Integrated visual/flow closeout batch
+
+Accepted current-run captures: `10-integrated-navigation.png` shows the four primary
+tasks; `11-integrated-setup.png` shows configured readiness consuming a full screen;
+`12-integrated-answers.png` shows readable attributed answers; `13-integrated-run-controls.png`
+shows run filters/controls below the long reader and the remaining raw-ID row title.
+
+The single polish batch keeps compact configured readiness actions, reveals the editor
+after explicit selection, gives the answer reader a return-to-runs path, keeps selected
+active-run operations reachable before long answers, and finishes human row titles and
+empty-state terminology. Unconfigured/loading/error guidance, scope and guards remain.
+
+The first automated matrix is not accepted as qualification: one failure screenshot
+served an older interface from another worktree on the hardcoded port. An optional
+validated `COFORGE_E2E_PORT` now isolates local servers while keeping the default, all
+assertions, workers, retries and time limits unchanged (commit 633823f; config sanity
+4 valid/default and 12 invalid cases passed). The confirmation matrix uses a distinct
+free loopback port. A separate 30-second long-journey timeout occurred during its fifth
+Axe capture; phase visual cases will retain all themes, widths, tags and assertions
+without weakening the timeout or the complete functional journey.
+
+Remaining integrated/native results and CI/merge evidence for the final commit will
+be recorded here. No failed or isolated run is reported as a green full gate.

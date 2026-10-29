@@ -4,15 +4,16 @@ title: Council task history
 goal: Find a saved question or retained ingestion and resolve its next action.
 audience: streamer
 kind: panel
-route: Ask the Council / Ingested tasks
+route: Ask / Task history
 parent: "[[docs/components/views/council-ask]]"
 component: src/plugin/presentation/components/coforge/CouncilAskView.vue
 entry:
-  - Open The Council and review Ingested tasks below the question form.
+  - Open The Council and review Task history beside or below the question form.
 actions:
+  - Choose project or all-project scope
   - Search tasks
   - Review saved task
-  - Inspect task
+  - Read answers or inspect task
   - Show 50 more tasks
   - Refresh Council
 states:
@@ -45,11 +46,11 @@ iteration: ""
 
 ## Purpose
 
-Show retained task evidence across all projects, including direct submissions and watched intake. Every retained ingestion generation remains distinct, including failed and uncertain outcomes.
+Find retained task evidence in the selected project, or explicitly choose all projects and unmatched inbox observations. Every retained ingestion generation remains distinct, including failed and uncertain outcomes.
 
 ## Entry and next action
 
-Open Ask the Council, then search Ingested tasks by title, source, project or status. Inspect task opens its retained run in the monitor. Review saved task restores an existing canonical source for preflight without creating or overwriting its note. Show 50 more tasks reveals another portion of the same evidence set.
+Open Ask the Council, then choose the history scope and search Task history by title, source, project or status. Read answers opens a completed discussion; Inspect task opens other retained work in Activity → Runs & answers. Review saved task restores an existing canonical source for preflight without creating or overwriting its note. Show 50 more tasks reveals another portion of the same evidence set.
 
 ## States and recovery
 

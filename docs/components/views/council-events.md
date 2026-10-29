@@ -7,7 +7,7 @@ kind: "subpage"
 route: "council.tab = events"
 parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/WorkflowTriggersView.vue"
-entry: ["Open The Council → Event triggers.", "Choose Attach an event trigger in either workflow editor."]
+entry: ["Open The Council → Automation → Event triggers.", "Choose Attach an event trigger in either workflow editor."]
 actions: ["Review saved workflow", "Create or edit trigger", "Enable future events", "Inspect decisions and runs", "Acknowledge uncertain admission", "Remove trigger"]
 states: ["Desktop unavailable", "Non-executor", "Empty", "Draft", "Enabled", "Disabled", "Skipped event", "Uncertain admission", "Storage error"]
 journeys: ["Council", "workflow-event-automation"]

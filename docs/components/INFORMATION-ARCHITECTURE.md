@@ -43,10 +43,11 @@ Subpages keep focused tasks together without expanding the global navigation:
 - Project settings: General, Requests, Repository, Agent workflow, Runtime and Data & examples.
 - Agent workflow: Workflow runs, Herdr workspaces and Workflow settings.
 - Economy: Command prices, Earning, Rewards, Loot boxes and Fulfillment.
-- The Council opens on Ask the Council: a question intake and retained task
-  history. Visible workspace tabs include Definitions, Submit existing note,
-  Watched inboxes, Task scheduler, Event triggers, Run monitor, Council workflows, Team messages and Definition
-  folders.
+- The Council has four task families, each with visible secondary navigation:
+  Ask (New question, Existing note); Activity (Runs & answers, Team messages);
+  Setup (Councils & roster, Storage folders); Automation (Watched inboxes,
+  Schedules, Event triggers, Proposal workflows). Opening it starts on New question
+  with scoped task history. All ten existing internal page IDs remain stable.
 - Request details: Overview, Plan, Increment and Activity.
 
 Agent workflow is a Project settings subpage. Workflow settings configures the
@@ -69,8 +70,8 @@ replay an uncertain effect. Existing dirty-configuration guards and explicit
 confirmation/recovery stay authoritative. Local subpages retain their mounted
 models where leaving them would otherwise discard a draft.
 
-Council questions are canonical private analytical notes with an explicit project,
-team and council. Saving and preflight do not admit or execute work. The first-page
+Council questions are canonical private analytical notes with an explicit project
+and Council; its team is resolved internally. Saving and preflight do not admit or execute work. The first-page
 history spans retained direct and watched submissions across projects, plus saved
 task notes; it distinguishes latest inbox observations and missing retained history
 instead of fabricating a complete ingestion ledger.

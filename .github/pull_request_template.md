@@ -1,71 +1,71 @@
 ## Summary
 
-Council intake now selects a Council directly and shows the participating CoWorkers,
-providers and discussion rounds. Visible workspace tabs replace the advanced-tools
-disclosure; setup guidance and project activity make configuration and progress easier
-to follow.
+The Council previously put ten daily-use, setup and automation destinations at one
+level, and reading an answer required navigating execution references. Group those
+capabilities under Ask, Activity, Setup and Automation, with visible secondary pages,
+observed setup readiness, explicit history scope and attributed published answers.
 
-Workflow settings adds Ask Council. It admits one child task, waits for complete
-published answers and supplies attributed Markdown to later steps. Confirmed children
-survive reload; uncertain admission, stale answers and cancellation retain recovery
-boundaries without automatic replay.
+Ask Council in request workflows waits for a retained child discussion and supplies
+its report to later steps. Capture the Council/provider/project-context identity at
+workflow start; preserve confirmed receipts, stop intent and uncertain cancellation
+without replay. Add explicit earlier-result context modes and durable discussion links.
+
+Batch silent test-vault metadata linking and preserve CRLF frontmatter scalars so the
+existing 10,000-note Council scale check measures intake rather than quadratic fixture
+setup. An optional isolated browser-test port prevents cross-worktree preview collisions.
 
 ## Requirements and traceability
 
-- Owner requests dated 2026-10-29 in BRIEF.md: Council usability and Ask Council workflow action.
-- Review, acceptance and evidence: docs/project-tasks/2026-10-29-council-experience.md.
+- Owner Council usability, waiting workflow action and subagent-driven next-increment
+  requests dated 2026-10-29 in BRIEF.md.
+- Research, IA contract, increments, acceptance and evidence:
+  docs/project-tasks/2026-10-29-council-next-increment.md.
 - No imported req-* or vi-* obligation applies; generated traceability is unchanged.
-- Canonical Markdown, stable IDs, explicit review, executor designation, finite limits,
-  private evidence and final human code review remain authoritative.
+- All ten internal Council page IDs remain. CoWorkers stay vault-wide; councils/rosters
+  stay project-scoped. Markdown ownership, finite limits, executor designation,
+  explicit submission/recovery and final human code review remain authoritative.
 
 ## Validation
 
-- Focused experience/editor/execution/integration suite: 4 files, 13 tests passed.
-- Final admission and workflow safety suite: 2 files, 9 tests passed.
-- Typecheck and focused zero-warning ESLint passed.
-- Initial npm run verify:project: typecheck, source lint, ESLint and maker types passed;
-  the product test process hit the wrapper's 600-second timeout. No passing full-gate
-  claim is made from that attempt.
-- npm run check -- --timeout 1200000: 4 gates passed, 1 failed. The full suite reported
-  279 files passed / 1 failed; 995 tests passed / 1 timed out / 6 pre-existing skips.
-  The unchanged 10,000-note intake scale test exceeded its 60-second test budget.
-- Unmodified scale-test recheck: 1 passed in 45.35s, with the same assertions and
-  timeout. No repository test limits or checks were weakened. A clean full-gate run
-  is still required before merge; the isolated pass does not turn the failed gate green.
-- Final recovery stability recheck: 8 passed, including unchanged run revisions when
-  checking the same held result repeatedly.
-- npm run verify:artifacts: passed build and prototype embedding (1 passed). Generated
-  UI-effect checks report the expected skip because no visual definitions are declared.
-- check:views: 92 views documented, navigation coverage valid, sitemap current.
+- A: broader Council suite: 10 files / 26 passed; lifecycle/scope/entry/readiness: 5 files / 13
+  passed; additional deferred outcomes: 3 passed; corrected type assertions: 2 files / 5 passed.
+- B: final workflow suite: 8 files / 36 passed; core reliability/legacy suite: 4 files / 29 passed.
+- C: product CRLF/seed/unchanged scale: 3 files / 7 passed; kit metadata/vault: 2 files / 11 passed.
+  The unchanged 10k case completed in 538ms with all assertions and its 60s limit retained.
+- View contracts: 95 documented, navigation coverage valid; catalogue suite: 1 file/11 passed.
+- Independent source closeout confirmed prior actionable A/B findings resolved.
+- Integrated typecheck: passed. Source lint: passed across 1,635 owned inputs.
+- Isolated browser confirmation: 36 passed, including UI quality, both themes,
+  narrow/wide captures and the complete Council functional journey. Detector: [].
+- Native first run: Ask and first-use setup bodies passed, but all 3 sessions failed
+  Windows teardown (STOP_TIMEOUT/locked Chromium files); one legacy pause assertion
+  also had ambiguous scope and is corrected. Cleanup qualification remains pending.
+- Canonical gate, final native confirmation and CI are pending on the final commit;
+  no full green claim is made from focused or partially successful runs.
 - git diff --check: clean.
 
 ## UI evidence
 
-- npm run test:ui-quality: 8 passed (both themes, 360px reflow and keyboard focus).
-- Council intake and board-assessment journeys: 4 passed; corrected prompt-order
-  navigation journey rerun: 2 passed. Both themes and wide/narrow leaves were captured.
-- npm run ui:gallery: 40 captures, no failures. Reviewed the studio narrow capture and
-  Council-specific intake/history, setup and native workflow captures.
-- reports/council-review/: numbered before/after screenshots and command logs.
-- reports/council-ask/, reports/council-prompt-order/, reports/ui-gallery/: ignored QA evidence.
-- Design detector identified one existing thick accent border; reduced it to 1px.
+- Current-run baseline and integrated captures: reports/council-next/ (ignored).
+- First integrated browser run exposed a shared-port collision; those results are not
+  accepted as qualification. COFORGE_E2E_PORT now isolates the confirmation run.
+- Final wide/narrow light/dark browser matrix and UI quality: 36 passed on isolated port 4197.
+- Gallery capture/review and final native confirmation: pending.
+- No screenshot baselines were accepted or changed.
 
 ## Obsidian evidence
 
-- Latest pinned smoke: status passed, plugin errors []; Obsidian 1.14.4 and launcher
-  3.2.1 in the contained sandbox. The reused sandbox reports two Obsidian-core
-  command-list callback errors (null parent/getContainer), also seen in the initial
-  smoke. An earlier clean smoke reported hostErrorCount 0. The native journey has no errors.
-- npm run test:obsidian -- coforge-council-ask: 1 passed. Saves and reviews a question,
-  runs an explicit mixed-order simulation, retains history through reload, checks cost
-  attribution, then saves an Ask Council workflow step with visible recipients and no
-  new run during setup.
-- reports/obsidian/ and .obsidian-sandbox/logs/ contain ignored evidence.
+- Native setup spec authors/enables/saves a simulation CoWorker, roster and Council
+  through the UI, then reviews its audience and planned invocations without admission.
+- Native Ask spec covers review, explicit mixed-order simulation, answer reading,
+  reload, cost attribution and saved workflow context/readiness.
+- First coordinated native run exposed strict teardown failures; final run and pinned
+  smoke remain pending and are not counted as passed yet.
 
 ## Untested scope
 
-No billable provider call or personal vault was used. Workflow answers use the existing
-16000-character Markdown contract; larger reports stay complete in the child run and
-hold the parent. Full assistive-technology certification is outside this review.
-Local Node 24.20.0 / npm 11.21.1 differ from pinned Node 24.21.0 / npm 11.19.1.
-No release, publication or pull request was requested.
+No billable provider call, personal vault or real client activation is part of QA.
+The combined workflow report retains the existing 16,000-character Markdown contract;
+complete oversized answers stay in the child and hold the parent without truncation.
+Local Node 24.20.0 / npm 11.21.1 differ from the pins; canonical CI uses Node 24.21.0 / npm 11.19.1.
+Full assistive-technology certification and a release publication are outside scope.

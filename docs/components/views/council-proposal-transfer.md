@@ -8,7 +8,7 @@ route: Council workflows / transfer preview
 parent: "[[docs/components/views/council-workflows]]"
 component: src/plugin/presentation/components/coforge/WorkflowV2Transfer.vue
 entry:
-  - Within The Council → Council workflows, open the workflow transfer controls.
+  - Within The Council → Automation → Proposal workflows, open the workflow transfer controls.
 actions:
   - Preview import
   - Apply draft
@@ -45,7 +45,7 @@ Transfer changes definitions rather than executing them. Host permissions and fi
 
 ## Entry and next action
 
-Within The Council → Council workflows, open the workflow transfer controls. Available actions: Preview import; Apply draft; Preview export. Return through the owning [Council workflows](council-workflows.md) surface.
+Within The Council → Automation → Proposal workflows, open the workflow transfer controls. Available actions: Preview import; Apply draft; Preview export. Return through the owning [Council workflows](council-workflows.md) surface.
 
 ## States and recovery
 

@@ -8,7 +8,7 @@ route: council.tab = submit
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/CouncilSubmission.vue
 entry:
-  - Open The Council, expand Advanced Council tools, then choose Submit existing note.
+  - Open The Council, choose Ask, then Existing note.
 actions:
   - Choose source and target
   - Preview preflight
@@ -52,7 +52,7 @@ Round prompt order lists each captured round's Round robin or Fan out setting an
 
 ## Entry and next action
 
-Open The Council, expand Advanced Council tools, then choose Submit existing note. Available actions: Choose source and target; Preview preflight; Submit reviewed input. Return through the owning [The Council](council.md) surface.
+Open The Council, choose Ask, then Existing note. Available actions: Choose source and target; Preview preflight; Submit reviewed input. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 
@@ -68,4 +68,4 @@ Journey tags: `Council`.
 
 ## Workspace redesign
 
-Submission fields and preflight evidence use the Council authoring hierarchy. The execution prerequisite has a visible attention surface and working route to Run monitor.
+Submission fields and preflight evidence use the Council authoring hierarchy. The execution prerequisite has a visible attention surface and working route to Activity → Runs & answers.

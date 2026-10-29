@@ -1,14 +1,14 @@
 ---
 id: council-monitor
-title: Council run monitor
-goal: Resolve the next action or recovery decision for a Council run.
+title: "Runs & answers"
+goal: Read attributed answers and resolve the next action or recovery decision for retained Council work.
 audience: streamer
 kind: subpage
 route: council.tab = monitor
 parent: "[[docs/components/views/council]]"
 component: src/plugin/presentation/components/coforge/CouncilMonitor.vue
 entry:
-  - Open The Council, expand Advanced Council tools, then choose Run monitor.
+  - Open The Council, choose Activity, then Runs & answers.
 actions:
   - Check and designate executor
   - Pause or resume
@@ -47,17 +47,17 @@ assignee: ""
 iteration: ""
 ---
 
-# Council run monitor
+# Runs & answers
 
 ## Purpose
 
-Resolve the next action or recovery decision for a Council run.
+Read attributed answers and resolve the next action or recovery decision for retained Council work.
 
-Contributions persist and project before the next invocation. Unknown provider outcomes require explicit recovery without replay. Plan handoff does not accept code or publish an Idea.
+Human task titles and the captured Council identity lead the run list. Published contributions are available through [Council answers](council-answers.md), with references and recovery controls kept secondary. Contributions persist and project before the next invocation. Unknown provider outcomes require explicit recovery without replay. Plan handoff does not accept code or publish an Idea.
 
 ## Entry and next action
 
-Open The Council, expand Advanced Council tools, then choose Run monitor. Available actions: Check and designate executor; Pause or resume; Filter and inspect; Resolve checkpoint; Recover unknown result; Retry publication; Export evidence. Return through the owning [The Council](council.md) surface.
+Open The Council, choose Activity, then Runs & answers. Available actions: Check and designate executor; Pause or resume; Filter and inspect; Resolve checkpoint; Recover unknown result; Retry publication; Export evidence. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 

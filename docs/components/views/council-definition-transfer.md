@@ -8,7 +8,7 @@ route: Council definitions / import and export details
 parent: "[[docs/components/views/council-definitions]]"
 component: src/plugin/presentation/components/coforge/CouncilDefinitions.vue
 entry:
-  - Within The Council → Definitions, expand Import and export definitions.
+  - Within The Council → Setup → Councils & roster, expand Import and export definitions.
 actions:
   - Paste JSON
   - Preview current and imported definitions
@@ -46,7 +46,7 @@ Imported definitions stay disabled pending local permission and connection revie
 
 ## Entry and next action
 
-Within The Council → Definitions, expand Import and export definitions. Available actions: Paste JSON; Preview current and imported definitions; Save import; Preview export. Return through the owning [Agents and councils](council-definitions.md) surface.
+Within The Council → Setup → Councils & roster, expand Import and export definitions. Available actions: Paste JSON; Preview current and imported definitions; Save import; Preview export. Return through the owning [Agents and councils](council-definitions.md) surface.
 
 ## States and recovery
 

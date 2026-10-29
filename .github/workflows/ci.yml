@@ -116,6 +116,8 @@ jobs:
             reports/product-audit/
             reports/ui-intent/after/
             reports/council-ask/
+            reports/council-next/
+            reports/council/
             reports/council-prompt-order/
             reports/agent-costs/
             reports/project-privacy/

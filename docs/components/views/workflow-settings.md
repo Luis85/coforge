@@ -84,3 +84,30 @@ answers. Later AI steps can bind the attributed Markdown report. Paused executio
 human checkpoints and uncertain outcomes hold the workflow. Inspect Council activity
 or check its answer from Workflow runs. Admission is never reported as completion;
 reload retains a confirmed child instead of submitting it again.
+
+## Captured Council bridge and context
+
+Ask Council is an explicit compatibility bridge from the request workflow to the
+existing Council v2 execution kernel. Existing AI, manual and nudge steps retain
+their meaning; no note is silently migrated. Starting a new parent workflow captures
+a versioned private identity for each selected Council, its team/CoWorkers/providers
+and the project's instructions/context. Before child admission, the host checks that
+identity. Later definition or project-instruction edits hold the step instead of
+retargeting it. A legacy parent without a binding must stop/restart before a new
+Council admission; already confirmed children retain their journal evidence.
+
+Earlier workflow results have explicit all, selected-role and none modes. The request
+itself remains included; Council context is still captured by the existing child
+preflight. Absence of the new mode retains an existing saved step's earlier behavior.
+Selected mode requires an actual selection and cannot fall back to sharing everything.
+
+Live request-workflow discussions require supported native CoWorkers and an observed
+Claude runtime. Simulation Councils can be tried through Ask's explicit simulation
+controls; saving a reference does not prove live execution readiness. Known preparation
+failures identify the blocker without duplicate-risk acknowledgement. Uncertain
+admission and cancellation retain inspection and explicit recovery.
+
+Completed, failed, cancelled and historical child discussions keep an inspection action.
+An oversized combined report remains complete in that child; stop the parent, reduce
+its Council output/protocol, and start a new workflow rather than repeating an identical
+check or silently truncating the answers.
