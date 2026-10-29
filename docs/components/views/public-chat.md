@@ -25,7 +25,7 @@ coverage:
   group: public
   key: chat
 order: 15000
-type: Epic
+type: Feature
 status: ""
 started: ""
 finished: ""

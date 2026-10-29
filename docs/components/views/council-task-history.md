@@ -5,7 +5,7 @@ goal: Find a saved question or retained ingestion and resolve its next action.
 audience: streamer
 kind: panel
 route: Ask the Council / Ingested tasks
-parent: "[[docs/components/views/council-ask]]"
+parent: "[[council]]"
 component: src/plugin/presentation/components/coforge/CouncilAskView.vue
 entry:
   - Open The Council and review Ingested tasks below the question form.
@@ -28,7 +28,7 @@ journeys:
   - analytical-task
   - recovery
 privacy: Private source paths, questions, project identities and run evidence; excluded from public projections.
-order: 56750
+order: 56687.5
 status: ""
 started: ""
 finished: ""
