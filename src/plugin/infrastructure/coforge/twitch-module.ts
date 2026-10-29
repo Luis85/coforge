@@ -19,6 +19,8 @@ import { recordOperation } from '../../features/coforge/application/population';
 import { readTwitchMetrics, unavailableTwitchMetrics } from './twitch-metrics';
 import { removeTwitchChat } from '../../features/coforge/application/chat-removal';
 import { observeBotChat } from '../../features/coforge/application/observe-bot-chat';
+import { TwitchControlModule } from './twitch-control-module';
+import type { TwitchOperationsActions } from '../../features/coforge/domain/twitch-operations';
 
 const fingerprint = (config: IntegrationSettings) => JSON.stringify([
   config.twitchEnabled, config.twitchClientId, config.twitchBroadcasterId, config.twitchBotUserId,
@@ -42,6 +44,8 @@ export class TwitchModule {
   private generation = 0;
   private closed = false;
   readonly actions: TwitchActions;
+  readonly operations: TwitchOperationsActions;
+  private readonly controls: TwitchControlModule;
 
   constructor(private readonly studio: StudioService, secrets: TwitchSecrets, request: HttpRequest,
     private readonly timers: Timers, private readonly socket: (url: string) => TwitchSocket) {
@@ -65,6 +69,9 @@ export class TwitchModule {
           : { twitchBotUserId: identity.id }) });
       await this.reconnect();
     }, timers);
+    this.controls = new TwitchControlModule(studio.store, this.accounts, this.device, () => this.config,
+      http, timers, socket, message => this.error(message));
+    this.operations = this.controls.actions;
     this.actions = {
       authorize: role => this.perform(() => this.device.begin(role)), cancelAuthorization: () => this.device.cancel(),
       reconnect: () => this.reconnect(), refreshChannel: () => this.perform(() => this.refreshChannel()),
@@ -82,7 +89,7 @@ export class TwitchModule {
     };
   }
 
-  start(): void { this.stopStore = this.studio.subscribe(() => this.outbox.wake()); this.configure(this.studio.integration()); this.population.start(); this.scheduler.start(); }
+  start(): void { this.controls.start(); this.stopStore = this.studio.subscribe(() => this.outbox.wake()); this.configure(this.studio.integration()); this.population.start(); this.scheduler.start(); }
   async metrics() {
     const generation = this.generation;
     if (this.closed || !this.config.twitchClientId || !this.config.twitchBroadcasterId) return unavailableTwitchMetrics();
@@ -106,11 +113,12 @@ export class TwitchModule {
   }
   async reconnect(): Promise<void> {
     if (this.closed) return;
+    void this.controls.disconnect().catch(() => this.error('Twitch collection evidence could not be saved.'));
     const generation = ++this.generation;
     this.population.reset(); this.scheduler.reset();
     this.stopConnection(); this.stopConnection = () => {}; this.accounts.reset();
     this.state = { ...disconnectedTwitch(), ...(this.state.channel?.id === this.config.twitchBroadcasterId ? { channel: this.state.channel } : {}) };
-    if (!this.config.twitchEnabled) { this.publish(); return; }
+    if (!this.config.twitchEnabled) { void this.controls.reconnect().catch(() => this.error('Twitch collection could not be updated.')); this.publish(); return; }
     this.state.phase = 'connecting'; this.state.message = 'Checking Twitch accounts'; this.publish();
     if (!this.config.twitchClientId || !this.config.twitchBroadcasterId) { this.state.phase = 'setup'; this.state.message = 'Connect the streamer account in Twitch settings'; this.publish(); return; }
     try { await this.accounts.token('streamer', []); } catch { /* Chat can use an independently authorized bot. */ }
@@ -143,9 +151,10 @@ export class TwitchModule {
         void this.studio.store.transaction(state => recordOperation(state, status.phase === 'connected' ? 'connected' : 'disconnected')).catch(() => undefined);
       if (status.phase === 'connected') { void this.population.refresh(); this.outbox.resume(); if (!this.state.channel) void this.refreshChannel().catch(() => undefined); }
     });
+    void this.controls.reconnect().catch(() => this.error('Twitch activity could not connect. Check its permissions and vault access.'));
   }
   async dispose(): Promise<void> {
-    this.closed = true; this.generation++; this.population.stop(); this.scheduler.stop(); this.device.cancel(); this.stopConnection(); this.stopStore(); await this.outbox.stop();
+    this.closed = true; this.generation++; this.population.stop(); this.scheduler.stop(); this.device.cancel(); this.stopConnection(); this.stopStore(); await this.outbox.stop(); await this.controls.dispose();
   }
   private async updateChannel(input: TwitchChannelUpdate): Promise<void> {
     const channelId = this.config.twitchBroadcasterId; const id = crypto.randomUUID(); let applied = false;

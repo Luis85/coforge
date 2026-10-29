@@ -11,6 +11,7 @@ export type StudioView =
   | "coworkers"
   | "board"
   | "stream"
+  | "twitch-operations"
   | "workflow"
   | "community"
   | "settings"
