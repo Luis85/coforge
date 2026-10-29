@@ -1,4 +1,9 @@
 /* The private production desk follows the current Obsidian theme in every leaf. */
+.cf-overlay-outgoing {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .cf-production-desk,
 .cf-production-studio-setup,
 .cf-production-source-editor,

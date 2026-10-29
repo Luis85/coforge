@@ -24,6 +24,13 @@ const model = useObsProduction();
         Refresh audio
       </button>
     </header>
+    <p>
+      Meter samples refresh every 5 seconds while Broadcast or Audio is open.
+    </p>
+    <p v-if="!model.connected">
+      OBS is disconnected. These are the last observed input settings; meter
+      values are unavailable.
+    </p>
     <p v-if="!model.audioInputs.length">
       Connect OBS and add an audio input in Create my studio or Sources &amp;
       layouts. No audio inputs are available yet.

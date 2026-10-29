@@ -30,6 +30,7 @@
   margin-top: var(--cf-space-xs);
   color: var(--cf-muted);
   font-size: 11px;
+  font-weight: 400;
 }
 .cf-broadcast-page .cf-production-live-summary > p {
   margin: var(--cf-space-sm) 0 0;

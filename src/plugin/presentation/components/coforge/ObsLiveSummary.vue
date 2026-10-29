@@ -11,8 +11,10 @@ const model = useLiveStudio();
     <dl>
       <div>
         <dt>Viewers</dt>
-        <dd>{{ model.viewer }}</dd>
-        <small>{{ model.updated(model.state.viewers.checkedAt) }}</small>
+        <dd>
+          {{ model.viewer
+          }}<small>{{ model.updated(model.state.viewers.checkedAt) }}</small>
+        </dd>
       </div>
       <div v-for="row in model.healthRows" :key="row.label">
         <dt>{{ row.label }}</dt>

@@ -257,10 +257,23 @@ export function useObsProduction() {
     ),
     audioInputs: computed(
       () =>
-        ui.snapshot?.inputs.filter(
-          (input) =>
-            input.audio.volumeDb !== null || input.audio.muted !== null,
-        ) ?? [],
+        ui.snapshot?.inputs
+          .filter(
+            (input) =>
+              input.audio.volumeDb !== null || input.audio.muted !== null,
+          )
+          .map((input) =>
+            sessionCurrent.value
+              ? input
+              : {
+                  ...input,
+                  audio: {
+                    ...input.audio,
+                    peakDb: null,
+                    meterObservedAt: null,
+                  },
+                },
+          ) ?? [],
     ),
     refresh: () => run(inspect, "Production state refreshed."),
     refreshFrames: () =>
@@ -327,7 +340,7 @@ export function useObsProduction() {
   return model;
 }
 
-/** Reads only while this private live desk is visible; unmount cancels its timer. */
+/** Reads visible production tasks only; Audio refreshes readings without fetching video. */
 export function useObsProductionSession() {
   const model = useObsProduction();
   const refreshing = ref(false);
@@ -339,13 +352,14 @@ export function useObsProductionSession() {
       !model.connected ||
       model.ui.pending ||
       refreshing.value ||
-      model.studio.broadcastTool !== "live" ||
+      !["live", "audio"].includes(model.studio.broadcastTool) ||
       model.studio.view !== "broadcast"
     )
       return;
     refreshing.value = true;
     try {
-      await model.refreshFrames();
+      if (model.studio.broadcastTool === "live") await model.refreshFrames();
+      else await model.refresh();
     } finally {
       refreshing.value = false;
     }

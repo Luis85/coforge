@@ -1,6 +1,7 @@
 import { computed, reactive, ref, watch } from "vue";
 import type {
   ObsAudioMonitor,
+  ObsAudioInput,
   ObsProductionInput,
 } from "../../../features/coforge/domain/obs-production";
 import { useObsProduction } from "./use-obs-production";
@@ -8,6 +9,7 @@ export function useObsAudioAdvanced(input: () => ObsProductionInput) {
   const production = useObsProduction();
   const monitor = ref<ObsAudioMonitor>("OBS_MONITORING_TYPE_NONE");
   const offsetMs = ref(0);
+  let captured: ObsAudioInput | undefined;
   const tracks = reactive(
     Array.from({ length: 6 }, (_, i) => ({
       id: String(i + 1),
@@ -15,12 +17,23 @@ export function useObsAudioAdvanced(input: () => ObsProductionInput) {
     })),
   );
   watch(
-    () => input().id,
-    () => {
-      monitor.value = input().audio.monitor ?? "OBS_MONITORING_TYPE_NONE";
-      offsetMs.value = (input().audio.syncOffset ?? 0) / 1000000;
-      for (const track of tracks)
-        track.enabled = input().audio.tracks?.[track.id] ?? false;
+    () => input().audio,
+    (next) => {
+      if (
+        !captured ||
+        monitor.value === (captured.monitor ?? "OBS_MONITORING_TYPE_NONE")
+      )
+        monitor.value = next.monitor ?? "OBS_MONITORING_TYPE_NONE";
+      if (!captured || offsetMs.value === (captured.syncOffset ?? 0))
+        offsetMs.value = next.syncOffset ?? 0;
+      for (const track of tracks) {
+        if (
+          !captured ||
+          track.enabled === (captured.tracks?.[track.id] ?? false)
+        )
+          track.enabled = next.tracks?.[track.id] ?? false;
+      }
+      captured = { ...next, tracks: next.tracks ? { ...next.tracks } : null };
     },
     { immediate: true },
   );
@@ -47,7 +60,7 @@ export function useObsAudioAdvanced(input: () => ObsProductionInput) {
       production.execute({
         kind: "input-sync",
         inputId: input().id,
-        syncOffset: Math.round(offsetMs.value * 1000000),
+        syncOffset: Math.round(offsetMs.value),
       }),
     saveTracks: () =>
       production.execute({

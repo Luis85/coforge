@@ -43,7 +43,7 @@ export const obsProductionActionCheck: Check<ObsProductionAction> = value => {
     case 'input-mute': return shape({ ...common, kind: oneOf(['input-mute']), inputId: id, muted: boolean }, options)(value);
     case 'input-volume': return shape({ ...common, kind: oneOf(['input-volume']), inputId: id, volumeDb: number({ min: -100, max: 26 }) }, options)(value);
     case 'input-monitor': return shape({ ...common, kind: oneOf(['input-monitor']), inputId: id, monitor: oneOf(['OBS_MONITORING_TYPE_NONE', 'OBS_MONITORING_TYPE_MONITOR_ONLY', 'OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT']) }, options)(value);
-    case 'input-sync': return shape({ ...common, kind: oneOf(['input-sync']), inputId: id, syncOffset: number({ integer: true, min: -20000, max: 20000 }) }, options)(value);
+    case 'input-sync': return shape({ ...common, kind: oneOf(['input-sync']), inputId: id, syncOffset: number({ integer: true, min: -950, max: 20000 }) }, options)(value);
     case 'input-tracks': return shape({ ...common, kind: oneOf(['input-tracks']), inputId: id, tracks }, options)(value);
     case 'item-transform': return shape({ ...common, kind: oneOf(['item-transform']), sceneId: id, itemId: number({ integer: true, min: 0 }), transform }, options)(value);
     case 'item-lock': return shape({ ...common, kind: oneOf(['item-lock']), sceneId: id, itemId: number({ integer: true, min: 0 }), locked: boolean }, options)(value);

@@ -2,11 +2,20 @@ import { describe, expect, it } from 'vitest';
 import { ObsProductionAdapter } from '../../../infrastructure/coforge/obs-production-adapter';
 import { PRODUCTION_REQUESTS } from '../../../infrastructure/coforge/obs-production-rpc';
 import { ObsProductionServer } from '../../support/coforge/obs-production-server';
+import { obsProductionActionCheck } from '../../../features/coforge/domain/obs-production-check';
 const kit = () => {
   const server = new ObsProductionServer();
   const adapter = new ObsProductionAdapter(server, server.snapshot, () => new Set(PRODUCTION_REQUESTS), server.context, server.secrets);
   return { server, adapter };
 };
+it('uses OBS milliseconds for audio sync and rejects offsets below its supported negative limit', async () => {
+  const { server, adapter } = kit();
+  const state = await adapter.inspect();
+  expect(() => obsProductionActionCheck({ kind: 'input-sync', inputId: 'microphone', syncOffset: -951, expected: state.context })).toThrow();
+  await adapter.execute({ kind: 'input-sync', inputId: 'microphone', syncOffset: 250, expected: state.context });
+  expect(server.requests.find(request => request.type === 'SetInputAudioSyncOffset')?.data).toMatchObject({ inputAudioSyncOffset: 250 });
+  expect((await adapter.inspect()).inputs[0]?.audio.syncOffset).toBe(250);
+});
 describe('OBS production source authoring', () => {
   it('creates a browser source, preserves unrelated settings and projects credential URLs safely', async () => {
     const { server, adapter } = kit();

@@ -36,6 +36,9 @@ not an isolated draft for shared sources. Unsupported vendor properties remain i
 OBS or the device's OS dialog rather than appearing as editable fake controls.
 
 Audio provides mute/volume, monitoring, sync and track routing where supported.
+Sync offsets use milliseconds, including the OBS-supported -950 to 20,000 ms
+range. Broadcast and Audio refresh meter samples every five seconds; disconnected
+meters are unavailable and unsaved advanced-audio edits survive a refresh.
 Meters require current OBS meter events; missing measurements are unavailable.
 OBS monitoring routes audio on the OBS machine. It does not stream sound into a
 CoForge preview. The Music page still runs local Obsidian playback and needs one
@@ -63,6 +66,8 @@ recognition, current music display metadata and a fixed operator-reviewed Counci
 excerpt. Private Council tasks and provider output are never automatically read or
 published. Now-playing uses companion-note title/artist/attribution from the playing
 track, excluding its path and private playback state.
+To refresh now-playing text on track changes, explicitly bind its overlay cue to
+the music playback/track events in Show plan and enable event cues for the session.
 
 The composer changes shared OBS text immediately; its preview states that impact
 and whether a text-file source will switch to direct text. Revoked public content

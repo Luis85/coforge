@@ -2,6 +2,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import ObsProductionDesk from "../../../presentation/components/coforge/ObsProductionDesk.vue";
+import ObsAudioMixer from "../../../presentation/components/coforge/ObsAudioMixer.vue";
 import ObsSourceEditor from "../../../presentation/components/coforge/ObsSourceEditor.vue";
 import { useObsProductionUi } from "../../../presentation/stores/obs-production-ui";
 import {
@@ -67,7 +68,7 @@ it("reads sampled monitors, changes audio only on explicit input, and hides fram
       timecode: "00:01:00",
       observedAt: at,
     },
-    available: ["input-mute", "input-volume", "record-start"],
+    available: ["input-mute", "input-volume", "input-sync", "record-start"],
     inputKinds: [],
     filterKinds: [],
     inputs: [
@@ -80,7 +81,7 @@ it("reads sampled monitors, changes audio only on explicit input, and hides fram
           muted: false,
           volumeDb: -12,
           monitor: null,
-          syncOffset: null,
+          syncOffset: 120,
           tracks: null,
           peakDb: null,
           meterObservedAt: null,
@@ -102,6 +103,8 @@ it("reads sampled monitors, changes audio only on explicit input, and hides fram
     const action = obsProductionActionCheck(input);
     if (action.kind === "input-mute")
       value.inputs[0]!.audio.muted = action.muted;
+    if (action.kind === "input-sync")
+      value.inputs[0]!.audio.syncOffset = action.syncOffset;
     return structuredClone(value);
   });
   let frameFailure = false;
@@ -194,6 +197,49 @@ it("reads sampled monitors, changes audio only on explicit input, and hides fram
     expect(wrapper.get('button[aria-label="Unmute Microphone"]').text()).toBe(
       "Unmute",
     );
+    const mixer = mount(ObsAudioMixer, {
+      global: {
+        plugins: [fixture.pinia],
+        provide: { [coforgeKey as symbol]: context },
+      },
+    });
+    try {
+      const sync = mixer
+        .findAll("label")
+        .find((label) => label.text() === "Audio sync offset (ms)")!
+        .get<HTMLInputElement>("input");
+      expect(sync.element.value).toBe("120");
+      await sync.setValue("250");
+      await mixer
+        .findAll("button")
+        .find((button) => button.text() === "Apply sync offset")!
+        .trigger("click");
+      await flushPromises();
+      expect(execute).toHaveBeenLastCalledWith({
+        kind: "input-sync",
+        inputId: "mic",
+        syncOffset: 250,
+        expected: value.context,
+      });
+      expect(value.inputs[0]!.audio.syncOffset).toBe(250);
+      value.inputs[0]!.audio.syncOffset = 400;
+      await mixer
+        .findAll("button")
+        .find((button) => button.text() === "Refresh audio")!
+        .trigger("click");
+      await flushPromises();
+      expect(sync.element.value).toBe("400");
+      await sync.setValue("500");
+      value.inputs[0]!.audio.syncOffset = 600;
+      await mixer
+        .findAll("button")
+        .find((button) => button.text() === "Refresh audio")!
+        .trigger("click");
+      await flushPromises();
+      expect(sync.element.value).toBe("500");
+    } finally {
+      mixer.unmount();
+    }
     frameFailure = true;
     await wrapper
       .findAll("button")
@@ -243,7 +289,7 @@ it("reads sampled monitors, changes audio only on explicit input, and hides fram
         .find((button) => button.text() === "Apply browser URL")!
         .trigger("click");
       await flushPromises();
-      expect(execute).toHaveBeenCalledTimes(1);
+      expect(execute).toHaveBeenCalledTimes(2);
       const ui = useObsProductionUi(fixture.pinia);
       ui.transform = await production.transform("dev", 1);
       ui.transformRead = {
@@ -272,7 +318,7 @@ it("reads sampled monitors, changes audio only on explicit input, and hides fram
       expect(ui.transform).toBeNull();
       expect(ui.transformRead).toBeNull();
       expect(ui.sourceOptions).toEqual([]);
-      expect(execute).toHaveBeenCalledTimes(1);
+      expect(execute).toHaveBeenCalledTimes(2);
     } finally {
       editor.unmount();
     }

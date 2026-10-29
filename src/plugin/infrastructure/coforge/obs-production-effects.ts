@@ -98,7 +98,7 @@ export async function productionEffect(rpc: ObsProductionRpc, state: ObsProducti
         type = 'SetInputVolume'; payload = { inputVolumeDb: action.volumeDb };
       } else if (action.kind === 'input-monitor') { type = 'SetInputAudioMonitorType'; payload = { monitorType: action.monitor }; }
       else if (action.kind === 'input-sync') {
-        if (!Number.isInteger(action.syncOffset) || Math.abs(action.syncOffset) > 20000) validation('Audio sync must be within 20,000 ms.');
+        if (!Number.isInteger(action.syncOffset) || action.syncOffset < -950 || action.syncOffset > 20000) validation('Audio sync must be between -950 and 20,000 ms.');
         type = 'SetInputAudioSyncOffset'; payload = { inputAudioSyncOffset: action.syncOffset };
       } else {
         if (!Object.keys(action.tracks).length || Object.entries(action.tracks).some(([key, value]) => !/^[1-6]$/.test(key) || typeof value !== 'boolean')) validation('Choose at least one audio track setting using track numbers 1 through 6.');
