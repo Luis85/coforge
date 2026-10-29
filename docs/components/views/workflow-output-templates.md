@@ -95,6 +95,32 @@ writing or asking Obsidian's file manager to delete a file. The adapter rechecks
 the note bytes and target immediately before deletion; Obsidian does not offer
 an atomic compare-and-delete operation.
 
+## Repairing externally edited files
+
+The plugin creates block frontmatter like this; the body is the answer guidance:
+
+```markdown
+---
+coforge:
+  schema: coforge-output-template/v1
+  id: answer-outline
+  projectId: CFP-001
+  name: Answer outline
+---
+# Summary
+
+## Evidence
+
+## Next steps
+```
+
+Keep an existing template's ID and project identity when editing or renaming its
+file. A copied template needs a fresh unique ID. Use the owning project's actual
+ID and keep the note in that project's template folder. Indented block metadata,
+flow values and comments are preserved. A complete root flow mapping must be
+converted to block properties before plugin edits; an unsupported layout is
+rejected before writing, leaving the original file intact.
+
 Run admission captures template identity, revision and Markdown. Native, Herdr and
 external MCP attempts use that captured guidance, including later steps and retries.
 Council preflight captures the same data and requires a new review if its inputs

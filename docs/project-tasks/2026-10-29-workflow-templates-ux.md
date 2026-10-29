@@ -1,6 +1,6 @@
 # Task: Understand, design and operate agent workflows
 
-- Status: in progress
+- Status: implementation and polishing complete; final qualification and merge are tracked in [PR41](https://github.com/Luis85/coforge/pull/41).
 - Journey: BRIEF configurable workflows; owner requests on 2026-10-29.
 - Base: f1d166a (PR37). Branch: codex/workflow-templates-ux.
 
@@ -129,4 +129,37 @@ subagent increments are tracked in
 
 ## Untested scope
 
-Implementation and end-to-end validation are in progress. No success claimed yet.
+No paid provider, live service or personal vault was used. Final aggregate and merge evidence is tracked in PR41; local timeouts and isolated-port checks remain explicitly distinguished from CI.
+
+## Final review and qualification
+
+The research-informed second pass and independent closeout review are complete.
+Measured findings were fixed: missing admission feedback, captured provenance,
+hidden-field repair, template dependency disclosure, asynchronous project state,
+explicit-action focus handoffs, contextual action labels and long-name reflow.
+The final 320px proof records 224px content/224px scroll width for the selected
+source, captured source and entire run page, with no overflowing elements.
+
+- Requested source-backed browser cases: 4 passed (CRUD/keyboard/reference flows
+  in both themes, shared proposal preflight invalidation, and long-name reflow).
+- `npm run test:ui-quality -- --config .nq/playwright-isolated.config.ts`: 8 passed
+  in 53.6s; isolated port 4183 preserves all assertions, timeouts and retries because
+  an unrelated local job owned default port 4181. CI retains its default port.
+- `npm run ui:gallery`: 40 captures, exit 0; representative gallery frames and
+  focused final workflow captures reviewed. No screenshot baselines changed.
+- Native project journey after save-completion synchronization: 3 tests passed
+  in 30.50s. The actual template CRUD/metadata/edit/delete/reload/snapshot journey
+  also passed locally; its completed-run screenshot was reviewed.
+- The combined branch's native CI suite and reload smoke passed after the test
+  awaited the real settings save; no runtime navigation guard was weakened.
+- Final note-integrity regression: 4 storage tests passed, including indented YAML,
+  inline/standalone comments, exact unknown bytes and no write on unsafe layout.
+- Full CI code gate passed on the combined runtime (5 checks, 165.6s). Subsequent
+  structured diagnostics exposed four catalogue failures from concurrent upstream
+  documentation shorthand links; canonical links were restored while preserving
+  the author's new parent targets and fractional ordering.
+
+Final aggregate checks on the final PR revision, retained diagnostics, and the
+merge result are authoritative in PR41. Local preliminary aggregate/browser runs
+hit their unchanged time budgets under host load; the isolated focused results
+and full CI results are recorded separately rather than conflated.

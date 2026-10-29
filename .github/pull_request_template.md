@@ -1,43 +1,49 @@
 ## Summary
 
-Workflow steps lacked reusable Markdown answer formats, and the editor put technical settings before the task. Add a project-scoped template library with create, preview, edit, open and delete controls, attach templates to request and proposal workflow steps, and retain their exact contents for existing runs.
+Add project-scoped Markdown answer/output templates with plugin create, read/preview/open, edit and confirmed delete controls. Request AI steps and proposal agent/council steps select one template; admission retains its exact content and revision for existing runs and retries. Missing templates produce a visible automatic-admission hold without creating a run or provider attempt.
 
-Overhaul workflow authoring and monitoring: purpose-first steps, visible configuration summaries, actionable validation, manageable proposal steps, explicit next actions, captured configuration, dependency-aware deletion, and reliable keyboard focus and narrow-pane reflow.
+Overhaul workflow authoring and operation: purpose-first steps, manageable proposal sections, visible agent/access/automation summaries, actionable field-repair links, explicit next actions, captured configuration/history, dependency-aware deletion, and predictable keyboard focus. Complete a second research-informed improvement plan and independent review, fixing measured accessibility, reflow and note-integrity defects.
 
 ## Requirements and traceability
 
-- Owner requests (2026-10-29): project-scoped Markdown Answer/Output Templates and a comprehensive workflow UX overhaul, researched second review, subagent-driven implementation, end-to-end polish and merge after green checks.
-- BRIEF.md records the scope and preserves explicit saves, project ownership, validated result contracts, host permissions, recovery and final human review.
-- No imported req-* or vi-* IDs apply: the traceability arrays are empty and generated traceability is unchanged.
-- Plans: docs/project-tasks/2026-10-29-workflow-templates-ux.md and docs/project-tasks/2026-10-29-workflow-second-review.md. The second plan links primary-source research and maps each finding to acceptance and ownership.
-- Updated workflow view contracts and generated sitemap: 93 documented views, valid navigation coverage.
+- Owner requests on 2026-10-29; BRIEF.md records project ownership, Markdown CRUD, full workflow UX review, researched subagent increments and merge only after green checks.
+- No imported req-* or vi-* obligation applies: the arrays are empty; generated traceability is unchanged.
+- Plans and linked primary-source research: docs/project-tasks/2026-10-29-workflow-templates-ux.md and docs/project-tasks/2026-10-29-workflow-second-review.md.
+- Updated workflow view contracts and generated sitemap: 102 views documented, valid navigation coverage.
+- Integrated current main without force: preserved Twitch operations and the owner's later documentation ownership/order edits; only unsupported shorthand links were expanded to canonical clickable links.
 
 ## Validation
 
-Draft qualification is in progress. This PR must not merge until final local validation and required GitHub CI are green.
+Final current-revision aggregate results and merge status are recorded on [PR41](https://github.com/Luis85/coforge/pull/41). Required CI must be green before merge; result lines below are from commands actually run.
 
-- Exact local toolchain provisioned inside ignored .nq: checksum-verified Node 24.21.0 and integrity-verified npm 11.19.1. npm ci --ignore-scripts: 691 packages added, 692 audited, 0 vulnerabilities.
-- Template backend second-pass suite: 13 focused tests passed; final exact captured-source regression: 1 passed. Storage, native-vault v2 admission, immutable snapshots, conflicts, project isolation, missing-template holds and explicit recovery are covered.
-- Frontend focused regression: 7 files / 20 tests passed; subsequent exact checklist-repair focus regressions: 3 passed.
-- Template focus/reactivity regressions: 2 files / 8 tests passed. Initial raw-record observability defects were reproduced, corrected and rechecked.
-- Template dependency query, late project response, runtime wiring and lifecycle regression subset: 4 files / 7 tests passed.
-- Source line caps and locale parity passed (3201 inputs, 226 translated keys); scoped ESLint passed with zero warnings; git diff --check clean. No thresholds, lint rules, assertions or screenshot baselines were weakened.
-- Preliminary npm run verify:project: typecheck, source lint, zero-warning ESLint and maker types passed; full product test step hit its unchanged 600-second limit under concurrent local load. An existing Herdr Git test also exceeded its 5-second test budget. Final verification is running serially against frozen source.
-- Self-review: canonical notes preserve stable IDs and unrelated frontmatter; conflict errors retain drafts; template note writes precede named project-scoped events; observer failures do not turn successful writes into retries. Missing references create no provider attempt. Snapshots are private, and current host permissions still revalidate on every attempt.
+- Pinned local Node 24.21.0 / npm 11.19.1 provisioned in ignored .nq using checksum/integrity verification. npm ci --ignore-scripts: 691 added, 692 audited, 0 vulnerabilities. No dependency or lockfile changes.
+- Combined-runtime npm run verify:project in CI: 5 passed, 0 failed, 0 skipped in 165.6s; release build and prototype embedding passed. Later full diagnostics showed 1119 passed / 4 failed, all four caused by concurrently updated catalogue links. After canonicalization, focused catalogue: 1 file / 11 tests passed, including all four failing assertions; final aggregate CI requalifies the final revision.
+- Backend second pass: 13 focused tests passed; exact captured-source regression passed. Canonical storage, cross-project rejection, stale edits, immutable v1/v2 snapshots, automatic admission holds and explicit recovery covered.
+- Final Markdown codec integrity: 4 storage tests passed after reproducing indented YAML corruption. Indentation/comments and unknown properties are retained; the assembled note is validated before write; unsupported root flow layout leaves original bytes unchanged.
+- Frontend focused regression: 7 files / 20 tests passed; exact checklist repair 3/3; focus/discard regressions 2 files / 9 tests; contextual action-label regressions 4/4. Targeted ESLint passed with zero warnings.
+- Dependency query, late project response, runtime wiring and lifecycle subset: 4 files / 7 tests passed. Source line limits/locale parity passed; git diff --check clean.
+- JSON and JUnit reports now supplement the original reporters; CI retains them without changing assertions, warning behavior, timeouts, isolation or output limits.
 
 ## UI evidence
 
-- Fresh source-backed before/after workflow captures inspected in reports/workflow-audit/. Research-informed focus diagnostics reproduced lost focus; explicit action handoffs now have behavioral tests.
-- Focused source-backed browser diagnostic: 3 scenarios passed (request template CRUD/attachment/manual checkpoint in light and dark; shared proposal template and reviewed-preflight invalidation). The diagnostic used an ignored prebuilt-server config after standard startup timed out under local load; assertions were unchanged.
-- Preliminary full standard browser run was interrupted at 51/198 after 47 passes and 4 timeouts (two old multi-goal Council journeys, two unrelated economy catalog journeys). Council tests were split by user goal without removing assertions or changing the 30-second limit. Final full standard run, UI quality and final gallery remain pending.
-- Baseline gallery: 40 captures, exit 0. Final confirmation captures are pending; baseline images are never committed or accepted to silence a failure.
+- Requested source-backed browser flows: 4/4 passed, covering template CRUD/attachment, project references, manual checkpoint/keyboard behavior in both themes, shared proposal templates/review invalidation and long-name reflow.
+- Actual 320px proof with valid 100-character names: selected source, captured source and whole run page each clientWidth 224 / scrollWidth 224; overflowingElements []. The prior measured 1121px overflow was corrected.
+- Proposal axe verified the contextual button-label fix; labels include the visible Duplicate step / Remove step words. No additional measured defect remains.
+- npm run test:ui-quality -- --config .nq/playwright-isolated.config.ts: 8 passed (53.6s), exit 0. Only local port/baseURL changed to 4183 because an unrelated job owned 4181; tests, timeouts and retries unchanged. CI keeps the default config/port.
+- npm run ui:gallery: exit 0, 40 captures. Reviewed representative gallery frames, final light/dark library/editor images, captured/selected Markdown, native completed run and exact narrow-pane geometry. No baselines updated or committed.
+- Proofs: reports/workflow-output-templates/; catalogue gallery: reports/ui-gallery/. CI uploads current proof images and JSON alongside the existing reports.
 
 ## Obsidian evidence
 
-- Pinned app/installer 1.14.4 and launcher 3.2.1 provisioned inside this checkout's contained host directories.
-- Initial native template journey failed to load after new event codes exceeded the existing logging catalog cap. The runtime integration test reproduced it; routing those events into the existing tools catalog fixed it without raising the limit. Runtime regression is green.
-- Final contained-host suite and reload smoke are pending the final production build. No personal vault was opened or modified.
+- Pinned app/installer 1.14.4 and launcher 3.2.1, contained vaults/profiles only.
+- Combined branch native CI: 32 tests passed; reload smoke passed with errors [] and hostErrorCount 0 after the native test waited for actual settings-save completion. Runtime navigation/draft guards stayed intact.
+- Local native project subset: 3/3 passed (30.50s); the previously failing request case passed in 13.426s. Actual template CRUD/edit/delete/reload/snapshot journey also passed locally (21.742s), and its completed-run screenshot was inspected.
+- Captured current/prior run template content is displayed from snapshots only, including exact source; no live note lookup or provider dispatch is introduced by inspection.
 
-## Untested scope
+## Self-review and limitations
 
-No paid model call, live Herdr service, live stream/OBS/Twitch integration or personal vault was used. Browser data is explicitly temporary; native Markdown and reload tests qualify actual persistence. Platform-specific Unix tests may skip on Windows; final Linux CI is required. No release, tag or global installation is requested.
+Canonical notes retain stable IDs and unrelated frontmatter. Conflicts retain drafts. Named project facts follow successful writes; observer failure cannot turn a successful save into a retry. Private folders and public projections remain separate. Host permissions, finite execution limits, uncertainty recovery, validated output contracts and final human code review remain authoritative.
+
+Local preliminary aggregate/browser runs hit unchanged time budgets under host load; one legacy light proposal journey still timed out locally after its business assertions, while its dark counterpart and all four requested flows passed. These are distinguished from required full current-head CI results. No test, lint rule, timeout, output bound or screenshot baseline was weakened. Native deletion follows the user's Obsidian preference with exact-content/target rechecks; the host has no atomic compare-and-delete API.
+
+No paid model, live Herdr/Twitch/OBS service or personal vault was used. No release/tag/global install was requested. The plugin build is produced locally and in CI; the personal installed plugin is not modified.
