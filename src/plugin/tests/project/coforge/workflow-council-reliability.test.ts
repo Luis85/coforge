@@ -8,6 +8,7 @@ import { testCouncilBinding } from './workflow-council-test-binding';
 import { contextEventId } from '../../../features/coforge/domain/integrity';
 import { record } from '../../../features/coforge/domain/check';
 import { councilWorkflowInputs } from '../../../features/coforge/application/workflow-council-context';
+import { captureRequestObject, REQUEST_OBJECT_FORMAT } from '../../../features/coforge/domain/request-object';
 
 const cleanups: Array<() => Promise<void>> = [];
 afterEach(async () => { for (const cleanup of cleanups.splice(0)) await cleanup(); });
@@ -162,6 +163,28 @@ it.each([undefined, 'all', 'selected', 'none'] as const)('captures exact earlier
   const context = record(JSON.parse(f.calls[0]!.context));
   expect(context.boundArtifacts).toHaveLength(mode === 'none' ? 0 : 1);
   if (mode !== 'none') expect(context.boundArtifacts).toEqual([expect.objectContaining({ markdown: 'Earlier private analysis.' })]);
+});
+
+it('includes canonical request inputs with no earlier results while excluding derived workflow outputs', async () => {
+  const f = await fixture({ earlierCode: true, contextMode: 'none' });
+  const at = new Date().toISOString();
+  await f.studio.store.transaction(state => {
+    const idea = state.ideas.find(item => item.id === f.id)!;
+    idea.category = 'Tools'; idea.requestKind = 'bug';
+    idea.requestObject = captureRequestObject({ format: REQUEST_OBJECT_FORMAT, className: 'Game request', fields: [{ key: 'targetPlatform', label: 'Target platform', type: 'text' }], categories: ['Tools'] }, { targetPlatform: 'desktop' });
+    idea.contexts = [{ id: 'context-one', authorId: 'private-viewer-id', authorName: 'Viewer One', text: 'Please support keyboard-only play.', createdAt: at }];
+    idea.screening = { verdict: 'clear', reason: 'Derived screening result.', signals: [], provider: 'demo', checkedAt: at };
+    idea.rice = { reach: 42, impact: 1, confidence: 0.8, effort: 2, score: 16.8, rationale: 'Derived prioritization.' };
+    idea.plan = { summary: 'Derived plan.', steps: ['A planned step.'], acceptanceCriteria: ['A planned criterion.'], risks: [], markdown: '# Derived plan', createdAt: at };
+  });
+  await f.studio.startWorkflow(f.id); await vi.waitFor(() => expect(f.current().cursor).toBe(1));
+  await f.studio.runWorkflowStep(f.id);
+  const context = record(JSON.parse(f.calls[0]!.context)); const subject = record(context.untrustedRequest);
+  expect(subject).toMatchObject({ id: f.id, projectId: 'CFP-001', category: 'Tools', requestKind: 'bug', requestObject: { className: 'Game request', values: { targetPlatform: 'desktop' } } });
+  expect(subject.contexts).toEqual([{ authorName: 'Viewer One', text: 'Please support keyboard-only play.', createdAt: at }]);
+  expect(context.boundArtifacts).toEqual([]);
+  for (const field of ['screening', 'rice', 'plan', 'increment']) expect(subject).not.toHaveProperty(field);
+  expect(f.studio.state().ideas.find(idea => idea.id === f.id)?.increment?.files).toHaveLength(1);
 });
 
 it('never falls back to all context for an explicit empty selected mode', async () => {

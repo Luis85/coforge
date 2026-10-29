@@ -75,7 +75,15 @@ export class ConfiguredWorkflowCouncil {
       const attempt = run?.attempts.find(item => item.id === run.activeAttemptId); const step = run?.definition.steps[run.cursor];
       if (!idea || !run || run.state !== 'running' || attempt?.kind !== 'council' || attempt.status !== 'queued' || step?.kind !== 'council') return null;
       if (workflowProposalRevision(idea) !== run.proposalRevision) throw new AgentTaskNotStartedError('The request changed before Council admission.');
-      const context = JSON.stringify({ untrustedRequest: { id: idea.id, projectId: run.projectId, title: idea.title, description: idea.description }, boundArtifacts: councilWorkflowInputs(run, step) });
+      const context = JSON.stringify({
+        untrustedRequest: {
+          id: idea.id, projectId: run.projectId, title: idea.title, description: idea.description,
+          category: idea.category, requestKind: idea.requestKind ?? 'feature',
+          ...(idea.requestObject ? { requestObject: idea.requestObject } : {}),
+          contexts: idea.contexts?.map(({ authorName, text, createdAt }) => ({ authorName, text, createdAt })) ?? [],
+        },
+        boundArtifacts: councilWorkflowInputs(run, step),
+      });
       if (context.length > 60000) throw new AgentTaskNotStartedError('Council context exceeds 60000 characters. Reduce the selected inputs.');
       attempt.status = 'running'; attempt.nudgeState = 'reserved'; attempt.nudgeSourcePath = `CoForge/Automations/nudge-${attempt.id}.md`; touch(run);
       return { projectId: run.projectId, ideaId, workflowRunId: run.id, attemptId: attempt.id, stepId: step.id, title: `${idea.title} · ${step.name}`.slice(0, 160), councilId: step.councilId, councilBinding: workflowCouncilBinding(run, step), agentId: '', teamId: '', prompt: step.instructions, context, sourcePath: attempt.nudgeSourcePath,
