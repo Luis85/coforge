@@ -9,10 +9,11 @@ channel, audience, ledger or recorded broadcasts.
 
 | Family | Destinations, in working order | Data scope |
 | --- | --- | --- |
-| Build & Improve | [Idea board](views/board.md), [The Council](views/council.md), [CoWorkers](views/coworkers.md), [Agent workflow](views/workflow.md), [Project settings](views/settings.md) | Selected project; reusable CoWorkers and definition folders belong to the vault. |
+| Build & Improve | [Idea board](views/board.md), [The Council](views/council.md), [CoWorkers](views/coworkers.md) | Selected project; reusable CoWorkers and definition folders belong to the vault. |
 | Stream | [Stream studio](views/broadcast.md), [Schedule](views/schedule.md), [Stream chat](views/stream.md) | Shared channel; scheduling can attribute a stream to a project. |
 | Community | [Community](views/community.md), [Viewers](views/population.md), [Economy](views/economy.md), [Community settings](views/community-settings.md) | Shared channel recognition, observed viewers, currency prices and participation rules. |
 | Insights | [Statistics](views/statistics.md), [AI costs](views/ai-costs.md), [Finances](views/finance.md), [Operations](views/operations.md) | Recorded channel evidence; AI costs spans vault projects and has its own project filter. |
+| Persistent bottom entry | [Project settings](views/settings.md), including [Agent workflow](views/workflow.md) | Selected-project configuration and execution; data tools explicitly identify any all-project action. |
 
 [Projects](views/projects.md) is the project switcher's destination. The switcher
 remains visible while working with shared channel tools. It identifies the project
@@ -29,15 +30,17 @@ their own narrower scope.
 
 ## Destination and task boundaries
 
-Every root has one home. Configuration sits beside the work it changes rather
-than in an unrelated footer. Stream studio is the initial destination. Idea board
-requires a selected project. Agent workflow, its settings task and Council can
+Every root has one home. Project settings remains reachable at the bottom of main
+navigation independently of collapsed task groups. Stream studio is the initial
+destination. Idea board requires a selected project. Project settings, Agent
+workflow and Council can
 explain their prerequisites before a project exists.
 
 Subpages keep focused tasks together without expanding the global navigation:
 
 - Stream studio: Broadcast, Setup, Scenes, Music, Public displays and History.
 - Stream chat: Chat, Twitch settings and Bot messages.
+- Project settings: General, Requests, Repository, Agent workflow, Runtime and Data & examples.
 - Agent workflow: Workflow runs, Herdr workspaces and Workflow settings.
 - Economy: Command prices, Earning, Rewards, Loot boxes and Fulfillment.
 - The Council opens on Ask the Council: a question intake and retained task
@@ -46,10 +49,13 @@ Subpages keep focused tasks together without expanding the global navigation:
   folders.
 - Request details: Overview, Plan, Increment and Activity.
 
-Workflow settings configures the same project process that Agent workflow monitors,
-so it lives in that workspace's local navigation. One shared heading and project
-context surround the focused editor. Configuration remains a distinct task from
-execution, and its dirty-draft guard applies when moving between local tasks.
+Agent workflow is a Project settings subpage. Workflow settings configures the
+same process that Workflow runs monitors, so both remain distinct nested tasks.
+One Project settings heading frames these tasks. General, Requests and Repository
+share a project-settings draft; workflow authoring has its own save boundary.
+Dirty-draft guards apply across nested tasks and global destinations. Runtime
+shows observations rather than unsaved configuration; Data & examples distinguishes
+the all-project private backup from selected-project sample replacement.
 
 Economy owns currency earning, subscriber totals, all command fees and benefits,
 and the reward catalog. Community settings keeps naming, XP, reputation and ranks;
@@ -87,9 +93,10 @@ owns root labels, icons, groups, ordering, scope and project prerequisites. Side
 and top bar derive their state from this contract. `StudioView` remains the stable
 route union, so adding a locator requires an exhaustive destination entry. The
 project switcher replaces an additional Projects row; each visible global
-destination appears exactly once in the grouped sidebar. The compatibility
-`workflow-settings` locator declares Agent workflow as its parent and has no
-separate sidebar row. Agent workflow stays current while its settings task is open.
+destination appears exactly once. Project settings lives below the grouped
+destinations. Agent workflow declares Project settings as its parent, and the
+compatibility `workflow-settings` locator declares Agent workflow as its parent.
+Recursive ownership keeps Project settings current throughout those nested tasks.
 
 One canonical view may cover multiple internal locators. Workflow settings maps
 both the retained studio alias and the local workflow `settings` page to its one

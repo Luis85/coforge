@@ -38,7 +38,7 @@ const model = useSettingsForm();
         <dd class="cf-mono">
           {{
             model.store.activeProject?.projectPath ||
-            "Not configured · set it in Agent workspace"
+            "Not configured · set it under Repository"
           }}
         </dd>
       </div>
@@ -70,8 +70,8 @@ const model = useSettingsForm();
       </div>
     </dl>
     <p class="cf-settings-help">
-      Set the project path and build permission in Agent workspace above.
-      Configure Herdr on Agent workflow. The native Claude Code executable and
+      Set the project path and build permission under Repository.
+      Configure Herdr under Agent workflow → Herdr workspaces. The native Claude Code executable and
       Twitch connection are configured in
       <strong>Settings → Community plugins → CoForge</strong>. Tokens stay in
       Obsidian’s secret storage.

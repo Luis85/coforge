@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 import { mkdir } from 'node:fs/promises';
+import { openProjectSettings } from '../support/settings-navigation';
 
 for (const theme of ['light', 'dark']) {
   test(`example cleanup preserves manual work and requires reviewed confirmation in ${theme}`, async ({ page }) => {
@@ -20,7 +21,7 @@ for (const theme of ['light', 'dark']) {
     await expect(dialog).toHaveCount(0);
     const notification = page.getByRole('button', { name: 'Dismiss notification', exact: true });
     if (await notification.count()) await notification.first().click();
-    await nav.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await openProjectSettings(page, 'Data & examples');
     const cleanup = page.getByRole('region', { name: 'Remove example and local-test content', exact: true });
     await cleanup.getByRole('button', { name: 'Preview example cleanup', exact: true }).click();
     await expect(cleanup).toContainText('15 requests selected');

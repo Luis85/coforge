@@ -3,12 +3,12 @@ id: settings-request-object
 title: Project Request Object
 goal: Configure categories, class and optional properties captured by new requests.
 audience: streamer
-kind: panel
-route: Project settings / Request Object
+kind: subpage
+route: studio.settingsTool = requests
 parent: "[[docs/components/views/settings]]"
 component: src/plugin/presentation/components/coforge/SettingsRequestObjectSection.vue
 entry:
-  - Open Project settings and review Request Object.
+  - Open Project settings, then Requests.
 actions:
   - Maintain project categories
   - Set class label
@@ -27,6 +27,9 @@ journeys:
   - multi-project
   - request-to-recognition
 privacy: Private project configuration and request metadata; custom fields are excluded from public projections.
+coverage:
+  group: settings
+  key: requests
 order: 78000
 type: PBI
 status: ""
@@ -49,7 +52,7 @@ Choose a plain frontmatter class label and optional text, number, date, checkbox
 
 ## Entry and next action
 
-Open Project settings, edit Request Object, then save project settings explicitly. A class label is optional; fields can exist without one. Fields have stable native property keys, readable labels, supported types and optional defaults. Select defaults must belong to the configured options. All custom fields are optional and chat commands retain their existing syntax, using defaults when configured.
+Open Project settings, choose Requests, edit Request Object, then save project settings explicitly. A class label is optional; fields can exist without one. Fields have stable native property keys, readable labels, supported types and optional defaults. Select defaults must belong to the configured options. All custom fields are optional and chat commands retain their existing syntax, using defaults when configured.
 
 Maintain one category per line, with at least one unique category. The first category is the default for new chat requests. Existing requests keep their recorded categories, and board filters include historic categories alongside the current configuration.
 

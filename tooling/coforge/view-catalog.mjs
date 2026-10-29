@@ -110,13 +110,14 @@ export function sourceCoverage(views, root) {
     council: pageIds("COUNCIL_PAGES"),
     broadcast: pageIds("BROADCAST_PAGES"),
     workflow: pageIds("WORKFLOW_PAGES"),
+    settings: pageIds("SETTINGS_PAGES"),
     economy: pageIds("ECONOMY_PAGES"),
     stream: pageIds("STREAM_PAGES"),
     public: [...requiredMatch(surfaces, /export const STREAM_SURFACES = \[([\s\S]*?)\] as const/, "public surface").matchAll(/id:\s*["']([^"']+)["']/g)].map((match) => match[1]),
   };
   const documentedMappings = views.flatMap(view => coverageMappings(view).map(mapping => ({ ...mapping, file: view.file })));
   const parents = studioParents(root);
-  const localParents = { council: 'council', broadcast: 'broadcast', workflow: 'workflow', economy: 'economy', stream: 'stream', idea: 'idea-detail', public: null };
+  const localParents = { council: 'council', broadcast: 'broadcast', workflow: 'workflow', settings: 'settings', economy: 'economy', stream: 'stream', idea: 'idea-detail', public: null };
   for (const [group, expected] of Object.entries(groups)) {
     if (!expected.length) throw new Error(`${group}: empty navigation contract; update catalogue coverage adapter`);
     const documented = documentedMappings.filter(mapping => mapping.group === group).map(mapping => mapping.key);

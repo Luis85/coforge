@@ -3,12 +3,12 @@ id: settings-repository
 title: Project repository settings
 goal: Set the repository boundary used by agent work.
 audience: streamer
-kind: panel
-route: Project settings / repository
+kind: subpage
+route: studio.settingsTool = repository
 parent: "[[docs/components/views/settings]]"
 component: src/plugin/presentation/components/coforge/SettingsRepositorySection.vue
 entry:
-  - Within Project settings, edit the Agent workspace fields.
+  - Open Project settings, then Repository.
 actions:
   - Edit workspace and repository fields
   - Review implementation authorization
@@ -23,6 +23,9 @@ journeys:
   - setup
   - workflow-configuration
 privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: settings
+  key: repository
 order: 77000
 type: PBI
 status: ""
@@ -47,7 +50,7 @@ Build edits stay in a separate worktree. A general prompt and editable workflow 
 
 ## Entry and next action
 
-Within Project settings, edit the Agent workspace fields. Available actions: Edit workspace and repository fields; Review implementation authorization; Save project settings. Return through the owning [Project settings](settings.md) surface.
+Open Project settings, choose Repository, then edit the Agent workspace fields. Available actions: Edit workspace and repository fields; Review implementation authorization; Save project settings. Return through the owning [Project settings](settings.md) surface.
 
 ## States and recovery
 

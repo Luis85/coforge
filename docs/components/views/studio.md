@@ -48,8 +48,9 @@ Reach the private workspace for the task at hand.
 
 The shell owns navigation, header, notifications and overlays. Stream studio opens initially. Shared chat and background processing survive project selection.
 
-Navigation follows Build & Improve, Stream, Community and Insights. Project and Community
-settings sit with the work they configure. Projects opens through the persistent
+Navigation follows Build & Improve, Stream, Community and Insights. Project settings
+is a persistent entry at the bottom and owns Agent workflow; Community settings
+stays in Community. Projects opens through the persistent
 project switcher. The top bar identifies the actual data scope: project identity
 for Build & Improve work, Channel workspace for shared tools, and Vault workspace for
 cross-project data. CoWorkers has a dedicated vault-wide inventory in Build &

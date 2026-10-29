@@ -17,13 +17,14 @@ it('collapses groups independently, restores them after remount and leaves proje
     expect(toggle.attributes('aria-expanded')).toBe('true');
     await toggle.trigger('click');
     expect(wrapper.get('button[aria-label="Expand Build & Improve"]').attributes('aria-expanded')).toBe('false');
-    expect(wrapper.get('button[title="Agent workflow"]').isVisible()).toBe(false);
+    expect(wrapper.get('button[title="The Council"]').isVisible()).toBe(false);
+    expect(wrapper.get('button[title="Project settings"]').isVisible()).toBe(true);
     expect(wrapper.get('button[title="Stream studio"]').isVisible()).toBe(true);
     expect(JSON.parse(localStorage.getItem(key) ?? 'null')).toEqual(['build']);
     wrapper.unmount(); wrapper = mount(StudioSidebar, options);
-    expect(wrapper.get('button[title="Agent workflow"]').isVisible()).toBe(false);
+    expect(wrapper.get('button[title="The Council"]').isVisible()).toBe(false);
     await wrapper.get('button[aria-label="Expand Build & Improve"]').trigger('click');
-    expect(wrapper.get('button[title="Agent workflow"]').isVisible()).toBe(true);
+    expect(wrapper.get('button[title="The Council"]').isVisible()).toBe(true);
     expect(fixture.storage.saves).toBe(saves);
     expect(fixture.runner).not.toHaveBeenCalled();
   } finally { wrapper.unmount(); await fixture.dispose(); }

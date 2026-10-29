@@ -8,7 +8,7 @@ route: studio.workflowTool = herdr
 parent: "[[docs/components/views/workflow]]"
 component: src/plugin/presentation/components/coforge/HerdrPanel.vue
 entry:
-  - Open Agent workflow, then choose Herdr workspaces.
+  - Open Project settings, Agent workflow, then Herdr workspaces.
 actions:
   - Refresh identities
   - Manage native agents
@@ -52,7 +52,7 @@ A dispatch prefixes the parent-project prompt. Verify agent and directory. Deliv
 
 ## Entry and next action
 
-Open Agent workflow, then choose Herdr workspaces. Available actions: Refresh identities; Manage native agents; Review dispatch; Send; Acknowledge recovery. Return through the owning [Agent workflow](workflow.md) surface.
+Open Project settings, Agent workflow, then Herdr workspaces. Available actions: Refresh identities; Manage native agents; Review dispatch; Send; Acknowledge recovery. Return through the owning [Agent workflow](workflow.md) surface.
 
 ## States and recovery
 

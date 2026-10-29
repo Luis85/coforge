@@ -3,12 +3,12 @@ id: settings-data
 title: Backup and sample tools
 goal: Export a private studio backup or explicitly replace this project’s requests with sample data.
 audience: streamer
-kind: panel
-route: Project settings / data tools
+kind: subpage
+route: studio.settingsTool = data
 parent: "[[docs/components/views/settings]]"
 component: src/plugin/presentation/components/coforge/SettingsDataSection.vue
 entry:
-  - Within Project settings, use Backup and sample tools.
+  - Open Project settings, then Data & examples.
 actions:
   - Export private JSON backup
   - Request sample replacement
@@ -22,6 +22,9 @@ journeys:
   - setup
   - recovery
 privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: settings
+  key: data
 order: 75000
 type: PBI
 status: ""
@@ -46,7 +49,7 @@ Private backup includes all projects, ideas, plans, settings and activity in the
 
 ## Entry and next action
 
-Within Project settings, use Backup and sample tools. Available actions: Export private JSON backup; Request sample replacement; Keep data or confirm replacement. Return through the owning [Project settings](settings.md) surface.
+Open Project settings, choose Data & examples, then use Backup and sample tools. Available actions: Export private JSON backup; Request sample replacement; Keep data or confirm replacement. The backup covers the entire private studio; sample replacement targets the selected project. Return through the owning [Project settings](settings.md) surface.
 
 ## States and recovery
 

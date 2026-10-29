@@ -4,11 +4,11 @@ title: Example content cleanup
 goal: Review and explicitly remove sample and local-test content while preserving real requests.
 audience: streamer
 kind: panel
-route: Project settings / Backup and sample tools / Example cleanup
+route: Project settings / Data & examples / Example cleanup
 parent: "[[docs/components/views/settings-data]]"
 component: src/plugin/presentation/components/coforge/ExampleContentCleanup.vue
 entry:
-  - Open Project settings, then Preview example cleanup under Backup and sample tools.
+  - Open Project settings, Data & examples, then Preview example cleanup.
 actions:
   - Preview exact tracked requests
   - Inspect historical candidates

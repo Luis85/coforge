@@ -62,6 +62,13 @@ a provider request.
 The Idea board appears first in Build navigation, followed by The Council and
 Agent workflow (owner correction, 2026-10-28).
 
+Project settings structure (owner revision, 2026-10-29): make Project settings a
+persistent main-navigation entry at the bottom. Move Agent workflow and its
+Workflow runs, Herdr workspaces and Workflow settings into a Project settings
+subpage. Group project configuration into focused General, Requests, Repository,
+Agent workflow, Runtime, and Data & examples tasks. Navigation preserves existing
+draft, explicit save, execution, privacy and recovery boundaries.
+
 Navigation correction (owner, 2026-10-29): the expanded left navigation needs more
 width and should fit ordinary desktop-height panes without unnecessary scrolling.
 Remove the repeated project-work-context banner from work views. The project
@@ -168,7 +175,7 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ### Configurable workflows (owner decisions, 2026-10-28)
 
-- Give agent workflows a private Workflow settings subpage under Agent workflow, alongside Workflow runs and Herdr workspaces (owner revision, 2026-10-28). Configuration, execution monitoring and project settings remain distinct tasks.
+- Give agent workflows a private Workflow settings subpage under Agent workflow, alongside Workflow runs and Herdr workspaces (owner revision, 2026-10-28). Agent workflow belongs to Project settings (owner revision, 2026-10-29); configuration and execution monitoring remain distinct local tasks.
 - Each project owns its workflow. New projects start with the standard Screen/Score/Plan/Build process.
 - The streamer can add, rename, duplicate, remove, replace and reorder all steps, including core steps.
   Support AI steps and manual approval/checklist steps. Each AI step has a prompt, provider/agent/model,

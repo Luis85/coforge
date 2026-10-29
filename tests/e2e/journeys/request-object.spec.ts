@@ -29,6 +29,7 @@ for (const theme of ['light', 'dark']) {
     await project.getByRole('button', { name: 'Create project', exact: true }).click();
     const settingsButton = page.locator('.cf-sidebar').getByRole('button', { name: 'Project settings', exact: true });
     await settingsButton.click();
+    await page.getByRole('navigation', { name: 'Project settings pages', exact: true }).getByRole('button', { name: /^Requests(?:\s|$)/ }).click();
     await page.getByLabel('Request note class', { exact: true }).fill('Business Idea');
     const categories = page.getByLabel('Request categories', { exact: true });
     await categories.fill('Strategy');
@@ -66,6 +67,7 @@ for (const theme of ['light', 'dark']) {
     await capture(page, theme, 'captured-values', '.cf-request-values-editor');
     await page.getByRole('button', { name: 'Close idea details', exact: true }).click();
     await settingsButton.click();
+    await page.getByRole('navigation', { name: 'Project settings pages', exact: true }).getByRole('button', { name: /^Requests(?:\s|$)/ }).click();
     await page.getByLabel('Request note class', { exact: true }).fill('Feature Idea');
     await page.getByLabel('Request categories', { exact: true }).fill('Product');
     await page.getByRole('button', { name: 'Save settings', exact: true }).click();

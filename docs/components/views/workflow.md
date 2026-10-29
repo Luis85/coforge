@@ -3,12 +3,12 @@ id: workflow
 title: Agent workflow
 goal: Manage this project's agent process from configuration through execution.
 audience: streamer
-kind: page
-route: studio.view = workflow
-parent: "[[docs/components/views/studio]]"
+kind: subpage
+route: "studio.settingsTool = workflow (compatibility: studio.view = workflow)"
+parent: "[[docs/components/views/settings]]"
 component: src/plugin/presentation/components/coforge/WorkflowView.vue
 entry:
-  - Choose Agent workflow in the studio navigation.
+  - Choose Project settings at the bottom of navigation, then Agent workflow.
 actions:
   - Inspect execution
   - Complete checkpoint
@@ -28,8 +28,10 @@ journeys:
   - workflow-configuration
 privacy: Private vault workspace; excluded from public projections.
 coverage:
-  group: studio
-  key: workflow
+  - group: studio
+    key: workflow
+  - group: settings
+    key: workflow
 order: 87000
 type: Feature
 status: ""
@@ -54,7 +56,7 @@ One workspace groups Workflow runs, Herdr workspaces and [Workflow settings](wor
 
 ## Entry and next action
 
-Choose Agent workflow in the studio navigation, then select Workflow runs, Herdr workspaces or Workflow settings. Available actions: Inspect execution; Complete checkpoint; Pause or resume; Inspect history; Configure workflow; Manage Herdr workspaces. Return through the owning [CoForge studio](studio.md) surface.
+Choose Project settings at the bottom of navigation, then Agent workflow. Select Workflow runs, Herdr workspaces or Workflow settings. Available actions: Inspect execution; Complete checkpoint; Pause or resume; Inspect history; Configure workflow; Manage Herdr workspaces. Return through the owning [Project settings](settings.md) surface.
 
 ## States and recovery
 
@@ -62,13 +64,13 @@ No project; No active work; Queued; Running; Checkpoint; Failed or uncertain res
 
 ## Composition and boundaries
 
-Source: [src/plugin/presentation/components/coforge/WorkflowView.vue](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). This parent owns the Agent workflow H1, shared page frame and local navigation. All three tasks share that frame. Workflow settings embeds its editor with an H2; the compatibility settings locator still renders this same parent workspace and keeps Agent workflow current in the global navigation.
+Source: [src/plugin/presentation/components/coforge/WorkflowView.vue](../../../src/plugin/presentation/components/coforge/WorkflowView.vue), embedded inside Project settings. The settings page owns the H1 and Agent workflow owns its subordinate heading and local navigation. Workflow runs, Herdr workspaces and Workflow settings share this frame. Existing workflow locators select this same nested workspace and keep Project settings current in main navigation.
 
 Journey tags: `request-to-recognition`, `workflow-configuration`.
 
 ## Workspace redesign
 
-The selected-project band precedes execution navigation. A prominent automation strip, selected request heading and captured-step sequence separate control state, work in progress and durable attempt evidence.
+A prominent automation strip, selected request heading and captured-step sequence separate control state, work in progress and durable attempt evidence. The project switcher identifies the selected project; navigation never starts execution.
 
 For a selected external MCP run, the strip names the external client and explicit
 client calls. Project automation does not advance that run. Its captured native

@@ -1,11 +1,12 @@
 import { expect as browserExpect } from '@playwright/test';
 import { describe, expect } from 'vitest';
 import { test } from './support/obsidian-fixture';
+import { openProjectSettings } from '../../../tests/e2e/support/settings-navigation';
 
 describe('Example cleanup in the contained vault', () => {
   test('removes reviewed sample notes, preserves manual bytes and stays removed after reload', async ({ obsidian }) => {
     const view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
-    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await openProjectSettings(view, 'Data & examples');
     await view.getByRole('button', { name: 'Load sample workspace', exact: true }).click();
     await view.locator('.cf-settings-reset-confirm').getByRole('button', { name: 'Load sample workspace', exact: true }).click();
     await expect.poll(() => obsidian.eval(({ app }) => app.vault.getMarkdownFiles().filter(file => file.path.startsWith('CoForge/Ideas/')).length)).toBe(15);
@@ -23,7 +24,7 @@ describe('Example cleanup in the contained vault', () => {
       await app.vault.process(file, content => content + '\r\nMy unrelated body bytes.\r\n');
       return { path: file.path, content: await app.vault.read(file) };
     });
-    await view.getByRole('button', { name: 'Project settings', exact: true }).click();
+    await openProjectSettings(view, 'Data & examples');
     const cleanup = view.getByRole('region', { name: 'Remove example and local-test content', exact: true });
     await cleanup.getByRole('button', { name: 'Preview example cleanup', exact: true }).click();
     await browserExpect(cleanup).toContainText('15 requests selected');

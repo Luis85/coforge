@@ -8,7 +8,7 @@ route: studio.workflowTool = runs
 parent: "[[docs/components/views/workflow]]"
 component: src/plugin/presentation/components/coforge/ConfiguredWorkflowExecution.vue
 entry:
-  - Open Agent workflow, then choose Workflow runs.
+  - Open Project settings, Agent workflow, then Workflow runs.
 actions:
   - Select request run
   - Inspect captured steps and results
@@ -53,7 +53,7 @@ Checkpoints do not occupy the AI worker and do not accept code. Attempts retain 
 
 ## Entry and next action
 
-Open Agent workflow, then choose Workflow runs. Available actions: Select request run; Inspect captured steps and results; Complete required checklist; Inspect attempt history; Recover Herdr attempt. Return through the owning [Agent workflow](workflow.md) surface.
+Open Project settings, Agent workflow, then Workflow runs. Available actions: Select request run; Inspect captured steps and results; Complete required checklist; Inspect attempt history; Recover Herdr attempt. Return through the owning [Agent workflow](workflow.md) surface.
 
 ## States and recovery
 

@@ -46,8 +46,6 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
   - [Community settings](views/community-settings.md) — page
   - [The Council](views/council.md) — page
     - [Ask the Council](views/council-ask.md) — subpage
-      - [Council task history](views/council-task-history.md) — panel
-      - [Council input file picker](views/council-vault-files.md) — panel
     - [Teams and councils](views/council-definitions.md) — subpage
       - [Definition import and export](views/council-definition-transfer.md) — panel
     - [Event triggers](views/council-events.md) — subpage
@@ -60,6 +58,8 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
       - [Council recovery tools](views/council-recovery.md) — panel
     - [Task scheduler](views/council-scheduler.md) — subpage
     - [Submit existing note](views/council-submit.md) — subpage
+    - [Council task history](views/council-task-history.md) — panel
+    - [Council input file picker](views/council-vault-files.md) — panel
     - [Council workflows](views/council-workflows.md) — subpage
       - [Proposal workflow transfer](views/council-proposal-transfer.md) — panel
   - [CoWorkers](views/coworkers.md) — page
@@ -79,11 +79,19 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
     - [Add project](views/project-create.md) — panel
   - [Stream schedule](views/schedule.md) — page
   - [Project settings](views/settings.md) — page
-    - [Backup and sample tools](views/settings-data.md) — panel
+    - [Backup and sample tools](views/settings-data.md) — subpage
       - [Example content cleanup](views/settings-example-cleanup.md) — panel
-    - [Project repository settings](views/settings-repository.md) — panel
-    - [Project Request Object](views/settings-request-object.md) — panel
-    - [Project runtime check](views/settings-runtime.md) — panel
+    - [General project settings](views/settings-general.md) — subpage
+    - [Project repository settings](views/settings-repository.md) — subpage
+    - [Project Request Object](views/settings-request-object.md) — subpage
+    - [Project runtime check](views/settings-runtime.md) — subpage
+    - [Agent workflow](views/workflow.md) — subpage
+      - [Herdr workspace controls](views/herdr.md) — subpage
+      - [Workflow runs](views/workflow-runs.md) — subpage
+        - [Herdr workflow recovery](views/herdr-recovery.md) — panel
+      - [Workflow settings](views/workflow-settings.md) — subpage
+        - [Workflow step editor](views/workflow-step.md) — panel
+        - [Workflow import and export](views/workflow-transfer.md) — panel
   - [Stream statistics](views/statistics.md) — page
   - [Stream chat](views/stream.md) — page
     - [Chat](views/stream-channel.md) — subpage
@@ -91,13 +99,6 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
     - [Twitch settings](views/stream-connection.md) — subpage
       - [Twitch channel editor](views/twitch-channel.md) — panel
     - [Bot messages](views/stream-messages.md) — subpage
-  - [Agent workflow](views/workflow.md) — page
-    - [Herdr workspace controls](views/herdr.md) — subpage
-    - [Workflow runs](views/workflow-runs.md) — subpage
-      - [Herdr workflow recovery](views/herdr-recovery.md) — panel
-    - [Workflow settings](views/workflow-settings.md) — subpage
-      - [Workflow step editor](views/workflow-step.md) — panel
-      - [Workflow import and export](views/workflow-transfer.md) — panel
 
 ## User goals and routes
 
@@ -173,12 +174,13 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [Public leaderboards](views/public-leaderboards.md) | Recognize visible community contributions. | Obsidian stream surface = leaderboards | viewer / OBS capture |
 | [Viewer website](views/public-website.md) | Follow screened progress and recognition outside Obsidian. | public export / index.html | viewer / OBS capture |
 | [Stream schedule](views/schedule.md) | Prepare a saved plan for a future stream. | studio.view = schedule | streamer |
-| [Project settings](views/settings.md) | Save this project’s brief and workspace boundaries. | studio.view = settings | streamer |
-| [Backup and sample tools](views/settings-data.md) | Export a private studio backup or explicitly replace this project’s requests with sample data. | Project settings / data tools | streamer |
-| [Example content cleanup](views/settings-example-cleanup.md) | Review and explicitly remove sample and local-test content while preserving real requests. | Project settings / Backup and sample tools / Example cleanup | streamer |
-| [Project repository settings](views/settings-repository.md) | Set the repository boundary used by agent work. | Project settings / repository | streamer |
-| [Project Request Object](views/settings-request-object.md) | Configure categories, class and optional properties captured by new requests. | Project settings / Request Object | streamer |
-| [Project runtime check](views/settings-runtime.md) | Verify the native runtime is available for this project. | Project settings / runtime check | streamer |
+| [Project settings](views/settings.md) | Configure the selected project and manage its agent workflow. | studio.view = settings | streamer |
+| [Backup and sample tools](views/settings-data.md) | Export a private studio backup or explicitly replace this project’s requests with sample data. | studio.settingsTool = data | streamer |
+| [Example content cleanup](views/settings-example-cleanup.md) | Review and explicitly remove sample and local-test content while preserving real requests. | Project settings / Data & examples / Example cleanup | streamer |
+| [General project settings](views/settings-general.md) | Set project identity, visibility, brief and shared agent instructions. | studio.settingsTool = general | streamer |
+| [Project repository settings](views/settings-repository.md) | Set the repository boundary used by agent work. | studio.settingsTool = repository | streamer |
+| [Project Request Object](views/settings-request-object.md) | Configure categories, class and optional properties captured by new requests. | studio.settingsTool = requests | streamer |
+| [Project runtime check](views/settings-runtime.md) | Verify the native runtime is available for this project. | studio.settingsTool = runtime | streamer |
 | [Stream statistics](views/statistics.md) | Compare recorded audience and stream performance. | studio.view = statistics | streamer |
 | [Stream chat](views/stream.md) | Manage the conversation with viewers. | studio.view = stream | streamer |
 | [Chat](views/stream-channel.md) | Respond to viewers through the connected Twitch channel. | studio.streamTool = channel | streamer |
@@ -188,7 +190,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [Twitch channel editor](views/twitch-channel.md) | Save the metadata viewers will see on Twitch. | Stream chat / Twitch settings / channel metadata | streamer |
 | [Chat moderation](views/twitch-moderation.md) | Review and confirm one specific Twitch moderation action. | stream moderation details | streamer |
 | [Viewer profile](views/viewer-detail.md) | Review a viewer’s private record and participation controls. | population.selectedId | streamer |
-| [Agent workflow](views/workflow.md) | Manage this project's agent process from configuration through execution. | studio.view = workflow | streamer |
+| [Agent workflow](views/workflow.md) | Manage this project's agent process from configuration through execution. | studio.settingsTool = workflow (compatibility: studio.view = workflow) | streamer |
 | [Workflow runs](views/workflow-runs.md) | Resolve the next checkpoint or attempt outcome. | studio.workflowTool = runs | streamer |
 | [Workflow settings](views/workflow-settings.md) | Save the process that new requests will follow. | studio.workflowTool = settings (compatibility: studio.view = workflow-settings) | streamer |
 | [Workflow step editor](views/workflow-step.md) | Configure one stable workflow step. | studio.workflowStepSelection | streamer |
@@ -204,14 +206,14 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 - **cost-review**: [Agent, team and Council costs](views/ai-cost-attribution.md), [AI costs](views/ai-costs.md)
 - **finance**: [Stream finances](views/finance.md), [Finance entry](views/finance-entry.md)
 - **moderation**: [Operations](views/operations.md), [Viewers and players](views/population.md), [Chat](views/stream-channel.md), [Chat moderation](views/twitch-moderation.md), [Viewer profile](views/viewer-detail.md)
-- **multi-project**: [Request board](views/board.md), [CoWorkers](views/coworkers.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Project settings](views/settings.md), [Example content cleanup](views/settings-example-cleanup.md), [Project Request Object](views/settings-request-object.md)
+- **multi-project**: [Request board](views/board.md), [CoWorkers](views/coworkers.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Project settings](views/settings.md), [Example content cleanup](views/settings-example-cleanup.md), [General project settings](views/settings-general.md), [Project Request Object](views/settings-request-object.md)
 - **public-sharing**: [Stream displays](views/broadcast-displays.md), [CoForge integration settings](views/native-settings.md), [Viewer website settings](views/native-website.md), [Public Twitch chat](views/public-chat.md), [Public community](views/public-community.md), [Public stream Kanban](views/public-kanban.md), [Public leaderboards](views/public-leaderboards.md), [Viewer website](views/public-website.md)
 - **recovery**: [Studio activity](views/activity.md), [Council execution controls](views/council-execution.md), [Council run monitor](views/council-monitor.md), [Council recovery tools](views/council-recovery.md), [Council task history](views/council-task-history.md), [Herdr workspace controls](views/herdr.md), [Herdr workflow recovery](views/herdr-recovery.md), [Request activity](views/idea-activity.md), [Operations](views/operations.md), [Backup and sample tools](views/settings-data.md), [Workflow runs](views/workflow-runs.md)
 - **request-to-recognition**: [Studio activity](views/activity.md), [Request board](views/board.md), [Community recognition](views/community.md), [Contributor recognition profile](views/community-profile.md), [Council plan handoff](views/council-plan-handoff.md), [Studio guide](views/help.md), [Request activity](views/idea-activity.md), [New request](views/idea-create.md), [Request details](views/idea-detail.md), [Request increment](views/idea-increment.md), [Request overview](views/idea-overview.md), [Request plan](views/idea-plan.md), [Captured request fields](views/idea-request-values.md), [Example content cleanup](views/settings-example-cleanup.md), [Project Request Object](views/settings-request-object.md), [CoForge studio](views/studio.md), [Agent workflow](views/workflow.md), [Workflow runs](views/workflow-runs.md)
-- **setup**: [Stream setup](views/broadcast-setup.md), [Guided stream setup](views/guided-setup.md), [Studio guide](views/help.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Ideas folder setting](views/native-vault.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Project settings](views/settings.md), [Backup and sample tools](views/settings-data.md), [Example content cleanup](views/settings-example-cleanup.md), [Project repository settings](views/settings-repository.md), [Project runtime check](views/settings-runtime.md), [Twitch settings](views/stream-connection.md), [CoForge studio](views/studio.md)
+- **setup**: [Stream setup](views/broadcast-setup.md), [Guided stream setup](views/guided-setup.md), [Studio guide](views/help.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Ideas folder setting](views/native-vault.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Project settings](views/settings.md), [Backup and sample tools](views/settings-data.md), [Example content cleanup](views/settings-example-cleanup.md), [General project settings](views/settings-general.md), [Project repository settings](views/settings-repository.md), [Project runtime check](views/settings-runtime.md), [Twitch settings](views/stream-connection.md), [CoForge studio](views/studio.md)
 - **stream-analysis**: [Stream history](views/broadcast-history.md), [Stream statistics](views/statistics.md)
 - **stream-planning**: [Stream schedule](views/schedule.md)
 - **task-scheduling**: [Task scheduler](views/council-scheduler.md)
 - **viewer-intake**: [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Viewers and players](views/population.md), [Stream chat](views/stream.md), [Chat](views/stream-channel.md), [Twitch settings](views/stream-connection.md), [Bot messages](views/stream-messages.md)
-- **workflow-configuration**: [Herdr workspace controls](views/herdr.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [Project settings](views/settings.md), [Project repository settings](views/settings-repository.md), [Project runtime check](views/settings-runtime.md), [Agent workflow](views/workflow.md), [Workflow settings](views/workflow-settings.md), [Workflow step editor](views/workflow-step.md), [Workflow import and export](views/workflow-transfer.md)
+- **workflow-configuration**: [Herdr workspace controls](views/herdr.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [Project settings](views/settings.md), [General project settings](views/settings-general.md), [Project repository settings](views/settings-repository.md), [Project runtime check](views/settings-runtime.md), [Agent workflow](views/workflow.md), [Workflow settings](views/workflow-settings.md), [Workflow step editor](views/workflow-step.md), [Workflow import and export](views/workflow-transfer.md)
 - **workflow-event-automation**: [Event triggers](views/council-events.md)

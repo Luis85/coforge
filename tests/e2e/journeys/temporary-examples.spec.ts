@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { openCouncilPage } from '../support/council-navigation';
+import { openAgentWorkflow } from '../support/workflow-navigation';
+import { openProjectSettings } from '../support/settings-navigation';
 
 const examples = [
   ["Finances", "Explore finance example", ".cf-finance"],
@@ -115,10 +117,7 @@ test("Herdr example can be explicitly exited without a native command", async ({
     "data-prototype-ready",
     "true",
   );
-  await page
-    .locator(".cf-sidebar")
-    .getByRole("button", { name: "Agent workflow", exact: true })
-    .click();
+  await openAgentWorkflow(page);
   await page
     .getByRole("navigation", { name: "Agent workflow pages", exact: true })
     .getByRole("button", { name: "Herdr workspaces", exact: true })
@@ -184,7 +183,7 @@ test('explicit global cleanup closes an inactive scheduler example without retai
   await scheduler.getByRole('button', { name: 'Explore scheduler example', exact: true }).click();
   await scheduler.getByRole('button', { name: 'New scheduled task', exact: true }).click();
   await scheduler.getByLabel('Task name', { exact: true }).fill('Discard only this temporary scheduler draft');
-  await sidebar.getByRole('button', { name: 'Project settings', exact: true }).click();
+  await openProjectSettings(page, 'Data & examples');
   const cleanup = page.getByRole('region', { name: 'Remove example and local-test content', exact: true });
   await cleanup.getByRole('button', { name: 'Preview example cleanup', exact: true }).click();
   await cleanup.getByLabel('I reviewed the selected requests and local content above and want to remove them.', { exact: true }).check();

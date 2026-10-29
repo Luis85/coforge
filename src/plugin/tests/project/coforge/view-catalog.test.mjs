@@ -38,7 +38,7 @@ describe("view catalogue", () => {
   });
 
   it('rejects ownership drift for root pages, local subpages and public entry points', () => {
-    for (const [id, parent] of [['board', 'council'], ['council-ask', 'studio'], ['public-kanban', 'studio'], ['workflow-settings', 'settings']]) {
+    for (const [id, parent] of [['board', 'council'], ['council-ask', 'studio'], ['public-kanban', 'studio'], ['workflow', 'studio'], ['workflow-settings', 'settings'], ['settings-request-object', 'workflow']]) {
       expect(() => sourceCoverage(catalogue.map(view => view.id === id ? { ...view, parent } : view), root)).toThrow(/parent|ownership/);
     }
   });
@@ -51,6 +51,7 @@ describe("view catalogue", () => {
     expect(() => sourceCoverage(views.filter((view) => view !== board), root)).toThrow(/board/);
     expect(() => sourceCoverage([...views, { ...board, id: "board-copy" }], root)).toThrow(/coverage/);
     expect(() => sourceCoverage(views.map((view) => view.id === "broadcast-music" ? { ...view, coverage: undefined } : view), root)).toThrow(/music/);
+    expect(() => sourceCoverage(views.map((view) => view.id === "settings-runtime" ? { ...view, coverage: undefined } : view), root)).toThrow(/runtime/);
     expect(() => sourceCoverage([...views, { ...board, id: "stale", coverage: { group: "studio", key: "retired" } }], root)).toThrow(/retired/);
   });
 

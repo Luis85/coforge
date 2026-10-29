@@ -3,7 +3,7 @@ import { useStudioNavigation } from "../../composables/coforge/use-studio-naviga
 import BrandMark from "./BrandMark.vue";
 import CfIcon from "./CfIcon.vue";
 
-const { shell: model, groups, navigate, toggleGroup } = useStudioNavigation();
+const { shell: model, groups, settings, navigate, toggleGroup } = useStudioNavigation();
 </script>
 <template>
   <aside class="cf-sidebar">
@@ -40,6 +40,7 @@ const { shell: model, groups, navigate, toggleGroup } = useStudioNavigation();
       <CfIcon name="chevron-right" size="xs" />
     </button>
     <nav aria-label="CoForge navigation">
+      <div class="cf-navigation-groups">
       <div
         v-for="group in groups"
         :key="group.id"
@@ -76,6 +77,12 @@ const { shell: model, groups, navigate, toggleGroup } = useStudioNavigation();
         </button>
         </div>
       </div>
+      </div>
+      <button v-if="settings" type="button" class="cf-nav-item cf-settings-destination"
+        :class="{ 'is-active': settings.active }" :aria-current="settings.active ? 'page' : undefined"
+        :title="settings.label" :aria-label="settings.label" @click="navigate('settings')">
+        <CfIcon :name="settings.icon" /><span>{{ settings.label }}</span>
+      </button>
     </nav>
     <div class="cf-sidebar-bottom">
       <button
