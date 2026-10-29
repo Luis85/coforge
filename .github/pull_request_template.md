@@ -16,10 +16,12 @@ Add Service Design to Build & Improve. Each project owns one Service Blueprint w
 - Component suite: 4 passed; all kinds, links, ordering, focus, search/count behavior, per-project retained drafts, replacement confirmation, stale edits and captured in-flight project.
 - Integration/startup/public policy: 3 files, 26 tests passed; both overlapping configuration orders and failed-write reservation release covered while Council watched request notes remain compatible.
 - Project typecheck and focused source/test ESLint: passed with zero warnings.
-- npm run check:source: code-line limits and locale parity passed; 3181 inputs, 226 translated keys.
-- npm run check:views: 93 views documented; navigation coverage valid; sitemap current.
+- Merged-main focused regression run: 5 files, 40 tests passed (12.26s), covering domain, vault, UI, integration and startup/disposal.
+- npm run verify:artifacts: production build passed (7.89s); prototype embedding 1 passed, 0 failed. test:ui-effects explicitly reports no declared visual obligations.
+- Merged-main typecheck passed; npm run check:source passed for 3221 inputs and 226 translated keys.
+- npm run check:views: 102 views documented; navigation coverage valid; sitemap current. Normalized two incoming Council view parent references to the existing catalogue schema.
 - git diff --check: clean.
-- Final npm run verify:project: running. The draft is not ready for merge until this and CI qualification finish.
+- Local npm run verify:project: typecheck, both lint gates and maker types passed; full product-test stage exceeded the 600-second process deadline. The existing Herdr worktree case then passed in isolation (5 passed, 1 existing Windows-only symlink skip). A direct full diagnostic and pinned CI qualification are pending; the draft is not ready to merge yet.
 
 ## UI evidence
 
@@ -42,4 +44,4 @@ Independent subagents reviewed product/method coverage, UX/accessibility, data i
 
 No personal vault, credentials, live Twitch/OBS session or AI provider was used. Dedicated visual evidence covers a populated three-step map and a wide dark recovery editor; it is not an exhaustive visual state matrix. No multiple blueprints, deletion/cascades, directional arrows, AI authoring or diagram export is introduced. Local Node 24.20.0/npm 11.21.1 differ from pinned CI Node 24.21.0/npm 11.19.1; CI qualifies the pinned toolchain. Global PRODUCT.md has a pre-existing legacy schema and was preserved. check:presentation exited 0 and reported two pre-existing concerns in unmodified VaultFilePicker.vue.
 
-Delivery remains pending final project verification, integration with latest main and green PR checks.
+Latest main is integrated. Delivery remains pending canonical project qualification and green PR checks.

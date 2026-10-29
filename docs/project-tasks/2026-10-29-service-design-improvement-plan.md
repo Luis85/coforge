@@ -1,6 +1,6 @@
 # Service Design improvement and polishing plan
 
-- Status: in progress
+- Status: implementation and focused review complete; CI qualification in progress
 - Owner journey: [Service Design](../../BRIEF.md#service-design-owner-decisions-2026-10-29)
 - Scope: the new Service Design increment and its integration into the private studio.
 - Delivery owner: primary agent, with independent persistence, end-to-end and product-review subagents.
@@ -202,20 +202,30 @@ Observed checks and evidence (2026-10-29):
   and zero page/editor horizontal overflow. Narrow maps retain 312px of internal
   table overflow in their scroll region.
 
-`npm run verify:project` and the full `npm run test:obsidian` are running; their
-final results remain pending. The final contained dev-loop result, sitemap
-regeneration/check, self-review, PR qualification and merge must be recorded before
-delivery is complete. An earlier view-catalog check exited 1 for a stale generated
-sitemap; it is not a passing gate.
+The full contained `npm run test:obsidian` passed: 24 files, 31 tests, 365.52s.
+The dev-loop smoke reported status passed, errors empty and no host/plugin console
+errors; its Windows shutdown warned of a stop timeout, while the full suite later
+completed cleanly. After merging latest main, five focused feature/regression files
+passed all 40 tests, typecheck and code-line/locale checks passed (3221 inputs,
+226 keys), and `verify:artifacts` built successfully with one passing embedding test.
+
+Local `verify:project` passed typecheck, both lint gates and maker types, but the
+product-test process exceeded its 600-second deadline. The reported existing Herdr
+worktree case passed in isolation afterward. The direct full diagnostic and pinned
+CI qualification must be green before merge; this is not a passing local full gate.
+The view catalogue now validates 102 views and a current sitemap, including two
+normalized incoming Council parent references. Self-review is complete for the
+implemented code and recorded evidence. [PR #43](https://github.com/Luis85/coforge/pull/43)
+tracks canonical checks and the merge event; delivery remains pending there.
 
 | Increment | Current status | Remaining closeout evidence |
 | --- | --- | --- |
-| Reach and understand | Implemented; captured review passed | Full project gate |
-| Create and connect | Implemented; focused component/host checks passed | Full host suite |
-| Canonical persistence | Implemented; 17 domain/storage tests passed | Full project and host gates |
-| Privacy/integration | Implemented; 26 integration/startup/public tests passed | Full project gate |
-| Accessibility/pane behavior | Captured review passed; UI-quality 8 passed | Full host suite |
-| Delivery | Pending | Final command results; sitemap; self-review; green PR checks; merge |
+| Reach and understand | Implemented; captured review passed | Canonical CI gate |
+| Create and connect | Implemented; focused checks and full host suite passed | Canonical CI gate |
+| Canonical persistence | Implemented; behavioral tests and full host suite passed | Canonical CI gate |
+| Privacy/integration | Implemented; 26 focused integration/startup/public tests passed | Canonical CI gate |
+| Accessibility/pane behavior | Captured review passed; UI-quality 8 passed; full host suite passed | Canonical CI gate |
+| Delivery | PR #43 open; self-review and sitemap complete | Green canonical checks and merge |
 
 ## Outside this increment
 
