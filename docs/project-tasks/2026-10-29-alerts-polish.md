@@ -1,6 +1,6 @@
 # Alerts increment: researched review, improvements and closeout
 
-- Status: in progress
+- Status: implementation and review complete; final qualification/merge record: [PR #42](https://github.com/Luis85/coforge/pull/42).
 - Owner goal: deliver the next Alerts increment, review every product perspective,
   implement the missing pieces with subagents, open a PR and merge only after green checks.
 - Scope: the new OBS Alerts journey and its shared integration seams. Existing
@@ -26,6 +26,10 @@
 5. [WCAG labels or instructions](https://www.w3.org/WAI/WCAG22/Understanding/labels-or-instructions.html)
    supports concise labels and associated help. Describe optional variables and media
    limits before failure, with unique field/help IDs across multiple Obsidian leaves.
+6. [Twitch EventSub reference](https://dev.twitch.tv/docs/eventsub/eventsub-reference/)
+   and [subscription types](https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/)
+   distinguish subscription recipients/gifters, anonymity, Bits/gift quantities, raid
+   direction and reward redemption versus fulfillment. Bind only prepared public facts.
 
 ## Review findings across product perspectives
 
@@ -115,6 +119,23 @@ catalogue (103 views), then integrate this new seam before final qualification.
   channel/private suppression, plus parser direction evidence and final combined native gates.
 - No new Twitch authorization, external mutations, automatic agent execution or history replay.
 
+### P7 — broader browser CI closeout (coordinated subagents)
+
+The first combined browser run passed 194 of 199 checks and found five failures:
+14px unwanted navigation overflow in both themes, an old focus test that skipped
+the new Alerts row in both themes, and preview-toolbar selector contrast on Linux.
+
+- Preserve labels, 240px navigation width and all layout thresholds; compact grouped
+  targets change from 25px to 24px to recover 16px while retaining 24px targets.
+- Extend the keyboard test through Schedule → Alerts → Stream studio, retaining every
+  selected/focused outline assertion and adding the new row’s focus proof.
+- Pair preview-toolbar foreground/background with host theme tokens in both the harness
+  and compiler emitter. This host chrome is outside product APIs, so a product-only
+  stylesheet cannot correctly repair its inherited theme boundary.
+- Add strict cross-surface light/dark/light toolbar coverage. Keep WCAG tags, zero-violation
+  assertions, navigation bounds and screenshot-baseline policy unchanged.
+- Rerun affected browser checks, then qualify the final PR revision before merge.
+
 ## Explicit limits
 
 - No personal vault, live Twitch broadcast, or user OBS scene collection is used for tests.
@@ -125,4 +146,16 @@ catalogue (103 views), then integrate this new seam before final qualification.
 
 ## Evidence and closeout
 
-Pending final integrated checks and PR/merge.
+- Alerts/catalogue focused run: 8 files, 40 tests passed. Final Twitch integration/UI/parser
+  run: 3 files, 16 tests passed, including all ten curated types through actual committed ingestion.
+- Local pinned Obsidian: Alerts journey passed; native compact-navigation light/dark cases passed.
+  Reviewed wide light, narrow dark, expanded invalid-editor and public media geometry captures.
+- Local UI quality: 8 passed; gallery refreshed with 40 captures and failures [].
+- Qualified CI canonical project gate: 5 passed, 0 failed, 0 skipped (251.1s); production
+  artifact build and local-install verification passed. Community review: 16 pass, 0 warn, 0 fail.
+- Qualified CI full native suite: 25 files passed; final agent-loop smoke passed.
+- Local Windows full gate: typecheck, source lint and maker types passed; full ESLint/product
+  steps exceeded their 600-second outer execution windows. Local Node/npm differ from the pinned
+  qualified CI toolchain; exact commands and final CI links are preserved in the PR.
+- Broader browser CI and its final closeout checks are recorded against the exact PR head;
+  merge remains gated on all required checks being green. No personal vault or live account was changed.

@@ -22,14 +22,17 @@ The Stream → Alerts page puts on-air dispatch first, shows connected browser p
 - Twitch integration sweep after merging main #39: 3 files passed, 16 tests passed (6.57s), covering actual EventSub parse → committed ingestion → source delivery for all ten curated event types, privacy, anonymity, direction and no replay.
 - View catalogue: 103 views documented; navigation coverage valid; sitemap current.
 - git diff --check: clean.
-- Final combined-main canonical/native/UI gates and CI qualification are in progress; this draft is not ready to merge until their results are recorded and green.
+- Qualified CI canonical project gate: 5 passed, 0 failed, 0 skipped (251.1s); release/artifact checks and local installation verification passed. Full native CI: 25 files passed, followed by a passed load/reload smoke.
+- Local combined-main npm run verify:project: typecheck, source lint and maker types passed; full ESLint/product steps exceeded their 600-second outer execution windows on the unqualified Windows toolchain. No checks were disabled.
+- Final browser closeout: navigation focus/compact spacing, preview host-theme regression and all UI quality checks passed locally: 13 passed (4.1m).
+- Final exact-head CI requalification is in progress; this draft is not ready to merge until their results are recorded and green.
 
 ## UI evidence
 
 - Native captures: reports/obsidian/cases/coforge-alerts--fires-a-saved-alert-into-its-public-browser-source-and-preserves-the-URL-after-reload/ (wide light, narrow dark, expanded invalid editor and public combined-media geometry).
 - Scoped native axe checks: identical WCAG tags, zero violations in dispatch and expanded validation states. Electron CDP requires documented same-page axe execution; a no-frames assertion preserves its complete Alerts scope.
 - Initial native axe evidence identified a primary-button contrast defect; the scoped semantic-token fix passes the unchanged check.
-- ui:gallery generated 40 captures with failures []; reviewed wide light and narrow dark. npm run test:ui-quality: 8 passed (1.0m), exit 0. Refreshed gallery: 40 screenshots, failures []. Combined-main refresh will follow qualification.
+- ui:gallery generated 40 captures with failures []; reviewed wide light and narrow dark. npm run test:ui-quality: 8 passed (1.0m), exit 0. Refreshed gallery: 40 screenshots, failures []. Final host-theme/navigation changes passed the 13-case browser closeout; the final gallery is refreshed as review evidence.
 
 ## Obsidian evidence
 

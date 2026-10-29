@@ -4,6 +4,7 @@ title: Public Alerts overlay
 goal: Present prepared stream alerts to viewers through OBS.
 audience: viewer / OBS Browser Source
 kind: public
+type: Feature
 route: http loopback /alerts/{opaque-token}/
 parent: "[[docs/components/views/public]]"
 component: src/plugin/infrastructure/coforge/alerts-player.ts

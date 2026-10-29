@@ -4,6 +4,7 @@ title: Alerts
 goal: Dispatch reusable viewer alerts into an OBS Browser Source.
 audience: streamer
 kind: page
+type: Feature
 route: studio.view = alerts
 parent: "[[docs/components/views/studio]]"
 component: src/plugin/presentation/components/coforge/AlertsView.vue
