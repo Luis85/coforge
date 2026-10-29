@@ -1,36 +1,47 @@
 ## Summary
 
-The Stream chat contributor count included all 48 profiles loaded by the sample workspace. Scope chat messages and contributor counts to Twitch by default and to simulator data during explicit local testing. Ending a local test restores Twitch history and keeps the draft and stored data.
+Add a private Twitch operations workspace with eight task areas, 24 datasets and 32 reviewed channel actions. Streamers inspect activity, moderate chat, manage rewards/redemptions/polls/predictions, time ad breaks, preview raids, manage channel roles, create clips/markers, publish selected local schedule fields and export private stream reports.
+
+Actions capture the exact broadcaster/account/parameters, persist intent before sending and hold unknown outcomes without replay. Read consent stays separate from action permission. EventSub updates already-open datasets through bounded coalesced reads; snapshots retain their selection and source age. OBS production remains owned by the coordinated OBS increment.
 
 ## Requirements and traceability
 
-- Owner bug report (2026-10-29): example workspace contributors remain in the local Twitch chat contributor count.
-- BRIEF.md: sample data and local testing require explicit actions; stream chat and community are shared across projects.
-- No imported req-* or vi-* obligation applies: design/traceability.json has no requirements or interactions. Generated traceability is unchanged.
-- Updated the Stream chat view contract in docs/components/views/stream.md.
+- Owner approval: 2026-10-29 Twitch integration increments in BRIEF.md.
+- Task and evidence: docs/project-tasks/2026-10-29-twitch-command-centre.md.
+- No imported req-* or vi-* IDs apply; generated traceability declares no requirements/interactions.
+- Added nine canonical component contracts and regenerated the 101-view sitemap.
+- Merged main's Twitch contributor-scope correction f1d166a cleanly.
 
 ## Validation
 
-- Before the fix: chat-panel-ui.test.ts had 3 failed tests, reproducing sample-history leakage, the mixed contributor count and local-test selection behavior.
-- npm test -- src/plugin/tests/project/coforge/chat-panel-ui.test.ts src/plugin/tests/project/coforge/twitch-controls.test.ts src/plugin/tests/project/coforge/example-cleanup.test.ts: 3 files passed, 14 tests passed.
-- npm run verify:project: exit 0. npm run check: 5 passed, 0 failed, 0 skipped in 859.7s (typecheck, lint, zero-warning ESLint, full product tests, maker types). Production build completed; prototype embedding: 1 passed, 0 failed. test:ui-effects explicitly skipped because the project declares no visual definitions.
-- npm run check:views: 92 views documented; navigation coverage valid; sitemap current.
-- git diff --check: clean.
-- Self-review: source filtering happens before the 100-message limit; empty state and auto-scroll use the same source; bot identity is excluded from contributor counts. No storage writes, note changes, host API changes, unsafe casts or weakened gates.
+- npm ci: 691 packages added, 692 audited, 0 vulnerabilities.
+- Independent adapter/control review: 33/33 targeted tests passed; targeted ESLint exited 0.
+- Independent core/workspace/broadcast review: 34/34 targeted tests passed.
+- Host-readiness, logging and report regressions: 3/3 passed. Final API/core/event/controller suites: 59/59 passed after stream-identity and explicit ad-read-consent fixes.
+- Pinned CI at 8a665f1 passed npm run verify:project (5 passed, 0 failed, 0 skipped plus release build/embedding), all 199 browser checks and all 31 native cases. Final exact-head qualification is recorded in PR checks; local broad runs exceeded their budgets.
+- Initial CI passed all product tests/typecheck/ESLint/maker types; one oxlint spread warning was fixed. Browser CI passed 193/199 and found timer-list semantics and short navigation overflow; both fixes retain the same assertions.
+- git diff --check: clean after trailing whitespace cleanup.
 
 ## UI evidence
 
-- npm run test:ui-quality: 8 passed (1.2m), exit 0.
-- npm run ui:gallery: captured 40 screenshots; failures []; exit 0. Reviewed desktop light and narrow dark studio captures in reports/ui-gallery/. The gallery covers the existing clickdummy; focused component tests verify the changed runtime chat projection.
-- Component regressions cover all 48 saved sample profiles, a real Twitch contributor amid more than 100 example messages, and entering/leaving a local test with unchanged stored state and draft.
+- npm run test:ui-quality: 8/8 passed.
+- Isolated final browser regressions: 6/6 passed, including short navigation plus Twitch WCAG A/AA and reflow across light/dark at 1440px and 420px.
+- npm run ui:gallery: 40 captures in reports/ui-gallery; reviewed desktop/light and narrow/dark alongside Twitch captures.
+- Impeccable detector: [].
+- Improvement pass fixed reward-form hierarchy, draft invalidation, review focus, content links, permission selection, exact record targets, stale AutoMod queues and report boundaries.
 
 ## Obsidian evidence
 
-- npm run -s dev:obsidian -- --allow-download --json provisioned pinned Obsidian app/installer 1.14.4 and launcher 3.2.1 inside this checkout. Plugin loaded/reloaded with errors [], but the first host startup had two core command-list errors and could not open a tab group.
-- Repeated npm run -s dev:obsidian -- --json using the saved sandbox workspace: status passed, view.opened true, errors [], hostErrorCount 0, pluginConsole []. Exit 0.
-- Reviewed .obsidian-sandbox/logs/last-run.png and read dev.log/debug-report.json. The smoke opens the public Kanban; sample contributor behavior is covered by component tests.
-- Full test:obsidian not run: no lifecycle or host API changes.
+- Pinned Obsidian 1.14.4, launcher 3.2.1; contained vaults only.
+- Focused native Twitch UI/lifecycle: 1 file / 1 test passed. Full pinned native CI: 24 files / 31 tests passed. Draft preservation and plugin reload produce errors [].
+- Fresh final smoke: status passed, errors [], hostErrorCount 0, view.opened true.
+- Fixed the reload harness's missing workspace-layout readiness wait with a failing-before regression; early smoke host errors are resolved by the final fresh run.
+- Evidence: reports/obsidian and .obsidian-sandbox-twitch-final/logs (ignored).
 
 ## Untested scope
 
-No personal vault or live Twitch connection was used. The fix is built and installed only in the contained sandbox; the user's personal local plugin was not updated. Node 24.20.0 / npm 11.21.1 differs from the pinned Node 24.21.0 / npm 11.19.1. The owner authorized pushing a PR, merging after green CI, and then updating the repository-root local plugin. No release publication requested.
+Real Twitch consent, actual channel mutation, Affiliate/Partner eligibility and real ad/raid/reward effects need streamer-operated account acceptance. No live Twitch mutations or personal vaults were used. Always-on collection, unsupported revenue/payout data and viewer Channel Points balances are excluded. Local Node 24.20.0/npm 11.19.0 differ from pins; provisioning reports no official Windows Node 24.21.0 build. CI retains the configured pins and full E2E checks.
+
+Supersedes PR #38. Its scanner finding refers to a URL.password validation expression in an intermediate commit, not a credential. This branch contains the same final implementation as a clean reviewed diff, with explicit URL checks and no scanner exclusions or force-push.
+
+Optional local maintainability diagnostics returned METRIC_TOOL_VERSION; required CI gates keep their pinned tools and thresholds.

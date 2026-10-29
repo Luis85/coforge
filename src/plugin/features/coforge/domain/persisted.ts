@@ -12,6 +12,7 @@ import { configuredStepExecutionCheck } from './configured-workflow-run';
 import type { AgentJob, AppState, Increment, IntegrationSettings, Settings } from './types';
 import { CONTRIBUTOR_COLORS } from './types';
 import { exampleRemovalCutoffsCheck, requestOriginsCheck } from './example-content';
+import { twitchOperationsCheck } from './twitch-operations-validation';
 
 export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: string }>; lastRequests: Record<string, string>; chatRemovals?: import('./chat-removal').ChatRemovalHistory }
 /** Everything except the idea notes. Stored as one JSON file in the plugin folder. */
@@ -59,6 +60,7 @@ const integration: Check<IntegrationSettings> = shape({
   publicFolder: text({ min: 1 }), publicBoardEnabled: boolean,
 });
 const persisted: Check<PersistedStudio> = shape({
+  twitchOperations: optional(twitchOperationsCheck),
   requestOrigins: optional(requestOriginsCheck),
   exampleRemovalCutoffs: optional(exampleRemovalCutoffsCheck),
   sampleEventIds: optional(list(text({ min: 1, max: 100 }))),
