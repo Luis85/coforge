@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 vi.mock('obsidian', () => import('../support/obsidian'));
 import { getAllTags, parseYaml, stringifyYaml } from 'obsidian';
-import { createTestApp, flushObsidian, parseMarkdownMetadata } from '../support/obsidian';
+import { createTestApp, flushObsidian, parseMarkdownMetadata, splitFrontmatter } from '../support/obsidian';
 
 const note = '---\ntitle: Plan\ntags: [work, "#urgent"]\ncustom:\n  nested: true # keep\n---\n\n# Plan\n\nLinks [[Other]], [[Other#Part|alias]] and ![[image.png]].\nTagged #todo and #2026 but `#code` is not.\n\n```md\n# not a heading [[Nope]] #nope\n```\n\n## Next ##\n';
 
@@ -83,4 +83,14 @@ it('makes repeated silent seeds immediately complete without changing normal met
   await flushObsidian();
   expect(events).toEqual([]);
   expect(kit.errors).toEqual([]);
+});
+
+it('keeps complete CRLF frontmatter line endings for parsing and exact body offsets', () => {
+  const yaml = 'title: Council\r\nenabled: true\r\nlimit: 4\r\n';
+  const body = '\r\n# Human question\r\nKeep bytes.\r\n';
+  const text = `---\r\n${yaml}---\r\n${body}`;
+  const closing = text.indexOf('---', 3);
+  expect(splitFrontmatter(text)).toEqual({ yaml, body, endLine: 4, endOffset: closing + 3 });
+  expect(parseMarkdownMetadata(text).frontmatter).toEqual({ title: 'Council', enabled: true, limit: 4 });
+  expect(parseMarkdownMetadata(text).headings?.[0]?.position.start.offset).toBe(text.indexOf('# Human'));
 });

@@ -14,11 +14,12 @@ export interface FrontmatterBlock { readonly yaml: string; readonly body: string
 export function splitFrontmatter(text: string): FrontmatterBlock | null {
   const lines = text.split('\n');
   if (lines[0]?.replace(/\r$/, '') !== '---') return null;
-  let offset = (lines[0]?.length ?? 0) + 1;
+  const yamlStart = (lines[0]?.length ?? 0) + 1;
+  let offset = yamlStart;
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i] ?? '';
     if (line.replace(/\r$/, '') === '---') {
-      return { yaml: lines.slice(1, i).join('\n'), body: text.slice(Math.min(text.length, offset + line.length + 1)), endLine: i, endOffset: offset + 3 };
+      return { yaml: text.slice(yamlStart, offset), body: text.slice(Math.min(text.length, offset + line.length + 1)), endLine: i, endOffset: offset + 3 };
     }
     offset += line.length + 1;
   }
