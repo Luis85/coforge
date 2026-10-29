@@ -10,6 +10,7 @@ export type WorkflowOutput = typeof WORKFLOW_OUTPUTS[number];
 export type WorkflowAccess = typeof WORKFLOW_ACCESS[number];
 interface StepBase { id: string; name: string; instructions: string }
 export interface AiWorkflowStep extends StepBase {
+  outputTemplateId?: string;
   kind: 'ai'; output: WorkflowOutput; access: WorkflowAccess; provider: Provider; model: string;
   herdrAgent?: 'claude'; automatic: boolean; minVotes?: number; inputs?: WorkflowOutput[];
 }
@@ -25,6 +26,7 @@ export interface WorkflowDefinition {
 export const workflowIdCheck = text({ min: 1, max: 80, pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/u });
 const base = { id: workflowIdCheck, name: text({ trim: true, min: 1, max: 100 }), instructions: text({ max: 8000 }) };
 const ai = shape({ ...base, kind: oneOf(['ai'] as const), output: oneOf(WORKFLOW_OUTPUTS), access: oneOf(WORKFLOW_ACCESS),
+  outputTemplateId: optional(workflowIdCheck),
   provider: oneOf(['demo', 'claude', 'herdr'] as const), model: agentModelCheck, herdrAgent: optional(oneOf(['claude'] as const)),
   automatic: boolean, minVotes: optional(number({ integer: true, min: 0, max: 10000 })), inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: 5 })),
 }, { strict: true });

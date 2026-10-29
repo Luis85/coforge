@@ -180,6 +180,21 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ### Configurable workflows (owner decisions, 2026-10-28)
 
+Workflow increment (owner, 2026-10-29): AI workflow steps can select an optional
+reusable Answer/Output Template. Templates belong to one project and are canonical
+Markdown files, with create, read, edit and delete controls inside the plugin.
+The Markdown supplies output-format guidance alongside the existing validated
+result contract. Runs retain the template content captured at admission; later
+template edits or deletion do not reinterpret existing work.
+
+Overhaul the complete workflows interface so its process is easy to understand,
+manage and extend. Review product usability, information architecture, accessibility,
+privacy, reliability and maintainability; document and execute a comprehensive
+improvement/refactor plan through subagents and end-to-end increments. Close with
+an improvement and polishing pass, open a pull request and merge only after all
+required local and CI checks are green. Preserve explicit saves, draft/conflict
+recovery, project scope, host permissions and final human review.
+
 - Give agent workflows a private Workflow settings subpage under Agent workflow, alongside Workflow runs and Herdr workspaces (owner revision, 2026-10-28). Agent workflow belongs to Project settings (owner revision, 2026-10-29); configuration and execution monitoring remain distinct local tasks.
 - Each project owns its workflow. New projects start with the standard Screen/Score/Plan/Build process.
 - The streamer can add, rename, duplicate, remove, replace and reorder all steps, including core steps.

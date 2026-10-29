@@ -63,6 +63,7 @@ export async function workflowUiFixture() {
     store,
     pinia,
     provider,
+    context,
     saveExport,
     dispose: async () => {
       stop();

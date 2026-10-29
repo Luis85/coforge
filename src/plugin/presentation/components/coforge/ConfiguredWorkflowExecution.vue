@@ -2,6 +2,7 @@
 import type { WorkflowModel } from "../../composables/coforge/use-workflow";
 import ConfiguredManualStep from "./ConfiguredManualStep.vue";
 import ConfiguredWorkflowResults from "./ConfiguredWorkflowResults.vue";
+import WorkflowCapturedConfiguration from "./WorkflowCapturedConfiguration.vue";
 defineProps<{ model: WorkflowModel }>();
 </script>
 <template>
@@ -39,18 +40,53 @@ defineProps<{ model: WorkflowModel }>();
         This run retains an earlier saved definition. Changes in Workflow
         settings apply to new runs.
       </p>
-      <section v-if="model.uncertainNudges.length" aria-label="Agent nudge recovery">
+      <section
+        class="cf-workflow-next-action"
+        aria-label="Next workflow action"
+      >
+        <h3>{{ model.nextActionHeading }}</h3>
+        <p>{{ model.nextActionHelp }}</p>
+      </section>
+      <section
+        v-if="model.uncertainNudges.length"
+        aria-label="Agent nudge recovery"
+      >
         <h3>Inspect the original agent task</h3>
-        <p>The previous task may have been admitted. Inspect its source and Council run before creating a fresh task.</p>
-        <ul><li v-for="attempt in model.uncertainNudges" :key="attempt.id"><code>{{ attempt.nudgeSourcePath || attempt.id }}</code><span v-if="attempt.nudgeRunId"> · run {{ attempt.nudgeRunId }}</span></li></ul>
-        <label class="cf-workflow-check"><input :checked="model.nudgeRecoveryConsent" type="checkbox" @change="model.changeNudgeRecovery($event)" />I inspected the original task and accept that a fresh attempt may duplicate it.</label>
-        <button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.nudgeRecoveryConsent || model.store.busy" @click="model.acknowledgeNudge()">Acknowledge nudge recovery</button>
+        <p>
+          The previous task may have been admitted. Inspect its source and
+          Council run before creating a fresh task.
+        </p>
+        <ul>
+          <li v-for="attempt in model.uncertainNudges" :key="attempt.id">
+            <code>{{ attempt.nudgeSourcePath || attempt.id }}</code
+            ><span v-if="attempt.nudgeRunId">
+              · run {{ attempt.nudgeRunId }}</span
+            >
+          </li>
+        </ul>
+        <label class="cf-workflow-check"
+          ><input
+            :checked="model.nudgeRecoveryConsent"
+            type="checkbox"
+            @change="model.changeNudgeRecovery($event)"
+          />I inspected the original task and accept that a fresh attempt may
+          duplicate it.</label
+        >
+        <button
+          type="button"
+          class="cf-btn cf-btn-secondary"
+          :disabled="!model.nudgeRecoveryConsent || model.store.busy"
+          @click="model.acknowledgeNudge()"
+        >
+          Acknowledge nudge recovery
+        </button>
       </section>
       <ConfiguredManualStep
         v-if="
           model.run?.state === 'waiting-human' &&
           model.currentStep &&
-          (model.currentStep.kind === 'approval' || model.currentStep.kind === 'checklist')
+          (model.currentStep.kind === 'approval' ||
+            model.currentStep.kind === 'checklist')
         "
         :key="`${model.run.id}:${model.currentStep.id}:${model.run.revision}`"
         :idea-id="model.selected.id"
@@ -61,7 +97,6 @@ defineProps<{ model: WorkflowModel }>();
         ><p v-if="model.run?.error" role="alert" class="cf-inline-error">
           {{ model.run.error }}
         </p>
-        <p v-if="model.blocked" class="cf-settings-help">{{ model.blocked }}</p>
         <div class="cf-settings-actions">
           <button
             v-if="model.canRunNext"
@@ -87,10 +122,22 @@ defineProps<{ model: WorkflowModel }>();
           </button>
         </div></template
       >
+      <div class="cf-workflow-progress-heading">
+        <h3>Workflow progress</h3>
+        <span>{{ model.progressLabel }}</span
+        ><button
+          type="button"
+          class="cf-btn cf-btn-ghost"
+          @click="model.editWorkflow()"
+        >
+          Edit future runs
+        </button>
+      </div>
       <ol class="cf-configured-progress" aria-label="Captured workflow steps">
         <li
           v-for="step in model.steps"
           :key="step.id"
+          :aria-current="step.current ? 'step' : undefined"
           :class="{
             'is-current': step.current,
             'is-completed': step.completed,
@@ -111,8 +158,11 @@ defineProps<{ model: WorkflowModel }>();
         </li>
       </ol>
       <p v-if="model.run?.state === 'finished'" class="cf-workflow-policy">
-        Workflow finished without pending code changes. No implementation or
-        shipped-feature credit was created.
+        {{
+          model.selected.status === "shipped"
+            ? "Code changes were accepted through final review. The completed workflow and its evidence are retained."
+            : "Workflow finished without pending code changes. Completing the workflow alone does not accept code or create shipped-feature credit."
+        }}
       </p>
       <button
         v-if="model.canStop"
@@ -123,6 +173,22 @@ defineProps<{ model: WorkflowModel }>();
         Stop this workflow run
       </button>
       <ConfiguredWorkflowResults v-if="model.run" :run="model.run" />
+      <WorkflowCapturedConfiguration v-if="model.run" :run="model.run" />
+      <details
+        v-if="model.selected.workflowHistory?.length"
+        class="cf-workflow-options"
+        aria-label="Previous workflow configurations"
+      >
+        <summary>
+          Previous run configurations ·
+          {{ model.selected.workflowHistory.length }}
+        </summary>
+        <WorkflowCapturedConfiguration
+          v-for="previous in model.selected.workflowHistory"
+          :key="previous.id"
+          :run="previous"
+        />
+      </details>
     </template>
     <div v-else class="cf-intent-empty">
       <h2>

@@ -52,6 +52,8 @@ export function configuredAttempt(state: InternalState, job: AgentJob, allowStop
     if (!current || run.invalidatedArtifactIds?.includes(input.id) || workflowArtifactHash(current) !== input.contentHash || current.contentHash !== input.contentHash)
       throw new Error('A bound workflow input changed. Its result cannot advance this run.');
   }
+  const template = run.outputTemplates?.find(item => item.id === snapshot.step.outputTemplateId);
+  if (JSON.stringify(template) !== JSON.stringify(snapshot.outputTemplate)) throw new Error('The captured output template changed. Its result cannot advance this run.');
   return { idea, run, attempt, snapshot };
 }
 /** Host-captured files remain attributable even when semantic inputs changed or the run was stopped. */

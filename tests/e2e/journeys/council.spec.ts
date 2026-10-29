@@ -1,4 +1,4 @@
-import { openCouncilPage } from '../support/council-navigation';
+import { openCouncilPage } from "../support/council-navigation";
 import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -39,69 +39,83 @@ async function capture(page: Page, name: string, theme: string) {
   ).toEqual([]);
 }
 
+async function example(page: Page, theme: string) {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/#surface=node-1");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-prototype-ready",
+    "true",
+  );
+  await page.evaluate((value) => {
+    document.body.classList.toggle("theme-light", value === "light");
+    document.body.classList.toggle("theme-dark", value === "dark");
+  }, theme);
+  await page
+    .locator(".cf-sidebar")
+    .getByRole("button", { name: "The Council", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Explore Council example", exact: true })
+    .click();
+  return errors;
+}
+async function councilPreflight(page: Page) {
+  await openCouncilPage(page, "Run monitor");
+  await page
+    .getByRole("button", {
+      name: "Use this desktop for execution",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("button", { name: "Submit existing note", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Project team", exact: true })
+    .selectOption({ label: "Example studio team" });
+  await page
+    .getByRole("combobox", { name: "CoWorker or council", exact: true })
+    .selectOption({ label: "Example design council · council" });
+  await page
+    .getByLabel("Private source note", { exact: true })
+    .fill("CoForge/Examples/Council proposal.md");
+  await page
+    .getByRole("button", { name: "Run preflight", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Invocation preview", exact: true }),
+  ).toContainText("6 invocations");
+}
+
+// Keep each user journey inside the existing test budget; every original assertion and capture is retained.
 for (const theme of ["light", "dark"]) {
-  test(`Council browser example exposes complete configuration and isolated six-contribution simulation in ${theme}`, async ({
+  test(`Council example exposes round configuration and isolated invocation preflight in ${theme}`, async ({
     page,
   }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (error) => errors.push(error.message));
-    await page.goto("/#surface=node-1");
-    await expect(page.locator("html")).toHaveAttribute(
-      "data-prototype-ready",
-      "true",
-    );
-    await page.evaluate((value) => {
-      document.body.classList.toggle("theme-light", value === "light");
-      document.body.classList.toggle("theme-dark", value === "dark");
-    }, theme);
-    await page
-      .getByRole("button", { name: "The Council", exact: true })
-      .first()
-      .click();
-    await page
-      .getByRole("button", { name: "Explore Council example", exact: true })
-      .click();
-    await openCouncilPage(page, 'Definitions');
+    const errors = await example(page, theme);
+    await openCouncilPage(page, "Definitions");
     await page
       .locator(".cf-council-definition-list")
       .getByRole("button", { name: /^Example design council/ })
       .click();
-    await expect(
-      page.getByRole("region", { name: "Council rounds", exact: true }),
-    ).toContainText("Opinions");
-    await expect(
-      page.getByRole("region", { name: "Council rounds", exact: true }),
-    ).toContainText("Solutions");
+    const rounds = page.getByRole("region", {
+      name: "Council rounds",
+      exact: true,
+    });
+    await expect(rounds).toContainText("Opinions");
+    await expect(rounds).toContainText("Solutions");
     await expect(page.locator(".cf-council-round")).toHaveCount(2);
     await capture(page, "definitions", theme);
-    await page
-      .getByRole("button", { name: "Run monitor", exact: true })
-      .click();
-    await page
-      .getByRole("button", {
-        name: "Use this desktop for execution",
-        exact: true,
-      })
-      .click();
-    await page
-      .getByRole("button", { name: "Submit existing note", exact: true })
-      .click();
-    await page
-      .getByRole("combobox", { name: "Project team", exact: true })
-      .selectOption({ label: "Example studio team" });
-    await page
-      .getByRole("combobox", { name: "CoWorker or council", exact: true })
-      .selectOption({ label: "Example design council · council" });
-    await page
-      .getByLabel("Private source note", { exact: true })
-      .fill("CoForge/Examples/Council proposal.md");
-    await page
-      .getByRole("button", { name: "Run preflight", exact: true })
-      .click();
-    await expect(
-      page.getByRole("region", { name: "Invocation preview", exact: true }),
-    ).toContainText("6 invocations");
+    await councilPreflight(page);
     await capture(page, "preflight", theme);
+    expect(errors).toEqual([]);
+  });
+  test(`Council example simulates and attributes all six contributions in ${theme}`, async ({
+    page,
+  }) => {
+    const errors = await example(page, theme);
+    await councilPreflight(page);
     await page
       .getByText("Test with deterministic simulation", { exact: true })
       .click();
@@ -122,9 +136,13 @@ for (const theme of ["light", "dark"]) {
       page.getByRole("region", { name: "Captured run evidence", exact: true }),
     ).toContainText("Simulation");
     await capture(page, "monitor", theme);
-    await page
-      .getByRole("button", { name: "Council workflows", exact: true })
-      .click();
+    expect(errors).toEqual([]);
+  });
+  test(`proposal workflows preview saved steps and invalidate reviewed inputs after editing in ${theme}`, async ({
+    page,
+  }) => {
+    const errors = await example(page, theme);
+    await openCouncilPage(page, "Council workflows");
     await expect(
       page.getByLabel("Proposal workflow name", { exact: true }),
     ).toHaveValue("Example council proposal");
@@ -134,13 +152,20 @@ for (const theme of ["light", "dark"]) {
     await page
       .getByRole("button", { name: "Preflight proposal workflow", exact: true })
       .click();
-    await expect(
-      page.getByRole("region", {
-        name: "Proposal invocation preview",
-        exact: true,
-      }),
-    ).toContainText("6 invocations and 1 human checkpoints");
+    const preview = page.getByRole("region", {
+      name: "Proposal invocation preview",
+      exact: true,
+    });
+    await expect(preview).toContainText(
+      "6 invocations and 1 human checkpoints",
+    );
     await capture(page, "workflow", theme);
+    await page
+      .locator(".cf-proposal-step")
+      .last()
+      .locator("summary")
+      .first()
+      .click();
     await page
       .getByRole("combobox", { name: "Step kind", exact: true })
       .last()
@@ -154,12 +179,7 @@ for (const theme of ["light", "dark"]) {
     await expect(
       page.getByRole("combobox", { name: "Message purpose", exact: true }),
     ).toHaveValue("information");
-    await expect(
-      page.getByRole("region", {
-        name: "Proposal invocation preview",
-        exact: true,
-      }),
-    ).toHaveCount(0);
+    await expect(preview).toHaveCount(0);
     await capture(page, "workflow-message", theme);
     expect(errors).toEqual([]);
   });
@@ -180,14 +200,14 @@ test("creates three specialists, a team and a six-invocation council entirely th
   await page
     .getByRole("button", { name: "Explore Council example", exact: true })
     .click();
-    await openCouncilPage(page, 'Definitions');
+  await openCouncilPage(page, "Definitions");
   const specialists = [
     "UI product reviewer",
     "UI architecture reviewer",
     "UI quality reviewer",
   ];
   for (const name of specialists) {
-    await page.getByRole('button', { name: 'CoWorkers', exact: true }).click();
+    await page.getByRole("button", { name: "CoWorkers", exact: true }).click();
     await page
       .getByRole("button", { name: "Create CoWorker", exact: true })
       .click();
@@ -202,12 +222,10 @@ test("creates three specialists, a team and a six-invocation council entirely th
     await page
       .getByRole("button", { name: "Save CoWorker", exact: true })
       .click();
-    await expect(page.locator(".cf-coworker-cards")).toContainText(
-      name,
-    );
+    await expect(page.locator(".cf-coworker-cards")).toContainText(name);
   }
-  await page.getByRole('button', { name: 'The Council', exact: true }).click();
-  await openCouncilPage(page, 'Definitions');
+  await page.getByRole("button", { name: "The Council", exact: true }).click();
+  await openCouncilPage(page, "Definitions");
   await page.getByRole("button", { name: "Create team", exact: true }).click();
   await page
     .getByLabel("Definition name", { exact: true })

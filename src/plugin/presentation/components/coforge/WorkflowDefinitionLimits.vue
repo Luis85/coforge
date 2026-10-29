@@ -10,6 +10,7 @@ const model = useWorkflowEditorForm();
         ><span>Automatic run interval · seconds</span
         ><input
           v-model.number="model.draft.limits.intervalSeconds"
+          data-workflow-field="limits.intervalSeconds"
           type="number"
           min="2"
           max="3600"
@@ -19,6 +20,7 @@ const model = useWorkflowEditorForm();
         ><span>Step timeout · seconds</span
         ><input
           v-model.number="model.draft.limits.timeoutSeconds"
+          data-workflow-field="limits.timeoutSeconds"
           type="number"
           min="15"
           max="1800"
@@ -28,6 +30,7 @@ const model = useWorkflowEditorForm();
         ><span>Maximum native CLI turns</span
         ><input
           v-model.number="model.draft.limits.maxTurns"
+          data-workflow-field="limits.maxTurns"
           type="number"
           min="1"
           max="50"
@@ -37,6 +40,7 @@ const model = useWorkflowEditorForm();
         ><span>Native CLI budget cap · USD</span
         ><input
           v-model.number="model.draft.limits.maxBudgetUsd"
+          data-workflow-field="limits.maxBudgetUsd"
           type="number"
           min="0.1"
           max="20"

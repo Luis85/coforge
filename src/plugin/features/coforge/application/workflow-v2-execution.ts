@@ -20,6 +20,7 @@ import {
 import type { WorkflowV2Preview } from "./workflow-v2-ports";
 import { assertCapturedPromptOrder } from "./captured-prompt-order";
 import type { ExecutionLocalAction } from "../domain/execution-local-action";
+import { workflowOutputTemplateListCheck } from '../domain/workflow-output-templates';
 import {
   teamMessageDraftCheck,
   type TeamMessageDraft,
@@ -62,6 +63,7 @@ export function decodeWorkflowV2Plan(
       team: teamDefinitionCheck(catalogue.team),
       agents: list(agentDefinitionCheck)(catalogue.agents),
       councils: list(councilDefinitionCheck)(catalogue.councils),
+      ...(catalogue.outputTemplates ? { outputTemplates: workflowOutputTemplateListCheck(catalogue.outputTemplates) } : {}),
     },
   );
   assertCapturedPromptOrder(run.invocations, plan.invocations);

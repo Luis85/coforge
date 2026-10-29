@@ -61,7 +61,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: product-test-results
-          path: reports/product-tests.json
+          path: |
+            reports/product-tests.json
+            reports/tests/project-results.xml
           retention-days: 7
           if-no-files-found: warn
   # Browser journeys and the UI review gallery: end-to-end, so opt-in except on `main`. The gallery is evidence for
@@ -133,5 +135,6 @@ jobs:
             reports/task-scheduler/
             reports/merged-native-mcp/
             reports/idea-drawer-layout/
+            reports/workflow-output-templates/
           retention-days: 14
           if-no-files-found: warn

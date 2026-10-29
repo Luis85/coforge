@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useWorkflowEditor } from "../../composables/coforge/use-workflow-editor";
-import { useEventTriggerLink } from '../../composables/coforge/use-event-trigger-link';
+import { useEventTriggerLink } from "../../composables/coforge/use-event-trigger-link";
 import WorkflowStepList from "./WorkflowStepList.vue";
 import WorkflowStepEditor from "./WorkflowStepEditor.vue";
 import WorkflowDefinitionLimits from "./WorkflowDefinitionLimits.vue";
 import WorkflowDefinitionTransfer from "./WorkflowDefinitionTransfer.vue";
+import WorkflowOutputTemplates from "./WorkflowOutputTemplates.vue";
+import WorkflowValidationSummary from "./WorkflowValidationSummary.vue";
 withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 const model = useWorkflowEditor();
 const openEventTriggers = useEventTriggerLink();
@@ -23,18 +25,22 @@ const openEventTriggers = useEventTriggerLink();
           prepares future runs; it never starts an agent.
         </p>
       </div>
-      <button type="button" class="cf-btn cf-btn-secondary" @click="openEventTriggers()">Attach an event trigger</button>
     </header>
-    <p>
-      Reuse agents and councils in a proposal process through
-      <button
-        type="button"
-        class="cf-btn cf-btn-ghost"
-        @click="model.store.navigate('council')"
-      >
-        The Council</button
-      >.
-    </p>
+    <details class="cf-workflow-related">
+      <summary>Request workflows and Council proposal processes</summary>
+      <p>
+        Use this workflow to move an existing request through ordered AI and
+        human steps. For a separate process involving reusable CoWorkers and
+        councils, open
+        <button
+          type="button"
+          class="cf-btn cf-btn-ghost"
+          @click="model.store.navigate('council')"
+        >
+          The Council</button
+        >.
+      </p>
+    </details>
     <section
       v-if="!model.project || model.project.unavailable"
       class="cf-empty-state"
@@ -64,30 +70,48 @@ const openEventTriggers = useEventTriggerLink();
                   : "Standard defaults"
             }}</span>
           </div>
-          <div class="cf-settings-actions">
-            <button
-              type="button"
-              class="cf-btn cf-btn-secondary"
-              @click="model.transfer.openImport()"
-            >
-              Import JSON</button
-            ><button
-              type="button"
-              class="cf-btn cf-btn-secondary"
-              @click="model.transfer.openExport()"
-            >
-              Preview workflow export
-            </button>
-          </div>
+          <details class="cf-workflow-tools">
+            <summary>Workflow tools</summary>
+            <div class="cf-settings-actions">
+              <button
+                type="button"
+                class="cf-btn cf-btn-secondary"
+                @click="model.transfer.openImport()"
+              >
+                Import JSON</button
+              ><button
+                type="button"
+                class="cf-btn cf-btn-secondary"
+                @click="model.transfer.openExport()"
+              >
+                Preview workflow export
+              </button>
+              <button
+                type="button"
+                class="cf-btn cf-btn-secondary"
+                @click="openEventTriggers()"
+              >
+                Attach an event trigger
+              </button>
+            </div>
+          </details>
         </div>
         <label class="cf-field"
           ><span>Workflow name</span
-          ><input v-model="model.draft.name" maxlength="100" required
+          ><input
+            v-model="model.draft.name"
+            data-workflow-field="name"
+            maxlength="100"
+            required
         /></label>
         <p class="cf-workflow-policy">
-          Steps can be replaced and reordered. Actual code changes always
-          require final streamer review. Repository edits stay in one isolated
-          workspace for the run; publication clearance stays separate.
+          {{ model.draft.steps.length }} ordered steps ·
+          {{ model.aiStepCount }} AI · {{ model.humanStepCount }} human
+          checkpoints<template v-if="model.nudgeStepCount">
+            · {{ model.nudgeStepCount }} agent
+            {{ model.nudgeStepCount === 1 ? "nudge" : "nudges" }}</template
+          >. Select a step to define its task and answer. Changes apply to new
+          runs after saving; code changes still need final review.
         </p>
         <p v-if="model.error" class="cf-inline-error" role="alert">
           {{ model.error }}
@@ -96,6 +120,7 @@ const openEventTriggers = useEventTriggerLink();
           {{ model.notice }}
         </p>
         <WorkflowDefinitionTransfer />
+        <WorkflowValidationSummary />
         <div class="cf-workflow-editor-layout">
           <WorkflowStepList /><WorkflowStepEditor />
         </div>
@@ -139,5 +164,9 @@ const openEventTriggers = useEventTriggerLink();
         </div>
       </fieldset>
     </form>
+    <WorkflowOutputTemplates
+      v-if="model.project && !model.project.unavailable"
+      :project-id="model.project.id"
+    />
   </div>
 </template>

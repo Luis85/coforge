@@ -157,6 +157,20 @@ Regenerate the combined 107-view catalogue and qualify the combined head. Preser
 the upstream short-pane spacing improvements together with 24px Alerts-era targets;
 keep the unchanged 740px navigation and accessibility assertions.
 
+### P10 — workflow-template integration and conflict-free handoff
+
+Preserve the earlier workflow/output-template increment (#41) when it reaches main:
+shared template injection, observers, usage snapshots and private-folder guards remain
+authoritative. Curated Alerts bindings exclude template-management events and raw
+template content. Integration review found no bootstrap, ownership or disposal defect.
+The combined catalogue has 108 contracts.
+
+Place additive Alerts declarations away from shared feature insertion points without
+changing lifecycle or behavior, and retain main’s shared PR-template file on merge.
+The filled Alerts summary, exact-head checks and release evidence remain on PR #42
+and in this plan. Final merge is conditional on the exact tested head, all CI checks
+and completed local verification; it never overrides conflicts or failed checks.
+
 ## Explicit limits
 
 - No personal vault, live Twitch broadcast, or user OBS scene collection is used for tests.

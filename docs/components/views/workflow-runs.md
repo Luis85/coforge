@@ -68,3 +68,16 @@ Journey tags: `request-to-recognition`, `recovery`.
 ## Workspace redesign
 
 The request title and current run state lead the execution workspace. Completed and current steps have distinct surfaces, while attempt details remain expandable and failures remain visible.
+
+Next workflow action explains whether to start, wait, complete a human decision,
+inspect a failed attempt or review actual code changes. A completed-step count and
+semantic current-step marker make the captured process readable. Edit future runs
+opens configuration without altering the active definition or captured templates.
+
+If automatic admission cannot resolve a selected template, the request retains a
+visible setup hold before any run or attempt is created. Repair the selection in
+Workflow settings, then explicitly retry starting the workflow; timer ticks do
+not repeatedly retry the held request. Captured configuration shows the current
+run's workflow revision and exact template content, with literal Markdown source
+and a safe rendered preview. Retained prior runs expose their own captured
+configuration separately, without looking up live template notes.

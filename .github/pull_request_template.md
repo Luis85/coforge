@@ -1,46 +1,49 @@
 ## Summary
 
-CoForge now provides a stable local Alerts URL for an OBS Browser Source. Streamers save literal text templates with variables and vault GIF/image, audio or video files, fire them manually, or explicitly bind them to supported committed CoForge and Twitch activity events. Curated Twitch bindings cover follows, subscriptions/gifts/resubscriptions, cheers, directional raids, redemptions and stream observations, using existing permission-filtered collection.
+Add project-scoped Markdown answer/output templates with plugin create, read/preview/open, edit and confirmed delete controls. Request AI steps and proposal agent/council steps select one template; admission retains its exact content and revision for existing runs and retries. Missing templates produce a visible automatic-admission hold without creating a run or provider attempt.
 
-The Stream → Alerts page puts on-air dispatch first, shows connected browser pages and reports accepted delivery without claiming playback. The read-only overlay stays transparent while idle, queues bounded live cues, clears on disconnect/Stop/unload, and never replays missed alerts. Public request variables follow privacy/screening rules; media URLs use opaque identifiers instead of vault paths.
+Overhaul workflow authoring and operation: purpose-first steps, manageable proposal sections, visible agent/access/automation summaries, actionable field-repair links, explicit next actions, captured configuration/history, dependency-aware deletion, and predictable keyboard focus. Complete a second research-informed improvement plan and independent review, fixing measured accessibility, reflow and note-integrity defects.
 
 ## Requirements and traceability
 
-- Owner Alerts request and manual-plus-automatic trigger confirmation (2026-10-29), recorded in BRIEF.md.
-- ALERTS-01–07 plus dedicated service, module, storage, HTTP, player, UI and native regression scenarios.
-- No imported req-* or vi-* obligation applies: design/traceability.json contains no requirements/interactions. Generated traceability is unchanged.
-- Component contracts: Alerts and Public Alerts, under the independent Public family where applicable.
-- Researched multi-agent review and implemented increments: docs/project-tasks/2026-10-29-alerts-polish.md.
+- Owner requests on 2026-10-29; BRIEF.md records project ownership, Markdown CRUD, full workflow UX review, researched subagent increments and merge only after green checks.
+- No imported req-* or vi-* obligation applies: the arrays are empty; generated traceability is unchanged.
+- Plans and linked primary-source research: docs/project-tasks/2026-10-29-workflow-templates-ux.md and docs/project-tasks/2026-10-29-workflow-second-review.md.
+- Updated workflow view contracts and generated sitemap: 102 views documented, valid navigation coverage.
+- Integrated current main without force: preserved Twitch operations and the owner's later documentation ownership/order edits; only unsupported shorthand links were expanded to canonical clickable links.
 
 ## Validation
 
-- Focused final eight-suite run: 8 files passed, 40 tests passed (29.22s).
-- npm run typecheck:project: exit 0.
-- Focused runtime and presentation ESLint: zero errors/warnings.
-- npm run test:obsidian -- coforge-alerts: 1 native journey passed (23.42s), including GIF/WAV/WebM decoding/playback, volume, literal text, reload/reconnect/no replay, source shutdown, detached-window inputs, accessibility and extreme combined-media/text geometry.
-- Existing native navigation regression: 2 cases passed, light and dark, preserving compact navigation after adding Alerts.
-- Twitch integration sweep after merging main #39: 3 files passed, 16 tests passed (6.57s), covering actual EventSub parse → committed ingestion → source delivery for all ten curated event types, privacy, anonymity, direction and no replay.
-- View catalogue: 103 views documented; navigation coverage valid; sitemap current.
-- git diff --check: clean.
-- Qualified CI canonical project gate: 5 passed, 0 failed, 0 skipped (251.1s); release/artifact checks and local installation verification passed. Full native CI: 25 files passed, followed by a passed load/reload smoke.
-- Local combined-main npm run verify:project: typecheck, source lint and maker types passed; full ESLint/product steps exceeded their 600-second outer execution windows on the unqualified Windows toolchain. No checks were disabled.
-- Final browser closeout: navigation focus/compact spacing, preview host-theme regression and all UI quality checks passed locally: 13 passed (4.1m).
-- Final exact-head CI requalification is in progress; this draft is not ready to merge until their results are recorded and green.
+Final current-revision aggregate results and merge status are recorded on [PR41](https://github.com/Luis85/coforge/pull/41). Required CI must be green before merge; result lines below are from commands actually run.
+
+- Pinned local Node 24.21.0 / npm 11.19.1 provisioned in ignored .nq using checksum/integrity verification. npm ci --ignore-scripts: 691 added, 692 audited, 0 vulnerabilities. No dependency or lockfile changes.
+- Combined-runtime npm run verify:project in CI: 5 passed, 0 failed, 0 skipped in 165.6s; release build and prototype embedding passed. Later full diagnostics showed 1119 passed / 4 failed, all four caused by concurrently updated catalogue links. After canonicalization, focused catalogue: 1 file / 11 tests passed, including all four failing assertions; final aggregate CI requalifies the final revision.
+- Backend second pass: 13 focused tests passed; exact captured-source regression passed. Canonical storage, cross-project rejection, stale edits, immutable v1/v2 snapshots, automatic admission holds and explicit recovery covered.
+- Final Markdown codec integrity: 4 storage tests passed after reproducing indented YAML corruption. Indentation/comments and unknown properties are retained; the assembled note is validated before write; unsupported root flow layout leaves original bytes unchanged.
+- Frontend focused regression: 7 files / 20 tests passed; exact checklist repair 3/3; focus/discard regressions 2 files / 9 tests; contextual action-label regressions 4/4. Targeted ESLint passed with zero warnings.
+- Dependency query, late project response, runtime wiring and lifecycle subset: 4 files / 7 tests passed. Source line limits/locale parity passed; git diff --check clean.
+- JSON and JUnit reports now supplement the original reporters; CI retains them without changing assertions, warning behavior, timeouts, isolation or output limits.
 
 ## UI evidence
 
-- Native captures: reports/obsidian/cases/coforge-alerts--fires-a-saved-alert-into-its-public-browser-source-and-preserves-the-URL-after-reload/ (wide light, narrow dark, expanded invalid editor and public combined-media geometry).
-- Scoped native axe checks: identical WCAG tags, zero violations in dispatch and expanded validation states. Electron CDP requires documented same-page axe execution; a no-frames assertion preserves its complete Alerts scope.
-- Initial native axe evidence identified a primary-button contrast defect; the scoped semantic-token fix passes the unchanged check.
-- ui:gallery generated 40 captures with failures []; reviewed wide light and narrow dark. npm run test:ui-quality: 8 passed (1.0m), exit 0. Refreshed gallery: 40 screenshots, failures []. Final host-theme/navigation changes passed the 13-case browser closeout; the final gallery is refreshed as review evidence.
+- Requested source-backed browser flows: 4/4 passed, covering template CRUD/attachment, project references, manual checkpoint/keyboard behavior in both themes, shared proposal templates/review invalidation and long-name reflow.
+- Actual 320px proof with valid 100-character names: selected source, captured source and whole run page each clientWidth 224 / scrollWidth 224; overflowingElements []. The prior measured 1121px overflow was corrected.
+- Proposal axe verified the contextual button-label fix; labels include the visible Duplicate step / Remove step words. No additional measured defect remains.
+- npm run test:ui-quality -- --config .nq/playwright-isolated.config.ts: 8 passed (53.6s), exit 0. Only local port/baseURL changed to 4183 because an unrelated job owned 4181; tests, timeouts and retries unchanged. CI keeps the default config/port.
+- npm run ui:gallery: exit 0, 40 captures. Reviewed representative gallery frames, final light/dark library/editor images, captured/selected Markdown, native completed run and exact narrow-pane geometry. No baselines updated or committed.
+- Proofs: reports/workflow-output-templates/; catalogue gallery: reports/ui-gallery/. CI uploads current proof images and JSON alongside the existing reports.
 
 ## Obsidian evidence
 
-- Pinned Obsidian app/installer 1.14.4 and launcher 3.2.1, installed only in contained cache/sandbox directories.
-- Native load/reload smoke: status passed, errors [], hostErrorCount 0, pluginConsole []. Final smoke refresh pending.
-- Native Alerts and navigation evidence above uses contained vaults only.
-- Real-Obsidian CI now installs pinned Chromium for the separate browser-source media journey.
+- Pinned app/installer 1.14.4 and launcher 3.2.1, contained vaults/profiles only.
+- Combined branch native CI: 32 tests passed; reload smoke passed with errors [] and hostErrorCount 0 after the native test waited for actual settings-save completion. Runtime navigation/draft guards stayed intact.
+- Local native project subset: 3/3 passed (30.50s); the previously failing request case passed in 13.426s. Actual template CRUD/edit/delete/reload/snapshot journey also passed locally (21.742s), and its completed-run screenshot was inspected.
+- Captured current/prior run template content is displayed from snapshots only, including exact source; no live note lookup or provider dispatch is introduced by inspection.
 
-## Untested scope
+## Self-review and limitations
 
-No personal vault, live Twitch broadcast or user OBS scene collection was used. Accepted browser-source delivery and tested browser media playback are distinct from observing a real OBS program output. The local Windows toolchain is Node 24.20.0/npm 11.19.0; qualified CI uses pinned Node 24.21.0/npm 11.19.1. No release/tag/public hosting or personal-vault installation is requested.
+Canonical notes retain stable IDs and unrelated frontmatter. Conflicts retain drafts. Named project facts follow successful writes; observer failure cannot turn a successful save into a retry. Private folders and public projections remain separate. Host permissions, finite execution limits, uncertainty recovery, validated output contracts and final human code review remain authoritative.
+
+Local preliminary aggregate/browser runs hit unchanged time budgets under host load; one legacy light proposal journey still timed out locally after its business assertions, while its dark counterpart and all four requested flows passed. These are distinguished from required full current-head CI results. No test, lint rule, timeout, output bound or screenshot baseline was weakened. Native deletion follows the user's Obsidian preference with exact-content/target rechecks; the host has no atomic compare-and-delete API.
+
+No paid model, live Herdr/Twitch/OBS service or personal vault was used. No release/tag/global install was requested. The plugin build is produced locally and in CI; the personal installed plugin is not modified.

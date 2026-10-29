@@ -7,7 +7,6 @@ import type { BroadcastPage, StreamPage, WorkflowPage, SettingsPage } from "./st
 import { studioRoot } from "./studio-destinations";
 
 export type StudioView =
-  | "alerts"
   | "service-design"
   | "council"
   | "coworkers"
@@ -25,6 +24,7 @@ export type StudioView =
   | "broadcast"
   | "statistics"
   | "finance"
+  | "alerts"
   | "ai-costs"
   | "schedule"
   | "workflow-settings";

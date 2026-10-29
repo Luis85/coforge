@@ -5,7 +5,7 @@ import { OBS_SCENE_KINDS } from '../../features/coforge/domain/obs-scenes';
 import { OBS_SHOW_OPERATION_CODES } from '../../features/coforge/domain/obs-show';
 import { OBS_OVERLAY_OPERATION_CODES } from '../../features/coforge/domain/obs-overlay';
 
-const toolCodes = new Set(OPERATION_CODES.filter(code => /^(music|herdr|finance|stream-view|ai-cost|schedule|viewer-note|workflow-nudge)-/.test(code)));
+const toolCodes = new Set(OPERATION_CODES.filter(code => /^(music|herdr|finance|stream-view|ai-cost|schedule|viewer-note|workflow-nudge|workflow-output-template|workflow-admission)-/.test(code)));
 const productionCodes = new Set<string>([...OBS_SHOW_OPERATION_CODES, ...OBS_OVERLAY_OPERATION_CODES]);
 const twitchCodes = new Set(OPERATION_CODES.filter(code => /^twitch-(operation|activity|template|retention)-/.test(code)));
 const operations = ["population", "economy", "twitch", "moderation", "chat", "broadcast", "workflow", ...OBS_SCENE_KINDS.map(kind => `scene.${kind}` as const)] as const;
@@ -28,7 +28,7 @@ export function operationsLog(logger?: Pick<StructuredLogger, "registerCatalog" 
       const log = productionCodes.has(record.code) ? production : twitchCodes.has(record.code) ? twitch : toolCodes.has(record.code) ? tools : core;
       const correlation = logger?.correlation();
       const metadata = { count: record.count, effect: record.effect, ...(correlation ? { correlation } : {}) };
-      const operation = twitchCodes.has(record.code) ? 'twitch' : record.action ? `scene.${record.action}` as const : record.code.startsWith('obs-') || record.code.startsWith('stream-') || record.code.startsWith('twitch-channel-') || record.code.startsWith('music-') || record.code.startsWith('schedule-') ? 'broadcast' : record.code.startsWith('finance-') ? 'economy' : record.code.startsWith('herdr-') || record.code.startsWith('project-') || record.code.startsWith('ai-cost-') ? 'workflow' : (record.code.startsWith("job-") || record.code.startsWith("workflow-nudge-"))
+      const operation = twitchCodes.has(record.code) ? 'twitch' : record.action ? `scene.${record.action}` as const : record.code.startsWith('obs-') || record.code.startsWith('stream-') || record.code.startsWith('twitch-channel-') || record.code.startsWith('music-') || record.code.startsWith('schedule-') ? 'broadcast' : record.code.startsWith('finance-') ? 'economy' : record.code.startsWith('herdr-') || record.code.startsWith('project-') || record.code.startsWith('ai-cost-') ? 'workflow' : (record.code.startsWith("job-") || record.code.startsWith("workflow-"))
         ? "workflow"
         : record.code.startsWith("moderation")
           ? "moderation"

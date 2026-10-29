@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useStudioApp } from "../../composables/coforge/use-studio-app";
+import AlertsView from './AlertsView.vue';
 import ActiveJobDock from "./ActiveJobDock.vue";
 import ActivityPopover from "./ActivityPopover.vue";
 import BrandMark from "./BrandMark.vue";
@@ -30,7 +31,6 @@ import ProjectsView from "./ProjectsView.vue";
 import CouncilView from "./CouncilView.vue";
 import ServiceDesignView from './ServiceDesignView.vue';
 import CoWorkersView from "./CoWorkersView.vue";
-import AlertsView from './AlertsView.vue';
 import ObsLiveDock from "./ObsLiveDock.vue";
 
 const model = useStudioApp();
@@ -84,7 +84,6 @@ const model = useStudioApp();
               <IdeaBoard />
             </template>
             <StreamPage v-else-if="model.shell.store.view === 'stream'" />
-            <AlertsView v-else-if="model.shell.store.view === 'alerts'" />
             <TwitchOperationsView v-else-if="model.shell.store.view === 'twitch-operations'" />
             <BroadcastView v-else-if="model.shell.store.view === 'broadcast'" />
             <StreamStatisticsView
@@ -92,6 +91,7 @@ const model = useStudioApp();
             />
             <FinanceView v-else-if="model.shell.store.view === 'finance'" />
             <AICostsView v-else-if="model.shell.store.view === 'ai-costs'" />
+            <AlertsView v-else-if="model.shell.store.view === 'alerts'" />
             <ScheduleView v-else-if="model.shell.store.view === 'schedule'" />
             <CouncilView v-else-if="model.shell.store.view === 'council'" />
             <CoWorkersView v-else-if="model.shell.store.view === 'coworkers'" />

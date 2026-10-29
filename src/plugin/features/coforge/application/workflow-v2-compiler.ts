@@ -21,8 +21,10 @@ import {
   type WorkflowV2Definition,
 } from "../domain/configured-workflow-v2";
 import type { ExecutionLocalAction } from "../domain/execution-local-action";
+import { outputTemplateGuidance, workflowOutputTemplateListCheck, type WorkflowOutputTemplate } from '../domain/workflow-output-templates';
 
 export interface WorkflowV2Catalogue {
+  outputTemplates?: WorkflowOutputTemplate[];
   projectId: string;
   team: TeamDefinition;
   agents: AgentDefinition[];
@@ -68,6 +70,9 @@ export function compileWorkflowV2(
       "Duplicate reusable definitions block workflow compilation.",
     );
   const agents = catalogue.agents.map(agentDefinitionCheck);
+  const templates = workflowOutputTemplateListCheck(catalogue.outputTemplates ?? []);
+  const selected = new Set(definition.steps.flatMap(step => (step.kind === 'agent' || step.kind === 'council') && step.outputTemplateId ? [step.outputTemplateId] : []));
+  if (templates.length !== selected.size || templates.some(template => template.projectId !== catalogue.projectId || !selected.has(template.id)) || [...selected].some(id => templates.filter(template => template.id === id).length !== 1)) throw new Error('The workflow output template is missing, duplicated or belongs to another project. Refresh and replace or clear its selection.');
   const plan: WorkflowV2Plan = {
     definition,
     subject,
@@ -126,7 +131,7 @@ export function compileWorkflowV2(
         agentRevision: definitionRevision(agent),
         provider: agent.provider,
         model: agent.model,
-        instructions: `${agent.role}\n\n${agent.instructions}\n\n${step.instructions}`,
+        instructions: `${agent.role}\n\n${agent.instructions}\n\n${step.instructions}${outputTemplateGuidance(templates.find(template => template.id === step.outputTemplateId))}`,
         access: "none",
         inputRoundIds: [],
         output: step.output,
@@ -153,7 +158,7 @@ export function compileWorkflowV2(
           agentRevision: item.agentRevision,
           provider: item.agent.provider,
           model: item.agent.model,
-          instructions: `${item.agent.role}\n\n${item.agent.instructions}\n\n${step.instructions}\n\n${item.instructions}`,
+          instructions: `${item.agent.role}\n\n${item.agent.instructions}\n\n${step.instructions}\n\n${item.instructions}${outputTemplateGuidance(templates.find(template => template.id === step.outputTemplateId))}`,
           access: "none",
           inputRoundIds: item.inputs.map((round) => `${prefix}${round}`),
           output: item.output,
