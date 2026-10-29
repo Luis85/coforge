@@ -57,6 +57,9 @@ import { WorkflowTriggers } from '../../features/coforge/application/workflow-tr
 import { WorkflowTriggerStateStorage } from './workflow-trigger-storage';
 import { workflowTriggerHost } from './workflow-trigger-host';
 import { workflowAgentTasks } from './workflow-agent-task';
+import { ServiceDesign } from '../../features/service-design/application/service-design';
+import { VaultServiceDesign } from './vault-service-design';
+import { ManagedNoteFolders } from './managed-note-folders';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -80,7 +83,9 @@ const request: HttpRequest = async ({ url, method, headers, body }) => {
 /** Composes CoForge for one plugin instance: vault storage, agent runners, Twitch intake and host actions. */
 export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => void, logger?: Pick<StructuredLogger, 'registerCatalog' | 'current' | 'correlation'>): CoforgeRuntime {
   let councilPrivateFolders: () => readonly string[] = () => [];
-  const storage = new VaultStudioStorage(plugin, () => councilPrivateFolders());
+  let serviceDesignFolders: () => readonly string[] = () => [];
+  const noteFolders = new ManagedNoteFolders(() => serviceDesignFolders());
+  const storage = new VaultStudioStorage(plugin, () => councilPrivateFolders(), folders => noteFolders.assertAvailable(folders));
   const workspaces = new LocalWorkflowWorkspaces(new WorkflowWorkspaceStateStorage(plugin));
   const log = operationsLog(logger);
   const listeners = new Set<(notice: StudioNotice) => void>();
@@ -97,6 +102,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
     economyReservations: storage.economyReservations,
     privateFolders: () => councilPrivateFolders(),
+    noteFolders,
     runners: { demo: input => invocations.run(() => demo(input), input.signal),
       claude: input => invocations.run(() => runClaudeStage(input, workspaces), input.signal),
       herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal),
@@ -122,11 +128,14 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     report: error => { report('coforge.workflow'); notify(error.message, true); },
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
-  const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id), id => storage.file(id));
-  const mcp = new McpModule(plugin, studio, mcpRunner, undefined, council.actions, () => council.privateFolders());
+  const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id), id => storage.file(id), noteFolders);
+  const blueprintStorage = new VaultServiceDesign(plugin, () => studio.store.ready ? studio.integration() : { ideasFolder: 'CoForge/Ideas', publicFolder: 'CoForge/Public' }, () => [...council.privateFolders(), ...noteFolders.privateFolders()]);
+  serviceDesignFolders = () => blueprintStorage.privateFolders();
+  const serviceDesign = new ServiceDesign(blueprintStorage, () => `sd-${crypto.randomUUID()}`, id => Boolean(studio.state().projects?.some(project => project.id === id)));
+  const mcp = new McpModule(plugin, studio, mcpRunner, undefined, council.actions, () => councilPrivateFolders());
   const taskScheduler = new TaskScheduler(new TaskSchedulerStateStorage(plugin), taskSchedulerHost(plugin, studio, council.actions), timers);
   const workflowTriggers = new WorkflowTriggers(new WorkflowTriggerStateStorage(plugin), workflowTriggerHost(plugin, studio, council.actions, id => storage.file(id)?.path));
-  councilPrivateFolders = () => council.privateFolders();
+  councilPrivateFolders = () => [...council.privateFolders(), ...blueprintStorage.privateFolders(), ...noteFolders.privateFolders()];
   const publisher = new PublicSitePublisher(plugin, () => studio.integration(), () => councilPrivateFolders(), () => studio.state());
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
   const stopStatusbar = mountNativeStatusbar(plugin, studio.store);
@@ -180,6 +189,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    serviceDesign,
     workflowTriggers,
     taskScheduler,
     mcp,
@@ -231,7 +241,14 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     startupError: () => failure,
     async start() {
       let invalidNotes: string[];
-      try { await protectPrivateData(plugin); ({ invalidNotes } = await studio.start()); }
+      try {
+        await blueprintStorage.initialize();
+        if (disposed) return;
+        await protectPrivateData(plugin);
+        if (disposed) return;
+        ({ invalidNotes } = await studio.start());
+        await blueprintStorage.initialize();
+      }
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
       if (disposed) { await studio.stop(); return; }
       await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));

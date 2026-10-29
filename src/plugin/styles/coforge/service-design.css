@@ -1,0 +1,61 @@
+.ps--coforge .cf-service-design { min-width: 0; }
+.ps--coforge .cf-service-design .cf-btn-primary { background: var(--cf-text); color: var(--cf-bg); }
+.ps--coforge .cf-service-design .cf-btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--cf-text) 90%, var(--cf-bg)); }
+.ps--coforge .cf-service-design :is(h2, h3) { margin-top: 0; }
+.ps--coforge .cf-service-design :is(input, select, textarea) { max-width: 100%; min-width: 0; }
+.ps--coforge .cf-blueprint-overview { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin: 0 0 var(--cf-space-lg); }
+.ps--coforge .cf-blueprint-overview h2 { margin-bottom: 6px; font-size: 24px; overflow-wrap: anywhere; }
+.ps--coforge .cf-blueprint-overview p { color: var(--cf-muted); margin: 0; }
+.ps--coforge .cf-blueprint-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.ps--coforge .cf-blueprint-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; margin: 0 0 var(--cf-space-lg); }
+.ps--coforge .cf-blueprint-toolbar .cf-field { flex: 1; min-width: 180px; max-width: 480px; }
+.ps--coforge .cf-blueprint-start { padding: 28px 0; max-width: 70ch; }
+.ps--coforge .cf-blueprint-start p { line-height: 1.7; color: var(--cf-muted); }
+.ps--coforge .cf-blueprint-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--cf-border); border-radius: var(--radius-m); }
+.ps--coforge :is(.cf-blueprint-scroll, .cf-blueprint-confirm):focus-visible { outline: 2px solid var(--cf-accent); outline-offset: 2px; }
+.ps--coforge .cf-blueprint-grid { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; table-layout: fixed; }
+.ps--coforge .cf-blueprint-grid caption { text-align: start; padding: 12px 16px; color: var(--cf-muted); font-size: 12px; line-height: 1.6; caption-side: bottom; }
+.ps--coforge .cf-blueprint-grid th { text-align: start; font-weight: 600; }
+.ps--coforge .cf-blueprint-grid :is(td, th) { border-bottom: 1px solid var(--cf-border); border-right: 1px solid var(--cf-border); padding: 14px; vertical-align: top; width: 230px; min-width: 230px; overflow-wrap: anywhere; }
+.ps--coforge .cf-blueprint-grid tr > :first-child { position: sticky; inset-inline-start: 0; width: 190px; min-width: 190px; background: var(--cf-surface); z-index: 1; }
+.ps--coforge .cf-blueprint-grid tr > :last-child { border-right: 0; }
+.ps--coforge .cf-blueprint-grid tbody tr:last-child > * { border-bottom: 0; }
+.ps--coforge .cf-blueprint-grid thead th { background: var(--cf-accent-soft); }
+.ps--coforge .cf-blueprint-grid thead button { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; justify-items: start; gap: 6px; width: 100%; height: auto; padding: 0; white-space: normal; background: transparent; box-shadow: none; border: 0; text-align: start; }
+.ps--coforge .cf-blueprint-grid th small { display: block; margin-top: 10px; font-size: 11px; line-height: 1.5; color: var(--cf-muted); font-weight: 400; }
+.ps--coforge .cf-blueprint-grid thead th small { margin-top: 0; }
+.ps--coforge .cf-blueprint-grid :is(.cf-blueprint-layer-frontstage-action, .cf-blueprint-layer-backstage-action, .cf-blueprint-layer-support-process) > * { border-top: 1px dashed var(--cf-muted); }
+.ps--coforge .cf-blueprint-cell { display: grid; gap: 10px; }
+.ps--coforge .cf-blueprint-node { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; gap: 6px; justify-items: start; width: 100%; height: auto; padding: 12px; white-space: normal; text-align: start; overflow-wrap: anywhere; border: 1px solid var(--cf-border); border-radius: var(--radius-s); background: var(--cf-bg); }
+.ps--coforge .cf-blueprint-node small { display: block; color: var(--cf-muted); font-size: 11px; }
+.ps--coforge .cf-blueprint-node:hover { background: var(--cf-hover); }
+.ps--coforge :is(.cf-blueprint-node, .cf-blueprint-entity-list button)[aria-current] { border-color: var(--cf-accent); background: var(--cf-accent-soft); }
+.ps--coforge .cf-blueprint-add { width: fit-content; background: transparent; box-shadow: none; color: var(--text-accent); font-size: 12px; }
+.ps--coforge :is(.cf-blueprint-editor, .cf-blueprint-inventory, .cf-blueprint-storage) { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--cf-border); }
+.ps--coforge .cf-blueprint-editor > header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: var(--cf-space-lg); }
+.ps--coforge :is(.cf-blueprint-editor, .cf-blueprint-inventory) h2 { font-size: 20px; line-height: 1.35; }
+.ps--coforge .cf-blueprint-editor fieldset { min-width: 0; margin: 0; padding: 0; border: 0; display: grid; gap: 20px; }
+.ps--coforge .cf-blueprint-fields { display: grid; gap: 16px; grid-template-columns: minmax(0, 2fr) minmax(90px, .5fr) minmax(0, 1fr); }
+.ps--coforge .cf-blueprint-editor textarea { width: 100%; resize: vertical; line-height: 1.6; }
+.ps--coforge .cf-blueprint-links p { margin: 4px 0 12px; color: var(--cf-muted); }
+.ps--coforge .cf-blueprint-links legend { font-weight: 600; }
+.ps--coforge :is(.cf-blueprint-related-links, .cf-blueprint-preview) { display: grid; gap: 12px; }
+.ps--coforge .cf-blueprint-preview summary { cursor: pointer; font-weight: 600; }
+.ps--coforge .cf-blueprint-link-options { max-height: 220px; overflow: auto; display: grid; gap: 8px; }
+.ps--coforge .cf-blueprint-link-options label { display: flex; align-items: start; gap: 8px; }
+.ps--coforge .cf-blueprint-link-options small { color: var(--cf-muted); display: block; }
+.ps--coforge :is(.cf-blueprint-confirm, .cf-blueprint-warnings) { margin-top: 24px; padding: 20px; border: 1px solid var(--cf-border); background: var(--cf-surface); border-radius: var(--radius-m); }
+.ps--coforge .cf-blueprint-inventory header p { color: var(--cf-muted); max-width: 70ch; line-height: 1.7; }
+.ps--coforge .cf-blueprint-inventory header { margin-bottom: var(--cf-space-lg); }
+.ps--coforge .cf-blueprint-inventory h2 { margin-bottom: var(--cf-space-sm); }
+.ps--coforge .cf-blueprint-entity-list { list-style: none; padding: 0; margin: 16px 0; }
+.ps--coforge .cf-blueprint-entity-list button { display: flex; justify-content: space-between; gap: 16px; width: 100%; height: auto; padding: 14px 0; text-align: start; white-space: normal; background: transparent; border: 0; border-bottom: 1px solid var(--cf-border); box-shadow: none; }
+.ps--coforge .cf-blueprint-entity-list strong { overflow-wrap: anywhere; }
+.ps--coforge .cf-blueprint-entity-list span { color: var(--cf-muted); font-size: 12px; }
+.ps--coforge .cf-blueprint-storage summary { cursor: pointer; font-weight: 600; margin-bottom: var(--cf-space-sm); }
+.ps--coforge .cf-blueprint-storage p { color: var(--cf-muted); max-width: 70ch; line-height: 1.7; }
+.ps--coforge .cf-blueprint-storage .cf-blueprint-toolbar { margin: var(--cf-space-md) 0 0; }
+@container plugin-shell-leaf (max-width: 850px) {
+  .ps--coforge .cf-blueprint-fields { grid-template-columns: minmax(0, 1fr); }
+  .ps--coforge .cf-blueprint-overview { align-items: start; flex-direction: column; }
+}
