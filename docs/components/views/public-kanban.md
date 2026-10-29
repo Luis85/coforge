@@ -5,7 +5,7 @@ goal: Show the community the screened request backlog.
 audience: viewer / OBS capture
 kind: public
 route: Obsidian stream surface = kanban
-parent:
+parent: "[[docs/components/views/public]]"
 component: src/plugin/presentation/components/coforge/StreamRequestBoard.vue
 entry:
   - Use the Stream Kanban ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture.
@@ -60,6 +60,8 @@ No public project; Awaiting screening count; Empty column; Screened cards. When 
 The capture title, project identity and screened-request summary lead the board. Stage headings combine text and theme color; count markers stay beside their stage. Every card retains its public ID, demand, authorship and screening/status context. No private actions or raw unscreened text are added.
 
 Source: [src/plugin/presentation/components/coforge/StreamRequestBoard.vue](../../../src/plugin/presentation/components/coforge/StreamRequestBoard.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
+
+Documentation parent: [Public](public.md). This family groups the public projections; the capture retains its independent entry and does not inherit the private studio shell.
 
 Journey tags: `public-sharing`, `community`.
 

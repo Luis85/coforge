@@ -2960,13 +2960,52 @@
       "file": "projects.md"
     },
     {
+      "id": "public",
+      "title": "Public",
+      "goal": "Identify the read-only viewer-facing projections and their shared privacy boundary.",
+      "audience": "viewer / OBS capture",
+      "kind": "shell",
+      "route": "Documentation family / public views",
+      "parent": null,
+      "component": "src/plugin/features/coforge/domain/stream-surfaces.ts",
+      "entry": [
+        "Open an individual public capture tab or the deployed viewer website through its documented entry."
+      ],
+      "actions": [
+        "Find a public-view component contract",
+        "Read the shared projection boundary"
+      ],
+      "states": [
+        "Public projection available",
+        "No eligible public data"
+      ],
+      "journeys": [
+        "public-sharing",
+        "community"
+      ],
+      "privacy": "Independent public projection family; read-only, with no private studio controls or mutation capabilities.",
+      "order": 14500,
+      "type": "Epic",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
+      "file": "public.md"
+    },
+    {
       "id": "public-chat",
       "title": "Public Twitch chat",
       "goal": "Show the current Twitch conversation on stream.",
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "Obsidian stream surface = chat",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/presentation/components/coforge/StreamLiveChat.vue",
       "entry": [
         "Use the Stream Chat ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
@@ -3011,7 +3050,7 @@
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "Obsidian stream surface = community",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/presentation/components/coforge/StreamCommunity.vue",
       "entry": [
         "Use the Stream Community ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
@@ -3056,7 +3095,7 @@
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "Obsidian stream surface = kanban",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/presentation/components/coforge/StreamRequestBoard.vue",
       "entry": [
         "Use the Stream Kanban ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
@@ -3102,7 +3141,7 @@
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "Obsidian stream surface = leaderboards",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/presentation/components/coforge/StreamLeaderboards.vue",
       "entry": [
         "Use the Stream Leaderboards ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."
@@ -3147,7 +3186,7 @@
       "audience": "viewer / OBS capture",
       "kind": "public",
       "route": "public export / index.html",
-      "parent": null,
+      "parent": "public",
       "component": "src/plugin/features/coforge/domain/public-site.ts",
       "entry": [
         "Open the deployed viewer website or the generated public export index.html."

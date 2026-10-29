@@ -6,19 +6,21 @@ Project drafts survive local settings navigation. Unsaved workflow edits block l
 
 Runtime links directly to Repository and Herdr workspaces. Workflow authoring puts the event-trigger action with its heading; request controls share the form width. Captured request-field saves now reflect the existing busy guard, preserving edits until the studio is idle instead of accepting a click that the handler ignores.
 
+All five public-view component documents, including the viewer website, now belong to an independent Public documentation parent. Ownership validation rejects detached public views and a Public shell placed under the private studio. This grouping adds no runtime route or public controls.
+
 ## Requirements and traceability
 
 - Owner request dated 2026-10-29 in BRIEF.md; task: docs/project-tasks/2026-10-29-project-settings.md.
 - No imported req-* or vi-* obligation applies; generated traceability is unchanged.
-- View catalogue now checks all six settings subpages and nested workflow ownership. Regenerated sitemap includes the owner metadata already present on main.
+- View catalogue now checks all six settings subpages, nested workflow ownership and the Public documentation family. Regenerated sitemap includes the owner metadata already present on main.
 - Dedicated implementation, navigation/testing, product/privacy/reliability and independent visual-review agents contributed.
 
 ## Validation
 
 - TDD reproduced old sidebar/group ownership and missing subpages: 5 failing navigation assertions before implementation.
-- Focused navigation: 4 files / 13 tests passed. Final settings/request regressions: 3 files / 11 tests passed. Catalogue: 9 tests passed. Busy-save and Runtime-link regressions failed before their fixes.
+- Focused navigation: 4 files / 13 tests passed. Final settings/request regressions: 3 files / 11 tests passed. Catalogue: 11 tests passed. Busy-save, Runtime-link and Public ownership regressions failed before their fixes.
 - Project typecheck, source lint and focused ESLint passed; git diff --check passed.
-- npm run docs:views and npm run check:views: 91 view contracts valid, sitemap current.
+- npm run docs:views and npm run check:views: 92 view contracts valid, sitemap current.
 - npm run ui:gallery: 40 screenshots captured, no capture failures.
 - npm run test:ui-quality: 8 passed. Dedicated final settings/layout/error-flow browser checks: 4 passed, both themes and pane widths, no Axe violations.
 - Latest native smoke: status passed; plugin loaded/enabled; view opened; errors []; hostErrorCount 0. Focused native navigation/privacy/cleanup: 4 passed; request-object save: 1 passed after the busy-guard fix.

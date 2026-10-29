@@ -67,6 +67,15 @@ export function validateCatalogue(views, root) {
     coverageMappings(view);
     byId.set(view.id, view);
   }
+  const publicViews = views.filter(view => view.kind === 'public');
+  if (publicViews.length || byId.has('public')) {
+    const family = byId.get('public');
+    if (!family || family.kind !== 'shell' || family.parent !== null)
+      throw new Error('Public views require an independent Public shell with no parent');
+    for (const view of publicViews) {
+      if (view.parent !== 'public') throw new Error(`${view.file}: public view parent ownership must be public`);
+    }
+  }
   for (const view of views) {
     const visited = new Set([view.id]);
     let ancestor = view.parent;
@@ -117,7 +126,7 @@ export function sourceCoverage(views, root) {
   };
   const documentedMappings = views.flatMap(view => coverageMappings(view).map(mapping => ({ ...mapping, file: view.file })));
   const parents = studioParents(root);
-  const localParents = { council: 'council', broadcast: 'broadcast', workflow: 'workflow', settings: 'settings', economy: 'economy', stream: 'stream', idea: 'idea-detail', public: null };
+  const localParents = { council: 'council', broadcast: 'broadcast', workflow: 'workflow', settings: 'settings', economy: 'economy', stream: 'stream', idea: 'idea-detail', public: 'public' };
   for (const [group, expected] of Object.entries(groups)) {
     if (!expected.length) throw new Error(`${group}: empty navigation contract; update catalogue coverage adapter`);
     const documented = documentedMappings.filter(mapping => mapping.group === group).map(mapping => mapping.key);

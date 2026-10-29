@@ -22,6 +22,7 @@ Project configuration is spread between a long settings form and a separate Agen
 - Local navigation neither saves nor dispatches work. Dirty project and workflow drafts survive guarded transitions; errors remain actionable and failed writes retain edits.
 - Visibility boundaries, request schemas, canonical note bytes, active-run snapshots, implementation authorization and external-effect recovery remain authoritative.
 - Native themes, keyboard focus, narrow panes, empty projects and clear project versus vault scope remain usable.
+- All five public-view component contracts belong to the independent Public documentation parent, including the standalone viewer website; runtime routes and public projection permissions stay unchanged.
 
 ## Plan
 
@@ -30,12 +31,14 @@ Project configuration is spread between a long settings form and a separate Agen
 3. Review product, usability, accessibility, privacy, reliability and maintenance concerns with dedicated agents.
 4. Run project, browser/gallery and contained Obsidian checks; self-review and qualify the PR before merging and updating the contained local plugin build.
 5. Revisit the corresponding component documents against the final source, then review layout, spacing, padding, fidelity, interaction flow and information architecture in both themes and pane widths.
+6. Apply the owner's final Public-parent documentation correction with regression checks for a missing family, detached public website and private-studio ownership.
 
 ## Evidence
 
-- `npm run docs:views`: `91 views documented; navigation coverage valid; sitemap generated.`
-- `npm run check:views`: `91 views documented; navigation coverage valid; sitemap current.`
-- `npx vitest run --config configs/testing/vitest.project.config.mjs src/plugin/tests/project/coforge/view-catalog.test.mjs`: `Test Files 1 passed (1); Tests 9 passed (9).`
+- `npm run docs:views`: `92 views documented; navigation coverage valid; sitemap generated.`
+- `npm run check:views`: `92 views documented; navigation coverage valid; sitemap current.`
+- `npx vitest run --config configs/testing/vitest.project.config.mjs src/plugin/tests/project/coforge/view-catalog.test.mjs`: `Test Files 1 passed (1); Tests 11 passed (11).`
+- The Public-parent regressions first failed with a missing root and missing ownership rejection (`2 failed`), then passed with the independent Public shell, all five child parents, and explicit validation of website ownership.
 - `npm run test:ui-quality`: `8 passed`.
 - `tests/e2e/journeys/project-settings.spec.ts`: `2 passed`; all six categories in light/dark and 1280px/480px panes, keyboard operation, no horizontal overflow and zero Axe violations.
 - Dedicated final settings captures: 24 PNGs in `reports/project-settings/`; standard `npm run ui:gallery`: 40 screenshots in `reports/ui-gallery/`.

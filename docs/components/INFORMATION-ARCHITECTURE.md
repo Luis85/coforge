@@ -79,7 +79,11 @@ instead of fabricating a complete ingestion ledger.
 
 The four public capture tabs and viewer website are independent, read-only
 destinations. They receive the public projection, never the private studio frame
-or its capabilities. Native Obsidian settings own integration credentials and
+or its capabilities. All five component contracts share the independent
+[Public](views/public.md) documentation parent. That family is a catalogue grouping,
+without a runtime navigation destination or an additional capture tab. It does not
+reparent private publication configuration: native website settings stay under
+CoForge integration settings. Native Obsidian settings own integration credentials and
 vault-level setup; project and workflow definitions stay in the studio.
 The native Local MCP server panel grants an explicitly activated owner client access
 to vault projects, including private projects; it is separate from public viewer
@@ -102,6 +106,11 @@ One canonical view may cover multiple internal locators. Workflow settings maps
 both the retained studio alias and the local workflow `settings` page to its one
 document; the alias preserves existing dirty-configuration guards rather than
 adding another product destination.
+
+The Public family has no parent. The catalogue requires every `kind: public`
+component, including the standalone website, to link to Public and rejects a
+Public shell owned by the private studio. Live capture coverage also checks the
+four declared stream-surface IDs against that same parent.
 
 The [generated sitemap](sitemap.md) inventories all root pages, local subpages,
 focused panels, dialogs, native settings and public surfaces from their canonical

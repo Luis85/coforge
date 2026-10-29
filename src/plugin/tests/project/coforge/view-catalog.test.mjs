@@ -30,6 +30,20 @@ describe("view catalogue", () => {
     expect(() => validateCatalogue(catalogue, root)).not.toThrow();
   });
 
+  it('groups all five public view components under an independent Public documentation shell', () => {
+    expect(catalogue.find(view => view.id === 'public')).toMatchObject({ title: 'Public', kind: 'shell', parent: null });
+    const children = catalogue.filter(view => view.kind === 'public');
+    expect(children.map(view => view.id).sort()).toEqual(['public-chat', 'public-community', 'public-kanban', 'public-leaderboards', 'public-website']);
+    for (const view of children) expect(view.parent).toBe('public');
+  });
+
+  it('rejects missing Public ownership, a detached viewer website and a public shell owned by the private studio', () => {
+    expect(() => validateCatalogue(catalogue.filter(view => view.id !== 'public'), root)).toThrow(/public|parent/i);
+    expect(() => validateCatalogue(catalogue.map(view => view.id === 'public-website' ? { ...view, parent: null } : view), root)).toThrow(/public|parent/i);
+    expect(() => validateCatalogue(catalogue.map(view => view.id === 'public' ? { ...view, parent: 'studio' } : view), root)).toThrow(/public|independent/i);
+    expect(() => validateCatalogue(catalogue.map(view => view.id === 'public' ? { ...view, kind: 'page' } : view), root)).toThrow(/public|shell/i);
+  });
+
   it('authors parent relationships as clickable vault links while exposing normalized IDs to tools', () => {
     for (const view of catalogue.filter(view => view.parent !== null)) {
       expect(readFileSync(resolve(root, 'docs/components/views', view.file), 'utf8')).toContain(`parent: "[[docs/components/views/${view.parent}]]"`);

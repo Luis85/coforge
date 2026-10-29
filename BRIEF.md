@@ -69,6 +69,11 @@ subpage. Group project configuration into focused General, Requests, Repository,
 Agent workflow, Runtime, and Data & examples tasks. Navigation preserves existing
 draft, explicit save, execution, privacy and recovery boundaries.
 
+Public component documentation (owner revision, 2026-10-29): all public-view
+component contracts have Public as their parent, including the four capture views
+and the viewer website. This is an independent documentation family; each public
+surface keeps its own entry, read-only projection and lifecycle.
+
 Navigation correction (owner, 2026-10-29): the expanded left navigation needs more
 width and should fit ordinary desktop-height panes without unnecessary scrolling.
 Remove the repeated project-work-context banner from work views. The project
