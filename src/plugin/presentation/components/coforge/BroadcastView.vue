@@ -10,7 +10,17 @@ import LiveStudioPanel from "./LiveStudioPanel.vue";
 import ObsSceneManager from "./ObsSceneManager.vue";
 import StreamMusic from "./StreamMusic.vue";
 import StreamDisplaysPanel from "./StreamDisplaysPanel.vue";
+import ObsProductionDesk from "./ObsProductionDesk.vue";
+import ObsSourceEditor from "./ObsSourceEditor.vue";
+import ObsAudioMixer from "./ObsAudioMixer.vue";
+import ObsStudioSetup from "./ObsStudioSetup.vue";
+import ObsShowPlan from "./ObsShowPlan.vue";
+import ObsOutputHistory from "./ObsOutputHistory.vue";
+import ObsLiveSummary from "./ObsLiveSummary.vue";
+import ObsOverlayComposer from "./ObsOverlayComposer.vue";
+import { useObsProductionSession } from "../../composables/coforge/use-obs-production";
 const model = useBroadcast();
+const production = useObsProductionSession();
 </script>
 <template>
   <div class="cf-broadcast-page">
@@ -53,6 +63,10 @@ const model = useBroadcast();
       {{ model.error || model.state.lastError }}
     </p>
     <p v-if="model.notice" role="status">{{ model.notice }}</p>
+    <p v-if="production.ui.error" class="cf-inline-error" role="alert">
+      {{ production.ui.error }}
+    </p>
+    <p v-if="production.ui.notice" role="status">{{ production.ui.notice }}</p>
     <div
       v-show="model.store.broadcastTool === 'live'"
       class="cf-subpage-panel"
@@ -60,6 +74,8 @@ const model = useBroadcast();
       aria-label="Live broadcast"
     >
       <BroadcastControls :model="model" />
+      <ObsLiveSummary />
+      <ObsProductionDesk />
       <LiveStudioPanel />
       <button
         type="button"
@@ -77,6 +93,7 @@ const model = useBroadcast();
     >
       <GuidedStreamSetup hide-reopen />
       <BroadcastSetup />
+      <ObsStudioSetup />
     </div>
     <div
       v-show="model.store.broadcastTool === 'scenes'"
@@ -85,6 +102,30 @@ const model = useBroadcast();
       aria-label="Scene management"
     >
       <ObsSceneManager />
+    </div>
+    <div
+      v-show="model.store.broadcastTool === 'sources'"
+      class="cf-subpage-panel"
+      role="region"
+      aria-label="OBS source and layout workspace"
+    >
+      <ObsSourceEditor />
+    </div>
+    <div
+      v-show="model.store.broadcastTool === 'audio'"
+      class="cf-subpage-panel"
+      role="region"
+      aria-label="OBS audio workspace"
+    >
+      <ObsAudioMixer />
+    </div>
+    <div
+      v-show="model.store.broadcastTool === 'show'"
+      class="cf-subpage-panel"
+      role="region"
+      aria-label="Show plan workspace"
+    >
+      <ObsShowPlan />
     </div>
     <div
       v-show="model.store.broadcastTool === 'music'"
@@ -101,6 +142,7 @@ const model = useBroadcast();
       aria-label="Public capture displays"
     >
       <StreamDisplaysPanel open />
+      <ObsOverlayComposer />
     </div>
     <div
       v-show="model.store.broadcastTool === 'history'"
@@ -109,6 +151,7 @@ const model = useBroadcast();
       aria-label="Recorded stream history"
     >
       <StreamHistoryPanel />
+      <ObsOutputHistory />
     </div>
   </div>
 </template>

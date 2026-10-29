@@ -136,6 +136,16 @@ the new Alerts row in both themes, and preview-toolbar selector contrast on Linu
   assertions, navigation bounds and screenshot-baseline policy unchanged.
 - Rerun affected browser checks, then qualify the final PR revision before merge.
 
+### P8 — final OBS production integration
+
+The concurrent OBS Stream Studio increment (#40) reached main after the Alerts
+revision passed all CI checks. Integrate it before merging: preserve both sets of
+host ports, the always-available OBS dock, Alerts navigation and independent source
+lifecycle. OBS studio disposal and Alerts disposal both start before unrelated
+runtime cancellation waits. Regenerate the combined 106-view catalogue, review the
+composition seams with subagents and rerun exact-head qualification. Retain the
+upstream Windows host-shutdown diagnostics and CI reporting improvements.
+
 ## Explicit limits
 
 - No personal vault, live Twitch broadcast, or user OBS scene collection is used for tests.

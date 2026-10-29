@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { readCatalogue, validateCatalogue, renderSitemap, sourceCoverage } from "../../../../../tooling/coforge/view-catalog.mjs";
+import { readCatalogue, validateCatalogue, renderSitemap, sourceCoverage, parentReferenceId } from "../../../../../tooling/coforge/view-catalog.mjs";
 
 const root = process.cwd();
 const catalogue = readCatalogue(root);
@@ -13,6 +13,14 @@ const sample = (id, parent = null) => ({
 });
 
 describe("view catalogue", () => {
+  it('resolves short and full wiki parents to the same known identity without accepting malformed or missing targets', () => {
+    for (const reference of ['[[docs/components/views/council]]', '[[council]]']) {
+      expect(parentReferenceId(reference)).toBe('council');
+      expect(() => validateCatalogue([sample('council'), sample('history', parentReferenceId(reference))], root)).not.toThrow();
+    }
+    for (const reference of ['[[../council]]', '[[docs/other/council]]', '[[council|Alias]]', '[[missing]]'])
+      expect(() => validateCatalogue([sample('council'), sample('history', parentReferenceId(reference))], root)).toThrow(/parent/);
+  });
   it("rejects duplicate IDs, missing parents, cycles and incomplete task contracts", () => {
     expect(() => validateCatalogue([sample("a"), sample("a")], root)).toThrow(/Duplicate/);
     expect(() => validateCatalogue([sample("a", "absent")], root)).toThrow(/parent/);
@@ -46,7 +54,9 @@ describe("view catalogue", () => {
 
   it('authors parent relationships as clickable vault links while exposing normalized IDs to tools', () => {
     for (const view of catalogue.filter(view => view.parent !== null)) {
-      expect(readFileSync(resolve(root, 'docs/components/views', view.file), 'utf8')).toContain(`parent: "[[docs/components/views/${view.parent}]]"`);
+      const source = readFileSync(resolve(root, 'docs/components/views', view.file), 'utf8');
+      const reference = source.match(/^parent: "(\[\[.*\]\])"$/m)?.[1];
+      expect([`[[docs/components/views/${view.parent}]]`, `[[${view.parent}]]`]).toContain(reference);
       expect(catalogue.some(parent => parent.id === view.parent)).toBe(true);
     }
   });

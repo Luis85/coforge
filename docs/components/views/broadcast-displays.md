@@ -10,6 +10,8 @@ component: src/plugin/presentation/components/coforge/StreamDisplaysPanel.vue
 entry:
   - Open Stream studio, then choose Public displays.
 actions:
+  - Preview and explicitly publish approved text into a supported OBS Text source
+  - Save, refresh, clear or remove an owned text-overlay mapping
   - Show selected project on stream Kanban
   - Open Kanban, chat, leaderboards or community tab
   - Preview public surface
@@ -48,6 +50,14 @@ iteration: ""
 Open the read-only surface intended for OBS capture.
 
 Each **Open … tab** action opens a fresh main-workspace tab that can be detached manually. **Show selected project on stream Kanban** uses the studio's selected project and may reuse an existing main-workspace Kanban tab. The public projection excludes private controls and diagnostics.
+
+The text-overlay composer sends selected public content to a supported OBS Text
+input. It captures an exact preview and target before explicit publication. Saved
+mappings support request, accepted-work, recognition, now-playing and fixed reviewed
+Council-excerpt content; they can be refreshed by manual or explicitly bound show
+cues. It never extracts private Council prompts or publishes during navigation.
+Clearing checks ownership of the last published text. A disconnected or uncertain
+external OBS copy stays visibly unresolved until the operator confirms clearing.
 
 ## Entry and next action
 

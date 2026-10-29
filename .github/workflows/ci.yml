@@ -56,6 +56,14 @@ jobs:
       - name: Community-review rules (manifest, lint, bundle; advisory)
         continue-on-error: true
         run: node "$PINNED_NPM" run check:submission
+      - name: Keep exact product-test results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: product-test-results
+          path: reports/product-tests.json
+          retention-days: 7
+          if-no-files-found: warn
   # Browser journeys and the UI review gallery: end-to-end, so opt-in except on `main`. The gallery is evidence for
   # human review, never acceptance. A step is skipped, with a warning, when its npm script does not exist.
   ui:

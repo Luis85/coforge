@@ -173,13 +173,14 @@ export function useBroadcast(trackView = true) {
                   : "Prepare your stream",
     ),
     canPrepare: computed(
-      () => Boolean(host.obs) && stable.value && !active.value,
+      () => Boolean(host.obs) && stable.value && !active.value && !store.state?.obsShow?.outputRestartRequired,
     ),
     canGoLive: computed(
       () =>
         Boolean(host.obs) &&
         stable.value &&
         !active.value &&
+        !store.state?.obsShow?.outputRestartRequired &&
         state.value.prepared,
     ),
     canPause: computed(

@@ -35,7 +35,7 @@ export function obsSettingsCheck(value: unknown): ObsSettings {
 }
 export const obsCommandCheck = shape({
   id: text({ min: 1, max: 100 }),
-  kind: oneOf(["prepare", "go-live", "pause", "resume", "stop", ...OBS_SCENE_KINDS] as const),
+  kind: oneOf(["prepare", "go-live", "pause", "resume", "stop", "production", ...OBS_SCENE_KINDS] as const),
   at: timestamp,
   status: oneOf(["pending", "confirmed", "failed", "uncertain", "reconciled"] as const),
 });

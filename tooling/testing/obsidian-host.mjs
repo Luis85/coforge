@@ -138,6 +138,7 @@ function processRunning(proc) { return Boolean(proc?.pid) && proc.exitCode === n
 /** Windows has no process groups: `proc.kill()` ends only the Electron main process and leaves its
  * GPU/renderer helpers running, so the whole tree is ended with taskkill (argument array, no shell). */
 export function treeKillCommand(pid) {
+  if (!Number.isSafeInteger(pid) || pid <= 0) throw new Error('OBSIDIAN_PROCESS_ID_INVALID');
   return { command: 'taskkill', args: ['/T', '/F', '/PID', String(pid)] };
 }
 /** Signal the host and everything it started: the detached POSIX process group, or the Windows tree. */
@@ -149,18 +150,21 @@ export function signalHostTree(proc, name, { platform = process.platform, kill =
   try { kill(-proc.pid, name); } catch (error) { if (error.code !== 'ESRCH') throw error; }
   return null;
 }
-/** Stop the detached host process group, escalating to SIGKILL after a bounded wait. */
-export async function stopHost(proc, timeout = 10000) {
+/** Stop the owned tree and await inherited pipe closure before removing its scratch files. */
+export async function stopHost(proc, timeout = 10000, { signalTree = signalHostTree } = {}) {
   if (!processRunning(proc)) return { stopped: true, signal: null };
-  const exited = new Promise(ok => proc.once('exit', ok));
-  const signal = name => { signalHostTree(proc, name); };
+  const exited = new Promise(ok => proc.once('close', ok));
+  const signal = name => { signalTree(proc, name); };
   signal('SIGTERM');
   let timer;
   const stopped = await Promise.race([exited.then(() => true), new Promise(ok => { timer = setTimeout(() => ok(false), timeout); })]);
   clearTimeout(timer);
   if (stopped) return { stopped: true, signal: 'SIGTERM' };
+  // Once the main process exited its PID may be reused. Never signal it again to chase held pipes.
+  if (!processRunning(proc)) throw new Error('OBSIDIAN_STOP_TIMEOUT');
   signal('SIGKILL');
-  await Promise.race([exited, new Promise((_, fail) => setTimeout(() => fail(new Error('OBSIDIAN_STOP_TIMEOUT')), timeout))]);
+  try { await Promise.race([exited, new Promise((_, fail) => { timer = setTimeout(() => fail(new Error('OBSIDIAN_STOP_TIMEOUT')), timeout); })]); }
+  finally { clearTimeout(timer); }
   return { stopped: true, signal: 'SIGKILL' };
 }
 /** Retain bounded host stdout/stderr for diagnostics. */

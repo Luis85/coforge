@@ -9,7 +9,7 @@ import CommunityView from "./CommunityView.vue";
 import PopulationView from "./PopulationView.vue";
 import OperationsView from "./OperationsView.vue";
 import CommunitySettingsView from "./CommunitySettingsView.vue";
-import EconomyView from './EconomyView.vue';
+import EconomyView from "./EconomyView.vue";
 import BroadcastView from "./BroadcastView.vue";
 import StreamStatisticsView from "./StreamStatisticsView.vue";
 import FinanceView from "./FinanceView.vue";
@@ -28,8 +28,9 @@ import StudioTopbar from "./StudioTopbar.vue";
 import ToastStack from "./ToastStack.vue";
 import ProjectsView from "./ProjectsView.vue";
 import CouncilView from "./CouncilView.vue";
-import CoWorkersView from './CoWorkersView.vue';
+import CoWorkersView from "./CoWorkersView.vue";
 import AlertsView from './AlertsView.vue';
+import ObsLiveDock from "./ObsLiveDock.vue";
 
 const model = useStudioApp();
 </script>
@@ -69,6 +70,12 @@ const model = useStudioApp();
       />
       <div class="cf-main">
         <StudioTopbar />
+        <ObsLiveDock
+          v-if="
+            model.shell.store.view !== 'broadcast' ||
+            model.shell.store.broadcastTool !== 'live'
+          "
+        />
         <div class="cf-workspace-body">
           <section class="cf-content" :aria-label="model.shell.viewLabel">
             <template v-if="model.shell.store.view === 'board'">
