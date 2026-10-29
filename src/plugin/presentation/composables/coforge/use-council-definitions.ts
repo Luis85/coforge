@@ -13,14 +13,17 @@ import { useCouncilDefinitionDrafts } from "./council-definition-drafts";
 import { useCouncilConnectionForm } from "./council-connection-form";
 import { councilSetupReadiness } from './council-setup-readiness';
 import { useCouncilCatalogueProjection } from './council-catalogue-projection';
+import { useCouncilDefinitionFocus } from './council-definition-focus';
 import type {
   CouncilCatalogueActions,
+  CouncilCatalogueEntry,
 } from "../../../features/coforge/application/council-catalogue";
 import {
   agentDefinitionCheck,
   defaultCouncilDefinition,
   type CouncilRound,
   type TeamDefinition,
+  type CouncilDefinitionDocument,
 } from "../../../features/coforge/domain/council-definitions";
 const COUNCIL_EDITOR_KEY = Symbol("coforge-council-editor");
 
@@ -33,7 +36,8 @@ export function useCouncilDefinitions(props: {
   const store = useCouncilEditorStore(props.mode === 'coworkers' ? 'coworkers' : 'council');
   const studio = useStudioStore();
   const drafts = useCouncilDefinitionDrafts(store, () => props.projectId);
-  const { catalogue, snapshot, load } = useCouncilCatalogueProjection({ store, projectId: () => props.projectId, read: () => props.catalogue.list(), action, refreshed: drafts.refresh });
+  const { catalogue, snapshot, load, current } = useCouncilCatalogueProjection({ store, projectId: () => props.projectId, read: () => props.catalogue.list(), action, refreshed: drafts.refresh });
+  const editorFocus = useCouncilDefinitionFocus();
   const agents = computed(() =>
     catalogue.valid.filter((item) => item.definition.schema === "agent/v1"),
   );
@@ -71,8 +75,8 @@ export function useCouncilDefinitions(props: {
       store.busy = false;
     }
   }
-  const select = drafts.select;
-  const fresh = drafts.fresh;
+  const select = (entry: CouncilCatalogueEntry) => { if (current()) { drafts.select(entry); editorFocus.reveal(); } };
+  const fresh = (definition: CouncilDefinitionDocument) => { if (current()) { drafts.fresh(definition); editorFocus.reveal(); } };
   function createAgent() {
     fresh(
       agentDefinitionCheck({
@@ -338,10 +342,11 @@ export function useCouncilDefinitions(props: {
     agents,
     teams,
     entries,
+    bindEditor: editorFocus.bindEditor,
     ...useCouncilConnectionForm(store),
     dirty: drafts.dirty,
     unsaved: drafts.unsaved,
-    restoreDraft: drafts.restore,
+    restoreDraft: (id: string) => { if (current()) { drafts.restore(id); editorFocus.reveal(); } },
     changed: drafts.changed,
     discard,
     memberOptions,

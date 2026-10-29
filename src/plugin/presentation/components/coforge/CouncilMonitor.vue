@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useCouncilModel } from "../../composables/coforge/use-council";
 import CouncilAnswers from "./CouncilAnswers.vue";
+import CouncilRunControls from './CouncilRunControls.vue';
 import CouncilRecoveryTools from "./CouncilRecoveryTools.vue";
 const model = useCouncilModel();
 </script>
@@ -11,6 +12,8 @@ const model = useCouncilModel();
     <p role="status" aria-live="polite" aria-atomic="true" class="cf-sr-only">
       {{ model.progressAnnouncement }}
     </p>
+    <section :ref="model.display.bindRuns" tabindex="-1" aria-label="Council runs" class="cf-council-run-list">
+    <h3>Runs</h3>
     <div class="cf-council-fields">
       <label class="cf-field"
         ><span>Project filter</span
@@ -76,7 +79,7 @@ const model = useCouncilModel();
     <ol class="cf-council-runs">
       <li v-for="run in model.runs" :key="run.id">
         <div>
-          <strong>{{ run.subject.sourceId }}</strong
+          <strong>{{ model.display.title(run) }}</strong
           ><span>
             · {{ model.runState(run)
             }}{{ run.pauseRequested ? " · Paused" : "" }} · {{ run.cursor }}/{{
@@ -88,6 +91,7 @@ const model = useCouncilModel();
         <p>
           {{ model.display.council(run) }} · {{ model.display.project(run) }}
         </p>
+        <details><summary>Source reference</summary><code>{{ run.subject.sourceId }}</code></details>
         <p v-if="run.reason" role="status">{{ run.reason }}</p>
         <div class="cf-settings-actions">
           <button
@@ -96,41 +100,8 @@ const model = useCouncilModel();
             @click="model.store.inspectedRun = run.id"
           >
             {{ run.state === 'completed' ? 'Read answers' : 'Inspect captured evidence' }}</button
-          ><button
-            v-if="run.state === 'publishing'"
-            type="button"
-            class="cf-btn cf-btn-primary"
-            :disabled="model.store.busy || !model.store.state?.executor || run.attempts.some(attempt => attempt.status === 'dispatching')"
-            @click="model.repair(run.id)"
           >
-            Repair note publication</button
-          ><button
-            v-if="run.state === 'queued' || run.state === 'running'"
-            type="button"
-            class="cf-btn cf-btn-secondary"
-            :disabled="model.store.busy"
-            @click="model.pauseRun(run.id, !run.pauseRequested)"
-          >
-            {{
-              run.pauseRequested ? "Resume this run" : "Pause this run"
-            }}</button
-          ><button
-            v-if="run.state !== 'completed' && run.state !== 'cancelled'"
-            type="button"
-            class="cf-btn cf-btn-ghost"
-            :disabled="model.store.busy"
-            @click="model.cancel(run.id)"
-          >
-            Cancel future work</button
-          ><button
-            v-if="run.state === 'completed' || run.state === 'cancelled'"
-            type="button"
-            class="cf-btn cf-btn-secondary"
-            :disabled="model.store.busy"
-            @click="model.runAgain(run.subject.sourceId)"
-          >
-            Run again as new generation
-          </button>
+          <CouncilRunControls v-if="model.selectedRun?.id !== run.id" :run="run" />
         </div>
       </li>
     </ol>
@@ -149,6 +120,7 @@ const model = useCouncilModel();
       <p>
         Use Agent workflow for existing workflow controls and final code review.
       </p>
+    </section>
     </section>
     <section v-if="model.selectedRun" aria-label="Captured run evidence">
       <h3>Run references &amp; recovery</h3>

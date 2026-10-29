@@ -134,6 +134,7 @@ export function useCouncilAsk(host: {
     canSave: computed(
       () =>
         available.value &&
+        store.catalogueLoaded &&
         councilSelected.value &&
         !store.busy &&
         (!store.taskProjectId || store.taskProjectId === host.projectId()) &&

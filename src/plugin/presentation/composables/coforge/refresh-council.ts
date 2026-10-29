@@ -7,13 +7,17 @@ export async function refreshCouncil(
   store: ReturnType<typeof useCouncilStore>,
   current: () => boolean,
 ) {
+  store.catalogueLoaded = false;
+  store.catalogueLoading = true;
+  store.catalogueError = '';
+  try {
   store.state = service.snapshot();
   const [catalogue, tasks] = await Promise.allSettled([
     service.catalogue.list(),
     service.listTasks(),
   ]);
   if (!current()) return;
-  if (catalogue.status === "fulfilled") store.catalogue = catalogue.value;
+  if (catalogue.status === "fulfilled") { store.catalogue = catalogue.value; store.catalogueLoaded = true; }
   if (tasks.status === "fulfilled") {
     store.tasks = tasks.value;
     store.tasksLoaded = true;
@@ -21,9 +25,12 @@ export async function refreshCouncil(
   } else
     store.taskHistoryError =
       "Saved task notes could not be refreshed. The last known list is kept; retained runs remain visible. Refresh Council to retry.";
-  if (catalogue.status === "rejected")
+  if (catalogue.status === "rejected") {
+    store.catalogueError = 'Council configuration is unavailable. Refresh Council to retrieve saved definitions before reviewing recipients.';
     throw new Error(
       "Council definitions could not be refreshed. The last known catalogue is kept; refresh before relying on it.",
     );
+  }
   if (tasks.status === "rejected") throw new Error(store.taskHistoryError);
+  } finally { if (current()) store.catalogueLoading = false; }
 }

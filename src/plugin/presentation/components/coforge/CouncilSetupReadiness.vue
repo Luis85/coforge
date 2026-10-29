@@ -6,8 +6,18 @@ const model = useCouncilEditorForm();
   <section class="cf-council-setup" aria-label="Council setup readiness">
     <template v-if="model.store.catalogueLoading"><h3>Loading Council configuration</h3><p role="status">Reading the saved CoWorkers, roster and Councils before checking readiness.</p></template>
     <template v-else-if="!model.store.catalogueLoaded"><h3>Configuration unavailable</h3><p>Refresh definitions to retry. Your authored drafts are kept; missing configuration is not inferred from a failed read.</p></template>
+    <template v-else-if="model.readiness.configured.length">
+      <h3>Council configuration</h3>
+      <p>{{ model.readiness.configured.length }} configured Council{{ model.readiness.configured.length === 1 ? '' : 's' }} · {{ model.readiness.agents.length }} enabled CoWorkers · project roster configured.</p>
+      <div class="cf-settings-actions">
+        <button type="button" class="cf-btn cf-btn-secondary" @click="model.manageCoWorkers()">Manage CoWorkers</button>
+        <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.select(model.readiness.usableTeams[0]!)">Edit project roster</button>
+        <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.select(model.readiness.configured[0]!)">Review Council</button>
+      </div>
+      <p class="cf-settings-help">Provider readiness is checked separately in Activity → Runs &amp; answers. Configuration never starts work.</p>
+    </template>
     <template v-else>
-    <h3>{{ model.readiness.configured.length ? 'Council configuration' : 'Prepare your Council' }}</h3>
+    <h3>Prepare your Council</h3>
     <ol class="cf-council-readiness-list">
       <li>
         <div><strong>Vault CoWorkers</strong><p>{{ model.readiness.agents.length ? `${model.readiness.agents.length} enabled CoWorker${model.readiness.agents.length === 1 ? '' : 's'}` : 'No enabled CoWorkers' }}</p><span v-if="!model.readiness.agents.length">Enable saved CoWorkers and review their specialist instructions and provider.</span></div>

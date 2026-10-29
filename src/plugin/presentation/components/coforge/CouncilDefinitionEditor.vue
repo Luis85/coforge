@@ -6,7 +6,7 @@ defineProps<{ coworker?: boolean }>();
 const model = useCouncilEditorForm();
 </script>
 <template>
-      <form v-if="model.store.draft" @submit.prevent="model.save()">
+      <form v-if="model.store.draft" :ref="model.bindEditor" @submit.prevent="model.save()">
         <fieldset :disabled="model.store.busy">
           <legend class="cf-sr-only">Edit selected definition</legend>
           <p role="status">

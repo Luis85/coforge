@@ -16,6 +16,8 @@
 .cf-council-answers > header p { font-size: 13px; line-height: 1.7; }
 .cf-council-answer { padding-block: 20px; min-width: 0; overflow-wrap: anywhere; }
 .cf-council-answer h4 { font-size: 17px; margin-block: 0 10px; }
+.cf-council-run-list { display: grid; gap: 16px; min-width: 0; scroll-margin-top: 24px; }
+.cf-council-run-list:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: 4px; }
 .cf-council-answer summary, .cf-council-execution-settings > summary { cursor: pointer; font-size: 12px; line-height: 1.7; padding-block: 10px; }
 .cf-council-recipients { padding-block: 16px; border-block: 1px solid var(--cf-border); min-width: 0; }
 .cf-council-recipients h3 { margin: 0 0 8px; font-size: 17px; overflow-wrap: anywhere; }

@@ -27,5 +27,5 @@ export function useCouncilCatalogueProjection(input: {
       if (live && input.projectId() === projectId) input.refreshed(catalogue.valid);
     } finally { store.catalogueLoading = false; }
   });
-  return { catalogue, snapshot, load };
+  return { catalogue, snapshot, load, current: () => live && store.projectId === input.projectId() };
 }

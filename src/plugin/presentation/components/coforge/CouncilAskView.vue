@@ -121,9 +121,11 @@ const model = useCouncilModel();
           <p v-if="!model.projectId" class="cf-settings-help">
             Create or select a project before choosing its Council.
           </p>
-          <p v-else-if="!model.ask.councils.length" class="cf-settings-help">
-            No enabled Council is available for this project. Open Definitions to
-            set up your CoWorkers, project roster and first Council. Your question stays here.
+          <p v-else-if="model.service && model.store.catalogueLoading" class="cf-settings-help" role="status">Loading saved Council configuration…</p>
+          <p v-else-if="model.service && !model.store.catalogueLoaded" class="cf-settings-help">{{ model.store.catalogueError || 'Council configuration has not loaded. Refresh Council to retrieve saved definitions; availability is not inferred from an unavailable catalogue.' }} Your question is kept.</p>
+          <p v-else-if="model.service && !model.ask.councils.length" class="cf-settings-help">
+            No enabled Council is available for this project. Open Setup → Councils &amp; roster to
+            configure its members and discussion rounds. Your question stays here.
           </p>
           <p class="cf-settings-help">
             Saving creates a private task note. It does not submit a run,

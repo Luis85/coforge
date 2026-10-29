@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useCouncilModel } from '../../composables/coforge/use-council';
 import MarkdownBody from './MarkdownBody.vue';
+import CouncilRunControls from './CouncilRunControls.vue';
 const model = useCouncilModel();
 </script>
 <template>
@@ -9,6 +10,10 @@ const model = useCouncilModel();
       <h3>{{ model.display.title(model.selectedRun) }}</h3>
       <p><strong>{{ model.display.selectedCouncil }}</strong> · {{ model.runState(model.selectedRun) }}<span v-if="model.selectedRun.limits?.simulation"> · Simulation</span></p>
       <p class="cf-settings-help">{{ model.display.project(model.selectedRun) }}</p>
+      <div class="cf-settings-actions">
+        <button type="button" class="cf-btn cf-btn-secondary" @click="model.display.backToRuns()">Back to runs</button>
+        <CouncilRunControls :run="model.selectedRun" />
+      </div>
     </header>
     <p v-if="!model.display.published.length">{{ model.selectedRun.state === 'completed' ? 'This run completed without published answers. Inspect its captured steps and messages below.' : 'No answers have been published yet. Follow this run below; delivery alone is not a completed answer.' }}</p>
     <p v-if="model.display.unpublished" role="status">{{ model.display.unpublished }} recorded contribution(s) await publication. They are not presented as published answers.</p>

@@ -12,9 +12,15 @@ export function councilRunName(run: ExecutionRun): string {
 }
 export function useCouncilRunDisplay(store: ReturnType<typeof useCouncilStore>, selected: () => ExecutionRun | undefined, projects: () => readonly StudioProject[]) {
   const target = shallowRef<HTMLElement | null>(null);
+  const runsTarget = shallowRef<HTMLElement | null>(null);
   const focus = () => { const element = target.value; if (element) { element.focus({ preventScroll: true }); element.scrollIntoView({ block: 'start', behavior: 'auto' }); } };
   watch(() => selected()?.id, () => { void nextTick(focus); });
   return reactive({
+    bindRuns: (value: Element | ComponentPublicInstance | null) => { runsTarget.value = value instanceof HTMLElement ? value : null; },
+    backToRuns: () => {
+      store.inspectedRun = '';
+      void nextTick(() => { const element = runsTarget.value; if (element?.isConnected) { element.focus({ preventScroll: true }); element.scrollIntoView({ block: 'start', behavior: 'auto' }); } });
+    },
     bindAnswers: (value: Element | ComponentPublicInstance | null) => {
       const element = value instanceof HTMLElement ? value : null;
       if (element === target.value) return;

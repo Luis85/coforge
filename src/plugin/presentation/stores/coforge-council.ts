@@ -13,6 +13,9 @@ export const useCouncilStore = defineStore("coforge-council", () => {
   const example = ref(false);
   const state = ref<CouncilRuntimeSnapshot | null>(null);
   const catalogue = ref<CouncilCatalogueSnapshot>({ valid: [], invalid: [] });
+  const catalogueLoaded = ref(false);
+  const catalogueLoading = ref(false);
+  const catalogueError = ref('');
   const tab = ref<CouncilPage>("ask");
   const entryIntent = ref<CouncilEntryIntent | null>(null);
   const viewMounted = ref(false);
@@ -76,6 +79,9 @@ export const useCouncilStore = defineStore("coforge-council", () => {
     example,
     state,
     catalogue,
+    catalogueLoaded,
+    catalogueLoading,
+    catalogueError,
     tab,
     entryIntent,
     viewMounted,
