@@ -50,8 +50,10 @@ describe('Twitch milestone integration', () => {
     expect(env.sent).toEqual([expect.objectContaining({ broadcaster_id: '123', sender_id: '123', reply_parent_message_id: 'viewer-message', message: expect.stringContaining('CF-101') })]);
     expect(env.studio.state().botReplies?.[0]?.status).toBe('sent');
     expect(env.studio.state().runtime.twitch).toMatchObject({ phase: 'connected', channel: { login: 'streamer' } });
+    // Chat and broadcaster operations use separate scoped EventSub sessions.
+    expect(env.sockets).toHaveLength(2);
     await env.studio.createProject({ projectName: 'Forest', projectBrief: 'Forest garden', projectPath: '/synthetic/forest' });
-    expect(env.sockets).toHaveLength(1);
+    expect(env.sockets).toHaveLength(2);
   });
   it('keeps replies local until public chatbot replies are explicitly enabled', async () => {
     const env = await setup(false); env.sockets[0]!.message(env.command); await vi.advanceTimersByTimeAsync(0);

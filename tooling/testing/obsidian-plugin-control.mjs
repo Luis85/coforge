@@ -63,6 +63,7 @@ export async function enablePlugin(page, id, options) {
 export async function reloadPlugin(page, id, options) {
   const started = Date.now(); let error = null; let viewTypes = [];
   try {
+    await page.waitForFunction(() => window.app?.workspace?.layoutReady === true, undefined, { timeout: options?.timeout ?? 30000 });
     viewTypes = await capturingViews(page, id, () => page.evaluate(async pluginId => {
       const plugins = window.app.plugins;
       const persisted = plugins.enabledPlugins.has(pluginId);

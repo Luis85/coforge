@@ -4000,6 +4000,304 @@
       "file": "twitch-moderation.md"
     },
     {
+      "id": "twitch-operations",
+      "title": "Twitch operations",
+      "goal": "Manage the Twitch channel without leaving CoForge.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = twitch-operations",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsView.vue",
+      "entry": [
+        "Open Twitch operations from Stream navigation."
+      ],
+      "actions": [
+        "Choose task",
+        "Authorize capability",
+        "Review and confirm action"
+      ],
+      "states": [
+        "Disconnected or missing permission",
+        "Current or stale observed data",
+        "Preserved draft",
+        "Reviewed exact target",
+        "Confirmed, failed or uncertain outcome"
+      ],
+      "journeys": [
+        "broadcast",
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private channel workspace; excluded from public projections and viewer exports.",
+      "coverage": {
+        "group": "studio",
+        "key": "twitch-operations"
+      },
+      "order": 85050,
+      "type": "Task",
+      "file": "twitch-operations.md"
+    },
+    {
+      "id": "twitch-operations-action",
+      "title": "Twitch action review",
+      "goal": "Prepare and confirm an exact channel-bound action.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch operations / action editor",
+      "parent": "twitch-operations",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsAction.vue",
+      "entry": [
+        "Open Twitch operations from Stream navigation."
+      ],
+      "actions": [
+        "Select action",
+        "Edit draft",
+        "Save or load template",
+        "Review",
+        "Confirm on Twitch"
+      ],
+      "states": [
+        "Disconnected or missing permission",
+        "Current or stale observed data",
+        "Preserved draft",
+        "Reviewed exact target",
+        "Confirmed, failed or uncertain outcome"
+      ],
+      "journeys": [
+        "broadcast",
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private channel workspace; excluded from public projections and viewer exports.",
+      "order": 85050,
+      "type": "Task",
+      "file": "twitch-operations-action.md"
+    },
+    {
+      "id": "twitch-operations-activity",
+      "title": "Twitch activity",
+      "goal": "Acknowledge observed activity and link screened requests.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch operations / Activity",
+      "parent": "twitch-operations",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsActivity.vue",
+      "entry": [
+        "Open Twitch operations from Stream navigation."
+      ],
+      "actions": [
+        "Filter activity",
+        "Acknowledge",
+        "Link screened request"
+      ],
+      "states": [
+        "Disconnected or missing permission",
+        "Current or stale observed data",
+        "Preserved draft",
+        "Reviewed exact target",
+        "Confirmed, failed or uncertain outcome"
+      ],
+      "journeys": [
+        "broadcast",
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private channel workspace; excluded from public projections and viewer exports.",
+      "order": 85050,
+      "type": "Task",
+      "file": "twitch-operations-activity.md"
+    },
+    {
+      "id": "twitch-operations-broadcast",
+      "title": "Twitch breaks and raid preview",
+      "goal": "Time ad breaks and inspect a raid destination before confirming.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch operations / Breaks & raids / readiness",
+      "parent": "twitch-operations",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsBroadcast.vue",
+      "entry": [
+        "Open Breaks & raids in Twitch operations."
+      ],
+      "actions": [
+        "Refresh ad schedule",
+        "Inspect destination",
+        "Select saved raid target",
+        "Review explicit action"
+      ],
+      "states": [
+        "Missing or stale ad schedule",
+        "Current ad countdown and available snoozes",
+        "Destination loading or unavailable",
+        "Fresh target preview or expired preview"
+      ],
+      "journeys": [
+        "broadcast",
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private read-only previews. Ad or raid mutations require separate reviewed confirmation.",
+      "order": 85070,
+      "type": "Task",
+      "file": "twitch-operations-broadcast.md"
+    },
+    {
+      "id": "twitch-operations-data",
+      "title": "Twitch data and access",
+      "goal": "Inspect dataset permissions, freshness and collection gaps.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch operations / Data & access",
+      "parent": "twitch-operations",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsData.vue",
+      "entry": [
+        "Open Twitch operations from Stream navigation."
+      ],
+      "actions": [
+        "Authorize selected dataset",
+        "Inspect collection gaps",
+        "Save retention"
+      ],
+      "states": [
+        "Disconnected or missing permission",
+        "Current or stale observed data",
+        "Preserved draft",
+        "Reviewed exact target",
+        "Confirmed, failed or uncertain outcome"
+      ],
+      "journeys": [
+        "broadcast",
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private channel workspace; excluded from public projections and viewer exports.",
+      "order": 85050,
+      "type": "Task",
+      "file": "twitch-operations-data.md"
+    },
+    {
+      "id": "twitch-operations-fields",
+      "title": "Twitch action fields",
+      "goal": "Enter validated action values with optional limits kept secondary.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch operations / action editor / fields",
+      "parent": "twitch-operations-action",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsFields.vue",
+      "entry": [
+        "Choose a channel action in Twitch operations."
+      ],
+      "actions": [
+        "Enter required values",
+        "Expand optional limits"
+      ],
+      "states": [
+        "Empty or preserved draft",
+        "Required values missing",
+        "Optional values unchanged"
+      ],
+      "journeys": [
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private draft; only reviewed action parameters are sent after confirmation.",
+      "order": 85060,
+      "type": "Task",
+      "file": "twitch-operations-fields.md"
+    },
+    {
+      "id": "twitch-operations-history",
+      "title": "Twitch action history",
+      "goal": "Inspect durable outcomes and asynchronous content receipts.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch operations / action history",
+      "parent": "twitch-operations",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsHistory.vue",
+      "entry": [
+        "Open Twitch operations from Stream navigation."
+      ],
+      "actions": [
+        "Inspect confirmation",
+        "Open returned Twitch content"
+      ],
+      "states": [
+        "Disconnected or missing permission",
+        "Current or stale observed data",
+        "Preserved draft",
+        "Reviewed exact target",
+        "Confirmed, failed or uncertain outcome"
+      ],
+      "journeys": [
+        "broadcast",
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private channel workspace; excluded from public projections and viewer exports.",
+      "order": 85050,
+      "type": "Task",
+      "file": "twitch-operations-history.md"
+    },
+    {
+      "id": "twitch-operations-records",
+      "title": "Twitch dataset records",
+      "goal": "Inspect current Twitch records and prepare targeted actions.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch operations / dataset",
+      "parent": "twitch-operations",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsRecords.vue",
+      "entry": [
+        "Open Twitch operations from Stream navigation."
+      ],
+      "actions": [
+        "Select dataset",
+        "Refresh",
+        "Load next page",
+        "Use record in draft"
+      ],
+      "states": [
+        "Disconnected or missing permission",
+        "Current or stale observed data",
+        "Preserved draft",
+        "Reviewed exact target",
+        "Confirmed, failed or uncertain outcome"
+      ],
+      "journeys": [
+        "broadcast",
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private channel workspace; excluded from public projections and viewer exports.",
+      "order": 85050,
+      "type": "Task",
+      "file": "twitch-operations-records.md"
+    },
+    {
+      "id": "twitch-operations-report",
+      "title": "Private Twitch report",
+      "goal": "Review retained evidence with recorded stream data.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Twitch operations / Content / report",
+      "parent": "twitch-operations",
+      "component": "src/plugin/presentation/components/coforge/TwitchOperationsReport.vue",
+      "entry": [
+        "Open Twitch operations from Stream navigation."
+      ],
+      "actions": [
+        "Select recorded stream",
+        "Export private report"
+      ],
+      "states": [
+        "Disconnected or missing permission",
+        "Current or stale observed data",
+        "Preserved draft",
+        "Reviewed exact target",
+        "Confirmed, failed or uncertain outcome"
+      ],
+      "journeys": [
+        "broadcast",
+        "twitch-channel-operations"
+      ],
+      "privacy": "Private channel workspace; excluded from public projections and viewer exports.",
+      "order": 85050,
+      "type": "Task",
+      "file": "twitch-operations-report.md"
+    },
+    {
       "id": "viewer-detail",
       "title": "Viewer profile",
       "goal": "Review a viewer’s private record and participation controls.",

@@ -145,6 +145,36 @@ automatically replayed. Check the channel before manually sending a replacement.
 Protocol behavior is tested with fake HTTP and sockets. Live account authorization, channel
 permissions and moderation still need streamer-operated acceptance on a test channel.
 
+### Twitch operations workspace
+
+**Stream → Twitch operations** groups Activity, Moderation, Engagement, Breaks & raids,
+Audience, Content, Schedule, and Data & access. Connect the broadcaster in Twitch settings
+first. Authorize only the dataset or action you need; its device code and approval link
+appear in the workspace. Feature approval retains previously granted permissions.
+
+Refresh datasets to read Twitch state. Collection timestamps and continuation cursors
+describe the displayed data; unavailable is not zero. Activity collection runs only while
+CoForge is open and records connection gaps. Acknowledge events without posting or link
+them privately to an existing screened request.
+
+Choose an action, fill its labelled fields, review the exact channel/account/values, then
+confirm on Twitch. Editing the draft requires a fresh review. Unknown outcomes stay held:
+inspect Twitch and record a recovery note before another mutation. Inspection never
+repeats the old action or asserts success. Templates prepare repeatable drafts only.
+
+Reward management is limited to rewards created by the connected Twitch application.
+Twitch controls eligibility, snoozes, cooldowns and active poll/prediction limits. Clip
+creation is asynchronous; acceptance does not prove publication. Inspect its Twitch link.
+
+Schedule publishing copies only public plan fields into a new draft. Private scripts,
+project context and OBS settings stay local. Content exports private reports combining
+selected stream samples and observed activity. Refreshed content lists are current-channel
+snapshots and can include moments outside the selected stream.
+
+Data & access explains permissions, freshness, retention and unsupported Twitch data.
+Revenue/payouts, viewer Channel Points balances and verified individual video watch time
+are unavailable. Public capture views and viewer website projections stay read-only.
+
 ## 3. Publish the viewer website (GitHub Pages)
 
 Viewers can follow the idea board, leaderboards and badges on a read-only website. It
