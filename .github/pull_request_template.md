@@ -19,7 +19,9 @@ Remove the repeated project-work-context banner from Board, Council, Workflow an
 - Native Obsidian: 3 files / 4 tests passed, including both navigation themes, private-project publication and lifecycle.
 - Unit tests: 2 files / 5 tests passed; typecheck passed.
 - Impeccable detector: [] findings. Source limits/locale parity, view catalogue and git diff --check passed; self-review clean.
-- npm run verify:project and final gallery generation are running; final results will be recorded before merge.
+- npm run verify:project: exit 0; check summary: 5 passed, 0 failed, 0 skipped; artifact build and prototype embedding: 1 passed. UI-effect generator reports no declared visual definitions.
+- npm run ui:gallery: captured 40 screenshots; reviewed desktop dark and mobile light plus the focused short-pane screenshots in both themes.
+- npm run -s dev:obsidian -- --json: status passed, view opened, errors [], hostErrorCount 0, pluginConsole []. Pinned Windows app/installer 1.14.4, launcher 3.2.1.
 
 ## UI and native evidence
 
