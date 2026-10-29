@@ -39,7 +39,7 @@ Journey tags: `request-to-recognition`, `multi-project`.
 
 ## Workspace redesign
 
-A project context band identifies the canonical project. The decision summary counts current project requests awaiting screening, moderation or final review; review and moderation counts open their existing filters without running work. Accepted totals count request state, not agent attempts.
+The sidebar switcher identifies the canonical project and private visibility; the work surface has no repeated project banner. The decision summary counts current project requests awaiting screening, moderation or final review; review and moderation counts open their existing filters without running work. Accepted totals count request state, not agent attempts.
 
 ## Project privacy
 

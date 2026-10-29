@@ -4,7 +4,6 @@ import CfIcon from "./CfIcon.vue";
 import SettingsDataSection from "./SettingsDataSection.vue";
 import SettingsRuntimeSection from "./SettingsRuntimeSection.vue";
 import SettingsRepositorySection from "./SettingsRepositorySection.vue";
-import ProjectWorkContext from "./ProjectWorkContext.vue";
 import SettingsRequestObjectSection from './SettingsRequestObjectSection.vue';
 
 const model = useSettings();
@@ -23,7 +22,6 @@ const model = useSettings();
         ><CfIcon name="shield-check" size="sm" /> Local workspace</span
       >
     </header>
-    <ProjectWorkContext />
     <section
       v-if="!model.availableProject && !model.dirty"
       class="cf-empty-state"

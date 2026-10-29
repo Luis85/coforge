@@ -31,9 +31,10 @@ const { shell: model, groups, navigate } = useStudioNavigation();
             ? model.state?.settings.projectName
             : "Projects"
         }}</strong>
-        <code v-if="model.store.activeProject" class="cf-project-selector-id">{{
-          model.store.activeProject.id
-        }}</code>
+        <span v-if="model.store.activeProject" class="cf-project-selector-meta">
+          <code class="cf-project-selector-id">{{ model.store.activeProject.id }}</code>
+          <span v-if="model.store.activeProject.visibility === 'private'" class="cf-project-visibility" aria-label="Private project">Private</span>
+        </span>
         <small v-else>Add or select a project</small>
       </span>
       <CfIcon name="chevron-right" size="xs" />

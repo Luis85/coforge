@@ -62,6 +62,12 @@ a provider request.
 The Idea board appears first in Build navigation, followed by The Council and
 Agent workflow (owner correction, 2026-10-28).
 
+Navigation correction (owner, 2026-10-29): the expanded left navigation needs more
+width and should fit ordinary desktop-height panes without unnecessary scrolling.
+Remove the repeated project-work-context banner from work views. The project
+switcher remains the active-project identity and navigation control; private
+visibility stays indicated there and in project settings.
+
 The private Kanban card menu includes Send to the Council. It prepares an assessment
 of the screened item, its open gaps and possible next steps, preserves an existing
 Council draft until explicitly replaced, and requires the usual review and submission.

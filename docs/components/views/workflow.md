@@ -33,7 +33,7 @@ No project; No active work; Queued; Running; Checkpoint; Failed or uncertain res
 
 ## Composition and boundaries
 
-Source: [src/plugin/presentation/components/coforge/WorkflowView.vue](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). This parent owns the Agent workflow H1, selected-project context, shared page frame and local navigation. All three tasks share that frame. Workflow settings embeds its editor with an H2; the compatibility settings locator still renders this same parent workspace and keeps Agent workflow current in the global navigation.
+Source: [src/plugin/presentation/components/coforge/WorkflowView.vue](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). This parent owns the Agent workflow H1, shared page frame and local navigation. All three tasks share that frame. Workflow settings embeds its editor with an H2; the compatibility settings locator still renders this same parent workspace and keeps Agent workflow current in the global navigation.
 
 Journey tags: `request-to-recognition`, `workflow-configuration`.
 

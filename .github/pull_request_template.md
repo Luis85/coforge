@@ -1,33 +1,32 @@
 ## Summary
 
-Opening the repository-root vault can fail with an edited-public-export warning because its shipped public board predates project IDs. Recognize that exact historical renderer and projection on startup without rewriting the export or canonical notes. Edited HTML, unsupported fields and invalid identities still fail closed; private-project startup still retires verified generated files.
+Expanded studio navigation is 240px wide instead of shrinking to 181px in intermediate leaves. Navigation uses a scoped 32px control-size token and compact spacing in short panes, keeping complete labels and destinations visible at a 740px desktop leaf height. Smaller panes retain reachable scrolling.
 
-The owner authorized agents to download pinned Obsidian tooling for contained tests. Update AGENTS.md and the canonical debug/self-review skills while retaining version validation, isolated vault/profile guards and the ban on arbitrary/global installs.
-
-Provisioning also exposed a Windows shell-quoting bug when Node/npm paths contain spaces. Invoke the native Node executable directly with argv; only the npm.cmd fallback uses a shell.
+Remove the repeated project-work-context banner from Board, Council, Workflow and Project settings. Project name/ID and private visibility remain in the sidebar switcher, and dirty-draft navigation remains guarded. Remove the unused banner component/composable/styles and update the affected privacy/layout assertions and design guidance.
 
 ## Requirements and traceability
 
-- Startup compatibility and project-publication/privacy requirements in BRIEF.md.
-- Owner authorization to change the download rule, 2026-10-29.
-- Task: docs/project-tasks/2026-10-29-public-export-startup.md.
-- No generated req-* / vi-* verification fields changed.
+- Owner requests, 2026-10-29, recorded in BRIEF.md and DESIGN.md.
+- Task: docs/project-tasks/2026-10-29-navigation-space.md.
+- Generated req-* / vi-* obligations unchanged. View catalogue/sitemap regenerated; 88 view contracts remain covered.
+- No user vault data or backups are part of this PR.
 
 ## Validation
 
-- Before fix: 2 startup compatibility regressions failed with the exact reported warning; 3 protection cases passed.
-- After fix: 25 startup/privacy regression tests passed, including byte preservation, edited/malformed projections, hidden unsupported context and private-export revocation.
-- Native Windows installer regression reproduced the C:\Program failure before the fix; installer/harness tests now 7 passed.
-- Real Obsidian 1.14.4 on Windows: 4 files / 4 tests passed, covering the historical-export upgrade and reload, privacy, plugin loading and lifecycle. Historical JSON/HTML and human notes stayed byte-for-byte unchanged.
-- Dev smoke: status passed, plugin loaded/enabled, errors []; its automatic view-opening helper reported a host tab-group error, so the dedicated native upgrade test provides the actual studio-view evidence.
-- Source line limits/locale parity passed. Self-review and git diff --check passed.
-- npm run verify:project is running; final result will be recorded before merge.
-- Global suite-inventory check reports pre-existing missing framework scripts/docs. New fixtures are classified correctly and self-review is clean.
+- Regression first reproduced the narrow navigation width. The final geometry test explicitly fixes the studio to 740px height, exercises the long disconnected status, checks single-line labels, all destinations without overflow, and reachable scrolling at 460px.
+- Targeted browser layout, keyboard focus and private-project/capture tests: 8 passed, both themes.
+- General UI quality: 8 passed (WCAG, reflow and keyboard reachability).
+- Native Obsidian: 3 files / 4 tests passed, including both navigation themes, private-project publication and lifecycle.
+- Unit tests: 2 files / 5 tests passed; typecheck passed.
+- Impeccable detector: [] findings. Source limits/locale parity, view catalogue and git diff --check passed; self-review clean.
+- npm run verify:project: exit 0; check summary: 5 passed, 0 failed, 0 skipped; artifact build and prototype embedding: 1 passed. UI-effect generator reports no declared visual definitions.
+- npm run ui:gallery: captured 40 screenshots; reviewed desktop dark and mobile light plus the focused short-pane screenshots in both themes.
+- npm run -s dev:obsidian -- --json: status passed, view opened, errors [], hostErrorCount 0, pluginConsole []. Pinned Windows app/installer 1.14.4, launcher 3.2.1.
 
-## UI and host evidence
+## UI and native evidence
 
-No current UI or public-site rendering is changed; the frozen historical renderer is used only for exact ownership comparison. Native evidence is under reports/obsidian/cases/ and .obsidian-sandbox/logs/. No screenshot baseline was changed.
+reports/navigation-space/sidebar-{light,dark}-{980,1280}.png, reports/obsidian/cases/, and reports/ui-gallery/. No screenshot baseline changed. CI e2e checks qualify the complete browser/native suite.
 
 ## Untested scope
 
-No personal vault was opened. Live external services/model sessions were not invoked. Windows provisioning and the product startup path are exercised locally; Linux CI provides cross-platform verification. Reports, downloaded host/cache and build assets remain ignored.
+No live external services/model sessions were invoked. User project/agent data is excluded from source changes. The navigation may scroll in genuinely short panes or enlarged text settings; controls stay accessible.

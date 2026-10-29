@@ -1,11 +1,13 @@
 /* Studio frame: navigation left, work surface centre, community chat right. Layout follows the leaf width. */
 .cf-sidebar {
   width: var(--cf-sidebar-width); flex-shrink: 0; display: flex; flex-direction: column; background: var(--cf-surface);
-  border-right: 1px solid var(--cf-border); padding: 22px 14px 0; z-index: 10; overflow-y: auto;
+  border-right: 1px solid var(--cf-border); padding: 16px 14px 0; z-index: 10; overflow: hidden;
+  container-name: coforge-navigation; container-type: size;
+  --coforge-ds-sizes-control: 32px;
 }
 .cf-brand { display: flex; align-items: center; gap: 11px; font-weight: 800; font-size: 21px; letter-spacing: -0.6px; padding: 0 8px; background: none; border: 0; color: var(--cf-text); }
 .cf-project-switcher {
-  margin: 26px 0 24px; border: 1px solid var(--cf-border); display: flex; align-items: center; text-align: left; gap: 9px;
+  margin: 16px 0; border: 1px solid var(--cf-border); display: flex; align-items: center; text-align: left; gap: 9px;
   padding: 10px 9px; background: var(--cf-bg); border-radius: var(--radius-m); min-width: 0; height: auto; width: 100%;
 }
 .cf-project-icon { width: 29px; height: 31px; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--color-green) 18%, transparent); color: var(--cf-green); border-radius: var(--radius-s); }
@@ -109,7 +111,6 @@
   .cf-workspace-body > .cf-chat-panel { display: none; }
 }
 @container plugin-shell-leaf (max-width: 1250px) {
-  .cf-studio { --cf-sidebar-width: 181px; }
   .cf-pipeline-stage > span:first-child { display: none; }
 }
 @container plugin-shell-leaf (max-width: 800px) {

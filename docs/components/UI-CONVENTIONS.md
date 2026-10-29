@@ -40,7 +40,8 @@ The expressive studio direction is recorded in [DESIGN.md](../../DESIGN.md). Lea
   switching subpages would otherwise lose a draft; store-backed drafts can also
   survive component recreation. Navigation itself never saves or dispatches work.
 - A local configuration task shares its parent's frame. Agent workflow owns one
-  H1, selected-project context and local navigation for runs, Herdr and settings;
+  H1 and local navigation for runs, Herdr and settings; selected-project identity
+  and private visibility stay in the sidebar switcher, without a repeated banner;
   the embedded workflow editor begins at H2 and adds no second page gutter.
   Compatibility locators select that same task and keep the parent current in
   the sidebar. Dirty workflow drafts guard local task changes as well as global

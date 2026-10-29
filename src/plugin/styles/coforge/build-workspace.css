@@ -1,29 +1,4 @@
-/* Project work uses one context band and a distinct decision workspace. */
-.cf-project-work-context {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--cf-space-sm) var(--cf-space-md);
-  padding: var(--cf-space-md);
-  margin-bottom: var(--cf-space-lg);
-  border-radius: var(--cf-section-radius, 12px);
-  background: var(--cf-accent-surface, var(--cf-accent-soft));
-  min-width: 0;
-}
-.cf-project-work-identity {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--cf-space-sm) var(--cf-space-md);
-  min-width: 0;
-}
-.cf-project-work-identity > .cf-icon { color: var(--text-accent); }
-.cf-project-work-identity > div { display: grid; gap: var(--cf-space-xs); min-width: 0; }
-.cf-project-work-identity strong { font-size: 15px; overflow-wrap: anywhere; }
-.cf-project-work-identity code { color: var(--cf-muted); font-size: 12px; }
-.cf-project-work-context .cf-badge { background: var(--cf-bg); line-height: 1.6; }
-.cf-project-work-context .is-attention { color: var(--cf-danger); }
+/* Project decisions lead the work surface; project identity stays in navigation. */
 .cf-board-decisions {
   margin-bottom: var(--cf-space-lg);
   padding: var(--cf-space-lg);
@@ -102,7 +77,6 @@
 .cf-workflow-editor-save { padding: var(--cf-space-md); border-radius: var(--radius-m); }
 
 /* Council workspace: a readable catalogue, focused authoring and visible recovery. */
-.cf-council > .cf-project-work-context { margin-bottom: 0; }
 .cf-council > p[role="status"] { background: var(--cf-info-surface, var(--cf-surface)); padding: var(--cf-space-md); border-radius: var(--radius-m); }
 .cf-council > .cf-intent-empty { padding: var(--cf-space-md); border-radius: var(--cf-section-radius, 12px); background: var(--cf-warning-surface, var(--cf-surface)); }
 .cf-council .cf-page-heading { margin-bottom: 0; }
@@ -168,8 +142,6 @@
   .cf-workflow-mode-tag { margin-left: 0; }
 }
 @container plugin-shell-leaf (max-width: 600px) {
-  .cf-project-work-context { padding: var(--cf-space-md); }
-  .cf-project-work-context > button { padding-inline: 0; }
   .cf-board-decisions { padding: var(--cf-space-md); }
   .cf-board-decision-intro h2 { font-size: 18px; }
   .cf-board-decision-actions { grid-template-columns: minmax(0, 1fr); gap: 0; }

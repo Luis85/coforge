@@ -9,7 +9,6 @@ import WorkflowV2Editor from "./WorkflowV2Editor.vue";
 import CouncilMessages from "./CouncilMessages.vue";
 import CouncilFolderSettings from "./CouncilFolderSettings.vue";
 import CouncilAskView from "./CouncilAskView.vue";
-import ProjectWorkContext from "./ProjectWorkContext.vue";
 import TaskSchedulerView from "./TaskSchedulerView.vue";
 import WorkflowTriggersView from "./WorkflowTriggersView.vue";
 import { DEFAULT_COUNCIL_FOLDERS } from "../../../features/coforge/domain/council-definition-folders";
@@ -34,7 +33,6 @@ const model = useCouncil();
         Refresh Council
       </button>
     </header>
-    <ProjectWorkContext :show-automation="false" />
     <p v-if="!model.service">
       Open this view in desktop Obsidian to create vault-backed definitions and
       submit private Markdown notes.

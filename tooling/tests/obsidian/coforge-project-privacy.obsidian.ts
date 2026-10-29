@@ -28,7 +28,8 @@ describe('Private project publication in the contained host', () => {
     await obsidian.reloadPlugin();
     view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
     await view.getByRole('button', { name: /^Idea board/ }).first().click();
-    await browserExpect(view.locator('.cf-project-work-context')).toContainText('Private project');
+    await browserExpect(view.locator('.cf-project-switcher')).toContainText('Private');
+    await browserExpect(view.locator('.cf-project-work-context')).toHaveCount(0);
     await browserExpect(view.locator('.cf-idea-card')).toHaveCount(15);
     await obsidian.runCommand('publish-viewer-board');
     await expect.poll(() => obsidian.eval(async ({ app }) => {

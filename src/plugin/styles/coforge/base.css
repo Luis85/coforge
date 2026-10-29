@@ -22,7 +22,7 @@
   --cf-orange: var(--color-orange);
   --cf-danger: var(--text-error);
   --cf-font-mono: var(--font-monospace);
-  --cf-sidebar-width: 206px;
+  --cf-sidebar-width: 240px;
   --cf-chat-width: 290px;
   --cf-space-xs: var(--coforge-ds-spacing-xs, var(--size-4-1));
   --cf-space-sm: var(--coforge-ds-spacing-sm, var(--size-4-2));
