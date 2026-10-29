@@ -82,6 +82,7 @@ const attemptCheck = shape(
     invocationId: id,
     status: oneOf([
       "dispatching",
+      "not-started",
       "unknown",
       "responded",
       "published",
@@ -233,8 +234,35 @@ const runCheck = shape(
                 token: id,
                 scopeId: optional(id),
                 reservedMs: number({ min: 0, max: 1000, integer: true }),
+                accountedMs: optional(
+                  number({
+                    min: 0,
+                    max: Number.MAX_SAFE_INTEGER,
+                    integer: true,
+                  }),
+                ),
               },
               { strict: true },
+            ),
+          ),
+          parallel: optional(
+            list(
+              shape(
+                {
+                  token: id,
+                  scopeId: optional(id),
+                  reservedMs: number({ min: 0, max: 1000, integer: true }),
+                  accountedMs: optional(
+                    number({
+                      min: 0,
+                      max: Number.MAX_SAFE_INTEGER,
+                      integer: true,
+                    }),
+                  ),
+                },
+                { strict: true },
+              ),
+              { max: 100 },
             ),
           ),
         },

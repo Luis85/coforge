@@ -22,7 +22,7 @@ it("keeps partially progressed work queued and announces completion only at the 
         { roundId: "solution", agentId: "reviewer" },
       ],
     }),
-  ).toContain("1 of 2 contributions published");
+  ).toContain("1 of 2 steps completed or skipped");
   expect(
     councilProgressAnnouncement({
       state: "completed",

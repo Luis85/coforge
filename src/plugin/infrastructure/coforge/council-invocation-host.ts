@@ -1,5 +1,8 @@
 import type { ExecutionKernel } from "../../features/coforge/application/execution-kernel";
-import type { InvocationGate } from "../../features/coforge/application/invocation-gate";
+import type {
+  InvocationGate,
+  InvocationLane,
+} from "../../features/coforge/application/invocation-gate";
 import type { StudioService } from "../../features/coforge/application/studio";
 import type {
   ExecutionRun,
@@ -14,7 +17,11 @@ import type { Timers } from "../../features/coforge/application/ports";
 
 /** Native invocation resources are disposed independently of durable run evidence. */
 export class CouncilInvocationHost {
-  private readonly cancellations = new Map<string, AbortController>();
+  private readonly cancellations = new Map<
+    string,
+    { runId: string; controller: AbortController }
+  >();
+  private readonly batches = new Map<string, InvocationLane>();
   constructor(
     private readonly studio: Pick<StudioService, "integration">,
     private readonly gate: InvocationGate,
@@ -36,7 +43,7 @@ export class CouncilInvocationHost {
     timing?: ExecutionTimingHooks,
   ): Promise<ExecutionResponse> {
     const controller = new AbortController();
-    this.cancellations.set(run.id, controller);
+    this.cancellations.set(attempt.id, { runId: run.id, controller });
     try {
       const prepare = () => this.messaging().prepare(run, invocation, attempt);
       await (timing?.action?.(prepare) ?? prepare());
@@ -55,7 +62,7 @@ export class CouncilInvocationHost {
           allowedRecipients: this.messaging().allowedRecipients(attempt.id),
         },
         {
-          gate: this.gate,
+          gate: this.batches.get(run.id) ?? this.gate,
           mcpScope: { identity: { projectId: run.projectId, runId: run.id, attemptId: attempt.id, agentId: invocation.agentId, teamId: run.teamId, roundId: invocation.roundId },
             inputs: run.artifacts.filter(artifact => attempt.dispatch.inputArtifactIds.includes(artifact.id)).map(({ id, agentId, roundId, markdown }) => ({ id, agentId, roundId, markdown })) },
           agentRecipients: () => this.messaging().agentRecipients(attempt.id),
@@ -77,13 +84,28 @@ export class CouncilInvocationHost {
       }
       return result;
     } finally {
-      this.cancellations.delete(run.id);
+      this.cancellations.delete(attempt.id);
     }
   }
   cancel(id: string): void {
-    this.cancellations.get(id)?.abort();
+    for (const active of this.cancellations.values())
+      if (active.runId === id) active.controller.abort();
+  }
+  batch(id: string, work: () => Promise<void>): Promise<void> {
+    if (this.batches.has(id))
+      return Promise.reject(
+        new Error("A provider batch already owns this run."),
+      );
+    return this.gate.runBatch(async (lane) => {
+      this.batches.set(id, lane);
+      try {
+        await work();
+      } finally {
+        this.batches.delete(id);
+      }
+    });
   }
   dispose(): void {
-    for (const controller of this.cancellations.values()) controller.abort();
+    for (const active of this.cancellations.values()) active.controller.abort();
   }
 }

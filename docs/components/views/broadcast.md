@@ -31,6 +31,10 @@ Choose Stream studio in the studio navigation. Available actions: Prepare; Go li
 
 Disconnected; Off air; Live; On break; Unknown external outcome. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+The stream workspace leads with the observed broadcast state and an explicit next action. Broadcast, Setup, Scenes, Music, Public displays and History remain focused local pages; changing pages preserves preparation drafts.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/BroadcastView.vue](../../../src/plugin/presentation/components/coforge/BroadcastView.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

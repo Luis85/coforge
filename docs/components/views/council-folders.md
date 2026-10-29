@@ -7,7 +7,7 @@ kind: "subpage"
 route: "council.tab = folders"
 parent: "council"
 component: "src/plugin/presentation/components/coforge/CouncilFolderSettings.vue"
-entry: ["Open The Council, then choose Definition folders."]
+entry: ["Open The Council, expand Advanced Council tools, then choose Definition folders."]
 actions: ["Review mappings","Edit folders","Save mapping"]
 states: ["Loading","Unsaved","Invalid path","Revision conflict","Saved"]
 journeys: ["Council"]
@@ -25,7 +25,7 @@ Folder configuration is separate from definition authoring and cannot enable exe
 
 ## Entry and next action
 
-Open The Council, then choose Definition folders. Available actions: Review mappings; Edit folders; Save mapping. Return through the owning [The Council](council.md) surface.
+Open The Council, expand Advanced Council tools, then choose Definition folders. Available actions: Review mappings; Edit folders; Save mapping. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 
@@ -36,3 +36,7 @@ Loading; Unsaved; Invalid path; Revision conflict; Saved. Inspect an error besid
 Source: [src/plugin/presentation/components/coforge/CouncilFolderSettings.vue](../../../src/plugin/presentation/components/coforge/CouncilFolderSettings.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`.
+
+## Workspace redesign
+
+Folder configuration uses a focused disclosure, labelled fields and preview grouping. Saving still reconciles definitions without moving or deleting authored files.

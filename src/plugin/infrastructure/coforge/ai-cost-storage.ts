@@ -11,6 +11,7 @@ import {
   defangProperty,
 } from "../../features/coforge/domain/sanitize";
 import { splitNote } from "./markdown";
+import { mapCostStrings } from './ai-cost-strings';
 const PATH = "CoForge/AI-Costs/Ledger.md";
 export class VaultAICosts implements AICostStorage {
   private observed: string | null = null;
@@ -33,18 +34,7 @@ export class VaultAICosts implements AICostStorage {
       )
         throw new Error("Invalid cost ledger");
       const rawTasks = properties.tasks;
-      const tasks = aiCostTasksCheck(
-        Array.isArray(rawTasks)
-          ? rawTasks.map((value) =>
-              Object.fromEntries(
-                Object.entries(record(value)).map(([key, value]) => [
-                  key,
-                  typeof value === "string" ? cleanText(value) : value,
-                ]),
-              ),
-            )
-          : rawTasks,
-      );
+      const tasks = aiCostTasksCheck(mapCostStrings(rawTasks, value => cleanText(value)));
       if (new Set(tasks.map((task) => task.id)).size !== tasks.length)
         throw new Error("Duplicate cost task");
       for (const task of tasks)
@@ -66,14 +56,7 @@ export class VaultAICosts implements AICostStorage {
         type: "coforge-ai-costs",
         version: 1,
         currency: "USD",
-        tasks: tasks.map((task) =>
-          Object.fromEntries(
-            Object.entries(task).map(([key, value]) => [
-              key,
-              typeof value === "string" ? defangProperty(value) : value,
-            ]),
-          ),
-        ),
+        tasks: mapCostStrings(tasks, defangProperty),
       };
       let written = "";
       if (file)

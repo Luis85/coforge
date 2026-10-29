@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
+import { openWorkflowSettings } from '../support/workflow-navigation';
 
 const views = [
   ["01-studio", "Stream studio", ".cf-broadcast-page"],
@@ -11,6 +12,7 @@ const views = [
   ["07-chat", "Stream chat", ".cf-stream-page"],
   ["08-workflow", "Agent workflow", ".cf-workflow-page"],
   ["09-community", "Community", ".cf-community-page"],
+  ["09b-economy", "Economy", ".cf-economy-page"],
   ["10-viewers", "Viewers", ".cf-population-page"],
   ["11-operations", "Operations", ".cf-operations-page"],
   ["12-projects", "Projects", ".cf-projects-page"],
@@ -20,7 +22,7 @@ const views = [
     ".cf-community-settings-page",
   ],
   ["14-project-settings", "Project settings", ".cf-settings-page"],
-  ["14b-workflow-settings", "Workflow settings", ".cf-workflow-settings-page"],
+  ["14b-workflow-settings", "Workflow settings", ".cf-workflow-page"],
 ] as const;
 for (const [step, label, selector] of views) {
   test(`view intent: ${label} remains usable at desktop and narrow widths`, async ({
@@ -33,6 +35,7 @@ for (const [step, label, selector] of views) {
     );
     if (label === "Projects")
       await page.locator(".cf-project-switcher").click();
+    else if (label === 'Workflow settings') await openWorkflowSettings(page);
     else
       await page
         .getByRole("button", {
@@ -43,6 +46,10 @@ for (const [step, label, selector] of views) {
         .click();
     const view = page.locator(selector);
     await expect(view).toBeVisible();
+    if (label === 'Workflow settings') {
+      await expect(view.locator('.cf-workflow-settings-page')).toBeVisible();
+      await expect(view.getByRole('heading', { name: 'Workflow settings', level: 2, exact: true })).toBeVisible();
+    }
     await expect(view.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(view.locator(".cf-page-heading p").first()).toBeVisible();
     const phase = process.env.COFORGE_INTENT_CAPTURE || "after";
@@ -93,11 +100,11 @@ test("native settings clearly separate vault integration from project configurat
     "data-prototype-ready",
     "true",
   );
-  await expect(
-    page.getByText("These settings are saved with the plugin", {
-      exact: false,
-    }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Vault integrations", exact: true })).toBeVisible();
+  const ownership = page.getByLabel("Where settings belong", { exact: true });
+  await expect(ownership).toContainText("Project settings");
+  await expect(ownership).toContainText("Workflow settings");
+  await expect(ownership).toContainText("Vault folders, Claude Code, local MCP, Twitch and the viewer website.");
   const directory = `reports/ui-intent/${process.env.COFORGE_INTENT_CAPTURE || "after"}`;
   await mkdir(directory, { recursive: true });
   for (const theme of ["light", "dark"]) {
@@ -282,7 +289,7 @@ for (const [step, label] of [
   });
 }
 
-test("task navigation keeps the board first and settings reachable in a short pane", async ({
+test("task navigation leads with stream work and keeps settings reachable in a short pane", async ({
   page,
 }) => {
   await page.goto("/#surface=node-1");
@@ -302,8 +309,8 @@ test("task navigation keeps the board first and settings reachable in a short pa
           .getBoundingClientRect().top - el.getBoundingClientRect().bottom,
     ),
   ).toBeLessThanOrEqual(2);
-  await expect(navigation.getByRole("button").first()).toHaveText(/Idea board/);
-  for (const label of ["Build", "Stream", "Community", "Insights"])
+  await expect(navigation.getByRole("button").first()).toHaveText("Stream studio");
+  for (const label of ["Stream", "Build", "Community", "Insights"])
     await expect(
       navigation.getByRole("group", {
         name: `${label} navigation`,
@@ -315,6 +322,7 @@ test("task navigation keeps the board first and settings reachable in a short pa
   });
   for (const label of ["Project settings", "How it works"]) {
     const button = page.getByRole("button", { name: label, exact: true });
+    await button.focus();
     await expect(button).toBeVisible();
     expect(
       await button.evaluate((el) => {
@@ -335,7 +343,7 @@ test("task navigation keeps the board first and settings reachable in a short pa
   for (let index = 0; index < 4; index++)
     await expect(captions.nth(index)).toBeHidden();
   await expect(navigation.getByRole("button").first()).toHaveAccessibleName(
-    /Idea board/,
+    "Stream studio",
   );
 });
 

@@ -8,7 +8,7 @@ route: "public export / index.html"
 parent: null
 component: "src/plugin/features/coforge/domain/public-site.ts"
 entry: ["Open the deployed viewer website or the generated public export index.html."]
-actions: ["Read board","Expand plan or community context","Read leaderboards and badges"]
+actions: ["Read board","Expand plan or community context","Read leaderboards and badges","Navigate sections","Refresh board"]
 states: ["No screened cards","Awaiting screening count","No leaders","Generated timestamp"]
 journeys: ["public-sharing"]
 privacy: "Explicit public whitelist; read-only."
@@ -32,6 +32,12 @@ No screened cards; Awaiting screening count; No leaders; Generated timestamp. In
 
 ## Composition and boundaries
 
+The project identity and participation commands lead the page, followed by the generated timestamp and an explicit Refresh board link. Section links jump to the idea board, leaderboards and badges. Reading never triggers a timed reload, preserving keyboard focus and expanded plans. The standalone palette supports light/dark preferences with readable semantic text; request columns use stage headings while retained cards own their content surface.
+
 Source: [src/plugin/features/coforge/domain/public-site.ts](../../../src/plugin/features/coforge/domain/public-site.ts). The exported document owns its standalone HTML and CSS. It uses the explicit public projection and exposes no private mutation controls.
 
 Journey tags: `public-sharing`.
+
+## Project privacy
+
+Revoking publication scrubs owned local board JSON and HTML even when automatic board updates are off. Unrelated files are preserved. Previously deployed GitHub Pages content remains online until the streamer republishes or removes it; CoForge does not push the vault.

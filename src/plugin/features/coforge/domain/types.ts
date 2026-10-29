@@ -2,8 +2,9 @@
 export type IdeaStatus = 'inbox' | 'screened' | 'ranked' | 'planned' | 'building' | 'review' | 'shipped' | 'flagged' | 'rejected';
 export type AgentStage = 'screen' | 'score' | 'plan' | 'implement';
 export type Provider = 'demo' | 'claude' | 'herdr';
+/** Bounded at note/input boundaries and checked against each new request's captured taxonomy. */
+export type Category = string;
 export type ExecutionProvider = Provider | 'mcp';
-export type Category = 'Gameplay' | 'World' | 'Quality of life' | 'Art & audio' | 'Community';
 /** Contributor colours are Obsidian palette names (`--color-<name>`), never raw colour literals. */
 export type ContributorColor = 'purple' | 'orange' | 'green' | 'yellow' | 'blue' | 'pink' | 'cyan' | 'red';
 export const CONTRIBUTOR_COLORS: readonly ContributorColor[] = ['purple', 'orange', 'green', 'yellow', 'blue', 'pink', 'cyan', 'red'];
@@ -17,6 +18,7 @@ export interface Increment {
   branch?: string; worktree?: string; commit?: string; createdAt: string; simulated: boolean;
 }
 export interface Idea {
+  requestObject?: import('./request-object').RequestObjectSnapshot;
   workflowRun?: import('./configured-workflow-run').WorkflowRun;
   workflowHistory?: import('./configured-workflow-run').WorkflowRun[];
   contexts?: import('./idea-context').IdeaContext[];
@@ -47,6 +49,7 @@ export interface AgentJob {
 }
 export interface Activity { id: string; ideaId?: string; type: 'idea' | 'vote' | 'agent' | 'review' | 'system'; text: string; createdAt: string }
 export interface Settings {
+  requestObject?: import('./request-object').RequestObjectDefinition;
   workflow?: import('./configured-workflow').WorkflowDefinition;
   herdrAgent?: 'claude';
   stageAgents?: import('./stage-agents').StageAgents;
@@ -57,6 +60,8 @@ export interface Settings {
   requestCooldownSeconds: number;
 }
 export interface RuntimeInfo {
+  /** Transient fail-closed publication holds; only an explicit public reconciliation clears them. */
+  publicationDeniedProjectIds?: string[];
   herdrWorkflow?: { ready: boolean; busy: boolean; message: string };
   liveStudio?: import('./live-studio').LiveStudioState;
   streamRecording?: import('./stream-metrics').StreamRecordingState;
@@ -66,6 +71,8 @@ export interface RuntimeInfo {
   twitch?: import('./twitch').TwitchState;
 }
 export interface StudioProject {
+  /** Missing legacy visibility means public. Private projects never enter viewer projections. */
+  visibility?: import('./project-publicity').ProjectVisibility;
   id: string; settings: Settings; projectPath: string; worktreeFolder: string; allowImplementation: boolean;
   repositoryUrl: string; websiteUrl: string;
   createdAt: string; updatedAt: string;
@@ -73,6 +80,12 @@ export interface StudioProject {
   unavailable?: boolean;
 }
 export interface AppState {
+  /** Private entrypoint-assigned provenance. Provider choice never implies sample content. */
+  requestOrigins?: Record<string, import('./example-content').RequestOrigin>;
+  /** Committed cleanup cutoff per request ID; newer generations keep their own cost history. */
+  exampleRemovalCutoffs?: Record<string, string>;
+  sampleEventIds?: string[];
+  sampleCreatedProjectIds?: string[];
   setupGuide?: import('./stream-setup').StreamSetupState;
   obsSettings?: import('./obs').ObsSettings;
   obsCommand?: import('./obs').ObsCommand;

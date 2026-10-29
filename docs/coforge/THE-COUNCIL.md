@@ -6,7 +6,7 @@ to the viewer board or accepts code changes.
 
 ## Set up specialists and a council
 
-Select a project, open **Definitions**, and create its default team. Create agents
+Select a project, expand **Advanced Council tools**, open **Definitions**, and create its default team. Create agents
 with a name, role, instructions, provider/model and output default. Add the agents
 to the team's ordered roster, then create a council and choose its members.
 
@@ -16,8 +16,13 @@ collection. Earlier opinions never enter other opinion invocations. Earlier
 solutions never enter another solution invocation unless a custom round explicitly
 binds that earlier collection. An optional synthesis is an additional contribution.
 
-Round order, participants, instructions, supported output contracts and completion
-rules are editable. A partial policy must retain at least one successful member;
+Round order, participants, instructions, supported output contracts, prompt order and completion
+rules are editable. **Round robin (sequential)** prompts one member at a time;
+**Fan out (concurrent)** starts all selected members from the same captured source
+and earlier collections. Fan-out results are published in participant order, and
+the next round waits for persisted outcomes under the configured completion policy.
+Neither mode exposes earlier opinions to another member in the same opinion round.
+A partial policy must retain at least one successful member;
 missing contributions remain explicit. Revisions and inputs are captured for each
 run. Editing a definition affects future work, while disabling a target or revoking
 membership blocks the next affected action.
@@ -32,19 +37,41 @@ New definitions use the saved folders. Previously identified notes remain
 discoverable through the vault's metadata index after a move to another private
 folder. Public export and host configuration locations are rejected.
 
+The prompt-order selector belongs to each round. Existing notes without
+`promptOrder` retain round-robin behavior without rewriting their definitions or
+revisions. New runs capture the selected mode in their definition and invocation
+snapshots. Editing the live definition never changes a retained run's mode. The
+preflight lists each round's captured mode and member count before submission.
+
+## Ask a new question
+
+**The Council** opens on **Ask the Council**, with a title/question form and
+**Ingested tasks** below it. Select a project team and council, then use **Save task
+and review**. Saving writes a private analytical note in `CoForge/CouncilTasks` and
+previews its proposed work; it does not admit a run or contact a provider. A stable
+draft key makes uncertain-save retries idempotent. Saved notes remain discoverable
+after reload, including when preflight was unavailable.
+
+History combines retained direct/watched submissions, saved task notes and labelled
+latest inbox observations across projects. **No retained run** can mean unsubmitted
+or previously pruned history; it is not proof that a task was never ingested.
+Review a saved task or inspect a retained run through its own action.
+
 ## Submit a note
 
 Designate the desktop that will execute work. Other desktops may inspect saved
 work but cannot dispatch. Reload always pauses execution.
 
-In **Submit and preflight**, select a team, an agent or council, and an existing
+In **Advanced Council tools → Submit existing note**, select a team, an agent or council, and an existing
 private Markdown note. **Run preflight** resolves the captured source, definitions,
 participants, context, providers and limits without a model request or delivery.
 Only explicitly selected context notes and the team's bounded information snapshot
 enter a prompt. Check the native runtime when using Claude.
 
 Submit explicitly, then resume execution. Every contribution is committed to the
-private journal and published to the source before the next member starts.
+private journal and published to the source. Round robin keeps the publication
+barrier before the next member; fan out keeps the complete round barrier before
+any dependent round.
 Submission is bound to the displayed preflight. A changed source, definition,
 selected context or execution limit requires another preflight instead of silently
 executing a different capture.

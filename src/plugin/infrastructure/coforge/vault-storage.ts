@@ -1,3 +1,8 @@
+import { VaultEconomyReservations } from "./economy-reservations";
+import { economyUsageReservationCheck } from "../../features/coforge/domain/command-economy-check";
+import type { EconomyUsageReservation } from "../../features/coforge/domain/command-economy";
+import { VaultCommandCommit } from "./vault-command-commit";
+import { planAtomicCommand, needsAtomicCommand } from "./atomic-command-plan";
 import { normalizePath, parseYaml, stringifyYaml, TFile, type Plugin } from 'obsidian';
 import type { ExternalNoteChange, InternalState, LoadedStudio, NoteIdea, SaveOptions, StudioStorage } from '../../features/coforge/application/ports';
 import { applyIdeaProperties, descriptionFromBody, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, OWNED_PROPERTIES, parseIdeaNote } from '../../features/coforge/domain/idea-note';
@@ -12,6 +17,9 @@ import { splitNote } from './markdown';
 import { VaultProjects, type ProjectNoteChange } from './vault-projects';
 import { validateFolderLayout } from '../../features/coforge/domain/vault-folder-policy';
 import { protectPrivateData } from './private-data-guard';
+import { VaultExampleCleanup } from './vault-example-cleanup';
+import { requestObjectFromProperties, requestObjectNoteProperties, requestObjectPropertyKeys } from '../../features/coforge/domain/request-object-note';
+import { writeRequestValuesNote } from './request-values-note';
 export { splitNote } from './markdown';
 
 /** Reads an idea from note text, or returns null for notes that are not CoForge ideas. Throws for invalid idea notes. */
@@ -26,8 +34,10 @@ const inFolder = (path: string, folder: string) => path.startsWith(`${normalizeP
 const noteValues = (idea: Idea, author: string) => JSON.stringify(ideaProperties(idea, author));
 /** Order-independent fingerprint of the CoForge-owned properties, as written or as read back from YAML. */
 function ownedFingerprint(properties: Record<string, unknown>): string {
-  return JSON.stringify(OWNED_PROPERTIES.filter(key => properties[key] !== undefined)
-    .map(key => { const value = properties[key]; return [key, value instanceof Date ? value.toISOString() : value]; }));
+  const object = requestObjectFromProperties(properties);
+  const normalized = { ...properties, ...(object ? requestObjectNoteProperties(object) : {}) };
+  return JSON.stringify([...OWNED_PROPERTIES, ...requestObjectPropertyKeys(object)].filter(key => normalized[key] !== undefined)
+    .map(key => { const value = normalized[key]; return [key, value instanceof Date ? value.toISOString() : value]; }));
 }
 
 /**
@@ -40,7 +50,17 @@ export class VaultStudioStorage implements StudioStorage {
   private readonly echoes = new Map<string, string[]>();
   private folder = defaultIntegration().ideasFolder;
   private readonly projects: VaultProjects;
-  constructor(private readonly plugin: Plugin, private readonly privateFolders: () => readonly string[] = () => []) { this.projects = new VaultProjects(plugin); }
+  private readonly cleanup: VaultExampleCleanup;
+  private readonly commands: VaultCommandCommit;
+  readonly economyReservations: VaultEconomyReservations<EconomyUsageReservation>;
+  constructor(private readonly plugin: Plugin, private readonly privateFolders: () => readonly string[] = () => []) {
+    this.projects = new VaultProjects(plugin);
+    this.economyReservations = new VaultEconomyReservations(plugin, economyUsageReservationCheck);
+    this.commands = new VaultCommandCommit(plugin, this.dataPath, bytes => readIdeaNote(bytes)?.id);
+    this.cleanup = new VaultExampleCleanup(plugin, this.dataPath, content => readIdeaNote(content)?.id, () => plugin.app.vault.getMarkdownFiles().filter(file => inFolder(file.path, this.folder)));
+  }
+  previewExampleNotes(ids: readonly string[]): Promise<Record<string, string>> { return this.cleanup.preview(ids, id => this.file(id)); }
+  exampleCleanupWarning(): string | undefined { return this.cleanup.warning; }
 
   projectFile(id: string): TFile | null { return this.projects.file(id); }
   watchProjects(onChange: (change: ProjectNoteChange) => void, onInvalid: (path: string) => void): void { this.projects.watch(onChange, onInvalid); }
@@ -52,6 +72,10 @@ export class VaultStudioStorage implements StudioStorage {
 
   async load(): Promise<LoadedStudio> {
     const adapter = this.plugin.app.vault.adapter;
+    await protectPrivateData(this.plugin);
+    await this.cleanup.recover();
+    await this.commands.recover();
+    await this.economyReservations.validate();
     const data: PersistedStudio | null = await adapter.exists(this.dataPath) ? parsePersistedStudio(JSON.parse(await adapter.read(this.dataPath))) : null;
     const integration = data?.integration ?? defaultIntegration();
     const layout = validateFolderLayout(integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
@@ -72,19 +96,48 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   async save(next: InternalState, previous: InternalState | null, options: SaveOptions = {}): Promise<void> {
+    this.economyReservations.assertReady();
+    await this.cleanup.settleBeforeSave();
+    await this.commands.settleBeforeSave();
     const layout = validateFolderLayout(next.integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
     next.integration = { ...next.integration, ...layout };
     await protectPrivateData(this.plugin, layout);
+    if (needsAtomicCommand(next, previous, options)) {
+      if (!previous || options.exampleCleanup || options.replaceAll || options.fromNotes?.length || options.fromProjects?.length || options.requestValuesEdit)
+        throw new Error("Atomic commands require a current canonical session without unrelated note or cleanup effects.");
+      const plan = await planAtomicCommand({ plugin: this.plugin, next, previous, dataPath: this.dataPath,
+        beforeData: JSON.stringify(this.persisted(previous), null, 2), afterData: JSON.stringify(this.persisted(next), null, 2),
+        folder: this.folder, file: id => this.file(id), read: readIdeaNote });
+      await this.ensureFolder(this.folder);
+      await this.commands.commit(plan);
+      for (const note of plan.notes) this.paths.set(note.id, note.path);
+      return;
+    }
+    if (options.exampleCleanup) {
+      if (!previous || next.integration.ideasFolder !== this.folder || JSON.stringify(previous.projects) !== JSON.stringify(next.projects))
+        throw new Error('Cleanup cannot change project notes or vault folders. Refresh the preview.');
+      const removed = previous.ideas.filter(idea => !next.ideas.some(item => item.id === idea.id)).map(idea => idea.id);
+      const reviewed = Object.keys(options.exampleCleanup.notes);
+      if (removed.length !== reviewed.length || removed.some(id => !reviewed.includes(id)) || next.ideas.some(idea => {
+        const before = previous.ideas.find(item => item.id === idea.id);
+        return !before || noteValues(before, before.authorId) !== noteValues(idea, idea.authorId);
+      })) throw new Error('Cleanup targets changed. Refresh the preview before removing notes.');
+      await this.cleanup.remove(options.exampleCleanup.notes, id => this.file(id), JSON.stringify(this.persisted(next), null, 2));
+      for (const id of removed) this.paths.delete(id);
+      return;
+    }
     if (next.integration.ideasFolder !== this.folder) await this.moveFolder(next.integration.ideasFolder);
     const external = new Set(options.fromNotes ?? []);
     if (options.replaceAll) await this.retireAll(options.replaceProjectId ? previous?.ideas.filter(idea => idea.projectId === options.replaceProjectId).map(idea => idea.id) : undefined);
     const authors = new Map(next.contributors.map(c => [c.id, c.name]));
+    const requestUndos: Array<() => Promise<void>> = [];
     for (const idea of next.ideas) {
       if (external.has(idea.id)) continue;
       const author = authors.get(idea.authorId) ?? idea.authorId;
       const before = previous?.ideas.find(i => i.id === idea.id);
       if (before && noteValues(before, authors.get(before.authorId) ?? before.authorId) === noteValues(idea, author) && this.paths.has(idea.id)) continue;
-      await this.writeIdea(idea, author);
+      const undo = await this.writeIdea(idea, author, options.requestValuesEdit?.ideaId === idea.id ? options.requestValuesEdit.expectedInputIdentity : undefined);
+      if (undo) requestUndos.push(undo);
     }
     for (const idea of previous?.ideas ?? []) {
       if (external.has(idea.id) || next.ideas.some(i => i.id === idea.id)) continue;
@@ -92,15 +145,23 @@ export class VaultStudioStorage implements StudioStorage {
       if (file) await this.plugin.app.fileManager.trashFile(file);
       this.paths.delete(idea.id);
     }
-    const rollback = await this.projects.save(next.projects);
-    try { await this.plugin.app.vault.adapter.write(this.dataPath, JSON.stringify(this.persisted(next), null, 2)); }
-    catch (error) { await rollback(); throw error; }
+    let rollback = async () => {};
+    try {
+      rollback = await this.projects.save(next.projects);
+      await this.plugin.app.vault.adapter.write(this.dataPath, JSON.stringify(this.persisted(next), null, 2));
+    } catch (error) {
+      await rollback();
+      for (const undo of requestUndos.reverse()) await undo();
+      throw error;
+    }
   }
 
   /** Reports edits, deletions and renames of idea notes made in the vault. */
   watch(onChange: (change: ExternalNoteChange) => void, onInvalid: (path: string) => void): void {
     const { vault, metadataCache } = this.plugin.app;
     this.plugin.registerEvent(metadataCache.on('changed', (file, data) => {
+      if (this.cleanup.writing.has(file.path) || this.commands.writing.has(file.path) || !vault.getFileByPath(file.path)) return;
+      if (this.commands.consumeEcho(file.path, data)) return;
       if (!inFolder(file.path, this.folder)) return;
       if (this.isEcho(file.path, data)) return;
       let idea: NoteIdea | null;
@@ -112,9 +173,11 @@ export class VaultStudioStorage implements StudioStorage {
       onChange({ kind: 'upsert', idea });
     }));
     this.plugin.registerEvent(vault.on('delete', file => {
+      if (this.cleanup.writing.has(file.path) || this.commands.writing.has(file.path)) return;
       for (const [id, path] of this.paths) if (path === file.path) { this.paths.delete(id); onChange({ kind: 'remove', id }); }
     }));
     this.plugin.registerEvent(vault.on('rename', (file, oldPath) => {
+      if (this.cleanup.writing.has(file.path) || this.cleanup.writing.has(oldPath) || this.commands.writing.has(file.path) || this.commands.writing.has(oldPath)) return;
       for (const [id, path] of this.paths) {
         if (path !== oldPath) continue;
         if (inFolder(file.path, this.folder)) this.paths.set(id, file.path);
@@ -147,7 +210,9 @@ export class VaultStudioStorage implements StudioStorage {
     if (!frontmatter || typeof frontmatter !== 'object') return false;
     // The body description is part of the key, so an edit to the note text is never mistaken for an echo.
     const { body } = splitNote(data);
-    const index = pending.indexOf(`${ownedFingerprint(frontmatter as Record<string, unknown>)}\n${descriptionFromBody(body, '')}`);
+    let fingerprint: string;
+    try { fingerprint = ownedFingerprint(record(frontmatter)); } catch { return false; }
+    const index = pending.indexOf(`${fingerprint}\n${descriptionFromBody(body, '')}`);
     if (index === -1) return false;
     pending.splice(0, index + 1);
     return true;
@@ -157,9 +222,13 @@ export class VaultStudioStorage implements StudioStorage {
     this.echoes.set(path, [...(this.echoes.get(path) ?? []), `${ownedFingerprint(ideaProperties(idea, author))}\n${cleanText(idea.description, 3000)}`].slice(-20));
   }
 
-  private async writeIdea(idea: Idea, author: string): Promise<void> {
+  private async writeIdea(idea: Idea, author: string, expectedInputIdentity?: string): Promise<(() => Promise<void>) | undefined> {
     const file = this.file(idea.id);
     if (file) this.remember(file.path, idea, author);
+    if (expectedInputIdentity !== undefined) {
+      if (!file) throw new Error('The canonical request note is missing. Refresh before saving its fields.');
+      return writeRequestValuesNote(this.plugin, file, idea, author, expectedInputIdentity, readIdeaNote);
+    }
     if (file && idea.contexts?.length) {
       await this.plugin.app.vault.process(file, current => {
         const { yaml, body } = splitNote(current); const frontmatter = record(parseYaml(yaml ?? ''));

@@ -3,7 +3,7 @@
   .cf-broadcast-page, .cf-community-page, .cf-projects-page, .cf-settings-page,
   .cf-statistics-page, .cf-workflow-page, .cf-population-page, .cf-operations-page,
   .cf-finance, .cf-ai-costs-page, .cf-stream-schedule-page, .cf-council,
-  .cf-workflow-settings-page, .cf-community-settings-page, .cf-stream-page
+  .cf-workflow-settings-page, .cf-community-settings-page, .cf-stream-page, .cf-economy-page
 ) {
   padding: var(--cf-page-top) var(--cf-page-gutter) var(--cf-page-bottom);
   width: 100%;
@@ -18,6 +18,8 @@
   flex-wrap: wrap;
   gap: var(--cf-space-md) var(--cf-space-lg);
   margin-bottom: var(--cf-space-lg);
+  padding-bottom: var(--cf-space-lg);
+  border-bottom: 1px solid var(--cf-border);
 }
 .ps--coforge .cf-page-heading > div { min-width: 0; }
 .ps--coforge .cf-page-heading :is(h1, h2, p) { overflow-wrap: anywhere; }
@@ -26,13 +28,13 @@
   margin: 0;
   max-width: 70ch;
   color: var(--cf-muted);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
 }
 .ps--coforge .cf-studio .cf-main nav.cf-subpage-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--cf-space-xs) var(--cf-space-lg);
+  gap: var(--cf-space-xs) var(--cf-space-sm);
   margin-bottom: var(--cf-space-lg);
   border-bottom: 1px solid var(--cf-border);
 }
@@ -40,18 +42,18 @@
   min-height: 36px;
   height: auto;
   max-width: 100%;
-  padding: var(--cf-space-sm) 0;
+  padding: var(--cf-space-sm) 12px;
   border: 0;
   border-bottom: 2px solid transparent;
   border-radius: 0;
   background: transparent;
-  color: var(--cf-muted);
+  color: var(--cf-text);
   white-space: normal;
 }
 .ps--coforge .cf-studio .cf-subpage-nav > button:hover { color: var(--cf-text); }
 .ps--coforge .cf-studio .cf-subpage-nav > button[aria-current="page"] {
   border-bottom-color: var(--cf-accent);
-  background: transparent;
+  background: var(--cf-accent-surface);
   color: var(--cf-text);
   outline: none;
 }
@@ -69,4 +71,5 @@
   .ps--coforge .cf-studio .cf-main nav.cf-subpage-nav {
     gap: var(--cf-space-xs) var(--cf-space-md);
   }
+  .ps--coforge .cf-page-heading h1 { font-size: 26px; }
 }

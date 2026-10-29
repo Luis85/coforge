@@ -36,3 +36,7 @@ No increment; Building; Review ready; Accepted; Rejected. Inspect an error besid
 Source: [src/plugin/presentation/components/coforge/IdeaIncrementTab.vue](../../../src/plugin/presentation/components/coforge/IdeaIncrementTab.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`.
+
+## Workspace redesign
+
+The empty state explains that a workflow may finish without code changes. Changed-file counts, verification evidence and literal diffs retain separate reading roles before final review.

@@ -181,13 +181,14 @@ export class ConfiguredWorkflowEngine {
     const ideas = state.ideas.filter(idea => ideaProjectId(idea) === projectId && ((settings.workflow && allowNew) || idea.workflowRun) && !['shipped', 'rejected', 'flagged'].includes(idea.status) && !idea.lastError && !state.manualHolds.includes(idea.id));
     const candidate = [...ideas.filter(idea => idea.workflowRun), ...ideas.filter(idea => !idea.workflowRun)].find(idea => {
       const run = idea.workflowRun;
+      if (run?.external && !manual) return false;
       if (run && run.state !== 'ready') return false;
       if (!run && idea.increment?.files.length && idea.status === 'review') return false;
       if (run && workflowSerializedSize(run) > WORKFLOW_RUN_LIMIT_BYTES - WORKFLOW_ATTEMPT_RESERVE_BYTES) return false;
       const step = (run?.definition ?? settings.workflow)?.steps[run?.cursor ?? 0];
       if (!step || ((step.kind === 'ai' || step.kind === 'nudge') && !manual && !step.automatic)) return false;
       if (step.kind === 'ai') {
-        try { configuredRuntime(state, idea, step); if (run) configuredInputs(run, step); }
+        try { configuredRuntime(state, idea, step, run?.external); if (run) configuredInputs(run, step); }
         catch { return false; }
       }
       return true;

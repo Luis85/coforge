@@ -14,6 +14,7 @@ export type StudioView =
   | "settings"
   | "projects"
   | "population"
+  | 'economy'
   | "operations"
   | "community-settings"
   | "broadcast"
@@ -32,6 +33,16 @@ export interface Toast {
 /** Per-view projection of the studio state plus view-local navigation, overlays and feedback. */
 export const useStudioStore = defineStore("coforge-studio", () => {
   const state = ref<AppState | null>(null);
+  const temporaryExampleRevision = ref(0);
+  const temporaryExamples = new Map<string, number>();
+  const beginTemporaryExample = (id: string) =>
+    temporaryExamples.set(id, temporaryExampleRevision.value);
+  const temporaryExampleExpired = (id: string) =>
+    temporaryExamples.has(id) &&
+    temporaryExamples.get(id) !== temporaryExampleRevision.value;
+  const closeTemporaryExamples = () => {
+    temporaryExampleRevision.value++;
+  };
   const view = ref<StudioView>("broadcast");
   const selected = ref<string | null>(null);
   const drawerTab = ref<IdeaDrawerTab>("overview");
@@ -58,6 +69,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   const workflowStepSelection = ref("");
   const workflowRequestSelection = ref("");
   const dirtyCommunitySettings = ref(false);
+  const dirtyEconomy = ref(false);
   const streamTool = ref<StreamPage>("channel");
   const workflowTool = ref<WorkflowPage>("runs");
   const broadcastTool = ref<BroadcastPage>("live");
@@ -82,6 +94,39 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   const obsRenameSceneName = ref("");
   const obsCopySceneName = ref("");
   const obsExistingSource = ref("");
+  let studioExampleDraft: {
+    scene: string;
+    detail: typeof obsEditorDetail.value;
+    name: string;
+    rename: string;
+    copy: string;
+    source: string;
+  } | null = null;
+  function beginStudioExample() {
+    if (studioExampleEnabled.value) return;
+    studioExampleDraft = {
+      scene: obsEditorScene.value,
+      detail: obsEditorDetail.value,
+      name: obsNewSceneName.value,
+      rename: obsRenameSceneName.value,
+      copy: obsCopySceneName.value,
+      source: obsExistingSource.value,
+    };
+    studioExampleEnabled.value = true;
+    studioExampleRevision.value++;
+  }
+  function exitStudioExample() {
+    if (!studioExampleEnabled.value) return;
+    studioExampleEnabled.value = false;
+    studioExampleRevision.value++;
+    obsEditorScene.value = studioExampleDraft?.scene ?? "";
+    obsEditorDetail.value = studioExampleDraft?.detail ?? null;
+    obsNewSceneName.value = studioExampleDraft?.name ?? "";
+    obsRenameSceneName.value = studioExampleDraft?.rename ?? "";
+    obsCopySceneName.value = studioExampleDraft?.copy ?? "";
+    obsExistingSource.value = studioExampleDraft?.source ?? "";
+    studioExampleDraft = null;
+  }
   const setupRequested = ref(false);
   const moderationTarget = ref<{
     channelId: string;
@@ -147,11 +192,12 @@ export const useStudioStore = defineStore("coforge-studio", () => {
         settings: dirtySettings.value,
         "community-settings": dirtyCommunitySettings.value,
         "workflow-settings": dirtyWorkflow.value,
+          economy: dirtyEconomy.value,
       },
       next,
     );
   }
-  function navigate(next: StudioView) {
+  function changeView(next: StudioView) {
     const problem = configurationIssue(next);
     if (problem) {
       notify(problem, true);
@@ -161,11 +207,22 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     activityOpen.value = false;
     return true;
   }
+  function navigate(next: StudioView) {
+    const destination =
+      next === "workflow" &&
+      (view.value === "workflow-settings" || workflowTool.value === "settings")
+        ? "workflow-settings"
+        : next;
+    if (!changeView(destination)) return false;
+    if (destination === "workflow-settings") workflowTool.value = "settings";
+    return true;
+  }
   function openStreamTool(next: StreamPage) {
     if (navigate("stream")) streamTool.value = next;
   }
   function openWorkflowTool(next: WorkflowPage) {
-    if (navigate("workflow")) workflowTool.value = next;
+    if (changeView(next === "settings" ? "workflow-settings" : "workflow"))
+      workflowTool.value = next;
   }
   function select(id: string | null, tab: IdeaDrawerTab = "overview") {
     selected.value = id;
@@ -175,6 +232,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   function dispose() {
     for (const timer of timers) window.clearTimeout(timer);
     timers.clear();
+    temporaryExamples.clear();
   }
 
   /** Runs a studio request, reports its outcome as a toast and rethrows failures for the caller. */
@@ -203,6 +261,10 @@ export const useStudioStore = defineStore("coforge-studio", () => {
 
   return {
     state,
+    temporaryExampleRevision,
+    beginTemporaryExample,
+    temporaryExampleExpired,
+    closeTemporaryExamples,
     view,
     selected,
     drawerTab,
@@ -219,6 +281,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     layoutId,
     dirtySettings,
     dirtyCommunitySettings,
+    dirtyEconomy,
     dirtyWorkflow,
     configurationIssue,
     workflowStepSelection,
@@ -244,6 +307,8 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     backgroundJobs,
     studioExampleEnabled,
     studioExampleRevision,
+    beginStudioExample,
+    exitStudioExample,
     obsEditorOpen,
     obsEditorScene,
     obsEditorDetail,

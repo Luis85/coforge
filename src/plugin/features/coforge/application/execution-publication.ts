@@ -53,32 +53,61 @@ export class ExecutionPublication {
       run = this.store.find(id);
       if (!run.attempts.some((item) => item.status === "responded")) return;
     }
-    const attempt = [...run.attempts]
-      .reverse()
-      .find((item) => item.status === "responded");
-    const artifact = run.artifacts.find(
-      (item) => item.id === attempt?.artifactId,
-    );
-    if (!attempt || !artifact)
-      throw new Error(
-        "There is no committed contribution awaiting publication.",
+    let published = false;
+    while (true) {
+      run = this.store.find(id);
+      const invocation = run.invocations[run.cursor];
+      const attempt = run.attempts.find(
+        (item) =>
+          item.invocationId === invocation?.id && item.status === "responded",
       );
-    await this.publishArtifact(run, artifact);
-    await this.store.mutate((next) => {
-      const current = next.runs.find((item) => item.id === id)!;
-      const saved = current.attempts.find((item) => item.id === attempt.id)!;
-      if (saved.status === "published") return;
-      saved.status = "published";
-      current.cursor++;
-      if (current.state !== "cancelled")
-        current.state =
-          current.cursor === current.invocations.length &&
-          !nextExecutionBoundary(current)
-            ? "completed"
-            : "queued";
-      delete current.reason;
-      current.updatedAt = this.host.now();
-    });
+      const artifact = run.artifacts.find(
+        (item) => item.id === attempt?.artifactId,
+      );
+      if (!attempt || !artifact) {
+        if (published) return;
+        throw new Error(
+          "There is no committed contribution awaiting publication.",
+        );
+      }
+      await this.publishArtifact(run, artifact);
+      await this.store.mutate((next) => {
+        const current = next.runs.find((item) => item.id === id)!;
+        const saved = current.attempts.find((item) => item.id === attempt.id)!;
+        if (saved.status === "published") return;
+        saved.status = "published";
+        current.cursor++;
+        if (current.state !== "cancelled") {
+          const unresolved = current.invocations
+            .slice(current.cursor)
+            .some((item) => {
+              if (
+                current.artifacts.some(
+                  (value) => value.invocationId === item.id,
+                )
+              )
+                return false;
+              const last = current.attempts
+                .filter((value) => value.invocationId === item.id)
+                .at(-1);
+              return (
+                last?.status === "unknown" || last?.status === "not-started"
+              );
+            });
+          current.state = unresolved
+            ? "attention"
+            : current.attempts.some((item) => item.status === "dispatching")
+              ? "running"
+              : current.cursor === current.invocations.length &&
+                  !nextExecutionBoundary(current)
+                ? "completed"
+                : "queued";
+          if (!unresolved) delete current.reason;
+        }
+        current.updatedAt = this.host.now();
+      });
+      published = true;
+    }
   }
   private async publishArtifact(
     run: ExecutionRun,
@@ -126,7 +155,17 @@ export class ExecutionPublication {
       current.projectionTarget = { sourceId, acknowledgedAt: this.host.now() };
       current.projectionRecovery = {
         resumeState: current.state,
-        pendingArtifactIds: current.artifacts.map((artifact) => artifact.id),
+        pendingArtifactIds: [...current.artifacts]
+          .sort(
+            (a, b) =>
+              current.invocations.findIndex(
+                (item) => item.id === a.invocationId,
+              ) -
+              current.invocations.findIndex(
+                (item) => item.id === b.invocationId,
+              ),
+          )
+          .map((artifact) => artifact.id),
         ...(current.reason ? { reason: current.reason } : {}),
       };
       current.state = "publishing";

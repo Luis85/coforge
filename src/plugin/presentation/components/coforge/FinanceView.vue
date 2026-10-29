@@ -23,6 +23,16 @@ const model = useFinance();
     <p v-if="model.store.example">
       Finance example · in-memory entries only; nothing is saved to your vault.
     </p>
+    <button
+      v-if="model.store.example"
+      type="button"
+      class="cf-btn cf-btn-secondary"
+      :disabled="model.store.busy"
+      title="Discard this temporary example and its edits"
+      @click="model.exitExample()"
+    >
+      Exit example
+    </button>
     <template v-if="!model.available"
       ><p>
         Keep your private ledger in CoForge/Finance/Ledger.md inside Obsidian.
@@ -58,28 +68,45 @@ const model = useFinance();
           </select></label
         >
       </div>
-      <dl class="cf-finance-totals">
-        <div aria-label="Actual income">
-          <dt>Income received</dt>
-          <dd>{{ model.money(model.totals.income) }}</dd>
+      <section class="cf-finance-actual" aria-label="Actual payments summary">
+        <h2>Recorded payments</h2>
+        <dl class="cf-finance-totals">
+          <div aria-label="Actual income">
+            <dt>Income received</dt>
+            <dd>{{ model.money(model.totals.income) }}</dd>
+          </div>
+          <div aria-label="Actual expenses">
+            <dt>Expenses paid</dt>
+            <dd>{{ model.money(model.totals.expenses) }}</dd>
+          </div>
+          <div aria-label="Actual balance" class="cf-finance-balance">
+            <dt>Recorded balance</dt>
+            <dd>{{ model.money(model.totals.balance) }}</dd>
+          </div>
+        </dl>
+        <p>
+          Actual totals follow the selected month and stream. Only recorded
+          income and payments affect this balance.
+        </p>
+      </section>
+      <section
+        class="cf-finance-planned"
+        aria-label="Planned commitments summary"
+      >
+        <div>
+          <h2>Planned commitments</h2>
+          <p>Channel-wide estimates, kept separate from payments.</p>
         </div>
-        <div aria-label="Actual expenses">
-          <dt>Expenses paid</dt>
-          <dd>{{ model.money(model.totals.expenses) }}</dd>
-        </div>
-        <div aria-label="Actual balance">
-          <dt>Recorded balance</dt>
-          <dd>{{ model.money(model.totals.balance) }}</dd>
-        </div>
-        <div aria-label="Planned monthly costs">
-          <dt>Active plans / month</dt>
-          <dd>{{ model.money(model.totals.plannedMonthly) }}</dd>
-        </div>
-      </dl>
+        <dl>
+          <div aria-label="Planned monthly costs">
+            <dt>Active plans / month</dt>
+            <dd>{{ model.money(model.totals.plannedMonthly) }}</dd>
+          </div>
+        </dl>
+      </section>
       <p>
-        Actual totals follow the month and stream filters. Plans remain
-        channel-wide and separate from payments: weekly × 52 ÷ 12, yearly ÷ 12,
-        without proration. Only active plans starting by month end count.
+        Monthly estimate: weekly × 52 ÷ 12, yearly ÷ 12, without proration. Only
+        active plans starting by month end count.
       </p>
       <div class="cf-finance-workspace">
         <FinanceEntryForm :model="model" />
@@ -90,7 +117,11 @@ const model = useFinance();
             recurring expense plan.
           </p>
           <ul class="cf-finance-list" aria-label="Finance entries">
-            <li v-for="entry in model.entries" :key="entry.id">
+            <li
+              v-for="entry in model.entries"
+              :key="entry.id"
+              :class="`cf-finance-entry-${entry.kind}`"
+            >
               <div>
                 <strong>{{ entry.name }}</strong>
                 <p>

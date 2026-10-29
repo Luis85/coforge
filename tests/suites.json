@@ -1382,7 +1382,9 @@
       "include": [
         "src/plugin/tests/e2e/*-fixture.ts",
         "src/plugin/tests/e2e/control-metrics.ts",
-        "tests/e2e/support/council-capture.ts"
+        "tests/e2e/support/council-capture.ts",
+        "tests/e2e/support/council-navigation.ts",
+        "tests/e2e/support/workflow-navigation.ts"
       ]
     },
     {
@@ -1400,7 +1402,15 @@
       "include": [
         "src/plugin/tests/project/fixtures/**",
         "src/plugin/tests/project/ui-bootstrap.mjs",
-        "src/plugin/tests/project/coforge/council-controls-fixture.ts"
+        "src/plugin/tests/project/coforge/council-controls-fixture.ts",
+        "src/plugin/tests/project/coforge/atomic-command-fixture.ts",
+        "src/plugin/tests/project/coforge/cost-attribution-fixture.ts",
+        "src/plugin/tests/project/coforge/council-ask-fixture.ts",
+        "src/plugin/tests/project/coforge/council-prompt-order-fixture.ts",
+        "src/plugin/tests/project/coforge/execution-fanout-fixture.ts",
+        "src/plugin/tests/project/coforge/request-object-fixture.ts",
+        "src/plugin/tests/project/coforge/fixtures/public-export-de7cb61.html",
+        "src/plugin/tests/project/coforge/fixtures/public-export-de7cb61.json"
       ],
       "exclude": [
         "src/plugin/tests/project/**/*.test.ts",

@@ -1,3 +1,4 @@
+import { captureCouncilIdea } from "../../src/plugin/features/coforge/application/council-linked-idea";
 import {
   CouncilCatalogue,
   type CouncilCatalogueSnapshot,
@@ -35,6 +36,7 @@ import { createCouncilPreviewWorkflows } from "./council-preview-workflows";
 import { assertReviewedCouncilIdentity } from "../../src/plugin/features/coforge/application/reviewed-preflight";
 import { councilExampleDefinitions } from "./council-preview-data";
 import { councilReviewJournal } from "./council-preview-recovery";
+import { createCouncilPreviewTasks } from "./council-preview-tasks";
 
 export const COUNCIL_EXAMPLE_SOURCE = "CoForge/Examples/Council proposal.md";
 /** Created only after Explore Council example. All definitions, responses and projections stay in memory. */
@@ -89,17 +91,44 @@ export function createCouncilPreview(
     markdown:
       "# A lantern for the forest path\n\nPropose a readable, accessible way for players to light the route. State assumptions and tradeoffs.",
   };
-  let sourceDraft = false;
+  const sources = new Map<string, CouncilSource>([
+    [COUNCIL_EXAMPLE_SOURCE, source],
+  ]);
+  const sourceDrafts = new Set<string>();
+  const tasks = createCouncilPreviewTasks(
+    catalogue,
+    (id) =>
+      Boolean(
+        studio
+          .snapshot()
+          .projects?.some(
+            (project) => project.id === id && !project.unavailable,
+          ),
+      ),
+    (path, value) => {
+      sources.set(path, value);
+    },
+    async (link, projectId) => {
+      const state = studio.internalSnapshot();
+      return captureCouncilIdea(
+        state.ideas.find((item) => item.id === link.ideaId),
+        state.integrity[link.ideaId],
+        projectId,
+        link.revision,
+      ).context;
+    },
+  );
   function capture(path: string): CouncilSource {
-    if (path !== COUNCIL_EXAMPLE_SOURCE)
+    const selected = sources.get(path);
+    if (!selected)
       throw new Error(
         `This example uses ${COUNCIL_EXAMPLE_SOURCE}. Desktop Obsidian can read your own private notes.`,
       );
-    if (sourceDraft)
+    if (sourceDrafts.has(path))
       throw new Error(
         "The example note is Draft. Mark it Ready before previewing or submitting it.",
       );
-    return structuredClone(source);
+    return structuredClone(selected);
   }
   let journal = councilReviewJournal(reviewScenario, definitions, source);
   let ready = false;
@@ -120,7 +149,18 @@ export function createCouncilPreview(
     },
     now: () => new Date().toISOString(),
     id: () => crypto.randomUUID(),
-    assertEligible: async () => undefined,
+    assertEligible: async (run) => {
+      if (run.subject.kind === "idea" && run.subject.ideaRevision) {
+        const subject = run.subject;
+        const state = studio.internalSnapshot();
+        captureCouncilIdea(
+          state.ideas.find((item) => item.id === subject.ideaId),
+          state.integrity[subject.ideaId],
+          run.projectId,
+          subject.ideaRevision!,
+        );
+      }
+    },
     resolveInvocation: (run, invocation) =>
       isWorkflowV2Run(run)
         ? workflowV2Dispatch(run, invocation)
@@ -154,9 +194,19 @@ export function createCouncilPreview(
     path: string,
   ): Promise<CouncilPreflight> {
     const plan = resolveCouncilPlan(await catalogue.list(), target);
+    const source = capture(path);
+    if (source.linkedIdea) {
+      const state = studio.internalSnapshot();
+      captureCouncilIdea(
+        state.ideas.find((item) => item.id === source.linkedIdea?.ideaId),
+        state.integrity[source.linkedIdea.ideaId],
+        plan.definition.projectId,
+        source.linkedIdea.revision,
+      );
+    }
     return {
       plan,
-      source: capture(path),
+      source,
       context:
         "Explicit browser example: no provider, filesystem or vault access.",
       invocations: plan.invocations.length,
@@ -206,6 +256,7 @@ export function createCouncilPreview(
     );
   };
   return {
+    ...tasks,
     definitionFolders: {
       preview: async (folders) => ({
         folders: councilDefinitionFoldersCheck(folders),
@@ -239,11 +290,12 @@ export function createCouncilPreview(
     },
     preflight,
     setSourceState: async (path, state) => {
-      if (path !== COUNCIL_EXAMPLE_SOURCE)
+      if (!sources.has(path))
         throw new Error(
           "Select the explicit example source note before changing submission state.",
         );
-      sourceDraft = state.draft;
+      if (state.draft) sourceDrafts.add(path);
+      else sourceDrafts.delete(path);
     },
     submit: async () => {
       throw new Error(
@@ -294,7 +346,13 @@ export function createCouncilPreview(
     cancel: (id) => kernel.cancel(id),
     skipInvocation: (id, reason, acknowledge) =>
       kernel.skipInvocation(id, reason, acknowledge),
-    continueSnapshot: (id) => kernel.continueSnapshot(id, source.revision),
+    continueSnapshot: (id) => {
+      const run = kernel.snapshot().runs.find((value) => value.id === id);
+      const current = [...sources.values()].find(
+        (value) => value.sourceId === run?.subject.sourceId,
+      );
+      return kernel.continueSnapshot(id, current?.revision ?? source.revision);
+    },
     acknowledgeCheckpoint: async (runId, checkpointId, checkedIds, note) => {
       await kernel.acknowledgeCheckpoint(runId, checkpointId, checkedIds, note);
       await runReady();

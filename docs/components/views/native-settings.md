@@ -30,6 +30,10 @@ Open Obsidian Settings → Community plugins → CoForge. Available actions: Edi
 
 Loading; Startup failure; Unsaved; Saved; Validation or save error. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+A compact ownership guide distinguishes these vault-wide integrations from Project settings and Workflow settings. Native setting rows, secret storage references, explicit Save/Discard and the unsaved state remain in the Obsidian settings surface.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/PluginSettings.vue](../../../src/plugin/presentation/components/coforge/PluginSettings.vue). Use Obsidian’s native settings container, CoForge settings rows and shared field/button styles. These controls share the native settings form rather than the studio content container.

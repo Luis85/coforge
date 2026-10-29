@@ -36,3 +36,7 @@ No plan; Planning; Ready; Stale. Inspect an error beside the affected action bef
 Source: [src/plugin/presentation/components/coforge/IdeaPlanTab.vue](../../../src/plugin/presentation/components/coforge/IdeaPlanTab.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`.
+
+## Workspace redesign
+
+The empty state describes an optional configured planning step rather than assuming every workflow has the standard stage order. Plan, acceptance criteria and risk sections retain their authored Markdown.

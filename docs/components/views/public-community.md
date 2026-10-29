@@ -33,6 +33,12 @@ No contributors; Configured names and ranks; Earned badges. When data is unavail
 
 ## Composition and boundaries
 
+Contributor recognition occupies the main column; the participation and rank guide has its own secondary surface. Badge descriptions and reward rules remain explicit, including the distinction between tracked chat presence and verified video watch time.
+
 Source: [src/plugin/presentation/components/coforge/StreamCommunity.vue](../../../src/plugin/presentation/components/coforge/StreamCommunity.vue). Use the StreamSurfaceView public display shell and its explicit projection. The public surface has its own Obsidian tab and contains no private mutation controls.
 
 Journey tags: `public-sharing`, `community`.
+
+## Project privacy
+
+Public contributor recognition and earned badges use public-project evidence only. Shared community vocabulary and the authored rank ladder remain channel-wide; private request evidence is excluded.

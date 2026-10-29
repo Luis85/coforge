@@ -8,6 +8,7 @@ import {
 } from "../../../features/coforge/domain/ai-costs";
 import { AICostService } from "../../../features/coforge/application/ai-cost-service";
 import { emptyStore, nodeTimers } from "./memory-storage";
+import { tokenSummary } from '../../../features/coforge/domain/ai-usage';
 const task = (
   id: string,
   provider: AICostTask["provider"] = "claude",
@@ -23,6 +24,19 @@ const task = (
   startedAt: "2026-10-27T10:00:00Z",
 });
 describe("per-task AI usage costs", () => {
+  it('keeps proven not-started attempts separate from pending, missing and paid usage without fabricating zero costs', async () => {
+    const notStarted = { ...task('not-started'), status: 'not-started' };
+    expect(taskCost(notStarted)).toEqual({ source: 'not-started' });
+    expect(costSummary([notStarted, { ...task('in-flight'), status: 'dispatching' }])).toMatchObject({ nanos: 0n, notStarted: 1, pending: 1, missing: 0, reported: 0 });
+    expect(tokenSummary([notStarted]).realTasks).toBe(0);
+    const { store } = await emptyStore(); let saves = 0;
+    const service = new AICostService(store, { load: async () => [], save: async () => { saves++; } }, () => [notStarted], nodeTimers());
+    try {
+      await service.start(); const before = saves;
+      await expect(service.setManual(notStarted.id, '1', 'No invocation occurred', JSON.stringify(service.snapshot().tasks[0]))).rejects.toThrow('No provider was contacted');
+      expect(saves).toBe(before);
+    } finally { await service.dispose(); store.disposeObservers(); }
+  });
   it("sums decimal USD exactly and keeps missing, pending, manual and simulation costs distinct", () => {
     const summary = costSummary([
       { ...task("one"), reportedUsd: 0.1 },
@@ -39,6 +53,7 @@ describe("per-task AI usage costs", () => {
       missing: 1,
       pending: 1,
       simulations: 1,
+      notStarted: 0,
     });
     expect(taskCost({ ...task("zero"), reportedUsd: 0 })).toEqual({
       source: "reported",

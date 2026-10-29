@@ -25,9 +25,10 @@
 .cf-idea-byline { display: flex; align-items: center; gap: 8px; color: var(--cf-muted); font-size: 10px; flex-wrap: wrap; }
 .cf-idea-byline strong { color: var(--cf-text); font-weight: 600; }
 .cf-idea-tabs { display: flex; padding: 0 28px; border-bottom: 1px solid var(--cf-border); gap: 24px; flex: 0 0 auto; }
+.cf-studio nav.cf-idea-tabs { flex-flow: row wrap; flex: 0 0 auto; gap: 0 var(--cf-space-lg); }
 .cf-studio .cf-idea-tabs button {
   border: 0; border-radius: 0; padding: 12px 0; height: auto; font-size: 12px; color: var(--cf-muted); background: none;
-  position: relative; display: flex; align-items: center; gap: 7px;
+  position: relative; display: flex; align-items: center; gap: 7px; width: auto; flex: 0 0 auto;
 }
 .cf-studio .cf-idea-tabs button:hover { color: var(--cf-text); }
 .cf-studio .cf-idea-tabs button.is-active { color: var(--cf-accent); }
@@ -193,6 +194,7 @@
   .cf-idea-heading { padding: 22px 20px 18px; }
   .cf-studio .cf-idea-heading h2 { font-size: 23px; }
   .cf-idea-tabs { padding: 0 20px; gap: 22px; }
+  .cf-studio nav.cf-idea-tabs { column-gap: var(--cf-space-md); }
   .cf-idea-scroll { padding: 22px 20px; }
   .cf-idea-footer { padding: 17px 20px 20px; }
   .cf-idea-rice-equation { padding: 18px 8px; gap: 3px; }

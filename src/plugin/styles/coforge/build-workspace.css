@@ -1,0 +1,188 @@
+/* Project work uses one context band and a distinct decision workspace. */
+.cf-project-work-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--cf-space-sm) var(--cf-space-md);
+  padding: var(--cf-space-md);
+  margin-bottom: var(--cf-space-lg);
+  border-radius: var(--cf-section-radius, 12px);
+  background: var(--cf-accent-surface, var(--cf-accent-soft));
+  min-width: 0;
+}
+.cf-project-work-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--cf-space-sm) var(--cf-space-md);
+  min-width: 0;
+}
+.cf-project-work-identity > .cf-icon { color: var(--text-accent); }
+.cf-project-work-identity > div { display: grid; gap: var(--cf-space-xs); min-width: 0; }
+.cf-project-work-identity strong { font-size: 15px; overflow-wrap: anywhere; }
+.cf-project-work-identity code { color: var(--cf-muted); font-size: 12px; }
+.cf-project-work-context .cf-badge { background: var(--cf-bg); line-height: 1.6; }
+.cf-project-work-context .is-attention { color: var(--cf-danger); }
+.cf-board-decisions {
+  margin-bottom: var(--cf-space-lg);
+  padding: var(--cf-space-lg);
+  background: var(--cf-surface);
+  border-radius: var(--cf-section-radius, 12px);
+}
+.cf-board-decision-intro h2 { font-size: 20px; letter-spacing: -0.02em; }
+.cf-studio .cf-board-decision-intro p { margin-top: var(--cf-space-xs); color: var(--cf-muted); font-size: 12px; line-height: 1.65; }
+.cf-board-decision-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cf-space-md); margin-top: var(--cf-space-md); }
+.cf-board-decision-actions > :is(button, div) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-content: start;
+  align-items: center;
+  gap: var(--cf-space-xs) var(--cf-space-sm);
+  padding: var(--cf-space-sm) 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: start;
+  white-space: normal;
+  height: auto;
+  color: var(--cf-text);
+}
+.cf-board-decision-actions strong { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.cf-board-decision-actions > :is(button, div) > span:not(.cf-icon) { grid-column: 1 / -1; font-size: 12px; line-height: 1.6; }
+.cf-board-decision-actions > button > .cf-icon:last-child { grid-column: 3; grid-row: 1; justify-self: end; }
+.cf-board-decision-actions .cf-icon { color: var(--cf-muted); }
+.cf-board-decision-actions .has-work strong,
+.cf-board-decision-actions .has-work > .cf-icon:first-child { color: var(--text-accent); }
+.cf-board-decision-actions button:hover { color: var(--text-accent); text-decoration: underline; text-underline-offset: 4px; }
+.cf-board-decisions ~ .cf-board-toolbar { margin-top: 0; }
+.cf-studio .cf-board-tabs { gap: var(--cf-space-lg); }
+.cf-studio .cf-board-tabs button { min-height: 42px; font-size: 12px; }
+.cf-kanban-column { min-width: 0; }
+.cf-column-header { padding-bottom: var(--cf-space-sm); }
+.cf-studio .cf-column-header h2 { font-size: 15px; }
+.cf-idea-card { border-radius: 12px; }
+.cf-studio .cf-idea-open { padding: var(--cf-space-md); }
+.cf-studio .cf-idea-card h3 { font-size: 15px; line-height: 1.5; }
+.cf-idea-card-footer { padding: var(--cf-space-sm) var(--cf-space-md); }
+.cf-project-row-title h2 { font-size: 22px; letter-spacing: -0.02em; }
+.cf-project-row.is-selected { background: var(--cf-accent-surface, var(--cf-accent-soft)); padding-inline: var(--cf-space-md); border-radius: var(--cf-section-radius, 12px); border-top-color: transparent; }
+.cf-project-metrics { font-variant-numeric: tabular-nums; font-size: 12px; }
+.cf-project-metrics span:nth-child(2) { color: var(--text-accent); font-weight: 600; }
+.cf-project-row > .cf-settings-actions { align-self: flex-start; padding-top: var(--cf-space-xs); }
+.cf-project-create { max-width: 760px; padding: var(--cf-space-lg); background: var(--cf-surface); border: 0; border-radius: var(--cf-section-radius, 12px); }
+.cf-project-create h2 { font-size: 20px; }
+
+/* Execution: make the current step prominent, then offer its durable evidence. */
+.cf-workflow-summary { padding: var(--cf-space-md); margin-top: var(--cf-space-md); background: var(--cf-surface); border: 0; border-radius: var(--cf-section-radius, 12px); font-size: 12px; }
+.cf-workflow-summary > strong { font-size: 14px; }
+.cf-configured-run { border: 0; padding: var(--cf-space-lg) 0; margin-block: var(--cf-space-md); }
+.cf-configured-run-heading h2 { font-size: 24px; letter-spacing: -0.025em; }
+.cf-configured-run-state { background: var(--cf-accent-surface, var(--cf-accent-soft)); padding: var(--cf-space-sm) var(--cf-space-md); border-radius: var(--radius-m); }
+.cf-configured-progress { padding-block: var(--cf-space-xs); }
+.cf-configured-progress li { padding: var(--cf-space-md); }
+.cf-configured-progress li.is-current { background: var(--cf-accent-surface, var(--cf-accent-soft)); border-radius: var(--cf-section-radius, 12px); }
+.cf-configured-progress li.is-completed { background: var(--cf-success-surface, var(--cf-surface)); }
+.cf-configured-progress .cf-workflow-step-number { width: 30px; height: 30px; display: grid; place-items: center; background: var(--cf-surface); border-radius: 50%; font-size: 12px; }
+.cf-workflow-history { margin-top: var(--cf-space-lg); padding-top: var(--cf-space-lg); }
+.cf-workflow-history-row summary { min-height: 56px; font-size: 12px; }
+.cf-workflow-history-row[open] { background: var(--cf-surface); }
+.cf-workflow-history-body { padding: var(--cf-space-md); }
+.cf-workflow-code-block { border-radius: var(--radius-m); }
+.cf-workflow-editor-layout { gap: var(--cf-space-lg); }
+.cf-workflow-settings-page.is-embedded { min-width: 0; padding: 0; margin: 0; max-width: none; }
+.cf-workflow-subpage-heading h2 { font-size: 22px; line-height: 1.35; letter-spacing: -0.02em; }
+.cf-workflow-step-list { padding: var(--cf-space-md); background: var(--cf-surface); border-radius: var(--cf-section-radius, 12px); }
+.cf-workflow-step-list li.is-selected { background: var(--cf-accent-surface, var(--cf-accent-soft)); }
+.cf-workflow-step-list .cf-workflow-step-select { padding: var(--cf-space-sm); }
+.cf-workflow-step-list-header h2 { font-size: 20px; }
+.cf-workflow-editor-toolbar { padding-bottom: var(--cf-space-md); border-bottom: 1px solid var(--cf-border); }
+.cf-workflow-policy { background: var(--cf-surface); border: 0; padding: var(--cf-space-md); border-radius: var(--radius-m); }
+.cf-workflow-transfer { padding: var(--cf-space-lg); background: var(--cf-info-surface, var(--cf-surface)); border-radius: var(--cf-section-radius, 12px); }
+.cf-workflow-editor-save { padding: var(--cf-space-md); border-radius: var(--radius-m); }
+
+/* Council workspace: a readable catalogue, focused authoring and visible recovery. */
+.cf-council > .cf-project-work-context { margin-bottom: 0; }
+.cf-council > p[role="status"] { background: var(--cf-info-surface, var(--cf-surface)); padding: var(--cf-space-md); border-radius: var(--radius-m); }
+.cf-council > .cf-intent-empty { padding: var(--cf-space-md); border-radius: var(--cf-section-radius, 12px); background: var(--cf-warning-surface, var(--cf-surface)); }
+.cf-council .cf-page-heading { margin-bottom: 0; }
+.cf-council-definitions > .cf-page-heading h2,
+.cf-council-section > h2 { font-size: 22px; letter-spacing: -0.02em; }
+.cf-council-editor-layout { gap: var(--cf-space-lg); grid-template-columns: minmax(180px, 0.75fr) minmax(0, 2fr); }
+.cf-council .cf-council-definitions .cf-council-editor-layout > nav { padding: var(--cf-space-md); background: var(--cf-surface); border-radius: var(--cf-section-radius, 12px); }
+.cf-council-definition-list .cf-btn { gap: var(--cf-space-xs); min-height: 60px; padding: var(--cf-space-md); }
+.cf-council-definition-list [aria-current="true"] { background: var(--cf-accent-surface, var(--cf-accent-soft)); }
+.cf-council-editor-layout fieldset,
+.cf-council-section > form > fieldset { display: grid; gap: var(--cf-space-md); border: 0; margin: 0; padding: 0; }
+.cf-council-section > details,
+.cf-council-definitions > details { padding: var(--cf-space-md); border-radius: var(--radius-m); background: var(--cf-surface); }
+.cf-council-section summary { cursor: pointer; font-weight: 600; line-height: 1.65; }
+.cf-council-section details[open] > summary { margin-bottom: var(--cf-space-md); }
+.cf-council-runs > li { display: grid; gap: var(--cf-space-sm); padding-block: var(--cf-space-md); }
+.cf-council-section article > h3 { margin-block: var(--cf-space-md) var(--cf-space-sm); }
+.cf-council-section pre { padding: var(--cf-space-md); background: var(--cf-surface); border-radius: var(--radius-m); }
+.cf-council-section input,
+.cf-council-section select { max-width: 100%; }
+.cf-herdr > summary { color: var(--cf-text); }
+.cf-herdr-connection { padding: var(--cf-space-md); background: var(--cf-surface); border-radius: var(--cf-section-radius, 12px); }
+.cf-herdr-workspace h3 { font-size: 18px; margin-bottom: var(--cf-space-sm); }
+.cf-herdr [aria-label="Herdr actions need inspection"] { padding: var(--cf-space-md); background: var(--cf-warning-surface, var(--cf-surface)); border-radius: var(--radius-m); }
+.cf-herdr-recovery { background: var(--cf-warning-surface, var(--cf-surface)); }
+
+/* Review panels retain code as code and give authored evidence a calmer reading measure. */
+.cf-idea-heading { background: var(--cf-accent-surface, var(--cf-accent-soft)); }
+.cf-studio .cf-idea-heading h2 { font-size: 28px; }
+.cf-idea-tabs { gap: var(--cf-space-lg); }
+.cf-studio .cf-idea-section h3 { font-size: 16px; }
+.cf-idea-screening { padding: var(--cf-space-md); background: var(--cf-success-surface, var(--cf-surface)); border: 0; border-radius: 12px; }
+.cf-idea-screening.is-flagged { background: var(--cf-warning-surface, var(--cf-surface)); }
+.cf-idea-files { font-variant-numeric: tabular-nums; }
+.cf-idea-vote-row > div strong { font-size: 22px; }
+.cf-idea-section .cf-markdown { max-width: 72ch; }
+.cf-idea-code { background: var(--cf-surface); }
+.cf-new-idea-heading { background: var(--cf-accent-surface, var(--cf-accent-soft)); }
+.cf-settings-section { padding-block: var(--cf-space-lg); }
+.cf-settings-description h2 { font-size: 20px; letter-spacing: -0.02em; }
+.cf-settings-runtime-list { font-variant-numeric: tabular-nums; }
+.cf-settings-runtime-list > div { padding: var(--cf-space-md) 0; }
+.cf-settings-workflow-link { background: var(--cf-info-surface, var(--cf-surface)); padding: var(--cf-space-lg); border: 0; border-radius: var(--cf-section-radius, 12px); margin-block: var(--cf-space-md); }
+.cf-settings-workflow-link h2 { font-size: 18px; }
+.cf-example-cleanup { flex-basis: 100%; min-width: 0; max-width: 100%; padding-top: var(--cf-space-lg); border-top: 1px solid var(--cf-border); }
+.cf-example-cleanup .cf-btn { white-space: normal; max-width: 100%; overflow-wrap: anywhere; }
+.cf-example-cleanup > .cf-btn { margin-top: var(--cf-space-md); }
+.cf-example-cleanup-preview { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--cf-space-md); margin-top: var(--cf-space-lg); }
+.cf-example-cleanup-preview details { padding: var(--cf-space-md); background: var(--cf-bg); border-radius: var(--radius-m); }
+.cf-example-cleanup-preview summary { cursor: pointer; font-weight: 600; }
+.cf-example-cleanup-list { max-height: 320px; overflow: auto; padding-inline-start: var(--cf-space-md); }
+.cf-example-cleanup-list li { padding-block: var(--cf-space-sm); overflow-wrap: anywhere; }
+.cf-example-cleanup-list small { display: block; color: var(--cf-muted); line-height: 1.6; }
+.cf-example-cleanup-list label, .cf-example-cleanup-consent { display: flex; align-items: flex-start; gap: var(--cf-space-sm); line-height: 1.6; }
+.cf-example-cleanup :is(label, span) { min-width: 0; }
+.cf-example-cleanup input[type="checkbox"] { flex-shrink: 0; margin-top: var(--cf-space-xs); }
+.cf-settings-data { padding: var(--cf-space-lg); background: var(--cf-surface); border: 0; border-radius: var(--cf-section-radius, 12px); }
+
+@container plugin-shell-leaf (max-width: 900px) {
+  .cf-board-decision-actions { gap: var(--cf-space-sm); }
+  .cf-board-decision-actions strong { font-size: 26px; }
+  .cf-council-editor-layout { grid-template-columns: minmax(0, 1fr); }
+  .cf-workflow-mode-tag { margin-left: 0; }
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-project-work-context { padding: var(--cf-space-md); }
+  .cf-project-work-context > button { padding-inline: 0; }
+  .cf-board-decisions { padding: var(--cf-space-md); }
+  .cf-board-decision-intro h2 { font-size: 18px; }
+  .cf-board-decision-actions { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cf-board-decision-actions > :is(button, div) { grid-template-columns: auto 42px minmax(0, 1fr) auto; padding-block: var(--cf-space-sm); border-bottom: 1px solid var(--cf-border); }
+  .cf-board-decision-actions > :is(button, div) > span:not(.cf-icon) { grid-column: auto; }
+  .cf-board-decision-actions > button > .cf-icon:last-child { grid-column: 4; }
+  .cf-board-decision-actions strong { font-size: 24px; }
+  .cf-project-row-title h2 { font-size: 20px; }
+  .cf-project-create, .cf-workflow-transfer { padding: var(--cf-space-md); }
+  .cf-configured-run-heading h2 { font-size: 22px; }
+  .cf-configured-progress li { grid-template-columns: auto minmax(0, 1fr); }
+  .cf-configured-progress li > span:last-child { grid-column: 2; }
+  .cf-studio .cf-idea-heading h2 { font-size: 24px; }
+  .cf-idea-tabs { gap: var(--cf-space-md); }
+  .cf-settings-data, .cf-settings-workflow-link { padding: var(--cf-space-md); }
+}

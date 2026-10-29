@@ -39,7 +39,7 @@ const model = useIdeaDrawer();
           <div v-if="model.idea.lastError" class="cf-idea-alert is-error">
             <CfIcon name="circle-alert" />
             <span>
-              <strong>Last run needs attention</strong>
+              <strong>Request needs attention</strong>
               <small>{{ model.idea.lastError }}</small>
             </span>
           </div>

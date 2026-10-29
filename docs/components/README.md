@@ -1,5 +1,9 @@
 # Views and navigation
 
+The [information architecture](INFORMATION-ARCHITECTURE.md) explains the Stream,
+Build, Community and Insights task families, project versus channel scope, and
+the boundary between global destinations and focused local tasks.
+
 The [generated sitemap](sitemap.md) describes every shipped product destination,
 local subpage, task panel, dialog, native settings surface and public capture.
 [sitemap.json](sitemap.json) provides the same contracts for tools.
@@ -26,6 +30,8 @@ four separately documented public captures.
 2. Set `parent` to another documented ID, or `null` for an independent entry.
 3. Link the actual `component`; describe the goal and observable completion.
 4. Preserve a `coverage` mapping for each root route or local navigation state.
+   When one view has both a local state and a compatibility locator, use an array
+   of mappings in that same canonical document rather than adding another view.
 5. Regenerate and check:
 
 ```sh
@@ -58,7 +64,7 @@ contract fails rather than silently reducing coverage.
 | `entry`, `actions`, `states` | Nonempty lists of entry points, actions and meaningful states. |
 | `journeys` | Tags connecting the surface to the product journey review. |
 | `privacy` | What may be visible and the boundary to public data. |
-| `coverage` | Optional `{ group, key }` mapping to a live navigation contract. |
+| `coverage` | Optional `{ group, key }` mapping, or array of mappings, to live navigation contracts. |
 
 Markdown carries the purpose, entry and next action, state/recovery behavior and
 composition boundary. This is documentation of implemented behavior, not a claim

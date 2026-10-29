@@ -8,7 +8,7 @@ route: "studio.creating = true"
 parent: "board"
 component: "src/plugin/presentation/components/coforge/NewIdeaDrawer.vue"
 entry: ["On Idea board, choose New request (or Add idea to inbox on Kanban)."]
-actions: ["Enter title and description","Choose category","Create","Cancel"]
+actions: ["Enter title and description","Choose category","Fill optional captured project fields","Create","Cancel"]
 states: ["No project","Draft","Validation error","Saving","Failure with retained draft"]
 journeys: ["request-to-recognition"]
 privacy: "Private vault workspace; excluded from public projections."
@@ -21,6 +21,8 @@ privacy: "Private vault workspace; excluded from public projections."
 Record a request in the selected project.
 
 Creates a canonical note with a stable ID. Viewer chat requests still require registration and explicit project IDs; downstream review is always enforced.
+
+The selected project's Request Object definition supplies the class label and typed optional fields for this new request. Configured defaults can be overridden. Creation validates the parent project and captured definition revision; a changed schema rejects the stale form without writing its draft. The request captures its own schema and does not track later project-definition edits.
 
 ## Entry and next action
 
@@ -35,3 +37,7 @@ No project; Draft; Validation error; Saving; Failure with retained draft. Inspec
 Source: [src/plugin/presentation/components/coforge/NewIdeaDrawer.vue](../../../src/plugin/presentation/components/coforge/NewIdeaDrawer.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`.
+
+## Workspace redesign
+
+The creation heading names the selected project and its stable ID before any input. The dialog retains labelled fields, protected focus and the existing submission-failure draft.

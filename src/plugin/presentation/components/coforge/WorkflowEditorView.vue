@@ -5,15 +5,20 @@ import WorkflowStepList from "./WorkflowStepList.vue";
 import WorkflowStepEditor from "./WorkflowStepEditor.vue";
 import WorkflowDefinitionLimits from "./WorkflowDefinitionLimits.vue";
 import WorkflowDefinitionTransfer from "./WorkflowDefinitionTransfer.vue";
+import ProjectWorkContext from "./ProjectWorkContext.vue";
+withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 const model = useWorkflowEditor();
 const openEventTriggers = useEventTriggerLink();
 </script>
 <template>
-  <div class="cf-workflow-settings-page">
+  <div class="cf-workflow-settings-page" :class="{ 'is-embedded': embedded }">
     <button type="button" class="cf-btn cf-btn-secondary" @click="openEventTriggers()">Attach an event trigger</button>
-    <header class="cf-page-heading">
+    <header
+      class="cf-page-heading"
+      :class="{ 'cf-workflow-subpage-heading': embedded }"
+    >
       <div>
-        <h1>Workflow settings</h1>
+        <component :is="embedded ? 'h2' : 'h1'">Workflow settings</component>
         <p>
           Design the ordered AI and human steps for
           {{ model.project?.settings.projectName || "this project" }}. Saving
@@ -21,7 +26,17 @@ const openEventTriggers = useEventTriggerLink();
         </p>
       </div>
     </header>
-    <p>Reuse agents and councils in a proposal process through <button type="button" class="cf-btn cf-btn-ghost" @click="model.store.navigate('council')">The Council</button>.</p>
+    <ProjectWorkContext v-if="!embedded" />
+    <p>
+      Reuse agents and councils in a proposal process through
+      <button
+        type="button"
+        class="cf-btn cf-btn-ghost"
+        @click="model.store.navigate('council')"
+      >
+        The Council</button
+      >.
+    </p>
     <section
       v-if="!model.project || model.project.unavailable"
       class="cf-empty-state"

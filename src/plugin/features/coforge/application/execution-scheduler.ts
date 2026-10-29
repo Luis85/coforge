@@ -12,7 +12,7 @@ export interface ExecutionAction {
   succeeded: boolean;
 }
 
-/** Fairness is applied between actions, never by weakening a council's sequential dependencies. */
+/** Fairness applies between actions/round batches, never across an unsealed round barrier. */
 export class ExecutionScheduler {
   private lastRunId?: string;
   private active = false;

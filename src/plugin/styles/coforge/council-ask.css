@@ -1,0 +1,64 @@
+/* Council starts with the user's question and its retained task evidence. */
+.cf-council-task-navigation { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; min-width: 0; }
+.cf-council-task-navigation > nav { margin: 0; }
+.cf-council-task-navigation [aria-current="page"] { background: var(--cf-accent-surface); border-color: var(--cf-accent); }
+.cf-council-advanced { margin-left: auto; min-width: 0; }
+.cf-council-advanced > summary { cursor: pointer; padding: 10px 0; color: var(--cf-muted); font-size: 12px; line-height: 1.6; }
+.cf-council-advanced[open] { flex-basis: 100%; margin-left: 0; }
+.cf-council-advanced[open] > summary { margin-bottom: 10px; }
+.cf-council-advanced nav.cf-subpage-nav { margin-bottom: 0; }
+.cf-council-ask {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  align-items: start; gap: 24px; min-width: 0;
+}
+.cf-council-ask > :not(.cf-council-task-history) { grid-column: 1; min-width: 0; }
+.cf-council-task-composer { padding: 24px; background: var(--cf-accent-surface); border-radius: var(--cf-section-radius); }
+.cf-council-task-composer > header { margin-bottom: 24px; }
+.cf-council-task-composer h2 { font-size: 24px; line-height: 1.3; letter-spacing: -0.025em; }
+.cf-council-task-composer > header p { margin-top: 10px; font-size: 13px; line-height: 1.7; max-width: 65ch; }
+.cf-council-task-composer form > fieldset { display: grid; gap: 18px; min-width: 0; border: 0; padding: 0; margin: 0; }
+.cf-council-task-composer .cf-field textarea { min-height: 160px; background: var(--cf-bg); }
+.cf-council-task-composer .cf-field :is(input, select) { background: var(--cf-bg); }
+.cf-council-task-composer > .cf-settings-actions { margin-top: 16px; }
+.cf-council-task-composer .cf-settings-help { margin: 0; color: var(--cf-text); }
+.cf-council-task-composer .cf-settings-actions .cf-btn { white-space: normal; }
+.cf-council-ask > [aria-label="Council execution"] { padding: 20px 0; border-block: 1px solid var(--cf-border); }
+.cf-council-ask > [aria-label="Council execution"] h2 { font-size: 17px; }
+.cf-council-ask > [aria-label="Council execution"] > p { max-width: 65ch; }
+.cf-council-ask > [aria-label="Review Council task"] { padding: 22px 0; border-top: 1px solid var(--cf-border); }
+.cf-council-task-history { grid-column: 2; grid-row: 1 / span 4; min-width: 0; }
+.cf-council-task-history > header { margin-bottom: 20px; }
+.cf-council-task-history h2 { font-size: 22px; line-height: 1.35; letter-spacing: -0.02em; }
+.cf-council-task-history > header p { color: var(--cf-muted); font-size: 12px; line-height: 1.7; margin-top: 10px; }
+.cf-council-task-history > .cf-field { margin-bottom: 18px; }
+.cf-council-task-history > p { font-size: 12px; line-height: 1.7; color: var(--cf-muted); }
+.cf-council-task-history > p[role="alert"] { color: var(--cf-danger); }
+.cf-council-task-list { list-style: none; margin: 0 0 18px; padding: 0; max-height: 650px; overflow: auto; }
+.cf-council-task-list:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: -2px; }
+.cf-council-task-list > li { display: grid; gap: 12px; padding: 18px 8px 18px 0; border-bottom: 1px solid var(--cf-border); min-width: 0; }
+.cf-council-task-list > li:first-child { padding-top: 4px; }
+.cf-council-task-list > li > div { min-width: 0; }
+.cf-council-task-list strong { font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.cf-council-task-list p { margin: 7px 0 0; font-size: 12px; line-height: 1.6; color: var(--cf-muted); overflow-wrap: anywhere; }
+.cf-council-task-source { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+.cf-council-task-source code { max-width: 100%; font-size: 11px; overflow-wrap: anywhere; }
+.cf-council-task-source > span { color: var(--cf-text); font-size: 11px; }
+.cf-council-task-outcome { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--cf-muted); }
+.cf-council-task-outcome .cf-badge { max-width: 100%; white-space: normal; background: var(--cf-info-surface); color: var(--cf-text); }
+.cf-council-task-list .cf-btn { justify-self: start; min-height: 32px; max-width: 100%; white-space: normal; }
+@container plugin-shell-leaf (max-width: 1050px) {
+  .cf-council-ask { grid-template-columns: minmax(0, 1fr); }
+  .cf-council-task-history { grid-column: 1; grid-row: auto; padding-top: 24px; border-top: 1px solid var(--cf-border); }
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-council-task-composer { padding: 18px; }
+  .cf-council-task-composer h2 { font-size: 22px; }
+  .cf-council-advanced { margin-left: 0; }
+  .cf-council-task-navigation { gap: 8px 16px; }
+  .cf-council-task-composer .cf-council-fields { grid-template-columns: minmax(0, 1fr); }
+}
+
+.cf-council-draft-choice { padding: 18px; margin-block: 0 20px; border: 1px solid var(--cf-accent); border-radius: var(--cf-section-radius); background: var(--cf-bg); overflow-wrap: anywhere; }
+.cf-council-draft-choice h3 { margin: 0 0 10px; font-size: 16px; line-height: 1.5; }
+.cf-council-draft-choice p { margin: 0 0 16px; font-size: 13px; line-height: 1.7; }
+.cf-council-task-composer > .cf-settings-help[role="status"] { margin-bottom: 20px; padding-left: 12px; border-left: 3px solid var(--cf-accent); }

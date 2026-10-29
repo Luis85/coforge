@@ -45,10 +45,24 @@ const model = useSchedule();
     <p v-if="model.store.example" class="cf-notice">
       Example schedule · no external tools will be changed.
     </p>
+    <button
+      v-if="model.store.example"
+      type="button"
+      class="cf-btn cf-btn-secondary"
+      :disabled="model.store.busy"
+      title="Discard this temporary example and its edits"
+      @click="model.exitExample()"
+    >
+      Exit example
+    </button>
     <p v-if="model.store.error" role="alert">{{ model.store.error }}</p>
     <p v-if="model.store.notice" role="status">{{ model.store.notice }}</p>
     <div v-if="model.available" class="cf-schedule-layout">
       <aside aria-label="Planned streams">
+        <h2>
+          Your stream plans
+          <span class="cf-badge">{{ model.store.notes.length }}</span>
+        </h2>
         <p v-if="!model.store.notes.length">
           No stream plans yet. Add a date and topic to start.
         </p>
@@ -107,6 +121,10 @@ const model = useSchedule();
             >
           </div>
           <h3>Twitch channel</h3>
+          <p class="cf-schedule-section-help">
+            Save the title and category for this show. Apply them to Twitch
+            explicitly after reviewing preparation.
+          </p>
           <label
             >Stream title<input
               v-model="model.store.draft.title"
@@ -155,6 +173,10 @@ const model = useSchedule();
             /></label>
           </div>
           <h3>OBS and music</h3>
+          <p class="cf-schedule-section-help">
+            Plan scene assignments and a playlist. Saving a plan does not start
+            playback or broadcasting.
+          </p>
           <div class="cf-schedule-fields">
             <label
               >Live scene<select v-model="model.store.draft.liveSceneId">
@@ -219,7 +241,7 @@ const model = useSchedule();
               </select></label
             >
           </div>
-          <div class="cf-actions">
+          <div class="cf-actions cf-schedule-save">
             <button
               type="submit"
               class="cf-btn cf-btn-primary"
@@ -274,7 +296,10 @@ const model = useSchedule();
           </button>
           <dl v-if="model.store.review">
             <dt>Project</dt>
-            <dd>{{ model.projectName(model.selected.plan.projectId) }} · {{ model.selected.plan.projectId }}</dd>
+            <dd>
+              {{ model.projectName(model.selected.plan.projectId) }} ·
+              {{ model.selected.plan.projectId }}
+            </dd>
             <dt>Twitch</dt>
             <dd>
               {{ model.selected.plan.title || "Title not set" }} ·

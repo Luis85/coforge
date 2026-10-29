@@ -1,3 +1,4 @@
+import { openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -7,10 +8,7 @@ async function editor(page: Page) {
     "data-prototype-ready",
     "true",
   );
-  await page
-    .getByRole("button", { name: "Workflow settings", exact: true })
-    .first()
-    .click();
+  await openWorkflowSettings(page);
   await expect(
     page.getByRole("heading", { name: "Workflow settings", exact: true }),
   ).toBeVisible();
@@ -199,9 +197,7 @@ for (const theme of ["light", "dark"]) {
         { exact: true },
       ),
     ).toBeVisible();
-    await page
-      .getByRole("button", { name: "Agent workflow", exact: true })
-      .click();
+    await openWorkflowRuns(page);
     const run = page.getByRole("region", {
       name: "Request workflow execution",
       exact: true,
@@ -227,9 +223,7 @@ for (const theme of ["light", "dark"]) {
     await page
       .getByRole("button", { name: "Close idea details", exact: true })
       .click();
-    await page
-      .getByRole("button", { name: "Agent workflow", exact: true })
-      .click();
+    await openWorkflowRuns(page);
     const manual = page.getByRole("region", {
       name: "Manual workflow step",
       exact: true,

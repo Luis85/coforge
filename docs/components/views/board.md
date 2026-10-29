@@ -36,3 +36,11 @@ No project; No requests; No matches; Queued work; Review pending. Inspect an err
 Source: [src/plugin/presentation/components/coforge/IdeaBoard.vue](../../../src/plugin/presentation/components/coforge/IdeaBoard.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`, `multi-project`.
+
+## Workspace redesign
+
+A project context band identifies the canonical project. The decision summary counts current project requests awaiting screening, moderation or final review; review and moderation counts open their existing filters without running work. Accepted totals count request state, not agent attempts.
+
+## Project privacy
+
+Private project context is labelled in the owner workspace. Owner requests and local simulation remain available; viewer chat intake is refused for private projects even when an ID is guessed.

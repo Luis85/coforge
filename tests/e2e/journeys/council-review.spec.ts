@@ -1,3 +1,4 @@
+import { openCouncilPage } from '../support/council-navigation';
 import { test, expect } from "@playwright/test";
 import { captureCouncil, openCouncilReview } from "../support/council-capture";
 
@@ -39,7 +40,7 @@ for (const theme of ["light", "dark"]) {
         await page.getByText("Attempt history", { exact: true }).click();
         await captureCouncil(page, "review-unknown", theme);
         await expect(page.locator(".cf-council-runs")).toContainText(
-          "0/6 contributions published",
+          "0/6 steps completed or skipped",
         );
       } else if (scenario === "publishing") {
         await expect(page.locator(".cf-council-runs")).toContainText(
@@ -50,7 +51,7 @@ for (const theme of ["light", "dark"]) {
           .getByRole("button", { name: "Repair note publication", exact: true })
           .click();
         await expect(page.locator(".cf-council-runs")).toContainText(
-          "1/6 contributions published",
+          "1/6 steps completed or skipped",
         );
         await expect(
           page
@@ -101,6 +102,7 @@ for (const theme of ["light", "dark"]) {
     page,
   }) => {
     const errors = await openCouncilReview(page, "default", theme);
+    await openCouncilPage(page, 'Definitions');
     await page
       .locator(".cf-council-definition-list")
       .getByRole("button", { name: /^Architect/ })
@@ -174,7 +176,7 @@ test("a changed saved definition cannot replace the displayed Council preflight 
     })
     .click();
   await page
-    .getByRole("button", { name: "Submit and preflight", exact: true })
+    .getByRole("button", { name: "Submit existing note", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Run preflight", exact: true })
@@ -199,7 +201,7 @@ test("a changed saved definition cannot replace the displayed Council preflight 
       .filter({ hasText: "Definition saved for future runs." }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Submit and preflight", exact: true })
+    .getByRole("button", { name: "Submit existing note", exact: true })
     .click();
   await page
     .getByText("Test with deterministic simulation", { exact: true })

@@ -6,7 +6,7 @@ import {
   reportedClaudeCost,
   reportedClaudeUsage,
 } from "../../features/coforge/application/claude-protocol";
-import type { InvocationGate } from "../../features/coforge/application/invocation-gate";
+import type { InvocationLane } from "../../features/coforge/application/invocation-gate";
 import {
   executionResponseCheck,
   type ExecutionResponse,
@@ -54,7 +54,7 @@ export interface CouncilProviderHost {
   >;
   timing?: ExecutionTimingHooks;
   beforeInvoke?(): Promise<void>;
-  gate: InvocationGate;
+  gate: InvocationLane;
   executable: string;
   capture?: (
     executable: string,

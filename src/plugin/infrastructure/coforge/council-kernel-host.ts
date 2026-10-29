@@ -43,6 +43,7 @@ export function councilKernelHost(
         : councilDispatch(run, invocation),
     invoke: (run, invocation, attempt, timing) =>
       services.invocations().invoke(run, invocation, attempt, timing),
+    withInvocationBatch: (run, work) => services.invocations().batch(run.id, work),
     publish: async (run, artifact) => {
       await services.assertExecutor();
       services

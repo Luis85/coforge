@@ -13,6 +13,10 @@ export function toLoaded(state: AppState | InternalState): LoadedStudio {
   const notes: NoteIdea[] = state.ideas.map(noteOnly);
   const internal = state as Partial<InternalState>;
   const data: PersistedStudio = {
+    requestOrigins: state.requestOrigins,
+    exampleRemovalCutoffs: state.exampleRemovalCutoffs,
+    sampleEventIds: state.sampleEventIds,
+    sampleCreatedProjectIds: state.sampleCreatedProjectIds,
     version: 1, nextIdeaNumber: state.nextIdeaNumber, contributors: state.contributors, chat: state.chat, jobs: state.jobs, events: state.events,
     settings: state.settings, integration: internal.integration ?? defaultIntegration(),
     ...(state.activeProjectId ? { activeProjectId: state.activeProjectId } : {}),
@@ -38,6 +42,13 @@ export class MemoryStorage implements StudioStorage {
   private loaded: LoadedStudio;
   constructor(initial: AppState | null = null) { this.loaded = initial ? toLoaded(initial) : { data: null, notes: [], invalidNotes: [] }; }
   async load(): Promise<LoadedStudio> { return structuredClone(this.loaded); }
+  async previewExampleNotes(ids: readonly string[]): Promise<Record<string, string>> {
+    return Object.fromEntries(ids.map(id => {
+      const note = this.loaded.notes.find(note => note.id === id);
+      if (!note) throw new Error('The cleanup note is missing.');
+      return [id, JSON.stringify(note)];
+    }));
+  }
   async save(next: InternalState): Promise<void> {
     if (this.failNextSave) { this.failNextSave = false; throw new Error('Disk full'); }
     this.loaded = toLoaded(next);

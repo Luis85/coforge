@@ -1,4 +1,4 @@
-import { boolean, noteTimestamp, record, text } from './check';
+import { boolean, noteTimestamp, oneOf, record, text } from './check';
 import { settingsCheck } from './persisted';
 import { defaultSettings } from './seed';
 import { cleanLine, cleanText, defangProperty, escapeMarkdown } from './sanitize';
@@ -8,6 +8,7 @@ import { normalizeStagePrompts } from './stage-prompts';
 import { normalizeStageAgents, agentModelCheck, stageAgentsCheck } from './stage-agents';
 import { workflowDefinitionCheck } from './configured-workflow';
 import { restoreWorkflowNoteData, workflowNoteData } from './workflow-note-data';
+import { requestObjectDefinitionCheck } from './request-object';
 
 export const PROJECT_MARKER = 'coforge-project';
 const FIELDS = {
@@ -17,11 +18,13 @@ const FIELDS = {
   requestCooldownSeconds: 'request-cooldown-seconds',
 } as const;
 export const PROJECT_PROPERTIES = [
+  'coforge-visibility',
   'type', 'id', 'created', 'updated', 'project-path', 'repository-url', 'website-url', 'worktree-folder', 'allow-implementation', ...Object.values(FIELDS),
   ...STAGES.map(stage => `automation-${stage}`),
   ...STAGES.map(stage => `agent-prompt-${stage}`),
   'herdr-agent', ...STAGES.map(stage => `agent-herdr-agent-${stage}`),
   'workflow-definition',
+  'request-object-definition',
   ...STAGES.flatMap(stage => [`agent-provider-${stage}`, `agent-model-${stage}`]),
 ];
 const projectId = text({ min: 1, max: 80, pattern: /^CFP-\d{3,7}$/ });
@@ -44,6 +47,7 @@ export function validateProjectUrl(value: unknown, repository = false): string {
 
 export function projectProperties(project: StudioProject): Record<string, unknown> {
   const result: Record<string, unknown> = {
+    'coforge-visibility': project.visibility ?? 'public',
     type: PROJECT_MARKER, id: project.id, created: project.createdAt, updated: project.updatedAt,
     'project-path': project.projectPath, 'worktree-folder': project.worktreeFolder, 'allow-implementation': project.allowImplementation,
     'repository-url': project.repositoryUrl, 'website-url': project.websiteUrl,
@@ -55,6 +59,7 @@ export function projectProperties(project: StudioProject): Record<string, unknow
   for (const stage of STAGES) result[`automation-${stage}`] = project.settings.automation[stage];
   if (project.settings.herdrAgent) result['herdr-agent'] = project.settings.herdrAgent;
   if (project.settings.workflow) result['workflow-definition'] = workflowNoteData(workflowDefinitionCheck(project.settings.workflow));
+  if (project.settings.requestObject !== undefined) result['request-object-definition'] = workflowNoteData(requestObjectDefinitionCheck(project.settings.requestObject));
   for (const stage of STAGES) if (project.settings.stagePrompts?.[stage]) result[`agent-prompt-${stage}`] = defangProperty(project.settings.stagePrompts[stage] ?? '');
   for (const stage of STAGES) {
     const agent = project.settings.stageAgents?.[stage];
@@ -76,6 +81,7 @@ export function parseProjectNote(value: unknown): StudioProject | null {
   const defaults = defaultSettings();
   const values: Record<string, unknown> = { ...defaults };
   if (properties['workflow-definition'] !== undefined) values.workflow = workflowDefinitionCheck(restoreWorkflowNoteData(properties['workflow-definition']));
+  if (properties['request-object-definition'] !== undefined) values.requestObject = requestObjectDefinitionCheck(properties['request-object-definition']);
   if (properties['herdr-agent'] !== undefined) values.herdrAgent = properties['herdr-agent'];
   for (const [key, property] of Object.entries(FIELDS)) if (properties[property] !== undefined) values[key] = properties[property];
   values.projectName = cleanLine(text({ min: 1, max: 80 })(values.projectName), 80);
@@ -97,6 +103,7 @@ export function parseProjectNote(value: unknown): StudioProject | null {
   settingsPatch(settings);
   return {
     id: projectId(properties.id), settings,
+    visibility: oneOf(['public', 'private'] as const)(properties['coforge-visibility'] === undefined ? 'public' : properties['coforge-visibility']),
     projectPath: validateProjectPath(properties['project-path'] ?? ''), worktreeFolder: validateProjectPath(properties['worktree-folder'] ?? ''),
     repositoryUrl: validateProjectUrl(properties['repository-url'] ?? '', true), websiteUrl: validateProjectUrl(properties['website-url'] ?? ''),
     allowImplementation: boolean(properties['allow-implementation'] ?? false),

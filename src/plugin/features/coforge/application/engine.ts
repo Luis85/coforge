@@ -42,7 +42,7 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   if (idea.status !== statusDuring(job.stage)) throw new Error(`${idea.id} changed while the run was active (now ${idea.status}). The result was discarded.`);
   if (job.stage === 'screen') {
     if (!result.screening) throw new Error('The screening agent returned no valid screening result.');
-    const signals = heuristicSignals(`${idea.title}\n${idea.description}\n${idea.contexts?.map(context => context.text).join('\n') ?? ''}`);
+    const signals = heuristicSignals(`${idea.title}\n${idea.description}\n${idea.requestObject ? JSON.stringify(idea.requestObject) : ''}\n${idea.contexts?.map(context => context.text).join('\n') ?? ''}`);
     idea.screening = { ...result.screening, provider: job.provider };
     if (signals.length) {
       idea.screening.verdict = 'flagged';

@@ -35,3 +35,7 @@ Not checked; Checking; Ready; Native unavailable; Check failed. Inspect an error
 Source: [src/plugin/presentation/components/coforge/SettingsRuntimeSection.vue](../../../src/plugin/presentation/components/coforge/SettingsRuntimeSection.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `setup`, `workflow-configuration`.
+
+## Workspace redesign
+
+Runtime observations use an aligned evidence list with tabular numeric treatment. Observed capabilities remain separate from saved configuration.

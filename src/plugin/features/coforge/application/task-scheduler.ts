@@ -1,3 +1,4 @@
+import { TaskDispatchPolicyError } from './task-scheduler-ports';
 import { emptyTaskScheduler, scheduledOccurrencePath, taskDraftCheck, taskSchedulerStateCheck, type ScheduledTask, type TaskDraft, type TaskOccurrence, type TaskSchedulerState } from '../domain/scheduled-task';
 import { nextTaskTime } from '../domain/task-timing';
 import { contextEventId } from '../domain/integrity';
@@ -125,9 +126,9 @@ export class TaskScheduler implements TaskSchedulerActions {
     await this.commit(state);
     let receipt: { runId: string; sourcePath: string };
     try { this.controller.signal.throwIfAborted(); receipt = await this.host.dispatch(occurrence.snapshot, occurrence, this.controller.signal); }
-    catch {
+    catch (error) {
       const failed = structuredClone(this.state); const item = failed.occurrences.find(item => item.id === occurrence.id)!;
-      item.status = 'attention'; item.message = 'Admission could not be confirmed. Inspect this occurrence and its source/run before enabling the schedule again; no automatic retry.';
+      item.status = 'attention'; item.message = error instanceof TaskDispatchPolicyError ? error.message : 'Admission could not be confirmed. Inspect this occurrence and its source/run before enabling the schedule again; no automatic retry.';
       failed.tasks.find(task => task.id === id)!.enabled = false; await this.commit(failed); return;
     }
     const confirmed = structuredClone(this.state); Object.assign(confirmed.occurrences.find(item => item.id === occurrence.id)!, receipt, { status: 'submitted', message: 'Submitted to the shared execution kernel. Delivery is not completion.' });

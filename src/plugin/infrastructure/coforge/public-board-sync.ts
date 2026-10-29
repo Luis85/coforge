@@ -1,32 +1,67 @@
-import type { StudioService } from '../../features/coforge/application/studio';
-import type { PublicSitePublisher } from './public-site-publisher';
+import type { StudioService } from "../../features/coforge/application/studio";
+import type { AppState } from "../../features/coforge/domain/types";
+import type { PublicSitePublisher } from "./public-site-publisher";
 
 const DEBOUNCE_MS = 3000;
 
-/**
- * Keeps the public board files current while "Keep the viewer board updated" is enabled.
- * Changes are debounced and written one at a time; a failure is reported once until a write succeeds again.
- */
-export function syncPublicBoard(studio: StudioService, publisher: PublicSitePublisher, onError: (error: unknown) => void): () => void {
+/** Privacy revocation is immediate and independent of optional debounced public export updates. */
+export function syncPublicBoard(
+  studio: StudioService,
+  publisher: PublicSitePublisher,
+  onError: (error: unknown) => void,
+): () => void {
   let timer: number | undefined;
-  let running: Promise<unknown> = Promise.resolve();
   let failing = false;
+  let stopped = false;
+  let observed: AppState | null = null;
+  const failed = (error: unknown) => {
+    if (!failing) {
+      try {
+        onError(error);
+      } catch {
+        /* Diagnostics cannot undo privacy revocation or escape a background observer. */
+      }
+    }
+    failing = true;
+  };
   const flush = () => {
     timer = undefined;
-    const integration = studio.integration();
-    if (!integration.publicBoardEnabled) return;
-    const state = studio.state();
-    running = running.then(() => publisher.publish(state, integration.publicFolder))
-      .then(() => { failing = false; }, (error: unknown) => { if (!failing) onError(error); failing = true; });
+    if (stopped || !studio.integration().publicBoardEnabled) return;
+    void publisher
+      .publishCurrent(
+        () => studio.state(),
+        () => studio.integration().publicFolder,
+        () => !stopped && studio.integration().publicBoardEnabled,
+      )
+      .then(() => {
+        failing = false;
+      }, failed);
   };
   const schedule = () => {
+    if (stopped) return;
     if (timer !== undefined) window.clearTimeout(timer);
     timer = window.setTimeout(flush, DEBOUNCE_MS);
   };
-  const stopState = studio.subscribe(schedule);
+  const stopState = studio.subscribe((state) => {
+    const previous = observed;
+    observed = state;
+    const newlyDenied =
+      previous &&
+      (state.runtime.publicationDeniedProjectIds ?? []).some(
+        (id) => !previous.runtime.publicationDeniedProjectIds?.includes(id),
+      );
+    if (!stopped && previous && newlyDenied)
+      void publisher.beforeCommit(state, previous).then((release) => {
+        release?.();
+        failing = false;
+      }, failed);
+    schedule();
+  });
   const stopIntegration = studio.onIntegrationChange(schedule);
   return () => {
-    stopState(); stopIntegration();
+    stopped = true;
+    stopState();
+    stopIntegration();
     if (timer !== undefined) window.clearTimeout(timer);
   };
 }

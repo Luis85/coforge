@@ -14,8 +14,8 @@ const model = useStreamPage();
       <div>
         <h1>Stream chat</h1>
         <p>
-          Talk with viewers, with separate pages for Twitch settings and bot
-          messages.
+          Follow the conversation, help viewers participate and moderate with an
+          explicit target.
         </p>
       </div>
       <span class="cf-badge">{{ model.intakeLabel }}</span>
@@ -39,14 +39,12 @@ const model = useStreamPage();
           <summary>Viewer commands</summary>
           <code>!help</code
           ><span
-            >Learn how The Hood works. Topics: requests, progress and
+            >Learn how the community works. Topics: requests, progress and
             community.</span
           >
           <code>!projects</code><span>List project IDs.</span>
           <code>!register</code
-          ><span
-            >Join The Hood before requesting, reporting bugs or voting.</span
-          >
+          ><span>Register before requesting, reporting bugs or voting.</span>
           <code>!ranks</code
           ><span>See named ranks and their XP thresholds.</span>
           <code>!request &lt;project-id&gt; Describe the feature</code

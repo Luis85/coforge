@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAICosts } from "../../composables/coforge/use-ai-costs";
 import AIUsageSummary from "./AIUsageSummary.vue";
+import AICostAttribution from './AICostAttribution.vue';
 const model = useAICosts();
 </script>
 <template>
@@ -9,7 +10,7 @@ const model = useAICosts();
       <div>
         <h1>AI costs</h1>
         <p>
-          Usage in USD, by feature and task. Separate from your EUR payment
+          Usage in USD by agent, team, Council and task. Separate from your EUR payment
           ledger.
         </p>
       </div>
@@ -25,6 +26,16 @@ const model = useAICosts();
     <p v-if="model.store.example" class="cf-notice">
       Example data · changes stay in this preview.
     </p>
+    <button
+      v-if="model.store.example"
+      type="button"
+      class="cf-btn cf-btn-secondary"
+      :disabled="model.store.busy"
+      title="Discard this temporary example and its edits"
+      @click="model.exitExample()"
+    >
+      Exit example
+    </button>
     <p v-if="!model.available">
       AI cost history is available in Obsidian.
       <button
@@ -61,6 +72,7 @@ const model = useAICosts();
             <option value="manual">Manual</option>
             <option value="unavailable">Unavailable</option>
             <option value="simulation">Simulation</option>
+            <option value="not-started">Not started · no provider contacted</option>
           </select></label
         >
       </div>
@@ -70,7 +82,8 @@ const model = useAICosts();
         </button>
         Showing {{ model.store.feature }}
       </p>
-      <div class="cf-ai-summary">
+      <h2>Cost coverage</h2>
+      <div class="cf-ai-summary" aria-label="Cost coverage summary">
         <div>
           <small>Known usage · USD</small
           ><strong>{{ model.money(model.summary.nanos) }}</strong>
@@ -93,16 +106,30 @@ const model = useAICosts();
       <p class="cf-muted">
         Known totals exclude unavailable costs and
         {{ model.summary.simulations }} simulation tasks. Retries and failed
-        attempts remain included. Herdr does not currently report token usage or
+        attempts remain included. <template v-if="model.summary.notStarted">{{ model.summary.notStarted }} {{ model.summary.notStarted === 1 ? 'attempt never contacted' : 'attempts never contacted' }} a provider.</template> Herdr does not currently report token usage or
         costs.
       </p>
+      <p
+        v-if="model.summary.missing || model.summary.pending"
+        class="cf-ai-coverage-note"
+      >
+        <strong>The known total is partial.</strong>
+        {{ model.summary.missing }} {{ model.summary.missing === 1 ? 'attempt has' : 'attempts have' }} no cost and
+        {{ model.summary.pending }} {{ model.summary.pending === 1 ? 'is' : 'are' }} pending. Add a manual fallback in task
+        history when you have a reliable source.
+      </p>
       <AIUsageSummary :summary="model.tokenTotals" />
+      <AICostAttribution :model="model" />
       <p v-if="model.store.state.loading" role="status">
         Loading cost history…
       </p>
       <p v-else-if="!model.tasks.length">
         No tasks match this view. Real workflow runs and Herdr dispatches appear
         here as they are recorded.
+      </p>
+      <h2 v-if="model.features.length">By feature</h2>
+      <p v-if="model.features.length" class="cf-muted">
+        Select a feature to inspect every retained attempt and its cost source.
       </p>
       <div v-if="model.features.length" class="cf-ai-features">
         <button
@@ -174,9 +201,14 @@ const model = useAICosts();
               <td>
                 {{ task.provider
                 }}<small>{{ task.model || "Model not reported" }}</small>
+                <small>Agent: {{ model.attribution(task).agent }}</small>
+                <small>Team: {{ model.attribution(task).team }}</small>
+                <small>Council: {{ model.attribution(task).council }}</small>
+                <small v-if="task.attribution?.parentRunId">Delegated from {{ task.attribution.parentRunId }} · root {{ task.attribution.rootRunId }}</small>
+                <small v-if="task.attribution?.workflowName">{{ task.attribution.workflowName }} · {{ task.attribution.workflowRevision }}</small>
               </td>
               <td>
-                {{ task.status }}<small>{{ model.date(task.startedAt) }}</small>
+                {{ model.status(task) }}<small>{{ model.date(task.startedAt) }}</small>
               </td>
               <td>
                 <strong>{{ model.cost(task).display }}</strong
@@ -201,7 +233,7 @@ const model = useAICosts();
               <td>
                 <button
                   v-if="
-                    task.provider !== 'demo' && task.reportedUsd === undefined
+                    task.provider !== 'demo' && task.status !== 'not-started' && task.reportedUsd === undefined
                   "
                   type="button"
                   class="cf-btn"

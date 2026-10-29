@@ -31,7 +31,7 @@ export function createDemoRunner(timers: Timers, delays: readonly [number, numbe
     const output = workflow?.step.output ?? (stage === 'screen' ? 'screening' : stage === 'score' ? 'rice' : stage === 'plan' ? 'plan' : 'codechange');
     if (output === 'markdown') return { markdown: `## Simulated ${workflow?.step.name ?? 'analysis'}\n\nIllustrative notes for ${idea.id}: ${idea.title}. No model was called and no game files were modified.` };
     if (output === 'screening') {
-      const signals = heuristicSignals(`${idea.title}\n${idea.description}`);
+      const signals = heuristicSignals(`${idea.title}\n${idea.description}\n${idea.requestObject ? JSON.stringify(idea.requestObject) : ''}`);
       return { screening: {
         verdict: signals.length ? 'flagged' : 'clear', signals, checkedAt: now, provider: 'demo',
         reason: signals.length

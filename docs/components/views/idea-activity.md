@@ -36,3 +36,7 @@ No activity; Recorded events; Failed attempt. Inspect an error beside the affect
 Source: [src/plugin/presentation/components/coforge/IdeaActivityTab.vue](../../../src/plugin/presentation/components/coforge/IdeaActivityTab.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `request-to-recognition`, `recovery`.
+
+## Workspace redesign
+
+The timeline and attempt sections share the request evidence heading scale. Attempt logs remain literal source text and do not imply successful implementation.

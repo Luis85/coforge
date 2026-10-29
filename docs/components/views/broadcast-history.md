@@ -31,6 +31,10 @@ Open Stream studio, then choose History. Available actions: Choose saved stream;
 
 No records; Selected; Unavailable measurements; Missing intervals. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+Choose a recording to inspect samples and observed audience values, export the retained JSON or continue to Stream statistics. Unavailable measurements remain named explicitly.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/StreamHistoryPanel.vue](../../../src/plugin/presentation/components/coforge/StreamHistoryPanel.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

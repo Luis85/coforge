@@ -41,6 +41,7 @@ export class ExecutionEvidence {
         throw new Error(
           "Telemetry must identify its original retained attempt.",
         );
+      if (attempt.status === "not-started") throw new Error("A provider was not contacted for this attempt; telemetry is unavailable.");
       if (checkedUsage) {
         attempt.usage = { ...attempt.usage, ...checkedUsage };
         attempt.usageSource = "provider";
@@ -66,7 +67,7 @@ export class ExecutionEvidence {
       if (
         !run ||
         !["completed", "cancelled"].includes(run.state) ||
-        run.projectionRecovery || run.timing?.active ||
+        run.projectionRecovery || run.timing?.active || run.timing?.parallel?.length ||
         run.attempts.some((attempt) =>
           ["dispatching", "unknown", "responded"].includes(attempt.status),
         ) ||

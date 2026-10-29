@@ -1,3 +1,8 @@
+import { useCouncilIdeaDraft } from "./use-council-idea-draft";
+import {
+  councilIdeaAssessmentIssue,
+  councilIdeaRevision,
+} from "../../../features/coforge/application/council-linked-idea";
 import { computed, reactive, ref, shallowRef } from "vue";
 import type { ContextMenuItem } from "@nuxt/ui";
 import {
@@ -26,6 +31,8 @@ export function useIdeaCardMenu(
 ) {
   const store = useStudioStore();
   const actions = useStudioActions();
+  const councilDraft = useCouncilIdeaDraft();
+  const reviewedCouncil = ref("");
   const reviewed = ref("");
   const portal = shallowRef<HTMLElement | false>(false);
   const contextOpen = ref(false);
@@ -38,8 +45,10 @@ export function useIdeaCardMenu(
       dropdownOpen.value = open;
       if (open) contextOpen.value = false;
     }
-    if (open)
+    if (open) {
       reviewed.value = ideaWorkflowActionIdentity(props.idea, project.value);
+      reviewedCouncil.value = councilIdeaRevision(props.idea);
+    }
   };
   const active = computed(() =>
     store.state?.jobs.some(
@@ -149,6 +158,33 @@ export function useIdeaCardMenu(
         },
       ],
     ];
+    const councilIssue = councilIdeaAssessmentIssue(idea);
+    groups.push([
+      {
+        label: "Send to the Council",
+        icon: "i-lucide-messages-square",
+        description:
+          councilIssue ||
+          "Ask for advice, next steps and open gaps. Choose the Council before submitting.",
+        disabled: store.busy || Boolean(councilIssue),
+        onSelect: () => {
+          const current = store.state?.ideas.find(
+            (item) => item.id === idea.id,
+          );
+          if (
+            !current ||
+            councilIdeaRevision(current) !== reviewedCouncil.value
+          ) {
+            store.notify(
+              "This request changed. Reopen its action menu and review it again.",
+              true,
+            );
+            return;
+          }
+          void councilDraft.request(current);
+        },
+      },
+    ]);
     if (action)
       groups.push([
         { type: "label", label: "Configured workflow" },

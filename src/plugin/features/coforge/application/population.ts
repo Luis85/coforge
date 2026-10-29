@@ -43,6 +43,8 @@ export function observePlayer(state: InternalState, id: string, now: string): Pl
       reputation: 0,
       presenceSeconds: 0,
       rewardedMinutes: 0,
+      registeredPresenceSeconds: 0,
+      rewardedXpMinutes: 0,
       rewardClaims: [],
     };
     state.population.players.push(player);
@@ -54,16 +56,19 @@ export function registerPlayer(
   state: InternalState,
   id: string,
   now = new Date().toISOString(),
-): { ok: boolean; message: string } {
+): { ok: boolean; message: string; duplicate?: boolean } {
   const player = observePlayer(state, id, now);
   if (playerRestricted(player, state.integration.twitchBroadcasterId))
     return { ok: false, message: "Your participation is restricted. Contact the streamer." };
   if (player.registeredAt)
     return {
       ok: true,
+      duplicate: true,
       message: "You are already registered. Use !projects to find a game and !me for your player stats.",
     };
   player.registeredAt = now;
+  player.registeredPresenceSeconds = 0;
+  player.rewardedXpMinutes = 0;
   recordOperation(state, "registered", "committed", id);
   player.lastFeatureAt ??= state.ingestMeta.lastRequests[id];
   return {

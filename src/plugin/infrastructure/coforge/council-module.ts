@@ -3,6 +3,7 @@ import { startCouncilObservation } from "./council-runtime-loop";
 import { CouncilRunContext } from "./council-run-context";
 import { CouncilAdmissions } from "./council-admissions";
 import { createCouncilActions } from "./council-actions";
+import { CouncilCostArchive } from '../../features/coforge/application/council-cost-archive';
 import type { Plugin, TFile } from "obsidian";
 import { hostname } from "os";
 import { CouncilCatalogue } from "../../features/coforge/application/council-catalogue";
@@ -30,7 +31,8 @@ import {
 } from "./vault-council-definitions";
 import {
   protectCouncilPrivatePaths,
-  councilRegisteredPrivateFolders,
+  councilModulePrivateFolders,
+  councilFolderPolicy,
 } from "./council-private-data";
 import { CouncilInvocationHost } from "./council-invocation-host";
 import { CouncilMessagingModule } from "./council-messaging-module";
@@ -39,6 +41,8 @@ import type { IntakeFolderPolicy } from "../../features/coforge/domain/intake-bi
 import { CouncilWorkflowMessaging } from "./council-workflow-messaging";
 import { councilDefinitionConfiguration } from "./council-definition-configuration";
 import { readCouncilDefinitionUsage } from "../../features/coforge/application/council-definition-usage";
+import { createCouncilTaskNotes } from "./council-task-notes";
+import { CouncilRuntimeObservers } from "./council-runtime-observers";
 
 /** Host composition for typed note execution. Providers and v1 workflows share the injected slot. */
 export class CouncilModule {
@@ -55,11 +59,10 @@ export class CouncilModule {
   private readonly context: CouncilRunContext;
   private readonly admissions: CouncilAdmissions;
   private readonly definitionLocations: () => readonly string[];
-  private readonly listeners = new Set<
-    (snapshot: CouncilRuntimeSnapshot) => void
-  >();
+  private readonly listeners = new CouncilRuntimeObservers();
   private readonly invocationHost: CouncilInvocationHost;
   private readonly deviceId = contextEventId(hostname());
+  private readonly costArchive = new CouncilCostArchive();
   private preferences: CouncilPreferences = {
     format: "coforge-council-settings/v1",
     revision: 0,
@@ -78,6 +81,7 @@ export class CouncilModule {
     private readonly timers: Timers,
     gate: InvocationGate,
     projectFile?: (id: string) => TFile | null,
+    ideaFile?: (id: string) => TFile | null,
   ) {
     this.storage = new CouncilStateStorage(plugin);
     this.journal = new FileExecutionJournal(
@@ -175,6 +179,7 @@ export class CouncilModule {
       {
         enabled: () => this.executor && !this.disposed,
         preferences: () => this.preferences,
+        folderPolicy: () => this.folderPolicy(),
         assertExecutor: () => this.assertExecutor(),
         admit: (input) => this.admissions.admit(input),
         definitionChanged: (event) =>
@@ -214,6 +219,7 @@ export class CouncilModule {
       () => this.assertExecutor(),
       (id) => this.projectPaused(id),
       () => this.definitionLocations(),
+      ideaFile,
     );
     this.admissions = new CouncilAdmissions(
       plugin,
@@ -228,6 +234,12 @@ export class CouncilModule {
       () => this.assertExecutor(),
     );
     this.actions = createCouncilActions({
+      taskNotes: createCouncilTaskNotes(
+        plugin, this.context, this.sources,
+        () => this.preferences.bindings,
+        () => this.assertReady(),
+        paths => this.protect(paths),
+      ),
       catalogue,
       definitionFolders: {
         preview: definitionFolders.preview,
@@ -246,14 +258,10 @@ export class CouncilModule {
       preferences: () => this.preferences,
       folderPolicy: () => this.folderPolicy(),
       snapshot: () => this.snapshot(),
-      subscribe: (listener) => {
-        this.listeners.add(listener);
-        return () => {
-          this.listeners.delete(listener);
-        };
-      },
+      subscribe: (listener) => this.listeners.subscribe(listener),
       assertReady: () => this.assertReady(),
       assertExecutor: () => this.assertExecutor(),
+      beforePrune: id => this.costArchive.beforePrune(this.runs().find(item => item.id === id)),
       publish: () => this.publish(),
       clearError: () => {
         this.error = "";
@@ -273,12 +281,10 @@ export class CouncilModule {
     return this.preferences.executorId === this.deviceId;
   }
   privateFolders(): readonly string[] {
-    return councilRegisteredPrivateFolders(
-      this.studio.ready
-        ? this.definitionLocations()
-        : Object.values(
-            this.preferences.definitionFolders ?? DEFAULT_COUNCIL_FOLDERS,
-          ),
+    return councilModulePrivateFolders(
+      this.studio.ready,
+      this.definitionLocations,
+      this.preferences.definitionFolders,
       this.preferences.bindings,
       this.sources.privateFolders(),
     );
@@ -323,15 +329,9 @@ export class CouncilModule {
     };
   }
   private publish(): void {
-    if (!this.disposed)
-      for (const listener of this.listeners) {
-        try {
-          listener(this.snapshot());
-        } catch {
-          /* View failure does not change execution. */
-        }
-      }
+    if (!this.disposed) this.listeners.publish(() => this.snapshot());
   }
+  setCostArchiver(archive: () => Promise<void>): void { this.costArchive.configure(archive); }
   private async protect(paths: string[]): Promise<void> {
     await protectCouncilPrivatePaths(
       this.plugin,
@@ -349,12 +349,11 @@ export class CouncilModule {
     return (this.preferences.pausedProjectIds ?? []).includes(id);
   }
   private folderPolicy(): IntakeFolderPolicy {
-    return {
-      publicFolder: this.studio.integration().publicFolder,
-      configFolder: this.plugin.app.vault.configDir,
-      definitionFolders: [...this.definitionLocations()],
-      outputFolders: ["CoForge/Tests", "CoForge/Messages"],
-    };
+    return councilFolderPolicy(
+      this.plugin,
+      this.studio.integration().publicFolder,
+      this.definitionLocations(),
+    );
   }
   async start(): Promise<void> {
     if (this.disposed) return;

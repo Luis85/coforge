@@ -12,6 +12,24 @@ export function councilSubmissionActions(host: {
   run(work: () => Promise<void>): Promise<void>;
 }) {
   const { store } = host;
+  function showAdmitted(id: string, asking: boolean, message: string) {
+    store.inspectedRun = id;
+    if (!asking) store.tab = 'monitor';
+    else {
+      if (store.taskReviewDraftKey === store.taskDraftKey) {
+        store.taskConfirmedSavedDraftKey = '';
+        store.taskReviewDraftKey = '';
+        store.taskLinkedIdea = null;
+        store.taskTitle = '';
+        store.taskQuestion = '';
+        store.taskDraftKey = crypto.randomUUID();
+        store.taskProjectId = host.projectId();
+      }
+      store.preview = null;
+      store.taskSource = '';
+    }
+    store.notice = message;
+  }
   return {
     preflight: () =>
       host.run(async () => {
@@ -33,6 +51,7 @@ export function councilSubmissionActions(host: {
       }),
     submit: () =>
       host.run(async () => {
+        const asking = store.tab === "ask";
         if (!store.preview)
           throw new Error("Run preflight before submitting this note.");
         try {
@@ -43,9 +62,7 @@ export function councilSubmissionActions(host: {
               store.source,
               reviewedCouncilIdentity(store.preview),
             );
-          store.inspectedRun = saved.id;
-          store.tab = "monitor";
-          store.notice = "Submission retained. Resume execution when ready.";
+          showAdmitted(saved.id, asking, 'Submission retained in task history. Resume execution when ready.');
         } catch (error) {
           store.preview = null;
           throw error;
@@ -53,6 +70,7 @@ export function councilSubmissionActions(host: {
       }),
     simulate: () =>
       host.run(async () => {
+        const asking = store.tab === 'ask';
         try {
           const saved = await host
             .service()
@@ -64,10 +82,7 @@ export function councilSubmissionActions(host: {
                 ? reviewedCouncilIdentity(store.preview)
                 : undefined,
             );
-          store.inspectedRun = saved.id;
-          store.tab = "monitor";
-          store.notice =
-            "Simulation queued at the selected test destination. Resume to produce marked fake output.";
+          showAdmitted(saved.id, asking, 'Simulation queued at the selected test destination. Resume to produce marked fake output.');
         } catch (error) {
           store.preview = null;
           throw error;

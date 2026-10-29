@@ -1,21 +1,28 @@
 <script setup lang="ts">
 import { useCouncilModel } from "../../composables/coforge/use-council";
+import CouncilSimulationPanel from "./CouncilSimulationPanel.vue";
+import CouncilRoundSchedule from "./CouncilRoundSchedule.vue";
+withDefaults(defineProps<{ taskIntake?: boolean }>(), { taskIntake: false });
 const model = useCouncilModel();
 </script>
 <template>
   <section
     :aria-label="
-      model.store.tab === 'inboxes'
-        ? 'Configure watched inbox'
-        : 'Submit a note'
+      taskIntake
+        ? 'Review Council task'
+        : model.store.tab === 'inboxes'
+          ? 'Configure watched inbox'
+          : 'Submit a note'
     "
     class="cf-council-section"
   >
     <h2>
       {{
-        model.store.tab === "inboxes"
-          ? "Route a private inbox"
-          : "Choose a note and preview its run"
+        taskIntake
+          ? "Review your saved task"
+          : model.store.tab === "inboxes"
+            ? "Route a private inbox"
+            : "Choose a note and preview its run"
       }}
     </h2>
     <label v-if="model.store.tab === 'inboxes'" class="cf-field"
@@ -26,7 +33,7 @@ const model = useCouncilModel();
         <option value="team">Team information board</option>
       </select></label
     >
-    <div class="cf-council-fields">
+    <div v-if="!taskIntake" class="cf-council-fields">
       <label class="cf-field"
         ><span>Project team</span
         ><select v-model="model.store.team">
@@ -59,15 +66,17 @@ const model = useCouncilModel();
         </select></label
       >
     </div>
-    <template v-if="model.store.tab === 'submit'">
+    <template v-if="taskIntake || model.store.tab === 'submit'">
       <label class="cf-field"
         ><span>Private source note</span
         ><input
           v-model="model.store.source"
+          :readonly="taskIntake"
           placeholder="CoForge/Requests/Proposal.md"
       /></label>
       <div class="cf-settings-actions">
         <button
+          v-if="!taskIntake"
           type="button"
           class="cf-btn cf-btn-secondary"
           :disabled="model.store.busy || !model.store.source"
@@ -75,6 +84,7 @@ const model = useCouncilModel();
         >
           Mark source Draft</button
         ><button
+          v-if="!taskIntake"
           type="button"
           class="cf-btn cf-btn-secondary"
           :disabled="model.store.busy || !model.store.source"
@@ -97,13 +107,15 @@ const model = useCouncilModel();
           :disabled="
             model.store.busy ||
             !model.store.preview ||
-            !model.store.state?.executor
+            !model.store.state?.executor ||
+            (taskIntake && model.ask.simulationPreview)
           "
           @click="model.submit()"
         >
-          Submit captured note
+          {{ taskIntake ? "Submit reviewed task" : "Submit captured note" }}
         </button>
       </div>
+      <p v-if="taskIntake && model.ask.simulationPreview" class="cf-settings-help">This council includes simulation agents. Use the explicit test destination below to queue marked test output; these agents cannot submit a real run.</p>
       <section v-if="model.store.preview" aria-label="Invocation preview">
         <h3>
           {{ model.store.preview.plan.definition.name }} ·
@@ -111,17 +123,11 @@ const model = useCouncilModel();
         </h3>
         <p>
           Root allowance:
-          {{
-            model.store.preview.plan.definition.limits.maxInvocations
-          }}
+          {{ model.store.preview.plan.definition.limits.maxInvocations }}
           dispatches including retries and descendants;
-          {{
-            model.store.preview.plan.definition.limits.maxExecutionSeconds
-          }}
+          {{ model.store.preview.plan.definition.limits.maxExecutionSeconds }}
           seconds of active execution;
-          {{
-            model.store.preview.plan.definition.limits.maxArtifactCharacters
-          }}
+          {{ model.store.preview.plan.definition.limits.maxArtifactCharacters }}
           characters per contribution.
         </p>
         <p v-if="model.store.preview.executionLimits">
@@ -149,36 +155,14 @@ const model = useCouncilModel();
             >
           </li>
         </ol>
-        <details>
-          <summary>Captured source and context</summary>
+          <CouncilRoundSchedule :rounds="model.store.preview.plan.definition.rounds" />
+          <details>
+            <summary>Captured source and context</summary>
           <pre>{{ model.store.preview.source.markdown }}</pre>
           <pre>{{ model.store.preview.context }}</pre>
         </details>
       </section>
-      <details>
-        <summary>Test with deterministic simulation</summary>
-        <p>
-          Choose a new note inside CoForge/Tests. Simulation produces marked
-          fake output there and sends no model requests.
-        </p>
-        <label class="cf-field"
-          ><span>Simulation destination</span
-          ><input
-            v-model="model.store.destination"
-            placeholder="CoForge/Tests/Council trial.md" /></label
-        ><button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :disabled="
-            model.store.busy ||
-            !model.store.state?.executor ||
-            !model.store.source
-          "
-          @click="model.simulate()"
-        >
-          Queue simulation
-        </button>
-      </details>
+      <CouncilSimulationPanel :task-intake="taskIntake" />
     </template>
     <template v-else>
       <label class="cf-field"

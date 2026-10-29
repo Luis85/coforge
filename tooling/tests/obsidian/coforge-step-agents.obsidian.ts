@@ -1,3 +1,4 @@
+import { openWorkflowSettings } from "../../../tests/e2e/support/workflow-navigation.ts";
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
@@ -45,10 +46,7 @@ describe("Dedicated project workflow editor in the contained vault", () => {
       );
       return { path: file.path, content: await app.vault.read(file) };
     });
-    await view
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .first()
-      .click();
+    await openWorkflowSettings(view);
     await browserExpect(view.locator(".cf-workflow-editor-layout")).toHaveCSS(
       "display",
       "grid",
@@ -86,10 +84,7 @@ describe("Dedicated project workflow editor in the contained vault", () => {
     view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
-    await view
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .first()
-      .click();
+    await openWorkflowSettings(view);
     await browserExpect(
       view.getByLabel("AI provider", { exact: true }),
     ).toHaveValue("claude");
@@ -119,10 +114,7 @@ describe("Dedicated project workflow editor in the contained vault", () => {
     view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
-    await view
-      .getByRole("button", { name: "Workflow settings", exact: true })
-      .first()
-      .click();
+    await openWorkflowSettings(view);
     await browserExpect(
       view.getByLabel("AI provider", { exact: true }),
     ).toHaveValue("demo");

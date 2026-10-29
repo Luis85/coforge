@@ -4,6 +4,8 @@ import CfIcon from "./CfIcon.vue";
 import SettingsDataSection from "./SettingsDataSection.vue";
 import SettingsRuntimeSection from "./SettingsRuntimeSection.vue";
 import SettingsRepositorySection from "./SettingsRepositorySection.vue";
+import ProjectWorkContext from "./ProjectWorkContext.vue";
+import SettingsRequestObjectSection from './SettingsRequestObjectSection.vue';
 
 const model = useSettings();
 </script>
@@ -21,6 +23,7 @@ const model = useSettings();
         ><CfIcon name="shield-check" size="sm" /> Local workspace</span
       >
     </header>
+    <ProjectWorkContext />
     <section
       v-if="!model.availableProject && !model.dirty"
       class="cf-empty-state"
@@ -57,6 +60,8 @@ const model = useSettings();
             </p>
           </div>
           <div class="cf-settings-fields">
+            <label class="cf-field"><span>Project visibility</span><select v-model="model.draft.visibility" aria-label="Project visibility" :aria-describedby="`${model.store.layoutId}-project-visibility-help`"><option value="public">Public · eligible for viewer discovery</option><option value="private">Private · owner workspace only</option></select><small :id="`${model.store.layoutId}-project-visibility-help`">Private projects are excluded from public discovery, requests and recognition. Existing Twitch text cannot be recalled. Republish your GitHub Pages site after removing prior local exports.</small></label>
+            <p v-if="model.store.activeProject?.visibility !== 'private' && model.store.state?.runtime.publicationDeniedProjectIds?.includes(model.editingProjectId)" class="cf-inline-error" role="status">Publication is blocked for this project. Save an explicit public visibility choice to restore it, or repair storage and reconcile the private project note. Previously deployed pages require republishing.</p>
             <label class="cf-field">
               <span>Project name</span>
               <input
@@ -99,11 +104,13 @@ const model = useSettings();
             >
           </div>
         </section>
+        <SettingsRequestObjectSection />
         <SettingsRepositorySection />
         <p class="cf-settings-help">
           Viewer feature requests have a fixed 5-minute cooldown across all
           projects. Review registration and participation under Viewers;
-          configure earning rules under Community settings.
+          configure currency income, command prices and rewards under Economy,
+          and XP, reputation and ranks under Community settings.
         </p>
         <section
           class="cf-settings-workflow-link"
@@ -144,7 +151,7 @@ const model = useSettings();
             <button
               class="cf-btn cf-btn-primary"
               type="submit"
-              :disabled="model.store.busy || model.pending || !model.dirty"
+              :disabled="model.store.busy || (model.pending && !model.visibilityOnlyDirty) || !model.dirty"
             >
               <CfIcon name="save" size="sm" />
               {{ model.saving ? "Saving settings…" : "Save settings" }}
@@ -154,6 +161,6 @@ const model = useSettings();
       </fieldset>
     </form>
     <SettingsRuntimeSection v-if="model.availableProject" />
-    <SettingsDataSection v-if="model.availableProject" />
+    <SettingsDataSection v-if="model.store.state" />
   </div>
 </template>

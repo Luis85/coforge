@@ -33,6 +33,8 @@ export function useOperations() {
     error,
     notice,
     working,
+    unconfirmedCount: computed(() => (store.state?.population?.operations ?? []).filter(record => record.effect === "uncertain").length),
+    showUnconfirmed: () => { code.value = ""; effect.value = "uncertain"; },
     clearFilters: () => { code.value = ''; effect.value = ''; },
     filtered: computed(() => Boolean(code.value || effect.value)),
     canExport: Boolean(host.exportDiagnostics),

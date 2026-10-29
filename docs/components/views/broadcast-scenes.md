@@ -31,6 +31,10 @@ Open Stream studio, then choose Scenes. Available actions: Select scene; Create,
 
 Disconnected; Busy; Selected; Destructive confirmation; Unknown outcome; Example. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
 
+## Presentation and information hierarchy
+
+The selected scene and program-switch control lead the page. Creation, renaming and duplication are grouped as separate forms; the source list keeps each exact target beside its available actions. Destructive confirmation and unconfirmed-effect recovery remain explicit.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/ObsSceneManager.vue](../../../src/plugin/presentation/components/coforge/ObsSceneManager.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.

@@ -15,6 +15,16 @@ const model = useHerdr();
       project changes.
     </p>
     <button
+      v-if="model.store.example"
+      type="button"
+      class="cf-btn cf-btn-secondary"
+      :disabled="model.store.state.busy"
+      title="Discard temporary workspaces, agents and example drafts"
+      @click="model.exitExample()"
+    >
+      Exit example
+    </button>
+    <button
       v-if="!model.available && model.canPreview"
       type="button"
       class="cf-btn cf-btn-secondary"
@@ -219,8 +229,9 @@ const model = useHerdr();
             aria-label="Confirm Herdr interrupt"
           >
             <p>
-              Send Ctrl+C to {{ model.store.interruptConfirm.name }} ({{ model.store.interruptConfirm.paneId }})? This may interrupt its current
-              work.
+              Send Ctrl+C to {{ model.store.interruptConfirm.name }} ({{
+                model.store.interruptConfirm.paneId
+              }})? This may interrupt its current work.
             </p>
             <button
               type="button"

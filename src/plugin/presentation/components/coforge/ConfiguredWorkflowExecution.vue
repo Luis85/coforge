@@ -46,29 +46,6 @@ defineProps<{ model: WorkflowModel }>();
         <label class="cf-workflow-check"><input :checked="model.nudgeRecoveryConsent" type="checkbox" @change="model.changeNudgeRecovery($event)" />I inspected the original task and accept that a fresh attempt may duplicate it.</label>
         <button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.nudgeRecoveryConsent || model.store.busy" @click="model.acknowledgeNudge()">Acknowledge nudge recovery</button>
       </section>
-      <ol class="cf-configured-progress" aria-label="Captured workflow steps">
-        <li
-          v-for="step in model.steps"
-          :key="step.id"
-          :class="{
-            'is-current': step.current,
-            'is-completed': step.completed,
-          }"
-        >
-          <span class="cf-workflow-step-number">{{ step.index }}</span>
-          <div>
-            <strong>{{ step.name }}</strong
-            ><small>{{ step.agent }}</small>
-          </div>
-          <span>{{
-            step.current
-              ? model.runLabel
-              : step.completed
-                ? "Completed"
-                : step.state
-          }}</span>
-        </li>
-      </ol>
       <ConfiguredManualStep
         v-if="
           model.run?.state === 'waiting-human' &&
@@ -110,6 +87,29 @@ defineProps<{ model: WorkflowModel }>();
           </button>
         </div></template
       >
+      <ol class="cf-configured-progress" aria-label="Captured workflow steps">
+        <li
+          v-for="step in model.steps"
+          :key="step.id"
+          :class="{
+            'is-current': step.current,
+            'is-completed': step.completed,
+          }"
+        >
+          <span class="cf-workflow-step-number">{{ step.index }}</span>
+          <div>
+            <strong>{{ step.name }}</strong
+            ><small>{{ step.agent }}</small>
+          </div>
+          <span>{{
+            step.current
+              ? model.runLabel
+              : step.completed
+                ? "Completed"
+                : step.state
+          }}</span>
+        </li>
+      </ol>
       <p v-if="model.run?.state === 'finished'" class="cf-workflow-policy">
         Workflow finished without pending code changes. No implementation or
         shipped-feature credit was created.
@@ -125,17 +125,28 @@ defineProps<{ model: WorkflowModel }>();
       <ConfiguredWorkflowResults v-if="model.run" :run="model.run" />
     </template>
     <div v-else class="cf-intent-empty">
-      <h2>A request starts the workflow</h2>
-      <p>
+      <h2>
+        {{
+          model.store.activeProject
+            ? "A request starts the workflow"
+            : "Choose a project"
+        }}
+      </h2>
+      <p v-if="model.store.activeProject">
         Add a request on the Idea board, or accept one from Twitch chat, then
         select it here.
+      </p>
+      <p v-else>
+        Create or select a project to run requests and configure its workflow.
       </p>
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
-        @click="model.store.navigate('board')"
+        @click="
+          model.store.navigate(model.store.activeProject ? 'board' : 'projects')
+        "
       >
-        Open Idea board
+        {{ model.store.activeProject ? "Open Idea board" : "Manage projects" }}
       </button>
     </div>
   </section>

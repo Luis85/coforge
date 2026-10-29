@@ -8,7 +8,8 @@ const model = useBoardWelcome();
   <div :ref="model.bind" class="cf-board-empty cf-board-welcome">
     <CfIcon name="lightbulb" />
     <h2>No requests for this project</h2>
-    <p>
+    <p v-if="model.store.activeProject?.visibility === 'private'">Add an owner request here. Private projects do not accept viewer chat requests.</p>
+    <p v-else>
       Add a request here, or use <code>!request &lt;project-id&gt; &lt;idea&gt;</code> or <code>!bug &lt;project-id&gt; &lt;bug&gt;</code> in chat.
     </p>
     <div v-if="!model.confirming" class="cf-board-welcome-actions">

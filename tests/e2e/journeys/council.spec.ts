@@ -1,3 +1,4 @@
+import { openCouncilPage } from '../support/council-navigation';
 import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -60,6 +61,7 @@ for (const theme of ["light", "dark"]) {
     await page
       .getByRole("button", { name: "Explore Council example", exact: true })
       .click();
+    await openCouncilPage(page, 'Definitions');
     await page
       .locator(".cf-council-definition-list")
       .getByRole("button", { name: /^Example design council/ })
@@ -82,7 +84,7 @@ for (const theme of ["light", "dark"]) {
       })
       .click();
     await page
-      .getByRole("button", { name: "Submit and preflight", exact: true })
+      .getByRole("button", { name: "Submit existing note", exact: true })
       .click();
     await page
       .getByRole("combobox", { name: "Project team", exact: true })
@@ -114,7 +116,7 @@ for (const theme of ["light", "dark"]) {
       .click();
     await expect(page.locator(".cf-council-runs")).toContainText("completed");
     await expect(page.locator(".cf-council-runs")).toContainText(
-      "6/6 contributions published",
+      "6/6 steps completed or skipped",
     );
     await expect(
       page.getByRole("region", { name: "Captured run evidence", exact: true }),
@@ -178,6 +180,7 @@ test("creates three specialists, a team and a six-invocation council entirely th
   await page
     .getByRole("button", { name: "Explore Council example", exact: true })
     .click();
+    await openCouncilPage(page, 'Definitions');
   const specialists = [
     "UI product reviewer",
     "UI architecture reviewer",
@@ -240,7 +243,7 @@ test("creates three specialists, a team and a six-invocation council entirely th
     })
     .click();
   await page
-    .getByRole("button", { name: "Submit and preflight", exact: true })
+    .getByRole("button", { name: "Submit existing note", exact: true })
     .click();
   await page
     .getByRole("combobox", { name: "Project team", exact: true })
@@ -275,6 +278,6 @@ test("creates three specialists, a team and a six-invocation council entirely th
     .click();
   await expect(page.locator(".cf-council-runs")).toContainText("completed");
   await expect(page.locator(".cf-council-runs")).toContainText(
-    "6/6 contributions published",
+    "6/6 steps completed or skipped",
   );
 });

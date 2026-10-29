@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 import { mkdir } from 'node:fs/promises';
+import { openCouncilPage } from '../support/council-navigation';
 
 for (const theme of ['light', 'dark']) test(`workflow triggers review saved definitions and retain drafts in ${theme}`, async ({ page }) => {
   test.setTimeout(90000);
@@ -9,16 +10,15 @@ for (const theme of ['light', 'dark']) test(`workflow triggers review saved defi
   await page.evaluate(value => { document.body.classList.toggle('theme-light', value === 'light'); document.body.classList.toggle('theme-dark', value === 'dark'); }, theme);
   await page.getByRole('button', { name: 'The Council', exact: true }).first().click();
   await page.getByRole('button', { name: 'Explore Council example', exact: true }).click();
-  const nav = page.getByRole('navigation', { name: 'Council workspace', exact: true });
-  await nav.getByRole('button', { name: 'Run monitor', exact: true }).click();
+  await openCouncilPage(page, 'Run monitor');
   await page.getByRole('button', { name: 'Use this desktop for execution', exact: true }).click();
-  await nav.getByRole('button', { name: 'Event triggers', exact: true }).click();
+  await openCouncilPage(page, 'Event triggers');
   await page.getByRole('button', { name: 'Explore event-trigger example', exact: true }).click();
   const region = page.getByRole('region', { name: 'Workflow event triggers', exact: true });
   await region.getByLabel('Trigger name', { exact: true }).fill('Review new requests');
   await region.getByRole('combobox', { name: 'Listen to', exact: true }).selectOption('application');
-  await nav.getByRole('button', { name: 'Definitions', exact: true }).click();
-  await nav.getByRole('button', { name: 'Event triggers', exact: true }).click();
+  await openCouncilPage(page, 'Definitions');
+  await openCouncilPage(page, 'Event triggers');
   await expect(region.getByLabel('Trigger name', { exact: true })).toHaveValue('Review new requests');
   await region.getByRole('button', { name: 'Review saved workflow', exact: true }).click();
   await expect(region.getByRole('button', { name: 'Save trigger', exact: true })).toBeEnabled();

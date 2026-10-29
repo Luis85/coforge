@@ -28,6 +28,8 @@ export interface CouncilRuntimeSnapshot {
   error: string;
 }
 export interface CouncilActions {
+  createTask(input: import("./council-tasks").CouncilTaskInput): Promise<import("./council-tasks").CouncilTaskRecord>;
+  listTasks(): Promise<import("./council-tasks").CouncilTaskRecord[]>;
   assertExecutor?(): Promise<void>;
   definitionFolders: CouncilFolderActions;
   workflows: import("./workflow-v2-ports").WorkflowV2Actions;

@@ -9,6 +9,7 @@ import CommunityView from "./CommunityView.vue";
 import PopulationView from "./PopulationView.vue";
 import OperationsView from "./OperationsView.vue";
 import CommunitySettingsView from "./CommunitySettingsView.vue";
+import EconomyView from './EconomyView.vue';
 import BroadcastView from "./BroadcastView.vue";
 import StreamStatisticsView from "./StreamStatisticsView.vue";
 import FinanceView from "./FinanceView.vue";
@@ -25,7 +26,6 @@ import StudioSidebar from "./StudioSidebar.vue";
 import StudioTopbar from "./StudioTopbar.vue";
 import ToastStack from "./ToastStack.vue";
 import WorkflowView from "./WorkflowView.vue";
-import WorkflowEditorView from "./WorkflowEditorView.vue";
 import ProjectsView from "./ProjectsView.vue";
 import CouncilView from "./CouncilView.vue";
 
@@ -81,11 +81,13 @@ const model = useStudioApp();
             <FinanceView v-else-if="model.shell.store.view === 'finance'" />
             <AICostsView v-else-if="model.shell.store.view === 'ai-costs'" />
             <ScheduleView v-else-if="model.shell.store.view === 'schedule'" />
-            <WorkflowView v-else-if="model.shell.store.view === 'workflow'" />
-            <CouncilView v-else-if="model.shell.store.view === 'council'" />
-            <WorkflowEditorView
-              v-else-if="model.shell.store.view === 'workflow-settings'"
+            <WorkflowView
+              v-else-if="
+                model.shell.store.view === 'workflow' ||
+                model.shell.store.view === 'workflow-settings'
+              "
             />
+            <CouncilView v-else-if="model.shell.store.view === 'council'" />
             <ProjectsView v-else-if="model.shell.store.view === 'projects'" />
             <CommunityView v-else-if="model.shell.store.view === 'community'" />
             <PopulationView
@@ -97,6 +99,7 @@ const model = useStudioApp();
             <CommunitySettingsView
               v-else-if="model.shell.store.view === 'community-settings'"
             />
+            <EconomyView v-else-if="model.shell.store.view === 'economy'" />
             <SettingsView v-else />
           </section>
           <ChatPanel

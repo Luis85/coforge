@@ -12,8 +12,8 @@ const model = useHelpDialog();
         <BrandMark />
         <button type="button" class="cf-icon-button" aria-label="Close guide" @click="model.close()"><CfIcon name="x" size="lg" /></button>
       </header>
-      <h2 id="cf-help-title">From “what if”<br>to “we built this.”</h2>
-      <p>CoForge connects your chat, AI agents, and a human review into one shared game-building workflow. Every idea is a note in your vault.</p>
+      <h2 id="cf-help-title">Build with your community</h2>
+      <p>Prepare your stream in Stream. Develop project requests in Build. Recognize contributors in Community, and inspect recorded results in Insights. Every idea remains a note in your vault.</p>
       <ol class="cf-help-steps">
         <li>
           <span>1</span>

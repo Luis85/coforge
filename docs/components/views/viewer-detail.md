@@ -16,6 +16,8 @@ privacy: "Private vault workspace; excluded from public projections."
 
 # Viewer profile
 
+Recorded rank, balances, participation and contribution facts lead the selected profile. CoForge participation controls and Twitch moderation follow as separate tasks with their existing explicit target confirmation. No profile statistic verifies video watch time.
+
 ## Purpose
 
 Review a viewer’s private record and participation controls.

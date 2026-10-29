@@ -1,0 +1,97 @@
+import { useCouncilStore } from "../../stores/coforge-council";
+import { useCouncilEditorStore } from "../../stores/coforge-council-editor";
+import { useWorkflowV2Store } from "../../stores/coforge-workflow-v2";
+import { resetTaskSchedulerExample } from './task-scheduler-example-reset';
+import { emptyWorkflowTriggerDraft, useWorkflowTriggersStore } from '../../stores/coforge-workflow-triggers';
+
+/** Used only while Council is bound to its browser-only example service. */
+export function resetCouncilExample() {
+  resetTaskSchedulerExample();
+  const triggers = useWorkflowTriggersStore();
+  if (triggers.example) triggers.$patch({ example: false, draft: emptyWorkflowTriggerDraft(), id: '', revision: 0, acknowledge: false });
+  useCouncilStore().$patch({
+    example: false,
+    state: null,
+    catalogue: { valid: [], invalid: [] },
+    taskAssessmentApplying: false,
+    taskLinkedIdea: null,
+    pendingIdeaAssessment: null,
+    taskTitle: "",
+    taskQuestion: "",
+    taskTeam: "",
+    taskCouncil: "",
+    taskDraftKey: crypto.randomUUID(),
+    taskConfirmedSavedDraftKey: "",
+    taskReviewDraftKey: "",
+    taskProjectId: "",
+    taskSource: "",
+    tasks: [],
+    tasksLoaded: false,
+    taskHistoryError: "",
+    source: "",
+    target: "",
+    team: "",
+    preview: null,
+    destination: "CoForge/Tests/",
+    inboxPreview: [],
+    inboxSelection: [],
+    bindingId: "",
+    editingBindingId: "",
+    inboxPreviewed: false,
+    resetInboxId: "",
+    resetInboxConfirmed: false,
+    inboxPath: "",
+    recursive: false,
+    readyOnly: false,
+    error: "",
+    notice: "",
+    projectFilter: "",
+    stateFilter: "",
+    inspectedRun: "",
+    teamFilter: "",
+    targetFilter: "",
+    sourceFilter: "",
+    skipReason: "",
+    acknowledge: false,
+    checkpointItems: [],
+    checkpointNote: "",
+    exportedRun: "",
+    reassignPath: "",
+    pruneConsent: false,
+    handoffIdeaId: "",
+    handoffArtifactId: "",
+    allowanceCalls: 0,
+    allowanceMinutes: 0,
+    allowanceScope: "",
+    allowanceReason: "",
+  });
+  useCouncilEditorStore().$patch({
+    draft: null,
+    revision: undefined,
+    projectId: "",
+    saved: "",
+    search: "",
+    buffers: {},
+    selectedByProject: {},
+    error: "",
+    notice: "",
+    importJson: "",
+    exportJson: "",
+    preview: null,
+  });
+  useWorkflowV2Store().$patch({
+    draft: null,
+    projectId: "",
+    revision: "",
+    saved: "",
+    error: "",
+    notice: "",
+    source: "",
+    destination: "",
+    importJson: "",
+    importPreview: null,
+    exportJson: "",
+    preview: null,
+    buffers: {},
+  });
+}

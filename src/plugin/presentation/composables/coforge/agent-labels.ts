@@ -3,8 +3,15 @@ import {
   STAGE_LABELS,
   type AgentStage,
   type Settings,
+  type ExecutionProvider,
 } from "../../../features/coforge/domain/types";
 import { stageAgent } from "../../../features/coforge/domain/stage-agents";
+
+export function screeningProviderLabel(provider: ExecutionProvider): string {
+  if (provider === 'mcp') return 'External MCP client screening';
+  if (provider === 'demo') return 'Simulated screening';
+  return provider === 'herdr' ? 'Herdr · Claude Code screening' : 'Claude Code screening';
+}
 type AgentSettings = Pick<
   Settings,
   "provider" | "model" | "stageAgents" | "herdrAgent" | "workflow"
@@ -18,7 +25,7 @@ export function stageAgentLabel(
     ? "Simulation"
     : `${agent.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${agent.model}`;
 }
-export function workflowProviderSummary(settings: AgentSettings) {
+export function workflowProviderSummary(settings: AgentSettings, external = false) {
   const configured = settings.workflow?.steps.filter(
     (step) => step.kind === "ai",
   );
@@ -37,7 +44,7 @@ export function workflowProviderSummary(settings: AgentSettings) {
           : providers.has("claude")
             ? "claude"
             : "demo";
-  return {
+  const summary = {
     mode,
     label:
       mode === "manual"
@@ -71,4 +78,5 @@ export function workflowProviderSummary(settings: AgentSettings) {
             `${STAGE_LABELS[stage]}: ${stageAgentLabel(settings, stage)}`,
         ).join(" · "),
   };
+  return external ? { ...summary, mode: 'mcp' as const, label: 'External MCP client', icon: 'plug', title: `AI steps require explicit calls from the connected MCP client. Captured native configuration: ${summary.title}` } : summary;
 }

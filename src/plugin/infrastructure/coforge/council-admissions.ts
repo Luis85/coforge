@@ -64,6 +64,11 @@ export class CouncilAdmissions {
       throw new Error(
         "A plan captured for an Idea can only continue that same Idea.",
       );
+    if (run.subject.kind === "idea" && run.subject.ideaRevision)
+      await this.context.linkedIdeas.capture(
+        { ideaId, revision: run.subject.ideaRevision },
+        run.projectId,
+      );
     if (this.kernel.isPaused)
       throw new Error("Resume execution before explicitly handing off a plan.");
     await this.studio.engine.startWorkflowFromPlan(ideaId, {
@@ -167,11 +172,32 @@ export class CouncilAdmissions {
     const identified = await this.sources.identify(
       await this.sources.read(path),
     );
+    const linkedIdea = preview.source.linkedIdea;
+    if (linkedIdea && simulation)
+      await this.context.linkedIdeas.register(
+        identified.sourceId,
+        preview.plan.definition.projectId,
+        linkedIdea,
+        identified.body,
+        "simulation",
+        path,
+      );
+    const validatedLink = await this.context.linkedIdeas.validate(
+      path,
+      identified.sourceId,
+      preview.plan.definition.projectId,
+      identified.body,
+    );
+    if (JSON.stringify(validatedLink) !== JSON.stringify(linkedIdea))
+      throw new Error(
+        "The linked request changed during preflight. Review it again.",
+      );
     preview.source = {
       sourceId: identified.sourceId,
       generation: identified.generation,
       revision: identified.sourceRevision,
       markdown: identified.body,
+      ...(validatedLink ? { linkedIdea: validatedLink } : {}),
     };
     if (
       identified.draft ||

@@ -7,7 +7,7 @@ kind: "subpage"
 route: "council.tab = inboxes"
 parent: "council"
 component: "src/plugin/presentation/components/coforge/CouncilSubmission.vue"
-entry: ["Open The Council, then choose Watched inboxes."]
+entry: ["Open The Council, expand Advanced Council tools, then choose Watched inboxes."]
 actions: ["Configure folder","Preview existing files","Select candidates","Activate or pause","Confirm generation reset"]
 states: ["No bindings","Preview required","Existing candidates","Paused","Reconciled arrivals","Invalid binding"]
 journeys: ["Council"]
@@ -25,7 +25,7 @@ Activation previews existing files. Reload reconciles arrivals and pauses execut
 
 ## Entry and next action
 
-Open The Council, then choose Watched inboxes. Available actions: Configure folder; Preview existing files; Select candidates; Activate or pause; Confirm generation reset. Return through the owning [The Council](council.md) surface.
+Open The Council, expand Advanced Council tools, then choose Watched inboxes. Available actions: Configure folder; Preview existing files; Select candidates; Activate or pause; Confirm generation reset. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 
@@ -36,3 +36,7 @@ No bindings; Preview required; Existing candidates; Paused; Reconciled arrivals;
 Source: [src/plugin/presentation/components/coforge/CouncilSubmission.vue](../../../src/plugin/presentation/components/coforge/CouncilSubmission.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`.
+
+## Workspace redesign
+
+Inbox routing uses the Council authoring hierarchy and explicit admission preview. The executor prerequisite remains visible before any watched intake can be changed.

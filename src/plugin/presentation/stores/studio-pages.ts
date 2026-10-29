@@ -10,11 +10,12 @@ export const BROADCAST_PAGES = [
 export type BroadcastPage = (typeof BROADCAST_PAGES)[number]["id"];
 
 export const COUNCIL_PAGES = [
+  { id: "ask", label: "Ask the Council" },
   { id: "definitions", label: "Definitions" },
-  { id: "submit", label: "Submit and preflight" },
+  { id: "submit", label: "Submit existing note" },
   { id: "inboxes", label: "Watched inboxes" },
   { id: "scheduler", label: "Task scheduler" },
-    { id: "events", label: "Event triggers" },
+  { id: "events", label: "Event triggers" },
   { id: "monitor", label: "Run monitor" },
   { id: "workflows", label: "Council workflows" },
   { id: "messages", label: "Team messages" },
@@ -25,6 +26,7 @@ export type CouncilPage = (typeof COUNCIL_PAGES)[number]["id"];
 export const WORKFLOW_PAGES = [
   { id: "runs", label: "Workflow runs" },
   { id: "herdr", label: "Herdr workspaces" },
+  { id: "settings", label: "Workflow settings" },
 ] as const;
 export type WorkflowPage = (typeof WORKFLOW_PAGES)[number]["id"];
 
@@ -34,3 +36,12 @@ export const STREAM_PAGES = [
   { id: "messages", label: "Bot messages" },
 ] as const;
 export type StreamPage = (typeof STREAM_PAGES)[number]["id"];
+
+export const ECONOMY_PAGES = [
+  { id: 'commands', label: 'Command prices' },
+  { id: 'earning', label: 'Earning' },
+  { id: 'rewards', label: 'Rewards' },
+  { id: 'lootboxes', label: 'Loot boxes' },
+  { id: 'fulfillment', label: 'Fulfillment' },
+] as const;
+export type EconomyPage = (typeof ECONOMY_PAGES)[number]['id'];

@@ -10,6 +10,7 @@ export function loadProjectSample(state: InternalState): void {
   if (!state.projects.length) {
     const sample = initialProject(createSeed().settings, state.integration, new Date().toISOString());
     sample.id = projectIdFor(state.nextProjectNumber++); state.projects.push(sample); state.activeProjectId = sample.id;
+    (state.sampleCreatedProjectIds ??= []).push(sample.id);
   }
   const projectId = state.activeProjectId;
   if (state.jobs.some(job => job.projectId === projectId && isActiveJob(job))) throw new StudioError('Cancel or finish this project’s active and queued jobs before resetting.', 409);
@@ -23,12 +24,16 @@ export function loadProjectSample(state: InternalState): void {
     return { ...idea, id, number, projectId };
   });
   state.ideas = [...state.ideas.filter(idea => ideaProjectId(idea) !== projectId), ...ideas];
+  state.requestOrigins = Object.fromEntries(Object.entries(state.requestOrigins ?? {}).filter(([id]) => !oldIds.has(id)));
+  for (const idea of ideas) state.requestOrigins[idea.id] = 'sample';
   state.nextIdeaNumber = Math.max(state.nextIdeaNumber, ...ideas.map(idea => idea.number + 1));
   const known = new Set(state.contributors.map(person => person.id));
   state.contributors.push(...sample.contributors.filter(person => !known.has(person.id)));
   state.jobs = state.jobs.filter(job => job.projectId !== projectId);
   state.events = state.events.filter(event => !event.ideaId || !oldIds.has(event.ideaId));
-  state.events.push(...sample.events.map(event => ({ ...event, id: crypto.randomUUID(), ...(event.ideaId ? { ideaId: remap.get(event.ideaId) ?? event.ideaId } : {}) })));
+  const events = sample.events.map(event => ({ ...event, id: crypto.randomUUID(), ...(event.ideaId ? { ideaId: remap.get(event.ideaId) ?? event.ideaId } : {}) }));
+  state.events.push(...events);
+  state.sampleEventIds = [...(state.sampleEventIds ?? []), ...events.map(event => event.id)].filter(id => state.events.some(event => event.id === id));
   state.chat.push(...sample.chat.map(message => ({ ...message, id: crypto.randomUUID(),
     text: message.text.replace(/CFP-\d+/g, projectId).replace(/CF-\d+/g, id => remap.get(id) ?? id), ...(message.ideaId ? { ideaId: remap.get(message.ideaId) ?? message.ideaId } : {}) })));
   state.settings = sample.settings;

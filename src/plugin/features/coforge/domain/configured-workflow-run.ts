@@ -1,6 +1,7 @@
 import { boolean, list, number, oneOf, optional, shape, text, timestamp } from './check';
 import { automationContextCheck, type AutomationContext } from './automation-context';
 import { contextEventId } from './integrity';
+import { requestObjectIdentity } from './request-object';
 import { WORKFLOW_OUTPUTS, workflowDefinitionCheck, workflowIdCheck, workflowStepCheck, type AiWorkflowStep, type WorkflowDefinition, type WorkflowOutput } from './configured-workflow';
 import type { AppState, Idea, ImplementationPlan, Increment, RiceScore, Screening } from './types';
 export const WORKFLOW_RUN_LIMIT_BYTES = 2 * 1024 * 1024;
@@ -102,7 +103,7 @@ export function workflowHistoryCheck(value: unknown): WorkflowRun[] {
   return list(workflowRunCheck, { max: 25 })(value);
 }
 /** Derived facts and lifecycle status are deliberately excluded from immutable proposal identity. */
-export const workflowProposalRevision = (idea: Idea): string => contextEventId(JSON.stringify([idea.projectId ?? '', idea.title, idea.description, idea.category, idea.requestKind ?? 'feature', idea.contexts ?? []]));
+export const workflowProposalRevision = (idea: Idea): string => contextEventId(JSON.stringify([idea.projectId ?? '', idea.title, idea.description, idea.category, idea.requestKind ?? 'feature', idea.contexts ?? [], ...(idea.requestObject ? [requestObjectIdentity(idea.requestObject)] : [])]));
 function ordered(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(ordered);
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).filter(([key, item]) => key !== 'contentHash' && item !== undefined)

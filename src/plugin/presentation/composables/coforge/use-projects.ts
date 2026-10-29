@@ -3,6 +3,7 @@ import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import { validateProjectPath, validateProjectUrl } from '../../../features/coforge/domain/project-note';
 import { useStudioStore } from '../../stores/coforge-studio';
 import { useStudioActions } from './use-studio-actions';
+import type { ProjectVisibility } from '../../../features/coforge/domain/project-publicity';
 
 /** One stream, many project boards. New projects start paused; switches never stop the shared worker. */
 export function useProjects() {
@@ -11,11 +12,12 @@ export function useProjects() {
   const adding = ref(false);
   const error = ref('');
   const sampleConfirm = ref(false);
-  const draft = reactive({ projectName: '', projectBrief: '', projectPath: '', repositoryUrl: '', websiteUrl: '' });
+  const draft = reactive({ projectName: '', projectBrief: '', projectPath: '', repositoryUrl: '', websiteUrl: '', visibility: 'public' as ProjectVisibility });
   const rows = computed(() => (store.state?.projects ?? []).map(project => {
     const ideas = (store.state?.ideas ?? []).filter(idea => ideaProjectId(idea) === project.id);
     const jobs = (store.state?.jobs ?? []).filter(job => job.projectId === project.id && (job.status === 'queued' || job.status === 'running'));
     return { id: project.id, name: project.settings.projectName, path: project.projectPath, brief: project.settings.projectBrief,
+      visibility: project.visibility ?? 'public', publicationBlocked: project.visibility !== 'private' && Boolean(store.state?.runtime.publicationDeniedProjectIds?.includes(project.id)),
       repositoryUrl: project.repositoryUrl, repositoryHref: /^https?:\/\//i.test(project.repositoryUrl) ? project.repositoryUrl : undefined, websiteUrl: project.websiteUrl,
       selected: project.id === store.state?.activeProjectId, unavailable: project.unavailable, requests: ideas.length,
       review: ideas.filter(idea => idea.status === 'review').length, jobs: jobs.length,
@@ -28,7 +30,7 @@ export function useProjects() {
     try { validateProjectPath(draft.projectPath, true); validateProjectUrl(draft.repositoryUrl, true); validateProjectUrl(draft.websiteUrl); }
     catch (problem) { error.value = problem instanceof Error ? problem.message : 'Enter a valid project path.'; return; }
     if (await actions.createProject({ ...draft })) {
-      Object.assign(draft, { projectName: '', projectBrief: '', projectPath: '', repositoryUrl: '', websiteUrl: '' });
+      Object.assign(draft, { projectName: '', projectBrief: '', projectPath: '', repositoryUrl: '', websiteUrl: '', visibility: 'public' });
       adding.value = false; store.navigate('board');
     } else error.value = store.toasts.at(-1)?.message ?? 'The project could not be saved. Your draft is kept.';
   }

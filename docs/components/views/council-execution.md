@@ -5,9 +5,9 @@ goal: "Choose whether this desktop may execute Council work."
 audience: "streamer"
 kind: "panel"
 route: "Council executor controls"
-parent: "council-monitor"
+parent: "council"
 component: "src/plugin/presentation/components/coforge/CouncilExecutionControls.vue"
-entry: ["Within The Council → Run monitor, use the inline Execution controls section."]
+entry: ["Use the inline Execution controls on Ask the Council or Advanced Council tools → Run monitor."]
 actions: ["Check runtime","Designate desktop","Pause or resume execution","Pause or resume selected project"]
 states: ["Native not ready","No executor","Paused","Resumed","Project paused"]
 journeys: ["Council","recovery"]
@@ -24,7 +24,7 @@ Only one designated desktop executes while active. Reload pauses execution and u
 
 ## Entry and next action
 
-Within The Council → Run monitor, use the inline Execution controls section. Available actions: Check runtime; Designate desktop; Pause or resume execution; Pause or resume selected project. Return through the owning [Council run monitor](council-monitor.md) surface.
+Use the inline Execution controls on [Ask the Council](council-ask.md) or Advanced Council tools → [Run monitor](council-monitor.md). Available actions: Check runtime; Designate desktop; Pause or resume execution; Pause or resume selected project. Return through the owning [The Council](council.md) surface.
 
 ## States and recovery
 
@@ -35,3 +35,7 @@ Native not ready; No executor; Paused; Resumed; Project paused. Inspect an error
 Source: [src/plugin/presentation/components/coforge/CouncilExecutionControls.vue](../../../src/plugin/presentation/components/coforge/CouncilExecutionControls.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`, `recovery`.
+
+## Workspace redesign
+
+Execution controls remain separate from editable definitions and local task-note creation. One instance is rendered on the active Ask or monitor page, so the current executor and paused state remain clear without duplicated controls. Saving a question does not designate a device or resume execution.

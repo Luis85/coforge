@@ -39,3 +39,7 @@ Removing readable history requires a completed/cancelled run, prepared private e
 Source: [src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue](../../../src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue). Use the studio page heading, shared buttons and fields, semantic controls and the owning page scroll container. Panels share their parent layout rather than acting as browser routes.
 
 Journey tags: `Council`, `recovery`.
+
+## Workspace redesign
+
+Recovery disclosures group allowance, export and uncertain-outcome tools under the inspected run. Expanded controls use the shared form spacing and retain their explicit acknowledgement requirements.

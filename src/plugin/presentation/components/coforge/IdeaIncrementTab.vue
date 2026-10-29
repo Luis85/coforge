@@ -96,8 +96,8 @@ const drawer = useIdeaDrawerContext();
     <CfIcon name="code" size="lg" />
     <h3>The next increment starts here</h3>
     <p>
-      Build an approved plan to collect its changed files, diff, and
-      verification notes for review.
+      A workflow that changes code records its changed files, diff and
+      verification notes here for your review. A workflow can also finish without code changes.
     </p>
     <button
       type="button"

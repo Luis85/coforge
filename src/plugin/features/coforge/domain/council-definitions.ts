@@ -12,6 +12,10 @@ import { contextEventId } from "./integrity";
 import { agentModelCheck } from "./stage-agents";
 import type { Provider } from "./types";
 import { agentConnectionProfileIssue } from "./agent-connection-profiles";
+import {
+  councilPromptOrderCheck,
+  type CouncilPromptOrder,
+} from "./council-prompt-order";
 
 export const councilIdCheck = text({
   min: 1,
@@ -47,6 +51,7 @@ export interface CouncilRound {
   id: string;
   name: string;
   kind: "opinion" | "solution" | "synthesis";
+  promptOrder?: CouncilPromptOrder;
   participants: string[];
   instructions: string;
   inputs: string[];
@@ -144,6 +149,7 @@ const round = shape(
     id: councilIdCheck,
     name: base.name,
     kind: oneOf(["opinion", "solution", "synthesis"] as const),
+    promptOrder: optional(councilPromptOrderCheck),
     participants: list(councilIdCheck, { min: 1, max: 24 }),
     instructions,
     inputs: list(councilIdCheck, { max: 24 }),

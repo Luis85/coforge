@@ -4,6 +4,7 @@ import type { TwitchIdentity } from "../domain/twitch";
 import type { ChatSenderPort } from "./integration-ports";
 import { IntegrationFailure } from "../domain/integration-failure";
 import { recordOperation } from "./population";
+import { publicReplyBlocked } from './public-reply-policy';
 
 /** Persists send intent before HTTP. Ambiguous sends are held for inspection, never silently replayed. */
 export class BotDeliveryWorker {
@@ -97,6 +98,7 @@ export class BotDeliveryWorker {
       const sending = await this.studio.store.transaction((state) => {
         const item = state.botReplies.find((item) => item.id === reply.id);
         if (item?.status !== "pending") return false;
+        if (publicReplyBlocked(state, item)) { item.status = 'cancelled'; recordOperation(state, 'reply-privacy-cancelled', 'none'); return false; }
         if (
           item.streamMessageId &&
           (!this.recurringReady() ||
@@ -112,6 +114,13 @@ export class BotDeliveryWorker {
         return true;
       });
       if (!sending) continue;
+      if (!this.studio.store.publicReplyAllowed(reply.id)) {
+        await this.studio.store.transaction(state => {
+          const item = state.botReplies.find(item => item.id === reply.id);
+          if (item?.status === 'sending') { item.status = 'cancelled'; recordOperation(state, 'reply-privacy-cancelled', 'none'); }
+        });
+        continue;
+      }
       try {
         this.lastSent = Date.now();
         const messageId = await this.api.send(reply.text, reply.parentMessageId, reply.senderId, reply.channelId);

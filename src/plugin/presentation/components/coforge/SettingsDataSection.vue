@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import { useSettingsForm } from '../../composables/coforge/use-settings';
 import CfIcon from './CfIcon.vue';
+import ExampleContentCleanup from './ExampleContentCleanup.vue';
 
 const model = useSettingsForm();
 </script>
 <template>
   <section class="cf-settings-data" aria-labelledby="cf-settings-data">
     <div>
-      <h2 id="cf-settings-data"><CfIcon name="settings-2" /> Project data</h2>
+      <h2 id="cf-settings-data"><CfIcon name="settings-2" /> Backup and sample tools</h2>
       <p class="cf-settings-help">
         Export a private studio backup of all projects, ideas, plans, settings and activity. The JSON file is written to the CoForge plugin folder.
       </p>
     </div>
     <div class="cf-settings-actions">
       <button type="button" class="cf-btn cf-btn-secondary" @click="model.exportProject()">
-        <CfIcon name="download" size="sm" /> Export JSON
+        <CfIcon name="download" size="sm" /> Export private studio backup
       </button>
       <button
         type="button" class="cf-btn cf-btn-ghost" :disabled="model.store.busy || model.pending" :aria-expanded="model.resetConfirm"
@@ -44,5 +45,6 @@ const model = useSettingsForm();
         </button>
       </div>
     </div>
+    <ExampleContentCleanup />
   </section>
 </template>
