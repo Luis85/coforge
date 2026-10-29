@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import {
   openWorkflowRuns,
   openWorkflowSettings,
@@ -37,7 +37,9 @@ test("Council workflows reuse project templates and require fresh review after t
   await library
     .getByRole("button", { name: "Save template", exact: true })
     .click();
-  await expect(library.locator(".cf-workflow-editor-notice")).toContainText("Template saved.");
+  await expect(library.locator(".cf-workflow-editor-notice")).toContainText(
+    "Template saved.",
+  );
   const id = await library
     .getByLabel("Template library", { exact: true })
     .inputValue();
@@ -80,7 +82,9 @@ test("Council workflows reuse project templates and require fresh review after t
   await library
     .getByRole("button", { name: "Save template", exact: true })
     .click();
-  await expect(library.locator(".cf-workflow-editor-notice")).toContainText("Template saved.");
+  await expect(library.locator(".cf-workflow-editor-notice")).toContainText(
+    "Template saved.",
+  );
   await expect(preview).toHaveCount(0);
   await page
     .getByRole("button", { name: "Preflight proposal workflow", exact: true })
@@ -107,11 +111,9 @@ test("Council workflows reuse project templates and require fresh review after t
       .locator(".cf-council")
       .evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
   ).toBe(true);
-  await page
-    .locator(".cf-council")
-    .screenshot({
-      path: "reports/workflow-output-templates/proposal-workflow-320.png",
-    });
+  await page.locator(".cf-council").screenshot({
+    path: "reports/workflow-output-templates/proposal-workflow-320.png",
+  });
 });
 async function importWorkflow(page: Page) {
   const transfer = page.locator(".cf-workflow-tools");
@@ -200,7 +202,9 @@ for (const theme of ["light", "dark"]) {
     await library
       .getByRole("button", { name: "Save template", exact: true })
       .click();
-    await expect(library.locator(".cf-workflow-editor-notice")).toContainText("Template saved.");
+    await expect(library.locator(".cf-workflow-editor-notice")).toContainText(
+      "Template saved.",
+    );
     await expect(
       library.getByLabel("Template Markdown", { exact: true }),
     ).toBeFocused();
@@ -217,7 +221,9 @@ for (const theme of ["light", "dark"]) {
     await library
       .getByRole("button", { name: "Save template", exact: true })
       .click();
-    await expect(library.locator(".cf-workflow-editor-notice")).toContainText("Template saved.");
+    await expect(library.locator(".cf-workflow-editor-notice")).toContainText(
+      "Template saved.",
+    );
     await mkdir("reports/workflow-output-templates", { recursive: true });
     await library.getByText("Preview template", { exact: true }).click();
     await library.screenshot({
@@ -360,6 +366,39 @@ for (const theme of ["light", "dark"]) {
     await mkdir("reports/workflow-output-templates", { recursive: true });
     for (const width of [1440, 800, 360, 320]) {
       await page.setViewportSize({ width, height: 900 });
+      const geometry = await page
+        .locator(".cf-workflow-settings-page")
+        .evaluate((root) => {
+          const right = root.getBoundingClientRect().right;
+          return {
+            clientWidth: root.clientWidth,
+            scrollWidth: root.scrollWidth,
+          font: getComputedStyle(root).font,
+            overflowingElements: [...root.querySelectorAll("*")]
+              .filter(
+                (element) =>
+                  element.getBoundingClientRect().width > 0 &&
+                  element.getBoundingClientRect().right > right + 1,
+              )
+              .map((element) => {
+                const style = getComputedStyle(element);
+                return {
+                  tag: element.tagName,
+                  className: element.getAttribute("class"),
+                  parentClass: element.parentElement?.getAttribute("class"),
+                  width: element.getBoundingClientRect().width,
+                  font: style.font,
+                  minWidth: style.minWidth,
+                  whiteSpace: style.whiteSpace,
+                  text: element.textContent?.trim().slice(0, 80),
+                };
+              }),
+          };
+        });
+      await writeFile(
+        `reports/workflow-output-templates/editor-reflow-${theme}-${width}.json`,
+        JSON.stringify({ width, theme, ...geometry }, null, 2),
+      );
       expect(
         await page
           .locator(".cf-workflow-settings-page")
@@ -367,11 +406,9 @@ for (const theme of ["light", "dark"]) {
             (element) => element.scrollWidth <= element.clientWidth + 1,
           ),
       ).toBe(true);
-      await page
-        .locator(".cf-workflow-settings-page")
-        .screenshot({
-          path: `reports/workflow-output-templates/editor-${theme}-${width}.png`,
-        });
+      await page.locator(".cf-workflow-settings-page").screenshot({
+        path: `reports/workflow-output-templates/editor-${theme}-${width}.png`,
+      });
     }
     expect(
       (

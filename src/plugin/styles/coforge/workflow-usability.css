@@ -95,6 +95,16 @@
   padding-top: 12px;
   justify-content: flex-end;
 }
+.cf-workflow-editor-save > .cf-settings-actions {
+  min-width: 0;
+  max-width: 100%;
+}
+.cf-workflow-editor-save .cf-btn {
+  max-width: 100%;
+  white-space: normal;
+  height: auto;
+  overflow-wrap: anywhere;
+}
 .cf-workflow-output-section h3 {
   font-size: 14px;
   margin: 24px 0 12px;
