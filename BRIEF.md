@@ -366,6 +366,23 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ## Decisions
 
+- 2026-10-29: implement the three proposed Twitch integration increments end to end:
+  reliable live operations (capabilities, activity, moderation, ads and raids), community
+  interaction (Channel Points, redemption queues, polls and predictions), and content/
+  improvement (clips, markers, private reports, audience information and optional explicit
+  Twitch schedule publishing). Coordinate with the concurrent OBS integration; OBS owns
+  broadcast production and its studio controls. Twitch operations remain channel-wide.
+  Add a permission-aware data catalogue with source age, collection gaps and unavailable
+  capabilities. Request additional scopes only for explicitly enabled features. Preserve
+  exact target confirmation, durable intent, unknown-outcome recovery, app-owned reward
+  restrictions, private data and human review. Stream plans remain local until explicitly
+  published; private scripts and project context are never published to Twitch. Collect
+  events only while this designated Obsidian desktop is open; a separate always-on service
+  was discussed as a future product decision and is not part of these three increments.
+  Use subagents, complete E2E qualification and an improvement/polishing pass, then open
+  and merge the PR when all required checks are green. No real Twitch-account mutation
+  is implied by automated qualification.
+
 - 2026-10-29: expose the maintained CoWorker roster and definition-based subagent
   dispatch through the existing vault MCP server. Assistants can author private
   tasks for a CoWorker or council, preflight them, explicitly dispatch, inspect

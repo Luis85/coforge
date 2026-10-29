@@ -204,6 +204,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     obsScenes: obs.sceneActions,
     diagnostics, exportDiagnostics: () => saveJson('diagnostics', diagnostics()),
     twitch: twitch.actions,
+    twitchOperations: twitch.operations,
     setSecret(name, value) {
       const store = secrets(plugin.app);
       if (!store) return false;
