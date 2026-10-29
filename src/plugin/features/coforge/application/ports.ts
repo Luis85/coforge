@@ -82,6 +82,10 @@ export interface StudioHost {
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
   serviceDesign?: import('../../service-design/domain/blueprint').ServiceDesignActions;
+  obsProduction?: import('./obs-production-workflow').ObsProductionActions;
+  obsShow?: import('./obs-show-ports').ObsShowActions;
+  obsSetup?: import('./obs-setup-workflow').ObsSetupActions;
+  obsOverlays?: import('./obs-overlay-workflow').ObsOverlayActions;
   /** Relative vault file names for explicit link authoring; never returns file contents. */
   listVaultFiles?(): Promise<string[]>;
   workflowTriggers?: import('./workflow-trigger-ports').WorkflowTriggerActions;

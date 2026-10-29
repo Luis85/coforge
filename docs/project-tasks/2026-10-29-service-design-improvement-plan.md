@@ -231,6 +231,13 @@ The final production artifact build and 40-image gallery check pass. A local nat
 rerun after this CSS change completed its three test bodies, then failed during
 Windows session cleanup with `OBSIDIAN_STOP_TIMEOUT`; final-head native qualification
 is tracked in CI rather than reported as a successful local command.
+The compact correction subsequently passed every required CI check, including
+all 199 browser tests. Main advanced during that run with the OBS Studio increment.
+Its host ports and live-dock import were merged additively with Service Design;
+upstream host-shutdown fixes are retained. The combined eight-file regression
+suite passes 74 tests, with successful typecheck and zero-warning ESLint. No new
+managed Markdown root is introduced by OBS. The regenerated catalogue validates
+105 views, and source/locale checks validate 3294 inputs and 226 keys.
 
 | Increment | Current status | Remaining closeout evidence |
 | --- | --- | --- |

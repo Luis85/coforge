@@ -14,6 +14,7 @@ import type { OperationCode } from "../domain/population";
 import { recordOperation } from "./population";
 import { executeObsCommand } from "./obs-commands";
 import { ObsSceneWorkflow } from './obs-scene-workflow';
+import type { ObsSceneGate } from './obs-scene-workflow';
 
 const requested: Record<ObsCommandKind, OperationCode> = {
   prepare: "stream-prepare-requested",
@@ -38,16 +39,21 @@ export class ObsWorkflow {
   private stopObserving = () => {};
   private observed: Promise<void> = Promise.resolve();
   private detection: Promise<void> | undefined;
+  private readonly idleWaiters = new Set<() => void>();
   constructor(
     private readonly store: StudioStore,
     private readonly obs: ObsControlPort,
   ) {
-    if (obs.scenes) this.sceneActions = new ObsSceneWorkflow(store, obs.scenes, {
+    if (obs.scenes) this.sceneActions = new ObsSceneWorkflow(store, obs.scenes, this.productionGate());
+  }
+  /** All OBS writers share this admission and recovery boundary. */
+  productionGate(): ObsSceneGate {
+    return {
       claim: () => this.claim(), release: async () => { this.state.busy = false; await this.publish(); },
       fresh: () => this.fresh(), accept: snapshot => this.accept(snapshot), uncertain: () => this.state.uncertain,
       invalidate: () => { this.state.prepared = false; return this.publish(); },
       failed: (message, uncertain) => { this.state.lastError = message; this.state.uncertain = uncertain; },
-    });
+    };
   }
   start(): void {
     this.state.uncertain =
@@ -65,6 +71,7 @@ export class ObsWorkflow {
   }
   dispose(): void {
     this.closed = true;
+    this.signalIdle();
     this.stopObserving();
     this.obs.dispose();
   }
@@ -79,7 +86,21 @@ export class ObsWorkflow {
     await this.store.transaction((state) => recordOperation(state, code, effect, undefined, 1, id));
   }
   private async publish(): Promise<void> {
-    if (!this.closed) await this.store.updateRuntime({ obs: structuredClone(this.state) });
+    try {
+      if (!this.closed) await this.store.updateRuntime({ obs: structuredClone(this.state) });
+    } finally {
+      if (!this.state.busy || this.closed) this.signalIdle();
+    }
+  }
+  private signalIdle(): void {
+    for (const resolve of this.idleWaiters) resolve();
+    this.idleWaiters.clear();
+  }
+  /** A committed stream event may run its cue only after its triggering command releases admission. */
+  async afterCurrentInteraction(): Promise<void> {
+    this.checkOpen();
+    if (this.state.busy) await new Promise<void>(resolve => this.idleWaiters.add(resolve));
+    this.checkOpen();
   }
   private checkOpen(): void {
     if (this.closed) throw new IntegrationFailure("validation", "The OBS workflow is closed. Reopen CoForge.");
@@ -91,6 +112,8 @@ export class ObsWorkflow {
       throw new IntegrationFailure("validation", "An OBS interaction is already in progress.");
     }
     this.state.busy = true;
+    try { await this.publish(); }
+    catch (error) { this.state.busy = false; this.signalIdle(); throw error; }
   }
   async configure(input: unknown): Promise<void> {
     await this.claim();
@@ -265,9 +288,11 @@ export class ObsWorkflow {
     if (previous !== value.connection) await this.event("obs-connection-changed", "none");
   }
   private async fresh(): Promise<ObsSnapshot> {
+    this.checkOpen();
     if (this.state.connection !== "connected")
       throw new IntegrationFailure("validation", "Connect OBS before controlling the stream.");
     const snapshot = await this.obs.snapshot();
+    this.checkOpen();
     await this.accept(snapshot);
     return snapshot;
   }
@@ -290,8 +315,15 @@ export class ObsWorkflow {
     await this.claim();
     if (this.state.uncertain) {
       this.state.busy = false;
-      await this.event("stream-control-rejected", "none");
+      try { await this.event("stream-control-rejected", "none"); }
+      finally { await this.publish(); }
       throw new IntegrationFailure("uncertain", "Refresh OBS status to resolve the previous unconfirmed interaction.");
+    }
+    if ((kind === 'prepare' || kind === 'go-live') && this.store.snapshot().obsShow?.outputRestartRequired) {
+      this.state.busy = false;
+      try { await this.event('stream-control-rejected', 'none'); }
+      finally { await this.publish(); }
+      throw new IntegrationFailure('validation', 'Restart OBS, rehearse the output and acknowledge the saved output preset in Setup before preparing a broadcast.');
     }
     this.state.busy = true;
     delete this.state.lastError;

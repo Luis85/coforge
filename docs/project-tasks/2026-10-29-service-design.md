@@ -55,6 +55,11 @@ the owner-approved incremental acceptance; tests live in the product test suite.
   16px from compact-only outer padding and retained all control sizes. The
   navigation/focus/workspace/view-intent regression batch passed 33/33; light/dark
   740px panes now have zero overflow. Reviewed their screenshots and 460px scrolling.
+- All required checks on that correction passed, including 199 browser tests.
+  Integrated the concurrently merged OBS Studio increment, preserving both sets
+  of host ports/UI imports and the upstream shutdown fixes. The combined focused
+  regression suite passes 8 files/74 tests; typecheck and ESLint pass. The current
+  catalogue has 105 views; code-line/locale checks pass for 3294 inputs/226 keys.
 - Independent storage, product/UX, integration and final visual reviews completed;
   all material findings were implemented and tested. Canonical qualification and
   delivery are tracked in [PR #43](https://github.com/Luis85/coforge/pull/43).

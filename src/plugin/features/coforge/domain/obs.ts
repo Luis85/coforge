@@ -42,7 +42,7 @@ export interface ObsPublicState extends ObsObservation {
 export type ObsCommandKind = "prepare" | "go-live" | "pause" | "resume" | "stop";
 export interface ObsCommand {
   id: string;
-  kind: ObsCommandKind | import('./obs-scenes').ObsSceneKind;
+  kind: ObsCommandKind | import('./obs-scenes').ObsSceneKind | 'production';
   at: string;
   status: "pending" | "confirmed" | "failed" | "uncertain" | "reconciled";
 }

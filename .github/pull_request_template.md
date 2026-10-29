@@ -18,8 +18,9 @@ Add Service Design to Build & Improve. Each project owns one Service Blueprint w
 - Project typecheck and focused source/test ESLint: passed with zero warnings.
 - Merged-main focused regression run: 5 files, 40 tests passed (12.26s), covering domain, vault, UI, integration and startup/disposal.
 - npm run verify:artifacts: production build passed (7.89s); prototype embedding 1 passed, 0 failed. test:ui-effects explicitly reports no declared visual obligations.
-- Merged-main typecheck passed; npm run check:source passed for 3221 inputs and 226 translated keys.
-- npm run check:views: 102 views documented; navigation coverage valid; sitemap current. Normalized two incoming Council view parent references to the existing catalogue schema.
+- Latest OBS-main integration: 8 focused files and 74 tests passed; typecheck and zero-warning ESLint passed. Service Design and all OBS host ports/imports are preserved, with no additional managed Markdown root needed.
+- Merged-main typecheck passed; npm run check:source passed for 3294 inputs and 226 translated keys.
+- npm run check:views: 105 views documented; navigation coverage valid; sitemap current. Normalized two incoming Council view parent references to the existing catalogue schema.
 - git diff --check: clean.
 - Pinned CI npm run verify:project: 5 gates passed, 0 failed, 0 skipped in 252.9s; production build and prototype embedding passed. Community review: 16 pass, 0 warn, 0 fail. Qualification receipts are linked from PR #43.
 - Local full product-test stage exceeded its 600-second process deadline; typecheck, both lint gates and maker types passed. The reported Herdr worktree case passed in isolation (5 passed, 1 existing Windows-only symlink skip). No test assertions, timeouts or output limits were relaxed; pinned CI qualified the complete suite.
@@ -38,7 +39,7 @@ Add Service Design to Build & Improve. Each project owns one Service Blueprint w
 
 - npm run test:obsidian: 24 files passed, 31 tests passed, 365.52s, exit 0. Includes lifecycle, privacy, navigation, MCP and Service Design. Reports: reports/obsidian/.
 - Pinned Obsidian CI after latest-main integration: 25 files, 32 tests passed (208.66s), followed by a successful agent-loop smoke.
-- After the compact-navigation correction, the final local Service Design/navigation rerun completed all three test bodies, but exited 1 from OBSIDIAN_STOP_TIMEOUT during Windows session cleanup. This is recorded as a failed local command; final-head native qualification is provided by CI.
+- An earlier local Service Design/navigation rerun completed all three test bodies, but exited 1 from OBSIDIAN_STOP_TIMEOUT during Windows session cleanup. This is recorded as a failed local command; the subsequently integrated main preserves its host-shutdown fixes, and final-head native qualification is provided by CI.
 - Pinned contained host: Obsidian app/installer 1.14.4, launcher 3.2.1.
 - npm run -s dev:obsidian -- --allow-download --json: status passed, errors [], hostErrorCount 0, pluginConsole [], exit 0. Read dev.log/debug-report.json and reviewed last-run.png. Its Windows shutdown reported OBSIDIAN_STOP_TIMEOUT after the successful summary; the full suite later completed cleanly.
 

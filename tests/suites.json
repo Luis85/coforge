@@ -1005,7 +1005,8 @@
           "tooling/tests/native-recovery-handles.checks.mjs",
           "tooling/tests/native-resource-report.checks.mjs",
           "tooling/tests/native-runtime-observation.checks.mjs",
-          "tooling/tests/obsidian-session-lifecycle.checks.mjs"
+          "tooling/tests/obsidian-session-lifecycle.checks.mjs",
+          "tooling/tests/obsidian-host-shutdown.checks.mjs"
         ]
       },
       "runner": {
