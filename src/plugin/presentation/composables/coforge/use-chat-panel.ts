@@ -81,33 +81,40 @@ export function useChatPanel() {
   const live = computed(
     () => state.value?.runtime.twitch?.phase === "connected",
   );
+  const testing = computed(() => store.chatDraft.testing);
+  const source = computed(() => testing.value ? "simulator" : "twitch");
+  const chat = computed(() =>
+    (state.value?.chat ?? []).filter(message => message.source === source.value),
+  );
   const showHelp = ref(false);
   const scroll = useChatAutoScroll(() => {
-    const chat = state.value?.chat ?? [];
-    return `${chat.length}:${chat[chat.length - 1]?.id ?? ""}`;
+    const messages = chat.value;
+    return `${source.value}:${messages.length}:${messages[messages.length - 1]?.id ?? ""}`;
   });
   return reactive({
     store,
     live,
     showHelp,
-    sourceLabel: computed(() => (live.value ? "Twitch" : "Offline")),
+    sourceLabel: computed(() => testing.value ? "Local test" : live.value ? "Twitch" : "Offline"),
     chatStatus: computed(() => state.value?.runtime.chatStatus ?? ""),
     channel: computed(
       () =>
-        state.value?.runtime.twitch?.channel?.login ??
-        "No Twitch channel connected",
+        testing.value ? "Local command test" :
+          state.value?.runtime.twitch?.channel?.login ??
+          "No Twitch channel connected",
     ),
-    people: computed(() => state.value?.contributors.length ?? 0),
+    people: computed(() => (state.value?.contributors ?? [])
+      .filter(person => person.id.startsWith(`${source.value}:`)).length),
     requestExample: computed(
       () =>
         `!request ${state.value?.activeProjectId ?? "CFP-001"} Add a fishing minigame`,
     ),
     sessionLabel: computed(() =>
-      live.value ? "Channel messages" : "Local history",
+      testing.value ? "Local test history" : live.value ? "Channel messages" : "Twitch history",
     ),
-    empty: computed(() => !state.value?.chat.length),
+    empty: computed(() => !chat.value.length),
     messages: computed(() =>
-      (state.value?.chat ?? [])
+      chat.value
         .slice(-100)
         .map((message) =>
           messageView(message, state.value?.contributors ?? []),
