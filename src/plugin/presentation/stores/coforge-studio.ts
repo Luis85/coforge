@@ -24,6 +24,7 @@ export type StudioView =
   | "broadcast"
   | "statistics"
   | "finance"
+  | "alerts"
   | "ai-costs"
   | "schedule"
   | "workflow-settings";

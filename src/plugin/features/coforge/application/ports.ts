@@ -105,6 +105,7 @@ export interface StudioHostActions {
   viewerNotes?: import('./viewer-note-ports').ViewerNoteActions;
   streamViews?: import('./stream-surface-ports').StreamViewActions;
   streamSource?: import('./stream-surface-ports').StreamSurfaceSource;
+  alerts?: import('./alerts-ports').AlertsActions;
   finance?: import('./finance-ports').FinanceActions;
   previewFinance?(): import('./finance-ports').FinanceActions;
   herdr?: import('./herdr-ports').HerdrActions;

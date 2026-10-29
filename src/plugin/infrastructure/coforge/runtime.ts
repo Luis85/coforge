@@ -36,6 +36,7 @@ import { WorkflowWorkspaceStateStorage } from './workflow-workspace-storage';
 import { FinanceService } from '../../features/coforge/application/finance-service';
 import { VaultFinance } from './finance-storage';
 import { PublicStreamSource } from '../../features/coforge/application/stream-surface-source';
+import { alertsModule } from './alerts-module';
 import { registerStreamViews } from './stream-views';
 import { mountNativeStatusbar } from './native-statusbar';
 import { protectPrivateData } from './private-data-guard';
@@ -162,6 +163,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const viewerNotes = new ViewerNoteRecorder(studio.store, new VaultViewerNotes(plugin), timers, () => notify('Private viewer notes could not be updated. Check vault access and viewer note identities.', true));
   const stopStatusbar = mountNativeStatusbar(plugin, studio.store);
   const streamSource = new PublicStreamSource(studio.store);
+  const alerts = alertsModule(plugin, studio);
   const streamViews = registerStreamViews(plugin, projectId => { const scoped = new PublicStreamSource(studio.store, projectId); scoped.start(); return { source: scoped.asPort(), dispose: () => scoped.dispose() }; }, () => studio.store.ready ? studio.state().activeProjectId ?? '' : '', (kind, surface) => studio.store.transaction(state => recordOperation(state, kind, 'committed', undefined, 1, surface)), () => notify('A public stream view could not be opened. Use desktop Obsidian and check its workspace.', true));
   const twitch = new TwitchModule(studio, {
     getSecret: name => secrets(plugin.app)?.getSecret(name) ?? null,
@@ -223,6 +225,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     aiCosts,
     viewerNotes,
     streamViews: streamViews.actions, streamSource: streamSource.asPort(),
+    alerts: alerts.actions,
     finance: new FinanceService(new VaultFinance(plugin), studio.store),
     music,
     herdr,
@@ -280,6 +283,8 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       }
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
       if (disposed) { await studio.stop(); return; }
+      await alerts.start().catch(() => notify('Alerts could not start. Open Alerts to inspect the error; restore its saved configuration or free its local port, then reload CoForge.', true));
+      if (disposed) return;
       await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));
       if (disposed) return;
       await council.start();
@@ -320,13 +325,14 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     async dispose() {
       disposed = true;
       obsStudio.dispose();
+      const closingAlerts = alerts.dispose();
       const closingTasks = taskScheduler.dispose();
       const closingMcp = mcp.dispose();
       const closingTriggers = workflowTriggers.dispose();
       stopCouncilCosts();
       if (councilCostTimer !== undefined) timers.clearTimeout(councilCostTimer);
       invocations.dispose();
-      await Promise.all([closingTasks, closingMcp, closingTriggers]);
+      await Promise.all([closingAlerts, closingTasks, closingMcp, closingTriggers]);
       await council.dispose();
       stopHerdrRuntime();
       stopStatusbar();

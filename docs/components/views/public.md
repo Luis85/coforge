@@ -8,7 +8,7 @@ route: Documentation family / public views
 parent: null
 component: src/plugin/features/coforge/domain/stream-surfaces.ts
 entry:
-  - Open an individual public capture tab or the deployed viewer website through its documented entry.
+  - Open an individual public capture tab, the Alerts Browser Source or the deployed viewer website through its documented entry.
 actions:
   - Find a public-view component contract
   - Read the shared projection boundary
@@ -39,14 +39,15 @@ iteration: ""
 
 Group all viewer-facing component contracts under one independent public parent:
 [Public stream Kanban](public-kanban.md), [Public Twitch chat](public-chat.md),
-[Public leaderboards](public-leaderboards.md), [Public community](public-community.md)
-and the [Viewer website](public-website.md).
+[Public leaderboards](public-leaderboards.md), [Public community](public-community.md),
+[Public Alerts overlay](public-alerts.md) and the [Viewer website](public-website.md).
 
 ## Entry and next action
 
 This is a documentation family, without a runtime navigation destination or launch
 control. Open each capture from its ribbon or Stream studio → Public displays, or
-open the independently deployed viewer website. Those entries and lifecycles stay
+copy the Browser Source URL from Stream → Alerts, or open the independently
+deployed viewer website. Those entries and lifecycles stay
 defined by the child contracts.
 
 ## States and recovery
@@ -62,6 +63,8 @@ does not wrap the children in the private studio shell, add permissions or creat
 a new Obsidian tab. The four capture tabs use StreamSurfaceView and the shared
 projection in [stream-surfaces.ts](../../../src/plugin/features/coforge/domain/stream-surfaces.ts).
 The viewer website remains a standalone export with its own HTML and CSS.
+The Alerts overlay is a standalone loopback HTML source with an opaque read-only
+URL; it receives only prepared cues and explicitly selected supported media.
 
 Only eligible public-project requests, public recognition and permitted live Twitch
 messages cross their respective projection boundaries. Private prompts, notes,

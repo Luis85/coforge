@@ -32,7 +32,7 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
 - B: final workflow suite: 8 files / 36 passed; core reliability/legacy suite: 4 files / 29 passed.
 - C: product CRLF/seed/unchanged scale: 3 files / 7 passed; kit metadata/vault: 2 files / 11 passed.
   The unchanged 10k case completed in 538ms with all assertions and its 60s limit retained.
-- View contracts: 109 documented, navigation coverage valid; catalogue suite: 1 file/11 passed.
+- View contracts: 111 documented, navigation coverage valid; catalogue suite: 1 file/11 passed.
 - Independent source closeout confirmed prior actionable A/B findings resolved.
 - Integrated typecheck: passed. Source lint: passed across 1,635 owned inputs.
 - Isolated browser confirmation: 36 passed, including UI quality, both themes,
@@ -43,7 +43,10 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
 - Combined runtime smoke: status passed, errors [], hostErrorCount 0, pluginConsole [].
 - Final workflow input regression: observed failing first; then 3 files / 28 passed,
   scoped ESLint 0. Canonical request fields/viewer context stay present with no earlier results.
-- Latest main integrated, preserving Service Design and OBS/Twitch features.
+- Latest main integrated through OBS Alerts #42, preserving Service Design, workflow
+  templates/UX and OBS/Twitch features. Final catalogue: 111 valid view contracts.
+- Post-template integration typecheck exited 0; contained native smoke passed with
+  errors [], hostErrorCount 0 and pluginConsole [].
 - Candidate c7d5be0 passed pinned CI: 1265 product tests, 209 browser tests,
   35 real-Obsidian tests, release/root installation and a 40-image gallery.
 - Integrated concurrent main workflow-template/UX #41, preserving captured templates
@@ -57,7 +60,7 @@ setup. An optional isolated browser-test port prevents cross-worktree preview co
   Exact final-head check, ui and real-obsidian results are retained on PR #44;
   merge is gated on all three succeeding. Local complete check uses the supported
   --timeout 3600000 orchestration deadline, with unchanged test limits and isolation.
-- git diff --check: clean.
+- git diff --check origin/main: clean (PR scope; upstream bytes retained).
 
 ## UI evidence
 

@@ -27,3 +27,17 @@ explicitly prepare announcements or shoutouts. Acknowledgement never posts to Tw
 Events do not silently dispatch agents, widen permissions or bypass human review.
 
 Acceptance and evidence: [[docs/project-tasks/2026-10-29-twitch-command-centre]].
+
+## OBS Browser Source delivery (2026-10-29)
+
+Stream → Alerts supplies a stable local URL for OBS and reusable literal text,
+GIF/image, audio and video templates. The streamer fires saved alerts manually or
+explicitly binds them to supported committed CoForge and Twitch activity events.
+Bindings reuse permission-filtered collection, safe public variables and stable
+event identities; source connection is distinct from confirmed on-air playback.
+The overlay stays transparent while idle, uses bounded live queues, and never
+replays missed or retained activity after reconnect/reload.
+
+Contracts and evidence: [[docs/components/views/alerts]],
+[[docs/components/views/public-alerts]],
+[[docs/project-tasks/2026-10-29-alerts-polish]].

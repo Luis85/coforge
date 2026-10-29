@@ -38,10 +38,10 @@ describe("view catalogue", () => {
     expect(() => validateCatalogue(catalogue, root)).not.toThrow();
   });
 
-  it('groups all five public view components under an independent Public documentation shell', () => {
+  it('groups all six public view components under an independent Public documentation shell', () => {
     expect(catalogue.find(view => view.id === 'public')).toMatchObject({ title: 'Public', kind: 'shell', parent: null });
     const children = catalogue.filter(view => view.kind === 'public');
-    expect(children.map(view => view.id).sort()).toEqual(['public-chat', 'public-community', 'public-kanban', 'public-leaderboards', 'public-website']);
+    expect(children.map(view => view.id).sort()).toEqual(['public-alerts', 'public-chat', 'public-community', 'public-kanban', 'public-leaderboards', 'public-website']);
     for (const view of children) expect(view.parent).toBe('public');
   });
 

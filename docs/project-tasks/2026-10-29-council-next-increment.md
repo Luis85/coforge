@@ -262,3 +262,12 @@ legacy start ordering, mixed Council/template snapshots and the upstream templat
 admission/validation/usability cases. Typecheck exposed a v1/v2 Council template-field
 union mismatch in usage inspection; a structural field guard preserves both formats.
 The final focused usage check and exact integrated-head CI qualify that correction.
+
+### Final stable upstream base
+
+32e35ed passed integrated typecheck and contained native smoke (status passed, errors [],
+hostErrorCount 0, pluginConsole []). Main then merged OBS Alerts #42 (9a92a98).
+Its only conflict was the generated sitemap; regenerated 111 contracts with valid
+navigation coverage. Runtime retained the complete Council bridge, output templates,
+Service Design/private-folder composition and upstream OBS Alerts. All other open
+workstreams are now merged; PR #44 qualifies this final combined head before merge.

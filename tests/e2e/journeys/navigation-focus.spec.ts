@@ -33,6 +33,16 @@ for (const theme of ["light", "dark"]) {
       ).toBe("none");
       await nav.getByRole("button", { name: "Schedule", exact: true }).focus();
       await page.keyboard.press("Shift+Tab");
+      const alerts = nav.getByRole("button", { name: "Alerts", exact: true });
+      await expect(alerts).toBeFocused();
+      await expect(button).toHaveAttribute("aria-current", "page");
+      expect(
+        await alerts.evaluate((el) => ({
+          style: getComputedStyle(el).outlineStyle,
+          offset: getComputedStyle(el).outlineOffset,
+        })),
+      ).toEqual({ style: "solid", offset: "-3px" });
+      await page.keyboard.press("Shift+Tab");
       await expect(button).toBeFocused();
       expect(
         await button.evaluate((el) => ({
