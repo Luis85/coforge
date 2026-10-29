@@ -2,6 +2,10 @@
 import { defineComponent, h } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
+import {
+  setInterval as createInterval,
+  clearInterval as releaseInterval,
+} from "node:timers";
 import ObsAudioMixer from "../../../presentation/components/coforge/ObsAudioMixer.vue";
 import { useObsProductionSession } from "../../../presentation/composables/coforge/use-obs-production";
 import { useObsProductionUi } from "../../../presentation/stores/obs-production-ui";
@@ -80,11 +84,13 @@ it("refreshes sampled audio levels on the Audio page without fetching video, and
     },
   };
   let tick = () => {};
+  const handle = createInterval(() => {}, 60000);
+  handle.unref();
   const timer = vi
     .spyOn(window, "setInterval")
     .mockImplementation((handler) => {
       if (typeof handler === "function") tick = () => handler();
-      return 42;
+      return handle;
     });
   const clear = vi.spyOn(window, "clearInterval").mockImplementation(() => {});
   const Surface = defineComponent({
@@ -124,6 +130,7 @@ it("refreshes sampled audio levels on the Audio page without fetching video, and
     wrapper.unmount();
     timer.mockRestore();
     clear.mockRestore();
+    releaseInterval(handle);
     await fixture.dispose();
   }
 });
