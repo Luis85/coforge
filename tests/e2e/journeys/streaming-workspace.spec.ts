@@ -1,4 +1,4 @@
-import { openWorkflowSettings } from "../support/workflow-navigation";
+import { openWorkflowDisclosure, openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -11,6 +11,7 @@ test("edits workflow instructions in the dedicated view and preserves local draf
     "true",
   );
   await openWorkflowSettings(page);
+    await openWorkflowDisclosure(page, "Workflow tools");
   await page
     .getByLabel("Step instructions", { exact: true })
     .fill("PROJECT_SCREEN_POLICY: explain product fit and reject scope creep.");

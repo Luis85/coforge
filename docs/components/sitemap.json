@@ -1622,7 +1622,9 @@
         "Load saved",
         "Edit steps and collections",
         "Preview import or export",
-        "Save or discard"
+        "Save or discard",
+        "Manage project Markdown answer templates",
+        "Inspect captured step instructions"
       ],
       "states": [
         "No project",
@@ -4569,6 +4571,44 @@
       "file": "workflow.md"
     },
     {
+      "id": "workflow-output-templates",
+      "title": "Answer and output templates",
+      "goal": "Maintain reusable Markdown answer formats for one project's workflow steps.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "project output template library",
+      "parent": "workflow-settings",
+      "component": "src/plugin/presentation/components/coforge/WorkflowOutputTemplates.vue",
+      "entry": [
+        "Open Workflow settings and expand Answer / output templates.",
+        "The same project library is available in Council workflows."
+      ],
+      "actions": [
+        "Create a Markdown template",
+        "Select and preview a template",
+        "Edit name and Markdown",
+        "Save or discard template changes",
+        "Open the canonical note",
+        "Confirm deletion through Obsidian",
+        "Refresh external changes"
+      ],
+      "states": [
+        "No templates",
+        "Loading",
+        "Saved",
+        "Unsaved draft",
+        "External conflict",
+        "Invalid or missing note",
+        "Confirm deletion"
+      ],
+      "journeys": [
+        "workflow-configuration"
+      ],
+      "privacy": "Project-scoped private Markdown files; excluded from public projections.",
+      "order": 91500,
+      "file": "workflow-output-templates.md"
+    },
+    {
       "id": "workflow-runs",
       "title": "Workflow runs",
       "goal": "Resolve the next checkpoint or attempt outcome.",
@@ -4636,7 +4676,8 @@
         "Edit prompts and provider",
         "Preview import or export",
         "Save or discard",
-        "Attach an event trigger"
+        "Attach an event trigger",
+        "Manage project Markdown answer templates"
       ],
       "states": [
         "No project",
@@ -4690,7 +4731,8 @@
         "Rename",
         "Choose kind",
         "Edit contract and access",
-        "Edit prompt or checklist"
+        "Edit prompt or checklist",
+        "Choose or clear an answer template"
       ],
       "states": [
         "No selection",

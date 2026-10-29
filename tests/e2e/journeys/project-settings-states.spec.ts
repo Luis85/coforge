@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 import { mkdir } from 'node:fs/promises';
 import { openProjectSettings, settingsPageButton } from '../support/settings-navigation';
-import { openWorkflowSettings } from '../support/workflow-navigation';
+import { openWorkflowDisclosure, openWorkflowSettings } from '../support/workflow-navigation';
 
 for (const theme of ['light', 'dark']) {
   test(`nested workflow authoring and invalid settings stay recoverable in ${theme}`, async ({ page }) => {
@@ -17,7 +17,8 @@ for (const theme of ['light', 'dark']) {
     const settings = page.locator('.cf-settings-page');
     const host = page.locator('[data-plugin-ui="coforge"]').first();
     await mkdir('reports/project-settings', { recursive: true });
-    await expect(settings.locator('.cf-workflow-settings-page header').getByRole('button', { name: 'Attach an event trigger', exact: true })).toBeVisible();
+    await openWorkflowDisclosure(settings.locator('.cf-workflow-settings-page'), 'Workflow tools');
+    await expect(settings.locator('.cf-workflow-tools').getByRole('button', { name: 'Attach an event trigger', exact: true })).toBeVisible();
     await expect(page.getByLabel('Workflow name', { exact: true })).toHaveValue('Community development');
     for (const width of [1280, 480]) {
       await host.evaluate((element, width) => { element.style.width = `${width}px`; element.style.maxWidth = 'none'; }, width);

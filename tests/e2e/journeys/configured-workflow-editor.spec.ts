@@ -1,4 +1,4 @@
-import { openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
+import { openWorkflowDisclosure, openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -9,6 +9,8 @@ async function editor(page: Page) {
     "true",
   );
   await openWorkflowSettings(page);
+    await openWorkflowDisclosure(page, "Workflow tools");
+    await openWorkflowDisclosure(page, "Add a step");
   await expect(
     page.getByRole("heading", { name: "Workflow settings", exact: true }),
   ).toBeVisible();

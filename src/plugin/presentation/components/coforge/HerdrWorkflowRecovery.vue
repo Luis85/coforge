@@ -14,6 +14,11 @@ const model = useHerdrWorkflowRecovery();
       still be running. Inspect the original target and its changes before
       acknowledging this hold.
     </p>
+    <ol class="cf-herdr-recovery-guide">
+      <li>Inspect the original session and any code changes.</li>
+      <li>Confirm what you reviewed for this request.</li>
+      <li>Acknowledge the hold, then decide whether to retry explicitly.</li>
+    </ol>
     <p
       v-if="model.error || model.state.error"
       role="alert"

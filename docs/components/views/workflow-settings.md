@@ -16,6 +16,7 @@ actions:
   - Preview import or export
   - Save or discard
   - Attach an event trigger
+  - Manage project Markdown answer templates
 states:
   - No project
   - Standard defaults
@@ -72,3 +73,12 @@ Journey tags: `workflow-configuration`.
 ## Workspace redesign
 
 The selected project and saved or unsaved state precede a dedicated step catalogue and authoring area. Attach an event trigger sits in the Workflow settings header beside its explanatory context. Configuration, import preview and save actions retain separate visual levels and existing draft guards.
+
+The ordered process shows its step count and selected step. Ordinary editing starts
+with the step name, instructions and expected answer; provider/access and automation
+controls are grouped separately. Add a step explains the available AI and human
+step kinds. Workflow tools hold explicit JSON import/export controls.
+
+[Answer and output templates](workflow-output-templates.md) is this project's
+Markdown library. Its explicit save is independent of Save workflow. Selecting a
+template changes the workflow draft; future runs capture its saved contents.

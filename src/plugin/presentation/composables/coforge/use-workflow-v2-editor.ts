@@ -4,6 +4,7 @@ import {
   onMounted,
   provide,
   reactive,
+  ref,
   toRaw,
   watch,
 } from "vue";
@@ -36,6 +37,7 @@ export function useWorkflowV2Editor(props: {
   projectId: string;
 }) {
   const store = useWorkflowV2Store();
+  const expandedStepIds = ref<string[]>([]);
   const drafts = useWorkflowV2ProjectDrafts(store);
   const catalogue = reactive<CouncilCatalogueSnapshot>({
     valid: [],
@@ -86,6 +88,9 @@ export function useWorkflowV2Editor(props: {
     store.revision = saved.revision;
     store.saved = JSON.stringify(store.draft);
     store.preview = null;
+    expandedStepIds.value = store.draft?.steps[0]
+      ? [store.draft.steps[0].id]
+      : [];
   }
   async function load(discard = false) {
     const generation = ++loadGeneration;
@@ -145,6 +150,7 @@ export function useWorkflowV2Editor(props: {
       ],
     };
     store.revision = "";
+    expandedStepIds.value = store.draft.steps.map((step) => step.id);
     store.error = "";
     store.preview = null;
   }
@@ -182,16 +188,20 @@ export function useWorkflowV2Editor(props: {
         "Proposal workflow saved. New runs use this explicit v2 definition; existing v1 workflows remain available.";
     });
   function addStep() {
-    store.draft?.steps.push(newWorkflowV2Step("agent"));
+    const step = newWorkflowV2Step("agent");
+    store.draft?.steps.push(step);
+    expandedStepIds.value = [step.id];
   }
   function duplicateStep(index: number) {
     const step = store.draft?.steps[index];
     if (!step || !store.draft) return;
-    store.draft.steps.splice(index + 1, 0, {
+    const copy = {
       ...structuredClone(toRaw(step)),
       id: `step-${crypto.randomUUID()}`,
       name: `${step.name} copy`,
-    });
+    };
+    store.draft.steps.splice(index + 1, 0, copy);
+    expandedStepIds.value = [copy.id];
   }
   function addCollection() {
     store.draft?.collections.push({
@@ -273,6 +283,15 @@ export function useWorkflowV2Editor(props: {
     agents,
     councils,
     dirty,
+    expandedStepIds,
+    stepName: (id: string) =>
+      store.draft?.steps.find((step) => step.id === id)?.name || id,
+    toggleStep: (id: string, event: Event) => {
+      if (!(event.target instanceof HTMLDetailsElement)) return;
+      expandedStepIds.value = event.target.open
+        ? [...new Set([...expandedStepIds.value, id])]
+        : expandedStepIds.value.filter((item) => item !== id);
+    },
     load: () => load(),
     discard: () => load(true),
     create,
@@ -291,6 +310,12 @@ export function useWorkflowV2Editor(props: {
     toggleProducer: toggleWorkflowV2Producer,
     addChecklistItem: addWorkflowV2ChecklistItem,
     messageTokens: WORKFLOW_MESSAGE_TOKENS,
+    templateChanged: () => {
+      if (!store.preview) return;
+      store.preview = null;
+      store.notice =
+        "An answer template changed. Preview the workflow again to review the current captured instructions before submitting.";
+    },
   });
   provide(EDITOR, model);
   return model;

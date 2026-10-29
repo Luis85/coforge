@@ -1,4 +1,4 @@
-import { openWorkflowRuns, openWorkflowSettings } from "../../../tests/e2e/support/workflow-navigation.ts";
+import { openWorkflowDisclosure, openWorkflowRuns, openWorkflowSettings } from "../../../tests/e2e/support/workflow-navigation.ts";
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
@@ -28,6 +28,7 @@ describe("Configured human workflows in Obsidian", () => {
       "Contained human workflow",
     );
     await openWorkflowSettings(view);
+    await openWorkflowDisclosure(view, "Workflow tools");
     await view
       .getByRole("button", { name: "Import JSON", exact: true })
       .click();

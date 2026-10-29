@@ -8,6 +8,7 @@ import { compileWorkflowV2 } from "../../src/plugin/features/coforge/application
 import type { WorkflowV2Definition } from "../../src/plugin/features/coforge/domain/configured-workflow-v2";
 import type { ExecutionRun } from "../../src/plugin/features/coforge/domain/execution-run";
 import { assertReviewedWorkflowIdentity } from "../../src/plugin/features/coforge/application/reviewed-preflight";
+import { captureWorkflowOutputTemplates, type WorkflowOutputTemplateActions } from '../../src/plugin/features/coforge/application/workflow-output-templates';
 
 export function createCouncilPreviewWorkflows(
   catalogue: CouncilCatalogueActions,
@@ -17,6 +18,7 @@ export function createCouncilPreviewWorkflows(
     preview: WorkflowV2Preview,
     destination: string,
   ) => Promise<ExecutionRun>,
+  outputTemplates?: WorkflowOutputTemplateActions,
 ): WorkflowV2Actions {
   let definition = structuredClone(initial);
   let revision = "example-workflow";
@@ -34,6 +36,8 @@ export function createCouncilPreviewWorkflows(
     if (!team || team.schema !== "team/v1")
       throw new Error("Select the example project team.");
     const captured = source(path);
+    const templates = await captureWorkflowOutputTemplates(projectId,
+      definition.steps.filter(step => step.kind === 'agent' || step.kind === 'council'), outputTemplates);
     const plan = compileWorkflowV2(
       definition,
       {
@@ -47,6 +51,7 @@ export function createCouncilPreviewWorkflows(
         team,
         agents: entries.filter((item) => item.schema === "agent/v1"),
         councils: entries.filter((item) => item.schema === "council/v1"),
+        ...(templates.length ? { outputTemplates: templates } : {}),
       },
     );
     return {

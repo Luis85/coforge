@@ -1,4 +1,4 @@
-import { openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
+import { openWorkflowDisclosure, openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -16,6 +16,7 @@ for (const theme of ["light", "dark"])
       document.body.classList.toggle("theme-dark", theme === "dark");
     }, theme);
     await openWorkflowSettings(page);
+    await openWorkflowDisclosure(page, "Agent and project access");
     await page.getByLabel("AI provider", { exact: true }).selectOption("herdr");
     const agent = page.getByLabel("Herdr agent type", { exact: true });
     expect(await agent.locator("option").allTextContents()).toEqual([
@@ -71,5 +72,6 @@ for (const theme of ["light", "dark"])
       }),
     ).toContainText(/Herdr workflow is unavailable|project path/);
     await openWorkflowSettings(page);
+    await openWorkflowDisclosure(page, "Agent and project access");
     await expect(agent).toHaveValue("claude");
   });

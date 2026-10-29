@@ -28,6 +28,12 @@ const model = useWorkflowEditorForm();
         Close JSON panel
       </button>
     </div>
+    <p class="cf-settings-help">
+      Template selections reference this project's Markdown files, which are
+      managed separately and are not included in workflow JSON. After importing
+      into another project, recreate or reassign those templates before starting
+      a run.
+    </p>
     <template v-if="model.transfer.mode === 'import'"
       ><p>
         Import replaces only this editor’s draft after you review it. It does

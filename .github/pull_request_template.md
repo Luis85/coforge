@@ -1,52 +1,49 @@
 ## Summary
 
-Add Service Design to Build & Improve. Each project owns one Service Blueprint with ordered journey steps, five core layers, actors, touchpoints, systems, pain points and opportunities. The grid and searchable entity editor save canonical frontmatter-plus-Markdown notes with stable IDs and wikilinks in a configurable private vault root.
+Add project-scoped Markdown answer/output templates with plugin create, read/preview/open, edit and confirmed delete controls. Request AI steps and proposal agent/council steps select one template; admission retains its exact content and revision for existing runs and retries. Missing templates produce a visible automatic-admission hold without creating a run or provider attempt.
+
+Overhaul workflow authoring and operation: purpose-first steps, manageable proposal sections, visible agent/access/automation summaries, actionable field-repair links, explicit next actions, captured configuration/history, dependency-aware deletion, and predictable keyboard focus. Complete a second research-informed improvement plan and independent review, fixing measured accessibility, reflow and note-integrity defects.
 
 ## Requirements and traceability
 
-- Owner-approved scope and storage decisions are recorded in BRIEF.md (2026-10-29).
-- No imported req-* or vi-* applies: design/traceability.json contains no requirements/interactions and is unchanged.
-- Acceptance and the researched six-increment improvement plan are in docs/project-tasks/2026-10-29-service-design*.md.
-- The new view contract and generated sitemap document navigation and recovery.
+- Owner requests on 2026-10-29; BRIEF.md records project ownership, Markdown CRUD, full workflow UX review, researched subagent increments and merge only after green checks.
+- No imported req-* or vi-* obligation applies: the arrays are empty; generated traceability is unchanged.
+- Plans and linked primary-source research: docs/project-tasks/2026-10-29-workflow-templates-ux.md and docs/project-tasks/2026-10-29-workflow-second-review.md.
+- Updated workflow view contracts and generated sitemap: 102 views documented, valid navigation coverage.
+- Integrated current main without force: preserved Twitch operations and the owner's later documentation ownership/order edits; only unsupported shorthand links were expanded to canonical clickable links.
 
 ## Validation
 
-- npm ci: 691 packages added, 692 audited, 0 vulnerabilities.
-- Domain/vault suite: 2 files, 17 tests passed; all kinds/ownership, graph validation, input capture, exact Markdown/unknown properties, stale/atomic conflicts, write failures, retained roots, invalid settings, reserved paths and Git-ignore protection.
-- Component suite: 4 passed; all kinds, links, ordering, focus, search/count behavior, per-project retained drafts, replacement confirmation, stale edits and captured in-flight project.
-- Integration/startup/public policy: 3 files, 26 tests passed; both overlapping configuration orders and failed-write reservation release covered while Council watched request notes remain compatible.
-- Project typecheck and focused source/test ESLint: passed with zero warnings.
-- Merged-main focused regression run: 5 files, 40 tests passed (12.26s), covering domain, vault, UI, integration and startup/disposal.
-- npm run verify:artifacts: production build passed (7.89s); prototype embedding 1 passed, 0 failed. test:ui-effects explicitly reports no declared visual obligations.
-- Latest OBS-main integration: 8 focused files and 74 tests passed; typecheck and zero-warning ESLint passed. Service Design and all OBS host ports/imports are preserved, with no additional managed Markdown root needed.
-- Merged-main typecheck passed; npm run check:source passed for 3294 inputs and 226 translated keys.
-- npm run check:views: 105 views documented; navigation coverage valid; sitemap current. Normalized two incoming Council view parent references to the existing catalogue schema.
-- git diff --check: clean.
-- Pinned CI npm run verify:project: 5 gates passed, 0 failed, 0 skipped in 252.9s; production build and prototype embedding passed. Community review: 16 pass, 0 warn, 0 fail. Qualification receipts are linked from PR #43.
-- Local full product-test stage exceeded its 600-second process deadline; typecheck, both lint gates and maker types passed. The reported Herdr worktree case passed in isolation (5 passed, 1 existing Windows-only symlink skip). No test assertions, timeouts or output limits were relaxed; pinned CI qualified the complete suite.
+Final current-revision aggregate results and merge status are recorded on [PR41](https://github.com/Luis85/coforge/pull/41). Required CI must be green before merge; result lines below are from commands actually run.
+
+- Pinned local Node 24.21.0 / npm 11.19.1 provisioned in ignored .nq using checksum/integrity verification. npm ci --ignore-scripts: 691 added, 692 audited, 0 vulnerabilities. No dependency or lockfile changes.
+- Combined-runtime npm run verify:project in CI: 5 passed, 0 failed, 0 skipped in 165.6s; release build and prototype embedding passed. Later full diagnostics showed 1119 passed / 4 failed, all four caused by concurrently updated catalogue links. After canonicalization, focused catalogue: 1 file / 11 tests passed, including all four failing assertions; final aggregate CI requalifies the final revision.
+- Backend second pass: 13 focused tests passed; exact captured-source regression passed. Canonical storage, cross-project rejection, stale edits, immutable v1/v2 snapshots, automatic admission holds and explicit recovery covered.
+- Final Markdown codec integrity: 4 storage tests passed after reproducing indented YAML corruption. Indentation/comments and unknown properties are retained; the assembled note is validated before write; unsupported root flow layout leaves original bytes unchanged.
+- Frontend focused regression: 7 files / 20 tests passed; exact checklist repair 3/3; focus/discard regressions 2 files / 9 tests; contextual action-label regressions 4/4. Targeted ESLint passed with zero warnings.
+- Dependency query, late project response, runtime wiring and lifecycle subset: 4 files / 7 tests passed. Source line limits/locale parity passed; git diff --check clean.
+- JSON and JUnit reports now supplement the original reporters; CI retains them without changing assertions, warning behavior, timeouts, isolation or output limits.
 
 ## UI evidence
 
-- npm run test:ui-quality -- --config .nq/service-design-ui.config.ts: 8 passed (46.1s), no skipped/unexpected tests. The ignored wrapper uses isolated port 4281 because another process owns 4181; assertions are unchanged. Report: reports/e2e/service-design-ui-quality.json.
-- npm run ui:gallery: 40 captures, failures []; desktop light and narrow dark studio captures reviewed. This covers the existing clickdummy plus new navigation; feature-native captures are separate.
-- Focused real-host Service Design spec: 1 passed, exit 0, complete create/link/configure/reload/conflict/reopen path and clean teardown.
-- Five native WCAG 2.1 A/AA scans: zero violations. Wide/narrow and light/dark maps have 32px gutters, 24px editor-heading spacing and zero page/editor overflow; narrow table scrolling stays inside its region.
-- Stable captures and geometry/Axe JSON: reports/service-design-review/. A fresh independent reviewer inspected all five captures and returned ship for the captured UI/product scope, with no material findings.
-- The owner's layout feedback exposed a missing shared page-frame selector. Fixed the gutters, section spacing and table alignment, and added measured host regressions. Mechanical detector: [] findings.
-- The extra destination exposed 14px of navigation overflow in a 740px pane. Two compact-only outer-padding changes recover 16px; labels, fonts and control targets stay intact. The focused navigation/focus/workspace/view-intent batch passed all 33 tests, with zero overflow in light and dark. Results and reviewed captures: reports/navigation-space/.
+- Requested source-backed browser flows: 4/4 passed, covering template CRUD/attachment, project references, manual checkpoint/keyboard behavior in both themes, shared proposal templates/review invalidation and long-name reflow.
+- Actual 320px proof with valid 100-character names: selected source, captured source and whole run page each clientWidth 224 / scrollWidth 224; overflowingElements []. The prior measured 1121px overflow was corrected.
+- Proposal axe verified the contextual button-label fix; labels include the visible Duplicate step / Remove step words. No additional measured defect remains.
+- npm run test:ui-quality -- --config .nq/playwright-isolated.config.ts: 8 passed (53.6s), exit 0. Only local port/baseURL changed to 4183 because an unrelated job owned 4181; tests, timeouts and retries unchanged. CI keeps the default config/port.
+- npm run ui:gallery: exit 0, 40 captures. Reviewed representative gallery frames, final light/dark library/editor images, captured/selected Markdown, native completed run and exact narrow-pane geometry. No baselines updated or committed.
+- Proofs: reports/workflow-output-templates/; catalogue gallery: reports/ui-gallery/. CI uploads current proof images and JSON alongside the existing reports.
 
 ## Obsidian evidence
 
-- npm run test:obsidian: 24 files passed, 31 tests passed, 365.52s, exit 0. Includes lifecycle, privacy, navigation, MCP and Service Design. Reports: reports/obsidian/.
-- Pinned Obsidian CI after latest-main integration: 25 files, 32 tests passed (208.66s), followed by a successful agent-loop smoke.
-- An earlier local Service Design/navigation rerun completed all three test bodies, but exited 1 from OBSIDIAN_STOP_TIMEOUT during Windows session cleanup. This is recorded as a failed local command; the subsequently integrated main preserves its host-shutdown fixes, and final-head native qualification is provided by CI.
-- Pinned contained host: Obsidian app/installer 1.14.4, launcher 3.2.1.
-- npm run -s dev:obsidian -- --allow-download --json: status passed, errors [], hostErrorCount 0, pluginConsole [], exit 0. Read dev.log/debug-report.json and reviewed last-run.png. Its Windows shutdown reported OBSIDIAN_STOP_TIMEOUT after the successful summary; the full suite later completed cleanly.
+- Pinned app/installer 1.14.4 and launcher 3.2.1, contained vaults/profiles only.
+- Combined branch native CI: 32 tests passed; reload smoke passed with errors [] and hostErrorCount 0 after the native test waited for actual settings-save completion. Runtime navigation/draft guards stayed intact.
+- Local native project subset: 3/3 passed (30.50s); the previously failing request case passed in 13.426s. Actual template CRUD/edit/delete/reload/snapshot journey also passed locally (21.742s), and its completed-run screenshot was inspected.
+- Captured current/prior run template content is displayed from snapshots only, including exact source; no live note lookup or provider dispatch is introduced by inspection.
 
-## Review and untested scope
+## Self-review and limitations
 
-Independent subagents reviewed product/method coverage, UX/accessibility, data integrity, privacy/reliability and integration boundaries, then a fresh reviewer checked the corrected renders. Findings drove graph/concurrency checks, private-root reservations, focus, stable totals, indexed cells, searchable relationships, Markdown preview and service-scenario guidance.
+Canonical notes retain stable IDs and unrelated frontmatter. Conflicts retain drafts. Named project facts follow successful writes; observer failure cannot turn a successful save into a retry. Private folders and public projections remain separate. Host permissions, finite execution limits, uncertainty recovery, validated output contracts and final human code review remain authoritative.
 
-No personal vault, credentials, live Twitch/OBS session or AI provider was used. Dedicated visual evidence covers a populated three-step map and a wide dark recovery editor; it is not an exhaustive visual state matrix. No multiple blueprints, deletion/cascades, directional arrows, AI authoring or diagram export is introduced. Local Node 24.20.0/npm 11.21.1 differ from pinned CI Node 24.21.0/npm 11.19.1; CI qualifies the pinned toolchain. Global PRODUCT.md has a pre-existing legacy schema and was preserved. check:presentation exited 0 and reported two pre-existing concerns in unmodified VaultFilePicker.vue.
+Local preliminary aggregate/browser runs hit unchanged time budgets under host load; one legacy light proposal journey still timed out locally after its business assertions, while its dark counterpart and all four requested flows passed. These are distinguished from required full current-head CI results. No test, lint rule, timeout, output bound or screenshot baseline was weakened. Native deletion follows the user's Obsidian preference with exact-content/target rechecks; the host has no atomic compare-and-delete API.
 
-Latest main is integrated. PR #43 is the live qualification and merge ledger; merge requires green checks on its current head.
+No paid model, live Herdr/Twitch/OBS service or personal vault was used. No release/tag/global install was requested. The plugin build is produced locally and in CI; the personal installed plugin is not modified.

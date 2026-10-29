@@ -18,6 +18,10 @@ import { createWorkspacePreview } from './workspace-preview';
 import { createCouncilPreview } from './council-preview';
 import { createTaskSchedulerPreview } from './task-scheduler-preview';
 import { createWorkflowTriggersPreview } from './workflow-triggers-preview';
+import { createOutputTemplatesPreview } from './output-templates-preview';
+import { observeWorkflowOutputTemplates } from '../../src/plugin/features/coforge/application/workflow-output-template-events';
+import { recordOperation } from '../../src/plugin/features/coforge/application/population';
+import { withWorkflowOutputTemplateUsage } from '../../src/plugin/features/coforge/application/workflow-output-template-usage';
 
 /** Browser-only storage: the sample workspace in memory, nothing is persisted. */
 class PreviewStorage implements StudioStorage {
@@ -56,7 +60,16 @@ export function createPreviewCoforge(): CoforgeContext {
     setInterval: (callback: () => void, ms: number) => window.setInterval(callback, ms), clearInterval: (handle: number) => window.clearInterval(handle),
   };
   const runner = createDemoRunner(timers);
+  const outputTemplates = withWorkflowOutputTemplateUsage(observeWorkflowOutputTemplates(createOutputTemplatesPreview(projectId => {
+    if (!studio.state().projects?.some(project => project.id === projectId && !project.unavailable))
+      throw new Error('Choose an available project before managing answer templates.');
+  }), (code, _id, projectId) => studio.store.transaction(state => recordOperation(state, code, 'committed', undefined, 1, projectId))), async projectId => {
+    const project = studio.state().projects?.find(item => item.id === projectId && !item.unavailable);
+    if (!project) throw new Error('Choose an available project before inspecting template references.');
+    return { request: project.settings.workflow, proposal: (await councilExample?.workflows.load(projectId))?.definition ?? undefined };
+  });
   const studio = new StudioService(new PreviewStorage(), {
+    outputTemplates,
     timers,
     runners: { demo: runner, claude: () => Promise.reject(new Error('Claude Code is not available in the browser preview.')) },
     probeRuntime: () => Promise.resolve({ cliAvailable: false, projectPath: null, allowImplementation: false }),
@@ -72,17 +85,20 @@ export function createPreviewCoforge(): CoforgeContext {
   let councilExample: ReturnType<typeof createCouncilPreview> | undefined;
   let taskExample: ReturnType<typeof createTaskSchedulerPreview> | undefined;
   let triggersExample: ReturnType<typeof createWorkflowTriggersPreview> | undefined;
+  const councilPreview = () => councilExample ??= createCouncilPreview(studio.store,
+    new URLSearchParams(window.location.search).get('council-review'), outputTemplates);
   void studio.start().then(() => streamSource.start()).catch((error: unknown) => { failure = error instanceof Error ? error.message : String(error); });
   return {
     studio, startupError: () => failure, onNotice: () => () => undefined,
     host: {
+      outputTemplates,
       streamSource: streamSource.asPort(),
       previewAiCosts: () => costExample.costs(),
       previewSchedule: () => scheduleExample.schedule,
       previewFinance: () => financeExample,
-      previewCouncil: () => councilExample ??= createCouncilPreview(studio.store, new URLSearchParams(window.location.search).get('council-review')),
-      previewTaskScheduler: () => taskExample ??= createTaskSchedulerPreview(councilExample ??= createCouncilPreview(studio.store)),
-      previewWorkflowTriggers: () => triggersExample ??= createWorkflowTriggersPreview(studio.store, councilExample ??= createCouncilPreview(studio.store)),
+      previewCouncil: councilPreview,
+      previewTaskScheduler: () => taskExample ??= createTaskSchedulerPreview(councilPreview()),
+      previewWorkflowTriggers: () => triggersExample ??= createWorkflowTriggersPreview(studio.store, councilPreview()),
       previewHerdr: () => herdrExample,
       previewMusic: () => musicExample ??= createMusicPreview(),
       previewLiveStudio: () => liveExample ??= createLiveStudioPreview(studio.store),

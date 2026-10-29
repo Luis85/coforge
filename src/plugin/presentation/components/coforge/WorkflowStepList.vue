@@ -12,6 +12,8 @@ const model = useWorkflowEditorForm();
   <section
     :ref="model.bindStepList"
     class="cf-workflow-step-list"
+    data-workflow-field="steps"
+    tabindex="-1"
     aria-label="Workflow step order"
   >
     <div class="cf-workflow-step-list-header">
@@ -85,31 +87,44 @@ const model = useWorkflowEditorForm();
       </li>
     </ol>
     <div class="cf-workflow-step-list-tools">
-      <div class="cf-workflow-add-actions">
-        <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.draft.steps.length >= 40" @click="model.add('nudge')">Add agent nudge</button>
-        <button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :disabled="model.draft.steps.length >= 40"
-          @click="model.add('ai')"
-        >
-          Add AI step</button
-        ><button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :disabled="model.draft.steps.length >= 40"
-          @click="model.add('approval')"
-        >
-          Add approval</button
-        ><button
-          type="button"
-          class="cf-btn cf-btn-secondary"
-          :disabled="model.draft.steps.length >= 40"
-          @click="model.add('checklist')"
-        >
-          Add checklist
-        </button>
-      </div>
+      <details class="cf-workflow-add-step">
+        <summary>Add a step</summary>
+        <p class="cf-settings-help">
+          Choose who completes the next part of this process.
+        </p>
+        <div class="cf-workflow-add-actions">
+          <button
+            type="button"
+            class="cf-btn cf-btn-secondary"
+            :disabled="model.draft.steps.length >= 40"
+            @click="model.add('nudge')"
+          >
+            Add agent nudge
+          </button>
+          <button
+            type="button"
+            class="cf-btn cf-btn-secondary"
+            :disabled="model.draft.steps.length >= 40"
+            @click="model.add('ai')"
+          >
+            Add AI step</button
+          ><button
+            type="button"
+            class="cf-btn cf-btn-secondary"
+            :disabled="model.draft.steps.length >= 40"
+            @click="model.add('approval')"
+          >
+            Add approval</button
+          ><button
+            type="button"
+            class="cf-btn cf-btn-secondary"
+            :disabled="model.draft.steps.length >= 40"
+            @click="model.add('checklist')"
+          >
+            Add checklist
+          </button>
+        </div>
+      </details>
       <details class="cf-workflow-presets">
         <summary>Standard step presets</summary>
         <p class="cf-settings-help">Adds a configured step to your draft.</p>

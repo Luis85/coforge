@@ -72,8 +72,11 @@ describe('CoForge projects in the contained vault', () => {
     await view.getByRole('button', { name: 'Project settings', exact: true }).click();
     await view.getByLabel('General agent prompt', { exact: true }).fill('Use Rust and Bevy. Keep changes small.');
     await view.getByRole('button', { name: 'Save settings', exact: true }).click();
+    await browserExpect(view.getByText('Settings saved', { exact: true })).toBeVisible();
+    await browserExpect(view.getByRole('button', { name: 'Save settings', exact: true })).toBeDisabled();
     await browserExpect(view.getByLabel('General agent prompt', { exact: true })).toHaveValue('Use Rust and Bevy. Keep changes small.');
     await view.getByRole('button', { name: 'Stream chat', exact: true }).click();
+    await browserExpect(view.getByRole('region', { name: 'Stream conversation', exact: true })).toBeVisible();
     await view.getByRole('button', { name: 'Test commands locally', exact: true }).click();
     await view.getByLabel('Chat message', { exact: true }).fill('!register');
     await view.getByRole('button', { name: 'Send chat message', exact: true }).click();

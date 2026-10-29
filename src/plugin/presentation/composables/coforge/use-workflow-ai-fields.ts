@@ -4,6 +4,7 @@ import { configuredStepProblem } from "./configured-workflow-display";
 import { WORKFLOW_OUTPUT_LABELS } from "../../stores/workflow-editor-draft";
 import type { WorkflowOutput } from "../../../features/coforge/domain/configured-workflow";
 import { PROVIDERS } from "./settings-fields";
+import { configuredAgentLabel } from "./configured-workflow-display";
 export function useWorkflowAiFields() {
   const model = useWorkflowEditorForm();
   const step = computed(() =>
@@ -30,6 +31,10 @@ export function useWorkflowAiFields() {
     step,
     roles,
     providers: PROVIDERS,
+    projectId: computed(() => model.project?.id ?? ""),
+    agentSummary: computed(() =>
+      step.value ? configuredAgentLabel(step.value) : "",
+    ),
     readiness: computed(() =>
       step.value
         ? configuredStepProblem(

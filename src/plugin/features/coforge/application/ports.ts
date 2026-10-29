@@ -61,6 +61,7 @@ export interface ManagedNoteFolderPolicy {
   reserve(folders: readonly string[]): () => void;
 }
 export interface StudioHost {
+  outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
   agentTasks?: import('./agent-task').AgentTaskPort;
   /** Private immutable reward tickets are reserved before command effects. */
   economyReservations?: import("../domain/command-economy").EconomyReservationPort;
@@ -81,6 +82,7 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
   serviceDesign?: import('../../service-design/domain/blueprint').ServiceDesignActions;
   obsProduction?: import('./obs-production-workflow').ObsProductionActions;
   obsShow?: import('./obs-show-ports').ObsShowActions;

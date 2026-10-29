@@ -26,6 +26,10 @@ import {
 import type { AgentStage } from "../../../features/coforge/domain/types";
 import { useWorkflowTransfer } from "./use-workflow-transfer";
 import { useWorkflowEditorVisibility } from "./use-workflow-editor-visibility";
+import {
+  workflowEditorIssues,
+  type WorkflowEditorIssue,
+} from "./workflow-editor-validation";
 function createWorkflowEditor() {
   const { studio, host } = useCoforge();
   const store = useStudioStore();
@@ -179,11 +183,31 @@ function createWorkflowEditor() {
     selectedId,
     selected,
     dirty,
+    aiStepCount: computed(
+      () => draft.value.steps.filter((step) => step.kind === "ai").length,
+    ),
+    humanStepCount: computed(
+      () =>
+        draft.value.steps.filter(
+          (step) => step.kind === "approval" || step.kind === "checklist",
+        ).length,
+    ),
     saving,
     error,
     notice,
     stale,
     validation,
+    nudgeStepCount: computed(
+      () => draft.value.steps.filter((step) => step.kind === "nudge").length,
+    ),
+    issues: computed(() => workflowEditorIssues(draft.value)),
+    fixIssue: (issue: WorkflowEditorIssue) => {
+      if (issue.stepId) {
+        selectedId.value = issue.stepId;
+        store.workflowStepSelection = issue.stepId;
+      }
+      visibility.revealIssue(issue.target, !issue.stepId);
+    },
     blocked,
     transfer,
     hasSavedDefinition: computed(() =>

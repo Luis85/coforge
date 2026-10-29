@@ -1,10 +1,23 @@
 import { SCHEDULED_TASK_FOLDER } from "../../features/coforge/domain/scheduled-task";
 import { AUTOMATION_SOURCE_FOLDER } from '../../features/coforge/domain/workflow-triggers';
+import { WORKFLOW_OUTPUT_TEMPLATES_FOLDER } from '../../features/coforge/domain/workflow-output-templates';
 import type { Plugin } from "obsidian";
 import {
   normalizeVaultFolder,
   vaultFoldersOverlap,
 } from "../../features/coforge/domain/vault-folder-policy";
+
+/** Keeps live folder policy and write protection together for one Council runtime. */
+export function councilPrivateAccess(
+  plugin: Plugin,
+  publicFolder: () => string,
+  definitions: () => readonly string[],
+) {
+  return {
+    protect: (paths: readonly string[]) => protectCouncilPrivatePaths(plugin, paths, publicFolder()),
+    policy: () => councilFolderPolicy(plugin, publicFolder(), definitions()),
+  };
+}
 
 /** Protect every configured private subtree before the first definition, submission or transcript write. */
 export async function protectCouncilPrivatePaths(
@@ -75,6 +88,7 @@ export function councilRegisteredPrivateFolders(
       COUNCIL_TASK_FOLDER,
       SCHEDULED_TASK_FOLDER,
       AUTOMATION_SOURCE_FOLDER,
+      WORKFLOW_OUTPUT_TEMPLATES_FOLDER,
     ]),
   ];
 }
@@ -104,6 +118,6 @@ export function councilFolderPolicy(
     publicFolder,
     configFolder: plugin.app.vault.configDir,
     definitionFolders: definitions,
-    outputFolders: ["CoForge/Tests", "CoForge/Messages", COUNCIL_TASK_FOLDER, SCHEDULED_TASK_FOLDER, AUTOMATION_SOURCE_FOLDER],
+    outputFolders: ["CoForge/Tests", "CoForge/Messages", COUNCIL_TASK_FOLDER, SCHEDULED_TASK_FOLDER, AUTOMATION_SOURCE_FOLDER, WORKFLOW_OUTPUT_TEMPLATES_FOLDER],
   };
 }

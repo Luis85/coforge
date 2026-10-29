@@ -37,12 +37,14 @@ import { assertReviewedCouncilIdentity } from "../../src/plugin/features/coforge
 import { councilExampleDefinitions } from "./council-preview-data";
 import { councilReviewJournal } from "./council-preview-recovery";
 import { createCouncilPreviewTasks } from "./council-preview-tasks";
+import type { WorkflowOutputTemplateActions } from '../../src/plugin/features/coforge/application/workflow-output-templates';
 
 export const COUNCIL_EXAMPLE_SOURCE = "CoForge/Examples/Council proposal.md";
 /** Created only after Explore Council example. All definitions, responses and projections stay in memory. */
 export function createCouncilPreview(
   studio: StudioStore,
   reviewScenario: string | null = null,
+  outputTemplates?: WorkflowOutputTemplateActions,
 ): CouncilActions {
   const projectId = studio.snapshot().activeProjectId || "CFP-001";
   const { agents, team, council, workflow } =
@@ -249,6 +251,7 @@ export function createCouncilPreview(
         workflowV2Admission(preview, id, `example-workflow-${id}`, true),
       );
     },
+    outputTemplates,
   );
   const unsupported = async () => {
     throw new Error(

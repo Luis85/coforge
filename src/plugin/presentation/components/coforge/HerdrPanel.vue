@@ -32,7 +32,22 @@ const model = useHerdr();
     >
       Explore Herdr example
     </button>
-    <p v-if="!model.available">Herdr controls are available inside Obsidian.</p>
+    <div v-if="!model.available" class="cf-workflow-page-intro">
+      <p>Herdr controls are available inside Obsidian.</p>
+      <ol>
+        <li>
+          Install Herdr and your coding agent, then start a Herdr session.
+        </li>
+        <li>
+          Open this project's Agent workflow in Obsidian and save the native
+          executable and session.
+        </li>
+        <li>
+          Refresh the connection, select a workspace and inspect the agent
+          target before dispatch.
+        </li>
+      </ol>
+    </div>
     <template v-else>
       <form class="cf-herdr-connection" @submit="model.configure">
         <label class="cf-field"
