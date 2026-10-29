@@ -13,6 +13,7 @@ describe("Public OBS overlays in the contained host", () => {
     await server.start();
     const approved =
       "The Council recommends testing the lantern prototype with the community.";
+    const outgoing = `OBS public workshop\nCouncil excerpt\n${approved}`;
     const privatePrompt =
       "PRIVATE AGENT INSTRUCTIONS - NEVER PUBLISH THIS PROMPT";
     try {
@@ -170,7 +171,7 @@ describe("Public OBS overlays in the contained host", () => {
         })
         .click();
       await browserExpect(overlay.locator(".cf-overlay-outgoing")).toHaveText(
-        approved,
+        outgoing,
       );
       await browserExpect(
         overlay.locator(".cf-overlay-outgoing"),
@@ -190,7 +191,7 @@ describe("Public OBS overlays in the contained host", () => {
         .click();
       await expect
         .poll(() => server.state.inputSettings.get("Council public text")?.text)
-        .toBe(approved);
+        .toBe(outgoing);
       const saved: unknown = JSON.parse(
         await obsidian.eval(({ app, pluginId }) =>
           app.vault.adapter.read(
@@ -209,7 +210,7 @@ describe("Public OBS overlays in the contained host", () => {
               publicConfirmed: true,
               publication: expect.objectContaining({
                 status: "published",
-                text: approved,
+                text: outgoing,
               }),
             }),
           ],
@@ -254,7 +255,7 @@ describe("Public OBS overlays in the contained host", () => {
         )
         .toBe(beforeCue + 1);
       expect(server.state.inputSettings.get("Council public text")?.text).toBe(
-        approved,
+        outgoing,
       );
       await browserExpect(
         show.getByRole("region", { name: "Latest cue outcome", exact: true }),
@@ -269,7 +270,7 @@ describe("Public OBS overlays in the contained host", () => {
         })
         .click();
       await browserExpect(overlay.locator(".cf-overlay-outgoing")).toHaveText(
-        approved,
+        outgoing,
       );
       await captureObsStudioVisuals(obsidian, view);
 
