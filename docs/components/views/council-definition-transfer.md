@@ -1,17 +1,39 @@
 ---
-id: "council-definition-transfer"
-title: "Definition import and export"
-goal: "Review a portable specialist definition before saving or sharing it."
-audience: "streamer"
-kind: "panel"
-route: "Council definitions / import and export details"
+id: council-definition-transfer
+title: Definition import and export
+goal: Review a portable specialist definition before saving or sharing it.
+audience: streamer
+kind: panel
+route: Council definitions / import and export details
 parent: "[[docs/components/views/council-definitions]]"
-component: "src/plugin/presentation/components/coforge/CouncilDefinitions.vue"
-entry: ["Within The Council → Definitions, expand Import and export definitions."]
-actions: ["Paste JSON","Preview current and imported definitions","Save import","Preview export"]
-states: ["Invalid JSON","Replacement preview","Disabled import","Export ready"]
-journeys: ["Council"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/CouncilDefinitions.vue
+entry:
+  - Within The Council → Definitions, expand Import and export definitions.
+actions:
+  - Paste JSON
+  - Preview current and imported definitions
+  - Save import
+  - Preview export
+states:
+  - Invalid JSON
+  - Replacement preview
+  - Disabled import
+  - Export ready
+journeys:
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+order: 46000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Definition import and export

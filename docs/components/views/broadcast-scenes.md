@@ -1,18 +1,45 @@
 ---
-id: "broadcast-scenes"
-title: "OBS scenes and sources"
-goal: "Edit the exact OBS scene and its existing sources."
-audience: "streamer"
-kind: "subpage"
-route: "studio.broadcastTool = scenes"
+id: broadcast-scenes
+title: OBS scenes and sources
+goal: Edit the exact OBS scene and its existing sources.
+audience: streamer
+kind: subpage
+route: studio.broadcastTool = scenes
 parent: "[[docs/components/views/broadcast]]"
-component: "src/plugin/presentation/components/coforge/ObsSceneManager.vue"
-entry: ["Open Stream studio, then choose Scenes."]
-actions: ["Select scene","Create, rename, copy or delete","Switch program","Edit source visibility, order or membership","Refresh"]
-states: ["Disconnected","Busy","Selected","Destructive confirmation","Unknown outcome","Example"]
-journeys: ["broadcast"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"broadcast","key":"scenes"}
+component: src/plugin/presentation/components/coforge/ObsSceneManager.vue
+entry:
+  - Open Stream studio, then choose Scenes.
+actions:
+  - Select scene
+  - Create, rename, copy or delete
+  - Switch program
+  - Edit source visibility, order or membership
+  - Refresh
+states:
+  - Disconnected
+  - Busy
+  - Selected
+  - Destructive confirmation
+  - Unknown outcome
+  - Example
+journeys:
+  - broadcast
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: broadcast
+  key: scenes
+order: 37000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # OBS scenes and sources

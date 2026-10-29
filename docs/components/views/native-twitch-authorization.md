@@ -1,17 +1,42 @@
 ---
-id: "native-twitch-authorization"
-title: "Twitch authorization"
-goal: "Grant the selected account’s required Twitch permissions."
-audience: "streamer"
-kind: "panel"
-route: "Twitch account authorization flow"
+id: native-twitch-authorization
+title: Twitch authorization
+goal: Grant the selected account’s required Twitch permissions.
+audience: streamer
+kind: panel
+route: Twitch account authorization flow
 parent: "[[docs/components/views/native-twitch]]"
-component: "src/plugin/presentation/components/coforge/TwitchAuthorization.vue"
-entry: ["Within native CoForge Twitch settings, or Stream chat → Twitch settings, use the streamer or chatbot connection controls."]
-actions: ["Connect or reconnect streamer","Connect or reconnect chatbot","Open Twitch authorization","Cancel authorization"]
-states: ["Missing client configuration","Awaiting browser authorization","Connected","Expired","Missing scopes","Failure"]
-journeys: ["setup","viewer-intake"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/TwitchAuthorization.vue
+entry:
+  - Within native CoForge Twitch settings, or Stream chat → Twitch settings, use the streamer or chatbot connection controls.
+actions:
+  - Connect or reconnect streamer
+  - Connect or reconnect chatbot
+  - Open Twitch authorization
+  - Cancel authorization
+states:
+  - Missing client configuration
+  - Awaiting browser authorization
+  - Connected
+  - Expired
+  - Missing scopes
+  - Failure
+journeys:
+  - setup
+  - viewer-intake
+privacy: Private vault workspace; excluded from public projections.
+order: 12000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Twitch authorization

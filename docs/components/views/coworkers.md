@@ -1,18 +1,49 @@
 ---
-id: "coworkers"
-title: "CoWorkers"
-goal: "Create and maintain reusable specialists for project teams."
-audience: "streamer"
-kind: "page"
-route: "studio.view = coworkers"
+id: coworkers
+title: CoWorkers
+goal: Create and maintain reusable specialists for project teams.
+audience: streamer
+kind: page
+route: studio.view = coworkers
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/CoWorkersView.vue"
-entry: ["Choose CoWorkers in Build & Improve."]
-actions: ["Search and filter CoWorkers", "Create CoWorker", "Edit instructions and provider", "Save", "Duplicate", "Archive", "Open canonical note"]
-states: ["Native unavailable", "Example", "Empty inventory", "No matches", "Unsaved draft", "Save failure", "Disabled"]
-journeys: ["Council", "multi-project"]
-privacy: "Private vault definitions; excluded from public projections."
-coverage: {"group":"studio","key":"coworkers"}
+component: src/plugin/presentation/components/coforge/CoWorkersView.vue
+entry:
+  - Choose CoWorkers in Build & Improve.
+actions:
+  - Search and filter CoWorkers
+  - Create CoWorker
+  - Edit instructions and provider
+  - Save
+  - Duplicate
+  - Archive
+  - Open canonical note
+states:
+  - Native unavailable
+  - Example
+  - Empty inventory
+  - No matches
+  - Unsaved draft
+  - Save failure
+  - Disabled
+journeys:
+  - Council
+  - multi-project
+privacy: Private vault definitions; excluded from public projections.
+coverage:
+  group: studio
+  key: coworkers
+order: 58000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # CoWorkers

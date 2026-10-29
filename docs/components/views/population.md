@@ -1,18 +1,45 @@
 ---
-id: "population"
-title: "Viewers and players"
-goal: "Inspect a viewer’s private participation record."
-audience: "streamer"
-kind: "page"
-route: "studio.view = population"
+id: population
+title: Viewers and players
+goal: Inspect a viewer’s private participation record.
+audience: streamer
+kind: page
+route: studio.view = population
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/PopulationView.vue"
-entry: ["Choose Viewers in the studio navigation."]
-actions: ["Search and filter","Select viewer","Refresh private notes","Clear filters","Page results"]
-states: ["No viewers","No matches","No selection","Note sync pending or failed"]
-journeys: ["viewer-intake","community","moderation"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"population"}
+component: src/plugin/presentation/components/coforge/PopulationView.vue
+entry:
+  - Choose Viewers in the studio navigation.
+actions:
+  - Search and filter
+  - Select viewer
+  - Refresh private notes
+  - Clear filters
+  - Page results
+states:
+  - No viewers
+  - No matches
+  - No selection
+  - Note sync pending or failed
+journeys:
+  - viewer-intake
+  - community
+  - moderation
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: population
+order: 69000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Viewers and players

@@ -1,18 +1,44 @@
 ---
-id: "economy-rewards"
-title: "Reward catalog"
-goal: "Define virtual account rewards and manually delivered perks with purchase prices."
-audience: "streamer"
-kind: "subpage"
-route: "economy.page = rewards"
+id: economy-rewards
+title: Reward catalog
+goal: Define virtual account rewards and manually delivered perks with purchase prices.
+audience: streamer
+kind: subpage
+route: economy.page = rewards
 parent: "[[docs/components/views/economy]]"
-component: "src/plugin/presentation/components/coforge/EconomyRewards.vue"
-entry: ["Choose Rewards inside Economy."]
-actions: ["Add virtual reward", "Add manual perk", "Set purchase price", "Edit benefits or fulfillment instructions", "Remove a draft reward"]
-states: ["Empty catalog", "Selected reward", "Virtual account benefit", "Manual perk", "Dirty configuration"]
-journeys: ["community-economy"]
-privacy: "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published."
-coverage: {"group": "economy", "key": "rewards"}
+component: src/plugin/presentation/components/coforge/EconomyRewards.vue
+entry:
+  - Choose Rewards inside Economy.
+actions:
+  - Add virtual reward
+  - Add manual perk
+  - Set purchase price
+  - Edit benefits or fulfillment instructions
+  - Remove a draft reward
+states:
+  - Empty catalog
+  - Selected reward
+  - Virtual account benefit
+  - Manual perk
+  - Dirty configuration
+journeys:
+  - community-economy
+privacy: Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.
+coverage:
+  group: economy
+  key: rewards
+order: 64000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Reward catalog

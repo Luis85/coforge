@@ -1,18 +1,44 @@
 ---
-id: "council-messages"
-title: "Team messages"
-goal: "Send bounded context or work to explicit team recipients."
-audience: "streamer"
-kind: "subpage"
-route: "council.tab = messages"
+id: council-messages
+title: Team messages
+goal: Send bounded context or work to explicit team recipients.
+audience: streamer
+kind: subpage
+route: council.tab = messages
 parent: "[[docs/components/views/council]]"
-component: "src/plugin/presentation/components/coforge/CouncilMessages.vue"
-entry: ["Open The Council, expand Advanced Council tools, then choose Team messages."]
-actions: ["Select team and recipients","Compose","Choose information or delegation","Send"]
-states: ["No team","No recipients","Invalid limits","Pending","Delivered","Uncertain delivery"]
-journeys: ["Council"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"council","key":"messages"}
+component: src/plugin/presentation/components/coforge/CouncilMessages.vue
+entry:
+  - Open The Council, expand Advanced Council tools, then choose Team messages.
+actions:
+  - Select team and recipients
+  - Compose
+  - Choose information or delegation
+  - Send
+states:
+  - No team
+  - No recipients
+  - Invalid limits
+  - Pending
+  - Delivered
+  - Uncertain delivery
+journeys:
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: council
+  key: messages
+order: 50000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Team messages

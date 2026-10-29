@@ -1,18 +1,42 @@
 ---
-id: "council-folders"
-title: "Council folders"
-goal: "Save the vault folders used for Council definitions."
-audience: "streamer"
-kind: "subpage"
-route: "council.tab = folders"
+id: council-folders
+title: Council folders
+goal: Save the vault folders used for Council definitions.
+audience: streamer
+kind: subpage
+route: council.tab = folders
 parent: "[[docs/components/views/council]]"
-component: "src/plugin/presentation/components/coforge/CouncilFolderSettings.vue"
-entry: ["Open The Council, expand Advanced Council tools, then choose Definition folders."]
-actions: ["Review mappings","Edit folders","Save mapping"]
-states: ["Loading","Unsaved","Invalid path","Revision conflict","Saved"]
-journeys: ["Council"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"council","key":"folders"}
+component: src/plugin/presentation/components/coforge/CouncilFolderSettings.vue
+entry:
+  - Open The Council, expand Advanced Council tools, then choose Definition folders.
+actions:
+  - Review mappings
+  - Edit folders
+  - Save mapping
+states:
+  - Loading
+  - Unsaved
+  - Invalid path
+  - Revision conflict
+  - Saved
+journeys:
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: council
+  key: folders
+order: 48000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Council folders

@@ -1,17 +1,44 @@
 ---
-id: "settings-request-object"
-title: "Project Request Object"
-goal: "Configure categories, class and optional properties captured by new requests."
-audience: "streamer"
-kind: "panel"
-route: "Project settings / Request Object"
+id: settings-request-object
+title: Project Request Object
+goal: Configure categories, class and optional properties captured by new requests.
+audience: streamer
+kind: panel
+route: Project settings / Request Object
 parent: "[[docs/components/views/settings]]"
-component: "src/plugin/presentation/components/coforge/SettingsRequestObjectSection.vue"
-entry: ["Open Project settings and review Request Object."]
-actions: ["Maintain project categories","Set class label","Add or remove fields","Choose field types and defaults","Reorder fields","Save or discard project settings"]
-states: ["Unconfigured legacy default","Schema draft","Reserved or duplicate key","Invalid default","Saved for new requests","Stale project configuration"]
-journeys: ["multi-project","request-to-recognition"]
-privacy: "Private project configuration and request metadata; custom fields are excluded from public projections."
+component: src/plugin/presentation/components/coforge/SettingsRequestObjectSection.vue
+entry:
+  - Open Project settings and review Request Object.
+actions:
+  - Maintain project categories
+  - Set class label
+  - Add or remove fields
+  - Choose field types and defaults
+  - Reorder fields
+  - Save or discard project settings
+states:
+  - Unconfigured legacy default
+  - Schema draft
+  - Reserved or duplicate key
+  - Invalid default
+  - Saved for new requests
+  - Stale project configuration
+journeys:
+  - multi-project
+  - request-to-recognition
+privacy: Private project configuration and request metadata; custom fields are excluded from public projections.
+order: 78000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Project Request Object

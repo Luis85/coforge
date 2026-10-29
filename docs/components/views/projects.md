@@ -1,18 +1,44 @@
 ---
-id: "projects"
-title: "Projects"
-goal: "Choose or create the project whose backlog you will operate."
-audience: "streamer"
-kind: "page"
-route: "studio.view = projects"
+id: projects
+title: Projects
+goal: Choose or create the project whose backlog you will operate.
+audience: streamer
+kind: page
+route: studio.view = projects
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/ProjectsView.vue"
-entry: ["Choose the project selector in the studio sidebar to open Projects."]
-actions: ["Add project","Open board","Open settings","Confirm sample workspace"]
-states: ["No projects","Adding","Selected","Unavailable","Background jobs"]
-journeys: ["setup","multi-project"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"projects"}
+component: src/plugin/presentation/components/coforge/ProjectsView.vue
+entry:
+  - Choose the project selector in the studio sidebar to open Projects.
+actions:
+  - Add project
+  - Open board
+  - Open settings
+  - Confirm sample workspace
+states:
+  - No projects
+  - Adding
+  - Selected
+  - Unavailable
+  - Background jobs
+journeys:
+  - setup
+  - multi-project
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: projects
+order: 71000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Projects

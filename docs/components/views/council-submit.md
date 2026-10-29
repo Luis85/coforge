@@ -1,18 +1,43 @@
 ---
-id: "council-submit"
-title: "Submit existing note"
-goal: "Submit a reviewed note to the intended collaboration destination."
-audience: "streamer"
-kind: "subpage"
-route: "council.tab = submit"
+id: council-submit
+title: Submit existing note
+goal: Submit a reviewed note to the intended collaboration destination.
+audience: streamer
+kind: subpage
+route: council.tab = submit
 parent: "[[docs/components/views/council]]"
-component: "src/plugin/presentation/components/coforge/CouncilSubmission.vue"
-entry: ["Open The Council, expand Advanced Council tools, then choose Submit existing note."]
-actions: ["Choose source and target","Preview preflight","Submit reviewed input"]
-states: ["No target","Invalid source","Stale preflight","Preview ready","Submitted","Failure"]
-journeys: ["Council"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"council","key":"submit"}
+component: src/plugin/presentation/components/coforge/CouncilSubmission.vue
+entry:
+  - Open The Council, expand Advanced Council tools, then choose Submit existing note.
+actions:
+  - Choose source and target
+  - Preview preflight
+  - Submit reviewed input
+states:
+  - No target
+  - Invalid source
+  - Stale preflight
+  - Preview ready
+  - Submitted
+  - Failure
+journeys:
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: council
+  key: submit
+order: 55000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Submit existing note

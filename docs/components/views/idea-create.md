@@ -1,17 +1,41 @@
 ---
-id: "idea-create"
-title: "New request"
-goal: "Record a request in the selected project."
-audience: "streamer"
-kind: "dialog"
-route: "studio.creating = true"
+id: idea-create
+title: New request
+goal: Record a request in the selected project.
+audience: streamer
+kind: dialog
+route: studio.creating = true
 parent: "[[docs/components/views/board]]"
-component: "src/plugin/presentation/components/coforge/NewIdeaDrawer.vue"
-entry: ["On Idea board, choose New request (or Add idea to inbox on Kanban)."]
-actions: ["Enter title and description","Choose category","Fill optional captured project fields","Create","Cancel"]
-states: ["No project","Draft","Validation error","Saving","Failure with retained draft"]
-journeys: ["request-to-recognition"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/NewIdeaDrawer.vue
+entry:
+  - On Idea board, choose New request (or Add idea to inbox on Kanban).
+actions:
+  - Enter title and description
+  - Choose category
+  - Fill optional captured project fields
+  - Create
+  - Cancel
+states:
+  - No project
+  - Draft
+  - Validation error
+  - Saving
+  - Failure with retained draft
+journeys:
+  - request-to-recognition
+privacy: Private vault workspace; excluded from public projections.
+order: 25000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # New request

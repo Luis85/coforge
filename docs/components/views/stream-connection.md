@@ -1,18 +1,47 @@
 ---
-id: "stream-connection"
-title: "Twitch settings"
-goal: "Connect Twitch and inspect channel readiness."
-audience: "streamer"
-kind: "subpage"
-route: "studio.streamTool = connection"
+id: stream-connection
+title: Twitch settings
+goal: Connect Twitch and inspect channel readiness.
+audience: streamer
+kind: subpage
+route: studio.streamTool = connection
 parent: "[[docs/components/views/stream]]"
-component: "src/plugin/presentation/components/coforge/TwitchChannelControls.vue"
-entry: ["Open Stream chat, then choose Twitch settings."]
-actions: ["Edit connection settings","Connect or reconnect streamer and chatbot","Save Twitch connection","Reconnect","Update channel metadata","Inspect bot delivery needs attention"]
-states: ["Native unavailable","Disconnected","Connecting","Missing scopes","Connected","Error"]
-journeys: ["setup","viewer-intake"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"stream","key":"connection"}
+component: src/plugin/presentation/components/coforge/TwitchChannelControls.vue
+entry:
+  - Open Stream chat, then choose Twitch settings.
+actions:
+  - Edit connection settings
+  - Connect or reconnect streamer and chatbot
+  - Save Twitch connection
+  - Reconnect
+  - Update channel metadata
+  - Inspect bot delivery needs attention
+states:
+  - Native unavailable
+  - Disconnected
+  - Connecting
+  - Missing scopes
+  - Connected
+  - Error
+journeys:
+  - setup
+  - viewer-intake
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: stream
+  key: connection
+order: 84000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Twitch settings

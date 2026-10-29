@@ -1,17 +1,42 @@
 ---
-id: "viewer-detail"
-title: "Viewer profile"
-goal: "Review a viewer’s private record and participation controls."
-audience: "streamer"
-kind: "panel"
-route: "population.selectedId"
+id: viewer-detail
+title: Viewer profile
+goal: Review a viewer’s private record and participation controls.
+audience: streamer
+kind: panel
+route: population.selectedId
 parent: "[[docs/components/views/population]]"
-component: "src/plugin/presentation/components/coforge/PlayerDetails.vue"
-entry: ["Open Viewers, then select a viewer name in the directory."]
-actions: ["Inspect stats","Open private note","Apply eligible participation control"]
-states: ["No selection","Registered","Unregistered","Blocked","Muted","Banned","Failure"]
-journeys: ["community","moderation"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/PlayerDetails.vue
+entry:
+  - Open Viewers, then select a viewer name in the directory.
+actions:
+  - Inspect stats
+  - Open private note
+  - Apply eligible participation control
+states:
+  - No selection
+  - Registered
+  - Unregistered
+  - Blocked
+  - Muted
+  - Banned
+  - Failure
+journeys:
+  - community
+  - moderation
+privacy: Private vault workspace; excluded from public projections.
+order: 70000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Viewer profile

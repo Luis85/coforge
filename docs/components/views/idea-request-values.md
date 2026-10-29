@@ -1,17 +1,40 @@
 ---
-id: "idea-request-values"
-title: "Captured request fields"
-goal: "Read and maintain private structured values using the request's original schema."
-audience: "streamer"
-kind: "panel"
-route: "Request overview / Captured request object"
+id: idea-request-values
+title: Captured request fields
+goal: Read and maintain private structured values using the request's original schema.
+audience: streamer
+kind: panel
+route: Request overview / Captured request object
 parent: "[[docs/components/views/idea-overview]]"
-component: "src/plugin/presentation/components/coforge/RequestValuesPanel.vue"
-entry: ["Open Overview on a request created with a Request Object."]
-actions: ["Read captured class and values","Edit optional values","Save request fields","Discard field changes"]
-states: ["Captured values","Unsaved draft","Stale request","Save failure","Closed request"]
-journeys: ["request-to-recognition"]
-privacy: "Private request metadata; custom fields are never added to public projections."
+component: src/plugin/presentation/components/coforge/RequestValuesPanel.vue
+entry:
+  - Open Overview on a request created with a Request Object.
+actions:
+  - Read captured class and values
+  - Edit optional values
+  - Save request fields
+  - Discard field changes
+states:
+  - Captured values
+  - Unsaved draft
+  - Stale request
+  - Save failure
+  - Closed request
+journeys:
+  - request-to-recognition
+privacy: Private request metadata; custom fields are never added to public projections.
+order: 30000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Captured request fields

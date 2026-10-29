@@ -1,17 +1,39 @@
 ---
-id: "settings-runtime"
-title: "Project runtime check"
-goal: "Verify the native runtime is available for this project."
-audience: "streamer"
-kind: "panel"
-route: "Project settings / runtime check"
+id: settings-runtime
+title: Project runtime check
+goal: Verify the native runtime is available for this project.
+audience: streamer
+kind: panel
+route: Project settings / runtime check
 parent: "[[docs/components/views/settings]]"
-component: "src/plugin/presentation/components/coforge/SettingsRuntimeSection.vue"
-entry: ["Within Project settings, inspect Local connections and choose Check Claude Code."]
-actions: ["Check runtime","Inspect readiness or error"]
-states: ["Not checked","Checking","Ready","Native unavailable","Check failed"]
-journeys: ["setup","workflow-configuration"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/SettingsRuntimeSection.vue
+entry:
+  - Within Project settings, inspect Local connections and choose Check Claude Code.
+actions:
+  - Check runtime
+  - Inspect readiness or error
+states:
+  - Not checked
+  - Checking
+  - Ready
+  - Native unavailable
+  - Check failed
+journeys:
+  - setup
+  - workflow-configuration
+privacy: Private vault workspace; excluded from public projections.
+order: 79000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Project runtime check

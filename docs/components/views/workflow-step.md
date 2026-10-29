@@ -1,17 +1,40 @@
 ---
-id: "workflow-step"
-title: "Workflow step editor"
-goal: "Configure one stable workflow step."
-audience: "streamer"
-kind: "panel"
-route: "studio.workflowStepSelection"
+id: workflow-step
+title: Workflow step editor
+goal: Configure one stable workflow step.
+audience: streamer
+kind: panel
+route: studio.workflowStepSelection
 parent: "[[docs/components/views/workflow-settings]]"
-component: "src/plugin/presentation/components/coforge/WorkflowStepEditor.vue"
-entry: ["Open Workflow settings, then select a step in the step list."]
-actions: ["Rename","Choose kind","Edit contract and access","Edit prompt or checklist"]
-states: ["No selection","AI","Manual checkpoint","Invalid contract","Unsaved"]
-journeys: ["workflow-configuration"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/WorkflowStepEditor.vue
+entry:
+  - Open Workflow settings, then select a step in the step list.
+actions:
+  - Rename
+  - Choose kind
+  - Edit contract and access
+  - Edit prompt or checklist
+states:
+  - No selection
+  - AI
+  - Manual checkpoint
+  - Invalid contract
+  - Unsaved
+journeys:
+  - workflow-configuration
+privacy: Private vault workspace; excluded from public projections.
+order: 92000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Workflow step editor

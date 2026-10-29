@@ -1,17 +1,38 @@
 ---
-id: "council-vault-files"
-title: "Council input file picker"
-goal: "Add selected vault files as wikilinks without replacing the task input."
-audience: "streamer"
-kind: "panel"
-route: "Ask the Council / Add vault files"
-parent: "[[docs/components/views/council-ask]]"
-component: "src/plugin/presentation/components/coforge/VaultFilePicker.vue"
-entry: ["Expand Add vault files below the Council question input."]
-actions: ["Search file paths", "Select files", "Add wikilinks to input"]
-states: ["Unavailable outside desktop", "Loading", "No matches", "Listing failed", "Input limit exceeded"]
-journeys: ["Council"]
-privacy: "Lists private vault file names only; no contents are read or sent."
+id: council-vault-files
+title: Council input file picker
+goal: Add selected vault files as wikilinks without replacing the task input.
+audience: streamer
+kind: panel
+route: Ask the Council / Add vault files
+parent: "[[council]]"
+component: src/plugin/presentation/components/coforge/VaultFilePicker.vue
+entry:
+  - Expand Add vault files below the Council question input.
+actions:
+  - Search file paths
+  - Select files
+  - Add wikilinks to input
+states:
+  - Unavailable outside desktop
+  - Loading
+  - No matches
+  - Listing failed
+  - Input limit exceeded
+journeys:
+  - Council
+privacy: Lists private vault file names only; no contents are read or sent.
+order: 56500
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Council input file picker

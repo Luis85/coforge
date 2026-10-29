@@ -1,18 +1,44 @@
 ---
-id: "broadcast-displays"
-title: "Stream displays"
-goal: "Open the read-only surface intended for OBS capture."
-audience: "streamer"
-kind: "subpage"
-route: "studio.broadcastTool = displays"
+id: broadcast-displays
+title: Stream displays
+goal: Open the read-only surface intended for OBS capture.
+audience: streamer
+kind: subpage
+route: studio.broadcastTool = displays
 parent: "[[docs/components/views/broadcast]]"
-component: "src/plugin/presentation/components/coforge/StreamDisplaysPanel.vue"
-entry: ["Open Stream studio, then choose Public displays."]
-actions: ["Show selected project on stream Kanban","Open Kanban, chat, leaderboards or community tab","Preview public surface","Close public display preview"]
-states: ["Native unavailable","Unavailable project","Embedded preview","Display opened","Open or project-change failure"]
-journeys: ["broadcast","public-sharing"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"broadcast","key":"displays"}
+component: src/plugin/presentation/components/coforge/StreamDisplaysPanel.vue
+entry:
+  - Open Stream studio, then choose Public displays.
+actions:
+  - Show selected project on stream Kanban
+  - Open Kanban, chat, leaderboards or community tab
+  - Preview public surface
+  - Close public display preview
+states:
+  - Native unavailable
+  - Unavailable project
+  - Embedded preview
+  - Display opened
+  - Open or project-change failure
+journeys:
+  - broadcast
+  - public-sharing
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: broadcast
+  key: displays
+order: 33000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Stream displays

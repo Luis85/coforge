@@ -1,18 +1,47 @@
 ---
-id: "workflow"
-title: "Agent workflow"
-goal: "Manage this project's agent process from configuration through execution."
-audience: "streamer"
-kind: "page"
-route: "studio.view = workflow"
+id: workflow
+title: Agent workflow
+goal: Manage this project's agent process from configuration through execution.
+audience: streamer
+kind: page
+route: studio.view = workflow
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/WorkflowView.vue"
-entry: ["Choose Agent workflow in the studio navigation."]
-actions: ["Inspect execution","Complete checkpoint","Pause or resume","Inspect history","Configure workflow","Manage Herdr workspaces"]
-states: ["No project","No active work","Queued","Running","Checkpoint","Failed or uncertain result"]
-journeys: ["request-to-recognition","workflow-configuration"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"workflow"}
+component: src/plugin/presentation/components/coforge/WorkflowView.vue
+entry:
+  - Choose Agent workflow in the studio navigation.
+actions:
+  - Inspect execution
+  - Complete checkpoint
+  - Pause or resume
+  - Inspect history
+  - Configure workflow
+  - Manage Herdr workspaces
+states:
+  - No project
+  - No active work
+  - Queued
+  - Running
+  - Checkpoint
+  - Failed or uncertain result
+journeys:
+  - request-to-recognition
+  - workflow-configuration
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: workflow
+order: 87000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Agent workflow

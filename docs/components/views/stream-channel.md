@@ -1,18 +1,46 @@
 ---
-id: "stream-channel"
-title: "Chat"
-goal: "Respond to viewers through the connected Twitch channel."
-audience: "streamer"
-kind: "subpage"
-route: "studio.streamTool = channel"
+id: stream-channel
+title: Chat
+goal: Respond to viewers through the connected Twitch channel.
+audience: streamer
+kind: subpage
+route: studio.streamTool = channel
 parent: "[[docs/components/views/stream]]"
-component: "src/plugin/presentation/components/coforge/ChatPanel.vue"
-entry: ["Open Stream chat, then choose Chat."]
-actions: ["Send chat","Enable explicit local test","Moderate message","Read viewer commands"]
-states: ["Disconnected","Connecting","Missing scopes","Read-only","Sending","Local test","Send failure"]
-journeys: ["viewer-intake","moderation"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"stream","key":"channel"}
+component: src/plugin/presentation/components/coforge/ChatPanel.vue
+entry:
+  - Open Stream chat, then choose Chat.
+actions:
+  - Send chat
+  - Enable explicit local test
+  - Moderate message
+  - Read viewer commands
+states:
+  - Disconnected
+  - Connecting
+  - Missing scopes
+  - Read-only
+  - Sending
+  - Local test
+  - Send failure
+journeys:
+  - viewer-intake
+  - moderation
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: stream
+  key: channel
+order: 82000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Chat

@@ -1,18 +1,40 @@
 ---
-id: "idea-activity"
-title: "Request activity"
-goal: "Trace what happened to this request."
-audience: "streamer"
-kind: "subpage"
-route: "studio.drawerTab = activity"
+id: idea-activity
+title: Request activity
+goal: Trace what happened to this request.
+audience: streamer
+kind: subpage
+route: studio.drawerTab = activity
 parent: "[[docs/components/views/idea-detail]]"
-component: "src/plugin/presentation/components/coforge/IdeaActivityTab.vue"
-entry: ["Open a request’s details, then choose Activity."]
-actions: ["Read chronological events","Inspect attempts"]
-states: ["No activity","Recorded events","Failed attempt"]
-journeys: ["request-to-recognition","recovery"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"idea","key":"activity"}
+component: src/plugin/presentation/components/coforge/IdeaActivityTab.vue
+entry:
+  - Open a request’s details, then choose Activity.
+actions:
+  - Read chronological events
+  - Inspect attempts
+states:
+  - No activity
+  - Recorded events
+  - Failed attempt
+journeys:
+  - request-to-recognition
+  - recovery
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: idea
+  key: activity
+order: 27000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Request activity

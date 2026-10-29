@@ -70,3 +70,7 @@ __pycache__/
 
 # TypeScript project build output (declarations and build info of tsc -b).
 .cache/
+
+
+# MCP Settings
+.mcp.json

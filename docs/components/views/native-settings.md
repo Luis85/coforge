@@ -1,17 +1,42 @@
 ---
-id: "native-settings"
-title: "CoForge integration settings"
-goal: "Save the vault-wide integration configuration."
-audience: "streamer"
-kind: "native"
-route: "Obsidian Settings / CoForge"
-parent: null
-component: "src/plugin/presentation/components/coforge/PluginSettings.vue"
-entry: ["Open Obsidian Settings → Community plugins → CoForge."]
-actions: ["Edit integration fields","Save","Discard","Dismiss notice"]
-states: ["Loading","Startup failure","Unsaved","Saved","Validation or save error"]
-journeys: ["setup","viewer-intake","public-sharing"]
-privacy: "Private vault workspace; excluded from public projections."
+id: native-settings
+title: CoForge integration settings
+goal: Save the vault-wide integration configuration.
+audience: streamer
+kind: native
+route: Obsidian Settings / CoForge
+parent:
+component: src/plugin/presentation/components/coforge/PluginSettings.vue
+entry:
+  - Open Obsidian Settings → Community plugins → CoForge.
+actions:
+  - Edit integration fields
+  - Save
+  - Discard
+  - Dismiss notice
+states:
+  - Loading
+  - Startup failure
+  - Unsaved
+  - Saved
+  - Validation or save error
+journeys:
+  - setup
+  - viewer-intake
+  - public-sharing
+privacy: Private vault workspace; excluded from public projections.
+order: 8000
+type: Epic
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # CoForge integration settings

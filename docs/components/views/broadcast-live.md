@@ -1,18 +1,45 @@
 ---
-id: "broadcast-live"
-title: "Live broadcast"
-goal: "Keep the current broadcast running with visible health and explicit controls."
-audience: "streamer"
-kind: "subpage"
-route: "studio.broadcastTool = live"
+id: broadcast-live
+title: Live broadcast
+goal: Keep the current broadcast running with visible health and explicit controls.
+audience: streamer
+kind: subpage
+route: studio.broadcastTool = live
 parent: "[[docs/components/views/broadcast]]"
-component: "src/plugin/presentation/components/coforge/BroadcastControls.vue"
-entry: ["Open Stream studio, then choose Broadcast."]
-actions: ["Prepare","Go live","BRB or resume","Stop","Refresh observed state"]
-states: ["Disconnected","Off air","Live","BRB","Unknown outcome","Stale health"]
-journeys: ["broadcast"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"broadcast","key":"live"}
+component: src/plugin/presentation/components/coforge/BroadcastControls.vue
+entry:
+  - Open Stream studio, then choose Broadcast.
+actions:
+  - Prepare
+  - Go live
+  - BRB or resume
+  - Stop
+  - Refresh observed state
+states:
+  - Disconnected
+  - Off air
+  - Live
+  - BRB
+  - Unknown outcome
+  - Stale health
+journeys:
+  - broadcast
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: broadcast
+  key: live
+order: 35000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Live broadcast

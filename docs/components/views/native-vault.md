@@ -1,17 +1,37 @@
 ---
-id: "native-vault"
-title: "Ideas folder setting"
-goal: "Choose where canonical idea notes live."
-audience: "streamer"
-kind: "panel"
-route: "native settings / Vault"
+id: native-vault
+title: Ideas folder setting
+goal: Choose where canonical idea notes live.
+audience: streamer
+kind: panel
+route: native settings / Vault
 parent: "[[docs/components/views/native-settings]]"
-component: "src/plugin/presentation/components/coforge/PluginSettings.vue"
-entry: ["Within Obsidian Settings → Community plugins → CoForge, edit Ideas folder under Vault."]
-actions: ["Edit ideas folder","Save integration settings"]
-states: ["Unchanged","Folder move","Pending work blocks move","Invalid path"]
-journeys: ["setup"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/PluginSettings.vue
+entry:
+  - Within Obsidian Settings → Community plugins → CoForge, edit Ideas folder under Vault.
+actions:
+  - Edit ideas folder
+  - Save integration settings
+states:
+  - Unchanged
+  - Folder move
+  - Pending work blocks move
+  - Invalid path
+journeys:
+  - setup
+privacy: Private vault workspace; excluded from public projections.
+order: 13000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Ideas folder setting

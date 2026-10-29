@@ -1,18 +1,46 @@
 ---
-id: "settings"
-title: "Project settings"
-goal: "Save this project’s brief and workspace boundaries."
-audience: "streamer"
-kind: "page"
-route: "studio.view = settings"
+id: settings
+title: Project settings
+goal: Save this project’s brief and workspace boundaries.
+audience: streamer
+kind: page
+route: studio.view = settings
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/SettingsView.vue"
-entry: ["Choose Project settings in the studio navigation."]
-actions: ["Edit brief and prompt","Configure repository","Save or discard","Open Workflow settings"]
-states: ["No project","Saved","Unsaved","Saving","Invalid draft","Pending-work guard"]
-journeys: ["setup","multi-project","workflow-configuration"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"settings"}
+component: src/plugin/presentation/components/coforge/SettingsView.vue
+entry:
+  - Choose Project settings in the studio navigation.
+actions:
+  - Edit brief and prompt
+  - Configure repository
+  - Save or discard
+  - Open Workflow settings
+states:
+  - No project
+  - Saved
+  - Unsaved
+  - Saving
+  - Invalid draft
+  - Pending-work guard
+journeys:
+  - setup
+  - multi-project
+  - workflow-configuration
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: settings
+order: 74000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Project settings

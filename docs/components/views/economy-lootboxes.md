@@ -1,18 +1,45 @@
 ---
-id: "economy-lootboxes"
-title: "Loot boxes"
-goal: "Define purchasable weighted reward outcomes with visible exact odds."
-audience: "streamer"
-kind: "subpage"
-route: "economy.page = lootboxes"
+id: economy-lootboxes
+title: Loot boxes
+goal: Define purchasable weighted reward outcomes with visible exact odds.
+audience: streamer
+kind: subpage
+route: economy.page = lootboxes
 parent: "[[docs/components/views/economy]]"
-component: "src/plugin/presentation/components/coforge/EconomyLootboxes.vue"
-entry: ["Choose Loot boxes inside Economy."]
-actions: ["Add loot box", "Set purchase price", "Add reward outcomes and weights", "Review effective odds", "Remove draft outcome or box"]
-states: ["No rewards", "No boxes", "Incomplete weights", "Zero-weight outcome", "Effective reward odds", "Dirty configuration"]
-journeys: ["community-economy"]
-privacy: "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published."
-coverage: {"group": "economy", "key": "lootboxes"}
+component: src/plugin/presentation/components/coforge/EconomyLootboxes.vue
+entry:
+  - Choose Loot boxes inside Economy.
+actions:
+  - Add loot box
+  - Set purchase price
+  - Add reward outcomes and weights
+  - Review effective odds
+  - Remove draft outcome or box
+states:
+  - No rewards
+  - No boxes
+  - Incomplete weights
+  - Zero-weight outcome
+  - Effective reward odds
+  - Dirty configuration
+journeys:
+  - community-economy
+privacy: Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.
+coverage:
+  group: economy
+  key: lootboxes
+order: 63000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Loot boxes

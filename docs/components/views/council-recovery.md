@@ -1,17 +1,42 @@
 ---
-id: "council-recovery"
-title: "Council recovery tools"
-goal: "Preserve or recover the selected run's retained execution evidence."
-audience: "streamer"
-kind: "panel"
-route: "council.inspectedRun recovery tools"
+id: council-recovery
+title: Council recovery tools
+goal: Preserve or recover the selected run's retained execution evidence.
+audience: streamer
+kind: panel
+route: council.inspectedRun recovery tools
 parent: "[[docs/components/views/council-monitor]]"
-component: "src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue"
-entry: ["Within The Council → Run monitor, select a run to inspect its recovery tools."]
-actions: ["Record allowance extension","Prepare private run export","Publish retained results to selected note","Remove settled history with export and consent"]
-states: ["No selected run","Exhausted allowance","Export ready","Missing source","Pending work blocks removal","Retention consent required"]
-journeys: ["Council","recovery"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue
+entry:
+  - Within The Council → Run monitor, select a run to inspect its recovery tools.
+actions:
+  - Record allowance extension
+  - Prepare private run export
+  - Publish retained results to selected note
+  - Remove settled history with export and consent
+states:
+  - No selected run
+  - Exhausted allowance
+  - Export ready
+  - Missing source
+  - Pending work blocks removal
+  - Retention consent required
+journeys:
+  - Council
+  - recovery
+privacy: Private vault workspace; excluded from public projections.
+order: 53000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Council recovery tools

@@ -1,18 +1,42 @@
 ---
-id: "public-kanban"
-title: "Public stream Kanban"
-goal: "Show the community the screened request backlog."
-audience: "viewer / OBS capture"
-kind: "public"
-route: "Obsidian stream surface = kanban"
-parent: null
-component: "src/plugin/presentation/components/coforge/StreamRequestBoard.vue"
-entry: ["Use the Stream Kanban ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."]
-actions: ["Open from ribbon or Stream displays","Detach manually","Read projected cards"]
-states: ["No public project","Awaiting screening count","Empty column","Screened cards"]
-journeys: ["public-sharing","community"]
-privacy: "Explicit public whitelist; read-only."
-coverage: {"group":"public","key":"kanban"}
+id: public-kanban
+title: Public stream Kanban
+goal: Show the community the screened request backlog.
+audience: viewer / OBS capture
+kind: public
+route: Obsidian stream surface = kanban
+parent:
+component: src/plugin/presentation/components/coforge/StreamRequestBoard.vue
+entry:
+  - Use the Stream Kanban ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture.
+actions:
+  - Open from ribbon or Stream displays
+  - Detach manually
+  - Read projected cards
+states:
+  - No public project
+  - Awaiting screening count
+  - Empty column
+  - Screened cards
+journeys:
+  - public-sharing
+  - community
+privacy: Explicit public whitelist; read-only.
+coverage:
+  group: public
+  key: kanban
+order: 17000
+type: Epic
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Public stream Kanban

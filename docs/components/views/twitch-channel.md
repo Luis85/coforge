@@ -1,17 +1,39 @@
 ---
-id: "twitch-channel"
-title: "Twitch channel editor"
-goal: "Save the metadata viewers will see on Twitch."
-audience: "streamer"
-kind: "panel"
-route: "Stream chat / Twitch settings / channel metadata"
+id: twitch-channel
+title: Twitch channel editor
+goal: Save the metadata viewers will see on Twitch.
+audience: streamer
+kind: panel
+route: Stream chat / Twitch settings / channel metadata
 parent: "[[docs/components/views/stream-connection]]"
-component: "src/plugin/presentation/components/coforge/TwitchChannelEditor.vue"
-entry: ["Within Stream chat → Twitch settings, use the channel metadata editor."]
-actions: ["Edit title, category, tags and language","Save","Open Twitch branding"]
-states: ["Disconnected","Missing permission","Draft","Saving","Failure"]
-journeys: ["broadcast"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/TwitchChannelEditor.vue
+entry:
+  - Within Stream chat → Twitch settings, use the channel metadata editor.
+actions:
+  - Edit title, category, tags and language
+  - Save
+  - Open Twitch branding
+states:
+  - Disconnected
+  - Missing permission
+  - Draft
+  - Saving
+  - Failure
+journeys:
+  - broadcast
+privacy: Private vault workspace; excluded from public projections.
+order: 85000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Twitch channel editor

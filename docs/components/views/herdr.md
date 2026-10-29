@@ -1,18 +1,45 @@
 ---
-id: "herdr"
-title: "Herdr workspace controls"
-goal: "Dispatch an explicitly reviewed request to a verified ready agent."
-audience: "streamer"
-kind: "subpage"
-route: "studio.workflowTool = herdr"
+id: herdr
+title: Herdr workspace controls
+goal: Dispatch an explicitly reviewed request to a verified ready agent.
+audience: streamer
+kind: subpage
+route: studio.workflowTool = herdr
 parent: "[[docs/components/views/workflow]]"
-component: "src/plugin/presentation/components/coforge/HerdrPanel.vue"
-entry: ["Open Agent workflow, then choose Herdr workspaces."]
-actions: ["Refresh identities","Manage native agents","Review dispatch","Send","Acknowledge recovery"]
-states: ["Native unavailable","Disconnected","No ready agent","Review required","Pending or unknown mutation"]
-journeys: ["workflow-configuration","recovery"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"workflow","key":"herdr"}
+component: src/plugin/presentation/components/coforge/HerdrPanel.vue
+entry:
+  - Open Agent workflow, then choose Herdr workspaces.
+actions:
+  - Refresh identities
+  - Manage native agents
+  - Review dispatch
+  - Send
+  - Acknowledge recovery
+states:
+  - Native unavailable
+  - Disconnected
+  - No ready agent
+  - Review required
+  - Pending or unknown mutation
+journeys:
+  - workflow-configuration
+  - recovery
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: workflow
+  key: herdr
+order: 88000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Herdr workspace controls

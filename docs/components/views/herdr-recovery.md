@@ -1,17 +1,39 @@
 ---
-id: "herdr-recovery"
-title: "Herdr workflow recovery"
-goal: "Resolve the uncertain outcome of a managed workflow attempt."
-audience: "streamer"
-kind: "panel"
-route: "pending Herdr workflow attempt"
+id: herdr-recovery
+title: Herdr workflow recovery
+goal: Resolve the uncertain outcome of a managed workflow attempt.
+audience: streamer
+kind: panel
+route: pending Herdr workflow attempt
 parent: "[[docs/components/views/workflow-runs]]"
-component: "src/plugin/presentation/components/coforge/HerdrWorkflowRecovery.vue"
-entry: ["Within Agent workflow → Workflow runs, inspect the pending Herdr attempt recovery panel."]
-actions: ["Refresh correlated result","Inspect attempt","Acknowledge recovery"]
-states: ["No pending attempt","Waiting","Unknown outcome","Stale result","Recoverable"]
-journeys: ["recovery"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/HerdrWorkflowRecovery.vue
+entry:
+  - Within Agent workflow → Workflow runs, inspect the pending Herdr attempt recovery panel.
+actions:
+  - Refresh correlated result
+  - Inspect attempt
+  - Acknowledge recovery
+states:
+  - No pending attempt
+  - Waiting
+  - Unknown outcome
+  - Stale result
+  - Recoverable
+journeys:
+  - recovery
+privacy: Private vault workspace; excluded from public projections.
+order: 90000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Herdr workflow recovery

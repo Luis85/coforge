@@ -1,18 +1,46 @@
 ---
-id: "economy-fulfillment"
-title: "Manual perk fulfillment"
-goal: "Record manually completed perks from captured awards and purchases."
-audience: "streamer"
-kind: "subpage"
-route: "economy.page = fulfillment"
+id: economy-fulfillment
+title: Manual perk fulfillment
+goal: Record manually completed perks from captured awards and purchases.
+audience: streamer
+kind: subpage
+route: economy.page = fulfillment
 parent: "[[docs/components/views/economy]]"
-component: "src/plugin/presentation/components/coforge/EconomyFulfillment.vue"
-entry: ["Choose Fulfillment inside Economy."]
-actions: ["Filter pending or fulfilled records", "Find viewer or perk", "Page records", "Write a private fulfillment note", "Record as fulfilled", "Cancel the local note"]
-states: ["Empty queue", "Pending", "Fulfilled", "Note dirty", "Write failed", "Concurrent entry changed"]
-journeys: ["community-economy"]
-privacy: "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published."
-coverage: {"group": "economy", "key": "fulfillment"}
+component: src/plugin/presentation/components/coforge/EconomyFulfillment.vue
+entry:
+  - Choose Fulfillment inside Economy.
+actions:
+  - Filter pending or fulfilled records
+  - Find viewer or perk
+  - Page records
+  - Write a private fulfillment note
+  - Record as fulfilled
+  - Cancel the local note
+states:
+  - Empty queue
+  - Pending
+  - Fulfilled
+  - Note dirty
+  - Write failed
+  - Concurrent entry changed
+journeys:
+  - community-economy
+privacy: Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.
+coverage:
+  group: economy
+  key: fulfillment
+order: 62000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Manual perk fulfillment

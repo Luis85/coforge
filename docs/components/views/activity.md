@@ -1,17 +1,38 @@
 ---
-id: "activity"
-title: "Studio activity"
-goal: "Open the request associated with a recent event."
-audience: "streamer"
-kind: "panel"
-route: "studio.activityOpen = true"
+id: activity
+title: Studio activity
+goal: Open the request associated with a recent event.
+audience: streamer
+kind: panel
+route: studio.activityOpen = true
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/ActivityPopover.vue"
-entry: ["Choose Recent activity in the studio header."]
-actions: ["Inspect event","Open associated request","Close"]
-states: ["No events","Event with request","Event without request"]
-journeys: ["recovery","request-to-recognition"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/ActivityPopover.vue
+entry:
+  - Choose Recent activity in the studio header.
+actions:
+  - Inspect event
+  - Open associated request
+  - Close
+states:
+  - No events
+  - Event with request
+  - Event without request
+journeys:
+  - recovery
+  - request-to-recognition
+privacy: Private vault workspace; excluded from public projections.
+order: 21000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Studio activity

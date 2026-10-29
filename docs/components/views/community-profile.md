@@ -1,17 +1,37 @@
 ---
-id: "community-profile"
-title: "Contributor recognition profile"
-goal: "Understand one contributor’s credited progress."
-audience: "streamer"
-kind: "panel"
-route: "community.selected"
+id: community-profile
+title: Contributor recognition profile
+goal: Understand one contributor’s credited progress.
+audience: streamer
+kind: panel
+route: community.selected
 parent: "[[docs/components/views/community]]"
-component: "src/plugin/presentation/components/coforge/CommunityProfile.vue"
-entry: ["Open Community, then select a contributor in the leaderboard."]
-actions: ["Select contributor","Read credited ideas and accepted work"]
-states: ["No selected contributor","Selected","No accepted work"]
-journeys: ["community","request-to-recognition"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/CommunityProfile.vue
+entry:
+  - Open Community, then select a contributor in the leaderboard.
+actions:
+  - Select contributor
+  - Read credited ideas and accepted work
+states:
+  - No selected contributor
+  - Selected
+  - No accepted work
+journeys:
+  - community
+  - request-to-recognition
+privacy: Private vault workspace; excluded from public projections.
+order: 41000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Contributor recognition profile

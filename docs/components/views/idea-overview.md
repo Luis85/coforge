@@ -1,18 +1,43 @@
 ---
-id: "idea-overview"
-title: "Request overview"
-goal: "Understand and qualify the submitted request."
-audience: "streamer"
-kind: "subpage"
-route: "studio.drawerTab = overview"
+id: idea-overview
+title: Request overview
+goal: Understand and qualify the submitted request.
+audience: streamer
+kind: subpage
+route: studio.drawerTab = overview
 parent: "[[docs/components/views/idea-detail]]"
-component: "src/plugin/presentation/components/coforge/IdeaOverviewTab.vue"
-entry: ["Open a request’s details, then choose Overview."]
-actions: ["Read request and context","Inspect or edit captured custom values","Inspect screening","Edit RICE","Run next stage"]
-states: ["Unscreened","Flagged","Screened","Changed context"]
-journeys: ["request-to-recognition"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"idea","key":"overview"}
+component: src/plugin/presentation/components/coforge/IdeaOverviewTab.vue
+entry:
+  - Open a request’s details, then choose Overview.
+actions:
+  - Read request and context
+  - Inspect or edit captured custom values
+  - Inspect screening
+  - Edit RICE
+  - Run next stage
+states:
+  - Unscreened
+  - Flagged
+  - Screened
+  - Changed context
+journeys:
+  - request-to-recognition
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: idea
+  key: overview
+order: 29000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Request overview

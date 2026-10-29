@@ -1,0 +1,6 @@
+# CoForge managed private data
+*
+!Public/
+!Public/**
+!.gitignore
+# End CoForge managed private data

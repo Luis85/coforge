@@ -1,18 +1,43 @@
 ---
-id: "economy-commands"
-title: "Command prices"
-goal: "Set fees and success benefits for every supported stream command."
-audience: "streamer"
-kind: "subpage"
-route: "economy.page = commands"
+id: economy-commands
+title: Command prices
+goal: Set fees and success benefits for every supported stream command.
+audience: streamer
+kind: subpage
+route: economy.page = commands
 parent: "[[docs/components/views/economy]]"
-component: "src/plugin/presentation/components/coforge/EconomyCommands.vue"
-entry: ["Choose Command prices inside Economy."]
-actions: ["Select a command", "Set fee and virtual benefits", "Assign bonus rewards and boxes", "Inspect captured usage"]
-states: ["Free", "Priced", "No rewards configured", "Recent usage empty", "Dirty configuration"]
-journeys: ["community-economy"]
-privacy: "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published."
-coverage: {"group": "economy", "key": "commands"}
+component: src/plugin/presentation/components/coforge/EconomyCommands.vue
+entry:
+  - Choose Command prices inside Economy.
+actions:
+  - Select a command
+  - Set fee and virtual benefits
+  - Assign bonus rewards and boxes
+  - Inspect captured usage
+states:
+  - Free
+  - Priced
+  - No rewards configured
+  - Recent usage empty
+  - Dirty configuration
+journeys:
+  - community-economy
+privacy: Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.
+coverage:
+  group: economy
+  key: commands
+order: 60000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Command prices

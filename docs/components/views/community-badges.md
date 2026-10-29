@@ -1,17 +1,35 @@
 ---
-id: "community-badges"
-title: "Contributor badges"
-goal: "Understand the milestones behind a contributor’s badges."
-audience: "streamer"
-kind: "panel"
-route: "community selected contributor badges"
+id: community-badges
+title: Contributor badges
+goal: Understand the milestones behind a contributor’s badges.
+audience: streamer
+kind: panel
+route: community selected contributor badges
 parent: "[[docs/components/views/community-profile]]"
-component: "src/plugin/presentation/components/coforge/CommunityBadges.vue"
-entry: ["Within the selected contributor on Community, inspect earned and locked badges."]
-actions: ["Inspect earned and locked badges"]
-states: ["No selection","Earned","Locked"]
-journeys: ["community"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/CommunityBadges.vue
+entry:
+  - Within the selected contributor on Community, inspect earned and locked badges.
+actions:
+  - Inspect earned and locked badges
+states:
+  - No selection
+  - Earned
+  - Locked
+journeys:
+  - community
+privacy: Private vault workspace; excluded from public projections.
+order: 42000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Contributor badges

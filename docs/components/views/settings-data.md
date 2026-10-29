@@ -1,17 +1,39 @@
 ---
-id: "settings-data"
-title: "Backup and sample tools"
-goal: "Export a private studio backup or explicitly replace this project’s requests with sample data."
-audience: "streamer"
-kind: "panel"
-route: "Project settings / data tools"
+id: settings-data
+title: Backup and sample tools
+goal: Export a private studio backup or explicitly replace this project’s requests with sample data.
+audience: streamer
+kind: panel
+route: Project settings / data tools
 parent: "[[docs/components/views/settings]]"
-component: "src/plugin/presentation/components/coforge/SettingsDataSection.vue"
-entry: ["Within Project settings, use Backup and sample tools."]
-actions: ["Export private JSON backup","Request sample replacement","Keep data or confirm replacement"]
-states: ["Ready","Confirmation required","Pending work blocks replacement","Failure"]
-journeys: ["setup","recovery"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/SettingsDataSection.vue
+entry:
+  - Within Project settings, use Backup and sample tools.
+actions:
+  - Export private JSON backup
+  - Request sample replacement
+  - Keep data or confirm replacement
+states:
+  - Ready
+  - Confirmation required
+  - Pending work blocks replacement
+  - Failure
+journeys:
+  - setup
+  - recovery
+privacy: Private vault workspace; excluded from public projections.
+order: 75000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Backup and sample tools

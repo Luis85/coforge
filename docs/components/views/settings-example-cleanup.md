@@ -1,17 +1,49 @@
 ---
-id: "settings-example-cleanup"
-title: "Example content cleanup"
-goal: "Review and explicitly remove sample and local-test content while preserving real requests."
-audience: "streamer"
-kind: "panel"
-route: "Project settings / Backup and sample tools / Example cleanup"
+id: settings-example-cleanup
+title: Example content cleanup
+goal: Review and explicitly remove sample and local-test content while preserving real requests.
+audience: streamer
+kind: panel
+route: Project settings / Backup and sample tools / Example cleanup
 parent: "[[docs/components/views/settings-data]]"
-component: "src/plugin/presentation/components/coforge/ExampleContentCleanup.vue"
-entry: ["Open Project settings, then Preview example cleanup under Backup and sample tools."]
-actions: ["Preview exact tracked requests", "Inspect historical candidates", "Select exact historical request IDs", "Keep content", "Confirm removal", "Refresh a stale preview"]
-states: ["Closed", "Loading preview", "Paused automation required", "Pending work blocked", "Preview", "Historical origin unknown", "Working", "Failed with selection retained", "Committed", "Recovery archive retained"]
-journeys: ["setup", "multi-project", "request-to-recognition"]
-privacy: "Private requests and note evidence stay within the vault. Cleanup uses exact IDs and never changes credentials, external game files or retained public request policy."
+component: src/plugin/presentation/components/coforge/ExampleContentCleanup.vue
+entry:
+  - Open Project settings, then Preview example cleanup under Backup and sample tools.
+actions:
+  - Preview exact tracked requests
+  - Inspect historical candidates
+  - Select exact historical request IDs
+  - Keep content
+  - Confirm removal
+  - Refresh a stale preview
+states:
+  - Closed
+  - Loading preview
+  - Paused automation required
+  - Pending work blocked
+  - Preview
+  - Historical origin unknown
+  - Working
+  - Failed with selection retained
+  - Committed
+  - Recovery archive retained
+journeys:
+  - setup
+  - multi-project
+  - request-to-recognition
+privacy: Private requests and note evidence stay within the vault. Cleanup uses exact IDs and never changes credentials, external game files or retained public request policy.
+order: 76000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Example content cleanup

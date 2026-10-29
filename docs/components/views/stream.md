@@ -1,18 +1,43 @@
 ---
-id: "stream"
-title: "Stream chat"
-goal: "Manage the conversation with viewers."
-audience: "streamer"
-kind: "page"
-route: "studio.view = stream"
+id: stream
+title: Stream chat
+goal: Manage the conversation with viewers.
+audience: streamer
+kind: page
+route: studio.view = stream
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/StreamPage.vue"
-entry: ["Choose Stream chat in the studio navigation."]
-actions: ["Choose Chat","Choose Twitch settings","Choose Bot messages","Inspect intake status"]
-states: ["Disconnected","Connecting","Live chat","Local command test"]
-journeys: ["viewer-intake","broadcast"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"stream"}
+component: src/plugin/presentation/components/coforge/StreamPage.vue
+entry:
+  - Choose Stream chat in the studio navigation.
+actions:
+  - Choose Chat
+  - Choose Twitch settings
+  - Choose Bot messages
+  - Inspect intake status
+states:
+  - Disconnected
+  - Connecting
+  - Live chat
+  - Local command test
+journeys:
+  - viewer-intake
+  - broadcast
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: stream
+order: 81000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Stream chat

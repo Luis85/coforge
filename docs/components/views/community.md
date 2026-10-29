@@ -1,18 +1,42 @@
 ---
-id: "community"
-title: "Community recognition"
-goal: "Understand who contributed to accepted progress."
-audience: "streamer"
-kind: "page"
-route: "studio.view = community"
+id: community
+title: Community recognition
+goal: Understand who contributed to accepted progress.
+audience: streamer
+kind: page
+route: studio.view = community
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/CommunityView.vue"
-entry: ["Choose Community in the studio navigation."]
-actions: ["Select contributor","Inspect badges","Review accepted releases"]
-states: ["No contributors","Selected contributor","Earned or locked badges","Demo"]
-journeys: ["request-to-recognition","community"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"community"}
+component: src/plugin/presentation/components/coforge/CommunityView.vue
+entry:
+  - Choose Community in the studio navigation.
+actions:
+  - Select contributor
+  - Inspect badges
+  - Review accepted releases
+states:
+  - No contributors
+  - Selected contributor
+  - Earned or locked badges
+  - Demo
+journeys:
+  - request-to-recognition
+  - community
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: community
+order: 40000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Community recognition

@@ -1,18 +1,47 @@
 ---
-id: "broadcast-setup"
-title: "Stream setup"
-goal: "Complete connection and readiness checks before going live."
-audience: "streamer"
-kind: "subpage"
-route: "studio.broadcastTool = setup"
+id: broadcast-setup
+title: Stream setup
+goal: Complete connection and readiness checks before going live.
+audience: streamer
+kind: subpage
+route: studio.broadcastTool = setup
 parent: "[[docs/components/views/broadcast]]"
-component: "src/plugin/presentation/components/coforge/BroadcastSetup.vue"
-entry: ["Open Stream studio, then choose Setup."]
-actions: ["Guided setup","Connect or open OBS","Save profile and secret password","Choose scenes","Review readiness","Open Twitch settings"]
-states: ["Native unavailable","Installation missing","Disconnected","Authentication issue","Scenes unavailable","Ready"]
-journeys: ["setup","broadcast"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"broadcast","key":"setup"}
+component: src/plugin/presentation/components/coforge/BroadcastSetup.vue
+entry:
+  - Open Stream studio, then choose Setup.
+actions:
+  - Guided setup
+  - Connect or open OBS
+  - Save profile and secret password
+  - Choose scenes
+  - Review readiness
+  - Open Twitch settings
+states:
+  - Native unavailable
+  - Installation missing
+  - Disconnected
+  - Authentication issue
+  - Scenes unavailable
+  - Ready
+journeys:
+  - setup
+  - broadcast
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: broadcast
+  key: setup
+order: 38000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Stream setup

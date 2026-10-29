@@ -1,18 +1,41 @@
 ---
-id: "public-leaderboards"
-title: "Public leaderboards"
-goal: "Recognize visible community contributions."
-audience: "viewer / OBS capture"
-kind: "public"
-route: "Obsidian stream surface = leaderboards"
-parent: null
-component: "src/plugin/presentation/components/coforge/StreamLeaderboards.vue"
-entry: ["Use the Stream Leaderboards ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."]
-actions: ["Open from ribbon or Stream displays","Detach manually","Read ranked metrics"]
-states: ["No contributions","One or more empty rankings","Ranked contributors"]
-journeys: ["public-sharing","community"]
-privacy: "Explicit public whitelist; read-only."
-coverage: {"group":"public","key":"leaderboards"}
+id: public-leaderboards
+title: Public leaderboards
+goal: Recognize visible community contributions.
+audience: viewer / OBS capture
+kind: public
+route: Obsidian stream surface = leaderboards
+parent:
+component: src/plugin/presentation/components/coforge/StreamLeaderboards.vue
+entry:
+  - Use the Stream Leaderboards ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture.
+actions:
+  - Open from ribbon or Stream displays
+  - Detach manually
+  - Read ranked metrics
+states:
+  - No contributions
+  - One or more empty rankings
+  - Ranked contributors
+journeys:
+  - public-sharing
+  - community
+privacy: Explicit public whitelist; read-only.
+coverage:
+  group: public
+  key: leaderboards
+order: 18000
+type: Epic
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Public leaderboards

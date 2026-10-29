@@ -1,17 +1,40 @@
 ---
-id: "public-website"
-title: "Viewer website"
-goal: "Follow screened progress and recognition outside Obsidian."
-audience: "viewer / OBS capture"
-kind: "public"
-route: "public export / index.html"
-parent: null
-component: "src/plugin/features/coforge/domain/public-site.ts"
-entry: ["Open the deployed viewer website or the generated public export index.html."]
-actions: ["Read board","Expand plan or community context","Read leaderboards and badges","Navigate sections","Refresh board"]
-states: ["No screened cards","Awaiting screening count","No leaders","Generated timestamp"]
-journeys: ["public-sharing"]
-privacy: "Explicit public whitelist; read-only."
+id: public-website
+title: Viewer website
+goal: Follow screened progress and recognition outside Obsidian.
+audience: viewer / OBS capture
+kind: public
+route: public export / index.html
+parent:
+component: src/plugin/features/coforge/domain/public-site.ts
+entry:
+  - Open the deployed viewer website or the generated public export index.html.
+actions:
+  - Read board
+  - Expand plan or community context
+  - Read leaderboards and badges
+  - Navigate sections
+  - Refresh board
+states:
+  - No screened cards
+  - Awaiting screening count
+  - No leaders
+  - Generated timestamp
+journeys:
+  - public-sharing
+privacy: Explicit public whitelist; read-only.
+order: 19000
+type: Epic
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Viewer website

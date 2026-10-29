@@ -1,18 +1,42 @@
 ---
-id: "economy"
-title: "Economy"
-goal: "Configure stream participation prices, earning and rewards."
-audience: "streamer"
-kind: "page"
-route: "studio.view = economy"
+id: economy
+title: Economy
+goal: Configure stream participation prices, earning and rewards.
+audience: streamer
+kind: page
+route: studio.view = economy
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/EconomyView.vue"
-entry: ["Open Economy from the Community navigation group."]
-actions: ["Choose a local Economy page", "Save rules", "Discard configuration draft"]
-states: ["Loading", "Saved", "Dirty", "Stale configuration", "Save failed"]
-journeys: ["community-economy"]
-privacy: "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published."
-coverage: {"group": "studio", "key": "economy"}
+component: src/plugin/presentation/components/coforge/EconomyView.vue
+entry:
+  - Open Economy from the Community navigation group.
+actions:
+  - Choose a local Economy page
+  - Save rules
+  - Discard configuration draft
+states:
+  - Loading
+  - Saved
+  - Dirty
+  - Stale configuration
+  - Save failed
+journeys:
+  - community-economy
+privacy: Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.
+coverage:
+  group: studio
+  key: economy
+order: 59000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Economy

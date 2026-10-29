@@ -1,17 +1,44 @@
 ---
-id: "council-task-history"
-title: "Council task history"
-goal: "Find a saved question or retained ingestion and resolve its next action."
-audience: "streamer"
-kind: "panel"
-route: "Ask the Council / Ingested tasks"
-parent: "[[docs/components/views/council-ask]]"
-component: "src/plugin/presentation/components/coforge/CouncilAskView.vue"
-entry: ["Open The Council and review Ingested tasks below the question form."]
-actions: ["Search tasks","Review saved task","Inspect task","Show 50 more tasks","Refresh Council"]
-states: ["Empty","Saved note with no retained run","Queued or running","Completed","Failed or unknown outcome","Latest inbox observation","Saved-note catalogue unavailable"]
-journeys: ["Council","analytical-task","recovery"]
-privacy: "Private source paths, questions, project identities and run evidence; excluded from public projections."
+id: council-task-history
+title: Council task history
+goal: Find a saved question or retained ingestion and resolve its next action.
+audience: streamer
+kind: panel
+route: Ask the Council / Ingested tasks
+parent: "[[council]]"
+component: src/plugin/presentation/components/coforge/CouncilAskView.vue
+entry:
+  - Open The Council and review Ingested tasks below the question form.
+actions:
+  - Search tasks
+  - Review saved task
+  - Inspect task
+  - Show 50 more tasks
+  - Refresh Council
+states:
+  - Empty
+  - Saved note with no retained run
+  - Queued or running
+  - Completed
+  - Failed or unknown outcome
+  - Latest inbox observation
+  - Saved-note catalogue unavailable
+journeys:
+  - Council
+  - analytical-task
+  - recovery
+privacy: Private source paths, questions, project identities and run evidence; excluded from public projections.
+order: 56750
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Council task history

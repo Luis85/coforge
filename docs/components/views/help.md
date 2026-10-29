@@ -1,17 +1,37 @@
 ---
-id: "help"
-title: "Studio guide"
-goal: "Learn the request-to-recognition loop."
-audience: "streamer"
-kind: "dialog"
-route: "studio.help = true"
+id: help
+title: Studio guide
+goal: Learn the request-to-recognition loop.
+audience: streamer
+kind: dialog
+route: studio.help = true
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/HelpDialog.vue"
-entry: ["Choose How it works in the studio navigation."]
-actions: ["Read guide","Explore workflow","Close"]
-states: ["Open","Demo explanation"]
-journeys: ["setup","request-to-recognition"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/HelpDialog.vue
+entry:
+  - Choose How it works in the studio navigation.
+actions:
+  - Read guide
+  - Explore workflow
+  - Close
+states:
+  - Open
+  - Demo explanation
+journeys:
+  - setup
+  - request-to-recognition
+privacy: Private vault workspace; excluded from public projections.
+order: 67000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Studio guide

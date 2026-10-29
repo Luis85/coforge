@@ -1,17 +1,39 @@
 ---
-id: "idea-detail"
-title: "Request details"
-goal: "Decide the next valid action for one request."
-audience: "streamer"
-kind: "dialog"
-route: "studio.selectedIdea"
+id: idea-detail
+title: Request details
+goal: Decide the next valid action for one request.
+audience: streamer
+kind: dialog
+route: studio.selectedIdea
 parent: "[[docs/components/views/board]]"
-component: "src/plugin/presentation/components/coforge/IdeaDrawer.vue"
-entry: ["On Idea board, open a request card or request row."]
-actions: ["Choose detail tab","Run eligible stage","Cancel active run","Close"]
-states: ["No selected request","Active attempt","Stage error","Review pending"]
-journeys: ["request-to-recognition"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/IdeaDrawer.vue
+entry:
+  - On Idea board, open a request card or request row.
+actions:
+  - Choose detail tab
+  - Run eligible stage
+  - Cancel active run
+  - Close
+states:
+  - No selected request
+  - Active attempt
+  - Stage error
+  - Review pending
+journeys:
+  - request-to-recognition
+privacy: Private vault workspace; excluded from public projections.
+order: 26000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Request details

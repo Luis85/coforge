@@ -1,17 +1,40 @@
 ---
-id: "council-plan-handoff"
-title: "Council plan handoff"
-goal: "Continue a validated Council plan in an existing request's project workflow."
-audience: "streamer"
-kind: "panel"
-route: "council.inspectedRun completed / Continue a validated plan in the project workflow"
+id: council-plan-handoff
+title: Council plan handoff
+goal: Continue a validated Council plan in an existing request's project workflow.
+audience: streamer
+kind: panel
+route: council.inspectedRun completed / Continue a validated plan in the project workflow
 parent: "[[docs/components/views/council-monitor]]"
-component: "src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue"
-entry: ["Within The Council → Run monitor, inspect a completed run with a typed plan and expand Continue a validated plan in the project workflow."]
-actions: ["Select validated plan artifact","Select existing project request","Hand selected plan to project workflow"]
-states: ["No completed typed plan","Plan or request selection missing","Ready for explicit handoff","Handed to workflow","Stale request or rejected handoff"]
-journeys: ["Council","request-to-recognition"]
-privacy: "Private execution evidence and request workflow; no discussion publication or public mutation capability."
+component: src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue
+entry:
+  - Within The Council → Run monitor, inspect a completed run with a typed plan and expand Continue a validated plan in the project workflow.
+actions:
+  - Select validated plan artifact
+  - Select existing project request
+  - Hand selected plan to project workflow
+states:
+  - No completed typed plan
+  - Plan or request selection missing
+  - Ready for explicit handoff
+  - Handed to workflow
+  - Stale request or rejected handoff
+journeys:
+  - Council
+  - request-to-recognition
+privacy: Private execution evidence and request workflow; no discussion publication or public mutation capability.
+order: 52000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Council plan handoff

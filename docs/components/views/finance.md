@@ -1,18 +1,45 @@
 ---
-id: "finance"
-title: "Stream finances"
-goal: "Maintain the private stream ledger."
-audience: "streamer"
-kind: "page"
-route: "studio.view = finance"
+id: finance
+title: Stream finances
+goal: Maintain the private stream ledger.
+audience: streamer
+kind: page
+route: studio.view = finance
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/FinanceView.vue"
-entry: ["Choose Finances in the studio navigation."]
-actions: ["Filter month or stream","Add or edit","Pause or activate plan","Confirm or cancel deletion","Refresh"]
-states: ["Native unavailable","Example","No entries","Draft","Validation or conflict","Deletion confirmation"]
-journeys: ["finance"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"finance"}
+component: src/plugin/presentation/components/coforge/FinanceView.vue
+entry:
+  - Choose Finances in the studio navigation.
+actions:
+  - Filter month or stream
+  - Add or edit
+  - Pause or activate plan
+  - Confirm or cancel deletion
+  - Refresh
+states:
+  - Native unavailable
+  - Example
+  - No entries
+  - Draft
+  - Validation or conflict
+  - Deletion confirmation
+journeys:
+  - finance
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: finance
+order: 65000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Stream finances

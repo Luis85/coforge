@@ -1,17 +1,43 @@
 ---
-id: "studio"
-title: "CoForge studio"
-goal: "Reach the private workspace for the task at hand."
-audience: "streamer"
-kind: "shell"
-route: "Obsidian CoForge view"
-parent: null
-component: "src/plugin/presentation/components/coforge/StudioApp.vue"
-entry: ["Use the CoForge ribbon or the Open CoForge command in Obsidian."]
-actions: ["Choose navigation group","Select project","Reopen navigation or chat","Open help"]
-states: ["Loading","Invalid persisted data","Ready","Narrow layout","Collapsed panels"]
-journeys: ["setup","request-to-recognition","broadcast","Council"]
-privacy: "Private vault workspace; excluded from public projections."
+id: studio
+title: CoForge studio
+goal: Reach the private workspace for the task at hand.
+audience: streamer
+kind: shell
+route: Obsidian CoForge view
+parent:
+component: src/plugin/presentation/components/coforge/StudioApp.vue
+entry:
+  - Use the CoForge ribbon or the Open CoForge command in Obsidian.
+actions:
+  - Choose navigation group
+  - Select project
+  - Reopen navigation or chat
+  - Open help
+states:
+  - Loading
+  - Invalid persisted data
+  - Ready
+  - Narrow layout
+  - Collapsed panels
+journeys:
+  - setup
+  - request-to-recognition
+  - broadcast
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+order: 20000
+type: Epic
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # CoForge studio

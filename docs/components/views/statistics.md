@@ -1,18 +1,43 @@
 ---
-id: "statistics"
-title: "Stream statistics"
-goal: "Compare recorded audience and stream performance."
-audience: "streamer"
-kind: "page"
-route: "studio.view = statistics"
+id: statistics
+title: Stream statistics
+goal: Compare recorded audience and stream performance.
+audience: streamer
+kind: page
+route: studio.view = statistics
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/StreamStatisticsView.vue"
-entry: ["Choose Statistics in the studio navigation."]
-actions: ["Select stream","Choose metric","Compare earlier streams","Inspect sample"]
-states: ["No recordings","Unavailable measurement","Missing-data gap","Selected sample","Example"]
-journeys: ["stream-analysis"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"statistics"}
+component: src/plugin/presentation/components/coforge/StreamStatisticsView.vue
+entry:
+  - Choose Statistics in the studio navigation.
+actions:
+  - Select stream
+  - Choose metric
+  - Compare earlier streams
+  - Inspect sample
+states:
+  - No recordings
+  - Unavailable measurement
+  - Missing-data gap
+  - Selected sample
+  - Example
+journeys:
+  - stream-analysis
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: statistics
+order: 80000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Stream statistics

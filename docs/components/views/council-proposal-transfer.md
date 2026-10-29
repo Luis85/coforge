@@ -1,17 +1,38 @@
 ---
-id: "council-proposal-transfer"
-title: "Proposal workflow transfer"
-goal: "Review a portable v2 proposal workflow before applying it."
-audience: "streamer"
-kind: "panel"
-route: "Council workflows / transfer preview"
+id: council-proposal-transfer
+title: Proposal workflow transfer
+goal: Review a portable v2 proposal workflow before applying it.
+audience: streamer
+kind: panel
+route: Council workflows / transfer preview
 parent: "[[docs/components/views/council-workflows]]"
-component: "src/plugin/presentation/components/coforge/WorkflowV2Transfer.vue"
-entry: ["Within The Council → Council workflows, open the workflow transfer controls."]
-actions: ["Preview import","Apply draft","Preview export"]
-states: ["Invalid import","Valid preview","Unsaved draft","Export ready"]
-journeys: ["Council"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/WorkflowV2Transfer.vue
+entry:
+  - Within The Council → Council workflows, open the workflow transfer controls.
+actions:
+  - Preview import
+  - Apply draft
+  - Preview export
+states:
+  - Invalid import
+  - Valid preview
+  - Unsaved draft
+  - Export ready
+journeys:
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+order: 57000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Proposal workflow transfer

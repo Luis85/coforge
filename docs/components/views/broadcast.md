@@ -1,18 +1,44 @@
 ---
-id: "broadcast"
-title: "Stream studio"
-goal: "Operate the current broadcast with explicit stream controls."
-audience: "streamer"
-kind: "page"
-route: "studio.view = broadcast"
+id: broadcast
+title: Stream studio
+goal: Operate the current broadcast with explicit stream controls.
+audience: streamer
+kind: page
+route: studio.view = broadcast
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/BroadcastView.vue"
-entry: ["Choose Stream studio in the studio navigation."]
-actions: ["Prepare","Go live","Pause or resume","Stop","Choose stream subpage"]
-states: ["Disconnected","Off air","Live","On break","Unknown external outcome"]
-journeys: ["broadcast"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"broadcast"}
+component: src/plugin/presentation/components/coforge/BroadcastView.vue
+entry:
+  - Choose Stream studio in the studio navigation.
+actions:
+  - Prepare
+  - Go live
+  - Pause or resume
+  - Stop
+  - Choose stream subpage
+states:
+  - Disconnected
+  - Off air
+  - Live
+  - On break
+  - Unknown external outcome
+journeys:
+  - broadcast
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: broadcast
+order: 32000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Stream studio

@@ -1,17 +1,39 @@
 ---
-id: "workflow-transfer"
-title: "Workflow import and export"
-goal: "Review a portable definition before replacing or sharing it."
-audience: "streamer"
-kind: "panel"
-route: "workflow transfer preview"
+id: workflow-transfer
+title: Workflow import and export
+goal: Review a portable definition before replacing or sharing it.
+audience: streamer
+kind: panel
+route: workflow transfer preview
 parent: "[[docs/components/views/workflow-settings]]"
-component: "src/plugin/presentation/components/coforge/WorkflowDefinitionTransfer.vue"
-entry: ["Within Workflow settings, choose Import JSON or Preview workflow export."]
-actions: ["Paste JSON","Validate and preview","Apply draft","Preview export"]
-states: ["Closed","Invalid import","Valid preview","Export ready"]
-journeys: ["workflow-configuration"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/WorkflowDefinitionTransfer.vue
+entry:
+  - Within Workflow settings, choose Import JSON or Preview workflow export.
+actions:
+  - Paste JSON
+  - Validate and preview
+  - Apply draft
+  - Preview export
+states:
+  - Closed
+  - Invalid import
+  - Valid preview
+  - Export ready
+journeys:
+  - workflow-configuration
+privacy: Private vault workspace; excluded from public projections.
+order: 93000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Workflow import and export

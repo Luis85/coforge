@@ -1,18 +1,48 @@
 ---
-id: "schedule"
-title: "Stream schedule"
-goal: "Prepare a saved plan for a future stream."
-audience: "streamer"
-kind: "page"
-route: "studio.view = schedule"
+id: schedule
+title: Stream schedule
+goal: Prepare a saved plan for a future stream.
+audience: streamer
+kind: page
+route: studio.view = schedule
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/ScheduleView.vue"
-entry: ["Choose Schedule in the studio navigation."]
-actions: ["New stream plan","Select plan","Save stream plan or discard changes","Open Markdown note","Refresh","Review saved preparation","Apply project, channel, scenes or playlist"]
-states: ["Native unavailable","Example","No plans","Draft","Conflict","Reviewed preparation"]
-journeys: ["stream-planning","broadcast"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"schedule"}
+component: src/plugin/presentation/components/coforge/ScheduleView.vue
+entry:
+  - Choose Schedule in the studio navigation.
+actions:
+  - New stream plan
+  - Select plan
+  - Save stream plan or discard changes
+  - Open Markdown note
+  - Refresh
+  - Review saved preparation
+  - Apply project, channel, scenes or playlist
+states:
+  - Native unavailable
+  - Example
+  - No plans
+  - Draft
+  - Conflict
+  - Reviewed preparation
+journeys:
+  - stream-planning
+  - broadcast
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: schedule
+order: 73000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Stream schedule

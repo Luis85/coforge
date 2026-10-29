@@ -1,17 +1,46 @@
 ---
-id: "ai-cost-attribution"
-title: "Agent, team and Council costs"
-goal: "Compare retained attempt costs by captured agent, team or Council identity."
-audience: "streamer"
-kind: "panel"
-route: "AI costs / Cost attribution"
+id: ai-cost-attribution
+title: Agent, team and Council costs
+goal: Compare retained attempt costs by captured agent, team or Council identity.
+audience: streamer
+kind: panel
+route: AI costs / Cost attribution
 parent: "[[docs/components/views/ai-costs]]"
-component: "src/plugin/presentation/components/coforge/AICostAttribution.vue"
-entry: ["Open AI costs and review Who used the AI budget."]
-actions: ["Filter by agent", "Filter by team", "Filter by Council", "Regroup the same attempts", "Inspect partial coverage", "Clear attribution filters"]
-states: ["Attributed", "Legacy unattributed", "Unknown cost", "Provider reported", "Manual fallback", "Simulation", "Not started without provider contact", "Filtered empty", "More than 50 identities"]
-journeys: ["cost-review"]
-privacy: "Private USD usage and captured execution identities; never included in public viewer projections. Prompts, source bodies and local paths are not analytics fields."
+component: src/plugin/presentation/components/coforge/AICostAttribution.vue
+entry:
+  - Open AI costs and review Who used the AI budget.
+actions:
+  - Filter by agent
+  - Filter by team
+  - Filter by Council
+  - Regroup the same attempts
+  - Inspect partial coverage
+  - Clear attribution filters
+states:
+  - Attributed
+  - Legacy unattributed
+  - Unknown cost
+  - Provider reported
+  - Manual fallback
+  - Simulation
+  - Not started without provider contact
+  - Filtered empty
+  - More than 50 identities
+journeys:
+  - cost-review
+privacy: Private USD usage and captured execution identities; never included in public viewer projections. Prompts, source bodies and local paths are not analytics fields.
+order: 23000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Agent, team and Council costs

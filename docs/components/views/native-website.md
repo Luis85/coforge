@@ -1,17 +1,43 @@
 ---
-id: "native-website"
-title: "Viewer website settings"
-goal: "Prepare the read-only viewer website for publication."
-audience: "streamer"
-kind: "panel"
-route: "native settings / Viewer website"
+id: native-website
+title: Viewer website settings
+goal: Prepare the read-only viewer website for publication.
+audience: streamer
+kind: panel
+route: native settings / Viewer website
 parent: "[[docs/components/views/native-settings]]"
-component: "src/plugin/presentation/components/coforge/PluginSettingsWebsite.vue"
-entry: ["Within Obsidian Settings → Community plugins → CoForge, use the viewer website section."]
-actions: ["Set Viewer board folder","Enable or disable Keep the viewer board updated","Save integration settings","Write board now","Set up GitHub Pages"]
-states: ["Unconfigured","Invalid destination","Unsaved folder blocks export","Writing","Board written","Workflow installed","Export or setup failure"]
-journeys: ["public-sharing"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/PluginSettingsWebsite.vue
+entry:
+  - Within Obsidian Settings → Community plugins → CoForge, use the viewer website section.
+actions:
+  - Set Viewer board folder
+  - Enable or disable Keep the viewer board updated
+  - Save integration settings
+  - Write board now
+  - Set up GitHub Pages
+states:
+  - Unconfigured
+  - Invalid destination
+  - Unsaved folder blocks export
+  - Writing
+  - Board written
+  - Workflow installed
+  - Export or setup failure
+journeys:
+  - public-sharing
+privacy: Private vault workspace; excluded from public projections.
+order: 14000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Viewer website settings

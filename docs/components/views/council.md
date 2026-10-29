@@ -1,18 +1,44 @@
 ---
-id: "council"
-title: "The Council"
-goal: "Ask for specialist advice and follow each task to attributed results."
-audience: "streamer"
-kind: "page"
-route: "studio.view = council"
+id: council
+title: The Council
+goal: Ask for specialist advice and follow each task to attributed results.
+audience: streamer
+kind: page
+route: studio.view = council
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/CouncilView.vue"
-entry: ["Choose The Council in the studio navigation."]
-actions: ["Ask a question","Review task history","Open advanced tools","Refresh","Explore labelled example"]
-states: ["Native unavailable","Example","No project","Loading","Error"]
-journeys: ["Council"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"council"}
+component: src/plugin/presentation/components/coforge/CouncilView.vue
+entry:
+  - Choose The Council in the studio navigation.
+actions:
+  - Ask a question
+  - Review task history
+  - Open advanced tools
+  - Refresh
+  - Explore labelled example
+states:
+  - Native unavailable
+  - Example
+  - No project
+  - Loading
+  - Error
+journeys:
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: council
+order: 44000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # The Council

@@ -1,18 +1,43 @@
 ---
-id: "broadcast-history"
-title: "Stream history"
-goal: "Inspect the archived record for a completed or active stream."
-audience: "streamer"
-kind: "subpage"
-route: "studio.broadcastTool = history"
+id: broadcast-history
+title: Stream history
+goal: Inspect the archived record for a completed or active stream.
+audience: streamer
+kind: subpage
+route: studio.broadcastTool = history
 parent: "[[docs/components/views/broadcast]]"
-component: "src/plugin/presentation/components/coforge/StreamHistoryPanel.vue"
-entry: ["Open Stream studio, then choose History."]
-actions: ["Choose saved stream","Refresh stream history","Export stream JSON","Open Stream statistics"]
-states: ["No records","Selected","Unavailable measurements","Missing intervals"]
-journeys: ["broadcast","stream-analysis"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"broadcast","key":"history"}
+component: src/plugin/presentation/components/coforge/StreamHistoryPanel.vue
+entry:
+  - Open Stream studio, then choose History.
+actions:
+  - Choose saved stream
+  - Refresh stream history
+  - Export stream JSON
+  - Open Stream statistics
+states:
+  - No records
+  - Selected
+  - Unavailable measurements
+  - Missing intervals
+journeys:
+  - broadcast
+  - stream-analysis
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: broadcast
+  key: history
+order: 34000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Stream history

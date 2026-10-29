@@ -1,18 +1,46 @@
 ---
-id: "ai-costs"
-title: "AI costs"
-goal: "Understand the known cost and usage of agent work."
-audience: "streamer"
-kind: "page"
-route: "studio.view = ai-costs"
+id: ai-costs
+title: AI costs
+goal: Understand the known cost and usage of agent work.
+audience: streamer
+kind: page
+route: studio.view = ai-costs
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/AICostsView.vue"
-entry: ["Choose AI costs in the studio navigation."]
-actions: ["Refresh","Filter project, agent, team or Council","Regroup captured identities","Inspect feature and attempt","Record manual cost"]
-states: ["No attempts","Reported amount","Manual amount","Unavailable amount","Partial token coverage","Legacy unattributed","Not started without provider contact"]
-journeys: ["cost-review"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"ai-costs"}
+component: src/plugin/presentation/components/coforge/AICostsView.vue
+entry:
+  - Choose AI costs in the studio navigation.
+actions:
+  - Refresh
+  - Filter project, agent, team or Council
+  - Regroup captured identities
+  - Inspect feature and attempt
+  - Record manual cost
+states:
+  - No attempts
+  - Reported amount
+  - Manual amount
+  - Unavailable amount
+  - Partial token coverage
+  - Legacy unattributed
+  - Not started without provider contact
+journeys:
+  - cost-review
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: ai-costs
+order: 22000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # AI costs

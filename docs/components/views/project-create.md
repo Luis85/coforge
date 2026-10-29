@@ -1,17 +1,40 @@
 ---
-id: "project-create"
-title: "Add project"
-goal: "Create the canonical project identity and workspace configuration."
-audience: "streamer"
-kind: "panel"
-route: "projects.adding = true"
+id: project-create
+title: Add project
+goal: Create the canonical project identity and workspace configuration.
+audience: streamer
+kind: panel
+route: projects.adding = true
 parent: "[[docs/components/views/projects]]"
-component: "src/plugin/presentation/components/coforge/ProjectsView.vue"
-entry: ["Open Projects from the project selector, then choose Add project."]
-actions: ["Enter name, path and brief","Add optional URLs","Create","Cancel"]
-states: ["Draft","Invalid path or brief","Saving","Failure"]
-journeys: ["setup","multi-project"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/ProjectsView.vue
+entry:
+  - Open Projects from the project selector, then choose Add project.
+actions:
+  - Enter name, path and brief
+  - Add optional URLs
+  - Create
+  - Cancel
+states:
+  - Draft
+  - Invalid path or brief
+  - Saving
+  - Failure
+journeys:
+  - setup
+  - multi-project
+privacy: Private vault workspace; excluded from public projections.
+order: 72000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Add project

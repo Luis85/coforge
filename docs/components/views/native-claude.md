@@ -1,17 +1,42 @@
 ---
-id: "native-claude"
-title: "Claude Code settings"
-goal: "Configure the local CLI used by agent execution."
-audience: "streamer"
-kind: "panel"
-route: "native settings / Claude Code"
+id: native-claude
+title: Claude Code settings
+goal: Configure the local CLI used by agent execution.
+audience: streamer
+kind: panel
+route: native settings / Claude Code
 parent: "[[docs/components/views/native-settings]]"
-component: "src/plugin/presentation/components/coforge/PluginSettingsClaude.vue"
-entry: ["Within Obsidian Settings → Community plugins → CoForge, use the Claude Code section."]
-actions: ["Edit executable settings","Save integration settings","Check Claude Code"]
-states: ["Native unavailable","Configured","Invalid executable","Unsaved","Checking","CLI available","CLI missing or too old"]
-journeys: ["setup","workflow-configuration"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/PluginSettingsClaude.vue
+entry:
+  - Within Obsidian Settings → Community plugins → CoForge, use the Claude Code section.
+actions:
+  - Edit executable settings
+  - Save integration settings
+  - Check Claude Code
+states:
+  - Native unavailable
+  - Configured
+  - Invalid executable
+  - Unsaved
+  - Checking
+  - CLI available
+  - CLI missing or too old
+journeys:
+  - setup
+  - workflow-configuration
+privacy: Private vault workspace; excluded from public projections.
+order: 9000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Claude Code settings

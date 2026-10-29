@@ -1,18 +1,53 @@
 ---
-id: "council-scheduler"
-title: "Task scheduler"
-goal: "Schedule a private prompt for an agent, assigned team member or council."
-audience: "streamer"
-kind: "subpage"
-route: "council.tab = scheduler"
+id: council-scheduler
+title: Task scheduler
+goal: Schedule a private prompt for an agent, assigned team member or council.
+audience: streamer
+kind: subpage
+route: council.tab = scheduler
 parent: "[[docs/components/views/council]]"
-component: "src/plugin/presentation/components/coforge/TaskSchedulerView.vue"
-entry: ["Open The Council → Advanced Council tools → Task scheduler."]
-actions: ["Create or edit task","Set timer or recurrence","Enable or pause","Run now","Archive or restore","Inspect source and run","Acknowledge uncertain admission"]
-states: ["Desktop unavailable","Labelled example","Non-executor","Execution paused","Empty","Draft","Enabled","Archived","Skipped occurrence","Uncertain admission","Storage error"]
-journeys: ["Council","task-scheduling"]
-privacy: "Private plugin journal and ignored scheduled source notes; never included in capture views or public exports."
-coverage: {"group":"council","key":"scheduler"}
+component: src/plugin/presentation/components/coforge/TaskSchedulerView.vue
+entry:
+  - Open The Council → Advanced Council tools → Task scheduler.
+actions:
+  - Create or edit task
+  - Set timer or recurrence
+  - Enable or pause
+  - Run now
+  - Archive or restore
+  - Inspect source and run
+  - Acknowledge uncertain admission
+states:
+  - Desktop unavailable
+  - Labelled example
+  - Non-executor
+  - Execution paused
+  - Empty
+  - Draft
+  - Enabled
+  - Archived
+  - Skipped occurrence
+  - Uncertain admission
+  - Storage error
+journeys:
+  - Council
+  - task-scheduling
+privacy: Private plugin journal and ignored scheduled source notes; never included in capture views or public exports.
+coverage:
+  group: council
+  key: scheduler
+order: 54000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Task scheduler

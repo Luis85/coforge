@@ -1,18 +1,43 @@
 ---
-id: "community-settings"
-title: "Community settings"
-goal: "Save community names, XP and reputation rules, and ranks."
-audience: "streamer"
-kind: "page"
-route: "studio.view = community-settings"
+id: community-settings
+title: Community settings
+goal: Save community names, XP and reputation rules, and ranks.
+audience: streamer
+kind: page
+route: studio.view = community-settings
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/CommunitySettingsView.vue"
-entry: ["Choose Community settings in the studio navigation."]
-actions: ["Edit names","Edit XP and reputation rules and named ranks","Open Economy for currency income and prices","Save or discard"]
-states: ["Saved","Unsaved","Invalid thresholds","Saving","Failure with retained draft"]
-journeys: ["community"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"community-settings"}
+component: src/plugin/presentation/components/coforge/CommunitySettingsView.vue
+entry:
+  - Choose Community settings in the studio navigation.
+actions:
+  - Edit names
+  - Edit XP and reputation rules and named ranks
+  - Open Economy for currency income and prices
+  - Save or discard
+states:
+  - Saved
+  - Unsaved
+  - Invalid thresholds
+  - Saving
+  - Failure with retained draft
+journeys:
+  - community
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: community-settings
+order: 43000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Community settings

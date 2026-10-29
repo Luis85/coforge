@@ -1,18 +1,50 @@
 ---
-id: "council-monitor"
-title: "Council run monitor"
-goal: "Resolve the next action or recovery decision for a Council run."
-audience: "streamer"
-kind: "subpage"
-route: "council.tab = monitor"
+id: council-monitor
+title: Council run monitor
+goal: Resolve the next action or recovery decision for a Council run.
+audience: streamer
+kind: subpage
+route: council.tab = monitor
 parent: "[[docs/components/views/council]]"
-component: "src/plugin/presentation/components/coforge/CouncilMonitor.vue"
-entry: ["Open The Council, expand Advanced Council tools, then choose Run monitor."]
-actions: ["Check and designate executor","Pause or resume","Filter and inspect","Resolve checkpoint","Recover unknown result","Retry publication","Export evidence"]
-states: ["No runs","Paused","Queued","Running","Checkpoint","Unknown outcome","Publication conflict","Completed"]
-journeys: ["Council","recovery"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"council","key":"monitor"}
+component: src/plugin/presentation/components/coforge/CouncilMonitor.vue
+entry:
+  - Open The Council, expand Advanced Council tools, then choose Run monitor.
+actions:
+  - Check and designate executor
+  - Pause or resume
+  - Filter and inspect
+  - Resolve checkpoint
+  - Recover unknown result
+  - Retry publication
+  - Export evidence
+states:
+  - No runs
+  - Paused
+  - Queued
+  - Running
+  - Checkpoint
+  - Unknown outcome
+  - Publication conflict
+  - Completed
+journeys:
+  - Council
+  - recovery
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: council
+  key: monitor
+order: 51000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Council run monitor

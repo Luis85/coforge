@@ -1,18 +1,41 @@
 ---
-id: "idea-increment"
-title: "Request increment"
-goal: "Accept or reject the actual implementation changes."
-audience: "streamer"
-kind: "subpage"
-route: "studio.drawerTab = increment"
+id: idea-increment
+title: Request increment
+goal: Accept or reject the actual implementation changes.
+audience: streamer
+kind: subpage
+route: studio.drawerTab = increment
 parent: "[[docs/components/views/idea-detail]]"
-component: "src/plugin/presentation/components/coforge/IdeaIncrementTab.vue"
-entry: ["Open a request’s details, then choose Increment."]
-actions: ["Inspect increment and diff","Accept or reject"]
-states: ["No increment","Building","Review ready","Accepted","Rejected"]
-journeys: ["request-to-recognition"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"idea","key":"increment"}
+component: src/plugin/presentation/components/coforge/IdeaIncrementTab.vue
+entry:
+  - Open a request’s details, then choose Increment.
+actions:
+  - Inspect increment and diff
+  - Accept or reject
+states:
+  - No increment
+  - Building
+  - Review ready
+  - Accepted
+  - Rejected
+journeys:
+  - request-to-recognition
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: idea
+  key: increment
+order: 28000
+type: Task
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Request increment

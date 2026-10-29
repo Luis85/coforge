@@ -2,6 +2,15 @@
 pbl-id: 19
 type: Milestone
 order: -1000
+status: ""
+started: ""
+finished: ""
+horizon: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 ## Acceptance journey

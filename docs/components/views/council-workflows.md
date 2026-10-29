@@ -1,18 +1,43 @@
 ---
-id: "council-workflows"
-title: "Council workflows"
-goal: "Save an explicit proposal workflow for this project."
-audience: "streamer"
-kind: "subpage"
-route: "council.tab = workflows"
+id: council-workflows
+title: Council workflows
+goal: Save an explicit proposal workflow for this project.
+audience: streamer
+kind: subpage
+route: council.tab = workflows
 parent: "[[docs/components/views/council]]"
-component: "src/plugin/presentation/components/coforge/WorkflowV2Editor.vue"
-entry: ["Open The Council, expand Advanced Council tools, then choose Council workflows."]
-actions: ["Load saved","Edit steps and collections","Preview import or export","Save or discard"]
-states: ["No project","No saved definition","Unsaved draft","Validation error","Stale revision"]
-journeys: ["Council"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"council","key":"workflows"}
+component: src/plugin/presentation/components/coforge/WorkflowV2Editor.vue
+entry:
+  - Open The Council, expand Advanced Council tools, then choose Council workflows.
+actions:
+  - Load saved
+  - Edit steps and collections
+  - Preview import or export
+  - Save or discard
+states:
+  - No project
+  - No saved definition
+  - Unsaved draft
+  - Validation error
+  - Stale revision
+journeys:
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: council
+  key: workflows
+order: 56000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Council workflows

@@ -1,18 +1,44 @@
 ---
-id: "stream-messages"
-title: "Bot messages"
-goal: "Maintain the recurring messages sent while live."
-audience: "streamer"
-kind: "subpage"
-route: "studio.streamTool = messages"
+id: stream-messages
+title: Bot messages
+goal: Maintain the recurring messages sent while live.
+audience: streamer
+kind: subpage
+route: studio.streamTool = messages
 parent: "[[docs/components/views/stream]]"
-component: "src/plugin/presentation/components/coforge/StreamMessagesView.vue"
-entry: ["Open Stream chat, then choose Bot messages."]
-actions: ["Create or edit","Set interval","Pause or activate","Delete"]
-states: ["No messages","Unsaved","Invalid interval","Paused","Live and enabled"]
-journeys: ["viewer-intake","broadcast"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"stream","key":"messages"}
+component: src/plugin/presentation/components/coforge/StreamMessagesView.vue
+entry:
+  - Open Stream chat, then choose Bot messages.
+actions:
+  - Create or edit
+  - Set interval
+  - Pause or activate
+  - Delete
+states:
+  - No messages
+  - Unsaved
+  - Invalid interval
+  - Paused
+  - Live and enabled
+journeys:
+  - viewer-intake
+  - broadcast
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: stream
+  key: messages
+order: 86000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Bot messages

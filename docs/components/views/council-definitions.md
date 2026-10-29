@@ -1,18 +1,48 @@
 ---
-id: "council-definitions"
-title: "Teams and councils"
-goal: "Save project team rosters and Council discussion protocols."
-audience: "streamer"
-kind: "subpage"
-route: "council.tab = definitions"
+id: council-definitions
+title: Teams and councils
+goal: Save project team rosters and Council discussion protocols.
+audience: streamer
+kind: subpage
+route: council.tab = definitions
 parent: "[[docs/components/views/council]]"
-component: "src/plugin/presentation/components/coforge/CouncilDefinitions.vue"
-entry: ["Open The Council, expand Advanced Council tools, then choose Definitions."]
-actions: ["Manage CoWorkers","Create team or council","Create default team","Choose per-round prompt order","Select or search","Save or discard","Duplicate or archive","Preview import or export"]
-states: ["No definitions","No team","Invalid definition","Preserved drafts","Changed on disk","Permission issue"]
-journeys: ["Council"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"council","key":"definitions"}
+component: src/plugin/presentation/components/coforge/CouncilDefinitions.vue
+entry:
+  - Open The Council, expand Advanced Council tools, then choose Definitions.
+actions:
+  - Manage CoWorkers
+  - Create team or council
+  - Create default team
+  - Choose per-round prompt order
+  - Select or search
+  - Save or discard
+  - Duplicate or archive
+  - Preview import or export
+states:
+  - No definitions
+  - No team
+  - Invalid definition
+  - Preserved drafts
+  - Changed on disk
+  - Permission issue
+journeys:
+  - Council
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: council
+  key: definitions
+order: 45000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Teams and councils

@@ -1,17 +1,40 @@
 ---
-id: "settings-repository"
-title: "Project repository settings"
-goal: "Set the repository boundary used by agent work."
-audience: "streamer"
-kind: "panel"
-route: "Project settings / repository"
+id: settings-repository
+title: Project repository settings
+goal: Set the repository boundary used by agent work.
+audience: streamer
+kind: panel
+route: Project settings / repository
 parent: "[[docs/components/views/settings]]"
-component: "src/plugin/presentation/components/coforge/SettingsRepositorySection.vue"
-entry: ["Within Project settings, edit the Agent workspace fields."]
-actions: ["Edit workspace and repository fields","Review implementation authorization","Save project settings"]
-states: ["Missing path","Invalid workspace","Authorization disabled","Unsaved","Saved"]
-journeys: ["setup","workflow-configuration"]
-privacy: "Private vault workspace; excluded from public projections."
+component: src/plugin/presentation/components/coforge/SettingsRepositorySection.vue
+entry:
+  - Within Project settings, edit the Agent workspace fields.
+actions:
+  - Edit workspace and repository fields
+  - Review implementation authorization
+  - Save project settings
+states:
+  - Missing path
+  - Invalid workspace
+  - Authorization disabled
+  - Unsaved
+  - Saved
+journeys:
+  - setup
+  - workflow-configuration
+privacy: Private vault workspace; excluded from public projections.
+order: 77000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Project repository settings

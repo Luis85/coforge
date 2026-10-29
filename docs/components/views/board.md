@@ -1,18 +1,45 @@
 ---
-id: "board"
-title: "Request board"
-goal: "Choose the next request that needs attention."
-audience: "streamer"
-kind: "page"
-route: "studio.view = board"
+id: board
+title: Request board
+goal: Choose the next request that needs attention.
+audience: streamer
+kind: page
+route: studio.view = board
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/IdeaBoard.vue"
-entry: ["Choose Idea board in the studio navigation."]
-actions: ["Filter and search","Switch Kanban or table","Open request","Create request","Use valid context actions"]
-states: ["No project","No requests","No matches","Queued work","Review pending"]
-journeys: ["request-to-recognition","multi-project"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"board"}
+component: src/plugin/presentation/components/coforge/IdeaBoard.vue
+entry:
+  - Choose Idea board in the studio navigation.
+actions:
+  - Filter and search
+  - Switch Kanban or table
+  - Open request
+  - Create request
+  - Use valid context actions
+states:
+  - No project
+  - No requests
+  - No matches
+  - Queued work
+  - Review pending
+journeys:
+  - request-to-recognition
+  - multi-project
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: board
+order: 24000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Request board

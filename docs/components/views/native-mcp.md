@@ -1,17 +1,41 @@
 ---
-id: "native-mcp"
-title: "Local MCP server"
-goal: "Activate one MCP connection for every CoForge project in this vault."
-audience: "streamer"
-kind: "panel"
-route: "native settings / Local MCP server"
+id: native-mcp
+title: Local MCP server
+goal: Activate one MCP connection for every CoForge project in this vault.
+audience: streamer
+kind: panel
+route: native settings / Local MCP server
 parent: "[[docs/components/views/native-settings]]"
-component: "src/plugin/presentation/components/coforge/PluginSettingsMcp.vue"
-entry: ["Open Obsidian Settings → Community plugins → CoForge → Local MCP server."]
-actions: ["Activate MCP","Deactivate MCP","Acknowledge inspected workspace recovery"]
-states: ["Inactive","Updating","Active","Configuration error","Desktop unavailable","Interrupted workspace"]
-journeys: ["setup","workflow-configuration"]
-privacy: "Private workflow context and code; loopback authentication is stored only in ignored plugin data."
+component: src/plugin/presentation/components/coforge/PluginSettingsMcp.vue
+entry:
+  - Open Obsidian Settings → Community plugins → CoForge → Local MCP server.
+actions:
+  - Activate MCP
+  - Deactivate MCP
+  - Acknowledge inspected workspace recovery
+states:
+  - Inactive
+  - Updating
+  - Active
+  - Configuration error
+  - Desktop unavailable
+  - Interrupted workspace
+journeys:
+  - setup
+  - workflow-configuration
+privacy: Private workflow context and code; loopback authentication is stored only in ignored plugin data.
+order: 10000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Local MCP server

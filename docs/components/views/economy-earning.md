@@ -1,18 +1,40 @@
 ---
-id: "economy-earning"
-title: "Presence earning"
-goal: "Set base and subscriber currency rates for eligible tracked chat presence."
-audience: "streamer"
-kind: "subpage"
-route: "economy.page = earning"
+id: economy-earning
+title: Presence earning
+goal: Set base and subscriber currency rates for eligible tracked chat presence.
+audience: streamer
+kind: subpage
+route: economy.page = earning
 parent: "[[docs/components/views/economy]]"
-component: "src/plugin/presentation/components/coforge/EconomyEarning.vue"
-entry: ["Choose Earning inside Economy."]
-actions: ["Set the base rate", "Enable or disable a separate subscriber total rate"]
-states: ["Zero income", "Inherited subscriber rate", "Separate subscriber total", "Dirty configuration"]
-journeys: ["community-economy"]
-privacy: "Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published."
-coverage: {"group": "economy", "key": "earning"}
+component: src/plugin/presentation/components/coforge/EconomyEarning.vue
+entry:
+  - Choose Earning inside Economy.
+actions:
+  - Set the base rate
+  - Enable or disable a separate subscriber total rate
+states:
+  - Zero income
+  - Inherited subscriber rate
+  - Separate subscriber total
+  - Dirty configuration
+journeys:
+  - community-economy
+privacy: Private channel configuration, receipts and fulfillment notes. Only deliberate chat discovery exposes public catalog prices and odds; no private project data is published.
+coverage:
+  group: economy
+  key: earning
+order: 61000
+type: PBI
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Presence earning

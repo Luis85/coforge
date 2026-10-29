@@ -1,18 +1,44 @@
 ---
-id: "operations"
-title: "Operations"
-goal: "Find the recorded outcome of a failed or uncertain action."
-audience: "streamer"
-kind: "page"
-route: "studio.view = operations"
+id: operations
+title: Operations
+goal: Find the recorded outcome of a failed or uncertain action.
+audience: streamer
+kind: page
+route: studio.view = operations
 parent: "[[docs/components/views/studio]]"
-component: "src/plugin/presentation/components/coforge/OperationsView.vue"
-entry: ["Choose Operations in the studio navigation."]
-actions: ["Filter event and effect","Clear filters","Inspect records","Export safe diagnostics"]
-states: ["No events","No matches","Unconfirmed effect","Export unavailable","Export error"]
-journeys: ["recovery","moderation"]
-privacy: "Private vault workspace; excluded from public projections."
-coverage: {"group":"studio","key":"operations"}
+component: src/plugin/presentation/components/coforge/OperationsView.vue
+entry:
+  - Choose Operations in the studio navigation.
+actions:
+  - Filter event and effect
+  - Clear filters
+  - Inspect records
+  - Export safe diagnostics
+states:
+  - No events
+  - No matches
+  - Unconfirmed effect
+  - Export unavailable
+  - Export error
+journeys:
+  - recovery
+  - moderation
+privacy: Private vault workspace; excluded from public projections.
+coverage:
+  group: studio
+  key: operations
+order: 68000
+type: Feature
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Operations

@@ -1,18 +1,41 @@
 ---
-id: "public-chat"
-title: "Public Twitch chat"
-goal: "Show the current Twitch conversation on stream."
-audience: "viewer / OBS capture"
-kind: "public"
-route: "Obsidian stream surface = chat"
-parent: null
-component: "src/plugin/presentation/components/coforge/StreamLiveChat.vue"
-entry: ["Use the Stream Chat ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture."]
-actions: ["Open from ribbon or Stream displays","Detach manually","Read live chat"]
-states: ["Disconnected","No live messages","Connected messages"]
-journeys: ["public-sharing","community"]
-privacy: "Explicit public whitelist; read-only."
-coverage: {"group":"public","key":"chat"}
+id: public-chat
+title: Public Twitch chat
+goal: Show the current Twitch conversation on stream.
+audience: viewer / OBS capture
+kind: public
+route: Obsidian stream surface = chat
+parent:
+component: src/plugin/presentation/components/coforge/StreamLiveChat.vue
+entry:
+  - Use the Stream Chat ribbon, or open Stream studio → Public displays and launch this surface. Detach its Obsidian tab manually when needed for capture.
+actions:
+  - Open from ribbon or Stream displays
+  - Detach manually
+  - Read live chat
+states:
+  - Disconnected
+  - No live messages
+  - Connected messages
+journeys:
+  - public-sharing
+  - community
+privacy: Explicit public whitelist; read-only.
+coverage:
+  group: public
+  key: chat
+order: 15000
+type: Epic
+status: ""
+started: ""
+finished: ""
+horizon: ""
+start: ""
+due: ""
+risk: ""
+priority: ""
+assignee: ""
+iteration: ""
 ---
 
 # Public Twitch chat
