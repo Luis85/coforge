@@ -22,6 +22,7 @@ import NewIdeaDrawer from "./NewIdeaDrawer.vue";
 import PipelineStrip from "./PipelineStrip.vue";
 import SettingsView from "./SettingsView.vue";
 import StreamPage from "./StreamPage.vue";
+import TwitchOperationsView from './TwitchOperationsView.vue';
 import StudioSidebar from "./StudioSidebar.vue";
 import StudioTopbar from "./StudioTopbar.vue";
 import ToastStack from "./ToastStack.vue";
@@ -75,6 +76,7 @@ const model = useStudioApp();
               <IdeaBoard />
             </template>
             <StreamPage v-else-if="model.shell.store.view === 'stream'" />
+            <TwitchOperationsView v-else-if="model.shell.store.view === 'twitch-operations'" />
             <BroadcastView v-else-if="model.shell.store.view === 'broadcast'" />
             <StreamStatisticsView
               v-else-if="model.shell.store.view === 'statistics'"

@@ -5,7 +5,7 @@ goal: Add selected vault files as wikilinks without replacing the task input.
 audience: streamer
 kind: panel
 route: Ask the Council / Add vault files
-parent: "[[docs/components/views/council-ask]]"
+parent: "[[council]]"
 component: src/plugin/presentation/components/coforge/VaultFilePicker.vue
 entry:
   - Expand Add vault files below the Council question input.
@@ -22,7 +22,7 @@ states:
 journeys:
   - Council
 privacy: Lists private vault file names only; no contents are read or sent.
-order: 56500
+order: 56375
 status: ""
 started: ""
 finished: ""

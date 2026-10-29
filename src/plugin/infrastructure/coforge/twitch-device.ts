@@ -11,12 +11,13 @@ export class TwitchDeviceAuthorization {
     private readonly config: () => IntegrationSettings, private readonly show: (prompt?: TwitchAuthorization, error?: string) => void,
     private readonly complete: (role: TwitchRole, identity: TwitchIdentity) => Promise<void>, private readonly timers: Timers) {}
   cancel(): void { this.generation++; if (this.timer !== undefined) this.timers.clearTimeout(this.timer); this.timer = undefined; this.show(); }
-  async begin(role: TwitchRole): Promise<void> {
+  async begin(role: TwitchRole, additionalScopes: readonly string[] = []): Promise<void> {
     this.cancel();
     const clientId = this.config().twitchClientId;
     if (!clientId) throw new TwitchError('authorization', 'Save your Twitch application Client ID first.');
     const generation = this.generation;
-    const scopes = this.accounts.scopes(role);
+    if (additionalScopes.some(scope => !/^[a-z][a-z0-9_:]{1,100}$/.test(scope))) throw new TwitchError('validation', 'Choose a supported Twitch permission group.');
+    const scopes = [...new Set([...this.accounts.scopes(role), ...(this.accounts.identity(role)?.scopes ?? []), ...additionalScopes])];
     const response = await this.request({ url: 'https://id.twitch.tv/oauth2/device', method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ client_id: clientId, scopes: scopes.join(' ') }).toString() });
     assertResponse(response);
@@ -50,7 +51,7 @@ export class TwitchDeviceAuthorization {
         if (value.message === 'authorization_pending' || value.error === 'authorization_pending') { this.timer = this.timers.setTimeout(() => { void poll(); }, interval); return; }
         if (value.message === 'slow_down' || value.error === 'slow_down' || result.status === 429) { interval += 5000; this.timer = this.timers.setTimeout(() => { void poll(); }, interval); return; }
         assertResponse(result);
-        const identity = await this.accounts.accept(role, result.json, () => generation === this.generation && clientId === this.config().twitchClientId);
+        const identity = await this.accounts.accept(role, result.json, () => generation === this.generation && clientId === this.config().twitchClientId, scopes);
         if (generation !== this.generation) return;
         await this.complete(role, identity); this.show();
       } catch (error) { if (generation === this.generation) this.show(undefined, error instanceof TwitchError ? error.message : 'Twitch authorization failed. Connect again.'); }

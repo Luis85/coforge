@@ -24,7 +24,7 @@ journeys:
   - public-sharing
 privacy: Explicit public whitelist; read-only.
 order: 19000
-type: Epic
+type: Feature
 status: ""
 started: ""
 finished: ""

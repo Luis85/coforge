@@ -30,6 +30,12 @@ export const STUDIO_DESTINATIONS = {
     group: "stream",
     scope: "channel",
   },
+  "twitch-operations": {
+    label: "Twitch operations",
+    icon: "radio-tower",
+    group: "stream",
+    scope: "channel",
+  },
   board: {
     label: "Idea board",
     icon: "layout-grid",
