@@ -102,12 +102,14 @@ export class MetadataCache extends Events implements VaultObserver {
   getCache(path: string): CachedMetadata | null { return this.caches.get(path) ?? null; }
   changed(file: TFile, data: string, immediate: boolean): void {
     if (file.extension !== 'md') return;
-    if (immediate) { this.caches.set(file.path, parseMarkdownMetadata(data)); this.relink(); return; }
+    if (immediate) { this.caches.set(file.path, parseMarkdownMetadata(data)); return; }
     const idle = !this.queued.size; this.queued.set(file, data);
     // A few microtask hops put parsing after the writer's own await continuation, so code that
     // reads the cache right after a write sees stale data, as it can in the host. Never timers.
     if (idle) void track(Promise.resolve().then(() => undefined).then(() => undefined).then(() => this.process()));
   }
+  /** Kit-only: seed is synchronous and silent; resolve once against the complete vault index. */
+  seeded(): void { this.relink(); }
   deleted(file: TFile): void {
     const previous = this.caches.get(file.path) ?? null;
     this.caches.delete(file.path); this.queued.delete(file); this.relink();

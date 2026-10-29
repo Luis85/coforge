@@ -64,3 +64,23 @@ it('renameFile rewrites whole wiki-link targets only and generates links', async
   expect(kit.fileManager.generateMarkdownLink(old, 'Source.md', '#H', 'label')).toBe('[[New#H|label]]');
   await kit.fileManager.trashFile(old); expect(kit.vault.trashed.at(-1)).toMatchObject({ path: 'Archive/New.md', system: true });
 });
+
+it('makes repeated silent seeds immediately complete without changing normal metadata events', async () => {
+  const kit = createTestApp({ files: { 'Source.md': '# Source\n[[Later]] ![[photo.png]]' } });
+  const source = kit.file('Source.md');
+  const events: string[] = [];
+  for (const name of ['changed', 'resolve', 'resolved']) kit.metadataCache.on(name, () => events.push(name));
+  kit.vault.seed({ 'Later.md': '---\nready: true\n---\n# Later', 'photo.png': 'bytes' });
+  expect(kit.file('Source.md')).toBe(source);
+  expect(kit.metadataCache.resolvedLinks['Source.md']).toEqual({ 'Later.md': 1, 'photo.png': 1 });
+  expect(kit.metadataCache.unresolvedLinks['Source.md']).toEqual({});
+  expect(kit.metadataCache.getFileCache(kit.file('Later.md'))?.frontmatter?.ready).toBe(true);
+  kit.vault.seed({ 'Source.md': '# Replaced\n[[Unknown]]' });
+  expect(kit.file('Source.md')).toBe(source);
+  expect(kit.metadataCache.getFileCache(source)?.headings?.[0]?.heading).toBe('Replaced');
+  expect(kit.metadataCache.resolvedLinks['Source.md']).toEqual({});
+  expect(kit.metadataCache.unresolvedLinks['Source.md']).toEqual({ Unknown: 1 });
+  await flushObsidian();
+  expect(events).toEqual([]);
+  expect(kit.errors).toEqual([]);
+});
