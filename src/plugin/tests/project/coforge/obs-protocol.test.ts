@@ -162,7 +162,7 @@ describe("OBS WebSocket v5 boundary", () => {
     expect(JSON.stringify(socket.sent)).not.toContain("fixture-only");
     socket.frame(identified);
     await connecting;
-    expect(socket.sent[0]).toMatchObject({ op: 1, d: { rpcVersion: 1, eventSubscriptions: 207 } });
+    expect(socket.sent[0]).toMatchObject({ op: 1, d: { rpcVersion: 1, eventSubscriptions: 591871 } });
   });
   it("holds a disconnected mutation and never replays it on reconnect", async () => {
     vi.useFakeTimers();

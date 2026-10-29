@@ -87,12 +87,16 @@ defineProps<{ model: ReturnType<typeof useBroadcast> }>();
       Open OBS and connect to see its current scene. Then review setup and
       prepare the stream.
     </p>
+    <p v-else-if="model.store.state?.obsShow?.outputRestartRequired" class="cf-broadcast-guidance">
+      Output settings require a restart. Restart OBS, reconnect and rehearse, then
+      acknowledge the output review in Setup before preparing the broadcast.
+    </p>
     <p
       v-else-if="!model.active && !model.state.prepared"
       class="cf-broadcast-guidance"
     >
       Prepare stream checks readiness before Go live becomes available. Review
-      your destination, audio and video in OBS.
+      your destination, audio and video in the studio.
     </p>
     <div class="cf-settings-actions">
       <button

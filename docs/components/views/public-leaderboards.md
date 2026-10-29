@@ -25,7 +25,7 @@ coverage:
   group: public
   key: leaderboards
 order: 18000
-type: Epic
+type: Feature
 status: ""
 started: ""
 finished: ""

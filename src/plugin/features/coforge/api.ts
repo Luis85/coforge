@@ -15,3 +15,4 @@ export type { Player, PopulationState, EconomyRules } from './domain/population'
 export type { AppState, StudioProject } from './domain/types';
 export type { ObsControlPort } from './application/obs-port';
 export type { ObsActions, ObsSnapshot, ObsSettings, ObsPublicState } from './domain/obs';
+export type { TwitchOperationsActions, TwitchOperationsSnapshot } from './domain/twitch-operations';

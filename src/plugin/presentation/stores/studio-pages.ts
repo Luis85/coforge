@@ -3,6 +3,9 @@ export const BROADCAST_PAGES = [
   { id: "live", label: "Broadcast" },
   { id: "setup", label: "Setup" },
   { id: "scenes", label: "Scenes" },
+  { id: "sources", label: "Sources & layouts" },
+  { id: "audio", label: "Audio" },
+  { id: "show", label: "Show plan" },
   { id: "music", label: "Music" },
   { id: "displays", label: "Public displays" },
   { id: "history", label: "History" },
@@ -48,10 +51,10 @@ export const STREAM_PAGES = [
 export type StreamPage = (typeof STREAM_PAGES)[number]["id"];
 
 export const ECONOMY_PAGES = [
-  { id: 'commands', label: 'Command prices' },
-  { id: 'earning', label: 'Earning' },
-  { id: 'rewards', label: 'Rewards' },
-  { id: 'lootboxes', label: 'Loot boxes' },
-  { id: 'fulfillment', label: 'Fulfillment' },
+  { id: "commands", label: "Command prices" },
+  { id: "earning", label: "Earning" },
+  { id: "rewards", label: "Rewards" },
+  { id: "lootboxes", label: "Loot boxes" },
+  { id: "fulfillment", label: "Fulfillment" },
 ] as const;
-export type EconomyPage = (typeof ECONOMY_PAGES)[number]['id'];
+export type EconomyPage = (typeof ECONOMY_PAGES)[number]["id"];

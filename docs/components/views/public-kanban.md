@@ -26,7 +26,7 @@ coverage:
   group: public
   key: kanban
 order: 17000
-type: Epic
+type: Feature
 status: ""
 started: ""
 finished: ""

@@ -79,7 +79,7 @@
   .ps--coforge .cf-sidebar .cf-nav-group { gap: 0; }
   .ps--coforge .cf-sidebar .cf-nav-group-items { gap: 0; }
   .ps--coforge .cf-sidebar .cf-nav-group + .cf-nav-group { padding-top: 0; }
-  .ps--coforge .cf-sidebar .cf-nav-group .cf-nav-item { --coforge-ds-sizes-control: 26px; min-height: 26px; padding-block: 3px; }
+  .ps--coforge .cf-sidebar .cf-nav-group .cf-nav-item { --coforge-ds-sizes-control: 25px; min-height: 25px; padding-block: 3px; }
   .ps--coforge .cf-sidebar .cf-nav-item { min-height: 32px; padding-block: 5px; }
   .ps--coforge .cf-sidebar .cf-streamer-profile { padding-block: var(--cf-space-xs); }
 }

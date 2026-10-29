@@ -362,6 +362,23 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ## Decisions
 
+- 2026-10-29: implement the three proposed Twitch integration increments end to end:
+  reliable live operations (capabilities, activity, moderation, ads and raids), community
+  interaction (Channel Points, redemption queues, polls and predictions), and content/
+  improvement (clips, markers, private reports, audience information and optional explicit
+  Twitch schedule publishing). Coordinate with the concurrent OBS integration; OBS owns
+  broadcast production and its studio controls. Twitch operations remain channel-wide.
+  Add a permission-aware data catalogue with source age, collection gaps and unavailable
+  capabilities. Request additional scopes only for explicitly enabled features. Preserve
+  exact target confirmation, durable intent, unknown-outcome recovery, app-owned reward
+  restrictions, private data and human review. Stream plans remain local until explicitly
+  published; private scripts and project context are never published to Twitch. Collect
+  events only while this designated Obsidian desktop is open; a separate always-on service
+  was discussed as a future product decision and is not part of these three increments.
+  Use subagents, complete E2E qualification and an improvement/polishing pass, then open
+  and merge the PR when all required checks are green. No real Twitch-account mutation
+  is implied by automated qualification.
+
 - 2026-10-29: expose the maintained CoWorker roster and definition-based subagent
   dispatch through the existing vault MCP server. Assistants can author private
   tasks for a CoWorker or council, preflight them, explicitly dispatch, inspect
@@ -430,6 +447,31 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 - None recorded.
 
 ## Streamer workflow increment (2026-10-27)
+
+### OBS overhaul exploration (owner direction, 2026-10-29)
+
+- Explore a full redesign and expansion of Stream studio's OBS integration so the
+  streamer can operate the stream entirely from CoForge views during a broadcast.
+- Cover both full OBS setup and live production. The initial target is one PC
+  with a fresh, blank OBS installation.
+- Owner authorization (2026-10-29): implement all three proposed increments end to
+  end with subagents, complete an improvement and polishing pass, open a pull
+  request and merge after the required checks are green.
+- Increment 1 covers fresh studio creation, supported capture/audio/output setup,
+  rehearsal and essential live controls. Increment 2 covers visual source/layout
+  editing, audio management and public displays. Increment 3 covers show plans,
+  reusable manual cues, explicit opt-in event automation and recording/replay review.
+- OBS remains the media engine. One-time WebSocket bootstrap, device permissions
+  and unsupported vendor dialogs may require OBS or OS interaction during setup.
+  Source and output editors are capability-checked; sampled screenshots are labelled
+  as such and do not claim smooth audiovisual monitoring.
+- Setup and navigation never broadcast. Credentials stay in secret storage; stream
+  keys are write-only. Public displays keep explicit projections. Shared-source
+  edits disclose their live impact. Multi-step actions retain individual outcomes;
+  unknown effects are never replayed. Event automation is explicit, bounded and
+  paused after restart, with no missed-event replay or implicit agent authority.
+
+### Existing workflow baseline
 
 - The plugin opens on a stream-preparation dashboard. The streamer connects an already running OBS Studio
   through obs-websocket v5, selects a go-live and BRB scene, checks readiness, then explicitly presses Go live.

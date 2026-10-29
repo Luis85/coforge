@@ -25,7 +25,7 @@ coverage:
   group: public
   key: community
 order: 16000
-type: Epic
+type: Feature
 status: ""
 started: ""
 finished: ""

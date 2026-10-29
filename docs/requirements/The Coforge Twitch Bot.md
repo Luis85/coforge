@@ -1,8 +1,7 @@
 ---
 pbl-id: 2
-type: Feature
-order: 3250
-parent: "[[docs/requirements/Integrations]]"
+type: Epic
+order: 812.5
 status: ""
 started: ""
 finished: ""
