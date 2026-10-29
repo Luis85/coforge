@@ -3460,6 +3460,65 @@
       "file": "schedule.md"
     },
     {
+      "id": "service-design",
+      "title": "Service Design",
+      "goal": "Define and refine a project's service through a linked Service Blueprint.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = service-design",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/ServiceDesignView.vue",
+      "entry": [
+        "Select a project, then choose Service Design in Build & Improve."
+      ],
+      "actions": [
+        "Create the project service blueprint",
+        "Add and order journey steps",
+        "Create and edit blueprint entities",
+        "Link related entities",
+        "Find and explore related entities",
+        "Preview authored Markdown",
+        "Open canonical note",
+        "Refresh saved notes",
+        "Configure the note storage folder"
+      ],
+      "states": [
+        "Native unavailable",
+        "No selected project",
+        "Loading",
+        "No blueprint",
+        "No journey steps",
+        "Saved blueprint",
+        "No matching entities",
+        "Unsaved draft",
+        "Draft replacement confirmation",
+        "Validation or external-edit conflict",
+        "Invalid or duplicate notes"
+      ],
+      "journeys": [
+        "service-design",
+        "multi-project"
+      ],
+      "privacy": "Private project notes; excluded from public projections and capture surfaces.",
+      "coverage": {
+        "group": "studio",
+        "key": "service-design"
+      },
+      "order": 58500,
+      "type": "Feature",
+      "status": "",
+      "started": "",
+      "finished": "",
+      "horizon": "",
+      "start": "",
+      "due": "",
+      "risk": "",
+      "priority": "",
+      "assignee": "",
+      "iteration": "",
+      "file": "service-design.md"
+    },
+    {
       "id": "settings",
       "title": "Project settings",
       "goal": "Configure the selected project and manage its agent workflow.",

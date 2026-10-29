@@ -17,7 +17,7 @@ import { ExecutionScheduler } from "../../features/coforge/application/execution
 import { CouncilIntakeRuntime } from "./council-intake-runtime";
 import type { InvocationGate } from "../../features/coforge/application/invocation-gate";
 import type { StudioService } from "../../features/coforge/application/studio";
-import type { Timers } from "../../features/coforge/application/ports";
+import type { ManagedNoteFolderPolicy, Timers } from "../../features/coforge/application/ports";
 import type { ExecutionRun } from "../../features/coforge/domain/execution-run";
 import { contextEventId } from "../../features/coforge/domain/integrity";
 
@@ -39,7 +39,7 @@ import { CouncilMessagingModule } from "./council-messaging-module";
 import { CouncilWorkflowModule } from "./council-workflow-module";
 import type { IntakeFolderPolicy } from "../../features/coforge/domain/intake-bindings";
 import { CouncilWorkflowMessaging } from "./council-workflow-messaging";
-import { councilDefinitionConfiguration } from "./council-definition-configuration";
+import { councilDefinitionConfiguration, saveCouncilPreferences } from "./council-definition-configuration";
 import { readCouncilDefinitionUsage } from "../../features/coforge/application/council-definition-usage";
 import { createCouncilTaskNotes } from "./council-task-notes";
 import { CouncilRuntimeObservers } from "./council-runtime-observers";
@@ -82,8 +82,9 @@ export class CouncilModule {
     gate: InvocationGate,
     projectFile?: (id: string) => TFile | null,
     ideaFile?: (id: string) => TFile | null,
+    private readonly noteFolders: Partial<ManagedNoteFolderPolicy> = {},
   ) {
-    this.storage = new CouncilStateStorage(plugin);
+    this.storage = new CouncilStateStorage(plugin, folders => noteFolders.assertAvailable?.(folders));
     this.journal = new FileExecutionJournal(
       plugin.app.vault.adapter,
       this.storage.directory,
@@ -110,7 +111,7 @@ export class CouncilModule {
       protect: (paths) => this.protect(paths),
       save: (value) => this.savePreferences(value),
       publish: () => this.publish(),
-    });
+    }, noteFolders);
     this.sources = new CouncilSourceNotes(
       plugin.app.vault,
       () => this.runs(),
@@ -340,10 +341,8 @@ export class CouncilModule {
     );
   }
   private async savePreferences(value: CouncilPreferences): Promise<void> {
-    const next = { ...value, revision: this.preferences.revision + 1 };
-    await this.protect([]);
-    await this.storage.savePreferences(next, this.preferences.revision);
-    this.preferences = next;
+    this.preferences = await saveCouncilPreferences(value, this.preferences, this.storage,
+      () => this.protect([]), folders => this.noteFolders.assertAvailable?.(folders));
   }
   private projectPaused(id: string): boolean {
     return (this.preferences.pausedProjectIds ?? []).includes(id);

@@ -8,6 +8,7 @@ import { studioRoot } from "./studio-destinations";
 
 export type StudioView =
   | "alerts"
+  | "service-design"
   | "council"
   | "coworkers"
   | "board"

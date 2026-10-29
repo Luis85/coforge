@@ -28,6 +28,7 @@ import StudioTopbar from "./StudioTopbar.vue";
 import ToastStack from "./ToastStack.vue";
 import ProjectsView from "./ProjectsView.vue";
 import CouncilView from "./CouncilView.vue";
+import ServiceDesignView from './ServiceDesignView.vue';
 import CoWorkersView from "./CoWorkersView.vue";
 import AlertsView from './AlertsView.vue';
 import ObsLiveDock from "./ObsLiveDock.vue";
@@ -94,6 +95,7 @@ const model = useStudioApp();
             <ScheduleView v-else-if="model.shell.store.view === 'schedule'" />
             <CouncilView v-else-if="model.shell.store.view === 'council'" />
             <CoWorkersView v-else-if="model.shell.store.view === 'coworkers'" />
+            <ServiceDesignView v-else-if="model.shell.store.view === 'service-design'" />
             <ProjectsView v-else-if="model.shell.store.view === 'projects'" />
             <CommunityView v-else-if="model.shell.store.view === 'community'" />
             <PopulationView

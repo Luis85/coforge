@@ -3,7 +3,8 @@
   .cf-alerts-page, .cf-broadcast-page, .cf-community-page, .cf-projects-page, .cf-settings-page,
   .cf-statistics-page, .cf-workflow-page, .cf-population-page, .cf-operations-page,
   .cf-finance, .cf-ai-costs-page, .cf-stream-schedule-page, .cf-council,
-  .cf-workflow-settings-page, .cf-community-settings-page, .cf-stream-page, .cf-economy-page
+  .cf-workflow-settings-page, .cf-community-settings-page, .cf-stream-page, .cf-economy-page,
+  .cf-service-design
 ) {
   padding: var(--cf-page-top) var(--cf-page-gutter) var(--cf-page-bottom);
   width: 100%;

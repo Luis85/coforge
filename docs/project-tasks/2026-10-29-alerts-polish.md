@@ -146,6 +146,17 @@ runtime cancellation waits. Regenerate the combined 106-view catalogue, review t
 composition seams with subagents and rerun exact-head qualification. Retain the
 upstream Windows host-shutdown diagnostics and CI reporting improvements.
 
+### P9 — Service Design merge handoff
+
+Service Design (#43) reached main during the green-check merge handoff. Preserve
+its managed-note reservations, retained/current blueprint roots, initialization
+guards, Council configuration and ordinary MCP write protection while retaining
+Alerts, OBS ports and independent source disposal. Existing authorized MCP read
+semantics remain unchanged. Both integration reviewers found no blocking issue.
+Regenerate the combined 107-view catalogue and qualify the combined head. Preserve
+the upstream short-pane spacing improvements together with 24px Alerts-era targets;
+keep the unchanged 740px navigation and accessibility assertions.
+
 ## Explicit limits
 
 - No personal vault, live Twitch broadcast, or user OBS scene collection is used for tests.
