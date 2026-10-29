@@ -184,8 +184,10 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
       .getByRole("button", { name: "The Council", exact: true })
       .click();
     await openCouncilPage(view, 'Run monitor');
+    const executionControls = view.locator('details.cf-council-execution-settings');
+    if (await executionControls.getAttribute('open') === null) await executionControls.locator('summary').click();
     await browserExpect(
-      view.getByRole("status").filter({ hasText: "Execution paused" }),
+      view.getByRole('region', { name: 'Council execution', exact: true }).getByRole("status").filter({ hasText: "Execution paused" }),
     ).toBeVisible();
     await openCouncilPage(view, 'Run monitor');
     await browserExpect(view.locator(".cf-council-runs")).toContainText(
