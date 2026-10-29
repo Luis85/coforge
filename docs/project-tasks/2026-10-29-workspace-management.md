@@ -1,6 +1,6 @@
 # Task: Simplify project work and manage CoWorkers directly
 
-- Status: implementation complete; final qualification and delivery tracked in the PR
+- Status: implemented and locally verified; CI qualification and delivery tracked in the PR
 - Journey: owner workspace, Council, multi-project
 
 ## Why
@@ -48,3 +48,8 @@ preservation, explicit simulation and history after reload, navigation persisten
 card actions and lifecycle. A fresh sandbox smoke opened successfully with errors
 [] and hostErrorCount 0. Final native and full canonical results are recorded in
 the PR before merge. No live model requests are part of UI verification.
+
+The final qualified local verify:project exited 0: 5 check steps passed, 0 failed,
+0 skipped, plus artifact build and prototype embedding. Full native CI passed
+29 tests. The remaining browser assertion was updated to recognize the new first
+group collapse control while retaining keyboard/short-pane accessibility coverage.

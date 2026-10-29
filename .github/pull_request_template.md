@@ -23,7 +23,8 @@ Review all 90 view contracts: parent properties are clickable vault links, gener
 - Native canonical note editing/rename and human-byte preservation, card menus and lifecycle passed. After the runtime-readiness fix, initialization/history passed (1 test) and persisted navigation/reload passed in both themes (2 tests).
 - Fresh native smoke: status passed, view opened, errors [], hostErrorCount 0; app/installer 1.14.4, launcher 3.2.1.
 - Source limits/locale parity and source lint passed. All 90 view contracts validate; git diff --check and self-review are clean.
-- Full npm run verify:project is rerunning after the final regex lint fix. Final results and CI evidence will be recorded here before merge. Verification uses Node 24.21.0 and npm 11.19.1.
+- npm run verify:project: exit 0; 5 passed, 0 failed, 0 skipped; artifact build and prototype embedding passed. The UI-effects generator reports no declared visual definitions. Verification uses Node 24.21.0 and npm 11.19.1.
+- Full native CI: 22 files / 29 tests passed. Final browser CI is rerunning after aligning the narrow-pane accessibility assertion with the owner-requested group order and collapse controls.
 
 ## UI evidence
 
