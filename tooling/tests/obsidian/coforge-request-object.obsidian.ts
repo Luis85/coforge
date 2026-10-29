@@ -71,7 +71,7 @@ describe('Project Request Object in the contained host', () => {
     await card.locator('.cf-idea-open').click();
     await browserExpect(fields.getByRole('heading', { name: 'Business Idea', exact: true })).toBeVisible();
     await browserExpect(fields.getByLabel('Audience', { exact: true })).toHaveValue('Local makers');
-    await browserExpect(view.locator('.cf-idea-category')).toHaveText('Strategy');
+    await browserExpect(view.getByRole('dialog', { name: 'Native business opportunity', exact: true }).locator('.cf-idea-category')).toHaveText('Strategy');
     expect(obsidian.errors()).toEqual([]);
     await obsidian.screenshot('request-object-captured-schema-and-human-note');
   });

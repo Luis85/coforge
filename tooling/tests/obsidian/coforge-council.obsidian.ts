@@ -184,7 +184,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
     await view
       .getByRole("button", { name: "The Council", exact: true })
       .click();
-    await view.getByRole("navigation", { name: "Council workspace", exact: true }).getByRole("button", { name: "Run monitor", exact: true }).click();
+    await openCouncilPage(view, 'Run monitor');
     await browserExpect(
       view.getByRole("status").filter({ hasText: "Execution paused" }),
     ).toBeVisible();
