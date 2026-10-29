@@ -55,6 +55,10 @@
 .cf-workflow-selected-template > summary {
   cursor: pointer;
 }
+.cf-workflow-options,
+.cf-workflow-selected-template {
+  overflow-wrap: anywhere;
+}
 .cf-workflow-options > summary,
 .cf-workflow-template-library > summary,
 .cf-workflow-tools > summary,

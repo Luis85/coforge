@@ -19,6 +19,19 @@ const dirty = (editor: ProjectOutputTemplateEditor) =>
   JSON.stringify(editor.draft) !== editor.saved;
 type FocusKey = "summary" | "name" | "markdown" | "new" | "delete" | "keep";
 type RefValue = Element | ComponentPublicInstance | null;
+type FocusTarget = Element & { focus: () => void };
+type LibraryElement = FocusTarget & { open: boolean };
+const isFocusTarget = (value: RefValue): value is FocusTarget =>
+  Boolean(
+    value &&
+    !("$el" in value) &&
+    value.nodeType === 1 &&
+    typeof Reflect.get(value, "focus") === "function",
+  );
+const isLibraryElement = (value: RefValue): value is LibraryElement =>
+  isFocusTarget(value) &&
+  value.tagName === "DETAILS" &&
+  typeof Reflect.get(value, "open") === "boolean";
 export const selectedOutputTemplate = (event: Event): string | undefined =>
   event.target instanceof HTMLSelectElement
     ? event.target.value || undefined
@@ -43,9 +56,9 @@ export function useWorkflowOutputTemplates(
   const store = useOutputTemplateStore();
   const editor = computed(() => store.editor(projectId()));
   const busy = computed(() => editor.value.loading || editor.value.working);
-  let library: HTMLDetailsElement | undefined;
+  let library: LibraryElement | undefined;
   let generation = 0;
-  const focusTargets: Partial<Record<FocusKey, HTMLElement>> = {};
+  const focusTargets: Partial<Record<FocusKey, FocusTarget>> = {};
   function captureFocus() {
     return {
       project: projectId(),
@@ -76,10 +89,7 @@ export function useWorkflowOutputTemplates(
     });
   }
   function bindTarget(key: FocusKey, value: RefValue) {
-    const element = value && !("$el" in value) ? value : undefined;
-    const view = element?.ownerDocument.defaultView;
-    if (view && element instanceof view.HTMLElement)
-      focusTargets[key] = element;
+    if (isFocusTarget(value)) focusTargets[key] = value;
     else delete focusTargets[key];
   }
   onBeforeUnmount(() => {
@@ -169,12 +179,7 @@ export function useWorkflowOutputTemplates(
     editor,
     available: Boolean(actions),
     bindLibrary: (value: RefValue) => {
-      const element = value && !("$el" in value) ? value : undefined;
-      const view = element?.ownerDocument.defaultView;
-      library =
-        view && element instanceof view.HTMLDetailsElement
-          ? element
-          : undefined;
+      library = isLibraryElement(value) ? value : undefined;
     },
     bindName: (value: RefValue) => bindTarget("name", value),
     bindMarkdown: (value: RefValue) => bindTarget("markdown", value),
@@ -250,9 +255,11 @@ export function useWorkflowOutputTemplates(
       focus("name", scope);
     },
     discard: () => {
+      const scope = captureFocus();
       select(editor.value, editor.value.selectedId);
       editor.value.error = "";
       editor.value.notice = "";
+      focus(editor.value.draft ? "markdown" : "new", scope);
     },
     save: () => {
       void perform(async (id, current) => {

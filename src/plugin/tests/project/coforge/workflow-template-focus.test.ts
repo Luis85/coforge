@@ -42,7 +42,7 @@ async function setup(
   wrapper.get("details").element.open = true;
   const button = (name: string) => {
     const result = wrapper
-      .findAll("button")
+      .findAll<HTMLButtonElement>("button")
       .find((item) => item.text().trim() === name);
     if (!result) throw new Error(`Missing ${name}`);
     return result;
@@ -120,6 +120,39 @@ it("offers the safe confirmation action, restores the initiator on cancel and mo
   }
 });
 
+it("returns discard focus to New template for a new draft and to Markdown for a saved template", async () => {
+  const model = await setup();
+  try {
+    await model.button("New template").trigger("click");
+    await flushPromises();
+    model.button("Discard template changes").element.focus();
+    await model.button("Discard template changes").trigger("click");
+    await flushPromises();
+    expect(document.activeElement).toBe(model.button("New template").element);
+    expect(model.wrapper.find('[aria-label="Template name"]').exists()).toBe(
+      false,
+    );
+    await model.wrapper
+      .get('[aria-label="Template library"]')
+      .setValue("report");
+    await model.wrapper
+      .get('[aria-label="Template Markdown"]')
+      .setValue("# Unsaved edits");
+    model.button("Discard template changes").element.focus();
+    await model.button("Discard template changes").trigger("click");
+    await flushPromises();
+    expect(document.activeElement).toBe(
+      model.wrapper.get('[aria-label="Template Markdown"]').element,
+    );
+    expect(
+      model.wrapper.get('[aria-label="Template Markdown"]').element,
+    ).toHaveProperty("value", template(model.fixture.project.id).markdown);
+    expect(model.fixture.runner).not.toHaveBeenCalled();
+  } finally {
+    await model.dispose();
+  }
+});
+
 it("never hands focus to another project when an earlier project deletion completes late", async () => {
   let finish: (() => void) | undefined;
   const pending = new Promise<void>((resolve) => {
@@ -137,7 +170,9 @@ it("never hands focus to another project when an earlier project deletion comple
     await flushPromises();
     await model.button("New template").trigger("click");
     await flushPromises();
-    const input = model.wrapper.get('[aria-label="Template name"]');
+    const input = model.wrapper.get<HTMLInputElement>(
+      '[aria-label="Template name"]',
+    );
     input.element.focus();
     await input.setValue("Keep editing project two");
     finish?.();
