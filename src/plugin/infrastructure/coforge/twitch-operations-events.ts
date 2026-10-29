@@ -40,7 +40,7 @@ export function parseTwitchActivity(value: unknown, channelId: string): TwitchAc
   const raid = type === 'channel.raid';
   const incoming = raid && event.to_broadcaster_user_id === channelId && condition.to_broadcaster_user_id === channelId;
   const outgoing = raid && event.from_broadcaster_user_id === channelId && condition.from_broadcaster_user_id === channelId;
-  if (raid ? !incoming && !outgoing : event.broadcaster_user_id !== channelId || condition.broadcaster_user_id !== channelId) return null;
+  if (raid ? incoming === outgoing : event.broadcaster_user_id !== channelId || condition.broadcaster_user_id !== channelId) return null;
   if (condition.moderator_user_id !== undefined && condition.moderator_user_id !== channelId || condition.user_id !== undefined && condition.user_id !== channelId) return null;
   const actorId = numericId(raid ? incoming ? event.from_broadcaster_user_id : event.to_broadcaster_user_id : event.user_id);
   const actorName = text(raid ? incoming ? event.from_broadcaster_user_name : event.to_broadcaster_user_name : event.user_name, 80);
@@ -49,9 +49,11 @@ export function parseTwitchActivity(value: unknown, channelId: string): TwitchAc
   const label = outgoing ? 'Outgoing raid' : activityLabel(type);
   const summary = `${actorName ? actorName + ': ' : ''}${label}${amount !== undefined ? ' (' + amount + ')' : ''}`;
   const streamId = type === 'stream.online' && typeof event.id === 'string' ? event.id.slice(0, 100) : undefined;
+  const retainedDetails = details(event, type);
+  if (raid) retainedDetails.raid_direction = incoming ? 'incoming' : 'outgoing';
   return { id, channelId, type, at: new Date(at).toISOString(), summary,
     ...(actorId ? { actorId } : {}), ...(actorName ? { actorName } : {}), ...(amount === undefined ? {} : { amount }),
-    ...(streamId ? { streamId } : {}), details: details(event, type) };
+    ...(streamId ? { streamId } : {}), details: retainedDetails };
 }
 
 function activityLabel(type: string): string {

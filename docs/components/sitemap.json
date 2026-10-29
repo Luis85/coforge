@@ -143,6 +143,47 @@
       "file": "ai-costs.md"
     },
     {
+      "id": "alerts",
+      "title": "Alerts",
+      "goal": "Dispatch reusable viewer alerts into an OBS Browser Source.",
+      "audience": "streamer",
+      "kind": "page",
+      "type": "Feature",
+      "route": "studio.view = alerts",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/AlertsView.vue",
+      "entry": [
+        "Choose Alerts in the Stream navigation group."
+      ],
+      "actions": [
+        "Copy Alerts URL",
+        "Create, edit and delete an alert",
+        "Save text variables and selected vault media",
+        "Enable an automatic event binding",
+        "Fire a saved alert to OBS",
+        "Stop all alerts"
+      ],
+      "states": [
+        "Source unavailable",
+        "Empty template library",
+        "Unsaved draft",
+        "Ready for dispatch",
+        "Missing variables or media",
+        "Save failed with draft retained"
+      ],
+      "journeys": [
+        "broadcast",
+        "public-sharing"
+      ],
+      "privacy": "Private editor; the opaque loopback URL serves only prepared cues and explicitly selected media.",
+      "coverage": {
+        "group": "studio",
+        "key": "alerts"
+      },
+      "order": 81500,
+      "file": "alerts.md"
+    },
+    {
       "id": "board",
       "title": "Request board",
       "goal": "Choose the next request that needs attention.",
@@ -3083,7 +3124,7 @@
       "parent": null,
       "component": "src/plugin/features/coforge/domain/stream-surfaces.ts",
       "entry": [
-        "Open an individual public capture tab or the deployed viewer website through its documented entry."
+        "Open an individual public capture tab, the Alerts Browser Source or the deployed viewer website through its documented entry."
       ],
       "actions": [
         "Find a public-view component contract",
@@ -3111,6 +3152,38 @@
       "assignee": "",
       "iteration": "",
       "file": "public.md"
+    },
+    {
+      "id": "public-alerts",
+      "title": "Public Alerts overlay",
+      "goal": "Present prepared stream alerts to viewers through OBS.",
+      "audience": "viewer / OBS Browser Source",
+      "kind": "public",
+      "type": "Feature",
+      "route": "http loopback /alerts/{opaque-token}/",
+      "parent": "public",
+      "component": "src/plugin/infrastructure/coforge/alerts-player.ts",
+      "entry": [
+        "Paste the URL from Stream → Alerts into an OBS Browser Source."
+      ],
+      "actions": [
+        "Render received text and selected media",
+        "Play queued live alerts",
+        "Clear playback on stop or disconnection"
+      ],
+      "states": [
+        "Transparent idle",
+        "Playing alert",
+        "Waiting queue",
+        "Disconnected and cleared"
+      ],
+      "journeys": [
+        "broadcast",
+        "public-sharing"
+      ],
+      "privacy": "Read-only rendered cue whitelist and explicitly selected media; no studio or vault browsing capabilities.",
+      "order": 17500,
+      "file": "public-alerts.md"
     },
     {
       "id": "public-chat",

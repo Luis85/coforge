@@ -33,8 +33,8 @@ jobs:
           echo "PINNED_NPM=$RUNNER_TEMP/pinned-npm/node_modules/npm/bin/npm-cli.js" >> "$GITHUB_ENV"
       - name: Install exact dependencies
         run: node "$PINNED_NPM" ci --no-fund
-      - name: Install Electron system libraries (no browser download)
-        run: node node_modules/@playwright/test/cli.js install-deps chromium
+      - name: Install browser and Electron system libraries for native and Alerts source tests
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
       - name: Restore the pinned Obsidian download
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:

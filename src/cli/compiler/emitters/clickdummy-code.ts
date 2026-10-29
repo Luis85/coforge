@@ -159,10 +159,12 @@ const lifecycle = createPreviewLifecycle(window, { mount: () => mountFrame(root!
   add('harness/prototype/clickdummy.css', `/* Original standalone browser host simulation; never imported by the native plugin. */
 @import '../../src/plugin/harness/styles/simulated.css';
 body { margin:0; font-family:var(--font-interface,system-ui,sans-serif); background:var(--background-primary); color:var(--text-normal); }
-.clickdummy-toolbar { display:flex; flex-wrap:wrap; gap:16px; align-items:center; padding:16px; border-bottom:1px solid var(--background-modifier-border); }
+.clickdummy-toolbar { display:flex; flex-wrap:wrap; gap:16px; align-items:center; padding:16px; border-bottom:1px solid var(--background-modifier-border); color:var(--text-normal); background:var(--background-primary); }
 .clickdummy-toolbar h1 { margin:0; font-size:1.15rem; overflow-wrap:anywhere; }
 .clickdummy-toolbar div { flex:1 1 250px; } .clickdummy-toolbar p { margin:4px 0; } .clickdummy-toolbar .clickdummy-control { flex:0 1 250px; display:grid; gap:4px; }
-.clickdummy-toolbar select { width:100%; max-width:250px; min-width:0; }
+/* Preview chrome follows the host theme even when a mounted surface owns its own text color. */
+.clickdummy-toolbar select { width:100%; max-width:250px; min-width:0; color:var(--text-normal); background:var(--background-modifier-form-field); }
+.clickdummy-toolbar option { color:var(--text-normal); background:var(--background-modifier-form-field); }
 .clickdummy-toolbar button,.clickdummy-toolbar select,.clickdummy-dialog > button { min-height:36px; padding:6px 10px; font:inherit; }
 .clickdummy-toolbar :focus-visible,.clickdummy-dialog > button:focus-visible { outline:2px solid var(--interactive-accent); outline-offset:3px; }
 .clickdummy-toolbar > div { min-width:0; } .clickdummy-route,.clickdummy-error { padding-inline:16px; overflow-wrap:anywhere; }

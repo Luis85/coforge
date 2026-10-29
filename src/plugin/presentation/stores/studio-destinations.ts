@@ -18,6 +18,7 @@ export const STUDIO_DESTINATIONS = {
     group: "stream",
     scope: "channel",
   },
+  alerts: { label: 'Alerts', icon: 'bell', group: 'stream', scope: 'channel' },
   schedule: {
     label: "Schedule",
     icon: "calendar-days",
