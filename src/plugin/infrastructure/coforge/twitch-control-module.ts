@@ -90,7 +90,7 @@ export class TwitchControlModule {
   async dispose(): Promise<void> {
     if (this.closed) return;
     this.closed = true; this.generation++; this.stopEvents();
-    this.cancelRefreshes(); await Promise.all([...this.refreshReads]);
+    this.cancelRefreshes(); await Promise.all(this.refreshReads);
     await this.service.collectionDisconnected('CoForge closed. Twitch activity collection resumes only while Obsidian is open.')
       .catch(() => this.report('Twitch collection closure could not be saved.'));
     await this.service.dispose();

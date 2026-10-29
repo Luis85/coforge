@@ -6,7 +6,7 @@ const broadcast = useTwitchBroadcast();
   <div class="cf-twitch-operation-broadcast">
     <section aria-label="Ad break timing">
       <h2>Ad break timing</h2><p>{{ broadcast.adStatus }}</p>
-      <dl><dt>Next scheduled ad</dt><dd data-twitch-ad-countdown role="timer" aria-live="off">{{ broadcast.adCountdown }}</dd><dt>Available snoozes</dt><dd>{{ broadcast.snoozes ?? 'Unavailable' }}</dd><dt>Pre-roll-free time</dt><dd>{{ broadcast.preRollCountdown }}</dd></dl>
+      <dl><dt>Next scheduled ad</dt><dd><span data-twitch-ad-countdown role="timer" aria-live="off">{{ broadcast.adCountdown }}</span></dd><dt>Available snoozes</dt><dd>{{ broadcast.snoozes ?? 'Unavailable' }}</dd><dt>Pre-roll-free time</dt><dd>{{ broadcast.preRollCountdown }}</dd></dl>
       <p class="cf-twitch-operation-freshness">Observed {{ broadcast.adObserved }}. Timing becomes stale after one minute.</p>
       <button type="button" class="cf-btn cf-btn-secondary" :disabled="!broadcast.canSnooze" @click="broadcast.prepareSnooze()">Prepare ad snooze</button>
     </section>

@@ -24,7 +24,10 @@ export function useTwitchOperations() {
   const connection = computed(() => studio.state ? application.integration() : defaultIntegration());
   store.retentionDays = snapshot.value.retentionDays;
   const page = computed(() => TWITCH_OPERATION_PAGES.find(item => item.id === store.page));
-  const resources = computed(() => TWITCH_RESOURCES.filter(item => page.value?.resources.some(name => name === item.name)));
+  const resources = computed(() => page.value?.resources.flatMap(name => {
+    const resource = TWITCH_RESOURCES.find(item => item.name === name);
+    return resource ? [resource] : [];
+  }) ?? []);
   const descriptor = computed(() => TWITCH_ACTIONS.find(item => item.name === store.action));
   const actions = computed(() => TWITCH_ACTIONS.filter(item => {
     if (store.page === 'activity') return item.name === 'announcement' || item.name === 'shoutout';
@@ -62,7 +65,7 @@ export function useTwitchOperations() {
   }
   function setPage(value: TwitchOperationPage) {
     store.page = value; store.review = null;
-    store.resource = resources.value[0]?.name ?? 'activity';
+    store.resource = TWITCH_OPERATION_PAGES.find(item => item.id === value)?.resources[0] ?? 'activity';
     store.action = actions.value[0]?.name ?? 'announcement';
   }
   function setAction(value: string) {

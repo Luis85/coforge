@@ -48,6 +48,16 @@ async function render(connected = true) {
 }
 
 describe('Twitch operations workspace', () => {
+  it('opens each task on its declared first dataset without fetching data implicitly', async () => {
+    const env = await render();
+    await env.wrapper.get('[data-twitch-page="broadcast"]').trigger('click');
+    expect(env.operationStore.page).toBe('broadcast');
+    expect(env.operationStore.resource).toBe('ads');
+    expect(env.wrapper.get<HTMLSelectElement>('[aria-label="Twitch dataset"]').element.value).toBe('ads');
+    await env.wrapper.get('[data-twitch-page="content"]').trigger('click');
+    expect(env.wrapper.get<HTMLSelectElement>('[aria-label="Twitch dataset"]').element.value).toBe('clips');
+    expect(env.refresh).not.toHaveBeenCalled(); expect(env.execute).not.toHaveBeenCalled();
+  });
   it('opens without issuing an external action and explains unavailable host controls', async () => {
     const env = await render(false);
     expect(env.wrapper.get('h1').text()).toBe('Twitch operations');

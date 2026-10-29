@@ -1,6 +1,6 @@
 # Task: Run Twitch channel operations from CoForge
 
-- Status: in progress
+- Status: implementation complete; final qualification and merge tracked in [PR #39](https://github.com/Luis85/coforge/pull/39).
 - Journey in `BRIEF.md`: Twitch integration increments approved 2026-10-29.
 
 ## Why
@@ -53,6 +53,32 @@ their existing CoForge workspace, with honest API availability and recoverable a
 - `npm ci`: added 691 packages; audited 692; 0 vulnerabilities.
 - Maker inventory reviewed. This extends the existing CoForge feature and does not
   introduce an unrelated generated native example feature/view.
+- Independent core/API/controller and UI reviews added adversarial account/scope,
+  reward-ownership, uncertain-outcome, recovery, unload and stale-response regressions.
+  Targeted review suites passed 33/33 and 34/34 tests; the final dataset-selection
+  regression reproduced an incorrect selected option and passed after the keyed-select fix.
+- `npm run test:ui-quality`: 8/8 passed. Initial focused Twitch browser checks: 4/4
+  passed. `npm run ui:gallery`: 40 captures, with representative desktop/light and
+  narrow/dark views reviewed. Final visual confirmation captured eight Twitch views.
+- Impeccable detector returned `[]`. Polishing clarified reward constraints, confirmation
+  focus, receipts, scoped consent, ad freshness, raid previews and private report coverage.
+- Pinned real-host focused test: 1/1 passed. Full native CI: 24 files / 31 tests passed.
+  Fresh smoke: `status: passed`, `errors: []`, `hostErrorCount: 0`, `view.opened: true`.
+- `npm run verify:artifacts`: exit 0; release build completed and prototype embedding
+  passed 1/1. Generated UI-effect checks explicitly skip because no visual definitions exist.
+- Initial full CI product tests, typecheck, ESLint and maker types passed; one oxlint
+  redundant-spread warning was corrected without disabling rules. Full browser CI passed
+  193/199 and identified timer definition-list semantics and short navigation overflow;
+  both were corrected while preserving the same accessibility/layout assertions.
+- Local broad checks hit their 600-second budgets under concurrent desktop work. Local
+  full browser qualification also encountered unrelated journey timeouts and was stopped;
+  exact-head full project/browser/native qualification remains mandatory in PR checks.
+- The local browser rerun uses an ignored configuration on port 4192 to avoid the OBS
+  session's 4181. It preserves the committed checks, browser, viewport matrix and timeouts.
+- PR #38 was superseded by a clean reviewed diff after GitGuardian flagged an intermediate
+  `URL.password` validation expression as a generic password. No credential existed;
+  explicit URL checks preserved behavior. PR #39's security scan passed without exclusions
+  or force-pushing, and the original branch remains available.
 
 ## Untested scope
 

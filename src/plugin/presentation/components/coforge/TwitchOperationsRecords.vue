@@ -5,7 +5,7 @@ const model = useTwitchOperationsSection();
 <template>
   <section class="cf-twitch-operation-records" aria-label="Current Twitch data">
     <div class="cf-twitch-operation-read-toolbar">
-      <label class="cf-field"><span>Dataset</span><select v-model="model.store.resource" aria-label="Twitch dataset" @change="model.setResource(model.store.resource)"><option v-for="resource in model.resources" :key="resource.name" :value="resource.name">{{ resource.label }}</option></select></label>
+      <label class="cf-field"><span>Dataset</span><select :key="model.store.page" v-model="model.store.resource" aria-label="Twitch dataset" @change="model.setResource(model.store.resource)"><option v-for="resource in model.resources" :key="resource.name" :value="resource.name">{{ resource.label }}</option></select></label>
       <button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.supported || model.store.busy" @click="model.refresh()">Refresh data</button>
       <button v-if="model.canAuthorize && model.missingReadScopes.length" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.authorize(model.store.resource)">Authorize data access</button>
     </div>
