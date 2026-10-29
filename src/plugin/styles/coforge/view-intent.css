@@ -73,7 +73,7 @@
 .ps--coforge .cf-project-visibility { font-size: 10px; line-height: 1.4; color: var(--text-accent); }
 .ps--coforge .cf-sidebar .cf-streamer-profile { min-height: 56px; padding: 8px 12px; margin-top: 8px; }
 @container coforge-navigation (max-height: 860px) {
-  .cf-sidebar .cf-project-switcher { margin-block: 2px; }
+  .cf-sidebar .cf-project-switcher { margin-block: 2px; padding-block: var(--cf-space-xs); }
   .ps--coforge .cf-studio .cf-sidebar > nav { gap: 0; padding-bottom: 0; }
   .ps--coforge .cf-navigation-groups { gap: 0; padding-bottom: 0; }
   .ps--coforge .cf-sidebar .cf-nav-group { gap: 0; }
@@ -81,6 +81,7 @@
   .ps--coforge .cf-sidebar .cf-nav-group + .cf-nav-group { padding-top: 0; }
   .ps--coforge .cf-sidebar .cf-nav-group .cf-nav-item { --coforge-ds-sizes-control: 25px; min-height: 25px; padding-block: 3px; }
   .ps--coforge .cf-sidebar .cf-nav-item { min-height: 32px; padding-block: 5px; }
+  .ps--coforge .cf-sidebar-bottom { padding-top: var(--cf-space-xs); }
   .ps--coforge .cf-sidebar .cf-streamer-profile { padding-block: var(--cf-space-xs); }
 }
 .ps--coforge :is(.cf-board-page, .cf-stream-page) > .cf-page-heading p {

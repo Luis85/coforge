@@ -1,6 +1,6 @@
 # Task: Define project services with canonical Service Blueprints
 
-- Status: implemented; CI qualification in progress
+- Status: implementation and independent review complete; delivery ledger in PR #43
 - Journey in BRIEF.md: Service Design (owner decisions, 2026-10-29)
 
 ## Acceptance
@@ -48,6 +48,13 @@ the owner-approved incremental acceptance; tests live in the product test suite.
   passed. Prototype embedding: 1 passed. View catalogue: 102 views, sitemap current.
 - Local full `verify:project` passed four gates; its product-test process reached
   the 600-second deadline. Isolated Herdr worktree tests passed afterward.
+- Pinned CI `verify:project` then passed all five gates (0 failed, 0 skipped,
+  252.9s), built the plugin and passed embedding. Pinned native CI passed 25 files
+  and 32 tests in 208.66s, plus the smoke loop.
+- Browser qualification found 14px of short-pane navigation overflow. Recovered
+  16px from compact-only outer padding and retained all control sizes. The
+  navigation/focus/workspace/view-intent regression batch passed 33/33; light/dark
+  740px panes now have zero overflow. Reviewed their screenshots and 460px scrolling.
 - Independent storage, product/UX, integration and final visual reviews completed;
   all material findings were implemented and tested. Canonical qualification and
   delivery are tracked in [PR #43](https://github.com/Luis85/coforge/pull/43).
@@ -55,7 +62,8 @@ the owner-approved incremental acceptance; tests live in the product test suite.
 ## Untested scope
 
 No personal vault or live integration was used. Local Node/npm differ from the
-pinned CI toolchain. Full local product qualification remains limited by the
-process timeout; the PR must pass the pinned canonical gate before merge. Visual
+pinned CI toolchain, which passed the canonical gate. Local full product execution
+remains limited by the process timeout; final-head checks and merge are recorded
+in the linked PR. Visual
 evidence covers a populated three-step map and wide recovery editor, not every
 possible authored-content state. See the improvement plan for excluded features.

@@ -1,6 +1,6 @@
 # Service Design improvement and polishing plan
 
-- Status: implementation and focused review complete; CI qualification in progress
+- Status: implementation, improvements and independent reviews complete; delivery ledger in PR #43
 - Owner journey: [Service Design](../../BRIEF.md#service-design-owner-decisions-2026-10-29)
 - Scope: the new Service Design increment and its integration into the private studio.
 - Delivery owner: primary agent, with independent persistence, end-to-end and product-review subagents.
@@ -157,8 +157,9 @@ Priority: release requirement. Owner: primary orchestrator.
 
 ## Evidence and completion tracking
 
-Implementation and focused review are complete for the captured scope; delivery
-remains in progress. The primary task and PR template record exact command output.
+Implementation and focused review are complete for the captured scope. The linked
+PR is the live ledger for final-head checks and the merge event. The primary task
+and PR template record command evidence.
 The imported design has no requirement or interaction entries; no generated
 traceability file is edited.
 
@@ -211,21 +212,34 @@ passed all 40 tests, typecheck and code-line/locale checks passed (3221 inputs,
 
 Local `verify:project` passed typecheck, both lint gates and maker types, but the
 product-test process exceeded its 600-second deadline. The reported existing Herdr
-worktree case passed in isolation afterward. The direct full diagnostic and pinned
-CI qualification must be green before merge; this is not a passing local full gate.
+worktree case passed in isolation afterward. Pinned CI then qualified all five
+canonical gates: 5 passed, 0 failed, 0 skipped in 252.9s, with a successful build
+and embedding test. Native CI passed 25 files and 32 tests in 208.66s plus the
+smoke loop. These receipts do not reinterpret the timed-out local command as passing.
 The view catalogue now validates 102 views and a current sitemap, including two
 normalized incoming Council parent references. Self-review is complete for the
 implemented code and recorded evidence. [PR #43](https://github.com/Luis85/coforge/pull/43)
-tracks canonical checks and the merge event; delivery remains pending there.
+tracks final-head canonical checks and the merge event.
+
+The browser matrix found one additional integration defect: the added destination
+caused 14px of group overflow at 740px height in both themes. The final compact
+navigation pass recovered 16px from project-switcher/footer outer padding, retaining
+fonts and target sizes. All 33 focused navigation, focus, workspace and view-intent
+tests pass; screenshots show zero overflow at 740px and working internal scrolling
+at 460px. This regression remains asserted without changing its height or threshold.
+The final production artifact build and 40-image gallery check pass. A local native
+rerun after this CSS change completed its three test bodies, then failed during
+Windows session cleanup with `OBSIDIAN_STOP_TIMEOUT`; final-head native qualification
+is tracked in CI rather than reported as a successful local command.
 
 | Increment | Current status | Remaining closeout evidence |
 | --- | --- | --- |
-| Reach and understand | Implemented; captured review passed | Canonical CI gate |
-| Create and connect | Implemented; focused checks and full host suite passed | Canonical CI gate |
-| Canonical persistence | Implemented; behavioral tests and full host suite passed | Canonical CI gate |
-| Privacy/integration | Implemented; 26 focused integration/startup/public tests passed | Canonical CI gate |
-| Accessibility/pane behavior | Captured review passed; UI-quality 8 passed; full host suite passed | Canonical CI gate |
-| Delivery | PR #43 open; self-review and sitemap complete | Green canonical checks and merge |
+| Reach and understand | Implemented; captured review and canonical gate passed | Final-head receipts in PR #43 |
+| Create and connect | Implemented; focused checks and full host suite passed | Final-head receipts in PR #43 |
+| Canonical persistence | Implemented; behavioral tests and full host suite passed | Final-head receipts in PR #43 |
+| Privacy/integration | Implemented; 26 focused integration/startup/public tests passed | Final-head receipts in PR #43 |
+| Accessibility/pane behavior | Captured review passed; UI-quality 8 passed; navigation 33 passed; full host suite passed | Final-head receipts in PR #43 |
+| Delivery | Implementation, reviews, self-review and sitemap complete | PR #43 records required checks and merge |
 
 ## Outside this increment
 
