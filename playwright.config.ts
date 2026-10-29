@@ -3,7 +3,10 @@ import { defineConfig } from '@playwright/test';
 // configs/testing/playwright.config.ts and runs with npm run test:e2e:framework). The offline click-dummy is rebuilt
 // from source and served on loopback. SHELL_CHROMIUM may name a Chromium executable when Playwright's pinned browser
 // is not installed; nothing is downloaded.
-const port = 4181;
+const configuredPort = process.env.COFORGE_E2E_PORT ?? '4181';
+const port = Number(configuredPort);
+if (!/^[1-9]\d{0,4}$/.test(configuredPort) || port > 65535)
+  throw new Error('COFORGE_E2E_PORT must be an integer from 1 to 65535.');
 export default defineConfig({
   testDir: 'tests/e2e', testMatch: ['ui-quality.spec.ts', 'journeys/**/*.spec.ts'],
   fullyParallel: false, workers: 1, retries: 0, timeout: 30000,
