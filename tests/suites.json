@@ -1410,7 +1410,9 @@
         "src/plugin/tests/project/coforge/execution-fanout-fixture.ts",
         "src/plugin/tests/project/coforge/request-object-fixture.ts",
         "src/plugin/tests/project/coforge/fixtures/public-export-de7cb61.html",
-        "src/plugin/tests/project/coforge/fixtures/public-export-de7cb61.json"
+        "src/plugin/tests/project/coforge/fixtures/public-export-de7cb61.json",
+        "src/plugin/tests/project/coforge/fixtures/public-export-pre-projects.html",
+        "src/plugin/tests/project/coforge/fixtures/public-export-pre-projects.json"
       ],
       "exclude": [
         "src/plugin/tests/project/**/*.test.ts",
