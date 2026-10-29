@@ -115,15 +115,15 @@ export const test = base.extend<{ obsidian: ObsidianHarness }>({
           runner: 'vitest real-obsidian', requestedVersion: provisionedHost.requestedVersion, appVersion: provisionedHost.appVersion,
           installerVersion: provisionedHost.installerVersion, launcherVersion: provisionedHost.launcherVersion,
           userAgent: await client.page.evaluate(() => navigator.userAgent), platform: process.platform, arch: process.arch,
-          node: process.version, commit: sourceCommit(), plugin: manifest, pluginViewTypes, vault: relative(process.cwd(), client.vault),
+          node: process.version, commit: sourceCommit(), plugin: manifest, pluginViewTypes, vault: relative(process.cwd(), client.vault), session: session.evidence(),
         });
         try { await use(harness(client.page, manifest, client.vault, directory, pluginViewTypes, recorder)); }
         finally { if (!signal.aborted) await capturePage(client.page, directory); }
       });
       await abort.settled();
-      await writeEvidence(directory, 'teardown', { completed: true, testState: task.result?.state ?? 'unknown', durationMs: Date.now() - started });
+      await writeEvidence(directory, 'teardown', { completed: true, testState: task.result?.state ?? 'unknown', durationMs: Date.now() - started, session: session.evidence() });
     } catch (error) {
-      await writeEvidence(directory, 'teardown', { completed: false, testState: task.result?.state ?? 'unknown', durationMs: Date.now() - started, error });
+      await writeEvidence(directory, 'teardown', { completed: false, testState: task.result?.state ?? 'unknown', durationMs: Date.now() - started, session: session.evidence(), error });
       throw error;
     } finally {
       abort.dispose(); recorder.dispose();
