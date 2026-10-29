@@ -1,6 +1,6 @@
 ## Summary
 
-CoForge now provides a stable local Alerts URL for an OBS Browser Source. Streamers save literal text templates with variables and vault GIF/image, audio or video files, fire them manually, or explicitly bind them to supported committed CoForge events.
+CoForge now provides a stable local Alerts URL for an OBS Browser Source. Streamers save literal text templates with variables and vault GIF/image, audio or video files, fire them manually, or explicitly bind them to supported committed CoForge and Twitch activity events. Curated Twitch bindings cover follows, subscriptions/gifts/resubscriptions, cheers, directional raids, redemptions and stream observations, using existing permission-filtered collection.
 
 The Stream → Alerts page puts on-air dispatch first, shows connected browser pages and reports accepted delivery without claiming playback. The read-only overlay stays transparent while idle, queues bounded live cues, clears on disconnect/Stop/unload, and never replays missed alerts. Public request variables follow privacy/screening rules; media URLs use opaque identifiers instead of vault paths.
 
@@ -19,16 +19,17 @@ The Stream → Alerts page puts on-air dispatch first, shows connected browser p
 - Focused runtime and presentation ESLint: zero errors/warnings.
 - npm run test:obsidian -- coforge-alerts: 1 native journey passed (23.42s), including GIF/WAV/WebM decoding/playback, volume, literal text, reload/reconnect/no replay, source shutdown, detached-window inputs, accessibility and extreme combined-media/text geometry.
 - Existing native navigation regression: 2 cases passed, light and dark, preserving compact navigation after adding Alerts.
-- View catalogue: 94 views documented; navigation coverage valid; sitemap current.
+- Twitch integration sweep after merging main #39: 3 files passed, 16 tests passed (6.57s), covering actual EventSub parse → committed ingestion → source delivery for all ten curated event types, privacy, anonymity, direction and no replay.
+- View catalogue: 103 views documented; navigation coverage valid; sitemap current.
 - git diff --check: clean.
-- Final canonical project gate and CI qualification are in progress; this draft is not ready to merge until their results are recorded and green.
+- Final combined-main canonical/native/UI gates and CI qualification are in progress; this draft is not ready to merge until their results are recorded and green.
 
 ## UI evidence
 
 - Native captures: reports/obsidian/cases/coforge-alerts--fires-a-saved-alert-into-its-public-browser-source-and-preserves-the-URL-after-reload/ (wide light, narrow dark, expanded invalid editor and public combined-media geometry).
 - Scoped native axe checks: identical WCAG tags, zero violations in dispatch and expanded validation states. Electron CDP requires documented same-page axe execution; a no-frames assertion preserves its complete Alerts scope.
 - Initial native axe evidence identified a primary-button contrast defect; the scoped semantic-token fix passes the unchanged check.
-- ui:gallery generated 40 captures with failures []; reviewed wide light and narrow dark. npm run test:ui-quality: 8 passed (1.0m), exit 0. Final gallery refresh pending.
+- ui:gallery generated 40 captures with failures []; reviewed wide light and narrow dark. npm run test:ui-quality: 8 passed (1.0m), exit 0. Refreshed gallery: 40 screenshots, failures []. Combined-main refresh will follow qualification.
 
 ## Obsidian evidence
 

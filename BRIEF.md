@@ -235,6 +235,10 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
   dispatch and explain source lifetime, audio routing and reconnect behavior.
   Ordinary unrelated template saves preserve playback. Unsupported automatic
   event/variable combinations are rejected before saving an enabled binding.
+- Reuse the Twitch operations increment’s permission-filtered, committed activity
+  facts for supported follow, subscription/gift, cheer, raid and redemption alerts.
+  Public variables are explicitly whitelisted; anonymous identities remain anonymous,
+  incoming and outgoing raids remain distinct, and retained or missed activity is not replayed.
 
 ### Studio architecture and redesign (owner decisions, 2026-10-28)
 

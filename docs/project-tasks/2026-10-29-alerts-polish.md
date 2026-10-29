@@ -98,6 +98,23 @@ its rebuild twice; this remains an unresolved verification item, not passing UI 
 5. Mark ready and merge only when the exact final revision's required checks are green.
    Confirm merge and report the usable Alerts journey and any untested real OBS scope.
 
+### P6 — integrate newly available Twitch stream activity (coordinated subagents)
+
+While PR #42 was prepared, main advanced to the Twitch operations increment (#39).
+Its committed EventSub activity is now available to satisfy the original automatic
+stream-alert journey. Preserve both navigation families and regenerate the combined
+catalogue (103 views), then integrate this new seam before final qualification.
+
+- Backend: reuse committed activity IDs and current channel identity; expose a curated
+  set of public event bindings with safe display-name/amount/reward variables. Preserve
+  verified anonymity and raid direction. Keep raw messages, user input, moderation,
+  account identifiers, linked private context and stale/retained activities private.
+- Product: research Twitch’s official event definitions and explain conditional variables,
+  subscription recipients versus gifters, amounts/units and existing permission collection.
+- Tests: actual TwitchOperations ingestion through the overlay, duplicate/failed/stale/
+  channel/private suppression, plus parser direction evidence and final combined native gates.
+- No new Twitch authorization, external mutations, automatic agent execution or history replay.
+
 ## Explicit limits
 
 - No personal vault, live Twitch broadcast, or user OBS scene collection is used for tests.

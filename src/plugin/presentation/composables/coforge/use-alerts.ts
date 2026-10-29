@@ -15,6 +15,19 @@ function elementTag<K extends keyof HTMLElementTagNameMap>(value: unknown, name:
   return htmlElement(value) && value.localName === name;
 }
 
+const TWITCH_ALERT_HELP: Readonly<Record<string, string>> = {
+  'channel.follow': 'viewer is the follower’s display name when available.',
+  'channel.subscribe': 'viewer names the subscriber or gift recipient. Choose the gifted subscriptions event to thank the giver.',
+  'channel.subscription.gift': 'amount is the number of subscriptions gifted in this event. viewer names the giver when known. Anonymous gifts omit viewer; use a template without viewer to include them.',
+  'channel.subscription.message': 'viewer names the person who shared a resubscription message. Twitch records this message separately from subscription start.',
+  'channel.cheer': 'amount is the number of Bits in this cheer. Anonymous cheers omit viewer; use a template without viewer to include them.',
+  'channel.raid.incoming': 'viewer names the raiding broadcaster. amount is Twitch’s reported raid viewer count.',
+  'channel.raid.outgoing': 'viewer names the destination broadcaster. amount is Twitch’s reported raid viewer count.',
+  'channel.channel_points_custom_reward_redemption.add': 'viewer names the redeemer and reward is the reward title. Check fulfillment status in Twitch’s redemption queue.',
+  'stream.online': 'Twitch stream status is observed independently from the OBS controls.',
+  'stream.offline': 'Twitch stream status is observed independently from the OBS controls.',
+};
+
 /** Saved alerts are operated first; editing and first-time source setup stay secondary. */
 export function useAlerts() {
   const { host } = useCoforge();
@@ -71,6 +84,7 @@ export function useAlerts() {
   });
   const selectedEvent = computed(() => ALERT_EVENT_DEFINITIONS.find(event => event.id === draft.value?.event));
   const automaticVariables = computed(() => alertEventVariables(draft.value?.event ?? ''));
+  const twitchEventHelp = computed(() => TWITCH_ALERT_HELP[draft.value?.event ?? ''] ?? '');
   const automaticProblem = computed(() => {
     if (!draft.value?.enabled) return '';
     if (!draft.value.event) return 'Choose an event or turn off automatic dispatch.';
@@ -90,7 +104,7 @@ export function useAlerts() {
   if (host.listVaultFiles) void host.listVaultFiles().then(files => { if (!closed) store.files = files.filter(path => alertMediaType(path)); }).catch(() => { if (!closed) store.error = 'Media file list could not be loaded. Enter an existing vault-relative path or reopen Alerts.'; });
   const showSetup = async () => { store.setupOpen = true; await nextTick(); focus(setupSummary); setupSummary?.scrollIntoView({ block: 'nearest' }); };
   return reactive({
-    store, ids, draft, saved, changed, keys, variables, preview, selectedEvent, automaticVariables, automaticProblem,
+    store, ids, draft, saved, changed, keys, variables, preview, selectedEvent, automaticVariables, automaticProblem, twitchEventHelp,
     select, create, dirty, showSetup, events: ALERT_EVENT_DEFINITIONS,
     editorOpen: computed(() => store.editors[store.selected] ?? !saved.value),
     mediaIds: { image: `${prefix}-alert-images`, audio: `${prefix}-alert-audio`, video: `${prefix}-alert-video` },

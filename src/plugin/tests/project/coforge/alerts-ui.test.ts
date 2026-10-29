@@ -136,3 +136,26 @@ it('accepts native input, number, select, checkbox and variable events from a di
     expect(f.send).toHaveBeenCalledWith(expect.objectContaining({ text: 'Hello Ada from another window' }));
   } finally { foreign.close(); await f.dispose(); }
 });
+
+it('explains Twitch event quantities, anonymous actors and redemption fulfillment beside the explicit automatic binding', async () => {
+  const f = await fixture(); const { wrapper } = f;
+  try {
+    await button(wrapper, 'New alert').trigger('click'); await flushPromises();
+    const meanings: Array<[string, RegExp]> = [
+      ['channel.subscription.gift', /number of subscriptions gifted/],
+      ['channel.subscribe', /gift recipient/],
+      ['channel.cheer', /number of Bits/],
+      ['channel.raid.incoming', /viewer/],
+      ['channel.channel_points_custom_reward_redemption.add', /fulfillment status/],
+    ];
+    for (const [event, meaning] of meanings) {
+      await field(wrapper, 'CoForge event').setValue(event);
+      const help = wrapper.get('.cf-alerts-event-context'); expect(help.text()).toMatch(meaning);
+      expect(help.text()).toContain('Saved activity is not replayed');
+      expect(wrapper.get('input[type="checkbox"]').attributes('aria-describedby')).toContain(help.attributes('id'));
+    }
+    await field(wrapper, 'Text template').setValue('{{reward}}');
+    await field(wrapper, 'CoForge event').setValue('channel.follow'); await wrapper.get('input[type="checkbox"]').setValue(true);
+    expect(wrapper.text()).toContain('cannot supply: reward'); expect(button(wrapper, 'Save alert').attributes('disabled')).toBeDefined();
+  } finally { await f.dispose(); }
+});

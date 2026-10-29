@@ -3,6 +3,9 @@ import type { OperationCode } from './population';
 const eventFields = ['event', 'count'] as const;
 const viewerFields = [...eventFields, 'viewer'] as const;
 const requestFields = [...viewerFields, 'request', 'title', 'project'] as const;
+const amountFields = [...viewerFields, 'amount'] as const;
+export type TwitchAlertEvent = 'channel.follow' | 'channel.subscribe' | 'channel.subscription.gift' | 'channel.subscription.message' | 'channel.cheer'
+  | 'channel.raid.incoming' | 'channel.raid.outgoing' | 'channel.channel_points_custom_reward_redemption.add' | 'stream.online' | 'stream.offline';
 /** Possible fields, not a promise that optional viewer/screened-request context is present. */
 export const ALERT_EVENT_DEFINITIONS = [
   { id: 'registered', label: 'Viewer registered', variables: viewerFields },
@@ -18,13 +21,25 @@ export const ALERT_EVENT_DEFINITIONS = [
   { id: 'stream-stopped', label: 'Stream stopped', variables: eventFields },
   { id: 'obs-stream-state-changed', label: 'OBS stream state changed', variables: eventFields },
   { id: 'obs-scene-changed', label: 'OBS scene changed', variables: eventFields },
-] as const satisfies readonly { id: OperationCode; label: string; variables: readonly string[] }[];
+  { id: 'channel.follow', label: 'Twitch follower', variables: viewerFields },
+  { id: 'channel.subscribe', label: 'Twitch subscription started', variables: viewerFields },
+  { id: 'channel.subscription.gift', label: 'Twitch subscriptions gifted', variables: amountFields },
+  { id: 'channel.subscription.message', label: 'Twitch resubscription message', variables: viewerFields },
+  { id: 'channel.cheer', label: 'Twitch Bits cheered', variables: amountFields },
+  { id: 'channel.raid.incoming', label: 'Twitch incoming raid', variables: amountFields },
+  { id: 'channel.raid.outgoing', label: 'Twitch outgoing raid', variables: amountFields },
+  { id: 'channel.channel_points_custom_reward_redemption.add', label: 'Twitch reward redeemed', variables: [...viewerFields, 'reward'] },
+  { id: 'stream.online', label: 'Twitch stream online', variables: eventFields },
+  { id: 'stream.offline', label: 'Twitch stream offline', variables: eventFields },
+] as const satisfies readonly { id: OperationCode | TwitchAlertEvent; label: string; variables: readonly string[] }[];
+export type AlertEvent = typeof ALERT_EVENT_DEFINITIONS[number]['id'];
 export const ALERT_EVENTS = ALERT_EVENT_DEFINITIONS.map(event => event.id);
-export const alertEventVariables = (event: OperationCode | ''): readonly string[] => ALERT_EVENT_DEFINITIONS.find(item => item.id === event)?.variables ?? [];
+export const isAlertEvent = (value: string): value is AlertEvent => ALERT_EVENTS.some(event => event === value);
+export const alertEventVariables = (event: AlertEvent | ''): readonly string[] => ALERT_EVENT_DEFINITIONS.find(item => item.id === event)?.variables ?? [];
 
 export interface AlertTemplate {
   id: string; name: string; text: string; image: string; audio: string; video: string;
-  duration: number; volume: number; event: OperationCode | ''; enabled: boolean;
+  duration: number; volume: number; event: AlertEvent | ''; enabled: boolean;
 }
 export type AlertCue = Pick<AlertTemplate, 'text' | 'image' | 'audio' | 'video' | 'duration' | 'volume'>;
 export interface AlertsDefinition { version: 1; templates: AlertTemplate[] }

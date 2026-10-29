@@ -39,6 +39,15 @@ order: 81500
 
 Create reusable text, GIF/image, audio and video alerts, then fire them manually or explicitly bind them to supported committed CoForge events. Private request events and simulator chat events are skipped. Automatic request titles and context follow the existing public projection: flagged and unscreened request text stays private; generic event/count and an available viewer display name can still thank a new submitter.
 
+Curated Twitch bindings reuse the existing permission-filtered activity workflow for
+follows, subscriptions, gifts, resubscription messages, cheers, incoming/outgoing raids,
+new reward redemptions and stream online/offline facts. Configure unavailable collection
+through Twitch operations → Data & access. Only safe public display-name, quantity and
+reward-title fields are projected when known; anonymous or unverified anonymous-capable
+identities omit the viewer variable. Raw messages, redemption input, moderation, account
+identifiers and private linked context stay private. Facts from stale, pre-activation or
+recorded-gap intervals are skipped; retained activity is never replayed.
+
 ## Entry and next action
 
 Choose Alerts in Stream. Copy the URL into an OBS Browser Source on the same desktop, set the canvas dimensions, leave Local file off and enable Control audio via OBS. The source remains transparent while idle. CoForge must remain active. Saved templates and the endpoint identity live in the private plugin directory; the stable URL has read-only access and must only be shared with intended sources.

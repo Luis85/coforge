@@ -1,6 +1,5 @@
-import { AlertDispatchError, alertTemplateCheck, alertsDefinitionCheck, renderAlert, type AlertCue, type AlertsDefinition, type AlertsSnapshot, type AlertTemplate } from '../domain/alerts';
+import { AlertDispatchError, alertTemplateCheck, alertsDefinitionCheck, renderAlert, type AlertCue, type AlertsDefinition, type AlertsSnapshot, type AlertTemplate, type AlertEvent } from '../domain/alerts';
 import type { AlertsActions, AlertsStorage, AlertsTransport, AlertsMedia } from './alerts-ports';
-import type { OperationCode } from '../domain/population';
 
 /** Definitions are durable; live cues are deliberately ephemeral and never replayed. */
 export class AlertsService implements AlertsActions {
@@ -104,7 +103,7 @@ export class AlertsService implements AlertsActions {
     this.dispatching = work.then(() => {}, () => {});
     return work;
   }
-  async event(type: OperationCode, identity: string, variables: Record<string, string>): Promise<void> {
+  async event(type: AlertEvent, identity: string, variables: Record<string, string>): Promise<void> {
     if (!this.state.ready || this.closed || this.seen.has(identity)) return;
     this.seen.add(identity);
     if (this.seen.size > 2000) { const oldest = this.seen.values().next().value; if (oldest !== undefined) this.seen.delete(oldest); }
