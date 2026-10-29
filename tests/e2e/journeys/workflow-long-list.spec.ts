@@ -1,4 +1,4 @@
-import { openWorkflowSettings } from "../support/workflow-navigation";
+import { openWorkflowDisclosure, openWorkflowSettings } from "../support/workflow-navigation";
 import { expect, test } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -13,6 +13,7 @@ for (const width of [1280, 360])
       "true",
     );
     await openWorkflowSettings(page);
+    await openWorkflowDisclosure(page, "Workflow tools");
     const workflow = {
       format: "coforge-workflow/v1",
       revision: "long-workflow",
@@ -126,6 +127,7 @@ for (const width of [1280, 360])
       "step-20",
     );
     await expect(choose).toHaveAttribute("aria-current", "step");
+    await openWorkflowDisclosure(page, "Add a step");
     const add = navigation.getByRole("button", {
       name: "Add AI step",
       exact: true,

@@ -3,6 +3,13 @@ import type {
   WorkflowV2Definition,
   WorkflowV2Step,
 } from "../../../features/coforge/domain/configured-workflow-v2";
+export const WORKFLOW_V2_KIND_LABELS = {
+  agent: "CoWorker answer",
+  council: "Council discussion",
+  approval: "Human approval",
+  checklist: "Human checklist",
+  message: "Team message",
+} as const;
 export const WORKFLOW_MESSAGE_TOKENS = [
   "{{source}}",
   "{{inputs}}",

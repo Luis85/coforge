@@ -1,4 +1,4 @@
-import { boolean, list, number, oneOf, record, shape, text } from "./check";
+import { boolean, list, number, oneOf, optional, record, shape, text } from "./check";
 import { workflowIdCheck } from "./configured-workflow";
 
 export type WorkflowV2Binding =
@@ -11,6 +11,7 @@ interface StepBase {
   instructions: string;
 }
 export interface AgentWorkflowV2Step extends StepBase {
+  outputTemplateId?: string;
   kind: "agent";
   agentId: string;
   output: "markdown" | "plan";
@@ -18,6 +19,7 @@ export interface AgentWorkflowV2Step extends StepBase {
   inputs: WorkflowV2Binding[];
 }
 export interface CouncilWorkflowV2Step extends StepBase {
+  outputTemplateId?: string;
   kind: "council";
   councilId: string;
   inputs: WorkflowV2Binding[];
@@ -92,6 +94,7 @@ function stepCheck(value: unknown): WorkflowV2Step {
       {
         ...base,
         kind: oneOf(["agent"] as const),
+        outputTemplateId: optional(id),
         agentId: id,
         output: oneOf(["markdown", "plan"] as const),
         access: oneOf(["none"] as const),
@@ -101,7 +104,7 @@ function stepCheck(value: unknown): WorkflowV2Step {
     )(value);
   if (kind === "council")
     return shape(
-      { ...base, kind: oneOf(["council"] as const), councilId: id, inputs },
+      { ...base, kind: oneOf(["council"] as const), councilId: id, inputs, outputTemplateId: optional(id) },
       { strict: true },
     )(value);
   if (kind === "message")

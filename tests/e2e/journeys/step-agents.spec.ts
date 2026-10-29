@@ -1,4 +1,4 @@
-import { openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
+import { openWorkflowDisclosure, openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
 import { test, expect, type Page } from "@playwright/test";
 async function openEditor(page: Page) {
   await page.goto("/#surface=node-1");
@@ -10,6 +10,7 @@ async function openEditor(page: Page) {
 }
 async function step(page: Page, id: string, provider: string, model: string) {
   await page.locator(`[data-step-id="${id}"] .cf-workflow-step-select`).click();
+  await openWorkflowDisclosure(page, "Agent and project access");
   await page.getByLabel("AI provider", { exact: true }).selectOption(provider);
   if (provider !== "demo")
     await page.getByLabel("AI model", { exact: true }).fill(model);
@@ -46,6 +47,7 @@ test("configures explicit mixed step agents independently and restores the stand
   await expect(page.getByLabel("AI model", { exact: true })).toHaveValue(
     "haiku",
   );
+  await openWorkflowDisclosure(page, "Add a step");
   await page.getByText("Standard step presets", { exact: true }).click();
   await page
     .getByRole("button", {

@@ -70,7 +70,7 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
+export interface EngineOptions { outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
 
 /** One worker, a FIFO queue of at most 50 jobs, optional timed automation and explicit cancellation. */
 export class WorkflowEngine {
@@ -83,7 +83,7 @@ export class WorkflowEngine {
   private lastProjectId: string | null = null;
   private stopped = false;
   constructor(readonly store: StudioStore, private readonly options: EngineOptions) {
-    this.configured = new ConfiguredWorkflowEngine(store, { agentTasks: options.agentTasks, runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
+    this.configured = new ConfiguredWorkflowEngine(store, { outputTemplates: options.outputTemplates, agentTasks: options.agentTasks, runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
   }
   acknowledgeWorkflowNudge(ideaId: string, revision: number, consent: boolean) { return this.configured.acknowledgeNudge(ideaId, revision, consent); }
   async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }

@@ -1,0 +1,285 @@
+.cf-workflow-options,
+.cf-workflow-current-options,
+.cf-workflow-template-library,
+.cf-workflow-related,
+.cf-workflow-tools,
+.cf-workflow-add-step {
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.cf-workflow-options,
+.cf-workflow-template-library {
+  border-top: 1px solid var(--cf-border);
+  padding-block: 16px;
+}
+.cf-workflow-current-options {
+  color: var(--cf-muted);
+  margin-block: 12px 20px;
+  max-width: 74ch;
+}
+.cf-workflow-validation-summary {
+  padding: 20px;
+  margin-block: 20px;
+  border: 1px solid var(--cf-border);
+  border-radius: var(--radius-m);
+}
+.cf-workflow-validation-summary h2 {
+  font-size: 16px;
+  margin: 0 0 10px;
+}
+.cf-workflow-validation-summary p {
+  margin-bottom: 12px;
+  color: var(--cf-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.cf-workflow-validation-summary ul {
+  margin: 0;
+  padding-inline-start: 20px;
+}
+.cf-workflow-validation-summary .cf-btn {
+  white-space: normal;
+  text-align: start;
+  height: auto;
+  overflow-wrap: anywhere;
+}
+.cf-workflow-template-usage {
+  margin-block: 20px;
+  overflow-wrap: anywhere;
+}
+.cf-workflow-selected-template {
+  margin-block: 12px;
+  font-size: 13px;
+}
+.cf-workflow-selected-template > summary {
+  cursor: pointer;
+}
+.cf-workflow-options > summary,
+.cf-workflow-template-library > summary,
+.cf-workflow-tools > summary,
+.cf-workflow-add-step > summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding-block: 6px;
+}
+.cf-workflow-options[open] > summary,
+.cf-workflow-template-library[open] > summary {
+  margin-bottom: 12px;
+}
+.cf-workflow-options .cf-workflow-check {
+  margin-bottom: 16px;
+}
+.cf-workflow-options > .cf-field {
+  max-width: 420px;
+}
+.cf-workflow-related {
+  color: var(--cf-muted);
+  margin-bottom: 20px;
+}
+.cf-workflow-related > summary {
+  cursor: pointer;
+}
+.cf-workflow-related > p {
+  max-width: 74ch;
+  margin-top: 10px;
+}
+.cf-workflow-tools {
+  text-align: end;
+}
+.cf-workflow-tools .cf-settings-actions {
+  padding-top: 12px;
+  justify-content: flex-end;
+}
+.cf-workflow-output-section h3 {
+  font-size: 14px;
+  margin: 24px 0 12px;
+}
+.cf-workflow-template-library {
+  margin-top: 20px;
+}
+.cf-workflow-template-library > summary > span {
+  color: var(--cf-muted);
+  font-weight: 400;
+  margin-inline-start: 8px;
+}
+.cf-workflow-template-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-block: 20px;
+}
+.cf-workflow-template-toolbar > .cf-field {
+  flex: 1 1 240px;
+  max-width: 480px;
+  margin: 0;
+}
+.cf-workflow-template-library form {
+  max-width: 800px;
+}
+.cf-workflow-template-library form > fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.cf-workflow-template-library .cf-field {
+  margin-bottom: 18px;
+}
+.cf-workflow-template-library .cf-field > small {
+  color: var(--cf-muted);
+  line-height: 1.65;
+}
+.cf-workflow-template-library :is(input, textarea, select) {
+  font-size: 13px;
+}
+.cf-workflow-template-toolbar > .cf-field {
+  margin-bottom: 0;
+}
+.cf-workflow-template-invalid {
+  overflow-wrap: anywhere;
+}
+.cf-workflow-template-picker > .cf-btn {
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
+.cf-workflow-template-preview {
+  margin-block: 16px;
+}
+.cf-workflow-template-preview > summary {
+  cursor: pointer;
+}
+.cf-workflow-template-preview > .cf-markdown {
+  padding-block: 16px;
+}
+.cf-workflow-template-delete {
+  border: 1px solid var(--cf-border);
+  border-radius: var(--radius-m);
+  padding: 20px;
+  margin-block: 20px;
+  max-width: 74ch;
+}
+.cf-workflow-template-delete h3 {
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+.cf-workflow-template-delete p {
+  color: var(--cf-muted);
+  margin-bottom: 16px;
+}
+.cf-workflow-next-action {
+  margin-block: 20px 12px;
+  padding: 16px 20px;
+  background: var(--cf-accent-soft);
+  border-radius: var(--radius-m);
+}
+.cf-workflow-next-action h3 {
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+.cf-workflow-next-action p {
+  font-size: 13px;
+  line-height: 1.65;
+  max-width: 74ch;
+  margin: 0;
+}
+.cf-workflow-progress-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+.cf-workflow-progress-heading h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.cf-workflow-progress-heading > span {
+  font-size: 12px;
+  color: var(--cf-muted);
+}
+.cf-workflow-progress-heading > button {
+  margin-inline-start: auto;
+}
+.cf-workflow-page .cf-workflow-summary {
+  padding-block: 12px;
+  font-size: 12px;
+}
+.cf-workflow-page .cf-configured-run {
+  margin-block: 12px;
+  padding-block: 20px 4px;
+}
+.cf-workflow-page .cf-configured-progress {
+  margin-bottom: 0;
+}
+.cf-workflow-page .cf-workflow-history {
+  margin-top: 0;
+  padding-top: 20px;
+}
+.cf-workflow-page .cf-workflow-empty {
+  align-items: start;
+  text-align: start;
+  padding: 12px 0;
+}
+.cf-workflow-page .cf-workflow-empty > .cf-icon {
+  display: none;
+}
+.cf-workflow-page .cf-workflow-empty p {
+  margin: 0;
+  max-width: 74ch;
+}
+.cf-workflow-page-intro {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--cf-muted);
+  max-width: 74ch;
+  margin-block: 16px;
+}
+.cf-proposal-step {
+  border-bottom: 1px solid var(--cf-border);
+  padding-block: 12px;
+  min-width: 0;
+}
+.cf-proposal-step > summary {
+  display: list-item;
+  cursor: pointer;
+  padding-block: 8px;
+}
+.cf-proposal-step > summary .cf-workflow-step-number {
+  display: inline-grid;
+  margin-inline: 4px 8px;
+}
+.cf-proposal-step > summary strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.cf-proposal-step > summary small {
+  color: var(--cf-muted);
+  font-size: 12px;
+  margin-inline-start: 12px;
+}
+.cf-proposal-step[open] > summary {
+  margin-bottom: 16px;
+}
+.cf-proposal-step-tools {
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+.cf-proposal-step .cf-workflow-reference {
+  margin-block: 16px;
+}
+@container plugin-shell-leaf (max-width: 600px) {
+  .cf-workflow-tools {
+    text-align: start;
+  }
+  .cf-workflow-tools .cf-settings-actions {
+    justify-content: flex-start;
+  }
+  .cf-workflow-next-action {
+    padding: 16px;
+  }
+  .cf-workflow-template-toolbar {
+    align-items: stretch;
+  }
+}

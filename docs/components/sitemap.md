@@ -91,6 +91,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
       - [Workflow runs](views/workflow-runs.md) — subpage
         - [Herdr workflow recovery](views/herdr-recovery.md) — panel
       - [Workflow settings](views/workflow-settings.md) — subpage
+        - [Answer and output templates](views/workflow-output-templates.md) — panel
         - [Workflow step editor](views/workflow-step.md) — panel
         - [Workflow import and export](views/workflow-transfer.md) — panel
   - [Stream statistics](views/statistics.md) — page
@@ -193,6 +194,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [Chat moderation](views/twitch-moderation.md) | Review and confirm one specific Twitch moderation action. | stream moderation details | streamer |
 | [Viewer profile](views/viewer-detail.md) | Review a viewer’s private record and participation controls. | population.selectedId | streamer |
 | [Agent workflow](views/workflow.md) | Manage this project's agent process from configuration through execution. | studio.settingsTool = workflow (compatibility: studio.view = workflow) | streamer |
+| [Answer and output templates](views/workflow-output-templates.md) | Maintain reusable Markdown answer formats for one project's workflow steps. | project output template library | streamer |
 | [Workflow runs](views/workflow-runs.md) | Resolve the next checkpoint or attempt outcome. | studio.workflowTool = runs | streamer |
 | [Workflow settings](views/workflow-settings.md) | Save the process that new requests will follow. | studio.workflowTool = settings (compatibility: studio.view = workflow-settings) | streamer |
 | [Workflow step editor](views/workflow-step.md) | Configure one stable workflow step. | studio.workflowStepSelection | streamer |
@@ -217,5 +219,5 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 - **stream-planning**: [Stream schedule](views/schedule.md)
 - **task-scheduling**: [Task scheduler](views/council-scheduler.md)
 - **viewer-intake**: [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Viewers and players](views/population.md), [Stream chat](views/stream.md), [Chat](views/stream-channel.md), [Twitch settings](views/stream-connection.md), [Bot messages](views/stream-messages.md)
-- **workflow-configuration**: [Herdr workspace controls](views/herdr.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [Project settings](views/settings.md), [Project details](views/settings-general.md), [Repository & build access](views/settings-repository.md), [Local connections](views/settings-runtime.md), [Agent workflow](views/workflow.md), [Workflow settings](views/workflow-settings.md), [Workflow step editor](views/workflow-step.md), [Workflow import and export](views/workflow-transfer.md)
+- **workflow-configuration**: [Herdr workspace controls](views/herdr.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [Project settings](views/settings.md), [Project details](views/settings-general.md), [Repository & build access](views/settings-repository.md), [Local connections](views/settings-runtime.md), [Agent workflow](views/workflow.md), [Answer and output templates](views/workflow-output-templates.md), [Workflow settings](views/workflow-settings.md), [Workflow step editor](views/workflow-step.md), [Workflow import and export](views/workflow-transfer.md)
 - **workflow-event-automation**: [Event triggers](views/council-events.md)

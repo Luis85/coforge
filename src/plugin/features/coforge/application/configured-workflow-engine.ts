@@ -12,10 +12,12 @@ import { recordOperation } from './population';
 import type { StudioStore } from './studio-store';
 import type { AgentTaskPort } from './agent-task';
 import { ConfiguredWorkflowNudges } from './configured-workflow-nudges';
+import { captureWorkflowOutputTemplates, WorkflowOutputTemplateUnavailableError, type WorkflowOutputTemplateActions } from './workflow-output-templates';
 import { attachWorkflowPlan, type WorkflowPlanHandoff } from './workflow-plan-handoff';
 import { appendWorkflowArtifact, applyConfiguredOutput, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
 
 interface ConfiguredHost {
+  outputTemplates?: WorkflowOutputTemplateActions;
   agentTasks?: AgentTaskPort;
   runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   cost(id: string, value: number): Promise<void>; usage(id: string, value: StageUsage): Promise<void>;
@@ -79,6 +81,7 @@ export class ConfiguredWorkflowEngine {
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
     const inputs = configuredInputs(run, step);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
+      ...(step.outputTemplateId ? { outputTemplate: structuredClone(run.outputTemplates?.find(template => template.id === step.outputTemplateId)) } : {}),
       ...(run.automationEvent ? { automationEvent: structuredClone(run.automationEvent) } : {}),
       attemptId: id, step: structuredClone(step), inputArtifacts: structuredClone(inputs), ...(run.workspaceId ? { workspaceId: run.workspaceId } : {}) };
     const job: AgentJob = { id: crypto.randomUUID(), ideaId, projectId: run.projectId, stage: compatibilityStage(step.output), provider,
@@ -90,10 +93,12 @@ export class ConfiguredWorkflowEngine {
     return job;
   }
   async start(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff, external = false, automationEvent?: AutomationContext, expectedDefinitionJson?: string): Promise<WorkflowRun> {
-    await this.store.transaction(state => {
+    await this.store.transaction(async state => {
       const idea = configuredIdea(state, ideaId);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
+      const definition = workflowDefinition(settings);
+      const outputTemplates = await captureWorkflowOutputTemplates(projectId, definition.steps.filter(step => step.kind === 'ai'), this.host.outputTemplates);
       if (expectedDefinitionJson !== undefined && JSON.stringify(workflowDefinition(settings)) !== expectedDefinitionJson) throw new Error('The workflow changed before trigger admission. Review the binding again.');
       if (this.nudges.busy(ideaId) || idea.workflowRun?.attempts.some(attempt => attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt)) throw new Error('Inspect and acknowledge the uncertain agent nudge before starting another workflow.');
       if (state.jobs.some(job => job.ideaId === ideaId && isActiveJob(job)) || idea.workflowRun?.state === 'waiting-human' || idea.workflowRun?.state === 'awaiting-review')
@@ -106,7 +111,8 @@ export class ConfiguredWorkflowEngine {
       }
       const project = findProject(state, projectId);
       const at = time();
-      idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition: workflowDefinition(settings),
+      idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition,
+        ...(outputTemplates.length ? { outputTemplates } : {}),
         ...(automationEvent ? { automationEvent: automationContextCheck(automationEvent) } : {}),
         ...(external ? { external: true } : {}),
         proposalRevision: workflowProposalRevision(idea), revision: 0, cursor: 0, state: 'ready', attempts: [], artifacts: [], createdAt: at, updatedAt: at,
@@ -197,7 +203,16 @@ export class ConfiguredWorkflowEngine {
     try {
       if (candidate.workflowRun) { await this.store.transaction(next => { this.queue(next, candidate.id, manual); }); await this.nudges.run(candidate.id); }
       else await this.start(candidate.id, manual);
-    } catch { return null; }
+    } catch (cause) {
+      if (cause instanceof WorkflowOutputTemplateUnavailableError && !candidate.workflowRun) await this.store.transaction(next => {
+        const idea = next.ideas.find(item => item.id === candidate.id);
+        if (!idea || idea.workflowRun || idea.lastError || next.jobs.some(job => job.ideaId === idea.id && isActiveJob(job))) return;
+        idea.lastError = cause.message;
+        idea.updatedAt = time();
+        recordOperation(next, 'workflow-admission-blocked', 'committed', undefined, 1, idea.id);
+      });
+      return null;
+    }
     return this.store.snapshot().jobs.find(job => job.ideaId === candidate.id && job.status === 'queued') ?? null;
   }
   async run(job: AgentJob, signal: AbortSignal): Promise<void> {

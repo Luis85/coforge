@@ -28,10 +28,16 @@ const model = useWorkflowEditorForm();
       </div>
       <label class="cf-field"
         ><span>Step name</span
-        ><input v-model="model.selected.name" maxlength="100" required /></label
+        ><input
+          v-model="model.selected.name"
+          data-workflow-field="name"
+          maxlength="100"
+          required /></label
       ><WorkflowAiStepFields
         v-if="model.selected.kind === 'ai'"
-      /><WorkflowNudgeFields v-else-if="model.selected.kind === 'nudge'" /><WorkflowManualStepFields v-else />
+      /><WorkflowNudgeFields
+        v-else-if="model.selected.kind === 'nudge'"
+      /><WorkflowManualStepFields v-else />
       <details class="cf-workflow-reference">
         <summary>Step reference</summary>
         <code>{{ model.selected.id }}</code>

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useWorkflowV2EditorForm } from "../../composables/coforge/use-workflow-v2-editor";
+import { WORKFLOW_V2_KIND_LABELS } from "../../composables/coforge/workflow-v2-draft";
+import WorkflowOutputTemplatePicker from "./WorkflowOutputTemplatePicker.vue";
 const model = useWorkflowV2EditorForm();
 </script>
 <template>
@@ -14,13 +16,28 @@ const model = useWorkflowV2EditorForm();
         Add proposal step
       </button>
     </div>
-    <div
+    <p class="cf-settings-help">
+      Steps run in this order. Open a step to set its task, who completes it and
+      the results it receives.
+    </p>
+    <details
       v-for="(step, index) in model.store.draft.steps"
       :key="step.id"
-      class="cf-council-round"
+      class="cf-proposal-step"
+      :open="model.expandedStepIds.includes(step.id)"
+      @toggle="model.toggleStep(step.id, $event)"
     >
-      <div class="cf-settings-actions">
-        <h4>{{ index + 1 }}. {{ step.name }}</h4>
+      <summary>
+        <span class="cf-workflow-step-number">{{ index + 1 }}</span
+        ><strong>{{ step.name || "Unnamed step" }}</strong
+        ><small
+          >{{ WORKFLOW_V2_KIND_LABELS[step.kind]
+          }}<template v-if="step.kind === 'agent' || step.kind === 'council'">
+            · {{ step.inputs.length }} previous results</template
+          ></small
+        >
+      </summary>
+      <div class="cf-settings-actions cf-proposal-step-tools">
         <button
           type="button"
           class="cf-btn cf-btn-ghost"
@@ -40,12 +57,14 @@ const model = useWorkflowV2EditorForm();
         ><button
           type="button"
           class="cf-btn cf-btn-ghost"
+          :aria-label="`Duplicate ${step.name}`"
           @click="model.duplicateStep(index)"
         >
           Duplicate step</button
         ><button
           type="button"
           class="cf-btn cf-btn-ghost"
+          :aria-label="`Remove ${step.name}`"
           :disabled="model.store.draft.steps.length === 1"
           @click="model.store.draft.steps.splice(index, 1)"
         >
@@ -61,7 +80,7 @@ const model = useWorkflowV2EditorForm();
           :value="step.kind"
           @change="model.replaceStep(model.store.draft, index, $event)"
         >
-          <option value="agent">Reusable agent</option>
+          <option value="agent">Reusable CoWorker</option>
           <option value="council">Council discussion</option>
           <option value="approval">Human approval</option>
           <option value="checklist">Human checklist</option>
@@ -71,6 +90,11 @@ const model = useWorkflowV2EditorForm();
         ><span>Step instructions</span
         ><textarea v-model="step.instructions" rows="4" maxlength="16000" />
       </label>
+      <WorkflowOutputTemplatePicker
+        v-if="step.kind === 'agent' || step.kind === 'council'"
+        v-model="step.outputTemplateId"
+        :project-id="model.store.projectId"
+      />
       <label v-if="step.kind === 'agent'" class="cf-field"
         ><span>Validated result contract</span
         ><select v-model="step.output">
@@ -79,9 +103,9 @@ const model = useWorkflowV2EditorForm();
         </select></label
       >
       <label v-if="step.kind === 'agent'" class="cf-field"
-        ><span>Reusable agent</span
+        ><span>Reusable CoWorker</span
         ><select v-model="step.agentId">
-          <option value="">Select agent</option>
+          <option value="">Select CoWorker</option>
           <option
             v-for="agent in model.agents"
             :key="agent.definition.id"
@@ -143,14 +167,16 @@ const model = useWorkflowV2EditorForm();
           Source and captured team context are included. Select explicit earlier
           results below; analytical steps have no project tools.
         </p>
-        <fieldset>
-          <legend>Explicit input bindings</legend>
+        <details class="cf-workflow-options">
+          <summary>
+            Previous results for this step · {{ step.inputs.length }}
+          </summary>
           <button
             type="button"
             class="cf-btn cf-btn-secondary"
             @click="step.inputs.push({ kind: 'producer', stepId: '' })"
           >
-            Add input binding
+            Add previous result
           </button>
           <div
             v-for="(binding, bindingIndex) in step.inputs"
@@ -158,7 +184,7 @@ const model = useWorkflowV2EditorForm();
             class="cf-council-round"
           >
             <label class="cf-field"
-              ><span>Binding kind</span
+              ><span>Result source</span
               ><select
                 :value="binding.kind"
                 @change="model.changeBinding(step, bindingIndex, $event)"
@@ -191,11 +217,13 @@ const model = useWorkflowV2EditorForm();
               ><select v-model="binding.collectionId">
                 <option value="">Select collection</option>
                 <option
-                  v-for="collection in model.store.draft.collections"
+                  v-for="(collection, collectionIndex) in model.store.draft
+                    .collections"
                   :key="collection.id"
                   :value="collection.id"
                 >
-                  {{ collection.id }}
+                  Collection {{ collectionIndex + 1 }} ·
+                  {{ collection.producers.length }} steps
                 </option>
               </select></label
             ><template v-if="binding.kind === 'artifact'"
@@ -227,10 +255,10 @@ const model = useWorkflowV2EditorForm();
               class="cf-btn cf-btn-ghost"
               @click="step.inputs.splice(bindingIndex, 1)"
             >
-              Remove binding
+              Remove previous result
             </button>
           </div>
-        </fieldset></template
+        </details></template
       >
       <fieldset v-if="step.kind === 'checklist'">
         <legend>Human checklist</legend>
@@ -258,10 +286,10 @@ const model = useWorkflowV2EditorForm();
           </button>
         </div>
       </fieldset>
-      <details>
+      <details class="cf-workflow-reference">
         <summary>Stable step reference</summary>
         <code>{{ step.id }}</code>
       </details>
-    </div>
+    </details>
   </section>
 </template>

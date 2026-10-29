@@ -10,6 +10,7 @@ const model = useWorkflowEditorForm();
       ><textarea
         v-model="model.selected.instructions"
         aria-label="Manual step instructions"
+        data-workflow-field="instructions"
         rows="6"
         maxlength="8000"
       /><small
@@ -33,7 +34,11 @@ const model = useWorkflowEditorForm();
       >
         <label class="cf-field"
           ><span>Checklist item {{ index + 1 }}</span
-          ><input v-model="item.label" maxlength="500" required /></label
+          ><input
+            v-model="item.label"
+            :data-workflow-field="`items[${index}].label`"
+            maxlength="500"
+            required /></label
         ><label class="cf-workflow-check"
           ><input v-model="item.required" type="checkbox" /><span
             >Required</span
@@ -50,6 +55,7 @@ const model = useWorkflowEditorForm();
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
+        data-workflow-field="items"
         :disabled="model.selected.items.length >= 40"
         @click="model.addChecklistItem()"
       >

@@ -2,9 +2,10 @@
 import type { CouncilCatalogueActions } from "../../../features/coforge/application/council-catalogue";
 import type { WorkflowV2Actions } from "../../../features/coforge/application/workflow-v2-ports";
 import { useWorkflowV2Editor } from "../../composables/coforge/use-workflow-v2-editor";
-import { useEventTriggerLink } from '../../composables/coforge/use-event-trigger-link';
+import { useEventTriggerLink } from "../../composables/coforge/use-event-trigger-link";
 import WorkflowV2Steps from "./WorkflowV2Steps.vue";
 import WorkflowV2Transfer from "./WorkflowV2Transfer.vue";
+import WorkflowOutputTemplates from "./WorkflowOutputTemplates.vue";
 const props = defineProps<{
   actions: WorkflowV2Actions;
   catalogue: CouncilCatalogueActions;
@@ -22,8 +23,9 @@ const openEventTriggers = useEventTriggerLink();
       <div>
         <h2>Proposal workflows</h2>
         <p>
-          Compose reusable CoWorkers, councils and human checkpoints with explicit
-          input collections. Save an explicit v2 definition for this project.
+          Turn a private note or existing request into a sequence of CoWorker
+          answers, Council discussions and your decisions. This process is
+          separate from the request workflow.
         </p>
       </div>
     </header>
@@ -59,8 +61,8 @@ const openEventTriggers = useEventTriggerLink();
       <h3>Create a proposal process</h3>
       <p>
         Your existing project workflow stays available in Workflow settings. Add
-        a separate CoWorker process here when you need explicit council
-        results or generic note inputs.
+        a separate CoWorker process here when you need explicit council results
+        or generic note inputs.
       </p>
       <button
         type="button"
@@ -97,7 +99,7 @@ const openEventTriggers = useEventTriggerLink();
               </option>
             </select></label
           ><label class="cf-field"
-            ><span>Subject mode</span
+            ><span>Input note</span
             ><select v-model="model.store.draft.subjectMode">
               <option value="note">Generic private note</option>
               <option value="idea">Explicit existing Idea note</option>
@@ -108,9 +110,14 @@ const openEventTriggers = useEventTriggerLink();
           Create a project team in Definitions before saving an executable
           proposal workflow.
         </p>
+        <p class="cf-workflow-policy">
+          {{ model.store.draft.steps.length }} ordered steps. Open a step to
+          edit its task and answer. Saving prepares future runs; it never starts
+          work.
+        </p>
         <WorkflowV2Steps />
         <details>
-          <summary>Named ordered collections</summary>
+          <summary>Combine results from several steps</summary>
           <p class="cf-settings-help">
             Collections contain every contribution of their selected producers,
             in the listed order. Bind them only to later steps.
@@ -127,7 +134,7 @@ const openEventTriggers = useEventTriggerLink();
             :key="collection.id"
             class="cf-council-round"
           >
-            <code>{{ collection.id }}</code
+            <h3>Collection {{ index + 1 }}</h3>
             ><button
               type="button"
               class="cf-btn cf-btn-ghost"
@@ -136,7 +143,7 @@ const openEventTriggers = useEventTriggerLink();
               Remove collection
             </button>
             <fieldset>
-              <legend>Included producers</legend>
+              <legend>Include results from these steps</legend>
               <template v-for="step in model.store.draft.steps" :key="step.id"
                 ><label
                   v-if="step.kind === 'agent' || step.kind === 'council'"
@@ -154,7 +161,7 @@ const openEventTriggers = useEventTriggerLink();
                 v-for="(producer, position) in collection.producers"
                 :key="producer"
               >
-                <code>{{ producer }}</code
+                <span>{{ model.stepName(producer) }}</span>
                 ><button
                   type="button"
                   class="cf-btn cf-btn-ghost"
@@ -172,6 +179,10 @@ const openEventTriggers = useEventTriggerLink();
                 </button>
               </li>
             </ol>
+            <details class="cf-workflow-reference">
+              <summary>Collection reference</summary>
+              <code>{{ collection.id }}</code>
+            </details>
           </div>
         </details>
         <details>
@@ -214,8 +225,18 @@ const openEventTriggers = useEventTriggerLink();
         </button>
       </fieldset>
     </form>
+    <WorkflowOutputTemplates
+      :project-id="projectId"
+      @changed="model.templateChanged()"
+    />
     <WorkflowV2Transfer />
-    <button type="button" class="cf-btn cf-btn-secondary" @click="openEventTriggers()">Attach an event trigger</button>
+    <button
+      type="button"
+      class="cf-btn cf-btn-secondary"
+      @click="openEventTriggers()"
+    >
+      Attach an event trigger
+    </button>
     <section
       v-if="model.store.revision"
       aria-label="Proposal workflow preflight"
@@ -256,6 +277,20 @@ const openEventTriggers = useEventTriggerLink();
             {{ invocation.provider }} / {{ invocation.model }}
           </li>
         </ol>
+        <details class="cf-workflow-captured-instructions">
+          <summary>Captured step instructions</summary>
+          <section
+            v-for="invocation in model.store.preview.plan.invocations"
+            :key="invocation.id"
+          >
+            <h4>{{ invocation.agentId }} · {{ invocation.roundId }}</h4>
+            <pre
+              class="cf-workflow-json"
+              tabindex="0"
+              :aria-label="`Captured instructions for ${invocation.id}`"
+              >{{ invocation.instructions }}</pre>
+          </section>
+        </details>
         <details>
           <summary>Captured input and context</summary>
           <pre>{{ model.store.preview.source.markdown }}</pre>

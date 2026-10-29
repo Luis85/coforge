@@ -10,6 +10,11 @@ const model = useWorkflowV2EditorForm();
       draft replacement. Saving remains a separate action. References must
       resolve to local agents and councils before execution.
     </p>
+    <p class="cf-settings-help">
+      Answer template references belong to this project. Their Markdown files
+      are managed separately and are not included in workflow JSON. Recreate or
+      reassign templates when importing into another project.
+    </p>
     <label class="cf-field"
       ><span>Proposal workflow JSON</span
       ><textarea

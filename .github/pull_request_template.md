@@ -1,36 +1,43 @@
 ## Summary
 
-The Stream chat contributor count included all 48 profiles loaded by the sample workspace. Scope chat messages and contributor counts to Twitch by default and to simulator data during explicit local testing. Ending a local test restores Twitch history and keeps the draft and stored data.
+Workflow steps lacked reusable Markdown answer formats, and the editor put technical settings before the task. Add a project-scoped template library with create, preview, edit, open and delete controls, attach templates to request and proposal workflow steps, and retain their exact contents for existing runs.
+
+Overhaul workflow authoring and monitoring: purpose-first steps, visible configuration summaries, actionable validation, manageable proposal steps, explicit next actions, captured configuration, dependency-aware deletion, and reliable keyboard focus and narrow-pane reflow.
 
 ## Requirements and traceability
 
-- Owner bug report (2026-10-29): example workspace contributors remain in the local Twitch chat contributor count.
-- BRIEF.md: sample data and local testing require explicit actions; stream chat and community are shared across projects.
-- No imported req-* or vi-* obligation applies: design/traceability.json has no requirements or interactions. Generated traceability is unchanged.
-- Updated the Stream chat view contract in docs/components/views/stream.md.
+- Owner requests (2026-10-29): project-scoped Markdown Answer/Output Templates and a comprehensive workflow UX overhaul, researched second review, subagent-driven implementation, end-to-end polish and merge after green checks.
+- BRIEF.md records the scope and preserves explicit saves, project ownership, validated result contracts, host permissions, recovery and final human review.
+- No imported req-* or vi-* IDs apply: the traceability arrays are empty and generated traceability is unchanged.
+- Plans: docs/project-tasks/2026-10-29-workflow-templates-ux.md and docs/project-tasks/2026-10-29-workflow-second-review.md. The second plan links primary-source research and maps each finding to acceptance and ownership.
+- Updated workflow view contracts and generated sitemap: 93 documented views, valid navigation coverage.
 
 ## Validation
 
-- Before the fix: chat-panel-ui.test.ts had 3 failed tests, reproducing sample-history leakage, the mixed contributor count and local-test selection behavior.
-- npm test -- src/plugin/tests/project/coforge/chat-panel-ui.test.ts src/plugin/tests/project/coforge/twitch-controls.test.ts src/plugin/tests/project/coforge/example-cleanup.test.ts: 3 files passed, 14 tests passed.
-- npm run verify:project: exit 0. npm run check: 5 passed, 0 failed, 0 skipped in 859.7s (typecheck, lint, zero-warning ESLint, full product tests, maker types). Production build completed; prototype embedding: 1 passed, 0 failed. test:ui-effects explicitly skipped because the project declares no visual definitions.
-- npm run check:views: 92 views documented; navigation coverage valid; sitemap current.
-- git diff --check: clean.
-- Self-review: source filtering happens before the 100-message limit; empty state and auto-scroll use the same source; bot identity is excluded from contributor counts. No storage writes, note changes, host API changes, unsafe casts or weakened gates.
+Draft qualification is in progress. This PR must not merge until final local validation and required GitHub CI are green.
+
+- Exact local toolchain provisioned inside ignored .nq: checksum-verified Node 24.21.0 and integrity-verified npm 11.19.1. npm ci --ignore-scripts: 691 packages added, 692 audited, 0 vulnerabilities.
+- Template backend second-pass suite: 13 focused tests passed; final exact captured-source regression: 1 passed. Storage, native-vault v2 admission, immutable snapshots, conflicts, project isolation, missing-template holds and explicit recovery are covered.
+- Frontend focused regression: 7 files / 20 tests passed; subsequent exact checklist-repair focus regressions: 3 passed.
+- Template focus/reactivity regressions: 2 files / 8 tests passed. Initial raw-record observability defects were reproduced, corrected and rechecked.
+- Template dependency query, late project response, runtime wiring and lifecycle regression subset: 4 files / 7 tests passed.
+- Source line caps and locale parity passed (3201 inputs, 226 translated keys); scoped ESLint passed with zero warnings; git diff --check clean. No thresholds, lint rules, assertions or screenshot baselines were weakened.
+- Preliminary npm run verify:project: typecheck, source lint, zero-warning ESLint and maker types passed; full product test step hit its unchanged 600-second limit under concurrent local load. An existing Herdr Git test also exceeded its 5-second test budget. Final verification is running serially against frozen source.
+- Self-review: canonical notes preserve stable IDs and unrelated frontmatter; conflict errors retain drafts; template note writes precede named project-scoped events; observer failures do not turn successful writes into retries. Missing references create no provider attempt. Snapshots are private, and current host permissions still revalidate on every attempt.
 
 ## UI evidence
 
-- npm run test:ui-quality: 8 passed (1.2m), exit 0.
-- npm run ui:gallery: captured 40 screenshots; failures []; exit 0. Reviewed desktop light and narrow dark studio captures in reports/ui-gallery/. The gallery covers the existing clickdummy; focused component tests verify the changed runtime chat projection.
-- Component regressions cover all 48 saved sample profiles, a real Twitch contributor amid more than 100 example messages, and entering/leaving a local test with unchanged stored state and draft.
+- Fresh source-backed before/after workflow captures inspected in reports/workflow-audit/. Research-informed focus diagnostics reproduced lost focus; explicit action handoffs now have behavioral tests.
+- Focused source-backed browser diagnostic: 3 scenarios passed (request template CRUD/attachment/manual checkpoint in light and dark; shared proposal template and reviewed-preflight invalidation). The diagnostic used an ignored prebuilt-server config after standard startup timed out under local load; assertions were unchanged.
+- Preliminary full standard browser run was interrupted at 51/198 after 47 passes and 4 timeouts (two old multi-goal Council journeys, two unrelated economy catalog journeys). Council tests were split by user goal without removing assertions or changing the 30-second limit. Final full standard run, UI quality and final gallery remain pending.
+- Baseline gallery: 40 captures, exit 0. Final confirmation captures are pending; baseline images are never committed or accepted to silence a failure.
 
 ## Obsidian evidence
 
-- npm run -s dev:obsidian -- --allow-download --json provisioned pinned Obsidian app/installer 1.14.4 and launcher 3.2.1 inside this checkout. Plugin loaded/reloaded with errors [], but the first host startup had two core command-list errors and could not open a tab group.
-- Repeated npm run -s dev:obsidian -- --json using the saved sandbox workspace: status passed, view.opened true, errors [], hostErrorCount 0, pluginConsole []. Exit 0.
-- Reviewed .obsidian-sandbox/logs/last-run.png and read dev.log/debug-report.json. The smoke opens the public Kanban; sample contributor behavior is covered by component tests.
-- Full test:obsidian not run: no lifecycle or host API changes.
+- Pinned app/installer 1.14.4 and launcher 3.2.1 provisioned inside this checkout's contained host directories.
+- Initial native template journey failed to load after new event codes exceeded the existing logging catalog cap. The runtime integration test reproduced it; routing those events into the existing tools catalog fixed it without raising the limit. Runtime regression is green.
+- Final contained-host suite and reload smoke are pending the final production build. No personal vault was opened or modified.
 
 ## Untested scope
 
-No personal vault or live Twitch connection was used. The fix is built and installed only in the contained sandbox; the user's personal local plugin was not updated. Node 24.20.0 / npm 11.21.1 differs from the pinned Node 24.21.0 / npm 11.19.1. The owner authorized pushing a PR, merging after green CI, and then updating the repository-root local plugin. No release publication requested.
+No paid model call, live Herdr service, live stream/OBS/Twitch integration or personal vault was used. Browser data is explicitly temporary; native Markdown and reload tests qualify actual persistence. Platform-specific Unix tests may skip on Windows; final Linux CI is required. No release, tag or global installation is requested.

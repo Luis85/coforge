@@ -1,4 +1,4 @@
-import { openWorkflowSettings } from "../../../tests/e2e/support/workflow-navigation.ts";
+import { openWorkflowDisclosure, openWorkflowSettings } from "../../../tests/e2e/support/workflow-navigation.ts";
 import { expect as browserExpect } from "@playwright/test";
 import { describe, expect } from "vitest";
 import { test } from "./support/obsidian-fixture.ts";
@@ -29,6 +29,7 @@ describe("Managed Herdr workflow configuration", () => {
       "Contained Herdr configuration",
     );
     await openWorkflowSettings(view);
+    await openWorkflowDisclosure(view, "Agent and project access");
     await view.getByLabel("AI provider", { exact: true }).selectOption("herdr");
     await view
       .getByLabel("Herdr agent type", { exact: true })
@@ -63,6 +64,7 @@ describe("Managed Herdr workflow configuration", () => {
       `${obsidian.pluginId}-view-project-workbench`,
     );
     await openWorkflowSettings(view);
+    await openWorkflowDisclosure(view, "Agent and project access");
     await browserExpect(
       view.getByLabel("AI provider", { exact: true }),
     ).toHaveValue("herdr");

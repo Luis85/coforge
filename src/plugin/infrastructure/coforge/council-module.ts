@@ -17,6 +17,7 @@ import { ExecutionScheduler } from "../../features/coforge/application/execution
 import { CouncilIntakeRuntime } from "./council-intake-runtime";
 import type { InvocationGate } from "../../features/coforge/application/invocation-gate";
 import type { StudioService } from "../../features/coforge/application/studio";
+import type { WorkflowOutputTemplateActions } from "../../features/coforge/application/workflow-output-templates";
 import type { Timers } from "../../features/coforge/application/ports";
 import type { ExecutionRun } from "../../features/coforge/domain/execution-run";
 import { contextEventId } from "../../features/coforge/domain/integrity";
@@ -30,14 +31,12 @@ import {
   VaultCouncilDefinitions,
 } from "./vault-council-definitions";
 import {
-  protectCouncilPrivatePaths,
+  councilPrivateAccess,
   councilModulePrivateFolders,
-  councilFolderPolicy,
 } from "./council-private-data";
 import { CouncilInvocationHost } from "./council-invocation-host";
 import { CouncilMessagingModule } from "./council-messaging-module";
 import { CouncilWorkflowModule } from "./council-workflow-module";
-import type { IntakeFolderPolicy } from "../../features/coforge/domain/intake-bindings";
 import { CouncilWorkflowMessaging } from "./council-workflow-messaging";
 import { councilDefinitionConfiguration } from "./council-definition-configuration";
 import { readCouncilDefinitionUsage } from "../../features/coforge/application/council-definition-usage";
@@ -60,6 +59,7 @@ export class CouncilModule {
   private readonly admissions: CouncilAdmissions;
   private readonly definitionLocations: () => readonly string[];
   private readonly listeners = new CouncilRuntimeObservers();
+  private readonly privateAccess: ReturnType<typeof councilPrivateAccess>;
   private readonly invocationHost: CouncilInvocationHost;
   private readonly deviceId = contextEventId(hostname());
   private readonly costArchive = new CouncilCostArchive();
@@ -82,7 +82,9 @@ export class CouncilModule {
     gate: InvocationGate,
     projectFile?: (id: string) => TFile | null,
     ideaFile?: (id: string) => TFile | null,
+    outputTemplates?: WorkflowOutputTemplateActions,
   ) {
+    this.privateAccess = councilPrivateAccess(plugin, () => studio.integration().publicFolder, () => this.definitionLocations());
     this.storage = new CouncilStateStorage(plugin);
     this.journal = new FileExecutionJournal(
       plugin.app.vault.adapter,
@@ -91,7 +93,7 @@ export class CouncilModule {
     const definitions = new VaultCouncilDefinitions(
       plugin,
       () => this.preferences.definitionFolders ?? DEFAULT_COUNCIL_FOLDERS,
-      (paths) => this.protect(paths),
+      (paths) => this.privateAccess.protect(paths),
       () => studio.integration().publicFolder,
     );
     const catalogue = new CouncilCatalogue(definitions, (id) =>
@@ -105,9 +107,9 @@ export class CouncilModule {
     this.definitionLocations = () => definitions.privateFolders();
     const definitionFolders = councilDefinitionConfiguration(definitions, {
       preferences: () => this.preferences,
-      folderPolicy: () => this.folderPolicy(),
+      folderPolicy: () => this.privateAccess.policy(),
       assertExecutor: () => this.assertExecutor(),
-      protect: (paths) => this.protect(paths),
+      protect: (paths) => this.privateAccess.protect(paths),
       save: (value) => this.savePreferences(value),
       publish: () => this.publish(),
     });
@@ -133,7 +135,7 @@ export class CouncilModule {
       plugin,
       this.kernel,
       catalogue,
-      (paths) => this.protect(paths),
+      (paths) => this.privateAccess.protect(paths),
       (target, path, key, automationEvent) => this.admissions.submit(target, path, false, key, undefined, automationEvent),
       {
         resolve: (id, teamId) => this.workflows.messageRecipient(id, teamId),
@@ -161,7 +163,7 @@ export class CouncilModule {
       this.kernel,
       this.sources,
       catalogue,
-      (paths) => this.protect(paths),
+      (paths) => this.privateAccess.protect(paths),
       () => this.assertExecutor(),
       {
         projectFile,
@@ -169,6 +171,7 @@ export class CouncilModule {
         messages: (team, project, recent, limit) =>
           this.messaging.context(team, project, recent, limit),
       },
+      outputTemplates,
     );
     this.kernel.subscribe(() => this.publish());
     this.intakeRuntime = new CouncilIntakeRuntime(
@@ -179,7 +182,7 @@ export class CouncilModule {
       {
         enabled: () => this.executor && !this.disposed,
         preferences: () => this.preferences,
-        folderPolicy: () => this.folderPolicy(),
+        folderPolicy: () => this.privateAccess.policy(),
         assertExecutor: () => this.assertExecutor(),
         admit: (input) => this.admissions.admit(input),
         definitionChanged: (event) =>
@@ -230,7 +233,7 @@ export class CouncilModule {
       this.context,
       this.workflows,
       this.messaging,
-      (paths) => this.protect(paths),
+      (paths) => this.privateAccess.protect(paths),
       () => this.assertExecutor(),
     );
     this.actions = createCouncilActions({
@@ -238,7 +241,7 @@ export class CouncilModule {
         plugin, this.context, this.sources,
         () => this.preferences.bindings,
         () => this.assertReady(),
-        paths => this.protect(paths),
+        paths => this.privateAccess.protect(paths),
       ),
       catalogue,
       definitionFolders: {
@@ -256,7 +259,7 @@ export class CouncilModule {
       sources: this.sources,
       deviceId: this.deviceId,
       preferences: () => this.preferences,
-      folderPolicy: () => this.folderPolicy(),
+      folderPolicy: () => this.privateAccess.policy(),
       snapshot: () => this.snapshot(),
       subscribe: (listener) => this.listeners.subscribe(listener),
       assertReady: () => this.assertReady(),
@@ -266,7 +269,7 @@ export class CouncilModule {
       clearError: () => {
         this.error = "";
       },
-      protect: (paths) => this.protect(paths),
+      protect: (paths) => this.privateAccess.protect(paths),
       savePreferences: (value) => this.savePreferences(value),
       startWatcher: () =>
         this.intakeRuntime.watcher.configure(this.preferences.bindings),
@@ -332,28 +335,14 @@ export class CouncilModule {
     if (!this.disposed) this.listeners.publish(() => this.snapshot());
   }
   setCostArchiver(archive: () => Promise<void>): void { this.costArchive.configure(archive); }
-  private async protect(paths: string[]): Promise<void> {
-    await protectCouncilPrivatePaths(
-      this.plugin,
-      paths,
-      this.studio.integration().publicFolder,
-    );
-  }
   private async savePreferences(value: CouncilPreferences): Promise<void> {
     const next = { ...value, revision: this.preferences.revision + 1 };
-    await this.protect([]);
+    await this.privateAccess.protect([]);
     await this.storage.savePreferences(next, this.preferences.revision);
     this.preferences = next;
   }
   private projectPaused(id: string): boolean {
     return (this.preferences.pausedProjectIds ?? []).includes(id);
-  }
-  private folderPolicy(): IntakeFolderPolicy {
-    return councilFolderPolicy(
-      this.plugin,
-      this.studio.integration().publicFolder,
-      this.definitionLocations(),
-    );
   }
   async start(): Promise<void> {
     if (this.disposed) return;

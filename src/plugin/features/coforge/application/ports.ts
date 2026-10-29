@@ -57,6 +57,7 @@ export interface Timers {
 
 /** Host capabilities the studio needs but must not implement itself. */
 export interface StudioHost {
+  outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
   agentTasks?: import('./agent-task').AgentTaskPort;
   /** Private immutable reward tickets are reserved before command effects. */
   economyReservations?: import("../domain/command-economy").EconomyReservationPort;
@@ -75,6 +76,7 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
   /** Relative vault file names for explicit link authoring; never returns file contents. */
   listVaultFiles?(): Promise<string[]>;
   workflowTriggers?: import('./workflow-trigger-ports').WorkflowTriggerActions;

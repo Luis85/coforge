@@ -14,6 +14,8 @@ actions:
   - Edit steps and collections
   - Preview import or export
   - Save or discard
+  - Manage project Markdown answer templates
+  - Inspect captured step instructions
 states:
   - No project
   - No saved definition
@@ -65,3 +67,11 @@ Journey tags: `Council`.
 ## Workspace redesign
 
 The proposal workflow shares the catalogue and authoring workspace visual language with reusable definitions. Its typed input and checkpoint controls remain separate from ordinary project workflow execution.
+
+Numbered collapsible steps expose purpose and instructions first; result bindings
+use readable step and collection labels. Agent and council steps can select one
+project [answer template](workflow-output-templates.md), using the same private
+library as request-development workflows. Preflight offers the captured assembled
+step instructions as read-only source for inspection. Editing a template requires
+a fresh preview before dispatch; the host also recomputes and verifies the reviewed
+identity. Admitted runs retain the template snapshot even after edits or deletion.

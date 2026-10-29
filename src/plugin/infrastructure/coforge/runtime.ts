@@ -57,6 +57,11 @@ import { WorkflowTriggers } from '../../features/coforge/application/workflow-tr
 import { WorkflowTriggerStateStorage } from './workflow-trigger-storage';
 import { workflowTriggerHost } from './workflow-trigger-host';
 import { workflowAgentTasks } from './workflow-agent-task';
+import { VaultWorkflowOutputTemplates } from './vault-workflow-output-templates';
+import { protectCouncilPrivatePaths } from './council-private-data';
+import { observeWorkflowOutputTemplates } from '../../features/coforge/application/workflow-output-template-events';
+import { withWorkflowOutputTemplateUsage } from '../../features/coforge/application/workflow-output-template-usage';
+import { VaultWorkflowV2 } from './vault-workflow-v2';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -92,7 +97,22 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const invocations = new InvocationGate();
   const demo = createDemoRunner(timers);
   const mcpRunner = new McpStepRunner(workspaces, timers);
+  const workflowDefinitions = new VaultWorkflowV2(plugin.app.vault, id => storage.projectFile(id));
+  const outputTemplates = withWorkflowOutputTemplateUsage(observeWorkflowOutputTemplates(new VaultWorkflowOutputTemplates(plugin,
+    paths => protectCouncilPrivatePaths(plugin, paths, studio.integration().publicFolder),
+    projectId => {
+      if (!studio.state().projects?.some(project => project.id === projectId && !project.unavailable))
+        throw new Error('Choose an available project before managing answer templates.');
+    }, () => studio.integration().publicFolder),
+    (code, _id, projectId) => studio.store.transaction(state => recordOperation(state, code, 'committed', undefined, 1, projectId)),
+    () => report('coforge.observer')), async projectId => {
+    const project = studio.state().projects?.find(item => item.id === projectId && !item.unavailable);
+    if (!project) throw new Error('Choose an available project before inspecting template references.');
+    try { return { request: project.settings.workflow, proposal: (await workflowDefinitions.load(projectId)).definition ?? undefined }; }
+    catch { return { request: project.settings.workflow, unavailable: 'Proposal workflow references could not be read. Repair the project workflow note before relying on this list.' }; }
+  });
   const studio: StudioService = new StudioService(storage, {
+    outputTemplates,
     agentTasks: { create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => council.actions.cancel(id) },
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
     economyReservations: storage.economyReservations,
@@ -122,7 +142,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     report: error => { report('coforge.workflow'); notify(error.message, true); },
     events: { publish: event => log.record(event.record) }, observerFailed: () => report('coforge.observer'),
   });
-  const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id), id => storage.file(id));
+  const council = new CouncilModule(plugin, studio, timers, invocations, id => storage.projectFile(id), id => storage.file(id), outputTemplates);
   const mcp = new McpModule(plugin, studio, mcpRunner, undefined, council.actions, () => council.privateFolders());
   const taskScheduler = new TaskScheduler(new TaskSchedulerStateStorage(plugin), taskSchedulerHost(plugin, studio, council.actions), timers);
   const workflowTriggers = new WorkflowTriggers(new WorkflowTriggerStateStorage(plugin), workflowTriggerHost(plugin, studio, council.actions, id => storage.file(id)?.path));
@@ -180,6 +200,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const host: StudioHostActions = {
+    outputTemplates,
     workflowTriggers,
     taskScheduler,
     mcp,

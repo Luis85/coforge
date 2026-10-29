@@ -1,4 +1,6 @@
 import { workflowMessageRecipient } from "./workflow-message-recipient";
+import { captureWorkflowOutputTemplates, type WorkflowOutputTemplateActions } from '../../features/coforge/application/workflow-output-templates';
+import { WORKFLOW_OUTPUT_TEMPLATES_FOLDER } from '../../features/coforge/domain/workflow-output-templates';
 import {
   readWorkflowNoteContext,
   type WorkflowContextOptions,
@@ -60,6 +62,7 @@ export class CouncilWorkflowModule {
     private readonly protect: (paths: string[]) => Promise<void>,
     private readonly assertExecutor: () => Promise<void> | void,
     private readonly contextOptions?: WorkflowContextOptions,
+    private readonly outputTemplates?: WorkflowOutputTemplateActions,
   ) {
     this.storage = new VaultWorkflowV2(
       plugin.app.vault,
@@ -140,6 +143,9 @@ export class CouncilWorkflowModule {
       councils: definitions.filter(
         (item): item is CouncilDefinition => item.schema === "council/v1",
       ),
+      ...(definition.steps.some(step => (step.kind === 'agent' || step.kind === 'council') && step.outputTemplateId) ? {
+        outputTemplates: await captureWorkflowOutputTemplates(projectId, definition.steps.filter(step => step.kind === 'agent' || step.kind === 'council'), this.outputTemplates),
+      } : {}),
     };
   }
   private sourcePath(path: string): string {
@@ -150,6 +156,7 @@ export class CouncilWorkflowModule {
         "CoForge/Public",
         this.plugin.app.vault.configDir,
         ".git",
+        WORKFLOW_OUTPUT_TEMPLATES_FOLDER,
         ...(this.contextOptions?.definitionFolders() ??
           Object.values(DEFAULT_COUNCIL_FOLDERS)),
       ].some((folder) => vaultFoldersOverlap(normalized, folder))
