@@ -53,7 +53,8 @@ export class VaultStudioStorage implements StudioStorage {
   private readonly cleanup: VaultExampleCleanup;
   private readonly commands: VaultCommandCommit;
   readonly economyReservations: VaultEconomyReservations<EconomyUsageReservation>;
-  constructor(private readonly plugin: Plugin, private readonly privateFolders: () => readonly string[] = () => []) {
+  constructor(private readonly plugin: Plugin, private readonly privateFolders: () => readonly string[] = () => [],
+    private readonly assertNoteFoldersAvailable: (folders: readonly string[]) => void = () => undefined) {
     this.projects = new VaultProjects(plugin);
     this.economyReservations = new VaultEconomyReservations(plugin, economyUsageReservationCheck);
     this.commands = new VaultCommandCommit(plugin, this.dataPath, bytes => readIdeaNote(bytes)?.id);
@@ -79,6 +80,7 @@ export class VaultStudioStorage implements StudioStorage {
     const data: PersistedStudio | null = await adapter.exists(this.dataPath) ? parsePersistedStudio(JSON.parse(await adapter.read(this.dataPath))) : null;
     const integration = data?.integration ?? defaultIntegration();
     const layout = validateFolderLayout(integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
+    this.assertNoteFoldersAvailable([layout.ideasFolder]);
     if (data) data.integration = { ...data.integration, ...layout };
     await protectPrivateData(this.plugin, layout);
     this.folder = layout.ideasFolder;
@@ -100,6 +102,7 @@ export class VaultStudioStorage implements StudioStorage {
     await this.cleanup.settleBeforeSave();
     await this.commands.settleBeforeSave();
     const layout = validateFolderLayout(next.integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
+    this.assertNoteFoldersAvailable([layout.ideasFolder]);
     next.integration = { ...next.integration, ...layout };
     await protectPrivateData(this.plugin, layout);
     if (needsAtomicCommand(next, previous, options)) {

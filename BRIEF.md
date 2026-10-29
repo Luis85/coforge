@@ -445,7 +445,46 @@ recovery, project scope, host permissions and final human review.
 
 - None recorded.
 
+## Service Design (owner decisions, 2026-10-29)
+
+- Add Service Design to main navigation under Build & Improve. Each project owns
+  one Service Blueprint, with ordered journey steps and a grid of customer actions,
+  frontstage actions, backstage actions, support processes and physical/digital evidence.
+- Support creation and editing of separate, linked notes for those layers and for
+  actors/roles, touchpoints/channels, systems, pain points and opportunities.
+- Use canonical Obsidian-compatible frontmatter plus Markdown, stable IDs and
+  wikilinks. A vault-wide configurable root defaults to `CoForge/Service Design`,
+  with project subfolders and one note per blueprint/entity. Root changes affect new
+  notes only; existing notes remain discoverable. Preserve unrelated frontmatter
+  and body bytes on metadata edits; external edits require refresh before saving.
+- Service Design is private project work and is excluded from public projections.
+
 ## Streamer workflow increment (2026-10-27)
+
+### OBS overhaul exploration (owner direction, 2026-10-29)
+
+- Explore a full redesign and expansion of Stream studio's OBS integration so the
+  streamer can operate the stream entirely from CoForge views during a broadcast.
+- Cover both full OBS setup and live production. The initial target is one PC
+  with a fresh, blank OBS installation.
+- Owner authorization (2026-10-29): implement all three proposed increments end to
+  end with subagents, complete an improvement and polishing pass, open a pull
+  request and merge after the required checks are green.
+- Increment 1 covers fresh studio creation, supported capture/audio/output setup,
+  rehearsal and essential live controls. Increment 2 covers visual source/layout
+  editing, audio management and public displays. Increment 3 covers show plans,
+  reusable manual cues, explicit opt-in event automation and recording/replay review.
+- OBS remains the media engine. One-time WebSocket bootstrap, device permissions
+  and unsupported vendor dialogs may require OBS or OS interaction during setup.
+  Source and output editors are capability-checked; sampled screenshots are labelled
+  as such and do not claim smooth audiovisual monitoring.
+- Setup and navigation never broadcast. Credentials stay in secret storage; stream
+  keys are write-only. Public displays keep explicit projections. Shared-source
+  edits disclose their live impact. Multi-step actions retain individual outcomes;
+  unknown effects are never replayed. Event automation is explicit, bounded and
+  paused after restart, with no missed-event replay or implicit agent authority.
+
+### Existing workflow baseline
 
 - The plugin opens on a stream-preparation dashboard. The streamer connects an already running OBS Studio
   through obs-websocket v5, selects a go-live and BRB scene, checks readiness, then explicitly presses Go live.

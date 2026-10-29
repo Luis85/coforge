@@ -23,11 +23,12 @@ for (const theme of ['light', 'dark']) test(`project navigation stays readable w
     expect(rows.every(row => row.height <= row.lineHeight + 1)).toBe(true);
     await sidebar.screenshot({ path: `reports/navigation-space/sidebar-${theme}-${width}.png` });
   }
-  for (const label of ['Idea board', 'The Council', 'Project settings']) {
+  for (const label of ['Idea board', 'The Council', 'Service Design', 'Project settings']) {
     await sidebar.getByRole('button', { name: label === 'Idea board' ? /^Idea board/ : label, exact: label !== 'Idea board' }).first().click();
     await expect(page.locator('.cf-project-work-context')).toHaveCount(0);
     await expect(page.locator('.cf-board-decisions')).toHaveCount(0);
     await expect(sidebar.locator('.cf-project-selector-id')).toContainText('CFP-001');
+    if (label === 'Service Design') await expect(page.locator('.cf-service-design')).toBeVisible();
     if (label === 'Idea board') {
       await expect(page.getByRole('tab', { name: /^Needs review/ })).toBeVisible();
       await expect(page.getByRole('tab', { name: /^Flagged/ })).toBeVisible();

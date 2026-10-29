@@ -16,7 +16,7 @@ const testKit = { '@test/obsidian': fileURLToPath(new URL('../../src/plugin/test
 export default defineConfig({ ...shared, resolve: { ...shared.resolve, alias: { ...shared.resolve?.alias, ...testKit } }, plugins: [...shared.plugins, hostBoundary], test: {
   include: ["src/plugin/tests/project/**/*.test.{ts,mjs}", "src/plugin/tests/unit/generated/**/*.test.ts"], environment: 'node', fileParallelism: false,
   reporters: [...configDefaults.reporters, 'json', 'junit'],
-  outputFile: { json: 'reports/tests/project-results.json', junit: 'reports/tests/project-results.xml' },
+  outputFile: { json: fileURLToPath(new URL('../../reports/product-tests.json', import.meta.url)), junit: 'reports/tests/project-results.xml' },
   // Playwright specs (npm run test:e2e) run in a browser, never in Vitest.
   exclude: [...configDefaults.exclude, 'tests/e2e/**'],
   setupFiles: ["src/plugin/tests/project/ui-bootstrap.mjs"],

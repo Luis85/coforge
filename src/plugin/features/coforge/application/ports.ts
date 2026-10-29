@@ -56,6 +56,10 @@ export interface Timers {
 }
 
 /** Host capabilities the studio needs but must not implement itself. */
+export interface ManagedNoteFolderPolicy {
+  assertAvailable(folders: readonly string[]): void;
+  reserve(folders: readonly string[]): () => void;
+}
 export interface StudioHost {
   outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
   agentTasks?: import('./agent-task').AgentTaskPort;
@@ -65,6 +69,8 @@ export interface StudioHost {
   beforeCommit?(next: AppState, previous: AppState | null): Promise<void | (() => void)>;
   assertExampleCleanup?(ideaIds: readonly string[]): void | (() => void) | Promise<void | (() => void)>;
   privateFolders?(): readonly string[];
+  /** Keep canonical note owners separate without restricting ordinary watched source notes. */
+  noteFolders?: Partial<ManagedNoteFolderPolicy>;
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;
   runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   timers: Timers;
@@ -77,6 +83,11 @@ export interface StudioHost {
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
   outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
+  serviceDesign?: import('../../service-design/domain/blueprint').ServiceDesignActions;
+  obsProduction?: import('./obs-production-workflow').ObsProductionActions;
+  obsShow?: import('./obs-show-ports').ObsShowActions;
+  obsSetup?: import('./obs-setup-workflow').ObsSetupActions;
+  obsOverlays?: import('./obs-overlay-workflow').ObsOverlayActions;
   /** Relative vault file names for explicit link authoring; never returns file contents. */
   listVaultFiles?(): Promise<string[]>;
   workflowTriggers?: import('./workflow-trigger-ports').WorkflowTriggerActions;

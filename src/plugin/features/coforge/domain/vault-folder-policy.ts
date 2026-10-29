@@ -17,6 +17,7 @@ const PRIVATE_FOLDERS = [
   "CoForge/Music",
   "CoForge/Streams",
   "CoForge/Schedule",
+  "CoForge/Service Design",
   "CoForge/Agents",
   "CoForge/Teams",
   "CoForge/Councils",

@@ -16,10 +16,13 @@ import type { ObsMetrics } from "../../features/coforge/domain/stream-metrics";
 import { readObsMetrics } from "./obs-metrics";
 import { ObsScenesAdapter } from "./obs-scenes-adapter";
 import { ObsCapabilities } from "./obs-capabilities";
+import { ObsProductionAdapter } from './obs-production-adapter';
+import { changesProductionContext } from './obs-production-events';
 
-/** Only stream/status/scene requests are exposed. Stream-service keys and output credentials are never read. */
+/** Scoped v5 host boundary. Production credentials are written from secret storage and never read back. */
 export class ObsAdapter implements ObsControlPort {
   readonly scenes: ObsScenesAdapter;
+  readonly production: ObsProductionAdapter;
   private readonly capabilities = new ObsCapabilities();
   private sceneVersion = 0;
   private collectionVersion = 0;
@@ -48,7 +51,7 @@ export class ObsAdapter implements ObsControlPort {
       timers,
       (key) => secrets.getSecret(key),
       (connection, error) => {
-        if (connection !== "connected") this.capabilities.reset();
+        if (connection !== "connected") { this.capabilities.reset(); this.production?.reset(); }
         // Events from the prior socket cannot describe a transition after reconnect.
         if (connection === "connected") this.transition = false;
         if (connection === "connected" && this.monitor === undefined)
@@ -74,6 +77,7 @@ export class ObsAdapter implements ObsControlPort {
             });
       },
       (type, data) => {
+        this.production.observe(type, data);
         if (type === "CurrentSceneCollectionChanging") {
           this.collectionVersion++;
           this.changingCollection = true;
@@ -82,26 +86,7 @@ export class ObsAdapter implements ObsControlPort {
           this.collectionVersion++;
           this.changingCollection = false;
         }
-        if (
-          [
-            "SceneCreated",
-            "SceneRemoved",
-            "SceneNameChanged",
-            "SceneListChanged",
-            "CurrentProgramSceneChanged",
-            "CurrentPreviewSceneChanged",
-            "CurrentSceneCollectionChanging",
-            "CurrentSceneCollectionChanged",
-            "InputCreated",
-            "InputRemoved",
-            "InputNameChanged",
-            "SceneItemCreated",
-            "SceneItemRemoved",
-            "SceneItemListReindexed",
-            "SceneItemEnableStateChanged",
-            "SceneItemLockStateChanged",
-          ].includes(type)
-        ) {
+        if (changesProductionContext(type)) {
           this.sceneVersion++;
           this.refreshSoon();
         }
@@ -128,6 +113,8 @@ export class ObsAdapter implements ObsControlPort {
       () => this.capabilities.available,
       () => ({ epoch: this.client.epoch, collection: this.collectionVersion, revision: this.sceneVersion }),
     );
+    this.production = new ObsProductionAdapter(this.client, () => this.snapshot(), () => this.capabilities.available,
+      () => ({ epoch: this.client.epoch, collection: this.collectionVersion, revision: this.sceneVersion }), this.secrets);
   }
   subscribe(listener: (value: ObsObservation) => void): () => void {
     this.listeners.add(listener);
@@ -237,6 +224,7 @@ export class ObsAdapter implements ObsControlPort {
   }
   dispose(): void {
     this.closed = true;
+    this.production.dispose();
     this.launchAbort.abort();
     if (this.monitor !== undefined) this.timers.clearInterval(this.monitor);
     this.monitor = undefined;

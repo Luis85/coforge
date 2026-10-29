@@ -11,6 +11,7 @@ import type { Timers } from "../../../features/coforge/application/ports";
 import { MemoryStorage, nodeTimers } from "./memory-storage";
 
 it.each([
+  "coforge-service-design.json",
   "coforge-workspaces.json",
   "coforge-council-settings.json",
   "coforge-execution-v2.json",

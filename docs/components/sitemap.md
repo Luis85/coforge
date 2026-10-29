@@ -34,6 +34,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
         - [Captured request fields](views/idea-request-values.md) — panel
       - [Request plan](views/idea-plan.md) — subpage
   - [Stream studio](views/broadcast.md) — page
+    - [OBS audio](views/broadcast-audio.md) — subpage
     - [Stream displays](views/broadcast-displays.md) — subpage
     - [Stream history](views/broadcast-history.md) — subpage
     - [Live broadcast](views/broadcast-live.md) — subpage
@@ -41,6 +42,8 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
     - [OBS scenes and sources](views/broadcast-scenes.md) — subpage
     - [Stream setup](views/broadcast-setup.md) — subpage
       - [Guided stream setup](views/guided-setup.md) — panel
+    - [OBS show plan](views/broadcast-show.md) — subpage
+    - [OBS sources and layouts](views/broadcast-sources.md) — subpage
   - [Community recognition](views/community.md) — page
     - [Contributor recognition profile](views/community-profile.md) — panel
       - [Contributor badges](views/community-badges.md) — panel
@@ -79,6 +82,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
   - [Projects](views/projects.md) — page
     - [Add project](views/project-create.md) — panel
   - [Stream schedule](views/schedule.md) — page
+  - [Service Design](views/service-design.md) — page
   - [Project settings](views/settings.md) — page
     - [Data & examples](views/settings-data.md) — subpage
       - [Example content cleanup](views/settings-example-cleanup.md) — panel
@@ -120,12 +124,15 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [AI costs](views/ai-costs.md) | Understand the known cost and usage of agent work. | studio.view = ai-costs | streamer |
 | [Request board](views/board.md) | Choose the next request that needs attention. | studio.view = board | streamer |
 | [Stream studio](views/broadcast.md) | Operate the current broadcast with explicit stream controls. | studio.view = broadcast | streamer |
+| [OBS audio](views/broadcast-audio.md) | Hear and adjust the intended OBS mix without leaving the studio. | studio.broadcastTool = audio | streamer |
 | [Stream displays](views/broadcast-displays.md) | Open the read-only surface intended for OBS capture. | studio.broadcastTool = displays | streamer |
 | [Stream history](views/broadcast-history.md) | Inspect the archived record for a completed or active stream. | studio.broadcastTool = history | streamer |
 | [Live broadcast](views/broadcast-live.md) | Keep the current broadcast running with visible health and explicit controls. | studio.broadcastTool = live | streamer |
 | [Stream music](views/broadcast-music.md) | Choose and control the local audio for this stream. | studio.broadcastTool = music | streamer |
 | [OBS scenes and sources](views/broadcast-scenes.md) | Edit the exact OBS scene and its existing sources. | studio.broadcastTool = scenes | streamer |
 | [Stream setup](views/broadcast-setup.md) | Complete connection and readiness checks before going live. | studio.broadcastTool = setup | streamer |
+| [OBS show plan](views/broadcast-show.md) | Prepare and explicitly run finite production cues with durable outcomes. | studio.broadcastTool = show | streamer |
+| [OBS sources and layouts](views/broadcast-sources.md) | Create supported sources and arrange the selected scene with explicit live impact. | studio.broadcastTool = sources | streamer |
 | [Community recognition](views/community.md) | Understand who contributed to accepted progress. | studio.view = community | streamer |
 | [Contributor badges](views/community-badges.md) | Understand the milestones behind a contributor’s badges. | community selected contributor badges | streamer |
 | [Contributor recognition profile](views/community-profile.md) | Understand one contributor’s credited progress. | community.selected | streamer |
@@ -186,6 +193,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [Public leaderboards](views/public-leaderboards.md) | Recognize visible community contributions. | Obsidian stream surface = leaderboards | viewer / OBS capture |
 | [Viewer website](views/public-website.md) | Follow screened progress and recognition outside Obsidian. | public export / index.html | viewer / OBS capture |
 | [Stream schedule](views/schedule.md) | Prepare a saved plan for a future stream. | studio.view = schedule | streamer |
+| [Service Design](views/service-design.md) | Define and refine a project's service through a linked Service Blueprint. | studio.view = service-design | streamer |
 | [Project settings](views/settings.md) | Configure the selected project and manage its agent workflow. | studio.view = settings | streamer |
 | [Data & examples](views/settings-data.md) | Export a private studio backup, load sample content or review example cleanup. | studio.settingsTool = data | streamer |
 | [Example content cleanup](views/settings-example-cleanup.md) | Review and explicitly remove sample and local-test content while preserving real requests. | Project settings / Data & examples / Example cleanup | streamer |
@@ -222,16 +230,17 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 
 - **Council**: [The Council](views/council.md), [Ask the Council](views/council-ask.md), [Definition import and export](views/council-definition-transfer.md), [Teams and councils](views/council-definitions.md), [Event triggers](views/council-events.md), [Council execution controls](views/council-execution.md), [Council folders](views/council-folders.md), [Watched inboxes](views/council-inboxes.md), [Team messages](views/council-messages.md), [Council run monitor](views/council-monitor.md), [Council plan handoff](views/council-plan-handoff.md), [Proposal workflow transfer](views/council-proposal-transfer.md), [Council recovery tools](views/council-recovery.md), [Task scheduler](views/council-scheduler.md), [Submit existing note](views/council-submit.md), [Council task history](views/council-task-history.md), [Council input file picker](views/council-vault-files.md), [Council workflows](views/council-workflows.md), [CoWorkers](views/coworkers.md), [CoForge studio](views/studio.md)
 - **analytical-task**: [Ask the Council](views/council-ask.md), [Council task history](views/council-task-history.md)
-- **broadcast**: [Stream studio](views/broadcast.md), [Stream displays](views/broadcast-displays.md), [Stream history](views/broadcast-history.md), [Live broadcast](views/broadcast-live.md), [Stream music](views/broadcast-music.md), [OBS scenes and sources](views/broadcast-scenes.md), [Stream setup](views/broadcast-setup.md), [Guided stream setup](views/guided-setup.md), [Stream schedule](views/schedule.md), [Stream chat](views/stream.md), [Bot messages](views/stream-messages.md), [CoForge studio](views/studio.md), [Twitch channel editor](views/twitch-channel.md), [Twitch operations](views/twitch-operations.md), [Twitch action review](views/twitch-operations-action.md), [Twitch activity](views/twitch-operations-activity.md), [Twitch breaks and raid preview](views/twitch-operations-broadcast.md), [Twitch data and access](views/twitch-operations-data.md), [Twitch action history](views/twitch-operations-history.md), [Twitch dataset records](views/twitch-operations-records.md), [Private Twitch report](views/twitch-operations-report.md)
+- **broadcast**: [Stream studio](views/broadcast.md), [OBS audio](views/broadcast-audio.md), [Stream displays](views/broadcast-displays.md), [Stream history](views/broadcast-history.md), [Live broadcast](views/broadcast-live.md), [Stream music](views/broadcast-music.md), [OBS scenes and sources](views/broadcast-scenes.md), [Stream setup](views/broadcast-setup.md), [OBS show plan](views/broadcast-show.md), [OBS sources and layouts](views/broadcast-sources.md), [Guided stream setup](views/guided-setup.md), [Stream schedule](views/schedule.md), [Stream chat](views/stream.md), [Bot messages](views/stream-messages.md), [CoForge studio](views/studio.md), [Twitch channel editor](views/twitch-channel.md), [Twitch operations](views/twitch-operations.md), [Twitch action review](views/twitch-operations-action.md), [Twitch activity](views/twitch-operations-activity.md), [Twitch breaks and raid preview](views/twitch-operations-broadcast.md), [Twitch data and access](views/twitch-operations-data.md), [Twitch action history](views/twitch-operations-history.md), [Twitch dataset records](views/twitch-operations-records.md), [Private Twitch report](views/twitch-operations-report.md)
 - **community**: [Community recognition](views/community.md), [Contributor badges](views/community-badges.md), [Contributor recognition profile](views/community-profile.md), [Community settings](views/community-settings.md), [Viewers and players](views/population.md), [Public](views/public.md), [Public Twitch chat](views/public-chat.md), [Public community](views/public-community.md), [Public stream Kanban](views/public-kanban.md), [Public leaderboards](views/public-leaderboards.md), [Viewer profile](views/viewer-detail.md)
 - **community-economy**: [Economy](views/economy.md), [Command prices](views/economy-commands.md), [Presence earning](views/economy-earning.md), [Manual perk fulfillment](views/economy-fulfillment.md), [Loot boxes](views/economy-lootboxes.md), [Reward catalog](views/economy-rewards.md)
 - **cost-review**: [Agent, team and Council costs](views/ai-cost-attribution.md), [AI costs](views/ai-costs.md)
 - **finance**: [Stream finances](views/finance.md), [Finance entry](views/finance-entry.md)
 - **moderation**: [Operations](views/operations.md), [Viewers and players](views/population.md), [Chat](views/stream-channel.md), [Chat moderation](views/twitch-moderation.md), [Viewer profile](views/viewer-detail.md)
-- **multi-project**: [Request board](views/board.md), [CoWorkers](views/coworkers.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Project settings](views/settings.md), [Example content cleanup](views/settings-example-cleanup.md), [Project details](views/settings-general.md), [Request Object](views/settings-request-object.md)
+- **multi-project**: [Request board](views/board.md), [CoWorkers](views/coworkers.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Service Design](views/service-design.md), [Project settings](views/settings.md), [Example content cleanup](views/settings-example-cleanup.md), [Project details](views/settings-general.md), [Request Object](views/settings-request-object.md)
 - **public-sharing**: [Stream displays](views/broadcast-displays.md), [CoForge integration settings](views/native-settings.md), [Viewer website settings](views/native-website.md), [Public](views/public.md), [Public Twitch chat](views/public-chat.md), [Public community](views/public-community.md), [Public stream Kanban](views/public-kanban.md), [Public leaderboards](views/public-leaderboards.md), [Viewer website](views/public-website.md)
 - **recovery**: [Studio activity](views/activity.md), [Council execution controls](views/council-execution.md), [Council run monitor](views/council-monitor.md), [Council recovery tools](views/council-recovery.md), [Council task history](views/council-task-history.md), [Herdr workspace controls](views/herdr.md), [Herdr workflow recovery](views/herdr-recovery.md), [Request activity](views/idea-activity.md), [Operations](views/operations.md), [Data & examples](views/settings-data.md), [Workflow runs](views/workflow-runs.md)
 - **request-to-recognition**: [Studio activity](views/activity.md), [Request board](views/board.md), [Community recognition](views/community.md), [Contributor recognition profile](views/community-profile.md), [Council plan handoff](views/council-plan-handoff.md), [Studio guide](views/help.md), [Request activity](views/idea-activity.md), [New request](views/idea-create.md), [Request details](views/idea-detail.md), [Request increment](views/idea-increment.md), [Request overview](views/idea-overview.md), [Request plan](views/idea-plan.md), [Captured request fields](views/idea-request-values.md), [Example content cleanup](views/settings-example-cleanup.md), [Request Object](views/settings-request-object.md), [CoForge studio](views/studio.md), [Agent workflow](views/workflow.md), [Workflow runs](views/workflow-runs.md)
+- **service-design**: [Service Design](views/service-design.md)
 - **setup**: [Stream setup](views/broadcast-setup.md), [Guided stream setup](views/guided-setup.md), [Studio guide](views/help.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Ideas folder setting](views/native-vault.md), [Add project](views/project-create.md), [Projects](views/projects.md), [Project settings](views/settings.md), [Data & examples](views/settings-data.md), [Example content cleanup](views/settings-example-cleanup.md), [Project details](views/settings-general.md), [Repository & build access](views/settings-repository.md), [Local connections](views/settings-runtime.md), [Twitch settings](views/stream-connection.md), [CoForge studio](views/studio.md)
 - **stream-analysis**: [Stream history](views/broadcast-history.md), [Stream statistics](views/statistics.md)
 - **stream-planning**: [Stream schedule](views/schedule.md)
