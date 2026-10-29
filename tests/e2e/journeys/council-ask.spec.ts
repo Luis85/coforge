@@ -21,9 +21,9 @@ for (const theme of ['light', 'dark']) {
     await page.goto('/#surface=node-1');
     await expect(page.locator('html')).toHaveAttribute('data-prototype-ready', 'true');
     await page.evaluate(theme => { document.body.classList.toggle('theme-light', theme === 'light'); document.body.classList.toggle('theme-dark', theme === 'dark'); }, theme);
-    const build = page.getByRole('group', { name: 'Build navigation', exact: true });
-    await expect(build.getByRole('button').nth(0)).toHaveText(/^Idea board/);
-    await expect(build.getByRole('button').nth(1)).toHaveText('The Council');
+    const build = page.getByRole('group', { name: 'Build & Improve navigation', exact: true });
+    await expect(build.locator('.cf-nav-item').nth(0)).toHaveText(/^Idea board/);
+    await expect(build.locator('.cf-nav-item').nth(1)).toHaveText('The Council');
     await build.getByRole('button', { name: 'The Council', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Ask the Council for advice', exact: true })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Council task history', exact: true })).toBeVisible();

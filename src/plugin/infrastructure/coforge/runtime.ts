@@ -215,6 +215,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       await plugin.app.workspace.getLeaf('tab').openFile(file);
       return true;
     },
+    listVaultFiles: async () => plugin.app.vault.getFiles().map(file => file.path).sort((a, b) => a.localeCompare(b)),
     saveExport: json => saveJson('export', json),
     publishBoard: () => publisher.publishCurrent(() => studio.state(), () => studio.integration().publicFolder),
     async installPagesWorkflow() {

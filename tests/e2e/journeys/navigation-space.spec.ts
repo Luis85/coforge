@@ -25,7 +25,13 @@ for (const theme of ['light', 'dark']) test(`project navigation stays readable w
   for (const label of ['Idea board', 'The Council', 'Agent workflow', 'Project settings']) {
     await sidebar.getByRole('button', { name: label === 'Idea board' ? /^Idea board/ : label, exact: label !== 'Idea board' }).first().click();
     await expect(page.locator('.cf-project-work-context')).toHaveCount(0);
+    await expect(page.locator('.cf-board-decisions')).toHaveCount(0);
     await expect(sidebar.locator('.cf-project-selector-id')).toContainText('CFP-001');
+    if (label === 'Idea board') {
+      await expect(page.getByRole('tab', { name: /^Needs review/ })).toBeVisible();
+      await expect(page.getByRole('tab', { name: /^Flagged/ })).toBeVisible();
+      await page.locator('.cf-board-page').screenshot({ path: `reports/navigation-space/board-${theme}.png` });
+    }
   }
   await host.evaluate(element => { element.style.height = '460px'; });
   await studio.evaluate(element => { element.style.height = '460px'; });

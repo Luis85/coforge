@@ -5,7 +5,7 @@ goal: "Maintain the recurring messages sent while live."
 audience: "streamer"
 kind: "subpage"
 route: "studio.streamTool = messages"
-parent: "stream"
+parent: "[[docs/components/views/stream]]"
 component: "src/plugin/presentation/components/coforge/StreamMessagesView.vue"
 entry: ["Open Stream chat, then choose Bot messages."]
 actions: ["Create or edit","Set interval","Pause or activate","Delete"]

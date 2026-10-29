@@ -1,36 +1,3 @@
-/* Project decisions lead the work surface; project identity stays in navigation. */
-.cf-board-decisions {
-  margin-bottom: var(--cf-space-lg);
-  padding: var(--cf-space-lg);
-  background: var(--cf-surface);
-  border-radius: var(--cf-section-radius, 12px);
-}
-.cf-board-decision-intro h2 { font-size: 20px; letter-spacing: -0.02em; }
-.cf-studio .cf-board-decision-intro p { margin-top: var(--cf-space-xs); color: var(--cf-muted); font-size: 12px; line-height: 1.65; }
-.cf-board-decision-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cf-space-md); margin-top: var(--cf-space-md); }
-.cf-board-decision-actions > :is(button, div) {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-content: start;
-  align-items: center;
-  gap: var(--cf-space-xs) var(--cf-space-sm);
-  padding: var(--cf-space-sm) 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  text-align: start;
-  white-space: normal;
-  height: auto;
-  color: var(--cf-text);
-}
-.cf-board-decision-actions strong { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
-.cf-board-decision-actions > :is(button, div) > span:not(.cf-icon) { grid-column: 1 / -1; font-size: 12px; line-height: 1.6; }
-.cf-board-decision-actions > button > .cf-icon:last-child { grid-column: 3; grid-row: 1; justify-self: end; }
-.cf-board-decision-actions .cf-icon { color: var(--cf-muted); }
-.cf-board-decision-actions .has-work strong,
-.cf-board-decision-actions .has-work > .cf-icon:first-child { color: var(--text-accent); }
-.cf-board-decision-actions button:hover { color: var(--text-accent); text-decoration: underline; text-underline-offset: 4px; }
-.cf-board-decisions ~ .cf-board-toolbar { margin-top: 0; }
 .cf-studio .cf-board-tabs { gap: var(--cf-space-lg); }
 .cf-studio .cf-board-tabs button { min-height: 42px; font-size: 12px; }
 .cf-kanban-column { min-width: 0; }
@@ -136,19 +103,10 @@
 .cf-settings-data { padding: var(--cf-space-lg); background: var(--cf-surface); border: 0; border-radius: var(--cf-section-radius, 12px); }
 
 @container plugin-shell-leaf (max-width: 900px) {
-  .cf-board-decision-actions { gap: var(--cf-space-sm); }
-  .cf-board-decision-actions strong { font-size: 26px; }
   .cf-council-editor-layout { grid-template-columns: minmax(0, 1fr); }
   .cf-workflow-mode-tag { margin-left: 0; }
 }
 @container plugin-shell-leaf (max-width: 600px) {
-  .cf-board-decisions { padding: var(--cf-space-md); }
-  .cf-board-decision-intro h2 { font-size: 18px; }
-  .cf-board-decision-actions { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .cf-board-decision-actions > :is(button, div) { grid-template-columns: auto 42px minmax(0, 1fr) auto; padding-block: var(--cf-space-sm); border-bottom: 1px solid var(--cf-border); }
-  .cf-board-decision-actions > :is(button, div) > span:not(.cf-icon) { grid-column: auto; }
-  .cf-board-decision-actions > button > .cf-icon:last-child { grid-column: 4; }
-  .cf-board-decision-actions strong { font-size: 24px; }
   .cf-project-row-title h2 { font-size: 20px; }
   .cf-project-create, .cf-workflow-transfer { padding: var(--cf-space-md); }
   .cf-configured-run-heading h2 { font-size: 22px; }

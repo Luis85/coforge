@@ -5,7 +5,7 @@ goal: "Inspect the archived record for a completed or active stream."
 audience: "streamer"
 kind: "subpage"
 route: "studio.broadcastTool = history"
-parent: "broadcast"
+parent: "[[docs/components/views/broadcast]]"
 component: "src/plugin/presentation/components/coforge/StreamHistoryPanel.vue"
 entry: ["Open Stream studio, then choose History."]
 actions: ["Choose saved stream","Refresh stream history","Export stream JSON","Open Stream statistics"]

@@ -5,7 +5,7 @@ goal: "Configure categories, class and optional properties captured by new reque
 audience: "streamer"
 kind: "panel"
 route: "Project settings / Request Object"
-parent: "settings"
+parent: "[[docs/components/views/settings]]"
 component: "src/plugin/presentation/components/coforge/SettingsRequestObjectSection.vue"
 entry: ["Open Project settings and review Request Object."]
 actions: ["Maintain project categories","Set class label","Add or remove fields","Choose field types and defaults","Reorder fields","Save or discard project settings"]

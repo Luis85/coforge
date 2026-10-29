@@ -5,7 +5,7 @@ goal: "Resolve the uncertain outcome of a managed workflow attempt."
 audience: "streamer"
 kind: "panel"
 route: "pending Herdr workflow attempt"
-parent: "workflow-runs"
+parent: "[[docs/components/views/workflow-runs]]"
 component: "src/plugin/presentation/components/coforge/HerdrWorkflowRecovery.vue"
 entry: ["Within Agent workflow → Workflow runs, inspect the pending Herdr attempt recovery panel."]
 actions: ["Refresh correlated result","Inspect attempt","Acknowledge recovery"]

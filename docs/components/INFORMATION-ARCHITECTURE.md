@@ -9,19 +9,19 @@ channel, audience, ledger or recorded broadcasts.
 
 | Family | Destinations, in working order | Data scope |
 | --- | --- | --- |
+| Build & Improve | [Idea board](views/board.md), [The Council](views/council.md), [CoWorkers](views/coworkers.md), [Agent workflow](views/workflow.md), [Project settings](views/settings.md) | Selected project; reusable CoWorkers and definition folders belong to the vault. |
 | Stream | [Stream studio](views/broadcast.md), [Schedule](views/schedule.md), [Stream chat](views/stream.md) | Shared channel; scheduling can attribute a stream to a project. |
-| Build | [Idea board](views/board.md), [The Council](views/council.md), [Agent workflow](views/workflow.md), [Project settings](views/settings.md) | Selected project; reusable Council agents and definition folders belong to the vault. |
 | Community | [Community](views/community.md), [Viewers](views/population.md), [Economy](views/economy.md), [Community settings](views/community-settings.md) | Shared channel recognition, observed viewers, currency prices and participation rules. |
 | Insights | [Statistics](views/statistics.md), [AI costs](views/ai-costs.md), [Finances](views/finance.md), [Operations](views/operations.md) | Recorded channel evidence; AI costs spans vault projects and has its own project filter. |
 
 [Projects](views/projects.md) is the project switcher's destination. The switcher
 remains visible while working with shared channel tools. It identifies the project
-used when the streamer returns to Build; it never implies that shared data is
+used when the streamer returns to Build & Improve; it never implies that shared data is
 filtered. [Studio guide](views/help.md) remains a persistent help action.
 
 The top bar names the current data scope: the selected project and stable project
 ID for project work, Channel workspace for shared channel tools, and Vault
-workspace for Projects, The Council and AI costs. Council's reusable agents and
+workspace for Projects, CoWorkers, The Council and AI costs. Reusable CoWorkers and
 cross-project run filters are vault-wide; teams and submissions still name their
 selected project. Provider configuration appears for project
 work, where it can affect dispatch. Filters within a page remain visible and own
@@ -42,7 +42,7 @@ Subpages keep focused tasks together without expanding the global navigation:
 - Economy: Command prices, Earning, Rewards, Loot boxes and Fulfillment.
 - The Council opens on Ask the Council: a question intake and retained task
   history. Advanced Council tools contains Definitions, Submit existing note,
-  Watched inboxes, Task scheduler, Run monitor, Council workflows, Team messages and Definition
+  Watched inboxes, Task scheduler, Event triggers, Run monitor, Council workflows, Team messages and Definition
   folders.
 - Request details: Overview, Plan, Increment and Activity.
 

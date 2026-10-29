@@ -5,7 +5,7 @@ goal: "Record or correct a single payment or recurring commitment."
 audience: "streamer"
 kind: "panel"
 route: "finance selected entry or new draft"
-parent: "finance"
+parent: "[[docs/components/views/finance]]"
 component: "src/plugin/presentation/components/coforge/FinanceEntryForm.vue"
 entry: ["Within Finances, use the entry form or choose Edit beside an existing entry."]
 actions: ["Choose kind","Enter amount, date and category","Choose optional stream","Set recurrence","Save","Start new entry"]

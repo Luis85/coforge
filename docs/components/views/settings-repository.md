@@ -5,7 +5,7 @@ goal: "Set the repository boundary used by agent work."
 audience: "streamer"
 kind: "panel"
 route: "Project settings / repository"
-parent: "settings"
+parent: "[[docs/components/views/settings]]"
 component: "src/plugin/presentation/components/coforge/SettingsRepositorySection.vue"
 entry: ["Within Project settings, edit the Agent workspace fields."]
 actions: ["Edit workspace and repository fields","Review implementation authorization","Save project settings"]

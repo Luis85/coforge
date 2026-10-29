@@ -5,7 +5,7 @@ goal: "Assess the proposed implementation before building."
 audience: "streamer"
 kind: "subpage"
 route: "studio.drawerTab = plan"
-parent: "idea-detail"
+parent: "[[docs/components/views/idea-detail]]"
 component: "src/plugin/presentation/components/coforge/IdeaPlanTab.vue"
 entry: ["Open a request’s details, then choose Plan."]
 actions: ["Read plan and steps","Run eligible plan or build action"]

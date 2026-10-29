@@ -65,7 +65,7 @@ export function resetCouncilExample() {
     allowanceScope: "",
     allowanceReason: "",
   });
-  useCouncilEditorStore().$patch({
+  for (const scope of ['council', 'coworkers'] as const) useCouncilEditorStore(scope).$patch({
     draft: null,
     revision: undefined,
     projectId: "",

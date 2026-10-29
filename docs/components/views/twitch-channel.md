@@ -5,7 +5,7 @@ goal: "Save the metadata viewers will see on Twitch."
 audience: "streamer"
 kind: "panel"
 route: "Stream chat / Twitch settings / channel metadata"
-parent: "stream-connection"
+parent: "[[docs/components/views/stream-connection]]"
 component: "src/plugin/presentation/components/coforge/TwitchChannelEditor.vue"
 entry: ["Within Stream chat → Twitch settings, use the channel metadata editor."]
 actions: ["Edit title, category, tags and language","Save","Open Twitch branding"]

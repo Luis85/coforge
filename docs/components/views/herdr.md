@@ -5,7 +5,7 @@ goal: "Dispatch an explicitly reviewed request to a verified ready agent."
 audience: "streamer"
 kind: "subpage"
 route: "studio.workflowTool = herdr"
-parent: "workflow"
+parent: "[[docs/components/views/workflow]]"
 component: "src/plugin/presentation/components/coforge/HerdrPanel.vue"
 entry: ["Open Agent workflow, then choose Herdr workspaces."]
 actions: ["Refresh identities","Manage native agents","Review dispatch","Send","Acknowledge recovery"]

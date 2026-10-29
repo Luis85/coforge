@@ -5,7 +5,7 @@ goal: "Connect streamer and bot accounts with required permissions."
 audience: "streamer"
 kind: "panel"
 route: "native settings / Twitch"
-parent: "native-settings"
+parent: "[[docs/components/views/native-settings]]"
 component: "src/plugin/presentation/components/coforge/PluginSettingsTwitch.vue"
 entry: ["Within Obsidian Settings → Community plugins → CoForge, use the Twitch section."]
 actions: ["Configure app and channel","Authorize accounts","Inspect scopes","Configure replies","Save"]

@@ -5,7 +5,7 @@ goal: "Set fees and success benefits for every supported stream command."
 audience: "streamer"
 kind: "subpage"
 route: "economy.page = commands"
-parent: "economy"
+parent: "[[docs/components/views/economy]]"
 component: "src/plugin/presentation/components/coforge/EconomyCommands.vue"
 entry: ["Choose Command prices inside Economy."]
 actions: ["Select a command", "Set fee and virtual benefits", "Assign bonus rewards and boxes", "Inspect captured usage"]

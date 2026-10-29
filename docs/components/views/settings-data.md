@@ -5,7 +5,7 @@ goal: "Export a private studio backup or explicitly replace this project’s req
 audience: "streamer"
 kind: "panel"
 route: "Project settings / data tools"
-parent: "settings"
+parent: "[[docs/components/views/settings]]"
 component: "src/plugin/presentation/components/coforge/SettingsDataSection.vue"
 entry: ["Within Project settings, use Backup and sample tools."]
 actions: ["Export private JSON backup","Request sample replacement","Keep data or confirm replacement"]

@@ -2,6 +2,7 @@
 import { useCouncilModel } from "../../composables/coforge/use-council";
 import CouncilSubmission from "./CouncilSubmission.vue";
 import CouncilExecutionControls from "./CouncilExecutionControls.vue";
+import VaultFilePicker from './VaultFilePicker.vue';
 const model = useCouncilModel();
 </script>
 <template>
@@ -99,6 +100,7 @@ const model = useCouncilModel();
               placeholder="Explain the situation, constraints and the advice or opinions you need."
             />
           </label>
+          <VaultFilePicker v-model="model.store.taskQuestion" :list-files="model.listVaultFiles" />
           <div class="cf-council-fields">
             <label class="cf-field"
               ><span>Project team</span

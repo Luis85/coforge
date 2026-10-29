@@ -75,6 +75,8 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  /** Relative vault file names for explicit link authoring; never returns file contents. */
+  listVaultFiles?(): Promise<string[]>;
   workflowTriggers?: import('./workflow-trigger-ports').WorkflowTriggerActions;
   taskScheduler?: import('./task-scheduler-ports').TaskSchedulerActions;
   previewTaskScheduler?(): import('./task-scheduler-ports').TaskSchedulerActions;

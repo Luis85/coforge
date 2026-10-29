@@ -5,7 +5,7 @@ goal: "Respond to viewers through the connected Twitch channel."
 audience: "streamer"
 kind: "subpage"
 route: "studio.streamTool = channel"
-parent: "stream"
+parent: "[[docs/components/views/stream]]"
 component: "src/plugin/presentation/components/coforge/ChatPanel.vue"
 entry: ["Open Stream chat, then choose Chat."]
 actions: ["Send chat","Enable explicit local test","Moderate message","Read viewer commands"]

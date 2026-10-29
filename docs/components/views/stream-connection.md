@@ -5,7 +5,7 @@ goal: "Connect Twitch and inspect channel readiness."
 audience: "streamer"
 kind: "subpage"
 route: "studio.streamTool = connection"
-parent: "stream"
+parent: "[[docs/components/views/stream]]"
 component: "src/plugin/presentation/components/coforge/TwitchChannelControls.vue"
 entry: ["Open Stream chat, then choose Twitch settings."]
 actions: ["Edit connection settings","Connect or reconnect streamer and chatbot","Save Twitch connection","Reconnect","Update channel metadata","Inspect bot delivery needs attention"]

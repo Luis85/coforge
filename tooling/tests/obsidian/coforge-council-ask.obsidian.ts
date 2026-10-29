@@ -51,6 +51,12 @@ describe('Ask the Council in the contained host', () => {
     await intake.getByLabel('Task title', { exact: true }).fill('Council architecture advice');
     const question = 'Compare two approaches.\n\nPreserve this **human question** and identify open gaps.';
     await intake.getByLabel('Your question or task', { exact: true }).fill(question);
+    await obsidian.eval(async ({ app }) => { await app.vault.create('Council context.md', '# Context\nKeep these bytes.\n'); });
+    await intake.getByText('Add vault files', { exact: true }).click();
+    await intake.getByRole('searchbox', { name: 'Search vault files', exact: true }).fill('Council context');
+    await intake.getByRole('checkbox', { name: 'Council context.md', exact: true }).check();
+    await intake.getByRole('button', { name: 'Add 1 wikilink to input', exact: true }).click();
+    await browserExpect(intake.getByLabel('Your question or task', { exact: true })).toHaveValue(`${question}\n\n- [[Council context]]`);
     await intake.getByRole('combobox', { name: 'Project team', exact: true }).selectOption('native-advice-team');
     await intake.getByRole('combobox', { name: 'Council', exact: true }).selectOption('native-advice');
     await intake.getByRole('button', { name: 'Save task and review', exact: true }).click();
@@ -63,6 +69,7 @@ describe('Ask the Council in the contained host', () => {
       return { path: files[0]!.path, text: await app.vault.read(files[0]!) };
     });
     expect(saved.text).toContain(question);
+    expect(saved.text).toContain('- [[Council context]]');
     expect(saved.text).toContain('coforge_task:');
     await view.getByRole('button', { name: 'Use this desktop for execution', exact: true }).click();
     await view.getByRole('button', { name: 'Queue simulation', exact: true }).click();

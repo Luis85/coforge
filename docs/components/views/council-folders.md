@@ -5,7 +5,7 @@ goal: "Save the vault folders used for Council definitions."
 audience: "streamer"
 kind: "subpage"
 route: "council.tab = folders"
-parent: "council"
+parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/CouncilFolderSettings.vue"
 entry: ["Open The Council, expand Advanced Council tools, then choose Definition folders."]
 actions: ["Review mappings","Edit folders","Save mapping"]

@@ -5,7 +5,7 @@ goal: "Configure the local CLI used by agent execution."
 audience: "streamer"
 kind: "panel"
 route: "native settings / Claude Code"
-parent: "native-settings"
+parent: "[[docs/components/views/native-settings]]"
 component: "src/plugin/presentation/components/coforge/PluginSettingsClaude.vue"
 entry: ["Within Obsidian Settings → Community plugins → CoForge, use the Claude Code section."]
 actions: ["Edit executable settings","Save integration settings","Check Claude Code"]

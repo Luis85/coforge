@@ -37,22 +37,23 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
     await browserExpect(
       view.locator(".cf-council-definition-list"),
     ).toContainText("Studio team");
+    await view.getByRole('button', { name: 'CoWorkers', exact: true }).click();
     await view
-      .getByRole("button", { name: "Create agent", exact: true })
+      .getByRole("button", { name: "Create CoWorker", exact: true })
       .click();
     await view
       .getByLabel("Definition name", { exact: true })
       .fill("Native reviewer");
     await view.getByLabel("Role", { exact: true }).fill("Architecture review");
     await view
-      .getByLabel("Agent instructions", { exact: true })
+      .getByLabel("CoWorker instructions", { exact: true })
       .fill("Inspect boundaries.");
     await view.getByLabel("Available for new runs", { exact: true }).check();
     await view
-      .getByRole("button", { name: "Save definition", exact: true })
+      .getByRole("button", { name: "Save CoWorker", exact: true })
       .click();
     await browserExpect(
-      view.locator(".cf-council-definition-list"),
+      view.locator(".cf-coworker-cards"),
     ).toContainText("Native reviewer");
     const renamedPath = "CoForge/Agents/Native renamed.md";
     await obsidian.eval(async ({ app }, destination) => {
@@ -74,20 +75,20 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
       await app.vault.rename(file, destination);
     }, renamedPath);
     await view
-      .getByRole("button", { name: "Refresh definitions", exact: true })
+      .getByRole("button", { name: "Refresh", exact: true })
       .click();
     await view
-      .locator(".cf-council-definition-list")
-      .getByRole("button", { name: /^Native reviewer/ })
+      .locator(".cf-coworker-cards")
+      .getByRole("button", { name: /^Edit Native reviewer/ })
       .click();
     await browserExpect(
-      view.getByLabel("Agent instructions", { exact: true }),
+      view.getByLabel("CoWorker instructions", { exact: true }),
     ).toHaveValue("Inspect external boundaries.");
     await view
-      .getByLabel("Agent instructions", { exact: true })
+      .getByLabel("CoWorker instructions", { exact: true })
       .fill("Inspect final boundaries.");
     await view
-      .getByRole("button", { name: "Save definition", exact: true })
+      .getByRole("button", { name: "Save CoWorker", exact: true })
       .click();
     await browserExpect(
       view
@@ -101,6 +102,8 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
     expect(agentNote).toContain('custom: "preserve exact" # human metadata\n');
     expect(agentNote).toContain("\r\n## Human notes\r\nRetain this text.");
     expect(agentNote).toContain("Inspect final boundaries.");
+    await view.getByRole('button', { name: 'The Council', exact: true }).click();
+    await openCouncilPage(view, 'Definitions');
     await view
       .locator(".cf-council-definition-list")
       .getByRole("button", { name: /^Studio team/ })
@@ -131,7 +134,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
       .getByRole("combobox", { name: "Project team", exact: true })
       .selectOption({ label: "Studio team" });
     await view
-      .getByRole("combobox", { name: "Agent or council", exact: true })
+      .getByRole("combobox", { name: "CoWorker or council", exact: true })
       .selectOption({ label: "Native reviewer · agent" });
     await view
       .getByLabel("Private source note", { exact: true })

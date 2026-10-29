@@ -5,7 +5,7 @@ goal: "Accept or reject the actual implementation changes."
 audience: "streamer"
 kind: "subpage"
 route: "studio.drawerTab = increment"
-parent: "idea-detail"
+parent: "[[docs/components/views/idea-detail]]"
 component: "src/plugin/presentation/components/coforge/IdeaIncrementTab.vue"
 entry: ["Open a request’s details, then choose Increment."]
 actions: ["Inspect increment and diff","Accept or reject"]

@@ -289,7 +289,7 @@ for (const [step, label] of [
   });
 }
 
-test("task navigation leads with stream work and keeps settings reachable in a short pane", async ({
+test("task navigation leads with Build & Improve and keeps settings reachable in a short pane", async ({
   page,
 }) => {
   await page.goto("/#surface=node-1");
@@ -309,8 +309,8 @@ test("task navigation leads with stream work and keeps settings reachable in a s
           .getBoundingClientRect().top - el.getBoundingClientRect().bottom,
     ),
   ).toBeLessThanOrEqual(2);
-  await expect(navigation.getByRole("button").first()).toHaveText("Stream studio");
-  for (const label of ["Stream", "Build", "Community", "Insights"])
+  await expect(navigation.locator('.cf-nav-item').first()).toHaveText(/^Idea board/);
+  for (const label of ["Build & Improve", "Stream", "Community", "Insights"])
     await expect(
       navigation.getByRole("group", {
         name: `${label} navigation`,
@@ -343,8 +343,9 @@ test("task navigation leads with stream work and keeps settings reachable in a s
   for (let index = 0; index < 4; index++)
     await expect(captions.nth(index)).toBeHidden();
   await expect(navigation.getByRole("button").first()).toHaveAccessibleName(
-    "Stream studio",
+    "Collapse Build & Improve",
   );
+  await expect(navigation.locator('.cf-nav-item').first()).toHaveAccessibleName(/^Idea board/);
 });
 
 test("an empty viewer directory gives a working path to connect chat", async ({

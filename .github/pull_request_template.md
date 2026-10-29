@@ -1,32 +1,37 @@
 ## Summary
 
-Expanded studio navigation is 240px wide instead of shrinking to 181px in intermediate leaves. Navigation uses a scoped 32px control-size token and compact spacing in short panes, keeping complete labels and destinations visible at a 740px desktop leaf height. Smaller panes retain reachable scrolling.
+CoWorkers now has a dedicated vault-wide inventory under Build & Improve, with role/name/ID search, availability filtering, retained drafts, create/edit/save, duplicate, archive, canonical-note access and dependency information. Council Definitions focuses on project teams and councils and links to CoWorkers. Existing agent/v1 identities, memberships, captured revisions and the enforced CoForge MCP-only policy remain compatible.
 
-Remove the repeated project-work-context banner from Board, Council, Workflow and Project settings. Project name/ID and private visibility remain in the sidebar switcher, and dirty-draft navigation remains guarded. Remove the unused banner component/composable/styles and update the affected privacy/layout assertions and design guidance.
+Build & Improve comes before Stream, Community and Insights. Each group has an accessible collapse control and restores its state from CoForge localStorage, including a safe fallback for malformed or unavailable storage. The normal 740px desktop navigation still fits without unnecessary scrolling.
+
+Remove the board decision-summary section and its unused component/helper/styles; review and moderation remain in the filter tabs. Ask the Council gains a searchable vault file picker that appends a deduplicated wikilink list without replacing input, reading file contents or submitting work.
+
+Review all 90 view contracts: parent properties are clickable vault links, generated tools receive stable parent IDs, route ownership is checked against the source navigation contract, and stale Council/project-band documentation is corrected. Initial Council reads wait for an idle, ready runtime so startup cannot silently skip history refresh.
 
 ## Requirements and traceability
 
-- Owner requests, 2026-10-29, recorded in BRIEF.md and DESIGN.md.
-- Task: docs/project-tasks/2026-10-29-navigation-space.md.
-- Generated req-* / vi-* obligations unchanged. View catalogue/sitemap regenerated; 88 view contracts remain covered.
-- No user vault data or backups are part of this PR.
+- Owner requests dated 2026-10-29 in BRIEF.md and DESIGN.md.
+- Task: docs/project-tasks/2026-10-29-workspace-management.md.
+- Imported requirement/vi-* catalogue has no outstanding obligation for these owner corrections; generated traceability is unchanged.
+- No user vault notes, settings, jobs or cleanup backups are included.
 
 ## Validation
 
-- Regression first reproduced the narrow navigation width. The final geometry test explicitly fixes the studio to 740px height, exercises the long disconnected status, checks single-line labels, all destinations without overflow, and reachable scrolling at 460px.
-- Targeted browser layout, keyboard focus and private-project/capture tests: 8 passed, both themes.
-- General UI quality: 8 passed (WCAG, reflow and keyboard reachability).
-- Native Obsidian: 3 files / 4 tests passed, including both navigation themes, private-project publication and lifecycle.
-- Unit tests: 2 files / 5 tests passed; typecheck passed.
-- Impeccable detector: [] findings. Source limits/locale parity, view catalogue and git diff --check passed; self-review clean.
-- npm run verify:project: exit 0; check summary: 5 passed, 0 failed, 0 skipped; artifact build and prototype embedding: 1 passed. UI-effect generator reports no declared visual definitions.
-- npm run ui:gallery: captured 40 screenshots; reviewed desktop dark and mobile light plus the focused short-pane screenshots in both themes.
-- npm run -s dev:obsidian -- --json: status passed, view opened, errors [], hostErrorCount 0, pluginConsole []. Pinned Windows app/installer 1.14.4, launcher 3.2.1.
+- Regression failures reproduced for board removal, collapse persistence, parent ownership and deferred initial reads; corresponding focused tests pass.
+- Core editor/catalogue tests: 6 files, 19 passed. Navigation groups: 5 passed. Final readiness/file-picker checks: 4 passed.
+- Browser layout, Council intake, CoWorker flows and UI quality: 14 passed. Corrected light/dark theme restoration after reload: 2 passed. Complete Council example flows on the pinned runtime: 2 passed.
+- Native canonical note editing/rename and human-byte preservation, card menus and lifecycle passed. After the runtime-readiness fix, initialization/history passed (1 test) and persisted navigation/reload passed in both themes (2 tests).
+- Fresh native smoke: status passed, view opened, errors [], hostErrorCount 0; app/installer 1.14.4, launcher 3.2.1.
+- Source limits/locale parity and source lint passed. All 90 view contracts validate; git diff --check and self-review are clean.
+- npm run verify:project: exit 0; 5 passed, 0 failed, 0 skipped; artifact build and prototype embedding passed. The UI-effects generator reports no declared visual definitions. Verification uses Node 24.21.0 and npm 11.19.1.
+- Full native CI: 22 files / 29 tests passed. Final browser CI is rerunning after aligning the narrow-pane accessibility assertion with the owner-requested group order and collapse controls.
 
-## UI and native evidence
+## UI evidence
 
-reports/navigation-space/sidebar-{light,dark}-{980,1280}.png, reports/obsidian/cases/, and reports/ui-gallery/. No screenshot baseline changed. CI e2e checks qualify the complete browser/native suite.
+Reviewed desktop/mobile CoWorker captures in both themes, reports/navigation-space/, and the 40-screenshot reports/ui-gallery/. Browser checks cover WCAG 2.1 A/AA, keyboard operation and reflow. No screenshot baseline or test threshold changed.
+
+Local browser runs used a freshly built clickdummy.html served by an ignored loopback helper after Windows hit preview startup timeouts. CI retains the standard build-and-test commands.
 
 ## Untested scope
 
-No live external services/model sessions were invoked. User project/agent data is excluded from source changes. The navigation may scroll in genuinely short panes or enlarged text settings; controls stay accessible.
+No live provider/model or external-service sessions were invoked. Existing canonical wire schemas and storage locations are preserved. Final full/native qualification and green CI gate merging and local installation.

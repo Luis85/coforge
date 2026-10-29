@@ -28,7 +28,7 @@ const model = useCouncilModel();
     <label v-if="model.store.tab === 'inboxes'" class="cf-field"
       ><span>Inbox destination type</span
       ><select v-model="model.store.inboxKind">
-        <option value="agent-council">Agent or council</option>
+        <option value="agent-council">CoWorker or council</option>
         <option value="workflow">Project proposal workflow</option>
         <option value="team">Team information board</option>
       </select></label
@@ -52,7 +52,7 @@ const model = useCouncilModel();
           model.store.inboxKind === 'agent-council'
         "
         class="cf-field"
-        ><span>Agent or council</span
+        ><span>CoWorker or council</span
         ><select v-model="model.store.target">
           <option value="">Select destination</option>
           <option
@@ -115,7 +115,7 @@ const model = useCouncilModel();
           {{ taskIntake ? "Submit reviewed task" : "Submit captured note" }}
         </button>
       </div>
-      <p v-if="taskIntake && model.ask.simulationPreview" class="cf-settings-help">This council includes simulation agents. Use the explicit test destination below to queue marked test output; these agents cannot submit a real run.</p>
+      <p v-if="taskIntake && model.ask.simulationPreview" class="cf-settings-help">This council includes simulation CoWorkers. Use the explicit test destination below to queue marked test output; these CoWorkers cannot submit a real run.</p>
       <section v-if="model.store.preview" aria-label="Invocation preview">
         <h3>
           {{ model.store.preview.plan.definition.name }} ·

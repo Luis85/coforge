@@ -90,7 +90,7 @@ for (const theme of ["light", "dark"]) {
       .getByRole("combobox", { name: "Project team", exact: true })
       .selectOption({ label: "Example studio team" });
     await page
-      .getByRole("combobox", { name: "Agent or council", exact: true })
+      .getByRole("combobox", { name: "CoWorker or council", exact: true })
       .selectOption({ label: "Example design council · council" });
     await page
       .getByLabel("Private source note", { exact: true })
@@ -187,24 +187,27 @@ test("creates three specialists, a team and a six-invocation council entirely th
     "UI quality reviewer",
   ];
   for (const name of specialists) {
+    await page.getByRole('button', { name: 'CoWorkers', exact: true }).click();
     await page
-      .getByRole("button", { name: "Create agent", exact: true })
+      .getByRole("button", { name: "Create CoWorker", exact: true })
       .click();
     await page.getByLabel("Definition name", { exact: true }).fill(name);
     await page.getByLabel("Role", { exact: true }).fill(name);
     await page
-      .getByLabel("Agent instructions", { exact: true })
+      .getByLabel("CoWorker instructions", { exact: true })
       .fill(
         `Analyze the proposal as ${name}. State assumptions and tradeoffs.`,
       );
     await page.getByLabel("Available for new runs", { exact: true }).check();
     await page
-      .getByRole("button", { name: "Save definition", exact: true })
+      .getByRole("button", { name: "Save CoWorker", exact: true })
       .click();
-    await expect(page.locator(".cf-council-definition-list")).toContainText(
+    await expect(page.locator(".cf-coworker-cards")).toContainText(
       name,
     );
   }
+  await page.getByRole('button', { name: 'The Council', exact: true }).click();
+  await openCouncilPage(page, 'Definitions');
   await page.getByRole("button", { name: "Create team", exact: true }).click();
   await page
     .getByLabel("Definition name", { exact: true })
@@ -249,7 +252,7 @@ test("creates three specialists, a team and a six-invocation council entirely th
     .getByRole("combobox", { name: "Project team", exact: true })
     .selectOption({ label: "UI-only team" });
   await page
-    .getByRole("combobox", { name: "Agent or council", exact: true })
+    .getByRole("combobox", { name: "CoWorker or council", exact: true })
     .selectOption({ label: "UI-only council · council" });
   await page
     .getByLabel("Private source note", { exact: true })

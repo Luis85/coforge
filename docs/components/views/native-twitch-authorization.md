@@ -5,7 +5,7 @@ goal: "Grant the selected account’s required Twitch permissions."
 audience: "streamer"
 kind: "panel"
 route: "Twitch account authorization flow"
-parent: "native-twitch"
+parent: "[[docs/components/views/native-twitch]]"
 component: "src/plugin/presentation/components/coforge/TwitchAuthorization.vue"
 entry: ["Within native CoForge Twitch settings, or Stream chat → Twitch settings, use the streamer or chatbot connection controls."]
 actions: ["Connect or reconnect streamer","Connect or reconnect chatbot","Open Twitch authorization","Cancel authorization"]

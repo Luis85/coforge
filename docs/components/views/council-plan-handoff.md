@@ -5,7 +5,7 @@ goal: "Continue a validated Council plan in an existing request's project workfl
 audience: "streamer"
 kind: "panel"
 route: "council.inspectedRun completed / Continue a validated plan in the project workflow"
-parent: "council-monitor"
+parent: "[[docs/components/views/council-monitor]]"
 component: "src/plugin/presentation/components/coforge/CouncilRecoveryTools.vue"
 entry: ["Within The Council → Run monitor, inspect a completed run with a typed plan and expand Continue a validated plan in the project workflow."]
 actions: ["Select validated plan artifact","Select existing project request","Hand selected plan to project workflow"]

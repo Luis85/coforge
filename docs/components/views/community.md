@@ -5,7 +5,7 @@ goal: "Understand who contributed to accepted progress."
 audience: "streamer"
 kind: "page"
 route: "studio.view = community"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/CommunityView.vue"
 entry: ["Choose Community in the studio navigation."]
 actions: ["Select contributor","Inspect badges","Review accepted releases"]

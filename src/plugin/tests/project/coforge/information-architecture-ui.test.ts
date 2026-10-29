@@ -5,7 +5,7 @@ import StudioSidebar from "../../../presentation/components/coforge/StudioSideba
 import StudioTopbar from "../../../presentation/components/coforge/StudioTopbar.vue";
 import { workflowUiFixture } from "./workflow-ui-fixture";
 
-it("leads with stream work and keeps configuration beside its owning journey", async () => {
+it("leads with Build & Improve and keeps configuration beside its owning journey", async () => {
   const fixture = await workflowUiFixture();
   const wrapper = mount(StudioSidebar, {
     global: {
@@ -16,13 +16,13 @@ it("leads with stream work and keeps configuration beside its owning journey", a
   try {
     const groups = wrapper.findAll('.cf-nav-group[role="group"]');
     expect(groups.map((group) => group.attributes("aria-label"))).toEqual([
+      "Build & Improve navigation",
       "Stream navigation",
-      "Build navigation",
       "Community navigation",
       "Insights navigation",
     ]);
-    expect(groups[1]?.text()).toContain("Project settings");
-    expect(groups[1]?.findAll('button').map(button => button.text().trim()).slice(0, 3)).toEqual([expect.stringContaining('Idea board'), 'The Council', 'Agent workflow']);
+    expect(groups[0]?.text()).toContain("Project settings");
+    expect(groups[0]?.findAll('.cf-nav-item').map(button => button.text().trim()).slice(0, 2)).toEqual([expect.stringContaining('Idea board'), 'The Council']);
     expect(groups[2]?.text()).toContain("Community settings");
     expect(wrapper.find(".cf-sidebar-bottom").text()).not.toContain(
       "Project settings",

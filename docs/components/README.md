@@ -1,7 +1,7 @@
 # Views and navigation
 
-The [information architecture](INFORMATION-ARCHITECTURE.md) explains the Stream,
-Build, Community and Insights task families, project versus channel scope, and
+The [information architecture](INFORMATION-ARCHITECTURE.md) explains the
+Build & Improve, Stream, Community and Insights task families, project versus channel scope, and
 the boundary between global destinations and focused local tasks.
 
 The [generated sitemap](sitemap.md) describes every shipped product destination,
@@ -27,7 +27,9 @@ four separately documented public captures.
 ## Updating a view
 
 1. Edit its one file under `views/`; keep `id` and filename equal.
-2. Set `parent` to another documented ID, or `null` for an independent entry.
+2. Set `parent` to a quoted vault link such as `"[[docs/components/views/studio]]"`,
+   or `null` for an independent entry. The reader normalizes links to stable IDs
+   for the generated sitemap and checks route ownership against source contracts.
 3. Link the actual `component`; describe the goal and observable completion.
 4. Preserve a `coverage` mapping for each root route or local navigation state.
    When one view has both a local state and a compatibility locator, use an array
@@ -59,7 +61,7 @@ contract fails rather than silently reducing coverage.
 | `audience` | Private streamer or public viewer/capture audience. |
 | `kind` | `shell`, `page`, `subpage`, `panel`, `dialog`, `native` or `public`. |
 | `route` | Unique local state or host entry locator. |
-| `parent` | Owning view ID, or `null`. |
+| `parent` | Clickable vault link to the owning view, or `null`; generated tools receive its stable ID. |
 | `component` | Existing repository-relative implementation path. |
 | `entry`, `actions`, `states` | Nonempty lists of entry points, actions and meaningful states. |
 | `journeys` | Tags connecting the surface to the product journey review. |

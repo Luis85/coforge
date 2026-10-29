@@ -102,21 +102,21 @@ for (const theme of ["light", "dark"]) {
     page,
   }) => {
     const errors = await openCouncilReview(page, "default", theme);
-    await openCouncilPage(page, 'Definitions');
+    await page.getByRole('button', { name: 'CoWorkers', exact: true }).click();
     await page
-      .locator(".cf-council-definition-list")
-      .getByRole("button", { name: /^Architect/ })
+      .locator(".cf-coworker-cards")
+      .getByRole("button", { name: /^Edit Architect/ })
       .click();
     await page
       .getByLabel("Definition name", { exact: true })
       .fill("Architect unsaved draft");
     await page
-      .locator(".cf-council-definition-list")
-      .getByRole("button", { name: /^Product designer/ })
+      .locator(".cf-coworker-cards")
+      .getByRole("button", { name: /^Edit Product designer/ })
       .click();
     await page
-      .locator(".cf-council-definition-list")
-      .getByRole("button", { name: /^Architect/ })
+      .locator(".cf-coworker-cards")
+      .getByRole("button", { name: /^Edit Architect/ })
       .click();
     await expect(
       page.getByLabel("Definition name", { exact: true }),
@@ -138,23 +138,23 @@ for (const theme of ["light", "dark"]) {
     await provider.press("End");
     await expect(provider).toHaveValue("claude");
     await page
-      .getByRole("searchbox", { name: "Search definitions", exact: true })
+      .getByRole("searchbox", { name: "Search CoWorkers", exact: true })
       .fill("Architect");
     const search = await page
-      .getByRole("searchbox", { name: "Search definitions", exact: true })
+      .getByRole("searchbox", { name: "Search CoWorkers", exact: true })
       .boundingBox();
     const saved = await page
-      .locator(".cf-council-definition-list")
+      .locator(".cf-coworker-cards")
       .boundingBox();
     const drafts = await page
-      .getByRole("region", { name: "Unsaved definition drafts", exact: true })
+      .getByRole("region", { name: "Unsaved CoWorker drafts", exact: true })
       .boundingBox();
     expect(search && saved && drafts).toBeTruthy();
     if (search && saved && drafts) {
       expect(saved.y).toBeGreaterThanOrEqual(search.y + search.height - 1);
       expect(drafts.y).toBeGreaterThanOrEqual(saved.y + saved.height - 1);
     }
-    await captureCouncil(page, "review-draft", theme);
+    await captureCouncil(page, "review-draft", theme, '.cf-coworkers-page');
     await page
       .getByRole("button", { name: "Discard draft", exact: true })
       .click();
@@ -184,22 +184,24 @@ test("a changed saved definition cannot replace the displayed Council preflight 
   await expect(
     page.getByRole("region", { name: "Invocation preview", exact: true }),
   ).toContainText("6 invocations");
-  await page.getByRole("button", { name: "Definitions", exact: true }).click();
+  await page.getByRole("button", { name: "CoWorkers", exact: true }).click();
   await page
-    .locator(".cf-council-definition-list")
-    .getByRole("button", { name: /^Architect/ })
+    .locator(".cf-coworker-cards")
+    .getByRole("button", { name: /^Edit Architect/ })
     .click();
   await page
-    .getByLabel("Agent instructions", { exact: true })
+    .getByLabel("CoWorker instructions", { exact: true })
     .fill("New instructions saved after the earlier preview.");
   await page
-    .getByRole("button", { name: "Save definition", exact: true })
+    .getByRole("button", { name: "Save CoWorker", exact: true })
     .click();
   await expect(
     page
       .getByRole("status")
       .filter({ hasText: "Definition saved for future runs." }),
   ).toBeVisible();
+  await page.getByRole('button', { name: 'The Council', exact: true }).click();
+  await openCouncilPage(page, 'Submit existing note');
   await page
     .getByRole("button", { name: "Submit existing note", exact: true })
     .click();

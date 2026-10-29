@@ -5,7 +5,7 @@ goal: "Ask for specialist advice and follow each task to attributed results."
 audience: "streamer"
 kind: "page"
 route: "studio.view = council"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/CouncilView.vue"
 entry: ["Choose The Council in the studio navigation."]
 actions: ["Ask a question","Review task history","Open advanced tools","Refresh","Explore labelled example"]
@@ -41,4 +41,9 @@ Journey tags: `Council`.
 
 ## Workspace redesign
 
-The selected-project band grounds new questions in their explicit project team and council. The question form and task history lead the first page; advanced authoring, submission, watched intake, execution, messages and folder administration retain independent local tasks.
+The sidebar switcher identifies the selected project. Questions name their project
+team and council explicitly; no repeated project band precedes the form. The
+question form includes a vault-file picker for an appended wikilink list. Task
+history leads the first page; advanced authoring, submission, watched intake,
+execution, messages and folder administration retain focused local tasks. Reusable
+specialists have their own [CoWorkers inventory](coworkers.md).

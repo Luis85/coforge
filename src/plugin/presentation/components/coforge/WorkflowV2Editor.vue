@@ -22,7 +22,7 @@ const openEventTriggers = useEventTriggerLink();
       <div>
         <h2>Proposal workflows</h2>
         <p>
-          Compose reusable agents, councils and human checkpoints with explicit
+          Compose reusable CoWorkers, councils and human checkpoints with explicit
           input collections. Save an explicit v2 definition for this project.
         </p>
       </div>
@@ -59,7 +59,7 @@ const openEventTriggers = useEventTriggerLink();
       <h3>Create a proposal process</h3>
       <p>
         Your existing project workflow stays available in Workflow settings. Add
-        a separate reusable-agent process here when you need explicit council
+        a separate CoWorker process here when you need explicit council
         results or generic note inputs.
       </p>
       <button

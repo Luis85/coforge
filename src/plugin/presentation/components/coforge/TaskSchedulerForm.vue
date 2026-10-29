@@ -12,10 +12,10 @@ const model = useTaskSchedulerForm();
         <label class="cf-field"><span>Project</span><select v-model="model.store.form.projectId" required @change="model.projectChanged()"><option value="">Select project</option><option v-for="project in model.projects" :key="project.id" :value="project.id">{{ project.id }} · {{ project.settings.projectName }}</option></select></label>
         <label class="cf-field"><span>Project team</span><select v-model="model.store.form.teamId" required @change="model.recipientChanged()"><option value="">Select team</option><option v-for="team in model.teams" :key="team.id" :value="team.id">{{ team.name }}</option></select></label>
       </div>
-      <p v-if="!model.teams.length" class="cf-settings-help">Create an available project team and agents in Definitions before scheduling work.</p>
+      <p v-if="!model.teams.length" class="cf-settings-help">Create an available project team in Definitions and its CoWorkers in CoWorkers before scheduling work.</p>
       <div class="cf-council-fields">
-        <label class="cf-field"><span>Route to</span><select v-model="model.store.form.kind" @change="model.recipientChanged()"><option value="agent">Agent</option><option value="team">Team · assigned member</option><option value="council">Council</option></select></label>
-        <label class="cf-field"><span>{{ model.store.form.kind === 'team' ? 'Assigned team member' : model.store.form.kind === 'council' ? 'Council' : 'Agent' }}</span><select v-model="model.store.form.recipient" required><option value="">Select recipient</option><option v-for="entry in model.recipients" :key="entry.id" :value="entry.id">{{ entry.name }}</option></select></label>
+        <label class="cf-field"><span>Route to</span><select v-model="model.store.form.kind" @change="model.recipientChanged()"><option value="agent">CoWorker</option><option value="team">Team · assigned member</option><option value="council">Council</option></select></label>
+        <label class="cf-field"><span>{{ model.store.form.kind === 'team' ? 'Assigned team member' : model.store.form.kind === 'council' ? 'Council' : 'CoWorker' }}</span><select v-model="model.store.form.recipient" required><option value="">Select recipient</option><option v-for="entry in model.recipients" :key="entry.id" :value="entry.id">{{ entry.name }}</option></select></label>
       </div>
       <p v-if="model.store.form.kind === 'team'" class="cf-settings-help">Only the selected member receives the task. Other team members are not awakened.</p>
       <label class="cf-field"><span>Task prompt</span><textarea v-model="model.store.form.prompt" rows="5" maxlength="8000" required placeholder="Describe what the recipient should do and the result you need."></textarea></label>

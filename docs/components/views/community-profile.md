@@ -5,7 +5,7 @@ goal: "Understand one contributor’s credited progress."
 audience: "streamer"
 kind: "panel"
 route: "community.selected"
-parent: "community"
+parent: "[[docs/components/views/community]]"
 component: "src/plugin/presentation/components/coforge/CommunityProfile.vue"
 entry: ["Open Community, then select a contributor in the leaderboard."]
 actions: ["Select contributor","Read credited ideas and accepted work"]

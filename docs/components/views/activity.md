@@ -5,7 +5,7 @@ goal: "Open the request associated with a recent event."
 audience: "streamer"
 kind: "panel"
 route: "studio.activityOpen = true"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/ActivityPopover.vue"
 entry: ["Choose Recent activity in the studio header."]
 actions: ["Inspect event","Open associated request","Close"]

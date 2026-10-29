@@ -8,6 +8,7 @@ import {
   watch,
 } from "vue";
 import { useCouncilEditorStore } from "../../stores/coforge-council-editor";
+import { useStudioStore } from '../../stores/coforge-studio';
 import { useCouncilDefinitionDrafts } from "./council-definition-drafts";
 import { useCouncilConnectionForm } from "./council-connection-form";
 import type {
@@ -25,8 +26,11 @@ const COUNCIL_EDITOR_KEY = Symbol("coforge-council-editor");
 export function useCouncilDefinitions(props: {
   catalogue: CouncilCatalogueActions;
   projectId: string;
+  mode?: 'coworkers';
+  teamsOnly?: boolean;
 }) {
-  const store = useCouncilEditorStore();
+  const store = useCouncilEditorStore(props.mode === 'coworkers' ? 'coworkers' : 'council');
+  const studio = useStudioStore();
   const drafts = useCouncilDefinitionDrafts(store, () => props.projectId);
   const catalogue = reactive<CouncilCatalogueSnapshot>({
     valid: [],
@@ -45,9 +49,9 @@ export function useCouncilDefinitions(props: {
   const entries = computed(() =>
     catalogue.valid.filter(
       (item) =>
-        (item.definition.schema === "agent/v1" ||
+        (item.definition.schema === "agent/v1" ? !props.teamsOnly :
           item.definition.projectId === props.projectId) &&
-        `${item.definition.name} ${item.definition.id} ${item.definition.schema}`
+        `${item.definition.name} ${item.definition.id} ${item.definition.schema} ${item.definition.schema === 'agent/v1' ? item.definition.role : ''}`
           .toLowerCase()
           .includes(store.search.trim().toLowerCase()),
     ),
@@ -79,7 +83,7 @@ export function useCouncilDefinitions(props: {
       agentDefinitionCheck({
         schema: "agent/v1",
         id: `agent-${crypto.randomUUID()}`,
-        name: "New agent",
+        name: "New CoWorker",
         enabled: false,
         role: "",
         instructions: "",
@@ -94,7 +98,7 @@ export function useCouncilDefinitions(props: {
     const owner = teams.value[0]?.definition;
     if (!owner || owner.schema !== "team/v1" || !owner.members.length) {
       store.error =
-        "Add saved agents to the project team before creating a council.";
+        "Add saved CoWorkers to the project team before creating a council.";
       return;
     }
     fresh({
@@ -335,6 +339,7 @@ export function useCouncilDefinitions(props: {
   );
   const model = reactive({
     store,
+    catalogueActions: props.catalogue,
     catalogue,
     agents,
     teams,
@@ -351,6 +356,7 @@ export function useCouncilDefinitions(props: {
     setup,
     select,
     createAgent,
+    manageCoWorkers: () => studio.navigate('coworkers'),
     createTeam,
     createCouncil,
     toggleMember,

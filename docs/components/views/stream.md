@@ -5,7 +5,7 @@ goal: "Manage the conversation with viewers."
 audience: "streamer"
 kind: "page"
 route: "studio.view = stream"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/StreamPage.vue"
 entry: ["Choose Stream chat in the studio navigation."]
 actions: ["Choose Chat","Choose Twitch settings","Choose Bot messages","Inspect intake status"]

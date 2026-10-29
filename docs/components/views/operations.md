@@ -5,7 +5,7 @@ goal: "Find the recorded outcome of a failed or uncertain action."
 audience: "streamer"
 kind: "page"
 route: "studio.view = operations"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/OperationsView.vue"
 entry: ["Choose Operations in the studio navigation."]
 actions: ["Filter event and effect","Clear filters","Inspect records","Export safe diagnostics"]

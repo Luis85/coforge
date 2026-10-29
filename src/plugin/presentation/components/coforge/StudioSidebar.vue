@@ -3,7 +3,7 @@ import { useStudioNavigation } from "../../composables/coforge/use-studio-naviga
 import BrandMark from "./BrandMark.vue";
 import CfIcon from "./CfIcon.vue";
 
-const { shell: model, groups, navigate } = useStudioNavigation();
+const { shell: model, groups, navigate, toggleGroup } = useStudioNavigation();
 </script>
 <template>
   <aside class="cf-sidebar">
@@ -47,7 +47,11 @@ const { shell: model, groups, navigate } = useStudioNavigation();
         role="group"
         :aria-label="`${group.label} navigation`"
       >
-        <div class="cf-nav-group-label">{{ group.label }}</div>
+        <button type="button" class="cf-nav-group-toggle" :aria-label="`${group.expanded ? 'Collapse' : 'Expand'} ${group.label}`" :aria-expanded="group.expanded" :aria-controls="group.controls" :title="`${group.expanded ? 'Collapse' : 'Expand'} ${group.label}`" @click="toggleGroup(group.id)">
+          <span class="cf-nav-group-label">{{ group.label }}</span>
+          <CfIcon :name="group.expanded ? 'chevron-down' : 'chevron-right'" size="xs" />
+        </button>
+        <div :id="group.controls" v-show="group.expanded" class="cf-nav-group-items">
         <button
           v-for="item in group.items"
           :key="item.view"
@@ -70,6 +74,7 @@ const { shell: model, groups, navigate } = useStudioNavigation();
           }}</span>
           <span v-if="item.working" class="cf-nav-working-dot" />
         </button>
+        </div>
       </div>
     </nav>
     <div class="cf-sidebar-bottom">

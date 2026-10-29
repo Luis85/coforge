@@ -5,7 +5,7 @@ goal: "Choose where canonical idea notes live."
 audience: "streamer"
 kind: "panel"
 route: "native settings / Vault"
-parent: "native-settings"
+parent: "[[docs/components/views/native-settings]]"
 component: "src/plugin/presentation/components/coforge/PluginSettings.vue"
 entry: ["Within Obsidian Settings → Community plugins → CoForge, edit Ideas folder under Vault."]
 actions: ["Edit ideas folder","Save integration settings"]

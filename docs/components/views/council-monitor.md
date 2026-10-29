@@ -5,7 +5,7 @@ goal: "Resolve the next action or recovery decision for a Council run."
 audience: "streamer"
 kind: "subpage"
 route: "council.tab = monitor"
-parent: "council"
+parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/CouncilMonitor.vue"
 entry: ["Open The Council, expand Advanced Council tools, then choose Run monitor."]
 actions: ["Check and designate executor","Pause or resume","Filter and inspect","Resolve checkpoint","Recover unknown result","Retry publication","Export evidence"]

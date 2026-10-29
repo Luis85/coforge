@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parse } from "yaml";
+import ts from 'typescript';
 
 const FOLDER = "docs/components/views";
 const TEXT_FIELDS = ["id", "title", "goal", "audience", "kind", "route", "component", "privacy"];
@@ -28,7 +29,9 @@ export function readCatalogue(root) {
     const source = readFileSync(resolve(root, FOLDER, file), "utf8");
     const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]+)$/);
     if (!match) throw new Error(`${file}: expected frontmatter plus Markdown`);
-    return { ...parse(match[1]), body: match[2].trim(), file };
+    const data = parse(match[1]);
+    const parent = typeof data.parent === 'string' ? data.parent.match(/^\[\[docs\/components\/views\/([a-z][a-z0-9-]*)\]\]$/)?.[1] ?? data.parent : data.parent;
+    return { ...data, parent, body: match[2].trim(), file };
   });
 }
 
@@ -77,6 +80,18 @@ export function validateCatalogue(views, root) {
 }
 
 const read = (root, path) => readFileSync(resolve(root, path), "utf8");
+function studioParents(root) {
+  const file = ts.createSourceFile('studio-destinations.ts', read(root, 'src/plugin/presentation/stores/studio-destinations.ts'), ts.ScriptTarget.Latest, true);
+  const declaration = file.statements.filter(ts.isVariableStatement).flatMap(statement => [...statement.declarationList.declarations]).find(item => item.name.getText(file) === 'STUDIO_DESTINATIONS');
+  const expression = declaration?.initializer;
+  const value = expression && ts.isSatisfiesExpression(expression) ? expression.expression : expression;
+  if (!value || !ts.isObjectLiteralExpression(value)) throw new Error('Cannot read studio ownership contract');
+  return new Map(value.properties.filter(ts.isPropertyAssignment).map(property => {
+    const id = ts.isStringLiteral(property.name) ? property.name.text : property.name.getText(file);
+    const owner = ts.isObjectLiteralExpression(property.initializer) ? property.initializer.properties.filter(ts.isPropertyAssignment).find(item => item.name.getText(file) === 'parent')?.initializer : undefined;
+    return [id, owner && ts.isStringLiteral(owner) ? owner.text : 'studio'];
+  }));
+}
 function requiredMatch(source, pattern, label) {
   const match = source.match(pattern);
   if (!match) throw new Error(`Cannot read ${label} navigation contract; update catalogue coverage adapter`);
@@ -100,6 +115,8 @@ export function sourceCoverage(views, root) {
     public: [...requiredMatch(surfaces, /export const STREAM_SURFACES = \[([\s\S]*?)\] as const/, "public surface").matchAll(/id:\s*["']([^"']+)["']/g)].map((match) => match[1]),
   };
   const documentedMappings = views.flatMap(view => coverageMappings(view).map(mapping => ({ ...mapping, file: view.file })));
+  const parents = studioParents(root);
+  const localParents = { council: 'council', broadcast: 'broadcast', workflow: 'workflow', economy: 'economy', stream: 'stream', idea: 'idea-detail', public: null };
   for (const [group, expected] of Object.entries(groups)) {
     if (!expected.length) throw new Error(`${group}: empty navigation contract; update catalogue coverage adapter`);
     const documented = documentedMappings.filter(mapping => mapping.group === group).map(mapping => mapping.key);
@@ -111,6 +128,10 @@ export function sourceCoverage(views, root) {
   }
   for (const mapping of documentedMappings) {
     if (!Object.hasOwn(groups, mapping.group)) throw new Error(`${mapping.file}: unknown coverage group`);
+  }
+  for (const view of views) for (const mapping of coverageMappings(view)) {
+    const expected = mapping.group === 'studio' ? parents.get(mapping.key) : localParents[mapping.group];
+    if (expected !== undefined && view.parent !== expected) throw new Error(`${view.file}: parent ownership must be ${expected ?? 'an independent entry'}`);
   }
 }
 

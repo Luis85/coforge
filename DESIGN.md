@@ -12,12 +12,14 @@ Keep the standard centered 1440px operating frame and existing leaf-relative gut
 
 ## Task hierarchy
 
-The studio navigates by Stream, Build, Community and Insights. Stream and community work are channel-wide. Backlogs, workflow definitions, councils and repository settings identify their selected project. Local navigation divides distinct tasks; it neither saves drafts nor dispatches work.
+The studio navigates by Build & Improve, Stream, Community and Insights, in that order. Stream and community work are channel-wide. CoWorkers are reusable across the vault; teams, councils, backlogs, workflows and repository settings retain their project context. Local navigation divides distinct tasks; it neither saves drafts nor dispatches work.
 
 The expanded project navigation is 240px wide. Keep destination labels on one line
 and use compact spacing in shorter panes; section grouping remains accessible.
 Genuinely short panes may scroll without clipping controls. Project identity and
 private visibility live in the switcher; work pages do not repeat a context banner.
+The backlog proceeds from its heading to filter tabs and toolbar, without a
+separate decision-summary section. Review and moderation counts stay in the tabs.
 
 Lead each page with its outcome, current context and useful next action. A summary must explain a decision or a data boundary. Recorded, observed, planned, reported, manually entered and unavailable values remain distinct. Never infer a trustworthy total from incomplete coverage.
 

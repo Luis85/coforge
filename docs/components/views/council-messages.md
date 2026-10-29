@@ -5,7 +5,7 @@ goal: "Send bounded context or work to explicit team recipients."
 audience: "streamer"
 kind: "subpage"
 route: "council.tab = messages"
-parent: "council"
+parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/CouncilMessages.vue"
 entry: ["Open The Council, expand Advanced Council tools, then choose Team messages."]
 actions: ["Select team and recipients","Compose","Choose information or delegation","Send"]

@@ -5,7 +5,7 @@ goal: "Choose or create the project whose backlog you will operate."
 audience: "streamer"
 kind: "page"
 route: "studio.view = projects"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/ProjectsView.vue"
 entry: ["Choose the project selector in the studio sidebar to open Projects."]
 actions: ["Add project","Open board","Open settings","Confirm sample workspace"]

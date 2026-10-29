@@ -11,7 +11,7 @@ export function useCouncilFolderEditor(props: {
   const store = useCouncilFolderStore();
   let previewDraft = "";
   const fields = [
-    { key: "agents", label: "Agent definitions folder" },
+    { key: "agents", label: "CoWorker definitions folder" },
     { key: "teams", label: "Team definitions folder" },
     { key: "councils", label: "Council definitions folder" },
   ] as const;

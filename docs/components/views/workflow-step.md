@@ -5,7 +5,7 @@ goal: "Configure one stable workflow step."
 audience: "streamer"
 kind: "panel"
 route: "studio.workflowStepSelection"
-parent: "workflow-settings"
+parent: "[[docs/components/views/workflow-settings]]"
 component: "src/plugin/presentation/components/coforge/WorkflowStepEditor.vue"
 entry: ["Open Workflow settings, then select a step in the step list."]
 actions: ["Rename","Choose kind","Edit contract and access","Edit prompt or checklist"]

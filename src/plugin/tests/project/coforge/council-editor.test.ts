@@ -39,13 +39,13 @@ it("creates an agent through labelled controls and keeps a failed save draft", a
   await flushPromises();
   await wrapper
     .findAll("button")
-    .find((button) => button.text() === "Create agent")!
+    .find((button) => button.text() === "Create CoWorker")!
     .trigger("click");
   await wrapper
     .get('input[aria-label="Definition name"]')
     .setValue("Architecture reviewer");
   await wrapper
-    .get('textarea[aria-label="Agent instructions"]')
+    .get('textarea[aria-label="CoWorker instructions"]')
     .setValue("Find missing boundaries.");
   await wrapper.get("form").trigger("submit");
   await flushPromises();

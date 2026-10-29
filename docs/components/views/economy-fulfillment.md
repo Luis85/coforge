@@ -5,7 +5,7 @@ goal: "Record manually completed perks from captured awards and purchases."
 audience: "streamer"
 kind: "subpage"
 route: "economy.page = fulfillment"
-parent: "economy"
+parent: "[[docs/components/views/economy]]"
 component: "src/plugin/presentation/components/coforge/EconomyFulfillment.vue"
 entry: ["Choose Fulfillment inside Economy."]
 actions: ["Filter pending or fulfilled records", "Find viewer or perk", "Page records", "Write a private fulfillment note", "Record as fulfilled", "Cancel the local note"]

@@ -5,7 +5,7 @@ goal: "Finish first-time OBS and Twitch readiness checks."
 audience: "streamer"
 kind: "panel"
 route: "studio.setupRequested; studio.setupStep"
-parent: "broadcast-setup"
+parent: "[[docs/components/views/broadcast-setup]]"
 component: "src/plugin/presentation/components/coforge/GuidedStreamSetup.vue"
 entry: ["Choose Guided setup in the Stream studio header; the guide opens within Setup."]
 actions: ["Reopen guide","Inspect installation","Connect tools","Review output","Change step","Close"]

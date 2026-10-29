@@ -5,7 +5,7 @@ goal: "Compare recorded audience and stream performance."
 audience: "streamer"
 kind: "page"
 route: "studio.view = statistics"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/StreamStatisticsView.vue"
 entry: ["Choose Statistics in the studio navigation."]
 actions: ["Select stream","Choose metric","Compare earlier streams","Inspect sample"]

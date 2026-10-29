@@ -130,6 +130,7 @@ const model = useCouncil();
       <CouncilExecutionControls v-if="model.store.tab === 'monitor'" />
       <template v-if="model.store.tab === 'definitions'">
         <CouncilDefinitions
+          teams-only
           :catalogue="model.service.catalogue"
           :project-id="model.projectId"
         />

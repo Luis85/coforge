@@ -5,7 +5,7 @@ goal: "Manage this project's agent process from configuration through execution.
 audience: "streamer"
 kind: "page"
 route: "studio.view = workflow"
-parent: "studio"
+parent: "[[docs/components/views/studio]]"
 component: "src/plugin/presentation/components/coforge/WorkflowView.vue"
 entry: ["Choose Agent workflow in the studio navigation."]
 actions: ["Inspect execution","Complete checkpoint","Pause or resume","Inspect history","Configure workflow","Manage Herdr workspaces"]

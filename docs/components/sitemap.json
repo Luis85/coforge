@@ -635,8 +635,8 @@
     },
     {
       "id": "council-definitions",
-      "title": "Agents and councils",
-      "goal": "Save reusable specialists and project collaboration definitions.",
+      "title": "Teams and councils",
+      "goal": "Save project team rosters and Council discussion protocols.",
       "audience": "streamer",
       "kind": "subpage",
       "route": "council.tab = definitions",
@@ -646,7 +646,8 @@
         "Open The Council, expand Advanced Council tools, then choose Definitions."
       ],
       "actions": [
-        "Create agent, team or council",
+        "Manage CoWorkers",
+        "Create team or council",
         "Create default team",
         "Choose per-round prompt order",
         "Select or search",
@@ -1106,6 +1107,36 @@
       "file": "council-task-history.md"
     },
     {
+      "id": "council-vault-files",
+      "title": "Council input file picker",
+      "goal": "Add selected vault files as wikilinks without replacing the task input.",
+      "audience": "streamer",
+      "kind": "panel",
+      "route": "Ask the Council / Add vault files",
+      "parent": "council-ask",
+      "component": "src/plugin/presentation/components/coforge/VaultFilePicker.vue",
+      "entry": [
+        "Expand Add vault files below the Council question input."
+      ],
+      "actions": [
+        "Search file paths",
+        "Select files",
+        "Add wikilinks to input"
+      ],
+      "states": [
+        "Unavailable outside desktop",
+        "Loading",
+        "No matches",
+        "Listing failed",
+        "Input limit exceeded"
+      ],
+      "journeys": [
+        "Council"
+      ],
+      "privacy": "Lists private vault file names only; no contents are read or sent.",
+      "file": "council-vault-files.md"
+    },
+    {
       "id": "council-workflows",
       "title": "Council workflows",
       "goal": "Save an explicit proposal workflow for this project.",
@@ -1139,6 +1170,47 @@
         "key": "workflows"
       },
       "file": "council-workflows.md"
+    },
+    {
+      "id": "coworkers",
+      "title": "CoWorkers",
+      "goal": "Create and maintain reusable specialists for project teams.",
+      "audience": "streamer",
+      "kind": "page",
+      "route": "studio.view = coworkers",
+      "parent": "studio",
+      "component": "src/plugin/presentation/components/coforge/CoWorkersView.vue",
+      "entry": [
+        "Choose CoWorkers in Build & Improve."
+      ],
+      "actions": [
+        "Search and filter CoWorkers",
+        "Create CoWorker",
+        "Edit instructions and provider",
+        "Save",
+        "Duplicate",
+        "Archive",
+        "Open canonical note"
+      ],
+      "states": [
+        "Native unavailable",
+        "Example",
+        "Empty inventory",
+        "No matches",
+        "Unsaved draft",
+        "Save failure",
+        "Disabled"
+      ],
+      "journeys": [
+        "Council",
+        "multi-project"
+      ],
+      "privacy": "Private vault definitions; excluded from public projections.",
+      "coverage": {
+        "group": "studio",
+        "key": "coworkers"
+      },
+      "file": "coworkers.md"
     },
     {
       "id": "economy",

@@ -5,7 +5,7 @@ goal: "Choose whether this desktop may execute Council work."
 audience: "streamer"
 kind: "panel"
 route: "Council executor controls"
-parent: "council"
+parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/CouncilExecutionControls.vue"
 entry: ["Use the inline Execution controls on Ask the Council or Advanced Council tools → Run monitor."]
 actions: ["Check runtime","Designate desktop","Pause or resume execution","Pause or resume selected project"]

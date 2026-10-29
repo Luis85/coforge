@@ -155,7 +155,7 @@ it("refreshes clean canonical drafts after external edits while preserving genui
   };
   const instructions = () => {
     const element = wrapper.get(
-      'textarea[aria-label="Agent instructions"]',
+      'textarea[aria-label="CoWorker instructions"]',
     ).element;
     if (!(element instanceof HTMLTextAreaElement))
       throw new Error("Expected instructions.");
@@ -169,13 +169,13 @@ it("refreshes clean canonical drafts after external edits while preserving genui
   };
   await click("Refresh definitions");
   expect(instructions()).toBe("External canonical instructions.");
-  await click("Create agent");
+  await click("Create CoWorker");
   definition = { ...definition, instructions: "Newer canonical instructions." };
   await click("Refresh definitions");
   await click("External reviewer");
   expect(instructions()).toBe("Newer canonical instructions.");
   await wrapper
-    .get('textarea[aria-label="Agent instructions"]')
+    .get('textarea[aria-label="CoWorker instructions"]')
     .setValue("Unsaved local instructions.");
   definition = {
     ...definition,
@@ -183,7 +183,7 @@ it("refreshes clean canonical drafts after external edits while preserving genui
   };
   await click("Refresh definitions");
   expect(instructions()).toBe("Unsaved local instructions.");
-  await click("Create agent");
+  await click("Create CoWorker");
   await click("External reviewer");
   expect(instructions()).toBe("Unsaved local instructions.");
   await click("Discard draft");

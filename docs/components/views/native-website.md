@@ -5,7 +5,7 @@ goal: "Prepare the read-only viewer website for publication."
 audience: "streamer"
 kind: "panel"
 route: "native settings / Viewer website"
-parent: "native-settings"
+parent: "[[docs/components/views/native-settings]]"
 component: "src/plugin/presentation/components/coforge/PluginSettingsWebsite.vue"
 entry: ["Within Obsidian Settings → Community plugins → CoForge, use the viewer website section."]
 actions: ["Set Viewer board folder","Enable or disable Keep the viewer board updated","Save integration settings","Write board now","Set up GitHub Pages"]

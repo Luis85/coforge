@@ -5,7 +5,7 @@ goal: "Schedule a private prompt for an agent, assigned team member or council."
 audience: "streamer"
 kind: "subpage"
 route: "council.tab = scheduler"
-parent: "council"
+parent: "[[docs/components/views/council]]"
 component: "src/plugin/presentation/components/coforge/TaskSchedulerView.vue"
 entry: ["Open The Council → Advanced Council tools → Task scheduler."]
 actions: ["Create or edit task","Set timer or recurrence","Enable or pause","Run now","Archive or restore","Inspect source and run","Acknowledge uncertain admission"]
