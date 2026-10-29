@@ -7,6 +7,7 @@ import type { MessageOutboxEntry } from "../domain/team-messages";
 import type { CouncilDefinitionFolders } from "../domain/council-definition-folders";
 import type { CouncilFolderActions } from "./council-catalogue";
 import type { ExecutionAllowancePatch } from "../domain/execution-allowance";
+import type { AutomationContext } from '../domain/automation-context';
 
 export interface CouncilPreferences {
   format: "coforge-council-settings/v1";
@@ -49,6 +50,8 @@ export interface CouncilActions {
     target: CouncilTarget,
     sourcePath: string,
     expectedIdentity?: string,
+    automationEvent?: AutomationContext,
+    executionCeiling?: import('./invocation-project-context').InvocationExecutionLimits,
   ): Promise<ExecutionRun>;
   simulate(
     target: CouncilTarget,

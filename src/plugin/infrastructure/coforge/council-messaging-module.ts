@@ -1,4 +1,5 @@
 import { ExecutionBlockError } from "../../features/coforge/domain/execution-block";
+import type { AutomationContext } from '../../features/coforge/domain/automation-context';
 import { ExecutionMessageRejection } from "../../features/coforge/domain/execution-message-rejection";
 import { executionMessagingPlan } from "../../features/coforge/application/execution-messaging-plan";
 import type { Plugin } from "obsidian";
@@ -43,6 +44,7 @@ export class CouncilMessagingModule {
       target: CouncilTarget,
       path: string,
       key: string,
+      automationEvent?: AutomationContext,
     ) => Promise<ExecutionRun>,
     private readonly workflow?: CouncilWorkflowRecipientPort,
   ) {
@@ -209,6 +211,10 @@ export class CouncilMessagingModule {
   }
   allowedRecipients(attemptId: string): string[] {
     return [...(this.authorities.get(attemptId)?.allowedRecipients ?? [])];
+  }
+  agentRecipients(attemptId: string): string[] {
+    const authority = this.authorities.get(attemptId);
+    return authority?.recipients.filter(recipient => recipient.kind === 'agent' && authority.allowedRecipients.includes(recipient.id)).map(recipient => recipient.id) ?? [];
   }
   invalidateAuthority(attemptId: string): void {
     this.authorities.delete(attemptId);

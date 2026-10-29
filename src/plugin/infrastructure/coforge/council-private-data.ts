@@ -65,6 +65,7 @@ export function councilRegisteredPrivateFolders(
       "CoForge/Messages",
       "CoForge/Tests",
       "CoForge/Scheduled Tasks",
+      "CoForge/Automations",
     ]),
   ];
 }

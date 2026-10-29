@@ -2,6 +2,7 @@ import type { WorkflowV2Definition } from "../domain/configured-workflow-v2";
 import type { ExecutionRun } from "../domain/execution-run";
 import type { WorkflowV2Plan } from "./workflow-v2-compiler";
 import type { CouncilSource } from "./council-execution";
+import type { AutomationContext } from '../domain/automation-context';
 
 export interface StoredWorkflowV2 {
   definition: WorkflowV2Definition | null;
@@ -33,5 +34,6 @@ export interface WorkflowV2Actions {
     simulation?: boolean,
     destination?: string,
     expectedIdentity?: string,
+    automationEvent?: AutomationContext,
   ): Promise<ExecutionRun>;
 }

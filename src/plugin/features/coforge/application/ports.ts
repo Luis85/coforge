@@ -50,6 +50,7 @@ export interface Timers {
 
 /** Host capabilities the studio needs but must not implement itself. */
 export interface StudioHost {
+  agentTasks?: import('./agent-task').AgentTaskPort;
   privateFolders?(): readonly string[];
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;
   runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
@@ -62,8 +63,10 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  workflowTriggers?: import('./workflow-trigger-ports').WorkflowTriggerActions;
   taskScheduler?: import('./task-scheduler-ports').TaskSchedulerActions;
   previewTaskScheduler?(): import('./task-scheduler-ports').TaskSchedulerActions;
+  previewWorkflowTriggers?(): import('./workflow-trigger-ports').WorkflowTriggerActions;
   mcp?: import('./mcp-ports').McpActions;
   council?: import('./council-ports').CouncilActions;
   previewCouncil?(): import('./council-ports').CouncilActions;

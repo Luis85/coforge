@@ -4,7 +4,7 @@ import { InvocationGate } from "../../../features/coforge/application/invocation
 import type { captureProcess } from "../../../infrastructure/coforge/process";
 
 describe("typed note provider invocation", () => {
-  it("uses the existing restricted CLI policy with no tools, reused history or invented Idea", async () => {
+  it("enforces scoped CoForge MCP action tools with no native tools, reused history or invented Idea", async () => {
     const capture = vi.fn<typeof captureProcess>(async () =>
       JSON.stringify({
         type: "result",
@@ -39,6 +39,9 @@ describe("typed note provider invocation", () => {
     expect(args).toContain("--restricted");
     expect(args).toContain("--no-session-persistence");
     expect(args[args.indexOf("--tools") + 1]).toBe("");
+    expect(args).toContain('--strict-mcp-config');
+    expect(args[args.indexOf('--mcp-config') + 1]).toMatch(/coforge-only-mcp\.json$/u);
+    expect(args[args.indexOf('--allowedTools') + 1]).toContain('mcp__coforge__coforge_invocation');
     expect(args).not.toContain("--resume");
     expect(args).not.toContain("--continue");
   });

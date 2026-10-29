@@ -45,6 +45,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
   - [The Council](views/council.md) — page
     - [Agents and councils](views/council-definitions.md) — subpage
       - [Definition import and export](views/council-definition-transfer.md) — panel
+    - [Event triggers](views/council-events.md) — subpage
     - [Council folders](views/council-folders.md) — subpage
     - [Watched inboxes](views/council-inboxes.md) — subpage
     - [Team messages](views/council-messages.md) — subpage
@@ -105,6 +106,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [The Council](views/council.md) | Choose a specialist collaboration task. | studio.view = council | streamer |
 | [Definition import and export](views/council-definition-transfer.md) | Review a portable specialist definition before saving or sharing it. | Council definitions / import and export details | streamer |
 | [Agents and councils](views/council-definitions.md) | Save reusable specialists and project collaboration definitions. | council.tab = definitions | streamer |
+| [Event triggers](views/council-events.md) | Attach a saved workflow to committed project or application events. | council.tab = events | streamer |
 | [Council execution controls](views/council-execution.md) | Choose whether this desktop may execute Council work. | Council executor controls | streamer |
 | [Council folders](views/council-folders.md) | Save the vault folders used for Council definitions. | council.tab = folders | streamer |
 | [Watched inboxes](views/council-inboxes.md) | Activate reviewed note intake for a project destination. | council.tab = inboxes | streamer |
@@ -166,7 +168,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 
 ## Journey coverage
 
-- **Council**: [The Council](views/council.md), [Definition import and export](views/council-definition-transfer.md), [Agents and councils](views/council-definitions.md), [Council execution controls](views/council-execution.md), [Council folders](views/council-folders.md), [Watched inboxes](views/council-inboxes.md), [Team messages](views/council-messages.md), [Council run monitor](views/council-monitor.md), [Council plan handoff](views/council-plan-handoff.md), [Proposal workflow transfer](views/council-proposal-transfer.md), [Council recovery tools](views/council-recovery.md), [Task scheduler](views/council-scheduler.md), [Submit and preflight](views/council-submit.md), [Council workflows](views/council-workflows.md), [CoForge studio](views/studio.md)
+- **Council**: [The Council](views/council.md), [Definition import and export](views/council-definition-transfer.md), [Agents and councils](views/council-definitions.md), [Event triggers](views/council-events.md), [Council execution controls](views/council-execution.md), [Council folders](views/council-folders.md), [Watched inboxes](views/council-inboxes.md), [Team messages](views/council-messages.md), [Council run monitor](views/council-monitor.md), [Council plan handoff](views/council-plan-handoff.md), [Proposal workflow transfer](views/council-proposal-transfer.md), [Council recovery tools](views/council-recovery.md), [Task scheduler](views/council-scheduler.md), [Submit and preflight](views/council-submit.md), [Council workflows](views/council-workflows.md), [CoForge studio](views/studio.md)
 - **broadcast**: [Stream studio](views/broadcast.md), [Stream displays](views/broadcast-displays.md), [Stream history](views/broadcast-history.md), [Live broadcast](views/broadcast-live.md), [Stream music](views/broadcast-music.md), [OBS scenes and sources](views/broadcast-scenes.md), [Stream setup](views/broadcast-setup.md), [Guided stream setup](views/guided-setup.md), [Stream schedule](views/schedule.md), [Stream chat](views/stream.md), [Bot messages](views/stream-messages.md), [CoForge studio](views/studio.md), [Twitch channel editor](views/twitch-channel.md)
 - **community**: [Community recognition](views/community.md), [Contributor badges](views/community-badges.md), [Contributor recognition profile](views/community-profile.md), [Community settings](views/community-settings.md), [Viewers and players](views/population.md), [Public Twitch chat](views/public-chat.md), [Public community](views/public-community.md), [Public stream Kanban](views/public-kanban.md), [Public leaderboards](views/public-leaderboards.md), [Viewer profile](views/viewer-detail.md)
 - **cost-review**: [AI costs](views/ai-costs.md)
@@ -182,3 +184,4 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 - **task-scheduling**: [Task scheduler](views/council-scheduler.md)
 - **viewer-intake**: [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Viewers and players](views/population.md), [Stream chat](views/stream.md), [Chat](views/stream-channel.md), [Twitch settings](views/stream-connection.md), [Bot messages](views/stream-messages.md)
 - **workflow-configuration**: [Herdr workspace controls](views/herdr.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [Project settings](views/settings.md), [Project repository settings](views/settings-repository.md), [Project runtime check](views/settings-runtime.md), [Agent workflow](views/workflow.md), [Workflow settings](views/workflow-settings.md), [Workflow step editor](views/workflow-step.md), [Workflow import and export](views/workflow-transfer.md)
+- **workflow-event-automation**: [Event triggers](views/council-events.md)

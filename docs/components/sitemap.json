@@ -587,6 +587,49 @@
       "file": "council-definitions.md"
     },
     {
+      "id": "council-events",
+      "title": "Event triggers",
+      "goal": "Attach a saved workflow to committed project or application events.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "council.tab = events",
+      "parent": "council",
+      "component": "src/plugin/presentation/components/coforge/WorkflowTriggersView.vue",
+      "entry": [
+        "Open The Council → Event triggers.",
+        "Choose Attach an event trigger in either workflow editor."
+      ],
+      "actions": [
+        "Review saved workflow",
+        "Create or edit trigger",
+        "Enable future events",
+        "Inspect decisions and runs",
+        "Acknowledge uncertain admission",
+        "Remove trigger"
+      ],
+      "states": [
+        "Desktop unavailable",
+        "Non-executor",
+        "Empty",
+        "Draft",
+        "Enabled",
+        "Disabled",
+        "Skipped event",
+        "Uncertain admission",
+        "Storage error"
+      ],
+      "journeys": [
+        "Council",
+        "workflow-event-automation"
+      ],
+      "privacy": "Private plugin journal and ignored automation notes; never included in public exports.",
+      "coverage": {
+        "group": "council",
+        "key": "events"
+      },
+      "file": "council-events.md"
+    },
+    {
       "id": "council-execution",
       "title": "Council execution controls",
       "goal": "Choose whether this desktop may execute Council work.",

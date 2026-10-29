@@ -22,6 +22,7 @@ const model = useCouncilEditorForm();
       isolation are checked before every invocation.
     </p>
     <template v-if="model.store.draft.schema === 'agent/v1'">
+      <p class="cf-settings-help"><strong>Enforced action-tool policy: CoForge MCP only.</strong> Native Council invocations disable built-in tools and other MCP servers. Agents can read only the captured invocation and its bound inputs; approved nudges become tasks after their contribution is saved.</p>
       <label class="cf-field"
         ><span>Role</span
         ><input v-model="model.store.draft.role" maxlength="500"

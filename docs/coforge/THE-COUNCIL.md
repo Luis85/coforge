@@ -52,10 +52,49 @@ Simulation uses deterministic fake output and requires a new destination inside
 `CoForge/Tests`; it leaves the original note unchanged and does not qualify a live
 provider. The browser example is explicitly enabled and entirely in memory.
 
-The analytical native Claude path uses an isolated temporary directory, no tools,
-no MCP servers and no persisted provider conversation. Managed Herdr is rejected
+The analytical native Claude path enforces **CoForge MCP action tools only** in an
+isolated temporary directory with no persisted provider conversation. Built-in
+file, shell, browser and delegation tools are disabled. A strict private MCP
+configuration excludes all other servers, including the vault-wide connection.
+`coforge_invocation` describes the captured task and allowed inputs;
+`coforge_read_input` reads only artifacts explicitly bound to that invocation.
+`coforge_nudge_agent` stages a task for an approved recipient, with idempotent
+request IDs. The normal message authority validates and delivers it only after
+the contribution is persisted. All calls recheck current authority. Provider
+completion and structured-output control primitives may remain available; these
+do not grant arbitrary file, shell or browser actions. Agent definitions cannot
+relax this policy, and opinion invocations cannot read earlier opinions.
+Managed Herdr is rejected
 when its adapter cannot enforce the typed invocation's isolation; there is no
 permissive fallback. Existing Herdr workflow support retains its existing behavior.
+
+## Trigger workflows from events
+
+Open **Event triggers** in The Council. Choose a committed project or application
+event, the target project, and either its project workflow (v1) or Council workflow
+(v2). Review the saved workflow revision before saving the binding, then explicitly
+enable future events. An edited workflow disables its existing trigger until the
+new revision is reviewed. Application scope listens across projects; the target
+project remains explicit.
+
+Idea workflows require an existing request from the same project, either carried
+by the event or selected in the binding. Note-based v2 workflows receive a private
+event source under `CoForge/Automations`. Events never create community Ideas or
+approve code changes. Paused execution, cooldowns and active previous runs skip
+that occurrence with a recorded reason. Missed events are not replayed. Only the
+designated desktop admits work while Obsidian is open.
+
+Bindings reserve durable evidence before admission. Unknown outcomes disable the
+binding without retry; inspect the original source/run, acknowledge recovery, then
+enable future events explicitly. Event chains carry host provenance: the same
+binding cannot recur in a chain, and chains stop at four bindings.
+
+Project workflows can add **Nudge agent** steps. Select an enabled team and an
+allowed agent, then enter its task prompt. The step finishes on admission of an
+independent task; inspect its result in Run monitor. It does not fabricate AI output
+or wait for the child to complete. The child inherits the parent invocation ceilings.
+Uncertain admissions require explicit inspection and acknowledgement before a
+fresh task. A v2 message action with purpose **request** similarly creates a task.
 
 ## Watch an inbox
 

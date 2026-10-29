@@ -167,7 +167,7 @@ it("retains a returned provider response and usage when the postresponse policy 
       { integration: defaultIntegration },
       new InvocationGate(),
       () => ({ recordTelemetry: async () => undefined }),
-      () => messages,
+      () => ({ ...messages, agentRecipients: () => [] }),
     );
     expect(
       await host.invoke(run, invocation, {

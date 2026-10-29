@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { useWorkflowEditor } from "../../composables/coforge/use-workflow-editor";
+import { useEventTriggerLink } from '../../composables/coforge/use-event-trigger-link';
 import WorkflowStepList from "./WorkflowStepList.vue";
 import WorkflowStepEditor from "./WorkflowStepEditor.vue";
 import WorkflowDefinitionLimits from "./WorkflowDefinitionLimits.vue";
 import WorkflowDefinitionTransfer from "./WorkflowDefinitionTransfer.vue";
 const model = useWorkflowEditor();
+const openEventTriggers = useEventTriggerLink();
 </script>
 <template>
   <div class="cf-workflow-settings-page">
+    <button type="button" class="cf-btn cf-btn-secondary" @click="openEventTriggers()">Attach an event trigger</button>
     <header class="cf-page-heading">
       <div>
         <h1>Workflow settings</h1>

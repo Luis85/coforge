@@ -1,4 +1,5 @@
 import { boolean, list, number, oneOf, optional, shape, text, timestamp } from './check';
+import { automationContextCheck, type AutomationContext } from './automation-context';
 import { contextEventId } from './integrity';
 import { WORKFLOW_OUTPUTS, workflowDefinitionCheck, workflowIdCheck, workflowStepCheck, type AiWorkflowStep, type WorkflowDefinition, type WorkflowOutput } from './configured-workflow';
 import type { AppState, Idea, ImplementationPlan, Increment, RiceScore, Screening } from './types';
@@ -23,11 +24,13 @@ export interface WorkflowArtifact {
   hostSnapshot?: boolean;
 }
 export interface WorkflowAttempt {
-  id: string; stepId: string; stepName: string; kind: 'ai' | 'approval' | 'checklist';
+  id: string; stepId: string; stepName: string; kind: 'ai' | 'approval' | 'checklist' | 'nudge';
   status: 'queued' | 'running' | 'waiting-human' | 'succeeded' | 'failed' | 'cancelled';
   inputs: string[]; startedAt: string; finishedAt?: string; jobId?: string; checkedIds?: string[]; note?: string; error?: string;
+  nudgeState?: 'reserved' | 'submitted' | 'unknown' | 'cancelled'; nudgeRunId?: string; nudgeSourcePath?: string; nudgeAcknowledgedAt?: string;
 }
 export interface WorkflowRun {
+  automationEvent?: AutomationContext;
   external?: boolean;
   id: string; ideaId: string; projectId: string; definition: WorkflowDefinition; proposalRevision: string; revision: number; cursor: number;
   state: 'ready' | 'running' | 'waiting-human' | 'attention' | 'finished' | 'awaiting-review' | 'stopped';
@@ -36,6 +39,7 @@ export interface WorkflowRun {
   projectContext?: { name: string; brief: string; agentPrompt: string; projectPath: string; worktreeFolder: string };
 }
 export interface ConfiguredStepExecution {
+  automationEvent?: AutomationContext;
   runId: string; definitionRevision: string; proposalRevision: string; attemptId: string;
   step: AiWorkflowStep; inputArtifacts: WorkflowArtifact[]; workspaceId?: string;
 }
@@ -64,10 +68,12 @@ export function workflowArtifactCheck(value: unknown): WorkflowArtifact {
   if (checked.contentHash !== workflowArtifactHash(checked)) throw new Error('The workflow artifact content changed.');
   return checked;
 }
-const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: text({ min: 1, max: 100 }), kind: oneOf(['ai', 'approval', 'checklist'] as const),
+const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: text({ min: 1, max: 100 }), kind: oneOf(['ai', 'approval', 'checklist', 'nudge'] as const),
+  nudgeState: optional(oneOf(['reserved', 'submitted', 'unknown', 'cancelled'] as const)), nudgeRunId: optional(workflowIdCheck), nudgeSourcePath: optional(text({ max: 1000 })), nudgeAcknowledgedAt: optional(timestamp),
   status: oneOf(['queued', 'running', 'waiting-human', 'succeeded', 'failed', 'cancelled'] as const), inputs: list(workflowIdCheck, { max: 200 }), startedAt: timestamp,
   finishedAt: optional(timestamp), jobId: optional(workflowIdCheck), checkedIds: optional(list(workflowIdCheck, { max: 40 })), note: optional(text({ max: 3000 })), error: optional(text({ max: 4000 })) }, { strict: true });
 const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: workflowIdCheck, definition: workflowDefinitionCheck, proposalRevision: workflowIdCheck,
+  automationEvent: optional(automationContextCheck),
   external: optional(boolean),
   revision: number({ integer: true, min: 0, max: Number.MAX_SAFE_INTEGER }), cursor: number({ integer: true, min: 0, max: 40 }),
   state: oneOf(['ready', 'running', 'waiting-human', 'attention', 'finished', 'awaiting-review', 'stopped'] as const), attempts: list(attempt, { max: 100 }), artifacts: list(workflowArtifactCheck, { max: 200 }),
@@ -85,6 +91,7 @@ export function workflowRunCheck(value: unknown): WorkflowRun {
 }
 export function configuredStepExecutionCheck(value: unknown): ConfiguredStepExecution {
   const checked = shape({ runId: workflowIdCheck, definitionRevision: workflowIdCheck, proposalRevision: workflowIdCheck, attemptId: workflowIdCheck,
+    automationEvent: optional(automationContextCheck),
     step: workflowStepCheck, inputArtifacts: list(workflowArtifactCheck, { max: 200 }), workspaceId: optional(workflowIdCheck) }, { strict: true })(value);
   if (checked.step.kind !== 'ai') throw new Error('Only an AI step can be dispatched to a provider.');
   if (checked.inputArtifacts.some(item => item.runId !== checked.runId || item.proposalRevision !== checked.proposalRevision)) throw new Error('The workflow inputs belong to a different run or proposal.');
@@ -109,12 +116,13 @@ export function recoverConfiguredRuns(state: Pick<AppState, 'ideas' | 'jobs'>): 
     const run = idea.workflowRun;
     if (!run || run.state !== 'running') continue;
     const attempt = run.attempts.find(item => item.id === run.activeAttemptId);
-    if (!attempt || attempt.kind !== 'ai') continue;
+    if (!attempt || !['ai', 'nudge'].includes(attempt.kind)) continue;
     run.state = 'attention';
     run.error = 'CoForge closed during this step. Inspect its original resources before an explicit retry.';
     run.updatedAt = new Date().toISOString();
     run.revision++;
     attempt.status = 'failed'; attempt.error = run.error; attempt.finishedAt = run.updatedAt;
+    if (attempt.kind === 'nudge') { attempt.nudgeState = 'unknown'; run.error = 'CoForge closed during agent-task admission. Inspect the source/run and acknowledge recovery before a fresh nudge.'; attempt.error = run.error; }
     delete run.activeAttemptId;
   }
 }

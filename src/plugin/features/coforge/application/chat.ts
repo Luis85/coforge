@@ -92,7 +92,7 @@ function request(state: InternalState, input: ChatInput, userId: string, project
   const idea = createIdea(state, { title, description: text, projectId, requestKind, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source: input.source ?? 'simulator' });
   if (requestKind === 'feature' && player) player.lastFeatureAt = now;
   else state.ingestMeta.lastRequests[`bug:${userId}`] = now;
-  recordOperation(state, requestKind === 'feature' ? 'request-created' : 'bug-created', 'committed', userId);
+  recordOperation(state, requestKind === 'feature' ? 'request-created' : 'bug-created', 'committed', userId, 1, idea.id);
   return { ok: true, ideaId: idea.id, message: `Added ${idea.id} to ${projectId} · ${project.settings.projectName}. The community can now !vote ${idea.id}.` };
 }
 

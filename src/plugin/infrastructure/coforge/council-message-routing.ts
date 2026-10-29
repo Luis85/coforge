@@ -13,6 +13,7 @@ import type {
   MessageRecipient,
 } from "../../features/coforge/domain/team-messages";
 import type { JournalMessageDelivery } from "../../features/coforge/application/journal-team-messages";
+import type { AutomationContext } from '../../features/coforge/domain/automation-context';
 import { CouncilMessageNotes } from "./council-message-notes";
 import {
   workflowMessageAllowed,
@@ -24,6 +25,7 @@ export interface CouncilWorkflowRecipientPort {
     projectId: string,
     sourcePath: string,
     submissionKey: string,
+    automationEvent?: AutomationContext,
   ): Promise<void>;
 }
 /** Live recipient resolution and note delivery do not own execution state. */
@@ -39,6 +41,7 @@ export class CouncilMessageRouting implements JournalMessageDelivery {
       target: CouncilTarget,
       path: string,
       key: string,
+      automationEvent?: AutomationContext,
     ) => Promise<ExecutionRun>,
     workflow?: CouncilWorkflowRecipientPort,
   ) {
@@ -143,6 +146,7 @@ export class CouncilMessageRouting implements JournalMessageDelivery {
           recipient.projectId,
           path,
           `message:${entry.message.id}`,
+          kernel.snapshot().runs.find(run => run.id === entry.message.rootId)?.automationEvent,
         );
         return;
       }
@@ -172,6 +176,7 @@ export class CouncilMessageRouting implements JournalMessageDelivery {
         },
         path,
         `message:${entry.message.id}`,
+        kernel.snapshot().runs.find(run => run.id === entry.message.rootId)?.automationEvent,
       );
     };
   }

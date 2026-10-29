@@ -25,6 +25,8 @@ import type { CouncilWorkflowModule } from "./council-workflow-module";
 import type { CouncilMessagingModule } from "./council-messaging-module";
 import { workflowPlanMapping } from "../../features/coforge/application/workflow-plan-mapping";
 import { assertReviewedCouncilIdentity } from "../../features/coforge/application/reviewed-preflight";
+import { attachAutomationEvent } from '../../features/coforge/application/automation-admission';
+import type { AutomationContext } from '../../features/coforge/domain/automation-context';
 
 /** Every entry point captures the source once and enters the same durable journal. */
 export class CouncilAdmissions {
@@ -115,10 +117,17 @@ export class CouncilAdmissions {
     simulation = false,
     key?: string,
     expectedIdentity?: string,
+    automationEvent?: AutomationContext,
+    executionCeiling?: import('../../features/coforge/application/invocation-project-context').InvocationExecutionLimits,
   ): Promise<ExecutionRun> {
     await this.assertExecutor();
     const preview = await this.context.preflight(target, path, simulation);
     assertReviewedCouncilIdentity(preview, expectedIdentity);
+    if (executionCeiling && preview.executionLimits) preview.executionLimits = {
+      timeoutSeconds: Math.min(preview.executionLimits.timeoutSeconds, executionCeiling.timeoutSeconds),
+      maxTurns: Math.min(preview.executionLimits.maxTurns, executionCeiling.maxTurns),
+      maxBudgetUsd: Math.min(preview.executionLimits.maxBudgetUsd, executionCeiling.maxBudgetUsd),
+    };
     if (
       !simulation &&
       preview.plan.invocations.some((item) => item.agent.provider === "demo")
@@ -133,6 +142,7 @@ export class CouncilAdmissions {
       simulation,
       key,
       preview.source.revision,
+      automationEvent,
     );
   }
   private async capture(
@@ -142,6 +152,7 @@ export class CouncilAdmissions {
     simulation: boolean,
     key?: string,
     expectedRevision?: string,
+    automationEvent?: AutomationContext,
   ): Promise<ExecutionRun> {
     if (!preview.executionLimits)
       throw new Error(
@@ -173,7 +184,7 @@ export class CouncilAdmissions {
         "The source changed during preflight. Review the current note before submitting.",
       );
     return this.kernel.admit(
-      councilAdmission(
+      attachAutomationEvent(councilAdmission(
         preview,
         crypto.randomUUID(),
         key ??
@@ -186,7 +197,7 @@ export class CouncilAdmissions {
           ...preview.executionLimits!,
           simulation,
         },
-      ),
+      ), automationEvent, preview.plan.definition.limits.maxContextCharacters),
     );
   }
   async admit(

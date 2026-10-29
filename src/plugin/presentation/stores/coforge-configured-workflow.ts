@@ -14,6 +14,8 @@ export const useConfiguredWorkflowUiStore = defineStore(
     const manualDrafts = ref<Record<string, WorkflowManualDraft>>({});
     const monitorError = ref("");
     const historyExpanded = ref(false);
-    return { manualDrafts, monitorError, historyExpanded };
+    const nudgeRecoveryKey = ref('');
+    const nudgeRecoveryConsent = ref(false);
+    return { manualDrafts, monitorError, historyExpanded, nudgeRecoveryKey, nudgeRecoveryConsent };
   },
 );

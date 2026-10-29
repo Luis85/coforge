@@ -14,6 +14,8 @@ import { workflowIntegrityKey } from './workflow-note-integrity';
 import { workflowProposalRevision } from '../domain/configured-workflow-run';
 import { ConfiguredWorkflowEngine } from './configured-workflow-engine';
 import type { WorkflowPlanHandoff } from './workflow-plan-handoff';
+import type { AutomationContext } from '../domain/automation-context';
+import type { AgentTaskPort } from './agent-task';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
@@ -61,14 +63,14 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   delete idea.lastError;
   idea.updatedAt = new Date().toISOString();
   job.status = 'succeeded'; job.finishedAt = idea.updatedAt;
-  recordOperation(state, 'job-completed');
+  recordOperation(state, 'job-completed', 'committed', undefined, 1, job.id);
   if (result.costUsd !== undefined) job.costUsd = result.costUsd;
   job.logs.push(`${STAGE_LABELS[job.stage]} finished. ${idea.id} is ${idea.status}.`);
   delete state.runtime.activeJobId;
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
+export interface EngineOptions { agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
 
 /** One worker, a FIFO queue of at most 50 jobs, optional timed automation and explicit cancellation. */
 export class WorkflowEngine {
@@ -81,9 +83,11 @@ export class WorkflowEngine {
   private lastProjectId: string | null = null;
   private stopped = false;
   constructor(readonly store: StudioStore, private readonly options: EngineOptions) {
-    this.configured = new ConfiguredWorkflowEngine(store, { runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
+    this.configured = new ConfiguredWorkflowEngine(store, { agentTasks: options.agentTasks, runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
   }
+  acknowledgeWorkflowNudge(ideaId: string, revision: number, consent: boolean) { return this.configured.acknowledgeNudge(ideaId, revision, consent); }
   async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }
+  async startTriggeredWorkflow(ideaId: string, event: AutomationContext, expectedDefinitionJson: string) { const run = await this.configured.start(ideaId, true, undefined, false, event, expectedDefinitionJson); this.kick(); return run; }
   async startMcpWorkflow(ideaId: string) { const run = await this.configured.start(ideaId, true, undefined, true); this.kick(); return run; }
   async startWorkflowFromPlan(ideaId: string, handoff: WorkflowPlanHandoff) { const run = await this.configured.start(ideaId, true, handoff); this.kick(); return run; }
   async runWorkflowStep(ideaId: string) { const run = await this.configured.next(ideaId); this.kick(); return run; }
@@ -108,6 +112,7 @@ export class WorkflowEngine {
     if (this.timer !== null) this.options.timers.clearInterval(this.timer);
     this.timer = null;
     this.controller?.abort();
+    await this.configured.dispose();
     await this.drainPromise;
     await this.store.flush();
   }

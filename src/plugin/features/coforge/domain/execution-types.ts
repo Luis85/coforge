@@ -1,4 +1,5 @@
 import type { StageUsage } from "./ai-usage";
+import type { AutomationContext } from './automation-context';
 import type { TeamMessageDraft } from "./team-messages";
 import type { ExecutionMessagingState } from "./execution-outbox";
 import type { ExecutionLocalAction } from "./execution-local-action";
@@ -84,6 +85,7 @@ export interface ExecutionCheckpoint {
   order?: number;
 }
 export interface ExecutionAdmission {
+  automationEvent?: AutomationContext;
   id: string;
   submissionKey: string;
   subject: ExecutionSubject;

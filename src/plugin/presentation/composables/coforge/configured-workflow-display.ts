@@ -10,7 +10,7 @@ import type {
 import type { WorkflowRun } from "../../../features/coforge/domain/configured-workflow-run";
 export const CONFIGURED_RUN_LABELS = {
   ready: "Ready for next step",
-  running: "AI step running",
+  running: "Step running",
   "waiting-human": "Waiting for your decision",
   attention: "Needs attention",
   finished: "Workflow finished",
@@ -18,6 +18,7 @@ export const CONFIGURED_RUN_LABELS = {
   stopped: "Workflow stopped",
 } as const;
 export function configuredAgentLabel(step: WorkflowStep): string {
+  if (step.kind === 'nudge') return `Agent task · ${step.agentId || 'Choose recipient'}`;
   return step.kind !== "ai"
     ? step.kind === "approval"
       ? "Streamer approval"

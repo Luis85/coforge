@@ -1,4 +1,5 @@
 import { workflowDefinition } from '../domain/configured-workflow';
+import { automationContextCheck, type AutomationContext } from '../domain/automation-context';
 import { WORKFLOW_ATTEMPT_RESERVE_BYTES, WORKFLOW_HISTORY_LIMIT_BYTES, WORKFLOW_RUN_LIMIT_BYTES, workflowSerializedSize, workflowProposalRevision, type ConfiguredStepExecution, type WorkflowRun } from '../domain/configured-workflow-run';
 import { copySettings, findProject, ideaProjectId, projectPaths, projectSettings } from '../domain/projects';
 import type { AgentJob, IdeaAction } from '../domain/types';
@@ -9,10 +10,13 @@ import type { StageUsage } from '../domain/ai-usage';
 import type { StageInput, StageRunner, InternalState } from './ports';
 import { recordOperation } from './population';
 import type { StudioStore } from './studio-store';
+import type { AgentTaskPort } from './agent-task';
+import { ConfiguredWorkflowNudges } from './configured-workflow-nudges';
 import { attachWorkflowPlan, type WorkflowPlanHandoff } from './workflow-plan-handoff';
 import { appendWorkflowArtifact, applyConfiguredOutput, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
 
 interface ConfiguredHost {
+  agentTasks?: AgentTaskPort;
   runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   cost(id: string, value: number): Promise<void>; usage(id: string, value: StageUsage): Promise<void>;
 }
@@ -31,7 +35,15 @@ function finish(state: InternalState, ideaId: string): WorkflowRun {
 
 /** Ordered, pinned execution. Legacy stages are transport labels, never progress authority. */
 export class ConfiguredWorkflowEngine {
-  constructor(private readonly store: StudioStore, private readonly host: ConfiguredHost) {}
+  private readonly nudges: ConfiguredWorkflowNudges;
+  constructor(private readonly store: StudioStore, private readonly host: ConfiguredHost) {
+    this.nudges = new ConfiguredWorkflowNudges(store, host.agentTasks, (state, ideaId) => {
+      const run = configuredIdea(state, ideaId).workflowRun!;
+      if (run.cursor === run.definition.steps.length) finish(state, ideaId); else this.automatic(state, ideaId);
+    });
+  }
+  dispose(): Promise<void> { return this.nudges.dispose(); }
+  acknowledgeNudge(ideaId: string, revision: number, consent: boolean): Promise<void> { return this.nudges.acknowledge(ideaId, revision, consent); }
   private automatic(state: InternalState, ideaId: string): void {
     try { this.queue(state, ideaId, false); }
     catch { const run = state.ideas.find(idea => idea.id === ideaId)?.workflowRun; if (run) run.error = 'The next step is not ready. Review its requirements before continuing.'; }
@@ -47,6 +59,10 @@ export class ConfiguredWorkflowEngine {
     if (run.attempts.length >= 100) throw new Error('The run reached its attempt limit. Preserve it and start a new run.');
     if (workflowSerializedSize(run) > WORKFLOW_RUN_LIMIT_BYTES - WORKFLOW_ATTEMPT_RESERVE_BYTES) throw new Error('This run has no reserved evidence capacity for another attempt. Preserve/export its history and start a fresh run; no agent was started.');
     const settings = projectSettings(state, run.projectId);
+    if (step.kind === 'nudge') {
+      if (!explicit && (settings.paused || !step.automatic)) return null;
+      this.nudges.reserve(state, ideaId, step); return null;
+    }
     if (step.kind === 'ai' && !explicit && (settings.paused || !step.automatic || idea.voters.length < (step.minVotes ?? 0))) return null;
     const id = crypto.randomUUID();
     const at = time();
@@ -63,6 +79,7 @@ export class ConfiguredWorkflowEngine {
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
     const inputs = configuredInputs(run, step);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
+      ...(run.automationEvent ? { automationEvent: structuredClone(run.automationEvent) } : {}),
       attemptId: id, step: structuredClone(step), inputArtifacts: structuredClone(inputs), ...(run.workspaceId ? { workspaceId: run.workspaceId } : {}) };
     const job: AgentJob = { id: crypto.randomUUID(), ideaId, projectId: run.projectId, stage: compatibilityStage(step.output), provider,
       ...(!run.external ? { model: step.model, ...(step.provider === 'herdr' ? { herdrAgent: step.herdrAgent ?? 'claude' } : {}) } : {}), workflow: snapshot,
@@ -72,11 +89,13 @@ export class ConfiguredWorkflowEngine {
     state.jobs.push(job); delete idea.lastError; recordOperation(state, 'job-queued', 'none', undefined, 1, job.id);
     return job;
   }
-  async start(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff, external = false): Promise<WorkflowRun> {
+  async start(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff, external = false, automationEvent?: AutomationContext, expectedDefinitionJson?: string): Promise<WorkflowRun> {
     await this.store.transaction(state => {
       const idea = configuredIdea(state, ideaId);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
+      if (expectedDefinitionJson !== undefined && JSON.stringify(workflowDefinition(settings)) !== expectedDefinitionJson) throw new Error('The workflow changed before trigger admission. Review the binding again.');
+      if (this.nudges.busy(ideaId) || idea.workflowRun?.attempts.some(attempt => attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt)) throw new Error('Inspect and acknowledge the uncertain agent nudge before starting another workflow.');
       if (state.jobs.some(job => job.ideaId === ideaId && isActiveJob(job)) || idea.workflowRun?.state === 'waiting-human' || idea.workflowRun?.state === 'awaiting-review')
         throw new Error('Finish, stop or review the existing workflow first.');
       if (idea.increment?.files.length && idea.status === 'review') throw new Error('Review the existing code changes before starting a fresh run.');
@@ -88,6 +107,7 @@ export class ConfiguredWorkflowEngine {
       const project = findProject(state, projectId);
       const at = time();
       idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition: workflowDefinition(settings),
+        ...(automationEvent ? { automationEvent: automationContextCheck(automationEvent) } : {}),
         ...(external ? { external: true } : {}),
         proposalRevision: workflowProposalRevision(idea), revision: 0, cursor: 0, state: 'ready', attempts: [], artifacts: [], createdAt: at, updatedAt: at,
         projectContext: { name: settings.projectName, brief: settings.projectBrief, agentPrompt: settings.agentPrompt, projectPath: project.projectPath, worktreeFolder: project.worktreeFolder } };
@@ -96,6 +116,7 @@ export class ConfiguredWorkflowEngine {
       recordOperation(state, 'workflow-run-started', 'committed', undefined, 1, idea.workflowRun.id);
       this.queue(state, ideaId, explicit);
     });
+    await this.nudges.run(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async next(ideaId: string): Promise<WorkflowRun> {
@@ -105,12 +126,14 @@ export class ConfiguredWorkflowEngine {
       const run = idea.workflowRun!;
       if (run.state === 'stopped' || ['finished', 'awaiting-review', 'waiting-human', 'running'].includes(run.state)) throw new Error('This workflow cannot run another step in its current state.');
       if (run.state === 'attention') {
+        if (run.attempts.some(attempt => attempt.nudgeState === 'unknown' && !attempt.nudgeAcknowledgedAt)) throw new Error('Inspect and acknowledge the uncertain agent nudge before a fresh attempt.');
         const stale = run.artifacts.filter(artifact => run.definition.steps.findIndex(step => step.id === artifact.stepId) >= run.cursor).map(artifact => artifact.id);
         run.invalidatedArtifactIds = [...new Set([...(run.invalidatedArtifactIds ?? []), ...stale])];
         run.state = 'ready'; delete run.error;
       }
       this.queue(state, ideaId, true);
     });
+    await this.nudges.run(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async manual(ideaId: string, expectedRevision: number, checkedIds: string[], note = ''): Promise<WorkflowRun> {
@@ -119,7 +142,7 @@ export class ConfiguredWorkflowEngine {
       const run = idea.workflowRun;
       const step = run?.definition.steps[run.cursor];
       const attempt = run?.attempts.find(item => item.id === run.activeAttemptId);
-      if (!run || !step || step.kind === 'ai' || run.state !== 'waiting-human' || run.revision !== expectedRevision || !attempt || workflowProposalRevision(idea) !== run.proposalRevision)
+      if (!run || !step || (step.kind !== 'approval' && step.kind !== 'checklist') || run.state !== 'waiting-human' || run.revision !== expectedRevision || !attempt || workflowProposalRevision(idea) !== run.proposalRevision)
         throw new Error('The manual step changed. Refresh before continuing.');
       if (step.kind === 'checklist' && (new Set(checkedIds).size !== checkedIds.length || checkedIds.some(id => !step.items.some(item => item.id === id)) || step.items.some(item => item.required && !checkedIds.includes(item.id))))
         throw new Error('Complete every required checklist item before continuing.');
@@ -129,9 +152,11 @@ export class ConfiguredWorkflowEngine {
       recordOperation(state, 'workflow-manual-completed', 'committed', undefined, 1, attempt.id);
       if (run.cursor === run.definition.steps.length) finish(state, ideaId); else this.automatic(state, ideaId);
     });
+    await this.nudges.run(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async stop(ideaId: string): Promise<WorkflowRun> {
+    this.nudges.abort(ideaId);
     await this.store.transaction(state => {
       const idea = configuredIdea(state, ideaId);
       const run = idea.workflowRun;
@@ -160,7 +185,7 @@ export class ConfiguredWorkflowEngine {
       if (!run && idea.increment?.files.length && idea.status === 'review') return false;
       if (run && workflowSerializedSize(run) > WORKFLOW_RUN_LIMIT_BYTES - WORKFLOW_ATTEMPT_RESERVE_BYTES) return false;
       const step = (run?.definition ?? settings.workflow)?.steps[run?.cursor ?? 0];
-      if (!step || (step.kind === 'ai' && !manual && !step.automatic)) return false;
+      if (!step || ((step.kind === 'ai' || step.kind === 'nudge') && !manual && !step.automatic)) return false;
       if (step.kind === 'ai') {
         try { configuredRuntime(state, idea, step); if (run) configuredInputs(run, step); }
         catch { return false; }
@@ -169,7 +194,7 @@ export class ConfiguredWorkflowEngine {
     });
     if (!candidate) return null;
     try {
-      if (candidate.workflowRun) await this.store.transaction(next => { this.queue(next, candidate.id, manual); });
+      if (candidate.workflowRun) { await this.store.transaction(next => { this.queue(next, candidate.id, manual); }); await this.nudges.run(candidate.id); }
       else await this.start(candidate.id, manual);
     } catch { return null; }
     return this.store.snapshot().jobs.find(job => job.ideaId === candidate.id && job.status === 'queued') ?? null;
@@ -183,7 +208,7 @@ export class ConfiguredWorkflowEngine {
       const project = findProject(state, run.projectId);
       if (run.projectContext && (run.projectContext.projectPath !== project.projectPath || run.projectContext.worktreeFolder !== project.worktreeFolder)) throw new Error('This run’s project directory changed. Stop and start a fresh workflow.');
       current.status = 'running'; current.startedAt = time(); attempt.status = 'running'; attempt.startedAt = current.startedAt; touch(run);
-      state.runtime.activeJobId = current.id; recordOperation(state, 'job-started');
+      state.runtime.activeJobId = current.id; recordOperation(state, 'job-started', 'none', undefined, 1, current.id);
       const settings = { ...copySettings(projectSettings(state, run.projectId)), ...run.definition.limits, provider: snapshot.step.provider, model: snapshot.step.model,
         ...(snapshot.step.herdrAgent ? { herdrAgent: snapshot.step.herdrAgent } : {}), ...(run.projectContext ? { projectName: run.projectContext.name, projectBrief: run.projectContext.brief, agentPrompt: run.projectContext.agentPrompt } : {}) };
       return { jobId: current.id, stage: current.stage, idea: structuredClone(idea), settings, integration: { ...state.integration, ...projectPaths(project) }, workflow: structuredClone(snapshot), signal };
@@ -225,10 +250,11 @@ export class ConfiguredWorkflowEngine {
       attempt.status = 'succeeded'; attempt.finishedAt = time(); current.status = 'succeeded'; current.finishedAt = attempt.finishedAt;
       run.cursor++; run.state = idea.screening?.verdict === 'flagged' ? 'attention' : 'ready'; delete run.activeAttemptId;
       if (run.state === 'attention') run.error = 'Resolve the moderation flag before continuing.';
-      delete idea.lastError; idea.updatedAt = time(); touch(run); delete state.runtime.activeJobId; recordOperation(state, 'job-completed');
+      delete idea.lastError; idea.updatedAt = time(); touch(run); delete state.runtime.activeJobId; recordOperation(state, 'job-completed', 'committed', undefined, 1, current.id);
       if (run.cursor === run.definition.steps.length && run.state === 'ready') finish(state, idea.id);
       else if (run.state === 'ready') this.automatic(state, idea.id);
     });
+    await this.nudges.run(job.ideaId);
   }
   async fail(job: AgentJob, cancelled: boolean, error: unknown): Promise<void> {
     await this.store.transaction(state => {
@@ -243,7 +269,7 @@ export class ConfiguredWorkflowEngine {
         run.state = run.state === 'stopped' ? (idea.increment?.files.length ? 'awaiting-review' : 'stopped') : 'attention';
         run.error = current?.error; delete run.activeAttemptId; idea.lastError = current?.error; touch(run);
       }
-      delete state.runtime.activeJobId; recordOperation(state, cancelled ? 'job-cancelled' : 'job-failed', 'none');
+      delete state.runtime.activeJobId; recordOperation(state, cancelled ? 'job-cancelled' : 'job-failed', 'none', undefined, 1, job.id);
     });
   }
   review(state: InternalState, ideaId: string, action: IdeaAction): void {
