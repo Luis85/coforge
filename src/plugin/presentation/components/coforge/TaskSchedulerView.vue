@@ -8,14 +8,14 @@ const model = useTaskScheduler();
     <header class="cf-page-heading"><div><h2>Task scheduler</h2><p>Recurring prompts, timers and scheduled reviews for CoWorkers, assigned team members and councils.</p></div>
       <div class="cf-settings-actions"><button type="button" class="cf-btn cf-btn-secondary" :disabled="!model.available || model.store.busy" @click="model.refresh()">Refresh schedules</button><button type="button" class="cf-btn cf-btn-primary" :disabled="!model.canManage || model.store.busy || !!model.store.form" @click="model.create()">New scheduled task</button></div>
     </header>
-    <p v-if="!model.available">Open CoForge in desktop Obsidian to save and run private task schedules. Configure CoWorkers in CoWorkers and teams and councils in Definitions.</p>
+    <p v-if="!model.available">Open CoForge in desktop Obsidian to save and run private task schedules. Configure specialists on the CoWorkers page and project rosters and councils in The Council → Setup → Councils &amp; roster.</p>
     <button v-if="!model.available && model.canPreview" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.explore()">Explore scheduler example</button>
     <p v-if="model.store.example" role="status">Scheduler example · in-memory schedules and simulated admission receipts only. No vault files, native agents or external services are changed.</p>
     <button v-if="model.store.example" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.exitExample()">Exit scheduler example</button>
     <template v-if="model.available">
       <p v-if="!model.store.state">Loading task schedules…</p>
-      <p v-if="!model.canManage">Designate this desktop in Run monitor before creating or changing schedules. <button type="button" class="cf-btn cf-btn-secondary" @click="model.openMonitor()">Open Run monitor</button></p>
-      <p v-else-if="model.executionPaused">Council execution is paused. Due occurrences will be skipped until you explicitly resume in Run monitor. <button type="button" class="cf-btn cf-btn-secondary" @click="model.openMonitor()">Open Run monitor</button></p>
+      <p v-if="!model.canManage">Designate this desktop in Activity → Runs &amp; answers before creating or changing schedules. <button type="button" class="cf-btn cf-btn-secondary" @click="model.openMonitor()">Open Runs &amp; answers</button></p>
+      <p v-else-if="model.executionPaused">Council execution is paused. Due occurrences will be skipped until you explicitly resume in Activity → Runs &amp; answers. <button type="button" class="cf-btn cf-btn-secondary" @click="model.openMonitor()">Open Runs &amp; answers</button></p>
       <p v-if="model.store.error || model.store.state?.error" role="alert" class="cf-inline-error">{{ model.store.error || model.store.state?.error }}</p>
       <p v-if="model.store.notice" role="status">{{ model.store.notice }}</p>
       <div class="cf-settings-actions"><label class="cf-field"><span>Show project</span><select v-model="model.store.projectFilter"><option value="">All projects</option><option v-for="project in model.projects" :key="project.id" :value="project.id">{{ project.id }} · {{ project.settings.projectName }}</option></select></label><label class="cf-check"><input v-model="model.store.showArchived" type="checkbox"> Show archived schedules</label></div>
@@ -32,7 +32,7 @@ const model = useTaskScheduler();
           </div>
         </li>
       </ul>
-      <section class="cf-council-section" aria-label="Scheduled occurrence history"><h3>Recent occurrences</h3><p>Latest 30 in this view. Submitted means admitted to the shared kernel, not completed. Sources and Run monitor retain execution evidence.</p>
+      <section class="cf-council-section" aria-label="Scheduled occurrence history"><h3>Recent occurrences</h3><p>Latest 30 in this view. Submitted means admitted to the shared kernel, not completed. Sources and Activity → Runs &amp; answers retain execution evidence.</p>
         <p v-if="!model.occurrences.length">No occurrences recorded yet.</p>
         <ul class="cf-council-runs"><li v-for="item in model.occurrences" :key="item.id"><strong>{{ item.snapshot.title }}</strong><p>{{ item.snapshot.projectId }} · {{ model.when(item.dueAt) }} · {{ model.occurrenceLabel(item) }}</p><p>{{ item.message }}</p><div v-if="!model.store.example" class="cf-settings-actions"><button v-if="item.sourcePath" type="button" class="cf-btn" :disabled="model.store.busy" @click="model.openSource(item)">Open source and results</button><button v-if="item.runId" type="button" class="cf-btn" @click="model.openRun(item)">Inspect run</button></div></li></ul>
       </section>

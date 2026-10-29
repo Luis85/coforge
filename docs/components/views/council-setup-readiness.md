@@ -15,6 +15,8 @@ actions:
   - Edit project roster
   - Review Council
 states:
+  - Loading catalogue
+  - Catalogue unavailable
   - Project needed
   - No enabled CoWorkers
   - No roster
