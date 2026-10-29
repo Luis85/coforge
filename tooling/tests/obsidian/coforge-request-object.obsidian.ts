@@ -72,6 +72,25 @@ describe('Project Request Object in the contained host', () => {
     await browserExpect(fields.getByRole('heading', { name: 'Business Idea', exact: true })).toBeVisible();
     await browserExpect(fields.getByLabel('Audience', { exact: true })).toHaveValue('Local makers');
     await browserExpect(view.getByRole('dialog', { name: 'Native business opportunity', exact: true }).locator('.cf-idea-category')).toHaveText('Strategy');
+    const drawer = view.getByRole('dialog', { name: 'Native business opportunity', exact: true });
+    await browserExpect(drawer).toHaveCSS('opacity', '1');
+    const surface = await drawer.evaluate(element => {
+      const style = getComputedStyle(element);
+      const alpha = style.backgroundColor.startsWith('rgba(') ? Number(style.backgroundColor.split(',').at(-1)?.replace(')', '').trim()) : 1;
+      return { opacity: style.opacity, background: style.backgroundColor, alpha };
+    });
+    expect(surface.opacity).toBe('1'); expect(surface.background).not.toBe('transparent'); expect(surface.alpha).toBe(1);
+    const tabs = drawer.getByRole('navigation', { name: 'Idea sections', exact: true });
+    await browserExpect(tabs).toHaveCSS('flex-direction', 'row'); await browserExpect(tabs).toHaveCSS('flex-wrap', 'wrap');
+    const geometry = await tabs.evaluate(element => {
+      const bounds = element.getBoundingClientRect(); const style = getComputedStyle(element);
+      const buttons = [...element.querySelectorAll('button')].map(button => { const box = button.getBoundingClientRect(); return { top: box.top, width: box.width, left: box.left, right: box.right }; });
+      return { width: bounds.width, left: bounds.left, right: bounds.right, basis: style.flexBasis, buttons, fits: element.scrollWidth <= element.clientWidth + 1 };
+    });
+    expect(geometry.buttons).toHaveLength(4); expect(geometry.basis).toBe('auto'); expect(geometry.fits).toBe(true);
+    expect(Math.max(...geometry.buttons.map(button => button.top)) - Math.min(...geometry.buttons.map(button => button.top))).toBeLessThan(1);
+    expect(geometry.buttons[1]!.left - geometry.buttons[0]!.right).toBeGreaterThanOrEqual(8);
+    for (const button of geometry.buttons) { expect(button.width).toBeLessThan(geometry.width / 2); expect(button.left).toBeGreaterThanOrEqual(geometry.left); expect(button.right).toBeLessThanOrEqual(geometry.right + 1); }
     expect(obsidian.errors()).toEqual([]);
     await obsidian.screenshot('request-object-captured-schema-and-human-note');
   });

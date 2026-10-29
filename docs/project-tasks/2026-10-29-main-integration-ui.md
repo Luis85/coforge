@@ -23,3 +23,27 @@ The native MCP panel uses the existing settings rows and a semantic panel bounda
 ## Scope limits
 
 These MCP images are browser-rendered native-settings components, not evidence of a real Obsidian activation. Native activation/error/recovery is exercised through the in-memory host kit; this agent did not write the user's client configuration. Root reports the locally unprovisioned real host and owns the contained native/CI gate. Pre-merge full-project results are baseline evidence only; merged qualification is tracked separately.
+
+## Final native drawer visual audit
+
+The real-native Request Object case on f5bcaaa passed its behavioral checks but its
+settled `final.png` showed four full-width section-tab rows consuming about 190px.
+Bounded native HTML/CSS inspection found the generated-workbench generic `nav`
+column direction and 12rem flex basis overriding the lower-specificity drawer
+rule. The earlier named screenshot also captured the 0.22-second enter animation;
+the settled image was opaque, so animation and background styles were preserved.
+
+The scoped drawer navigation now declares row/wrap, natural flex basis, responsive
+horizontal spacing and auto-width buttons. Browser tests reproduce the native
+cascade specificity, then measure tab coordinates, natural widths, spacing and
+overflow at 1280/480/360 in both themes. Both cases went RED on computed `column`
+direction; the final run passed **2 cases (26.8s)**. Reviewed wide/light and
+narrow/dark images under `reports/idea-drawer-layout/` (six captures). Scoped
+ESLint returned **exit 0**; diff checking was clean.
+
+The existing native Request Object case now waits for opacity 1, verifies an
+opaque surface and checks four compact same-row, naturally sized and separated
+tabs before its screenshot. The generic attention heading is now “Request needs
+attention”, which also describes edits invalidating prior request evidence before
+any run. Actual error details are retained. Root owns the fresh native/CI rerun;
+the old green native result is not substituted for the added geometry assertion.

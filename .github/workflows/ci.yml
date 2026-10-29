@@ -124,5 +124,6 @@ jobs:
             reports/economy/
             reports/task-scheduler/
             reports/merged-native-mcp/
+            reports/idea-drawer-layout/
           retention-days: 14
           if-no-files-found: warn
