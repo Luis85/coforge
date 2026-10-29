@@ -1,0 +1,171 @@
+{
+  "format": "coforge-public-board/v1",
+  "generatedAt": "2026-10-29T19:52:37.339Z",
+  "project": "No public project selected",
+  "projectId": "",
+  "columns": [
+    {
+      "id": "inbox",
+      "title": "Inbox",
+      "hint": "Screened requests waiting for a score",
+      "ideas": []
+    },
+    {
+      "id": "next",
+      "title": "Up next",
+      "hint": "Ranked and planned",
+      "ideas": []
+    },
+    {
+      "id": "progress",
+      "title": "In progress",
+      "hint": "Being built or reviewed",
+      "ideas": []
+    },
+    {
+      "id": "done",
+      "title": "Accepted",
+      "hint": "Accepted by the streamer",
+      "ideas": []
+    }
+  ],
+  "awaitingScreening": 0,
+  "leaderboards": {
+    "votes": [],
+    "ideas": [
+      {
+        "name": "streamer",
+        "color": "purple",
+        "ideas": 8,
+        "votesReceived": 0,
+        "implementations": 0,
+        "badges": [
+          {
+            "id": "first-spark",
+            "title": "First spark",
+            "description": "Contribute 1 idea that passes screening.",
+            "earned": true,
+            "current": 8,
+            "threshold": 1
+          },
+          {
+            "id": "idea-maker",
+            "title": "Idea maker",
+            "description": "Contribute 5 ideas that pass screening.",
+            "earned": true,
+            "current": 8,
+            "threshold": 5
+          },
+          {
+            "id": "community-favorite",
+            "title": "Community favorite",
+            "description": "Receive 10 unique votes on one eligible idea.",
+            "earned": false,
+            "current": 0,
+            "threshold": 10
+          },
+          {
+            "id": "crowd-favorite",
+            "title": "Crowd favorite",
+            "description": "Receive 25 unique votes on one eligible idea.",
+            "earned": false,
+            "current": 0,
+            "threshold": 25
+          },
+          {
+            "id": "backer",
+            "title": "Backer",
+            "description": "Vote for 5 eligible ideas from other contributors.",
+            "earned": false,
+            "current": 0,
+            "threshold": 5
+          },
+          {
+            "id": "co-creator",
+            "title": "Co-creator",
+            "description": "Have 1 implementation accepted by the streamer.",
+            "earned": false,
+            "current": 0,
+            "threshold": 1
+          },
+          {
+            "id": "world-builder",
+            "title": "World builder",
+            "description": "Have 3 implementations accepted by the streamer.",
+            "earned": false,
+            "current": 0,
+            "threshold": 3
+          }
+        ]
+      }
+    ],
+    "implementations": []
+  },
+  "contributors": [
+    {
+      "name": "streamer",
+      "color": "purple",
+      "ideas": 8,
+      "votesReceived": 0,
+      "implementations": 0,
+      "badges": [
+        {
+          "id": "first-spark",
+          "title": "First spark",
+          "description": "Contribute 1 idea that passes screening.",
+          "earned": true,
+          "current": 8,
+          "threshold": 1
+        },
+        {
+          "id": "idea-maker",
+          "title": "Idea maker",
+          "description": "Contribute 5 ideas that pass screening.",
+          "earned": true,
+          "current": 8,
+          "threshold": 5
+        },
+        {
+          "id": "community-favorite",
+          "title": "Community favorite",
+          "description": "Receive 10 unique votes on one eligible idea.",
+          "earned": false,
+          "current": 0,
+          "threshold": 10
+        },
+        {
+          "id": "crowd-favorite",
+          "title": "Crowd favorite",
+          "description": "Receive 25 unique votes on one eligible idea.",
+          "earned": false,
+          "current": 0,
+          "threshold": 25
+        },
+        {
+          "id": "backer",
+          "title": "Backer",
+          "description": "Vote for 5 eligible ideas from other contributors.",
+          "earned": false,
+          "current": 0,
+          "threshold": 5
+        },
+        {
+          "id": "co-creator",
+          "title": "Co-creator",
+          "description": "Have 1 implementation accepted by the streamer.",
+          "earned": false,
+          "current": 0,
+          "threshold": 1
+        },
+        {
+          "id": "world-builder",
+          "title": "World builder",
+          "description": "Have 3 implementations accepted by the streamer.",
+          "earned": false,
+          "current": 0,
+          "threshold": 3
+        }
+      ]
+    }
+  ]
+}
