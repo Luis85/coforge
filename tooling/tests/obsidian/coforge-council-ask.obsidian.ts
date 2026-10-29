@@ -68,6 +68,8 @@ describe('Ask the Council in the contained host', () => {
     await view.getByRole('button', { name: 'Queue simulation', exact: true }).click();
     const history = view.getByRole('region', { name: 'Council task history', exact: true });
     await browserExpect(history).toContainText('Council architecture advice');
+    await browserExpect(history).toContainText('Simulation · queued · execution paused');
+    await expect.poll(async () => (await journal(obsidian)).runs[0]?.state).toBe('queued');
     expect((await journal(obsidian)).runs[0]).toMatchObject({ state: 'queued', attempts: [], limits: { simulation: true } });
     await view.getByRole('button', { name: 'Resume Council execution', exact: true }).click();
     await expect.poll(async () => (await journal(obsidian)).runs[0]?.state, { timeout: 30000 }).toBe('completed');

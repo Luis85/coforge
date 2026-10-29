@@ -116,7 +116,7 @@ it('blocks selected MCP cleanup beyond the bounded status list until explicit re
     });
   });
   expect(f.module.status().recovery).toHaveLength(25);
-  expect(f.module.status().recovery.some(item => item.taskId === 'mcp-recovery-0')).toBe(false);
+  expect(f.module.status().recovery?.some(item => item.taskId === 'mcp-recovery-0')).toBe(false);
   expect(() => f.module.assertExampleCleanup([selected.id])).toThrow(/MCP.*recover|acknowledge/i);
   expect(() => f.module.assertExampleCleanup([untouched.id])).not.toThrow();
   expect(() => f.module.assertExampleCleanup([])).not.toThrow();

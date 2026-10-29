@@ -29,6 +29,8 @@ describe('Project Request Object in the contained host', () => {
     await view.getByLabel('A little more context', { exact: true }).fill('The original request description remains canonical.');
     await view.getByLabel('Audience', { exact: true }).fill('Independent makers');
     await view.getByRole('button', { name: 'Add to the board', exact: true }).click();
+    await browserExpect(view.getByRole('dialog', { name: 'New request', exact: true })).toHaveCount(0);
+    await browserExpect(view.locator('.cf-idea-card').filter({ hasText: 'Native business opportunity' })).toBeVisible();
     const original = await obsidian.eval(async ({ app }) => {
       const file = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Ideas/'));
       if (!file) throw new Error('Expected a canonical request note.');
@@ -48,6 +50,7 @@ describe('Project Request Object in the contained host', () => {
     await fields.getByLabel('Audience', { exact: true }).fill('Local makers');
     await fields.getByRole('button', { name: 'Save request fields', exact: true }).click();
     await browserExpect(fields.getByRole('button', { name: 'Save request fields', exact: true })).toBeDisabled();
+    await browserExpect(fields.getByRole('status')).toContainText('Request fields saved.');
     const edited = await obsidian.eval(({ app }, path) => app.vault.adapter.read(path), original.path);
     expect(body(edited)).toBe(body(original.text));
     expect(edited).toContain('owner-property: "preserve this exact quoting"');

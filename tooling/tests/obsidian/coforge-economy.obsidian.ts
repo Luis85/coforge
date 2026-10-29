@@ -66,6 +66,7 @@ describe("Economy in the contained Obsidian host", () => {
     await browserExpect(
       view.getByRole("button", { name: "Save Economy rules", exact: true }),
     ).toBeDisabled();
+    await browserExpect(view.getByRole('status').filter({ hasText: 'Economy rules saved.' })).toBeVisible();
     await view
       .getByRole("button", { name: "Stream chat", exact: true })
       .click();

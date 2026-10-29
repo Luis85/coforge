@@ -104,7 +104,7 @@ test("native settings clearly separate vault integration from project configurat
   const ownership = page.getByLabel("Where settings belong", { exact: true });
   await expect(ownership).toContainText("Project settings");
   await expect(ownership).toContainText("Workflow settings");
-  await expect(ownership).toContainText("Vault folders, Claude Code, Twitch and the viewer website.");
+  await expect(ownership).toContainText("Vault folders, Claude Code, local MCP, Twitch and the viewer website.");
   const directory = `reports/ui-intent/${process.env.COFORGE_INTENT_CAPTURE || "after"}`;
   await mkdir(directory, { recursive: true });
   for (const theme of ["light", "dark"]) {

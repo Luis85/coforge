@@ -117,7 +117,7 @@ describe("Council definitions and isolated note simulation in Obsidian", () => {
         "# Original human source\n\nKeep these bytes.\n",
       );
     });
-    await view.getByRole("navigation", { name: "Council workspace", exact: true }).getByRole("button", { name: "Run monitor", exact: true }).click();
+    await openCouncilPage(view, 'Run monitor');
     await view
       .getByRole("button", {
         name: "Use this desktop for execution",
