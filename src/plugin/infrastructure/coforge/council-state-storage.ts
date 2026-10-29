@@ -11,7 +11,7 @@ import {
 import { intakeBindingCheck } from "../../features/coforge/domain/intake-bindings";
 import type { CouncilPreferences } from "../../features/coforge/application/council-ports";
 import type { IntakeState } from "../../features/coforge/application/intake-service";
-import { councilDefinitionFoldersCheck } from "../../features/coforge/domain/council-definition-folders";
+import { councilDefinitionFoldersCheck, DEFAULT_COUNCIL_FOLDERS } from "../../features/coforge/domain/council-definition-folders";
 
 const preferencesCheck = shape(
   {
@@ -69,7 +69,8 @@ const intakeCheck = shape(
 );
 export class CouncilStateStorage {
   readonly directory: string;
-  constructor(private readonly plugin: Plugin) {
+  constructor(private readonly plugin: Plugin,
+    private readonly assertNoteFoldersAvailable: (folders: readonly string[]) => void = () => undefined) {
     this.directory =
       plugin.manifest.dir ??
       `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
@@ -85,7 +86,7 @@ export class CouncilStateStorage {
     return JSON.parse(raw);
   }
   async preferences(): Promise<CouncilPreferences> {
-    return preferencesCheck(
+    const preferences = preferencesCheck(
       (await this.read("settings")) ?? {
         format: "coforge-council-settings/v1",
         revision: 0,
@@ -93,6 +94,8 @@ export class CouncilStateStorage {
         bindings: [],
       },
     );
+    this.assertNoteFoldersAvailable(Object.values(preferences.definitionFolders ?? DEFAULT_COUNCIL_FOLDERS));
+    return preferences;
   }
   async savePreferences(
     value: CouncilPreferences,

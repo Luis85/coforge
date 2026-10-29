@@ -56,6 +56,10 @@ export interface Timers {
 }
 
 /** Host capabilities the studio needs but must not implement itself. */
+export interface ManagedNoteFolderPolicy {
+  assertAvailable(folders: readonly string[]): void;
+  reserve(folders: readonly string[]): () => void;
+}
 export interface StudioHost {
   agentTasks?: import('./agent-task').AgentTaskPort;
   /** Private immutable reward tickets are reserved before command effects. */
@@ -64,6 +68,8 @@ export interface StudioHost {
   beforeCommit?(next: AppState, previous: AppState | null): Promise<void | (() => void)>;
   assertExampleCleanup?(ideaIds: readonly string[]): void | (() => void) | Promise<void | (() => void)>;
   privateFolders?(): readonly string[];
+  /** Keep canonical note owners separate without restricting ordinary watched source notes. */
+  noteFolders?: Partial<ManagedNoteFolderPolicy>;
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;
   runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   timers: Timers;
@@ -75,6 +81,7 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  serviceDesign?: import('../../service-design/domain/blueprint').ServiceDesignActions;
   obsProduction?: import('./obs-production-workflow').ObsProductionActions;
   obsShow?: import('./obs-show-ports').ObsShowActions;
   obsSetup?: import('./obs-setup-workflow').ObsSetupActions;

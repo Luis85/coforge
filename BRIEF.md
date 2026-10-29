@@ -446,6 +446,20 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 - None recorded.
 
+## Service Design (owner decisions, 2026-10-29)
+
+- Add Service Design to main navigation under Build & Improve. Each project owns
+  one Service Blueprint, with ordered journey steps and a grid of customer actions,
+  frontstage actions, backstage actions, support processes and physical/digital evidence.
+- Support creation and editing of separate, linked notes for those layers and for
+  actors/roles, touchpoints/channels, systems, pain points and opportunities.
+- Use canonical Obsidian-compatible frontmatter plus Markdown, stable IDs and
+  wikilinks. A vault-wide configurable root defaults to `CoForge/Service Design`,
+  with project subfolders and one note per blueprint/entity. Root changes affect new
+  notes only; existing notes remain discoverable. Preserve unrelated frontmatter
+  and body bytes on metadata edits; external edits require refresh before saving.
+- Service Design is private project work and is excluded from public projections.
+
 ## Streamer workflow increment (2026-10-27)
 
 ### OBS overhaul exploration (owner direction, 2026-10-29)

@@ -50,6 +50,7 @@ export const STUDIO_DESTINATIONS = {
     scope: "vault",
   },
   coworkers: { label: 'CoWorkers', icon: 'user-round', group: 'build', scope: 'vault' },
+  'service-design': { label: 'Service Design', icon: 'workflow', group: 'build', scope: 'project', requiresProject: true },
   workflow: {
     label: "Agent workflow",
     icon: "workflow",
