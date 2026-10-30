@@ -17,8 +17,8 @@ mapping policy, private data and no-replay boundaries.
 - Requirement: docs/requirements/OBS Studio Integration.md, pbl-id 6.
 - No imported req-* or vi-* obligations are declared for this feature.
 - Task: docs/project-tasks/2026-10-30-obs-studio-focus.md.
-- Earlier Show plan work is included; unrelated music/project-visibility changes
-  are excluded from this isolated branch.
+- Earlier Show plan work is included; unrelated local music/project-visibility
+  edits are excluded from this PR. Published main 1c15511 is integrated.
 
 ## Validation
 
@@ -28,7 +28,16 @@ mapping policy, private data and no-replay boundaries.
 - Meter subscription protocol regression failed first; protocol/production/session
   suites then passed 17 tests across 3 files (10.41s).
 - Scoped ESLint with --max-warnings 0 and git diff --check: exit 0.
-- Full canonical verification and CI: qualification in progress.
+- Local npm run verify:project: exit 1 solely from the 601.2s product-test process
+  timeout. Typecheck (66.2s), source lint (9.8s), ESLint (284.1s) and maker types
+  (14.8s) passed: summary 4 passed, 1 failed, 0 skipped in 976.1s. No assertion
+  failure was reported in captured output. Task-local compile cache and 8GB heap
+  were used; tests, isolation, timeouts and quality thresholds remain unchanged.
+- Separate npm run verify:artifacts: exit 0; production build and embedding
+  1 passed / 0 failed. Generated UI-effect checks are not applicable (no visual
+  definitions). Full pinned CI results are recorded in the PR checks.
+- Obsolete component tests were replaced by lean navigation/absence, on-demand
+  session and compatibility regressions; native adapter/action tests remain.
 
 ## UI and Obsidian evidence
 
@@ -44,7 +53,11 @@ mapping policy, private data and no-replay boundaries.
   preserving the existing viewers/chat/health monitor.
 - Browser keyboard/draft/navigation regression: 1 passed (49.0s test).
   Final npm run test:ui-quality: 8 passed (58.7s). Impeccable detector: [].
-- Gallery, final dev session and canonical full gate: in progress.
+- npm run ui:gallery: exit 0, 40 captures, failures []; representative wide/light
+  and narrow/dark captures reviewed. No baselines changed.
+- Final integrated-base dev session: status passed, errors [], hostErrorCount 0,
+  pluginConsole []; pinned Obsidian 1.14.4 / launcher 3.2.1. Screenshot and debug
+  logs reviewed; session ended complete.
 - Preliminary Show plan model/authoring and host evidence is retained in
   docs/project-tasks/2026-10-30-show-plan-polish.md; final release evidence belongs
   to the focus task above.

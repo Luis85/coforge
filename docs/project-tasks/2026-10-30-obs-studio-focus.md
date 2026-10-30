@@ -1,6 +1,6 @@
 # Task: Focus Stream studio on stream, scene and show operation
 
-- Status: in progress
+- Status: implemented; release qualification is recorded in the pull request checks
 - Journey in BRIEF.md: OBS scope correction and Show plans; owner authorized
   removal of obsolete UI, push, PR, qualification and merge when green.
 
@@ -75,7 +75,26 @@ account mutations; unrelated project-feature visibility and local-music changes.
   Final npm run test:ui-quality: 8 passed (58.7s).
 - Scoped ESLint with --max-warnings 0 and git diff --check: exit 0.
   Impeccable detector on final retained components/styles: [].
-- Gallery, final dev session, canonical full verification and PR/CI: pending.
+- npm run ui:gallery: exit 0, 40 captures, failures []; representative light
+  desktop/dark narrow captures reviewed. Source remained frozen during capture.
+- Integrated published main 1c15511 before final full verification. Only the PR
+  template conflicted; it retains this change's evidence. No unrelated local work
+  was copied. Catalogue: 109 views; navigation valid; sitemap current.
+- npm run -s dev:obsidian -- --json: status passed, errors [], hostErrorCount 0,
+  pluginConsole []; pinned app 1.14.4 / launcher 3.2.1. Read screenshot, dev.log
+  and debug-report.json; session ended complete.
+- npm run verify:project: local exit 1 solely from the 601.2s product-test process
+  timeout. Typecheck 66.2s, source lint 9.8s, ESLint 284.1s and maker types 14.8s
+  passed. Summary: 4 passed, 1 failed, 0 skipped (976.1s). No assertion failure
+  appeared in captured output. An isolated NODE_COMPILE_CACHE and 8GB compiler
+  heap were used; no test, isolation, timeout, lint rule or threshold was changed.
+- Separate npm run verify:artifacts: exit 0; production build and embedding
+  1 passed / 0 failed. Generated UI-effect checks are not applicable because this
+  project declares no visual definitions.
+- Exact logs: .obsidian-sandbox/obs-focus-verify.log, obs-focus-artifacts.log,
+  obs-focus-dev.json.log, lean-obs-native-final.log and lean-obs-ui-quality-final.log.
+- Pinned canonical CI, full browser/native CI and merge status are tracked in the
+  pull request. The local timeout is not reported as a full-suite pass.
 
 ## Untested scope
 
