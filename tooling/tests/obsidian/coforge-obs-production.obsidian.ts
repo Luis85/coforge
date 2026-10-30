@@ -52,11 +52,10 @@ describe("Focused OBS stream operation in the contained host", () => {
         "Show plan",
         "Setup",
         "Scenes",
-        "Music",
         "Public displays",
         "History",
       ]);
-      for (const removed of ["Audio", "Sources & layouts"])
+      for (const removed of ["Audio", "Sources & layouts", "Music"])
         await browserExpect(
           pages.getByRole("button", { name: removed, exact: true }),
         ).toHaveCount(0);

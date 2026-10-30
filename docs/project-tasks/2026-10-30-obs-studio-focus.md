@@ -101,6 +101,12 @@ account mutations; unrelated project-feature visibility and local-music changes.
   Integrated-base typecheck passed. Media regression red 1 failed, then green
   3 files / 9 passed (10.32s): hidden camera IDs cannot become playback cues;
   Media/VLC targets execute only on explicit Run, with saved exact target IDs.
+- First pinned CI: 1,389 / 1,390 product tests passed; fixed the obsolete Audio
+  catalogue assertion by requiring retained Show coverage and explicitly rejecting
+  retired Audio/Sources contracts. Focused catalogue 12 passed. Native CI had
+  40 passed / 1 stale Music-tab expectation after the main merge; the exact six
+  retained tabs and Music absence are now asserted. Focused native 1 passed
+  (16.250s test, 17.65s total). No production behavior or gate was weakened.
 
 ## Untested scope
 

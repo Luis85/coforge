@@ -43,6 +43,12 @@ mapping policy, private data and no-replay boundaries.
   definitions). Full pinned CI results are recorded in the PR checks.
 - Obsolete component tests were replaced by lean navigation/absence, on-demand
   session and compatibility regressions; native adapter/action tests remain.
+- Initial pinned CI ran all 1,390 product tests: 1,389 passed; the remaining
+  catalogue assertion still targeted retired Audio. It now requires Show plan
+  coverage and explicitly rejects obsolete Audio/Sources contracts. Focused
+  catalogue: 12 passed. Native CI: 40 passed / 1 stale Music-tab expectation;
+  updated the exact six-tab list and explicitly rejects Music. Focused native
+  production case then passed (16.250s test, 17.65s total).
 
 ## UI and Obsidian evidence
 
