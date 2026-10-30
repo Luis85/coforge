@@ -59,7 +59,7 @@ is confirmed, and past recordings cannot be revoked. CoForge does not overwrite 
 source whose text was subsequently changed outside its owned mapping.
 
 When navigating to another CoForge work view during a broadcast, the quick-control
-strip retains BRB/resume and a return to the live desk. Lost connection displays
+strip retains BRB/resume and a return to Broadcast controls. Lost connection displays
 last-seen status and disables mutations rather than implying the stream stopped.
 
 ## First-time setup

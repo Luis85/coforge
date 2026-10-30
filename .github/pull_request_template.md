@@ -17,8 +17,9 @@ mapping policy, private data and no-replay boundaries.
 - Requirement: docs/requirements/OBS Studio Integration.md, pbl-id 6.
 - No imported req-* or vi-* obligations are declared for this feature.
 - Task: docs/project-tasks/2026-10-30-obs-studio-focus.md.
-- Earlier Show plan work is included; unrelated local music/project-visibility
-  edits are excluded from this PR. Published main 1c15511 is integrated.
+- Earlier Show plan work is included; unrelated unpublished work is excluded.
+  Published main be7e89a (project visibility and OBS music sources) is integrated.
+  Media/VLC scene and Show cue support remains; the obsolete mixer is removed.
 
 ## Validation
 
@@ -27,6 +28,10 @@ mapping policy, private data and no-replay boundaries.
 - Final session notice/watch and dock regression: 2 files / 2 passed (6.61s).
 - Meter subscription protocol regression failed first; protocol/production/session
   suites then passed 17 tests across 3 files (10.41s).
+- Music merge regression failed first (hidden camera accepted for playback), then
+  3 files / 9 passed (10.32s). The UI/workflow/adapter test admits only refreshed
+  Media/VLC targets and proves author/save does not execute them; explicit Run
+  routes the saved exact FFmpeg/VLC action IDs. Integrated-base typecheck exited 0.
 - Scoped ESLint with --max-warnings 0 and git diff --check: exit 0.
 - Local npm run verify:project: exit 1 solely from the 601.2s product-test process
   timeout. Typecheck (66.2s), source lint (9.8s), ESLint (284.1s) and maker types

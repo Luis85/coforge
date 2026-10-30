@@ -136,6 +136,15 @@ export function useObsShow() {
         step = { kind: "replay-save" };
         break;
       case "media":
+        if (
+          !production.ui.snapshot?.inputs.some(
+            (input) => input.id === ui.inputId && obsMediaInputKind(input.kind),
+          )
+        ) {
+          ui.error =
+            "Choose an available OBS Media or VLC source before adding playback. Refresh OBS targets if it is missing.";
+          return;
+        }
         step = { kind: "media", inputId: ui.inputId, action: ui.mediaAction };
         break;
       case "source-visible":
@@ -165,6 +174,7 @@ export function useObsShow() {
         return;
     }
     cue.value.steps.push(step);
+    ui.error = "";
     markDirty();
   }
   function moveStep(index: number, direction: -1 | 1) {
@@ -209,7 +219,12 @@ export function useObsShow() {
     state,
     ...summary,
     production,
-    targetInputs: computed(() => production.ui.snapshot?.inputs.filter(input => ui.stepKind !== "media" || obsMediaInputKind(input.kind)) ?? []),
+    targetInputs: computed(
+      () =>
+        production.ui.snapshot?.inputs.filter(
+          (input) => ui.stepKind !== "media" || obsMediaInputKind(input.kind),
+        ) ?? [],
+    ),
     events: OBS_SHOW_EVENTS,
     supported: Boolean(host.obsShow),
     recentMarkers: computed(() => state.value.markers.slice(-10).reverse()),

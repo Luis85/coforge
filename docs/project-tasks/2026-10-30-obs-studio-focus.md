@@ -95,6 +95,12 @@ account mutations; unrelated project-feature visibility and local-music changes.
   obs-focus-dev.json.log, lean-obs-native-final.log and lean-obs-ui-quality-final.log.
 - Pinned canonical CI, full browser/native CI and merge status are tracked in the
   pull request. The local timeout is not reported as a full-suite pass.
+- PR #52 opened with e2e enabled. Main's OBS music PR #51 merged concurrently;
+  integrated be7e89a, kept the new source/Show cue contracts and removed the
+  obsolete mixer. Regenerated catalogue: 108 views; valid navigation/sitemap.
+  Integrated-base typecheck passed. Media regression red 1 failed, then green
+  3 files / 9 passed (10.32s): hidden camera IDs cannot become playback cues;
+  Media/VLC targets execute only on explicit Run, with saved exact target IDs.
 
 ## Untested scope
 
