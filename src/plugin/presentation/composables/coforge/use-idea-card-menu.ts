@@ -10,6 +10,7 @@ import {
   type Idea,
 } from "../../../features/coforge/domain/types";
 import { ideaProjectId } from "../../../features/coforge/domain/projects";
+import { projectFeatureEnabled } from '../../../features/coforge/domain/project-features';
 import { isActiveJob } from "../../../features/coforge/domain/workflow";
 import {
   ideaWorkflowAction,
@@ -61,7 +62,7 @@ export function useIdeaCardMenu(
     ),
   );
   const nextAction = computed(() =>
-    ideaWorkflowAction(props.idea, project.value, store.state?.runtime),
+    projectFeatureEnabled(project.value, 'workflow') ? ideaWorkflowAction(props.idea, project.value, store.state?.runtime) : undefined,
   );
   const reason = computed(() =>
     store.busy || active.value
@@ -79,6 +80,7 @@ export function useIdeaCardMenu(
     store.openWorkflowTool("runs");
   };
   const runStage = () => {
+    if (!projectFeatureEnabled(project.value, 'workflow')) return;
     const current = store.state?.ideas.find(
       (idea) => idea.id === props.idea.id,
     );
@@ -159,7 +161,7 @@ export function useIdeaCardMenu(
       ],
     ];
     const councilIssue = councilIdeaAssessmentIssue(idea);
-    groups.push([
+    if (projectFeatureEnabled(project.value, 'council')) groups.push([
       {
         label: "Send to the Council",
         icon: "i-lucide-messages-square",
@@ -230,7 +232,7 @@ export function useIdeaCardMenu(
           },
         },
       ]);
-    if (active.value)
+    if (active.value && projectFeatureEnabled(project.value, 'workflow'))
       groups.push([
         {
           label: "Open agent workflow",

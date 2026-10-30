@@ -90,6 +90,16 @@
 .cf-settings-description p { color: var(--cf-muted); font-size: 11px; line-height: 1.85; max-width: 31ch; }
 .cf-settings-fields { min-width: 0; }
 .cf-project-feature-fields { margin: 0; padding: 0; border: 0; }
+.cf-project-feature-group { padding-block: var(--size-4-4); border-bottom: 1px solid var(--cf-border); }
+.cf-project-feature-heading { flex-wrap: wrap; }
+.cf-project-feature-heading small { margin-left: auto; color: var(--cf-muted); }
+.cf-project-feature-options { margin: var(--size-4-2) 0 0; padding: 0 0 0 var(--size-4-6); border: 0; min-width: 0; }
+.cf-project-feature-option { display: flex; align-items: flex-start; gap: var(--size-4-2); padding-block: var(--size-4-2); min-height: var(--size-4-8); cursor: pointer; }
+.cf-project-feature-option input { flex-shrink: 0; margin-top: var(--size-4-1); }
+.cf-project-feature-option span { display: grid; gap: var(--size-4-1); min-width: 0; }
+.cf-project-feature-option strong { font-size: var(--font-ui-small); font-weight: var(--font-semibold); }
+.cf-project-feature-option small { color: var(--cf-muted); font-size: var(--font-ui-smaller); line-height: var(--line-height-normal); }
+.cf-project-feature-options:disabled { color: var(--cf-muted); }
 .cf-settings-fields .cf-field { margin: 0 0 17px; }
 .cf-settings-fields > .cf-field:last-child { margin-bottom: 0; }
 .cf-settings-fields .cf-field :is(input, textarea) { font-size: 12px; border-radius: var(--radius-s); }

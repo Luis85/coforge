@@ -1,81 +1,63 @@
 ## Summary
 
-Stream studio now focuses on stream controls, scene management and Show plans.
-Show plan is second after Broadcast and presents an ordered rundown beside the
-selected cue, presenter notes and explicit Run controls.
+Expand Project settings → General → Project features from four group switches to
+18 individually selectable workspace capabilities. Service Design can be hidden
+or shown independently of the Idea board, Council and CoWorkers. Group hiding
+retains individual choices. Missing preferences preserve existing capabilities.
 
-Remove the program/preview monitors, audio mixer, source/layout property editors,
-full studio setup and standalone output controls, together with their exclusive
-UI state/helpers/styles. Read OBS targets on demand; do not poll screenshots or
-unused audio settings, and do not subscribe to high-frequency audio meters.
-Keep existing scene and cue action contracts, restart-review recovery, public
-mapping policy, private data and no-replay boundaries.
+| Group | Individual features |
+| --- | --- |
+| Build & Improve | Idea board, The Council, CoWorkers, Service Design, Agent workflow |
+| Stream | Stream studio, Alerts, Schedule, Stream chat, Twitch operations |
+| Community | Community, Viewers, Economy, Community settings |
+| Insights | Statistics, AI costs, Finances, Operations |
+
+Internal tabs/editors stay with their owning feature. Essential settings and
+project switching remain reachable. Chat and OBS panels are independent. Council
+and workflow launch shortcuts respect saved choices; existing cancellation and
+human review remain available. These preferences do not stop shared services,
+change public projections or reconfigure captured work.
 
 ## Requirements and traceability
 
-- Owner scope correction and follow-through (2026-10-30), recorded in BRIEF.md.
-- Requirement: docs/requirements/OBS Studio Integration.md, pbl-id 6.
-- No imported req-* or vi-* obligations are declared for this feature.
-- Task: docs/project-tasks/2026-10-30-obs-studio-focus.md.
-- Earlier Show plan work is included; unrelated unpublished work is excluded.
-  Published main be7e89a (project visibility and OBS music sources) is integrated.
-  Media/VLC scene and Show cue support remains; the obsolete mixer is removed.
+Owner follow-up recorded in BRIEF.md (2026-10-30). Inventory, boundary and
+acceptance: docs/project-tasks/2026-10-30-optional-project-features.md.
+No imported req-* or vi-* IDs apply. Every optional route and the compatibility
+workflow alias have behavioral coverage; a catalogue test detects missing routes.
 
 ## Validation
 
-- TDD removal/session scope: 3 failing regressions before implementation;
-  5 files / 13 tests passed afterward.
-- Final session notice/watch and dock regression: 2 files / 2 passed (6.61s).
-- Meter subscription protocol regression failed first; protocol/production/session
-  suites then passed 17 tests across 3 files (10.41s).
-- Music merge regression failed first (hidden camera accepted for playback), then
-  3 files / 9 passed (10.32s). The UI/workflow/adapter test admits only refreshed
-  Media/VLC targets and proves author/save does not execute them; explicit Run
-  routes the saved exact FFmpeg/VLC action IDs. Integrated-base typecheck exited 0.
-- Scoped ESLint with --max-warnings 0 and git diff --check: exit 0.
-- Local npm run verify:project: exit 1 solely from the 601.2s product-test process
-  timeout. Typecheck (66.2s), source lint (9.8s), ESLint (284.1s) and maker types
-  (14.8s) passed: summary 4 passed, 1 failed, 0 skipped in 976.1s. No assertion
-  failure was reported in captured output. Task-local compile cache and 8GB heap
-  were used; tests, isolation, timeouts and quality thresholds remain unchanged.
-- Separate npm run verify:artifacts: exit 0; production build and embedding
-  1 passed / 0 failed. Generated UI-effect checks are not applicable (no visual
-  definitions). Full pinned CI results are recorded in the PR checks.
-- Obsolete component tests were replaced by lean navigation/absence, on-demand
-  session and compatibility regressions; native adapter/action tests remain.
-- Initial pinned CI ran all 1,390 product tests: 1,389 passed; the remaining
-  catalogue assertion still targeted retired Audio. It now requires Show plan
-  coverage and explicitly rejects obsolete Audio/Sources contracts. Focused
-  catalogue: 12 passed. Native CI: 40 passed / 1 stale Music-tab expectation;
-  updated the exact six-tab list and explicitly rejects Music. Focused native
-  production case then passed (16.250s test, 17.65s total).
+- TDD red: 21 failed, 1 passed (unsupported features and missing controls).
+  A separate shortcut test failed before Council/workflow launch filtering.
+- Initial focused green: 4 files / 28 passed; added dirty-workflow case passed
+  in a later 2-file / 7-test batch. Related navigation compatibility: 4 files / 7 passed.
+- Latest targeted catalogue/UI/Community/Economy batch: 4 files / 34 passed;
+  standalone npm run typecheck: exit 0. Regression covers the composable binding
+  for the independently selected Economy shortcut and visual-order fallback.
+- Browser/UI-quality: 10 passed (1.3m), light/dark, keyboard, selected counts,
+  exact persisted choices, 1280/480px reflow and WCAG scans.
+- Real Obsidian after current-main integration: 1 passed (9.43s), Service Design/group choices survive reload,
+  unknown frontmatter and exact authored body bytes preserved; teardown completed.
+- Dev loop: status passed, errors [], hostErrorCount 0, pluginConsole [].
+- docs:views: 108 views; valid navigation coverage; sitemap current.
+- Impeccable detector: []; scope review and git diff --check passed.
+- Full local check uses the supported --timeout 3600000 orchestration budget;
+  individual test limits and quality gates remain unchanged. Full local,
+  artifact and exact-head GitHub check/ui/real-obsidian results are recorded in
+  this PR before merge; the e2e label enables all browser and host suites.
 
 ## UI and Obsidian evidence
 
-- Final native: 3 files / 3 passed (41.16s) after 9.06s build. Covers start,
-  BRB/resume, stop; scene creation/rename/duplicate/switch/delete; Show cue
-  execution and reload without replay; reviewed overlays and privacy revocation.
-  No screenshots/meter subscription or repeated audio-setting reads on Broadcast.
-- Eight light/dark/wide/narrow Broadcast/Show WCAG scans plus on-air/draft checks:
-  zero violations/overflow. Enabled Go live is included. Prepared-state contrast
-  failed before the scoped fix and passes afterward. Public overlay captures have
-  zero overflow (no accessibility-scan claim).
-- Final polish regression: 3 passed (5.21s); duplicate metric strip removed while
-  preserving the existing viewers/chat/health monitor.
-- Browser keyboard/draft/navigation regression: 1 passed (49.0s test).
-  Final npm run test:ui-quality: 8 passed (58.7s). Impeccable detector: [].
-- npm run ui:gallery: exit 0, 40 captures, failures []; representative wide/light
-  and narrow/dark captures reviewed. No baselines changed.
-- Final integrated-base dev session: status passed, errors [], hostErrorCount 0,
-  pluginConsole []; pinned Obsidian 1.14.4 / launcher 3.2.1. Screenshot and debug
-  logs reviewed; session ended complete.
-- Preliminary Show plan model/authoring and host evidence is retained in
-  docs/project-tasks/2026-10-30-show-plan-polish.md; final release evidence belongs
-  to the focus task above.
+- reports/project-feature-groups/features-{light,dark}-{1280,480}.png reviewed.
+  Descriptions wrap, counts remain visible, hidden groups retain readable choices.
+- ui:gallery: 40 captures, no failures; representative captures reviewed. No
+  screenshot baselines changed.
+- reports/obsidian/cases/coforge-project-features--saves-visibility-in-the-canonical-project-note-and-restores-it-after-reload/
+  and .obsidian-sandbox/logs/. Pinned host: Obsidian 1.14.4 / launcher 3.2.1.
 
 ## Untested scope
 
-Real OBS hardware/audio audibility and public broadcasts require operator
-acceptance. Native tests use contained Obsidian and loopback simulated OBS servers.
-Local Node 24.20.0 differs from the pin; CI uses the pinned toolchain. No dependency
-or lockfile changes, real-account mutations or screenshot baseline updates.
+No personal vault, live Twitch/OBS mutation, billable provider or public-site
+publication. Optional features control the project workspace, preserving actual
+channel/vault data scope and runtime permissions. Local Node/npm are
+24.20.0/11.21.1; CI uses pins 24.21.0/11.19.1.

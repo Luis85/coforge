@@ -71,7 +71,7 @@ const model = useSettingsForm();
     </dl>
     <div class="cf-settings-actions cf-settings-runtime-actions">
       <button type="button" class="cf-btn cf-btn-secondary" @click="model.store.openSettingsTool('repository')">Configure repository</button>
-      <button type="button" class="cf-btn cf-btn-secondary" @click="model.store.openWorkflowTool('herdr')">Manage Herdr workspaces</button>
+      <button v-if="model.store.featureEnabled('workflow')" type="button" class="cf-btn cf-btn-secondary" @click="model.store.openWorkflowTool('herdr')">Manage Herdr workspaces</button>
     </div>
     <p class="cf-settings-help">
       Set the project path and build permission under Repository.

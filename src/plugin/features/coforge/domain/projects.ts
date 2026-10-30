@@ -3,6 +3,7 @@ import { normalizeStageAgents } from './stage-agents';
 import { requestObjectDefinitionCheck } from './request-object';
 import { workflowDefinitionCheck } from './configured-workflow';
 import { visibleProjectGroups } from './project-feature-groups';
+import { visibleProjectFeatures } from './project-features';
 import type { AppState, Idea, IntegrationSettings, Settings, StudioProject } from './types';
 
 export const INITIAL_PROJECT_ID = 'CFP-001';
@@ -27,6 +28,7 @@ export function projectConfigurationIdentity(project: StudioProject): string {
     repositoryUrl: project.repositoryUrl, websiteUrl: project.websiteUrl,
     visibility: project.visibility ?? 'public',
     featureGroups: visibleProjectGroups(project),
+    features: visibleProjectFeatures(project),
   }));
 }
 export const projectPaths = (project: ProjectPaths): ProjectPaths => ({

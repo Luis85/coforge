@@ -26,7 +26,7 @@ const openEventTriggers = useEventTriggerLink();
         </p>
       </div>
     </header>
-    <details class="cf-workflow-related">
+    <details v-if="model.store.featureEnabled('council')" class="cf-workflow-related">
       <summary>Request workflows and Council proposal processes</summary>
       <p>
         Use this workflow to move an existing request through ordered AI and
@@ -87,6 +87,7 @@ const openEventTriggers = useEventTriggerLink();
                 Preview workflow export
               </button>
               <button
+                v-if="model.store.featureEnabled('council')"
                 type="button"
                 class="cf-btn cf-btn-secondary"
                 @click="openEventTriggers()"

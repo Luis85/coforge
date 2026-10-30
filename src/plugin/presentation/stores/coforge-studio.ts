@@ -5,6 +5,7 @@ import { configurationProblem } from "./configuration-guard";
 import { projectIdeas as scopedIdeas } from "../../features/coforge/domain/projects";
 import type { BroadcastPage, StreamPage, WorkflowPage, SettingsPage } from "./studio-pages";
 import { studioRoot, studioViewEnabled, studioHome } from "./studio-destinations";
+import { projectFeatureEnabled, type ProjectFeature } from '../../features/coforge/domain/project-features';
 
 export type StudioView =
   | "service-design"
@@ -152,6 +153,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
       (project) => project.id === state.value?.activeProjectId,
     ),
   );
+  const featureEnabled = (id: ProjectFeature): boolean => projectFeatureEnabled(activeProject.value, id);
   const projectIdeas = computed(() =>
     state.value ? scopedIdeas(state.value) : [],
   );
@@ -212,34 +214,35 @@ export const useStudioStore = defineStore("coforge-studio", () => {
       return false;
     }
     view.value = next;
+    if (next === 'settings' && settingsTool.value === 'workflow' && !featureEnabled('workflow')) settingsTool.value = 'general';
     navigationRevision.value++;
     activityOpen.value = false;
     return true;
   }
   function navigate(next: StudioView) {
-    if (next === "settings" && studioRoot(view.value) === "settings") return true;
+    if (next === "settings" && studioRoot(view.value) === "settings" && studioViewEnabled(view.value, activeProject.value)) return true;
     const destination =
-      (next === "workflow" || (next === "settings" && settingsTool.value === "workflow")) &&
+      (next === "workflow" || (next === "settings" && settingsTool.value === "workflow" && featureEnabled('workflow'))) &&
       (view.value === "workflow-settings" || workflowTool.value === "settings")
         ? "workflow-settings"
-        : next === "settings" && settingsTool.value === "workflow" ? "workflow" : next;
+        : next === "settings" && settingsTool.value === "workflow" && featureEnabled('workflow') ? "workflow" : next;
     if (!changeView(destination)) return false;
-    if (destination === "workflow" || destination === "workflow-settings") settingsTool.value = "workflow";
-    if (destination === "workflow-settings") workflowTool.value = "settings";
+    if (view.value === "workflow" || view.value === "workflow-settings") settingsTool.value = "workflow";
+    if (view.value === "workflow-settings") workflowTool.value = "settings";
     return true;
   }
   function openStreamTool(next: StreamPage) {
     if (navigate("stream")) streamTool.value = next;
   }
   function openWorkflowTool(next: WorkflowPage) {
-    if (changeView(next === "settings" ? "workflow-settings" : "workflow")) {
+    if (changeView(next === "settings" ? "workflow-settings" : "workflow") && featureEnabled('workflow')) {
       settingsTool.value = "workflow";
       workflowTool.value = next;
     }
   }
   function openSettingsTool(next: SettingsPage) {
     if (next === "workflow") {
-      if (navigate("workflow")) settingsTool.value = next;
+      if (navigate("workflow") && featureEnabled('workflow')) settingsTool.value = next;
     } else if (changeView("settings")) settingsTool.value = next;
   }
   function select(id: string | null, tab: IdeaDrawerTab = "overview") {
@@ -325,6 +328,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     toasts,
     busy,
     activeProject,
+    featureEnabled,
     projectIdeas,
     projectJobs,
     backgroundJobs,

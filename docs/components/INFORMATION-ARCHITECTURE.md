@@ -30,6 +30,15 @@ their own narrower scope.
 
 ## Destination and task boundaries
 
+Project settings → General → Project features lists the 18 standalone workspace
+capabilities for per-project visibility. The existing four group controls retain
+their individual choices while hidden. Service Design, Council, CoWorkers, Idea
+board and Agent workflow can each be selected independently; Stream, Community
+and Insights pages have the same individual controls. Internal tabs and editors
+stay with their owning feature. The [General settings inventory](views/settings-general.md)
+lists every choice. Settings, project switching and integration setup stay reachable;
+visibility never changes shared services, public projections or captured work.
+
 Every root has one home. Project settings remains reachable at the bottom of main
 navigation independently of collapsed task groups. Stream studio is the initial
 destination. Idea board requires a selected project. Project settings, Agent

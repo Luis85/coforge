@@ -3657,7 +3657,7 @@
     {
       "id": "settings-general",
       "title": "Project details",
-      "goal": "Set project identity, visibility, feature groups, brief and shared agent instructions.",
+      "goal": "Set project identity, visibility, optional features, brief and shared agent instructions.",
       "audience": "streamer",
       "kind": "subpage",
       "route": "studio.settingsTool = general",
@@ -3669,7 +3669,7 @@
       "actions": [
         "Edit project name and description",
         "Choose public or private visibility",
-        "Select visible feature groups for this project",
+        "Select visible groups and individual optional features for this project",
         "Edit the general agent prompt",
         "Save or discard project settings"
       ],

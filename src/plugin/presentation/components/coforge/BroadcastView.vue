@@ -35,6 +35,7 @@ const production = useObsProductionSession();
           Guided setup
         </button>
         <button
+          v-if="model.store.featureEnabled('stream')"
           type="button"
           class="cf-btn cf-btn-secondary"
           @click="model.store.openStreamTool('channel')"

@@ -22,9 +22,11 @@ describe('Project feature groups in the contained host', () => {
     });
     await view.getByRole('button', { name: 'Project settings', exact: true }).click();
     await view.getByLabel('Show Stream features', { exact: true }).uncheck();
+    await view.getByLabel('Show Service Design', { exact: true }).uncheck();
     await view.getByRole('button', { name: 'Save settings', exact: true }).click();
     await browserExpect(view.locator('.cf-settings-save-message')).toContainText('Settings saved');
     await browserExpect(view.getByRole('group', { name: 'Stream navigation', exact: true })).toHaveCount(0);
+    await browserExpect(view.locator('.cf-sidebar').getByRole('button', { name: 'Service Design', exact: true })).toHaveCount(0);
     await view.getByRole('button', { name: /^Idea board/ }).first().click();
     await browserExpect(view.locator('.cf-chat-panel')).toHaveCount(0);
     await obsidian.reloadPlugin();
@@ -33,14 +35,18 @@ describe('Project feature groups in the contained host', () => {
     await browserExpect(view.getByRole('group', { name: 'Stream navigation', exact: true })).toHaveCount(0);
     await view.getByRole('button', { name: 'Project settings', exact: true }).click();
     await browserExpect(view.getByLabel('Show Stream features', { exact: true })).not.toBeChecked();
+    await browserExpect(view.getByLabel('Show Service Design', { exact: true })).not.toBeChecked();
+    await browserExpect(view.getByLabel('Show The Council', { exact: true })).toBeChecked();
     const saved = await obsidian.eval(async ({ app }) => {
       const file = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Projects/'));
       if (!file) throw new Error('Missing canonical project note');
       return app.vault.read(file);
     });
     expect(saved).toContain('coforge-feature-groups:');
+    expect(saved).toContain('coforge-features:');
     expect(saved).toContain('human: keep');
     expect(splitNote(saved).body).toBe(splitNote(body).body);
+    await view.getByLabel('Show Service Design', { exact: true }).scrollIntoViewIfNeeded();
     await obsidian.screenshot('project-feature-groups');
     expect(obsidian.errors()).toEqual([]);
   });

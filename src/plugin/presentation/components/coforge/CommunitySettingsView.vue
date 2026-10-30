@@ -36,7 +36,7 @@ const model = useCommunitySettings();
           Rates apply to future credited chat-presence minutes and feature milestones. Existing balances stay unchanged.
         </p>
         <p>Currency income, subscriber rates, command prices and rewards are configured together in Economy.</p>
-        <button type="button" class="cf-btn cf-btn-secondary" @click="model.openEconomy()">Open Economy</button>
+        <button v-if="model.economyVisible" type="button" class="cf-btn cf-btn-secondary" @click="model.openEconomy()">Open Economy</button>
         <div class="cf-economy-fields">
           <label v-for="field in model.ruleFields" :key="field.key" class="cf-field"
             ><span>{{ field.label }}</span

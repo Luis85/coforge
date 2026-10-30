@@ -51,6 +51,7 @@ it('allows workspace changes during an active run without stopping or reconfigur
     await expect.poll(() => fixture.runner.mock.calls.length).toBe(1);
     const before = fixture.studio.state();
     await fixture.studio.updateProject({ featureGroups: [] });
+    await fixture.studio.updateProject({ features: [] });
     expect(fixture.studio.state().jobs).toEqual(before.jobs);
     expect(fixture.studio.state().runtime).toEqual(before.runtime);
     await expect(fixture.studio.updateProject({ featureGroups: [], agentPrompt: 'Change running configuration' })).rejects.toThrow();

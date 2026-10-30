@@ -417,6 +417,18 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-10-30: extend Project features with individual selections for every
+  standalone workspace capability, including Service Design. Keep the four group
+  controls and list Idea board, The Council, CoWorkers, Service Design, Agent
+  workflow; Stream studio, Alerts, Schedule, Stream chat, Twitch operations;
+  Community, Viewers, Economy, Community settings; Statistics, AI costs, Finances
+  and Operations. Their internal tabs and editors remain part of their owning
+  feature. Project settings, the project switcher, recovery and vault integration
+  setup remain reachable. Missing individual preferences retain existing features;
+  saving is explicit and per project. These remain visibility preferences: data,
+  public projections, shared services and captured/background work keep their
+  existing behavior. Hiding an entire group retains its individual selections.
+
 - 2026-10-30: select visible feature groups independently for each project in
   Project settings. Hide unused navigation groups and their related panels (for
   example Stream chat and live stream controls). This is a workspace preference;

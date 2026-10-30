@@ -100,6 +100,7 @@ const drawer = useIdeaDrawerContext();
       verification notes here for your review. A workflow can also finish without code changes.
     </p>
     <button
+      v-if="drawer.workflowVisible"
       type="button"
       class="cf-btn cf-btn-secondary"
       @click="drawer.openWorkflow()"
