@@ -8,7 +8,6 @@ import GuidedStreamSetup from "./GuidedStreamSetup.vue";
 import StreamHistoryPanel from "./StreamHistoryPanel.vue";
 import LiveStudioPanel from "./LiveStudioPanel.vue";
 import ObsSceneManager from "./ObsSceneManager.vue";
-import StreamMusic from "./StreamMusic.vue";
 import StreamDisplaysPanel from "./StreamDisplaysPanel.vue";
 import ObsShowPlan from "./ObsShowPlan.vue";
 import ObsOutputHistory from "./ObsOutputHistory.vue";
@@ -128,14 +127,6 @@ const production = useObsProductionSession();
       aria-label="Show plan workspace"
     >
       <ObsShowPlan />
-    </div>
-    <div
-      v-show="model.store.broadcastTool === 'music'"
-      class="cf-subpage-panel"
-      role="region"
-      aria-label="Stream music library"
-    >
-      <StreamMusic open />
     </div>
     <div
       v-show="model.store.broadcastTool === 'displays'"

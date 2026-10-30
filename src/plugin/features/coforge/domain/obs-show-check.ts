@@ -1,5 +1,5 @@
 import { boolean, list, number, oneOf, optional, record, shape, text, timestamp, type Check } from './check';
-import { OBS_SHOW_EVENTS, type ObsShowPlan, type ObsShowState, type ObsShowStep } from './obs-show';
+import { OBS_SHOW_EVENTS, LEGACY_MUSIC_EVENTS, type ObsShowPlan, type ObsShowState, type ObsShowStep } from './obs-show';
 import { obsOverlayDefinitionCheck } from './obs-overlay';
 
 const id = text({ min: 1, max: 300 });
@@ -22,7 +22,7 @@ export const obsShowStepCheck: Check<ObsShowStep> = value => {
   }
 };
 const segment = shape({ id: definitionId, name: title, note: text({ max: 4000 }), durationSeconds: number({ integer: true, min: 0, max: 14400 }), steps: list(obsShowStepCheck, { max: 30 }) }, { strict: true });
-const binding = shape({ id: definitionId, event: oneOf(OBS_SHOW_EVENTS), cueId: definitionId, enabled: boolean }, { strict: true });
+const binding = shape({ id: definitionId, event: oneOf([...OBS_SHOW_EVENTS, ...LEGACY_MUSIC_EVENTS]), cueId: definitionId, enabled: boolean }, { strict: true });
 const plan = shape({ id: definitionId, name: title, segments: list(segment, { min: 1, max: 50 }), bindings: list(binding, { max: 30 }) }, { strict: true });
 function unique(values: readonly string[]): boolean { return new Set(values).size === values.length; }
 export const obsShowPlanCheck: Check<ObsShowPlan> = value => {
@@ -40,7 +40,7 @@ const run = shape({
 export const obsShowStateCheck: Check<ObsShowState> = shape({
   plans: list(obsShowPlanCheck, { max: 100 }), history: list(run, { max: 100 }), run: optional(run), automationEnabled: boolean,
   lastEventSequence: number({ integer: true, min: 0 }), markers: list(shape({ id, label: title, at: timestamp, runId: optional(id) }), { max: 200 }),
-  lastTrigger: optional(shape({ event: oneOf(OBS_SHOW_EVENTS), sequence: number({ integer: true, min: 1 }), reason: oneOf(['paused', 'offline', 'busy', 'no-binding', 'partial', 'completed', 'failed']) })),
+  lastTrigger: optional(shape({ event: oneOf([...OBS_SHOW_EVENTS, ...LEGACY_MUSIC_EVENTS]), sequence: number({ integer: true, min: 1 }), reason: oneOf(['paused', 'offline', 'busy', 'no-binding', 'partial', 'completed', 'failed']) })),
   outputFiles: optional(list(shape({ id, at: timestamp, kind: oneOf(['recording', 'replay']), path: text({ min: 1, max: 4096 }), sceneId: optional(id), obsEpoch: number({ integer: true, min: 0 }), timecode: text({ max: 100 }), broadcastActive: boolean }), { max: 200 })),
   outputRestartRequired: optional(boolean),
   overlays: optional(list(obsOverlayDefinitionCheck, { max: 100 })),

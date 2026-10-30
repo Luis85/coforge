@@ -23,22 +23,23 @@ Scene mutations and stream controls share admission and a durable intent journal
 reviewed actions. After an unknown result, refresh and inspect OBS before continuing. Operation events carry
 safe action enums and correlation IDs, never scene names, passwords or raw responses.
 
-## Local music
+## Music through OBS
 
-Expand **Stream music**. Default library: `CoForge/Music`; choose another relative folder inside the vault.
-Save MP3 files yourself, then refresh. `Track.mp3` uses `Track.md` for `title`, `artist`, `license`, `origin`
-and `attribution`. **Create metadata note** creates and opens a template; existing notes open without rewriting.
-License labels are streamer-provided evidence, not verified permission.
+CoForge no longer provides a local music library, playlist editor or audio player.
+Existing MP3 files, metadata and playlist notes remain in the vault. Use a community
+plugin for personal playback, or configure Media/VLC sources in OBS for automation.
 
-Create a playlist, add/reorder/remove entries and save it. Notes in `<music folder>/Playlists/` have type
-`coforge-playlist`, a stable ID, name and ordered vault-relative track paths. Saves preserve unrelated
-frontmatter and exact body bytes. Conflicting edits require refresh and review; files are never moved when
-changing the library folder. Missing files block starting a saved playlist.
+In **Schedule**, refresh OBS music sources and assign an existing source to the Live
+and/or BRB scene. Save and review the plan, then **Apply music** while OBS is off air.
+New scene memberships are added disabled; existing memberships are unchanged. No
+playback request is sent. A partial failure retains confirmed additions; inspect
+OBS before retrying an uncertain outcome. Sources are shared across scenes.
 
-Playback has pause/resume/stop, previous/next, seek and volume; it advances through the queue and stops at
-the end. It survives navigation inside CoForge, stops on plugin unload and never starts on startup/go-live.
-Use OBS application audio capture for Obsidian or capture the corresponding desktop output. Check meters
-and avoid capturing the same output twice. Audio routing/audibility requires streamer-operated acceptance.
+In **Scenes**, enable a prepared source when ready. In **Show plan**, combine a
+Show/hide action with **Music / media playback**, mute/unmute and volume actions.
+Bind the cue to an existing stream/application event and explicitly enable event
+cues for the session, or run it manually. Reload pauses event automation. OBS may
+start media when its source becomes active, according to the source settings.
 
 ## Herdr
 

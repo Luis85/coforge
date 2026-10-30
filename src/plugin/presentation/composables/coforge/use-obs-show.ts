@@ -14,6 +14,7 @@ import {
   OBS_SHOW_EVENTS,
   type ObsShowStep,
 } from "../../../features/coforge/domain/obs-show";
+import { obsMediaInputKind } from "../../../features/coforge/domain/obs-production";
 import { useObsProduction } from "./use-obs-production";
 import { obsShowSummary } from "./obs-show-summary";
 export function useObsShow() {
@@ -208,6 +209,7 @@ export function useObsShow() {
     state,
     ...summary,
     production,
+    targetInputs: computed(() => production.ui.snapshot?.inputs.filter(input => ui.stepKind !== "media" || obsMediaInputKind(input.kind)) ?? []),
     events: OBS_SHOW_EVENTS,
     supported: Boolean(host.obsShow),
     recentMarkers: computed(() => state.value.markers.slice(-10).reverse()),

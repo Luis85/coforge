@@ -48,7 +48,7 @@ iteration: ""
 Operate the current broadcast with explicit stream controls.
 
 Broadcast leads, followed immediately by Show plan as the second tab. Setup,
-scenes, music, capture displays and history have separate local subpages. Connection and
+scenes, capture displays and history have separate local subpages. Connection and
 navigation never start broadcasting.
 
 ## Entry and next action

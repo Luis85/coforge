@@ -8,6 +8,7 @@ export class ObsProductionServer {
   collection = 1;
   active = false;
   muted = false;
+  mediaState = 'OBS_MEDIA_STATE_STOPPED';
   volumeDb = -6;
   audioMonitor = 'OBS_MONITORING_TYPE_NONE';
   syncOffset = 0;
@@ -69,6 +70,12 @@ export class ObsProductionServer {
       case 'RemoveSourceFilter': this.filters = this.filters.filter(value => value.filterName !== data?.filterName); return {};
       case 'GetProfileParameter': return { parameterValue: this.profile.get(String(data?.parameterCategory) + '/' + String(data?.parameterName)) ?? null, defaultParameterValue: null };
       case 'SetProfileParameter': this.profile.set(String(data?.parameterCategory) + '/' + String(data?.parameterName), String(data?.parameterValue)); return {};
+      case 'GetMediaInputStatus': return { mediaState: this.mediaState };
+      case 'TriggerMediaInputAction': {
+        const action = String(data?.mediaAction);
+        this.mediaState = action.endsWith('_PAUSE') ? 'OBS_MEDIA_STATE_PAUSED' : action.endsWith('_STOP') ? 'OBS_MEDIA_STATE_STOPPED' : 'OBS_MEDIA_STATE_PLAYING';
+        return {};
+      }
       case 'GetInputMute': return { inputMuted: this.muted };
       case 'SetInputMute': this.muted = data?.inputMuted === true; return {};
       case 'GetInputVolume': return { inputVolumeDb: this.volumeDb };

@@ -196,7 +196,7 @@ export class ObsScenesAdapter implements ObsScenePort {
           const response = await rpc.request("CreateSceneItem", {
             sceneName,
             sourceName: source.name,
-            sceneItemEnabled: true,
+            sceneItemEnabled: action.enabled ?? true,
           });
           if (
             typeof response.sceneItemId !== "number" ||
@@ -287,7 +287,7 @@ export class ObsScenesAdapter implements ObsScenePort {
       if (
         detail &&
         action.kind === "item-add" &&
-        !detail.items.some((item) => item.id === createdItem)
+        !detail.items.some((item) => item.id === createdItem && item.enabled === (action.enabled ?? true))
       )
         throw new IntegrationFailure(
           "uncertain",

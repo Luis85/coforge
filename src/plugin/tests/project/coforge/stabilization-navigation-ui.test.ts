@@ -43,8 +43,8 @@ it("separates broadcast goals and retains an OBS draft across focused subpages w
     );
     await visit("Scenes");
     expect(wrapper.get(".cf-obs-scene-manager").isVisible()).toBe(true);
-    await visit("Music");
-    expect(wrapper.get(".cf-music").isVisible()).toBe(true);
+    expect(navigation.text()).not.toContain("Music");
+    expect(wrapper.find(".cf-music").exists()).toBe(false);
     await visit("Public displays");
     expect(wrapper.get(".cf-stream-displays").isVisible()).toBe(true);
     await visit("History");

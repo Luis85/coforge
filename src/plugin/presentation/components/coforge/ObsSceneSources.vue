@@ -13,6 +13,7 @@ defineEmits<{
 <template>
   <section class="cf-obs-source-list" aria-label="Scene sources">
     <h3>Sources in this scene</h3>
+    <p>Music uses existing OBS Media or VLC sources. Enable a prepared source here; automate playback, mute and volume with Show plan cues. OBS may start media when its source becomes active.</p>
     <p v-if="!detail.items.length">
       This scene has no sources. Add an existing source below, or create a new
       source in OBS.

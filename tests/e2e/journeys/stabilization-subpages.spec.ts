@@ -71,7 +71,6 @@ test("focused broadcast pages are keyboard reachable and preserve setup drafts",
     "Show plan",
     "Setup",
     "Scenes",
-    "Music",
     "Public displays",
     "History",
   ])

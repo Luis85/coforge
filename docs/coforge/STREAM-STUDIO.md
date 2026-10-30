@@ -9,7 +9,7 @@ output/device configuration and OS/vendor permissions are completed in OBS.
 
 Broadcast contains explicit prepare, go-live, BRB/resume and stop controls with
 observed audience/health. Show plan is the second tab, followed by connection and
-readiness Setup, Scenes, Music, Public displays and History.
+readiness Setup, Scenes, Public displays and History.
 
 Scenes creates, renames, duplicates, deletes and switches scenes, and manages
 existing source membership, visibility and order. Selecting an editor does not
@@ -17,6 +17,11 @@ switch output. Shared source settings, devices, layouts, filters, audio tuning,
 program/preview monitoring and output configuration remain in OBS. Removed
 panels no longer fetch sampled screenshots or audio meter samples. Retained
 cue/public-display tasks inspect current identities without broadcasting.
+
+Music automation targets existing OBS Media/VLC sources. Stream plans assign them
+to Live/BRB scenes; preparation adds missing memberships disabled. Show plan cues
+control source visibility, playback, mute and volume. Configure source files and
+audio routing in OBS; personal playback can use a community plugin.
 
 Show plan saves private named segments with finite explicit production actions,
 notes and durations. The ordered rundown shows durations and action counts; select a
@@ -40,12 +45,10 @@ source in OBS, load public choices, select its exact target and public project, 
 the outgoing text. Explicitly confirm the captured content before publishing and
 saving its mapping. Approved mappings can be refreshed manually or used by a show
 cue. Supported content includes a screened public request, accepted work, community
-recognition, current music display metadata and a fixed operator-reviewed Council
-excerpt. Private Council tasks and provider output are never automatically read or
-published. Now-playing uses companion-note title/artist/attribution from the playing
-track, excluding its path and private playback state.
-To refresh now-playing text on track changes, explicitly bind its overlay cue to
-the music playback/track events in Show plan and enable event cues for the session.
+recognition and a fixed operator-reviewed Council excerpt. Private Council tasks
+and provider output are never automatically read or published. Legacy Now playing
+mappings remain available for safe clearing/removal; they cannot publish new music.
+Music event bindings no longer execute.
 
 The composer changes shared OBS text immediately; its preview states that impact
 and whether a text-file source will switch to direct text. Revoked public content

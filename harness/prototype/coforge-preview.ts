@@ -10,7 +10,6 @@ import type { CoforgeContext } from '../../src/plugin/presentation/context/cofor
 import { previewStreamStatistics } from './stream-statistics-preview';
 import { createLiveStudioPreview } from './live-studio-preview';
 import type { StudioExample } from '../../src/plugin/features/coforge/application/studio-example';
-import { createMusicPreview } from './music-preview';
 import { createHerdrPreview } from './herdr-preview';
 import { createFinancePreview } from './finance-preview';
 import { PublicStreamSource } from '../../src/plugin/features/coforge/application/stream-surface-source';
@@ -81,7 +80,6 @@ export function createPreviewCoforge(): CoforgeContext {
   let costExample = createWorkspacePreview(studio.store, timers);
   let scheduleExample = createWorkspacePreview(studio.store, timers);
   let liveExample: StudioExample | undefined;
-  let musicExample: ReturnType<typeof createMusicPreview> | undefined;
   let councilExample: ReturnType<typeof createCouncilPreview> | undefined;
   let taskExample: ReturnType<typeof createTaskSchedulerPreview> | undefined;
   let triggersExample: ReturnType<typeof createWorkflowTriggersPreview> | undefined;
@@ -100,14 +98,12 @@ export function createPreviewCoforge(): CoforgeContext {
       previewTaskScheduler: () => taskExample ??= createTaskSchedulerPreview(councilPreview()),
       previewWorkflowTriggers: () => triggersExample ??= createWorkflowTriggersPreview(studio.store, councilPreview()),
       previewHerdr: () => herdrExample,
-      previewMusic: () => musicExample ??= createMusicPreview(),
       previewLiveStudio: () => liveExample ??= createLiveStudioPreview(studio.store),
       previewStreamStatistics,
       discardPreview: (example) => {
         if (example === "finance") financeExample = createFinancePreview(studio.store);
         if (example === "ai-costs") costExample = createWorkspacePreview(studio.store, timers);
         if (example === "schedule") scheduleExample = createWorkspacePreview(studio.store, timers);
-        if (example === "music") musicExample = undefined;
         if (example === "live-studio") liveExample = undefined;
         if (example === "council") { councilExample = undefined; void taskExample?.dispose(); taskExample = undefined; void triggersExample?.dispose(); triggersExample = undefined; }
         if (example === "task-scheduler") { void taskExample?.dispose(); taskExample = undefined; }

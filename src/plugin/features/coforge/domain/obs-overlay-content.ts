@@ -2,7 +2,7 @@ import type { AppState } from './types';
 import { buildPublicBoard } from './public-board';
 import { projectIsPublic, publicRecognitionState } from './project-publicity';
 import { IntegrationFailure } from './integration-failure';
-import type { ObsOverlayDefinition, ObsOverlayNowPlaying } from './obs-overlay';
+import type { ObsOverlayDefinition } from './obs-overlay';
 import { buildCommunity } from './recognition';
 export function overlayPublicContributors(state: AppState) {
   return buildCommunity(publicRecognitionState(state)).filter(profile => (profile.ideas > 0 || profile.votesCast > 0) && profile.earnedBadges.length > 0)
@@ -15,8 +15,8 @@ export function overlayPublicBoard(state: AppState, projectId: string) {
   if (board.projectId !== projectId) throw new IntegrationFailure('validation', 'The selected public project is unavailable.');
   return board;
 }
-/** Render only the established public projection, or explicitly reviewed authored text/music metadata. */
-export function overlayText(state: AppState, definition: ObsOverlayDefinition, nowPlaying: ObsOverlayNowPlaying | null): string {
+/** Render only the established public projection, or explicitly reviewed authored text. */
+export function overlayText(state: AppState, definition: ObsOverlayDefinition): string {
   const board = overlayPublicBoard(state, definition.projectId);
   let value: string;
   if (definition.kind === 'request' || definition.kind === 'increment') {
@@ -31,8 +31,7 @@ export function overlayText(state: AppState, definition: ObsOverlayDefinition, n
     if (!contributor) throw new IntegrationFailure('validation', 'Choose a contributor available in public community recognition.');
     value = `${contributor.name}\n${contributor.implementations} accepted contributions · ${contributor.ideas} ideas\n${contributor.badges.join(' · ')}`;
   } else if (definition.kind === 'now-playing') {
-    if (!nowPlaying?.title) throw new IntegrationFailure('validation', 'No reviewed local track is playing.');
-    value = `${nowPlaying.title}${nowPlaying.artist ? ' — ' + nowPlaying.artist : ''}${nowPlaying.attribution ? '\n' + nowPlaying.attribution : ''}`;
+    throw new IntegrationFailure('validation', 'Music uses OBS media sources. Clear or remove this legacy overlay.');
   } else {
     if (!definition.publicConfirmed || !definition.excerpt?.trim()) throw new IntegrationFailure('validation', 'Write and explicitly approve the Council excerpt for public display.');
     value = `${board.project}\nCouncil excerpt\n${definition.excerpt}`;

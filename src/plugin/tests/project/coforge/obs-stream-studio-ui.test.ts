@@ -22,7 +22,6 @@ it("keeps stream controls, Show plan second and scene editing while omitting OBS
         "Show plan",
         "Setup",
         "Scenes",
-        "Music",
         "Public displays",
         "History",
       ],

@@ -6,14 +6,12 @@ import { ObsShowWorkflow } from "../../features/coforge/application/obs-show-wor
 import { ObsShowProductionExecutor } from "../../features/coforge/application/obs-show-executor";
 import { ObsSetupWorkflow } from "../../features/coforge/application/obs-setup-workflow";
 import { ObsOverlayWorkflow } from '../../features/coforge/application/obs-overlay-workflow';
-import type { ObsOverlayNowPlaying } from '../../features/coforge/domain/obs-overlay';
 
 /** One native composition for all OBS writers; the application owns effects and recovery. */
 export function createObsStudioModule(
   store: StudioStore,
   control: ObsControlPort,
   workflow: ObsWorkflow,
-  nowPlaying: () => ObsOverlayNowPlaying | null = () => null,
 ) {
   if (!control.production || !workflow.sceneActions)
     throw new Error("OBS production capabilities are unavailable.");
@@ -37,7 +35,7 @@ export function createObsStudioModule(
   };
   const isLive = () =>
     isReady() && Boolean(store.snapshot().runtime.obs?.snapshot?.active);
-  const overlays = new ObsOverlayWorkflow(store, production, nowPlaying);
+  const overlays = new ObsOverlayWorkflow(store, production);
   const show = new ObsShowWorkflow(
     store,
     new ObsShowProductionExecutor(
@@ -58,6 +56,7 @@ export function createObsStudioModule(
   let disposed = false;
   return {
     production,
+    scenes: workflow.sceneActions,
     show,
     setup,
     overlays,

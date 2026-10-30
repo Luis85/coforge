@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ObsShowProductionExecutor } from '../../../features/coforge/application/obs-show-executor';
 import { ObsProductionAdapter } from '../../../infrastructure/coforge/obs-production-adapter';
 import { PRODUCTION_REQUESTS } from '../../../infrastructure/coforge/obs-production-rpc';
 import { ObsProductionServer } from '../../support/coforge/obs-production-server';
@@ -9,6 +10,22 @@ const kit = () => {
   return { server, adapter };
 };
 describe('OBS production adapter', () => {
+  it('routes music cues through OBS playback and audio RPCs with observed readback', async () => {
+    const { server, adapter } = kit();
+    server.inputs.push({ inputUuid: 'music', inputName: 'Studio music', inputKind: 'ffmpeg_source' });
+    const executor = new ObsShowProductionExecutor(adapter, { execute: async () => { throw new Error('No scene switch expected'); } }, () => true);
+    for (const action of ['play', 'pause', 'stop', 'restart'] as const) {
+      await executor.execute({ kind: 'media', inputId: 'music', action });
+      expect(server.mediaState).toBe(action === 'pause' ? 'OBS_MEDIA_STATE_PAUSED' : action === 'stop' ? 'OBS_MEDIA_STATE_STOPPED' : 'OBS_MEDIA_STATE_PLAYING');
+    }
+    await executor.execute({ kind: 'mute', inputId: 'music', muted: true });
+    await executor.execute({ kind: 'volume', inputId: 'music', volumeDb: -18 });
+    expect(server.muted).toBe(true);
+    expect(server.volumeDb).toBe(-18);
+    expect(server.requests.filter(request => request.type === 'TriggerMediaInputAction').map(request => request.data)).toEqual(['PLAY', 'PAUSE', 'STOP', 'RESTART'].map(action => ({ inputName: 'Studio music', mediaAction: `OBS_WEBSOCKET_MEDIA_INPUT_ACTION_${action}` })));
+    server.ignoreMutation = true;
+    await expect(executor.execute({ kind: 'media', inputId: 'music', action: 'stop' })).rejects.toMatchObject({ kind: 'uncertain' });
+  }, 15000);
   it('reads supported input/audio/output/video state without reading stream keys', async () => {
     const { server, adapter } = kit();
     const state = await adapter.inspect();
