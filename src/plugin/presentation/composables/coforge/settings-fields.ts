@@ -16,7 +16,7 @@ export type SettingsDraft = Pick<
   "projectName" | "projectBrief" | "agentPrompt" | "requestObject"
 > &
   ProjectPaths &
-  ProjectLinks & { visibility?: 'public' | 'private' };
+  ProjectLinks & Pick<StudioProject, 'featureGroups'> & { visibility?: 'public' | 'private' };
 export const PROVIDERS: Array<{
   value: Provider;
   icon: string;
