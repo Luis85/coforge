@@ -14,7 +14,7 @@ const details: Record<SettingsPage, { icon: string; description: string }> = {
 /** Local settings tasks share one protected project draft. */
 export function useSettingsNavigation(model: SettingsModel) {
   return reactive({
-    items: SETTINGS_PAGES.map(item => ({ ...item, ...details[item.id] })),
+    items: computed(() => SETTINGS_PAGES.filter(item => item.id !== 'workflow' || model.store.featureEnabled('workflow')).map(item => ({ ...item, ...details[item.id] }))),
     formPage: computed(() => ['general', 'requests', 'repository'].includes(model.store.settingsTool)),
     formId: `${model.store.layoutId}-project-settings-form`,
     select: (page: SettingsPage) => model.store.openSettingsTool(page),

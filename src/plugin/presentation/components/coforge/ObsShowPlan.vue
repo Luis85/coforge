@@ -18,14 +18,29 @@ const model = useObsShow();
           explicitly.
         </p>
       </div>
-      <button
-        type="button"
-        class="cf-btn cf-btn-secondary"
-        :disabled="!model.supported || model.ui.pending || model.ui.dirty"
-        @click="model.create()"
-      >
-        Create show plan
-      </button>
+      <div class="cf-settings-actions">
+        <button
+          type="button"
+          class="cf-btn cf-btn-secondary"
+          :disabled="
+            !model.production.supported ||
+            !model.production.connected ||
+            model.production.ui.pending ||
+            model.ui.pending
+          "
+          @click="model.production.refresh()"
+        >
+          Refresh OBS targets
+        </button>
+        <button
+          type="button"
+          class="cf-btn cf-btn-secondary"
+          :disabled="!model.supported || model.ui.pending || model.ui.dirty"
+          @click="model.create()"
+        >
+          Create show plan
+        </button>
+      </div>
     </header>
     <p v-if="!model.supported">
       Show plans run inside the Obsidian plugin. This preview cannot change OBS.

@@ -30,6 +30,13 @@ preserving explicit saves, private presenter notes, captured execution definitio
 and durable per-step recovery without replay. See
 [[docs/project-tasks/2026-10-30-show-plan-polish]].
 
+Owner follow-through (2026-10-30): remove obsolete preview/audio/source-property
+and full-studio/output setup UI. Connection/readiness, stream controls, scene
+management, Show plans, public displays and history remain. Removed panels do not
+continue screenshot/meter polling. Existing saved cue definitions and recovery
+remain compatible. Qualify and merge the pull request only after required checks
+are green; see [[docs/project-tasks/2026-10-30-obs-studio-focus]].
+
 Scene management includes create, rename, duplicate, delete and switch, plus
 existing sources' scene-item visibility, order and membership. Scene copies share
 existing sources. Mutations retain shared serialization, durable intent and

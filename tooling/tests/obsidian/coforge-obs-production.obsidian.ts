@@ -1,14 +1,41 @@
 import { expect as browserExpect } from "@playwright/test";
+import { AxeBuilder } from "@axe-core/playwright";
 import { describe, expect } from "vitest";
-import { test } from "./support/obsidian-fixture.ts";
+import { test } from "./support/obsidian-fixture";
 import { ObsProductionSocketServer } from "./support/obs-production-socket";
+import { captureStreamPage } from "./support/obs-stream-visuals";
 
-describe("OBS studio production in the contained host", () => {
-  test("creates a blank studio, operates audio/recording/replay and persists a cue without starting a stream", async ({
+describe("Focused OBS stream operation in the contained host", () => {
+  test("operates stream and scene controls without OBS previews, audio meters or replay on reload", async ({
     obsidian,
   }) => {
     const server = new ObsProductionSocketServer();
+    server.state.scenes = [
+      { id: "development", name: "Development" },
+      { id: "brb", name: "BRB" },
+    ];
+    server.state.program = "development";
+    server.state.preview = "development";
+    server.state.inputs = [
+      {
+        inputUuid: "microphone",
+        inputName: "Microphone",
+        inputKind: "wasapi_input_capture",
+      },
+    ];
     await server.start();
+    const mutations = () =>
+      server.state.requests.filter(
+        (request) => !request.type.startsWith("Get"),
+      );
+    const monitoring = () =>
+      server.state.requests.filter(
+        (request) => request.type === "GetSourceScreenshot",
+      );
+    const audioReads = () =>
+      server.state.requests.filter((request) =>
+        /^GetInput(Mute|Volume|Audio)/.test(request.type),
+      ).length;
     try {
       const type = `${obsidian.pluginId}-view-project-workbench`;
       let view = await obsidian.openView(type);
@@ -16,13 +43,42 @@ describe("OBS studio production in the contained host", () => {
         name: "Stream studio pages",
         exact: true,
       });
+      expect(
+        (await pages.getByRole("button").allTextContents()).map((label) =>
+          label.trim(),
+        ),
+      ).toEqual([
+        "Broadcast",
+        "Show plan",
+        "Setup",
+        "Scenes",
+        "Public displays",
+        "History",
+      ]);
+      for (const removed of ["Audio", "Sources & layouts", "Music"])
+        await browserExpect(
+          pages.getByRole("button", { name: removed, exact: true }),
+        ).toHaveCount(0);
+      for (const removed of [
+        "Create my studio",
+        "Live production desk",
+        "OBS audio workspace",
+        "OBS source and layout workspace",
+      ])
+        await browserExpect(
+          view.getByRole("region", {
+            name: removed,
+            exact: true,
+            includeHidden: true,
+          }),
+        ).toHaveCount(0);
+      await browserExpect(view.locator("img[alt^='Sampled OBS']")).toHaveCount(
+        0,
+      );
       await pages.getByRole("button", { name: "Setup", exact: true }).click();
       await view
         .getByRole("button", { name: "Skip setup for now", exact: true })
         .click();
-      await browserExpect(
-        view.getByRole("button", { name: "Skip setup for now", exact: true }),
-      ).toHaveCount(0);
       await view
         .getByLabel("OBS WebSocket URL", { exact: true })
         .fill(server.endpoint);
@@ -46,149 +102,150 @@ describe("OBS studio production in the contained host", () => {
           exact: true,
         }),
       ).toBeVisible();
+      expect(mutations()).toEqual([]);
       await pages.getByRole("button", { name: "Setup", exact: true }).click();
-      const setup = view.getByRole("region", {
-        name: "Create my studio",
-        exact: true,
-      });
-      await setup
-        .getByRole("button", { name: "Read OBS capabilities", exact: true })
-        .click();
-      await setup.getByLabel(/^Studio scene prefix/).fill("Contained");
-      await setup
-        .getByLabel("New studio source name", { exact: true })
-        .fill("Contained microphone");
-      await setup
-        .getByLabel(/^Available source type/)
-        .selectOption("wasapi_input_capture");
-      await setup
-        .getByRole("button", {
-          name: "Add source to studio draft",
-          exact: true,
-        })
-        .click();
-      await setup
-        .getByRole("button", { name: "Preview studio creation", exact: true })
-        .click();
-      await setup
-        .getByLabel(
-          "Create the reviewed scenes and sources in this OBS installation",
-          { exact: true },
-        )
-        .check();
-      await setup
-        .getByRole("button", { name: "Create reviewed studio", exact: true })
+      await view.getByLabel(/^Go-live scene/).selectOption("development");
+      await view.getByLabel(/^BRB scene/).selectOption("brb");
+      await view
+        .getByRole("button", { name: "Save OBS setup", exact: true })
         .click();
       await browserExpect(
-        setup.getByRole("heading", {
-          name: "Studio creation · confirmed",
-          exact: true,
-        }),
-      ).toBeVisible({ timeout: 30000 });
-      expect(server.state.scenes.map((scene) => scene.name)).toContain(
-        "Contained · Development",
-      );
-      expect(server.state.inputs.map((input) => input.inputName)).toEqual([
-        "Contained microphone",
-        "Contained · Starting soon title",
-        "Contained · BRB title",
-        "Contained · Ending title",
-      ]);
-      expect(
-        server.state.inputs.filter(
-          (input) => input.inputKind === "text_gdiplus_v3",
-        ),
-      ).toHaveLength(3);
-
+        view.getByText("OBS connection and scenes saved.", { exact: true }),
+      ).toBeVisible();
       await pages
         .getByRole("button", { name: "Broadcast", exact: true })
         .click();
-      const desk = view.getByRole("region", {
-        name: "Live production desk",
-        exact: true,
-      });
-      await desk
-        .getByRole("button", { name: "Mute Contained microphone", exact: true })
+      await view
+        .getByRole("button", { name: "Prepare stream", exact: true })
         .click();
       await browserExpect(
-        desk.getByRole("button", {
-          name: "Unmute Contained microphone",
-          exact: true,
-        }),
-      ).toBeVisible();
-      expect(server.state.muted).toBe(true);
-      const outputs = desk.getByRole("region", {
-        name: "Recording and replay controls",
-        exact: true,
-      });
-      await outputs
-        .getByRole("button", { name: "Start recording", exact: true })
+        view.getByRole("button", { name: "Go live", exact: true }),
+      ).toBeEnabled();
+      expect(server.state.active).toBe(false);
+      const beforeLiveAudio = audioReads();
+      await captureStreamPage(
+        obsidian,
+        view,
+        "broadcast",
+        ".cf-broadcast-page",
+      );
+      expect(audioReads()).toBe(beforeLiveAudio);
+      expect(server.state.active).toBe(false);
+      await view.getByRole("button", { name: "Go live", exact: true }).click();
+      await expect.poll(() => server.state.active).toBe(true);
+      const liveAccessibility = await new AxeBuilder({ page: obsidian.page })
+        .setLegacyMode(true)
+        .include(".cf-broadcast-console")
+        .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+        .analyze();
+      expect(liveAccessibility.violations).toEqual([]);
+      await view
+        .getByRole("button", { name: "Pause / BRB", exact: true })
         .click();
-      await browserExpect(outputs).toContainText("Recording ·");
-      await outputs
-        .getByRole("button", { name: "Pause recording", exact: true })
+      await expect.poll(() => server.state.program).toBe("brb");
+      expect(server.state.active).toBe(true);
+      await view
+        .getByRole("button", { name: "Resume stream", exact: true })
         .click();
-      await browserExpect(
-        outputs.getByRole("button", { name: "Resume recording", exact: true }),
-      ).toBeVisible();
-      await outputs
-        .getByRole("button", { name: "Resume recording", exact: true })
+      await expect.poll(() => server.state.program).toBe("development");
+      await view
+        .getByRole("button", { name: "Stop stream", exact: true })
         .click();
-      await outputs
-        .getByRole("button", { name: "Stop recording", exact: true })
-        .click();
-      await outputs
-        .getByRole("button", { name: "Start replay buffer", exact: true })
-        .click();
-      await outputs
-        .getByRole("button", { name: "Save replay", exact: true })
+      await expect.poll(() => server.state.active).toBe(false);
+      expect(audioReads()).toBe(beforeLiveAudio);
+
+      await pages.getByRole("button", { name: "Scenes", exact: true }).click();
+      const scenes = view.locator(".cf-obs-scene-manager");
+      await scenes
+        .getByLabel("New scene name", { exact: true })
+        .fill("Workshop");
+      await scenes
+        .getByRole("button", { name: "Create scene", exact: true })
         .click();
       await expect
-        .poll(() => server.state.lastReplay)
-        .toBe("C:/Recordings/replay.mkv");
-      await outputs
-        .getByRole("button", { name: "Stop replay buffer", exact: true })
+        .poll(() =>
+          server.state.scenes.some((scene) => scene.name === "Workshop"),
+        )
+        .toBe(true);
+      await scenes
+        .getByLabel("Scene to edit", { exact: true })
+        .selectOption({ label: "Workshop" });
+      await scenes
+        .getByLabel("Rename scene name", { exact: true })
+        .fill("Community workshop");
+      await scenes
+        .getByRole("button", { name: "Rename scene", exact: true })
         .click();
-
-      await pages
-        .getByRole("button", { name: "Show plan", exact: true })
+      await expect
+        .poll(() =>
+          server.state.scenes.some(
+            (scene) => scene.name === "Community workshop",
+          ),
+        )
+        .toBe(true);
+      await scenes
+        .getByLabel("Scene copy name", { exact: true })
+        .fill("Workshop copy");
+      await scenes
+        .getByRole("button", { name: "Duplicate scene", exact: true })
         .click();
-      const show = view.getByRole("region", {
-        name: "Show plans and cues",
+      await expect
+        .poll(() =>
+          server.state.scenes.some((scene) => scene.name === "Workshop copy"),
+        )
+        .toBe(true);
+      await scenes
+        .getByLabel("Scene to edit", { exact: true })
+        .selectOption({ label: "Community workshop" });
+      await scenes
+        .getByRole("button", { name: "Switch program scene", exact: true })
+        .click();
+      await expect
+        .poll(
+          () =>
+            server.state.scenes.find(
+              (scene) => scene.id === server.state.program,
+            )?.name,
+        )
+        .toBe("Community workshop");
+      await scenes
+        .getByLabel("Scene to edit", { exact: true })
+        .selectOption({ label: "Workshop copy" });
+      await scenes
+        .getByRole("button", { name: "Delete selected scene", exact: true })
+        .click();
+      const confirmation = scenes.getByRole("region", {
+        name: "Confirm OBS removal",
         exact: true,
       });
-      await show
-        .getByRole("button", { name: "Create show plan", exact: true })
+      await browserExpect(confirmation).toContainText("Workshop copy");
+      expect(
+        server.state.scenes.some((scene) => scene.name === "Workshop copy"),
+      ).toBe(true);
+      await confirmation
+        .getByRole("button", { name: "Confirm scene deletion", exact: true })
         .click();
-      await show
-        .getByLabel("Show plan name", { exact: true })
-        .fill("Contained production");
-      await show.getByLabel(/^Action to add/).selectOption("mute");
-      await show
-        .getByLabel(/^Target input/)
-        .selectOption({ label: "Contained microphone" });
-      await show.getByLabel("Mute this input", { exact: true }).uncheck();
-      await show
-        .getByRole("button", { name: "Add action to cue", exact: true })
-        .click();
-      await show
-        .getByRole("button", { name: "Save show plan", exact: true })
-        .click();
-      await show
-        .getByRole("button", { name: "Run selected cue", exact: true })
-        .click();
-      await expect.poll(() => server.state.muted).toBe(false);
-      await show
-        .getByRole("button", { name: "Resume event cues", exact: true })
-        .click();
-      await browserExpect(
-        show.getByRole("button", { name: "Pause event cues", exact: true }),
-      ).toBeVisible();
-      await obsidian.screenshot("obs-production-show");
+      await expect
+        .poll(() =>
+          server.state.scenes.some((scene) => scene.name === "Workshop copy"),
+        )
+        .toBe(false);
+      expect(monitoring()).toEqual([]);
+      expect(server.subscriptions.length).toBeGreaterThan(0);
+      expect(
+        server.subscriptions.every((value) => (value & (1 << 16)) === 0),
+      ).toBe(true);
+      expect(
+        server.state.requests.some((request) =>
+          [
+            "GetStreamServiceSettings",
+            "CreateInput",
+            "SetInputSettings",
+          ].includes(request.type),
+        ),
+      ).toBe(false);
 
-      const before = server.state.requests.filter(
-        (request) => !request.type.startsWith("Get"),
-      ).length;
+      const beforeReload = mutations().length;
       await obsidian.reloadPlugin();
       view = await obsidian.openView(type);
       pages = view.getByRole("navigation", {
@@ -196,32 +253,17 @@ describe("OBS studio production in the contained host", () => {
         exact: true,
       });
       await pages
-        .getByRole("button", { name: "Show plan", exact: true })
-        .click();
-      await browserExpect(view.getByLabel(/^Saved show plan/)).toContainText(
-        "Contained production",
-      );
-      await view
-        .getByLabel(/^Saved show plan/)
-        .selectOption({ label: "Contained production" });
-      await view
-        .getByRole("button", { name: "Load show plan", exact: true })
+        .getByRole("button", { name: "Broadcast", exact: true })
         .click();
       await browserExpect(
-        view.getByRole("region", { name: "Show plans and cues", exact: true }),
-      ).toContainText("Event cues are paused.");
+        view.getByRole("button", { name: "Disconnect OBS", exact: true }),
+      ).toBeVisible();
+      expect(mutations()).toHaveLength(beforeReload);
+      expect(monitoring()).toEqual([]);
       expect(
-        server.state.requests.filter(
-          (request) => !request.type.startsWith("Get"),
-        ).length,
-      ).toBe(before);
-      expect(
-        server.state.requests.some(
-          (request) =>
-            request.type === "StartStream" ||
-            request.type === "GetStreamServiceSettings",
-        ),
-      ).toBe(false);
+        server.subscriptions.every((value) => (value & (1 << 16)) === 0),
+      ).toBe(true);
+      expect(server.state.active).toBe(false);
       expect(obsidian.errors()).toEqual([]);
     } finally {
       await server.close();

@@ -78,8 +78,14 @@ describe('Ask the Council in the contained host', () => {
     await expect.poll(async () => (await journal(obsidian)).runs[0]?.state).toBe('queued');
     expect((await journal(obsidian)).runs[0]).toMatchObject({ state: 'queued', attempts: [], limits: { simulation: true } });
     await view.getByRole('button', { name: 'Resume Council execution', exact: true }).click();
-    await expect.poll(async () => (await journal(obsidian)).runs[0]?.state, { timeout: 30000 }).toBe('completed');
-    const run = (await journal(obsidian)).runs[0]!;
+    let observed = await journal(obsidian);
+    await expect.poll(async () => {
+      observed = await journal(obsidian);
+      return observed.runs[0]?.state;
+    }, { timeout: 30000 }).toBe('completed');
+    // A later write can rotate the main journal path; assert the exact validated snapshot.
+    const run = observed.runs[0];
+    if (!run) throw new Error('Expected the completed Council run in the validated journal snapshot.');
     expect(run.attempts).toHaveLength(4); expect(run.artifacts).toHaveLength(4);
     expect(run.invocations.map(invocation => invocation.promptOrder)).toEqual(['fan-out', 'fan-out', 'round-robin', 'round-robin']);
     const opinions = run.artifacts.filter(artifact => artifact.roundId === 'opinions');

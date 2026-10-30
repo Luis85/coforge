@@ -154,7 +154,7 @@ const model = useObsShow();
       <label v-if="model.ui.stepKind === 'source-visible'" class="cf-field"
         ><span>Scene item ID</span
         ><input v-model.number="model.ui.itemId" type="number" min="0" /><small
-          >Use the item ID inspected in Sources &amp; layouts.</small
+          >Use the item ID shown in Scenes for the selected scene.</small
         ></label
       >
       <label

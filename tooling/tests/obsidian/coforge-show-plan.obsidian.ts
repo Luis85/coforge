@@ -140,10 +140,6 @@ describe("Show plan rundown in the contained host", () => {
           exact: true,
         }),
       ).toBeVisible();
-      await pages.getByRole("button", { name: "Setup", exact: true }).click();
-      await view
-        .getByRole("button", { name: "Read OBS capabilities", exact: true })
-        .click();
       await pages
         .getByRole("button", { name: "Show plan", exact: true })
         .click();
@@ -154,6 +150,9 @@ describe("Show plan rundown in the contained host", () => {
       await show
         .getByRole("button", { name: "Create show plan", exact: true })
         .click();
+      await browserExpect(show.getByLabel(/^Target scene/)).toContainText(
+        "Development",
+      );
       await show
         .getByLabel("Show plan name", { exact: true })
         .fill("Friday community workshop");

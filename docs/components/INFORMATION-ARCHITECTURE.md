@@ -30,6 +30,15 @@ their own narrower scope.
 
 ## Destination and task boundaries
 
+Project settings → General → Project features lists the 18 standalone workspace
+capabilities for per-project visibility. The existing four group controls retain
+their individual choices while hidden. Service Design, Council, CoWorkers, Idea
+board and Agent workflow can each be selected independently; Stream, Community
+and Insights pages have the same individual controls. Internal tabs and editors
+stay with their owning feature. The [General settings inventory](views/settings-general.md)
+lists every choice. Settings, project switching and integration setup stay reachable;
+visibility never changes shared services, public projections or captured work.
+
 Every root has one home. Project settings remains reachable at the bottom of main
 navigation independently of collapsed task groups. Stream studio is the initial
 destination. Idea board requires a selected project. Project settings, Agent
@@ -38,8 +47,8 @@ explain their prerequisites before a project exists.
 
 Subpages keep focused tasks together without expanding the global navigation:
 
-- Stream studio: Broadcast, Setup, Scenes, Sources & layouts, Audio, Show plan,
-  Public displays and History.
+- Stream studio: Broadcast, Show plan, Setup, Scenes, Public displays and
+  History. OBS owns previews, audio tuning, device/source properties and output setup.
 - Stream chat: Chat, Twitch settings and Bot messages.
 - Project settings: General, Requests, Repository, Agent workflow, Runtime and Data & examples.
 - Agent workflow: Workflow runs, Herdr workspaces and Workflow settings.

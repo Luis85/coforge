@@ -15,13 +15,10 @@ for (const [theme, width] of [
       "data-prototype-ready",
       "true",
     );
-    await page.evaluate(
-      (value) => {
-        document.body.classList.toggle("theme-light", value === "light");
-        document.body.classList.toggle("theme-dark", value === "dark");
-      },
-      theme,
-    );
+    await page.evaluate((value) => {
+      document.body.classList.toggle("theme-light", value === "light");
+      document.body.classList.toggle("theme-dark", value === "dark");
+    }, theme);
     await expect(
       page
         .getByRole("navigation", { name: "Stream studio pages", exact: true })
@@ -55,10 +52,16 @@ for (const [theme, width] of [
       exact: true,
     });
     await expect(
-      music.getByRole("combobox", { name: "Live scene music source", exact: true }),
+      music.getByRole("combobox", {
+        name: "Live scene music source",
+        exact: true,
+      }),
     ).toBeVisible();
     await expect(
-      music.getByRole("combobox", { name: "BRB scene music source", exact: true }),
+      music.getByRole("combobox", {
+        name: "BRB scene music source",
+        exact: true,
+      }),
     ).toBeVisible();
     await expect(music).toContainText("OBS owns the files and playback");
     await expect(schedule.locator(".cf-music")).toHaveCount(0);
@@ -86,5 +89,11 @@ for (const [theme, width] of [
     expect(a11y.violations).toEqual([]);
     await mkdir("reports/obs-music", { recursive: true });
     await music.screenshot({ path: `reports/obs-music/${theme}-${width}.png` });
+    await test
+      .info()
+      .attach(`obs-music-${theme}-${width}`, {
+        path: `reports/obs-music/${theme}-${width}.png`,
+        contentType: "image/png",
+      });
   });
 }

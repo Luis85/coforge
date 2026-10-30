@@ -1,5 +1,9 @@
 # Task: Make show planning and live cue operation clear and reliable
 
+This record describes preliminary work in the shared checkout. The isolated
+release combines this work with obsolete OBS UI removal; final qualification and
+PR/merge evidence belong to [[docs/project-tasks/2026-10-30-obs-studio-focus]].
+
 - Status: implemented; full-project qualification incomplete (product-test timeout)
 - Journey in BRIEF.md: OBS integration scope, Show plans retained; equal attention
   to planning and running the show. Owner requested subagents.

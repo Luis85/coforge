@@ -98,7 +98,7 @@ it("keeps live controls available across work views and distinguishes a disconne
     expect(
       wrapper.get('[aria-label="Take a stream break"]').attributes("disabled"),
     ).toBeDefined();
-    await wrapper.get('[aria-label="Open the live desk"]').trigger("click");
+    await wrapper.get('[aria-label="Open broadcast controls"]').trigger("click");
     expect(fixture.store.view).toBe("broadcast");
   } finally {
     wrapper.unmount();

@@ -71,6 +71,6 @@ const design = useIdeaDesign(props);
       <h3><CfIcon name="pencil-ruler" /> No design specification yet</h3>
       <p class="cf-idea-help">The standard workflow creates a private Design specification after Plan for Build to use. Earlier or invalidated results remain in Workflow runs.</p>
     </template>
-    <button v-if="idea.workflowRun" type="button" class="cf-btn cf-btn-ghost cf-idea-small-button" @click="drawer.openWorkflow()">Inspect workflow evidence</button>
+    <button v-if="idea.workflowRun && drawer.workflowVisible" type="button" class="cf-btn cf-btn-ghost cf-idea-small-button" @click="drawer.openWorkflow()">Inspect workflow evidence</button>
   </section>
 </template>

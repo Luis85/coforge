@@ -10,6 +10,7 @@ import { workflowDefinitionCheck } from './configured-workflow';
 import { restoreWorkflowNoteData, workflowNoteData } from './workflow-note-data';
 import { requestObjectDefinitionCheck } from './request-object';
 import { projectFeatureGroupsCheck } from './project-feature-groups';
+import { projectFeaturesCheck } from './project-features';
 
 export const PROJECT_MARKER = 'coforge-project';
 const FIELDS = {
@@ -19,7 +20,7 @@ const FIELDS = {
   requestCooldownSeconds: 'request-cooldown-seconds',
 } as const;
 export const PROJECT_PROPERTIES = [
-  'coforge-visibility', 'coforge-feature-groups',
+  'coforge-visibility', 'coforge-feature-groups', 'coforge-features',
   'type', 'id', 'created', 'updated', 'project-path', 'repository-url', 'website-url', 'worktree-folder', 'allow-implementation', ...Object.values(FIELDS),
   ...STAGES.map(stage => `automation-${stage}`),
   ...STAGES.map(stage => `agent-prompt-${stage}`),
@@ -48,6 +49,7 @@ export function validateProjectUrl(value: unknown, repository = false): string {
 
 export function projectProperties(project: StudioProject): Record<string, unknown> {
   const result: Record<string, unknown> = {
+    ...(project.features === undefined ? {} : { 'coforge-features': projectFeaturesCheck(project.features) }),
     ...(project.featureGroups === undefined ? {} : { 'coforge-feature-groups': projectFeatureGroupsCheck(project.featureGroups) }),
     'coforge-visibility': project.visibility ?? 'public',
     type: PROJECT_MARKER, id: project.id, created: project.createdAt, updated: project.updatedAt,
@@ -105,6 +107,7 @@ export function parseProjectNote(value: unknown): StudioProject | null {
   settingsPatch(settings);
   return {
     id: projectId(properties.id), settings,
+    ...(properties['coforge-features'] === undefined ? {} : { features: projectFeaturesCheck(properties['coforge-features']) }),
     ...(properties['coforge-feature-groups'] === undefined ? {} : { featureGroups: projectFeatureGroupsCheck(properties['coforge-feature-groups']) }),
     visibility: oneOf(['public', 'private'] as const)(properties['coforge-visibility'] === undefined ? 'public' : properties['coforge-visibility']),
     projectPath: validateProjectPath(properties['project-path'] ?? ''), worktreeFolder: validateProjectPath(properties['worktree-folder'] ?? ''),

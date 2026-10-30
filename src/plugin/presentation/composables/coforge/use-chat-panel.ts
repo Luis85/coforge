@@ -158,12 +158,13 @@ export function useChatComposer(emit: (event: "sent") => void) {
   );
   const submit = async () => {
     if (!text.value.trim() || !username.value.trim() || sending.value) return;
+    const draft = { username: username.value, text: text.value, testing: testing.value };
     sending.value = true;
     error.value = "";
     const sent =
       live.value && !testing.value
-        ? await actions.sendTwitch(text.value)
-        : await actions.sendChat(username.value, text.value);
+        ? await actions.sendTwitch(draft.text)
+        : await actions.sendChat(draft.username, draft.text);
     sending.value = false;
     if (!sent) {
       error.value =
@@ -172,7 +173,7 @@ export function useChatComposer(emit: (event: "sent") => void) {
           : "The command was not accepted. Your draft is kept.";
       return;
     }
-    text.value = "";
+    if (text.value === draft.text && username.value === draft.username && testing.value === draft.testing) text.value = "";
     emit("sent");
   };
   return reactive({

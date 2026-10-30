@@ -26,7 +26,7 @@ const model = useBroadcastModel();
       </ul>
       <p>
         Twitch chat and a project can be configured independently. Review your
-        captures, audio and stream destination below before going live.
+        captures, audio and stream destination in OBS before going live.
       </p>
     </section>
     <section aria-label="OBS connection and scenes">

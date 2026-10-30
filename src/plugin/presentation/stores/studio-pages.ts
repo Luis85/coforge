@@ -4,8 +4,6 @@ export const BROADCAST_PAGES = [
   { id: "show", label: "Show plan" },
   { id: "setup", label: "Setup" },
   { id: "scenes", label: "Scenes" },
-  { id: "sources", label: "Sources & layouts" },
-  { id: "audio", label: "Audio" },
   { id: "displays", label: "Public displays" },
   { id: "history", label: "History" },
 ] as const;

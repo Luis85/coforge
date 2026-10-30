@@ -343,7 +343,7 @@ recovery, project scope, host permissions and final human review.
 - Review every private, native-settings and public display view for a clear user goal and next action, then improve
   concrete navigation, hierarchy, empty/error-state, accessibility and spacing findings without replacing the native design.
 - The stream schedule stays local to CoForge. Each planned stream has an Obsidian-compatible Markdown note
-  for topics, scripts and storyboards, plus date/time, project, Twitch metadata, OBS scene choices. Preparation is explicit; planning never automatically updates a live channel or starts playback/a stream.
+  for topics, scripts and storyboards, plus date/time, project, Twitch metadata, OBS scene choices and optional OBS music sources. Preparation is explicit; planning never automatically updates a live channel or starts playback/a stream.
 - Render authored Markdown in requests, plans and appropriate long-form fields. Logs, configuration editors
   and diffs retain their source/code formatting. Rendering must not execute HTML, transclude vault notes or
   automatically load external media, especially in capture views.
@@ -416,6 +416,18 @@ recovery, project scope, host permissions and final human review.
   commits/merges/pushes of the game or the vault. Twitch chatbot replies and OAuth onboarding are now in scope.
 
 ## Decisions
+
+- 2026-10-30: extend Project features with individual selections for every
+  standalone workspace capability, including Service Design. Keep the four group
+  controls and list Idea board, The Council, CoWorkers, Service Design, Agent
+  workflow; Stream studio, Alerts, Schedule, Stream chat, Twitch operations;
+  Community, Viewers, Economy, Community settings; Statistics, AI costs, Finances
+  and Operations. Their internal tabs and editors remain part of their owning
+  feature. Project settings, the project switcher, recovery and vault integration
+  setup remain reachable. Missing individual preferences retain existing features;
+  saving is explicit and per project. These remain visibility preferences: data,
+  public projections, shared services and captured/background work keep their
+  existing behavior. Hiding an entire group retains its individual selections.
 
 - 2026-10-30: select visible feature groups independently for each project in
   Project settings. Hide unused navigation groups and their related panels (for
@@ -538,6 +550,12 @@ recovery, project scope, host permissions and final human review.
 - Keep OBS screen previews and audio tuning in OBS. CoForge does not need to
   reproduce those views or settings. Capture devices, source properties and output
   configuration also remain in OBS, as in the existing workflow baseline below.
+- Remove the obsolete preview monitors, audio mixer/settings, source/layout
+  property editors and full-studio/output setup controls (owner follow-through,
+  2026-10-30). Retain connection/readiness setup, stream controls, scene management,
+  Show plans, public displays and history. Stop background screenshot/meter polling
+  for removed views; retain the observed state needed by supported cues. Push this
+  change, open a pull request, fix required checks and merge only when green.
 - This supersedes the 2026-10-29 expansion into full OBS setup and live production,
   including its preview and audio-management scope. The earlier three-increment
   plan is historical; it does not require recreating every OBS control in CoForge.

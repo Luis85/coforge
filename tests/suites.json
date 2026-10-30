@@ -1409,6 +1409,7 @@
         "src/plugin/tests/project/coforge/council-ask-fixture.ts",
         "src/plugin/tests/project/coforge/council-prompt-order-fixture.ts",
         "src/plugin/tests/project/coforge/execution-fanout-fixture.ts",
+        "src/plugin/tests/project/coforge/optional-project-features-fixture.ts",
         "src/plugin/tests/project/coforge/request-object-fixture.ts",
         "src/plugin/tests/project/coforge/fixtures/public-export-de7cb61.html",
         "src/plugin/tests/project/coforge/fixtures/public-export-de7cb61.json",

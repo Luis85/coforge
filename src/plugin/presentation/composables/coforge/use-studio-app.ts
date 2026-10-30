@@ -14,7 +14,7 @@ import { useStudioActions } from "./use-studio-actions";
 import { defaultSettings } from "../../../features/coforge/domain/seed";
 import { workflowProviderSummary } from "./agent-labels";
 import { observeHostStatusInset } from "./host-status-inset";
-import { visibleProjectGroups } from '../../../features/coforge/domain/project-feature-groups';
+import { PROJECT_FEATURES } from '../../../features/coforge/domain/project-features';
 
 /** Derived studio-shell state shared by the frame components (sidebar, top bar, pipeline, dock, activity). */
 export function useStudioShell() {
@@ -25,7 +25,10 @@ export function useStudioShell() {
     store,
     actions,
     state,
-    streamVisible: computed(() => visibleProjectGroups(store.activeProject).includes('stream')),
+    streamVisible: computed(() => PROJECT_FEATURES.some(feature => feature.group === 'stream' && store.featureEnabled(feature.id))),
+    chatVisible: computed(() => store.featureEnabled('stream')),
+    broadcastVisible: computed(() => store.featureEnabled('broadcast')),
+    workflowVisible: computed(() => store.featureEnabled('workflow')),
     toggleRightPanel: () => {
       store.rightPanelManual = true;
       store.rightPanelCollapsed = !store.rightPanelCollapsed;

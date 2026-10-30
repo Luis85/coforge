@@ -1,5 +1,6 @@
 import type { StudioView } from "./coforge-studio";
-import { visibleProjectGroups, type ProjectFeatureGroup } from '../../features/coforge/domain/project-feature-groups';
+import type { ProjectFeatureGroup } from '../../features/coforge/domain/project-feature-groups';
+import { isProjectFeature, projectFeatureEnabled } from '../../features/coforge/domain/project-features';
 import type { StudioProject } from '../../features/coforge/domain/types';
 
 export type StudioGroup = ProjectFeatureGroup;
@@ -146,13 +147,17 @@ export function studioRoot(view: StudioView): StudioView {
 }
 
 export function studioViewEnabled(view: StudioView, project?: StudioProject): boolean {
-  const root = studioRoot(view);
-  return root === 'settings' || root === 'projects' || visibleProjectGroups(project).includes(studioDestination(root).group);
+  const feature = view === 'workflow-settings' ? 'workflow' : view;
+  return !isProjectFeature(feature) || projectFeatureEnabled(project, feature);
 }
 
 export function studioHome(project?: StudioProject): StudioView {
-  if (project && studioViewEnabled('board', project)) return 'board';
-  return STUDIO_NAVIGATION.find(item => item.view !== 'settings' && studioViewEnabled(item.view, project) && (!studioDestination(item.view).requiresProject || project))?.view ?? 'settings';
+  if (!project) return 'broadcast';
+  for (const group of STUDIO_GROUPS) {
+    const destination = STUDIO_NAVIGATION.find(item => item.group === group.id && item.view !== 'settings' && studioViewEnabled(item.view, project));
+    if (destination) return destination.view;
+  }
+  return 'settings';
 }
 
 /** Projects has its own switcher; focused subpages stay in their owning root. */

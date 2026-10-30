@@ -8,6 +8,7 @@ import { record } from "../../../../src/plugin/features/coforge/domain/check";
 /** Loopback-only simulated OBS. It never launches OBS or contacts a streaming destination. */
 export class ObsProductionSocketServer {
   readonly state = new ObsProductionServer();
+  readonly subscriptions: number[] = [];
   private readonly sockets = new Set<Duplex>();
   private readonly items = new Map<string, Array<Record<string, unknown>>>();
   private sequence = 0;
@@ -132,6 +133,8 @@ export class ObsProductionSocketServer {
     const value = record(JSON.parse(raw));
     const data = record(value.d);
     if (value.op === 1) {
+      if (typeof data.eventSubscriptions === "number")
+        this.subscriptions.push(data.eventSubscriptions);
       this.send(socket, { op: 2, d: { negotiatedRpcVersion: 1 } });
       return;
     }
@@ -178,6 +181,7 @@ export class ObsProductionSocketServer {
         "GetStreamStatus",
         "GetStats",
         "GetGroupList",
+        "GetSceneSceneTransitionOverride",
       ].includes(type)
     ) {
       this.state.requests.push({ type, data });
@@ -198,6 +202,11 @@ export class ObsProductionSocketServer {
               "RemoveSceneItem",
               "SetSceneItemEnabled",
               "SetSceneItemIndex",
+              "DuplicateSceneItem",
+              "GetSceneItemBlendMode",
+              "SetSceneItemBlendMode",
+              "GetSceneSceneTransitionOverride",
+              "SetSceneSceneTransitionOverride",
               "SetCurrentProgramScene",
               "StartStream",
               "StopStream",
@@ -221,11 +230,17 @@ export class ObsProductionSocketServer {
           outputDuration: 0,
         };
       if (type === "GetGroupList") return { groups: [] };
+      if (type === "GetSceneSceneTransitionOverride")
+        return { transitionName: null, transitionDuration: null };
       return {};
     }
     if (
       [
         "CreateScene",
+        "SetSceneName",
+        "RemoveScene",
+        "StartStream",
+        "StopStream",
         "SetCurrentProgramScene",
         "SetCurrentPreviewScene",
         "CreateSceneItem",
@@ -235,6 +250,37 @@ export class ObsProductionSocketServer {
       ].includes(type)
     ) {
       this.state.requests.push({ type, data });
+      if (type === "StartStream" || type === "StopStream") {
+        this.state.active = type === "StartStream";
+        this.event("StreamStateChanged", {
+          outputActive: this.state.active,
+          outputState: this.state.active
+            ? "OBS_WEBSOCKET_OUTPUT_STARTED"
+            : "OBS_WEBSOCKET_OUTPUT_STOPPED",
+        });
+        return {};
+      }
+      if (type === "SetSceneName" || type === "RemoveScene") {
+        const scene = this.scene(data.sceneName);
+        if (!scene) throw new Error("Fixture scene missing.");
+        const oldName = scene.name;
+        if (type === "SetSceneName") {
+          scene.name = String(data.newSceneName);
+          const items = this.items.get(oldName);
+          if (items) this.items.set(scene.name, items);
+          this.items.delete(oldName);
+        } else {
+          this.state.scenes = this.state.scenes.filter(
+            (value) => value.id !== scene.id,
+          );
+          this.items.delete(oldName);
+        }
+        this.event(
+          type === "SetSceneName" ? "SceneNameChanged" : "SceneRemoved",
+          { sceneUuid: scene.id, sceneName: scene.name, oldSceneName: oldName },
+        );
+        return {};
+      }
       if (type === "CreateScene") {
         const scene = { id: randomUUID(), name: String(data.sceneName) };
         this.state.scenes.push(scene);

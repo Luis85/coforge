@@ -9,13 +9,8 @@ import StreamHistoryPanel from "./StreamHistoryPanel.vue";
 import LiveStudioPanel from "./LiveStudioPanel.vue";
 import ObsSceneManager from "./ObsSceneManager.vue";
 import StreamDisplaysPanel from "./StreamDisplaysPanel.vue";
-import ObsProductionDesk from "./ObsProductionDesk.vue";
-import ObsSourceEditor from "./ObsSourceEditor.vue";
-import ObsAudioMixer from "./ObsAudioMixer.vue";
-import ObsStudioSetup from "./ObsStudioSetup.vue";
 import ObsShowPlan from "./ObsShowPlan.vue";
 import ObsOutputHistory from "./ObsOutputHistory.vue";
-import ObsLiveSummary from "./ObsLiveSummary.vue";
 import ObsOverlayComposer from "./ObsOverlayComposer.vue";
 import { useObsProductionSession } from "../../composables/coforge/use-obs-production";
 const model = useBroadcast();
@@ -40,6 +35,7 @@ const production = useObsProductionSession();
           Guided setup
         </button>
         <button
+          v-if="model.store.featureEnabled('stream')"
           type="button"
           class="cf-btn cf-btn-secondary"
           @click="model.store.openStreamTool('channel')"
@@ -73,8 +69,6 @@ const production = useObsProductionSession();
       aria-label="Live broadcast"
     >
       <BroadcastControls :model="model" />
-      <ObsLiveSummary />
-      <ObsProductionDesk />
       <LiveStudioPanel />
       <button
         type="button"
@@ -92,7 +86,32 @@ const production = useObsProductionSession();
     >
       <GuidedStreamSetup hide-reopen />
       <BroadcastSetup />
-      <ObsStudioSetup />
+      <section
+        v-if="production.outputRestartRequired"
+        class="cf-production-section"
+        aria-label="OBS restart review"
+      >
+        <h2>Review the previous OBS output change</h2>
+        <p>
+          A previously saved output change still needs a restart review. Restart
+          OBS and check its output settings before preparing a broadcast.
+        </p>
+        <label class="cf-project-repository-toggle"
+          ><input
+            v-model="production.ui.restartReviewed"
+            type="checkbox"
+            :disabled="production.ui.pending"
+          /><span>I restarted OBS and reviewed its output settings</span></label
+        >
+        <button
+          type="button"
+          class="cf-btn cf-btn-secondary"
+          :disabled="!production.ui.restartReviewed || !production.canChange"
+          @click="production.acknowledgeRestart()"
+        >
+          Confirm OBS restart review
+        </button>
+      </section>
     </div>
     <div
       v-show="model.store.broadcastTool === 'scenes'"
@@ -101,22 +120,6 @@ const production = useObsProductionSession();
       aria-label="Scene management"
     >
       <ObsSceneManager />
-    </div>
-    <div
-      v-show="model.store.broadcastTool === 'sources'"
-      class="cf-subpage-panel"
-      role="region"
-      aria-label="OBS source and layout workspace"
-    >
-      <ObsSourceEditor />
-    </div>
-    <div
-      v-show="model.store.broadcastTool === 'audio'"
-      class="cf-subpage-panel"
-      role="region"
-      aria-label="OBS audio workspace"
-    >
-      <ObsAudioMixer />
     </div>
     <div
       v-show="model.store.broadcastTool === 'show'"

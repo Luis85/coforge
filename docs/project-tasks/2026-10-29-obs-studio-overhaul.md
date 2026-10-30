@@ -9,7 +9,9 @@ expansion below records historical implementation and qualification, not the
 current acceptance scope. See BRIEF.md and
 [[docs/requirements/OBS Studio Integration]] for the revised requirement.
 
-This documentation update does not remove existing controls from the interface.
+The initial scope revision only updated documentation. The follow-through in
+[[docs/project-tasks/2026-10-30-obs-studio-focus]] removes obsolete controls and
+records final qualification and merge evidence.
 
 ## Historical delivery
 

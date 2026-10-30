@@ -49,8 +49,26 @@ test("focused broadcast pages are keyboard reachable and preserve setup drafts",
     "data-prototype-ready",
     "true",
   );
+  const studioPages = page.getByRole("navigation", {
+    name: "Stream studio pages",
+    exact: true,
+  });
+  expect(
+    (await studioPages.getByRole("button").allTextContents())
+      .slice(0, 2)
+      .map(label => label.trim()),
+  ).toEqual(["Broadcast", "Show plan"]);
+  for (const name of ["Audio", "Sources & layouts"])
+    await expect(
+      studioPages.getByRole("button", { name, exact: true }),
+    ).toHaveCount(0);
+  await expect(
+    page.locator(".cf-production-desk, .cf-production-sources, .cf-production-audio, .cf-production-setup"),
+  ).toHaveCount(0);
+  await expect(page.getByRole("img", { name: /^Sampled OBS/ })).toHaveCount(0);
   for (const name of [
     "Broadcast",
+    "Show plan",
     "Setup",
     "Scenes",
     "Public displays",
