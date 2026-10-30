@@ -53,7 +53,12 @@ recovery stay available. Shared and vault data keep their actual scope.
   reload, unrelated frontmatter and exact human Markdown body bytes remain.
 - Dev loop: status passed, errors [], hostErrorCount 0, pluginConsole [];
   Obsidian 1.14.4 / launcher 3.2.1. Contained host teardown completed.
-- docs:views: 110 views, valid navigation coverage, current sitemap.
+- After current-main integration: browser/UI quality 10 passed (1.4m); real host
+  1 passed (9.43s); docs:views reports 108 views with valid coverage/current sitemap.
+- Full CI exposed an invalid Community settings binding. Added direct Economy
+  shortcut visibility coverage and corrected the composable binding. Latest
+  catalogue/UI/operator regression batch: 4 files / 34 passed; standalone typecheck
+  exit 0. Fallback order also has a failing-then-passing regression.
 - Impeccable detector: []. Reviewed light/wide and dark/narrow catalogue captures;
   descriptions wrap, counts remain visible, disabled child choices stay readable.
 - Full local check uses the supported --timeout 3600000 orchestration budget;

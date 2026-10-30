@@ -6,8 +6,20 @@ import StudioApp from '../../../presentation/components/coforge/StudioApp.vue';
 import { workflowUiFixture } from './workflow-ui-fixture';
 import { OPTIONAL_PROJECT_FEATURES } from './optional-project-features-fixture';
 import { useIdeaCardMenu } from '../../../presentation/composables/coforge/use-idea-card-menu';
+import CommunitySettingsView from '../../../presentation/components/coforge/CommunitySettingsView.vue';
 
 const stubs = { CfIcon: true, ObsLiveDock: true, ChatPanel: true, IdeaBoard: true, PipelineStrip: true, WorkflowView: true };
+it('renders Community settings and shows its Economy shortcut only when selected', async () => {
+  const fixture = await workflowUiFixture();
+  await fixture.studio.updateProject({ features: ['community-settings'] });
+  const wrapper = mount(CommunitySettingsView, { global: { plugins: [fixture.pinia, fixture.provider], stubs: { CfIcon: true } } });
+  try {
+    expect(wrapper.text()).toContain('Community settings');
+    expect(wrapper.text()).not.toContain('Open Economy');
+    await fixture.studio.updateProject({ features: ['community-settings', 'economy'] }); await nextTick();
+    expect(wrapper.text()).toContain('Open Economy');
+  } finally { wrapper.unmount(); await fixture.dispose(); }
+});
 it('lists all 18 features and explicitly saves Service Design independently', async () => {
   const fixture = await workflowUiFixture(); fixture.store.navigate('settings');
   const wrapper = mount(StudioApp, { global: { plugins: [fixture.pinia, fixture.provider], stubs } });

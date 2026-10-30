@@ -31,12 +31,15 @@ workflow alias have behavioral coverage; a catalogue test detects missing routes
   A separate shortcut test failed before Council/workflow launch filtering.
 - Initial focused green: 4 files / 28 passed; added dirty-workflow case passed
   in a later 2-file / 7-test batch. Related navigation compatibility: 4 files / 7 passed.
+- Latest targeted catalogue/UI/Community/Economy batch: 4 files / 34 passed;
+  standalone npm run typecheck: exit 0. Regression covers the composable binding
+  for the independently selected Economy shortcut and visual-order fallback.
 - Browser/UI-quality: 10 passed (1.3m), light/dark, keyboard, selected counts,
   exact persisted choices, 1280/480px reflow and WCAG scans.
-- Real Obsidian: 1 passed (9.69s), Service Design/group choices survive reload,
+- Real Obsidian after current-main integration: 1 passed (9.43s), Service Design/group choices survive reload,
   unknown frontmatter and exact authored body bytes preserved; teardown completed.
 - Dev loop: status passed, errors [], hostErrorCount 0, pluginConsole [].
-- docs:views: 110 views; valid navigation coverage; sitemap current.
+- docs:views: 108 views; valid navigation coverage; sitemap current.
 - Impeccable detector: []; scope review and git diff --check passed.
 - Full local check uses the supported --timeout 3600000 orchestration budget;
   individual test limits and quality gates remain unchanged. Full local,

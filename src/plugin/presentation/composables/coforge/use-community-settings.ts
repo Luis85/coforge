@@ -71,7 +71,8 @@ export function useCommunitySettings() {
     notice,
     working,
     dirty: computed(() => encoded.value !== saved.value),
-    openEconomy: () => { store.navigate('economy'); },
+    economyVisible: computed(() => store.featureEnabled('economy')),
+    openEconomy: () => { if (store.featureEnabled('economy')) store.navigate('economy'); },
     ruleFields: computed(
       () =>
         [
