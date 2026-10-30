@@ -47,8 +47,8 @@ iteration: ""
 
 Operate the current broadcast with explicit stream controls.
 
-Live monitoring leads. Setup, scenes, sources/layouts, audio, show plans,
-capture displays and history have separate local subpages. Connection and
+Broadcast leads, followed immediately by Show plan as the second tab. Setup,
+scenes, capture displays and history have separate local subpages. Connection and
 navigation never start broadcasting.
 
 ## Entry and next action
@@ -61,13 +61,13 @@ Disconnected; Off air; Live; On break; Unknown external outcome. Inspect an erro
 
 ## Presentation and information hierarchy
 
-The stream workspace leads with the observed broadcast state and an explicit next
-action. The live desk adds sampled program/preview frames, supported audio and
-independent recording/replay/virtual-camera controls. Setup owns fresh studio
-creation and supported output configuration. Sources & layouts, Audio and Show
-plan remain focused tasks alongside Scenes, Public displays and History;
-changing pages preserves preparation drafts. Live BRB/resume controls remain
-available when navigating to other private work views.
+The stream workspace leads with the observed broadcast state, audience/health and
+explicit stream controls. Show plan exposes the rundown, private presenter notes
+and saved cue actions. Setup owns connection, authentication, scene assignments
+and human readiness review. Scenes keeps creation/editing, membership, visibility
+and ordering. Preview monitors, audio tuning, source/device properties and output
+configuration remain in OBS. Changing pages preserves preparation drafts. Live
+BRB/resume controls remain available when navigating to other private work views.
 
 ## Composition and boundaries
 

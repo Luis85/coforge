@@ -1,5 +1,20 @@
 # Task: Create and operate a complete OBS studio from CoForge
 
+## Current scope revision (owner, 2026-10-30)
+
+The current integration focuses on start/pause/resume/stop, scene switching and
+scene creation/editing. Screen previews and audio tuning remain in OBS, together
+with device/source properties and output settings. The full-setup/production
+expansion below records historical implementation and qualification, not the
+current acceptance scope. See BRIEF.md and
+[[docs/requirements/OBS Studio Integration]] for the revised requirement.
+
+The initial scope revision only updated documentation. The follow-through in
+[[docs/project-tasks/2026-10-30-obs-studio-focus]] removes obsolete controls and
+records final qualification and merge evidence.
+
+## Historical delivery
+
 - Status: implemented; final qualification and merge evidence are tracked in
   [PR #40](https://github.com/Luis85/coforge/pull/40).
 - Journey in BRIEF.md: OBS overhaul, one PC and a fresh blank OBS installation.

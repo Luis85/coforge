@@ -9,5 +9,5 @@ const changed = new Set([
   'StreamStateChanged', 'RecordStateChanged', 'ReplayBufferStateChanged', 'VirtualcamStateChanged', 'CurrentProfileChanging', 'CurrentProfileChanged',
 ]);
 export const changesProductionContext = (type: string): boolean => changed.has(type);
-/** Normal v5 events plus explicitly opted-in meters and transform changes. Meter events never invalidate action context. */
-export const OBS_PRODUCTION_EVENTS = 2047 | (1 << 16) | (1 << 19);
+/** Ordinary v5 control events plus transform invalidation, without unsolicited audio meter traffic. */
+export const OBS_PRODUCTION_EVENTS = 2047 | (1 << 19);

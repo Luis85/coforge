@@ -23,7 +23,7 @@ defineEmits<{
         <div class="cf-obs-source-name">
           <strong>{{ item.name }}</strong
           ><small
-            >Layer {{ item.index + 1 }} · {{ item.kind
+            >Item {{ item.id }} · Layer {{ item.index + 1 }} · {{ item.kind
             }}{{ item.locked ? " · layout locked" : "" }}</small
           >
         </div>

@@ -47,8 +47,8 @@ explain their prerequisites before a project exists.
 
 Subpages keep focused tasks together without expanding the global navigation:
 
-- Stream studio: Broadcast, Setup, Scenes, Sources & layouts, Audio, Show plan,
-  Public displays and History.
+- Stream studio: Broadcast, Show plan, Setup, Scenes, Public displays and
+  History. OBS owns previews, audio tuning, device/source properties and output setup.
 - Stream chat: Chat, Twitch settings and Bot messages.
 - Project settings: General, Requests, Repository, Agent workflow, Runtime and Data & examples.
 - Agent workflow: Workflow runs, Herdr workspaces and Workflow settings.
