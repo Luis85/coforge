@@ -121,3 +121,18 @@ step kinds. Workflow tools hold explicit JSON import/export controls.
 [Answer and output templates](workflow-output-templates.md) is this project's
 Markdown library. Its explicit save is independent of Save workflow. Selecting a
 template changes the workflow draft; future runs capture its saved contents.
+
+The standard process is Screen → Score → Plan → Design → Build. Design produces
+a retained Markdown specification with read-only project access; Build requires
+both that specification and the plan. Design initially inherits Plan's agent/model
+and automation choice and can be configured independently in the workflow draft.
+To update an existing custom workflow, add the Design preset. When a Plan precedes
+a Build, the editor inserts Design before that Build and requires its specification,
+preserving the other earlier results that Build already receives. Otherwise, adjust
+the draft order/inputs or replace it with the standard workflow. Saving is explicit;
+existing runs retain their captured definitions.
+
+The private request drawer has a Plan & Design tab for reading and copying the
+saved specification before building. It shows only intact, successful results for
+the current request revision. Design output is private and never enters the public
+board projection. Simulation specifications are labelled as illustrative.

@@ -2,11 +2,14 @@ import { toRaw } from "vue";
 import type {
   WorkflowDefinition,
   WorkflowStep,
+  WorkflowOutput,
 } from "../../features/coforge/domain/configured-workflow";
 import { defaultWorkflowDefinition } from "../../features/coforge/domain/configured-workflow";
 import type { AgentStage, Settings } from "../../features/coforge/domain/types";
+export type WorkflowPreset = AgentStage | 'design';
 export const WORKFLOW_OUTPUT_LABELS = {
   markdown: "Markdown report",
+  design: "Design specification",
   screening: "Screening decision",
   rice: "RICE score",
   plan: "Implementation plan",
@@ -93,7 +96,7 @@ export function createWorkflowStep(
   };
 }
 export function presetWorkflowStep(
-  stage: AgentStage,
+  stage: WorkflowPreset,
   settings: Settings,
 ): WorkflowStep {
   const original = defaultWorkflowDefinition(settings).steps.find(
@@ -107,5 +110,22 @@ export const WORKFLOW_PRESETS = [
   { id: "screen", name: "Screen" },
   { id: "score", name: "Score" },
   { id: "plan", name: "Plan" },
+  { id: "design", name: "Design" },
   { id: "implement", name: "Build" },
 ] as const;
+
+/** Explicit adoption updates only the local draft, retaining existing step identity and order. */
+export function insertWorkflowPreset(definition: WorkflowDefinition, stage: WorkflowPreset, settings: Settings): WorkflowStep | undefined {
+  if (definition.steps.length >= 40) return;
+  const step = presetWorkflowStep(stage, settings);
+  const buildIndex = stage === 'design' ? definition.steps.findIndex((item, index) => item.kind === 'ai' && item.output === 'codechange'
+    && definition.steps.slice(0, index).some(prior => prior.kind === 'ai' && prior.output === 'plan')) : -1;
+  if (buildIndex < 0) { definition.steps.push(step); return step; }
+  const build = definition.steps[buildIndex];
+  if (build?.kind === 'ai') {
+    if (!build.inputs?.length) build.includePreviousResults = true;
+    build.inputs = [...new Set<WorkflowOutput>([...(build.inputs ?? []), 'design'])];
+  }
+  definition.steps.splice(buildIndex, 0, step);
+  return step;
+}

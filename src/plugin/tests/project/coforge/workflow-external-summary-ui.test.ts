@@ -29,7 +29,7 @@ it('describes a selected MCP run as explicit external steps while preserving cap
     expect(f.studio.state().ideas[0]!.workflowRun!.definition).toEqual(original);
     expect(f.storage.saves).toBe(writes); expect(f.runner).not.toHaveBeenCalled();
     await f.studio.store.transaction(state => { delete state.ideas[0]!.workflowRun!.external; }); await flushPromises();
-    expect(summary()).toContain('4 AI steps automatic'); expect(summary()).toContain('New automatic runs');
+    expect(summary()).toContain('5 AI steps automatic'); expect(summary()).toContain('New automatic runs');
     expect(summary()).toContain('Claude Code CLI'); expect(summary()).not.toContain('External MCP run');
   } finally { wrapper.unmount(); await f.dispose(); }
 });

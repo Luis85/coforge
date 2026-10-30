@@ -243,7 +243,7 @@ describe("actual configured workflow execution", () => {
     await f.engine.waitUntilIdle();
     expect(
       f.current().workflowRun?.definition.steps.map((step) => step.id),
-    ).toEqual(["screen", "score", "plan", "implement"]);
+    ).toEqual(["screen", "score", "plan", "design", "implement"]);
     expect(f.store.snapshot().settings.workflow).toBeUndefined();
     expect(f.current().workflowRun?.cursor).toBe(1);
     await f.engine.runWorkflowStep(f.idea.id);

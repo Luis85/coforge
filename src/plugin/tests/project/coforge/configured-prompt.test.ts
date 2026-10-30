@@ -14,7 +14,7 @@ import {
   defaultSettings,
   defaultIntegration,
 } from "../../../features/coforge/domain/seed";
-it.each(["rice", "plan", "codechange"] as const)(
+it.each(["rice", "plan", "design", "codechange"] as const)(
   "sends bounded streamer retry feedback and current moderation beside historical artifacts for %s",
   (output) => {
     const screening = {

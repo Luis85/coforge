@@ -57,6 +57,7 @@ const fields = useWorkflowAiFields();
       {{ WORKFLOW_ACCESS_LABELS[fields.step.access] }} ·
       {{ fields.step.automatic ? "Automatic when resumed" : "On request" }} ·
       {{ fields.step.inputs?.length || 0 }} required previous results.
+      <template v-if="fields.step.includePreviousResults">Other earlier results are included.</template>
     </p>
     <details class="cf-workflow-options">
       <summary>Agent and project access</summary>
@@ -172,6 +173,11 @@ const fields = useWorkflowAiFields();
           Choose results this step needs from earlier steps. A disabled result
           has no preceding producer.
         </p>
+        <label v-if="fields.step.inputs?.length" class="cf-workflow-check">
+          <input v-model="fields.step.includePreviousResults" type="checkbox" />
+          <span>Include other earlier results</span>
+        </label>
+        <p class="cf-settings-help">Required results must remain valid. With no required selections, all available earlier results are included.</p>
         <label
           v-for="(label, role) in WORKFLOW_OUTPUT_LABELS"
           :key="role"

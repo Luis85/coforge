@@ -40,27 +40,29 @@ async function fixture() {
   };
   return { studio, tools, runner, projectId, idea, next, captures };
 }
-it('lets an external agent perform all four default steps, preserving evidence and human review', async () => {
+it('lets an external agent perform all five default steps, preserving the design handoff and human review', async () => {
   const f = await fixture();
   const outputs = [
     { verdict: 'clear', reason: 'A scoped game feature', signals: [] },
     { reach: 100, impact: 1, confidence: 0.8, effort: 1, rationale: 'Small feature' },
     { summary: 'Add a lantern', steps: ['Add light'], acceptanceCriteria: ['Light renders'], risks: [] },
+    { markdown: '# Lantern design\n\nUse the existing light component and preserve save compatibility.' },
     { summary: 'Added a lantern' },
   ];
   for (const [index, output] of outputs.entries()) {
     const context = await f.next();
-    expect(context.access).toBe(['none', 'none', 'readproject', 'editworktree'][index]);
+    expect(context.access).toBe(['none', 'none', 'readproject', 'readproject', 'editworktree'][index]);
     expect(context.outputSchema).toBeDefined();
     await f.tools.call(f.projectId, 'coforge_submit_result', { taskId: context.taskId, output });
   }
   const idea = f.studio.state().ideas.find(item => item.id === f.idea.id)!;
   expect(idea.status).toBe('review');
-  expect(idea.workflowRun).toMatchObject({ external: true, state: 'awaiting-review', cursor: 4 });
+  expect(idea.workflowRun).toMatchObject({ external: true, state: 'awaiting-review', cursor: 5 });
+  expect(idea.workflowRun?.artifacts.find(artifact => artifact.stepId === 'design')?.markdown).toContain('preserve save compatibility');
   expect(idea.screening?.provider).toBe('mcp');
   expect(idea.increment?.diff).toBe('+lantern');
   expect(f.captures).toEqual(['Added a lantern']);
-  expect(f.studio.state().jobs.filter(job => job.ideaId === idea.id).map(job => job.provider)).toEqual(['mcp', 'mcp', 'mcp', 'mcp']);
+  expect(f.studio.state().jobs.filter(job => job.ideaId === idea.id).map(job => job.provider)).toEqual(['mcp', 'mcp', 'mcp', 'mcp', 'mcp']);
   expect(parsePersistedStudio(toLoaded(f.studio.store.internalSnapshot()).data).jobs.at(-1)?.provider).toBe('mcp');
   expect(workflowRunCheck(idea.workflowRun).external).toBe(true);
   expect(f.tools.tools().map(tool => tool.name)).not.toContain('coforge_approve');

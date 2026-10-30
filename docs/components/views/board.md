@@ -50,6 +50,12 @@ Choose the next request that needs attention.
 
 Requests are scoped to their canonical parent project. Opening a card leads to focused request details; services enforce screening and final human review.
 
+The board flows through Inbox, Up next, Design, In progress and Accepted. Planned
+requests appear in Design while their specification is prepared and before Build
+starts. The standard workflow retains Design as a private Markdown artifact and
+passes it with the plan to Build. The public board shows the same Design stage
+without exposing private workflow artifacts or instructions.
+
 ## Entry and next action
 
 Choose Idea board in the studio navigation. Available actions: Filter and search; Switch Kanban or table; Open request; Create request; Use valid context actions. Return through the owning [CoForge studio](studio.md) surface.

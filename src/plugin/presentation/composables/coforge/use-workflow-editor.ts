@@ -21,9 +21,9 @@ import {
   createWorkflowStep,
   duplicateWorkflowStep,
   moveWorkflowStep,
-  presetWorkflowStep,
+  insertWorkflowPreset,
+  type WorkflowPreset,
 } from "../../stores/workflow-editor-draft";
-import type { AgentStage } from "../../../features/coforge/domain/types";
 import { useWorkflowTransfer } from "./use-workflow-transfer";
 import { useWorkflowEditorVisibility } from "./use-workflow-editor-visibility";
 import {
@@ -229,10 +229,10 @@ function createWorkflowEditor() {
       add(
         createWorkflowStep(kind, project.value?.settings ?? defaultSettings()),
       ),
-    addPreset: (stage: AgentStage) =>
-      add(
-        presetWorkflowStep(stage, project.value?.settings ?? defaultSettings()),
-      ),
+    addPreset: (stage: WorkflowPreset) => {
+      const step = insertWorkflowPreset(draft.value, stage, project.value?.settings ?? defaultSettings());
+      if (step) { selectedId.value = step.id; visibility.reveal(); }
+    },
     duplicate: (id: string) => {
       const copy = duplicateWorkflowStep(draft.value, id);
       if (copy) {

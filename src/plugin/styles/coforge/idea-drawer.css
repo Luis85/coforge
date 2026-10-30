@@ -44,7 +44,7 @@
   margin: 0 0 14px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .cf-idea-section h3 > .cf-icon { color: var(--cf-muted); }
-.cf-idea-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+.cf-idea-section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
 .cf-studio .cf-idea-section-heading h3 { margin: 0; }
 .cf-studio .cf-idea-request {
   font-size: 14px; color: var(--cf-text); line-height: 1.9; margin: 0 0 20px; white-space: pre-wrap; overflow-wrap: anywhere;
@@ -184,7 +184,7 @@
 .cf-idea-review-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .cf-idea-review-actions .cf-btn { font-size: 11px; }
 .cf-idea-button-mode {
-  font-size: 9px; font-weight: 600; padding-left: 9px; opacity: 0.7;
+  font-size: 9px; font-weight: 600; padding-left: 9px;
   border-left: 1px solid color-mix(in srgb, currentColor 35%, transparent);
 }
 

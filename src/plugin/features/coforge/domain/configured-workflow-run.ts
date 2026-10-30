@@ -68,9 +68,10 @@ const artifact = shape({ id: workflowIdCheck, runId: workflowIdCheck, stepId: wo
 export function workflowArtifactCheck(value: unknown): WorkflowArtifact {
   const checked = artifact(value);
   const payloads = ['markdown', 'screening', 'rice', 'plan', 'increment'] as const;
-  const key = checked.output === 'codechange' ? 'increment' : checked.output;
+  const key = checked.output === 'codechange' ? 'increment' : checked.output === 'design' ? 'markdown' : checked.output;
   if (payloads.some(field => field !== key && checked[field] !== undefined) || (checked.output === 'codechange' ? !checked.summary : checked[key] === undefined))
     throw new Error('The workflow artifact does not match its declared output contract.');
+  if (checked.output === 'design' && !checked.markdown?.trim()) throw new Error('The Design specification must contain Markdown text.');
   if ((checked.output !== 'codechange' && checked.summary !== undefined) || (checked.increment && !checked.increment.files.length)) throw new Error('Only real code changes can carry an implementation increment.');
   if (checked.hostSnapshot && checked.output !== 'codechange') throw new Error('Only a host code-change snapshot can project workspace state.');
   if (checked.contentHash !== workflowArtifactHash(checked)) throw new Error('The workflow artifact content changed.');

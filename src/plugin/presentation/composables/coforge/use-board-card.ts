@@ -13,9 +13,14 @@ export interface CardState { tone: 'flagged' | 'review' | 'agent' | 'done'; icon
 /** The single next-state hint a card shows, in the prototype's priority order. */
 export function cardState(idea: Idea, job: AgentJob | undefined): CardState | null {
   if (idea.status === 'flagged') return { tone: 'flagged', icon: 'shield-alert', label: 'Needs moderation', spin: false };
-  if (job) return { tone: 'agent', icon: 'loader-circle', label: job.status === 'queued' ? 'Queued' : `Agent ${AGENT_VERBS[job.stage]}`, spin: true };
+  if (job) return { tone: 'agent', icon: 'loader-circle', label: job.workflow
+    ? `${job.workflow.step.name} ${job.status === 'queued' ? 'queued' : 'running'}`
+    : job.status === 'queued' ? 'Queued' : `Agent ${AGENT_VERBS[job.stage]}`, spin: true };
   if (idea.lastError) return { tone: 'flagged', icon: 'flag', label: 'Run needs attention', spin: false };
-  if (idea.status === 'planned') return { tone: 'agent', icon: 'file-text', label: 'Plan ready', spin: false };
+  if (idea.status === 'planned') {
+    const step = idea.workflowRun?.state === 'ready' ? idea.workflowRun.definition.steps[idea.workflowRun.cursor] : undefined;
+    return { tone: 'agent', icon: 'file-text', label: step ? `Ready · ${step.name}` : 'Plan ready', spin: false };
+  }
   if (idea.status === 'review') return { tone: 'review', icon: 'circle-dot', label: 'Your review', spin: false };
   if (idea.status === 'shipped') return { tone: 'done', icon: 'check', label: 'Increment accepted', spin: false };
   if (idea.status === 'screened') return { tone: 'done', icon: 'check', label: 'Screened', spin: false };

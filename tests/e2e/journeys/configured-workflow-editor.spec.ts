@@ -69,7 +69,8 @@ for (const theme of ["light", "dark"]) {
       name: "Workflow steps",
       exact: true,
     });
-    await expect(steps.getByRole("listitem")).toHaveCount(4);
+    await expect(steps.getByRole("listitem")).toHaveCount(5);
+    await expect(steps).toContainText('Design');
     await page.getByLabel("Step name", { exact: true }).fill("Request review");
     await page
       .getByRole("button", { name: "Move Request review down", exact: true })
@@ -81,14 +82,14 @@ for (const theme of ["light", "dark"]) {
     await page
       .getByRole("button", { name: "Duplicate Request review", exact: true })
       .click();
-    await expect(steps.getByRole("listitem")).toHaveCount(5);
+    await expect(steps.getByRole("listitem")).toHaveCount(6);
     await page
       .getByRole("button", {
         name: "Remove Request review copy from workflow",
         exact: true,
       })
       .click();
-    await expect(steps.getByRole("listitem")).toHaveCount(4);
+    await expect(steps.getByRole("listitem")).toHaveCount(5);
     await page
       .getByRole("button", { name: "Add checklist", exact: true })
       .click();

@@ -49,7 +49,7 @@ const idea = shape(
     description: string,
     category: categoryNameCheck,
     status: string,
-    column: oneOf(["inbox", "next", "progress", "done"] as const),
+    column: oneOf(["inbox", "next", "design", "progress", "done"] as const),
     votes: count,
     rice: (value: unknown) => (value === null ? null : number()(value)),
     author: string,
@@ -71,7 +71,7 @@ export const publicExportBoardCheck: Check<PublicBoard> = shape(
     columns: list(
       shape(
         {
-          id: oneOf(["inbox", "next", "progress", "done"] as const),
+          id: oneOf(["inbox", "next", "design", "progress", "done"] as const),
           title: string,
           hint: string,
           ideas: list(idea),

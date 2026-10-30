@@ -128,7 +128,7 @@ const model = useWorkflowEditorForm();
       </details>
       <details class="cf-workflow-presets">
         <summary>Standard step presets</summary>
-        <p class="cf-settings-help">Adds a configured step to your draft.</p>
+        <p class="cf-settings-help">Adds a configured step to your draft. Design is placed before the first Build with an earlier plan and added to that Build's required results. Existing result selections are kept. Other presets are added at the end.</p>
         <div class="cf-workflow-add-actions">
           <button
             v-for="preset in WORKFLOW_PRESETS"

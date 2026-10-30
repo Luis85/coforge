@@ -40,6 +40,11 @@ private visibility live in the switcher; work pages do not repeat a context bann
 The backlog proceeds from its heading to filter tabs and toolbar, without a
 separate decision-summary section. Review and moderation counts stay in the tabs.
 
+The request board flows through Inbox, Up next, Design, In progress and Accepted.
+Planned requests occupy Design while their specification is prepared before Build.
+Keep all five columns on wide leaves and contain horizontal scrolling within the
+board on narrow leaves; show captured step names on active request cards.
+
 Lead each page with its outcome, current context and useful next action. A summary must explain a decision or a data boundary. Recorded, observed, planned, reported, manually entered and unavailable values remain distinct. Never infer a trustworthy total from incomplete coverage.
 
 ## Interaction and state

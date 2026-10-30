@@ -19,11 +19,12 @@ import { useDialogFocus } from "./use-dialog-focus";
 import { useStudioActions } from "./use-studio-actions";
 import { ideaProjectId } from "../../../features/coforge/domain/projects";
 import { ideaWorkflowAction } from "./idea-workflow-action";
+import { currentDesignSpecification } from "./use-idea-design";
 
 export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity";
 const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
   { value: "overview", label: "Overview" },
-  { value: "plan", label: "Plan" },
+  { value: "plan", label: "Plan & Design" },
   { value: "increment", label: "Increment" },
   { value: "activity", label: "Activity" },
 ];
@@ -183,7 +184,7 @@ function createIdeaDrawer() {
         ...item,
         active: tab.value === item.value,
         dot:
-          (item.value === "plan" && Boolean(idea.value?.plan)) ||
+          (item.value === "plan" && Boolean(idea.value && (idea.value.plan || currentDesignSpecification(idea.value)))) ||
           (item.value === "increment" && Boolean(idea.value?.increment)),
       })),
     ),

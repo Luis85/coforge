@@ -2,12 +2,14 @@
 import type { Idea } from '../../../features/coforge/domain/types';
 import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
 import { useIdeaPlan } from '../../composables/coforge/use-idea-plan';
+import { useIdeaDesign } from '../../composables/coforge/use-idea-design';
 import CfIcon from './CfIcon.vue';
 import MarkdownBody from './MarkdownBody.vue';
 
 const props = defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
 const plan = useIdeaPlan(props);
+const design = useIdeaDesign(props);
 </script>
 <template>
   <template v-if="idea.plan">
@@ -54,4 +56,21 @@ const plan = useIdeaPlan(props);
       Create a plan <CfIcon name="arrow-right" />
     </button>
   </div>
+  <section class="cf-idea-section" aria-label="Design specification">
+    <template v-if="design.markdown">
+      <div class="cf-idea-section-heading">
+        <h3><CfIcon name="pencil-ruler" /> Design specification</h3>
+        <button type="button" class="cf-btn cf-btn-ghost cf-idea-small-button" @click="design.copy()">
+          <CfIcon name="copy" size="sm" /> Copy Design Markdown
+        </button>
+      </div>
+      <MarkdownBody class="cf-idea-body" :source="design.markdown" />
+      <p class="cf-idea-help">{{ design.savedLabel }}</p>
+    </template>
+    <template v-else>
+      <h3><CfIcon name="pencil-ruler" /> No design specification yet</h3>
+      <p class="cf-idea-help">The standard workflow creates a private Design specification after Plan for Build to use. Earlier or invalidated results remain in Workflow runs.</p>
+    </template>
+    <button v-if="idea.workflowRun" type="button" class="cf-btn cf-btn-ghost cf-idea-small-button" @click="drawer.openWorkflow()">Inspect workflow evidence</button>
+  </section>
 </template>

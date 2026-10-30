@@ -2630,7 +2630,7 @@
     },
     {
       "id": "idea-plan",
-      "title": "Request plan",
+      "title": "Request plan and design",
       "goal": "Assess the proposed implementation before building.",
       "audience": "streamer",
       "kind": "subpage",
@@ -2638,10 +2638,11 @@
       "parent": "idea-detail",
       "component": "src/plugin/presentation/components/coforge/IdeaPlanTab.vue",
       "entry": [
-        "Open a request’s details, then choose Plan."
+        "Open a request’s details, then choose Plan & Design."
       ],
       "actions": [
         "Read plan and steps",
+        "Read or copy the Design specification",
         "Run eligible plan or build action"
       ],
       "states": [

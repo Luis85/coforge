@@ -39,9 +39,13 @@ const markdownCheck = shape(
   { markdown: text({ min: 1, max: WORKFLOW_MARKDOWN_LIMIT }) },
   { strict: true },
 );
+const designCheck = shape(
+  { markdown: text({ min: 1, max: WORKFLOW_MARKDOWN_LIMIT, pattern: /\S/u }) },
+  { strict: true },
+);
 export function executionSchema(input: Execution): object {
   const output = executionOutput(input);
-  if (output === "markdown")
+  if (output === "markdown" || output === "design")
     return {
       type: "object",
       properties: {
@@ -49,6 +53,7 @@ export function executionSchema(input: Execution): object {
           type: "string",
           minLength: 1,
           maxLength: WORKFLOW_MARKDOWN_LIMIT,
+          ...(output === 'design' ? { pattern: '\\S' } : {}),
         },
       },
       required: ["markdown"],
@@ -72,6 +77,8 @@ export function validateExecutionOutput(
   switch (executionOutput(input)) {
     case "markdown":
       return markdownCheck(output);
+    case "design":
+      return designCheck(output);
     case "screening":
       return screeningOutput(output);
     case "rice":
@@ -88,6 +95,8 @@ export function executionResult(input: StageInput, raw: unknown): StageResult {
   switch (executionOutput(input)) {
     case "markdown":
       return markdownCheck(output);
+    case "design":
+      return designCheck(output);
     case "screening":
       return {
         screening: {

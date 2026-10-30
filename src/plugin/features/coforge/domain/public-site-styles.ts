@@ -28,7 +28,7 @@ a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outli
 .site-header p { color: var(--muted); max-width: 70ch; }
 .notice { color: var(--orange) !important; }
 .section-title { font-size: 22px; margin: 32px 0 16px; letter-spacing: -0.01em; }
-.board { display: grid; grid-template-columns: repeat(4, minmax(240px, 1fr)); gap: 16px; align-items: start; }
+.board { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; align-items: start; }
 .column { min-width: 0; padding: 0; display: grid; gap: 14px; }
 .column h2 { font-size: 18px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 12px; border-bottom: 2px solid var(--border); }
 .count { font-size: 12px; color: var(--muted); background: var(--raised); border-radius: 999px; padding: 1px 8px; }
