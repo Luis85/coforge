@@ -96,7 +96,7 @@ defineProps<{ model: ReturnType<typeof useBroadcast> }>();
       class="cf-broadcast-guidance"
     >
       Prepare stream checks readiness before Go live becomes available. Review
-      your destination, audio and video in the studio.
+      your destination, audio and video in OBS.
     </p>
     <div class="cf-settings-actions">
       <button

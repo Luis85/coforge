@@ -16,6 +16,7 @@ import {
 } from "../../../features/coforge/domain/obs-show";
 import { obsMediaInputKind } from "../../../features/coforge/domain/obs-production";
 import { useObsProduction } from "./use-obs-production";
+import { obsShowSummary } from "./obs-show-summary";
 export function useObsShow() {
   const { host } = useCoforge();
   const studio = useStudioStore();
@@ -32,12 +33,8 @@ export function useObsShow() {
     if (timer !== undefined) window.clearInterval(timer);
   });
   const state = computed(() => studio.state?.obsShow ?? emptyObsShow());
-  const cue = computed(() =>
-    ui.draft?.segments.find((item) => item.id === ui.selectedCue),
-  );
-  const saved = computed(() =>
-    state.value.plans.find((plan) => plan.id === ui.selectedPlan),
-  );
+  const summary = obsShowSummary(ui, state, production, Boolean(host.obsShow));
+  const { cue, saved } = summary;
   function port() {
     if (!host.obsShow)
       throw new Error("Show cues are available inside the Obsidian plugin.");
@@ -50,7 +47,7 @@ export function useObsShow() {
     ui.notice = "";
     try {
       await work();
-      ui.notice = success;
+      if (success) ui.notice = success;
     } catch (error) {
       ui.error =
         error instanceof Error
@@ -65,6 +62,7 @@ export function useObsShow() {
     ui.notice = "";
   }
   function load() {
+    if (ui.pending) return;
     if (ui.dirty) {
       ui.error =
         "Save or discard the current draft before loading another show plan.";
@@ -73,8 +71,12 @@ export function useObsShow() {
     const value = state.value.plans.find((plan) => plan.id === ui.selectedPlan);
     ui.draft = value ? structuredClone(toRaw(value)) : null;
     ui.selectedCue = ui.draft?.segments[0]?.id ?? "";
+    ui.deleteConfirmation = false;
+    ui.error = "";
+    ui.notice = "";
   }
   function create() {
+    if (ui.pending) return;
     if (ui.dirty) {
       ui.error =
         "Save or discard the current draft before creating another show plan.";
@@ -82,6 +84,7 @@ export function useObsShow() {
     }
     const id = crypto.randomUUID();
     ui.selectedPlan = id;
+    ui.deleteConfirmation = false;
     ui.draft = {
       id,
       name: "My stream",
@@ -133,6 +136,15 @@ export function useObsShow() {
         step = { kind: "replay-save" };
         break;
       case "media":
+        if (
+          !production.ui.snapshot?.inputs.some(
+            (input) => input.id === ui.inputId && obsMediaInputKind(input.kind),
+          )
+        ) {
+          ui.error =
+            "Choose an available OBS Media or VLC source before adding playback. Refresh OBS targets if it is missing.";
+          return;
+        }
         step = { kind: "media", inputId: ui.inputId, action: ui.mediaAction };
         break;
       case "source-visible":
@@ -162,6 +174,7 @@ export function useObsShow() {
         return;
     }
     cue.value.steps.push(step);
+    ui.error = "";
     markDirty();
   }
   function moveStep(index: number, direction: -1 | 1) {
@@ -204,10 +217,14 @@ export function useObsShow() {
   return reactive({
     ui,
     state,
-    cue,
-    saved,
+    ...summary,
     production,
-    targetInputs: computed(() => production.ui.snapshot?.inputs.filter(input => ui.stepKind !== "media" || obsMediaInputKind(input.kind)) ?? []),
+    targetInputs: computed(
+      () =>
+        production.ui.snapshot?.inputs.filter(
+          (input) => ui.stepKind !== "media" || obsMediaInputKind(input.kind),
+        ) ?? [],
+    ),
     events: OBS_SHOW_EVENTS,
     supported: Boolean(host.obsShow),
     recentMarkers: computed(() => state.value.markers.slice(-10).reverse()),
@@ -249,6 +266,7 @@ export function useObsShow() {
     moveStep,
     describe,
     discard: () => {
+      if (ui.pending) return;
       ui.dirty = false;
       ui.selectedPlan = ui.draft?.id ?? "";
       load();
@@ -256,10 +274,20 @@ export function useObsShow() {
     save: () =>
       run(async () => {
         if (ui.draft) {
-          await port().savePlan(structuredClone(toRaw(ui.draft)));
-          ui.dirty = false;
+          const captured = structuredClone(toRaw(ui.draft));
+          const next = await port().savePlan(captured);
+          ui.dirty = JSON.stringify(ui.draft) !== JSON.stringify(captured);
+          if (!ui.dirty) {
+            const canonical = next.plans.find(
+              (plan) => plan.id === captured.id,
+            );
+            if (canonical) ui.draft = structuredClone(toRaw(canonical));
+          }
+          ui.notice = ui.dirty
+            ? "Show plan saved. Newer draft changes still need saving."
+            : "Show plan saved. Saving never runs a cue.";
         }
-      }, "Show plan saved. Saving never runs a cue."),
+      }),
     addCue: () => {
       if (ui.draft) {
         const id = crypto.randomUUID();
@@ -307,11 +335,20 @@ export function useObsShow() {
         markDirty();
       }
     },
-    runCue: () =>
-      run(
-        () => port().runCue(ui.selectedPlan, ui.selectedCue),
+    runCue: async () => {
+      if (ui.pending) return;
+      if (summary.runDisabledReason.value) {
+        ui.error = summary.runDisabledReason.value;
+        return;
+      }
+      const plan = saved.value;
+      if (!plan) return;
+      const cueId = ui.selectedCue;
+      return run(
+        () => port().runCue(plan.id, cueId),
         "Cue completed. Review the observed OBS output.",
-      ),
+      );
+    },
     recover: () =>
       run(
         () => port().recover(),
@@ -326,7 +363,11 @@ export function useObsShow() {
       }, "Stream moment marked."),
     deletePlan: () =>
       run(async () => {
-        await port().deletePlan(ui.selectedPlan);
+        if (!saved.value || !ui.deleteConfirmation || ui.dirty)
+          throw new Error(
+            "Save or discard changes and confirm removal of the loaded plan.",
+          );
+        await port().deletePlan(saved.value.id);
         ui.draft = null;
         ui.selectedPlan = "";
         ui.dirty = false;

@@ -10,6 +10,17 @@ describe("Public OBS overlays in the contained host", () => {
     obsidian,
   }) => {
     const server = new ObsProductionSocketServer();
+    // The streamer has already authored this Text source in OBS.
+    server.state.inputs = [
+      {
+        inputUuid: "council-text",
+        inputName: "Council public text",
+        inputKind: "text_gdiplus_v3",
+      },
+    ];
+    server.state.inputSettings.set("Council public text", {
+      text: "Council title placeholder",
+    });
     await server.start();
     const approved =
       "The Council recommends testing the lantern prototype with the community.";
@@ -93,37 +104,6 @@ describe("Public OBS overlays in the contained host", () => {
         }),
       ).toBeVisible();
 
-      await pages
-        .getByRole("button", { name: "Sources & layouts", exact: true })
-        .click();
-      const sources = view.getByRole("region", {
-        name: "Source properties and layouts",
-        exact: true,
-      });
-      await sources
-        .getByRole("button", { name: "Refresh sources", exact: true })
-        .click();
-      await sources
-        .getByLabel("Source name", { exact: true })
-        .fill("Council public text");
-      await sources.getByLabel(/^Source type/).selectOption("text_gdiplus_v3");
-      await sources
-        .getByLabel(/^Initial text, URL/)
-        .fill("Council title placeholder");
-      await sources
-        .getByLabel("Show the new source immediately", { exact: true })
-        .check();
-      await sources
-        .getByRole("button", { name: "Create source", exact: true })
-        .click();
-      await expect
-        .poll(
-          () =>
-            server.state.inputs.find(
-              (input) => input.inputName === "Council public text",
-            )?.inputKind,
-        )
-        .toBe("text_gdiplus_v3");
       const beforePublication = server.state.requests.filter(
         (request) => request.type === "SetInputSettings",
       ).length;

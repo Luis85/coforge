@@ -1,42 +1,81 @@
 ## Summary
 
-Replace CoForge's local music library, playlists and player with existing OBS
-Media/VLC sources. Stream plans assign Live/BRB music; explicit off-air preparation
-adds missing memberships disabled. Scenes and Show plan cues control visibility,
-playback, mute and volume through existing durable OBS gates. Existing files,
-playlist notes, legacy schedule properties and overlay recovery ownership survive.
+Stream studio now focuses on stream controls, scene management and Show plans.
+Show plan is second after Broadcast and presents an ordered rundown beside the
+selected cue, presenter notes and explicit Run controls.
 
-Also preserve a newer chat draft when an earlier send completes. This fixes a
-reproduced project-chat host failure; unchanged successful messages still clear.
+Remove the program/preview monitors, audio mixer, source/layout property editors,
+full studio setup and standalone output controls, together with their exclusive
+UI state/helpers/styles. Read OBS targets on demand; do not poll screenshots or
+unused audio settings, and do not subscribe to high-frequency audio meters.
+Keep existing scene and cue action contracts, restart-review recovery, public
+mapping policy, private data and no-replay boundaries.
 
-## Traceability
+## Requirements and traceability
 
-Owner decisions in BRIEF.md. No req-* or vi-* obligations are declared. Task and
-evidence: docs/project-tasks/2026-10-30-remove-music.md. PR #51 includes the already
-merged project visibility base and excludes unrelated Show plan changes.
+- Owner scope correction and follow-through (2026-10-30), recorded in BRIEF.md.
+- Requirement: docs/requirements/OBS Studio Integration.md, pbl-id 6.
+- No imported req-* or vi-* obligations are declared for this feature.
+- Task: docs/project-tasks/2026-10-30-obs-studio-focus.md.
+- Earlier Show plan work is included; unrelated unpublished work is excluded.
+  Published main be7e89a (project visibility and OBS music sources) is integrated.
+  Media/VLC scene and Show cue support remains; the obsolete mixer is removed.
 
 ## Validation
 
-- Focused music tests: 10 files / 74 passed; chat race: 2 passed after 2 red cases.
-- Isolated full real-Obsidian suite: 31 files / 38 passed (399.48s).
-- Direct music host journey after main integration: 1 passed (16.80s), including
-  disabled source preparation, explicit visibility/playback and reload without replay.
-- UI quality: 8 passed (1.0m); browser music journey: 2 passed (37.7s).
-- Gallery: 40 captures, failures []; reviewed reports/ui-gallery/ and reports/obs-music/.
-- Targeted ESLint: exit 0; check:views: 110 views, valid coverage, current sitemap.
-- Contained reload: status passed; errors [], hostErrorCount 0, pluginConsole [].
-- Runtime commit 09fbf8e: GitHub check/build, browser, real-Obsidian and GitGuardian
-  checks all passed. The test-only journal snapshot correction passed its focused
-  native rerun (1 test, 15.60s), preserving all attempt/artifact/reload assertions.
-- Windows full check uses --timeout 1800000 after the serial suite exceeded the
-  default process budget. Typecheck/lint/ESLint/maker types passed in that run;
-  final combined results and exact-head check links are recorded in PR #51.
-  The snapshot assertion avoids rereading a journal path during atomic rotation.
+- TDD removal/session scope: 3 failing regressions before implementation;
+  5 files / 13 tests passed afterward.
+- Final session notice/watch and dock regression: 2 files / 2 passed (6.61s).
+- Meter subscription protocol regression failed first; protocol/production/session
+  suites then passed 17 tests across 3 files (10.41s).
+- Music merge regression failed first (hidden camera accepted for playback), then
+  3 files / 9 passed (10.32s). The UI/workflow/adapter test admits only refreshed
+  Media/VLC targets and proves author/save does not execute them; explicit Run
+  routes the saved exact FFmpeg/VLC action IDs. Integrated-base typecheck exited 0.
+- Scoped ESLint with --max-warnings 0 and git diff --check: exit 0.
+- Local npm run verify:project: exit 1 solely from the 601.2s product-test process
+  timeout. Typecheck (66.2s), source lint (9.8s), ESLint (284.1s) and maker types
+  (14.8s) passed: summary 4 passed, 1 failed, 0 skipped in 976.1s. No assertion
+  failure was reported in captured output. Task-local compile cache and 8GB heap
+  were used; tests, isolation, timeouts and quality thresholds remain unchanged.
+- Separate npm run verify:artifacts: exit 0; production build and embedding
+  1 passed / 0 failed. Generated UI-effect checks are not applicable (no visual
+  definitions). Full pinned CI results are recorded in the PR checks.
+- Obsolete component tests were replaced by lean navigation/absence, on-demand
+  session and compatibility regressions; native adapter/action tests remain.
+- Initial pinned CI ran all 1,390 product tests: 1,389 passed; the remaining
+  catalogue assertion still targeted retired Audio. It now requires Show plan
+  coverage and explicitly rejects obsolete Audio/Sources contracts. Focused
+  catalogue: 12 passed. Native CI: 40 passed / 1 stale Music-tab expectation;
+  updated the exact six-tab list and explicitly rejects Music. Focused native
+  production case then passed (16.250s test, 17.65s total).
 
-## Limits
+## UI and Obsidian evidence
 
-No real broadcast, Twitch mutation or audio audibility/routing test. Native UI uses
-pinned Obsidian and a loopback OBS fixture. No community-plugin installation or
-API integration. Generated evidence is excluded from Git. GitHub uses pinned
-Node/npm; local versions are 24.20.0/11.21.1. No dependencies or assertion thresholds
-changed. Merge only after final local and GitHub checks are green.
+- Final native: 3 files / 3 passed (41.16s) after 9.06s build. Covers start,
+  BRB/resume, stop; scene creation/rename/duplicate/switch/delete; Show cue
+  execution and reload without replay; reviewed overlays and privacy revocation.
+  No screenshots/meter subscription or repeated audio-setting reads on Broadcast.
+- Eight light/dark/wide/narrow Broadcast/Show WCAG scans plus on-air/draft checks:
+  zero violations/overflow. Enabled Go live is included. Prepared-state contrast
+  failed before the scoped fix and passes afterward. Public overlay captures have
+  zero overflow (no accessibility-scan claim).
+- Final polish regression: 3 passed (5.21s); duplicate metric strip removed while
+  preserving the existing viewers/chat/health monitor.
+- Browser keyboard/draft/navigation regression: 1 passed (49.0s test).
+  Final npm run test:ui-quality: 8 passed (58.7s). Impeccable detector: [].
+- npm run ui:gallery: exit 0, 40 captures, failures []; representative wide/light
+  and narrow/dark captures reviewed. No baselines changed.
+- Final integrated-base dev session: status passed, errors [], hostErrorCount 0,
+  pluginConsole []; pinned Obsidian 1.14.4 / launcher 3.2.1. Screenshot and debug
+  logs reviewed; session ended complete.
+- Preliminary Show plan model/authoring and host evidence is retained in
+  docs/project-tasks/2026-10-30-show-plan-polish.md; final release evidence belongs
+  to the focus task above.
+
+## Untested scope
+
+Real OBS hardware/audio audibility and public broadcasts require operator
+acceptance. Native tests use contained Obsidian and loopback simulated OBS servers.
+Local Node 24.20.0 differs from the pin; CI uses the pinned toolchain. No dependency
+or lockfile changes, real-account mutations or screenshot baseline updates.

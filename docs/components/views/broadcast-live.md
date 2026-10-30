@@ -62,7 +62,7 @@ Disconnected; Off air; Live; BRB; Unknown outcome; Stale health. Inspect an erro
 
 The broadcast console distinguishes off-air, live and unconfirmed states through both words and theme colors. When disconnected it explains how to open and connect OBS; preparation remains a separate readiness check. Audience, chat and OBS health readings retain their individual source status and age.
 
-Temporary browser examples provide an explicit **Exit example** control. Exiting discards that example’s drafts and cached sample edits without mutating live services or vault content. Ordinary navigation keeps editable preview drafts; the explicit sample-cleanup action also closes temporary examples for the current studio pane. Native services are never replaced by preview services.
+Temporary browser examples provide an explicit **Exit example** control. Exiting discards that example’s drafts and cached sample edits without mutating live services or vault content. Ordinary navigation keeps preparation drafts; the explicit sample-cleanup action also closes temporary examples for the current studio pane. Native services are never replaced by preview services.
 
 ## Composition and boundaries
 

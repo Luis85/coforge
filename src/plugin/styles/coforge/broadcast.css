@@ -8,6 +8,11 @@
 .cf-broadcast-state.is-live { color: var(--color-red); }
 .cf-broadcast-console .cf-broadcast-guidance { color: var(--cf-text); max-width: 70ch; font-size: 13px; }
 .cf-broadcast-actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 22px 0; }
+.cf-broadcast-console .cf-btn-primary,
+.cf-broadcast-console .cf-btn-primary:hover:not(:disabled) {
+  background: var(--cf-text);
+  color: var(--cf-surface);
+}
 .cf-studio .cf-go-live { min-width: 110px; }
 .cf-broadcast-preparation { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; margin-top: 30px; }
 .cf-broadcast-preparation section { min-width: 0; }

@@ -162,7 +162,14 @@ describe("OBS WebSocket v5 boundary", () => {
     expect(JSON.stringify(socket.sent)).not.toContain("fixture-only");
     socket.frame(identified);
     await connecting;
-    expect(socket.sent[0]).toMatchObject({ op: 1, d: { rpcVersion: 1, eventSubscriptions: 591871 } });
+    expect(socket.sent[0]).toMatchObject({ op: 1, d: { rpcVersion: 1, eventSubscriptions: 526335 } });
+    const subscriptions = socket.sent[0]!.d.eventSubscriptions;
+    expect(typeof subscriptions).toBe("number");
+    if (typeof subscriptions !== "number") throw new Error("Missing OBS subscriptions");
+    // Keep ordinary stream/scene/input events and transform invalidation; meter traffic has no view.
+    expect(subscriptions & 2047).toBe(2047);
+    expect(subscriptions & (1 << 19)).toBe(1 << 19);
+    expect(subscriptions & (1 << 16)).toBe(0);
   });
   it("holds a disconnected mutation and never replays it on reconnect", async () => {
     vi.useFakeTimers();
