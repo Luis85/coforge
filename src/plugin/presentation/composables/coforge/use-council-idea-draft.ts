@@ -1,6 +1,7 @@
 import { computed, reactive } from "vue";
 import type { Idea } from "../../../features/coforge/domain/types";
 import { ideaProjectId } from "../../../features/coforge/domain/projects";
+import { projectFeatureEnabled } from '../../../features/coforge/domain/project-features';
 import {
   councilIdeaAssessmentIssue,
   councilIdeaRevision,
@@ -22,6 +23,7 @@ export function useCouncilIdeaDraft() {
   async function replace() {
     const pending = council.pendingIdeaAssessment;
     if (!pending || applying.value || council.busy) return;
+    if (!projectFeatureEnabled(studio.state?.projects?.find(project => project.id === pending.projectId), 'council')) return;
     council.taskAssessmentApplying = true;
     try {
       const idea = studio.state?.ideas.find(
@@ -85,6 +87,7 @@ export function useCouncilIdeaDraft() {
         return;
       }
       const projectId = ideaProjectId(idea);
+      if (!projectFeatureEnabled(studio.state?.projects?.find(project => project.id === projectId), 'council')) return;
       if (
         !studio.state?.projects?.some(
           (project) => project.id === projectId && !project.unavailable,

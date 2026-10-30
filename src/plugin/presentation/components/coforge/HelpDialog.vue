@@ -42,7 +42,7 @@ const model = useHelpDialog();
         <p>The sample workspace uses simulated chat and agent results. Try the full loop without accounts or API usage.</p>
       </div>
       <button type="button" class="cf-btn cf-btn-primary" @click="model.start()">
-        Explore the agent workflow <CfIcon name="arrow-right" />
+        {{ model.startLabel }} <CfIcon name="arrow-right" />
       </button>
     </section>
   </div>

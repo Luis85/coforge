@@ -16,7 +16,7 @@ export function consumeCouncilEntry(council: ReturnType<typeof useCouncilStore>,
 export function useCouncilEntry() {
   const council = useCouncilStore(); const studio = useStudioStore();
   return (entry: Omit<CouncilEntryIntent, 'navigationRevision'>): boolean => {
-    if (!studio.navigate('council')) return false;
+    if (!studio.featureEnabled('council') || !studio.navigate('council')) return false;
     council.entryIntent = { ...entry, navigationRevision: studio.navigationRevision };
     if (council.viewMounted) consumeCouncilEntry(council, studio);
     return true;

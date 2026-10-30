@@ -50,7 +50,7 @@ defineProps<{ model: WorkflowModel }>();
         <p v-else>This Council discussion remains available with its captured participants and attributed answers.</p>
         <p>Child run: <code>{{ model.councilAttempt.nudgeRunId }}</code></p>
         <div class="cf-settings-actions">
-          <button type="button" class="cf-btn cf-btn-secondary" @click="model.inspectCouncil()">Read Council discussion</button>
+          <button v-if="model.store.featureEnabled('council')" type="button" class="cf-btn cf-btn-secondary" @click="model.inspectCouncil()">Read Council discussion</button>
           <button v-if="model.canCheckCouncil" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.checkCouncil()">Check Council answer</button>
         </div>
       </section>

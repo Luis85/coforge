@@ -15,15 +15,17 @@ import { normalizeStagePrompts } from '../domain/stage-prompts';
 import { normalizeStageAgents } from '../domain/stage-agents';
 import { projectHasPendingWorkflow } from './workflow-configuration';
 import { projectFeatureGroupsCheck } from '../domain/project-feature-groups';
+import { projectFeaturesCheck } from '../domain/project-features';
 
 function values(input: unknown) {
   const source = record(input);
   if (source.workflow !== undefined) throw new StudioError('Use Workflow settings to save a workflow with its source revision.', 409);
-  const settings = settingsPatch(omit(source, 'projectPath', 'worktreeFolder', 'allowImplementation', 'repositoryUrl', 'websiteUrl', 'visibility', 'featureGroups'));
+  const settings = settingsPatch(omit(source, 'projectPath', 'worktreeFolder', 'allowImplementation', 'repositoryUrl', 'websiteUrl', 'visibility', 'featureGroups', 'features'));
   if (settings.agentPrompt !== undefined) settings.agentPrompt = cleanText(settings.agentPrompt, 8000);
   if (settings.stagePrompts !== undefined) settings.stagePrompts = normalizeStagePrompts(settings.stagePrompts);
   if (settings.stageAgents !== undefined) settings.stageAgents = normalizeStageAgents(settings.stageAgents);
   const paths = {
+    ...(source.features === undefined ? {} : { features: projectFeaturesCheck(source.features) }),
     ...(source.featureGroups === undefined ? {} : { featureGroups: projectFeatureGroupsCheck(source.featureGroups) }),
     ...(source.visibility === undefined ? {} : { visibility: oneOf(['public', 'private'] as const)(source.visibility) }),
     ...(source.projectPath === undefined ? {} : { projectPath: validateProjectPath(source.projectPath) }),
@@ -51,6 +53,7 @@ export async function addProject(store: StudioStore, input: unknown): Promise<St
       id: projectIdFor(state.nextProjectNumber++), createdAt: now, updatedAt: now, projectPath,
       repositoryUrl: patch.paths.repositoryUrl ?? '', websiteUrl: patch.paths.websiteUrl ?? '',
       visibility: patch.paths.visibility ?? 'public',
+      ...(patch.paths.features === undefined ? {} : { features: patch.paths.features }),
       ...(patch.paths.featureGroups === undefined ? {} : { featureGroups: patch.paths.featureGroups }),
       worktreeFolder: patch.paths.worktreeFolder ?? '', allowImplementation: patch.paths.allowImplementation === true,
       settings: { ...defaults, ...patch.settings, projectName, projectBrief,
@@ -77,7 +80,7 @@ export async function editProject(store: StudioStore, id: string, input: unknown
     const previousVisibility = project.visibility ?? 'public';
     if (project.unavailable) throw new StudioError('Restore this project note before editing it.', 409);
     const settings = { ...project.settings, ...patch.settings, automation: { ...project.settings.automation, ...patch.settings.automation } };
-    const metadataOnly = (patch.paths.visibility !== undefined || patch.paths.featureGroups !== undefined) && projectConfigurationIdentity({ ...project, ...patch.paths, settings, visibility: project.visibility, featureGroups: project.featureGroups }) === projectConfigurationIdentity(project);
+    const metadataOnly = (patch.paths.visibility !== undefined || patch.paths.featureGroups !== undefined || patch.paths.features !== undefined) && projectConfigurationIdentity({ ...project, ...patch.paths, settings, visibility: project.visibility, featureGroups: project.featureGroups, features: project.features }) === projectConfigurationIdentity(project);
     if (!metadataOnly && projectHasPendingWorkflow(state, id)) throw new StudioError('Finish, stop or review this project’s workflow runs before changing project settings. Future workflow definitions can still be edited in Workflow settings.', 409);
     if (!metadataOnly && state.jobs.some(job => job.projectId === id && isActiveJob(job))) throw new StudioError('Finish or cancel this project’s queued runs before editing its configuration.', 409);
     settings.projectName = cleanLine(settings.projectName, 80);

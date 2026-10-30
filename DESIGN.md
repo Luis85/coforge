@@ -41,10 +41,14 @@ The backlog proceeds from its heading to filter tabs and toolbar, without a
 separate decision-summary section. Review and moderation counts stay in the tabs.
 
 General project settings offers explicitly saved visibility for Build & Improve,
-Stream, Community and Insights. Preferences belong to the project note. Hidden
-Stream also hides its board chat, chat toggle, stream profile and live dock.
-Shared services and background work continue. Missing preferences show all groups;
-the switcher and Project settings always remain reachable.
+Stream, Community and Insights, with individual choices for all 18 standalone
+capabilities under those groups. Native labelled checkboxes, concise descriptions
+and selected counts make the catalogue scannable. Group hiding retains individual
+choices. Preferences belong to the project note; missing preferences retain existing
+features. Chat and Stream studio independently own the board chat/toggle and live
+dock. Service Design, Council, CoWorkers and Agent workflow are independently optional.
+Shared services and background work continue; cancellation and final human review
+remain available. The switcher and Project settings always remain reachable.
 
 The request board flows through Inbox, Up next, Design, In progress and Accepted.
 Planned requests occupy Design while their specification is prepared before Build.

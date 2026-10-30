@@ -4,7 +4,7 @@ import { validateProjectPath, validateProjectUrl } from '../../../features/cofor
 import { useStudioStore } from '../../stores/coforge-studio';
 import { useStudioActions } from './use-studio-actions';
 import type { ProjectVisibility } from '../../../features/coforge/domain/project-publicity';
-import { visibleProjectGroups } from '../../../features/coforge/domain/project-feature-groups';
+import { projectFeatureEnabled } from '../../../features/coforge/domain/project-features';
 
 /** One stream, many project boards. New projects start paused; switches never stop the shared worker. */
 export function useProjects() {
@@ -18,7 +18,7 @@ export function useProjects() {
     const ideas = (store.state?.ideas ?? []).filter(idea => ideaProjectId(idea) === project.id);
     const jobs = (store.state?.jobs ?? []).filter(job => job.projectId === project.id && (job.status === 'queued' || job.status === 'running'));
     return { id: project.id, name: project.settings.projectName, path: project.projectPath, brief: project.settings.projectBrief,
-      hasBoard: visibleProjectGroups(project).includes('build'),
+      hasBoard: projectFeatureEnabled(project, 'board'),
       visibility: project.visibility ?? 'public', publicationBlocked: project.visibility !== 'private' && Boolean(store.state?.runtime.publicationDeniedProjectIds?.includes(project.id)),
       repositoryUrl: project.repositoryUrl, repositoryHref: /^https?:\/\//i.test(project.repositoryUrl) ? project.repositoryUrl : undefined, websiteUrl: project.websiteUrl,
       selected: project.id === store.state?.activeProjectId, unavailable: project.unavailable, requests: ideas.length,

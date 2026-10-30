@@ -1,7 +1,7 @@
 ---
 id: settings-general
 title: Project details
-goal: Set project identity, visibility, feature groups, brief and shared agent instructions.
+goal: Set project identity, visibility, optional features, brief and shared agent instructions.
 audience: streamer
 kind: subpage
 route: studio.settingsTool = general
@@ -12,7 +12,7 @@ entry:
 actions:
   - Edit project name and description
   - Choose public or private visibility
-  - Select visible feature groups for this project
+  - Select visible groups and individual optional features for this project
   - Edit the general agent prompt
   - Save or discard project settings
 states:
@@ -58,13 +58,33 @@ Open Project settings at the bottom of navigation, then General. Edit the projec
 name, visibility, description and general agent prompt under Project details. Save project settings
 explicitly; General, Requests and Repository share the same retained draft.
 
-Under Project features, select Build & Improve, Stream, Community and Insights.
-The saved choice belongs to this project's canonical note and is restored after
-switching projects or reloading. Hiding Stream also removes board chat, the chat
-toggle and live controls from this workspace; drafts remain available when shown
-again. Shared services and background work continue. The project switcher and
-Project settings remain available even with every group hidden. Projects without
-a saved selection keep all groups visible.
+Under Project features, keep the Build & Improve, Stream, Community and Insights
+group controls and choose individual features beneath them:
+
+| Group | Individual choices |
+| --- | --- |
+| Build & Improve | Idea board, The Council, CoWorkers, Service Design, Agent workflow |
+| Stream | Stream studio, Alerts, Schedule, Stream chat, Twitch operations |
+| Community | Community, Viewers, Economy, Community settings |
+| Insights | Statistics, AI costs, Finances, Operations |
+
+Each choice has a description; groups report selected counts. Hiding a group keeps
+its child choices, which return when that group is shown. Internal tabs, editors,
+templates and providers belong to their owning feature; they are not additional
+activation switches. Essential settings, project switching and vault integration
+setup remain available. Shared channel and vault data retain their actual scope.
+
+The canonical project note stores groups in `coforge-feature-groups` and individual
+choices in `coforge-features`. Missing properties keep existing capabilities; an
+empty individual list selects none. Selection is saved explicitly and restored
+after project changes or reload. Failed/stale saves preserve the draft and existing
+note content.
+
+Stream chat owns the board's chat and toggle; Stream studio owns live controls.
+They can be selected independently. Council and workflow launch shortcuts follow
+their choices, while existing cancellation and final human review remain available.
+Shared services, public projections and captured/background work keep running.
+Project settings and the switcher remain available even with no features selected.
 
 ## States and recovery
 

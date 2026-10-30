@@ -19,6 +19,7 @@ import { useDialogFocus } from "./use-dialog-focus";
 import { useStudioActions } from "./use-studio-actions";
 import { ideaProjectId } from "../../../features/coforge/domain/projects";
 import { ideaWorkflowAction } from "./idea-workflow-action";
+import { projectFeatureEnabled } from '../../../features/coforge/domain/project-features';
 import { currentDesignSpecification } from "./use-idea-design";
 
 export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity";
@@ -78,7 +79,7 @@ function createIdeaDrawer() {
     ),
   );
   const nextAction = computed(() =>
-    idea.value
+    idea.value && projectFeatureEnabled(project.value, 'workflow')
       ? ideaWorkflowAction(idea.value, project.value, state.value?.runtime)
       : undefined,
   );
@@ -88,7 +89,7 @@ function createIdeaDrawer() {
   const blockedBuild = computed(() => Boolean(nextAction.value?.blocked));
   const openWorkflow = () => {
     const id = idea.value?.id;
-    if (!id) return;
+    if (!id || !projectFeatureEnabled(project.value, 'workflow')) return;
     const guard = store.configurationIssue("workflow");
     if (guard) {
       store.notify(guard, true);
@@ -177,6 +178,7 @@ function createIdeaDrawer() {
     pending,
     isBusy,
     nextAction,
+    workflowVisible: computed(() => projectFeatureEnabled(project.value, 'workflow')),
     blockedBuild,
     activeJob,
     tabs: computed(() =>
