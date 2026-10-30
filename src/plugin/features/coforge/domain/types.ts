@@ -72,6 +72,8 @@ export interface RuntimeInfo {
   twitch?: import('./twitch').TwitchState;
 }
 export interface StudioProject {
+  /** Workspace visibility only; shared services keep running. Missing means all groups. */
+  featureGroups?: import('./project-feature-groups').ProjectFeatureGroup[];
   /** Missing legacy visibility means public. Private projects never enter viewer projections. */
   visibility?: import('./project-publicity').ProjectVisibility;
   id: string; settings: Settings; projectPath: string; worktreeFolder: string; allowImplementation: boolean;

@@ -203,7 +203,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [Project settings](views/settings.md) | Configure the selected project and manage its agent workflow. | studio.view = settings | streamer |
 | [Data & examples](views/settings-data.md) | Export a private studio backup, load sample content or review example cleanup. | studio.settingsTool = data | streamer |
 | [Example content cleanup](views/settings-example-cleanup.md) | Review and explicitly remove sample and local-test content while preserving real requests. | Project settings / Data & examples / Example cleanup | streamer |
-| [Project details](views/settings-general.md) | Set project identity, visibility, brief and shared agent instructions. | studio.settingsTool = general | streamer |
+| [Project details](views/settings-general.md) | Set project identity, visibility, feature groups, brief and shared agent instructions. | studio.settingsTool = general | streamer |
 | [Repository & build access](views/settings-repository.md) | Set the repository boundary used by agent work. | studio.settingsTool = repository | streamer |
 | [Request Object](views/settings-request-object.md) | Configure categories, class and optional properties captured by new requests. | studio.settingsTool = requests | streamer |
 | [Local connections](views/settings-runtime.md) | Inspect observed local runtime, repository access and community chat readiness. | studio.settingsTool = runtime | streamer |

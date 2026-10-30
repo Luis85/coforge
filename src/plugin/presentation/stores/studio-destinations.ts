@@ -1,6 +1,8 @@
 import type { StudioView } from "./coforge-studio";
+import { visibleProjectGroups, type ProjectFeatureGroup } from '../../features/coforge/domain/project-feature-groups';
+import type { StudioProject } from '../../features/coforge/domain/types';
 
-export type StudioGroup = "stream" | "build" | "community" | "insights";
+export type StudioGroup = ProjectFeatureGroup;
 type Destination = {
   label: string;
   icon: string;
@@ -141,6 +143,16 @@ export function studioDestination(view: StudioView): Destination {
 export function studioRoot(view: StudioView): StudioView {
   const parent = studioDestination(view).parent;
   return parent ? studioRoot(parent) : view;
+}
+
+export function studioViewEnabled(view: StudioView, project?: StudioProject): boolean {
+  const root = studioRoot(view);
+  return root === 'settings' || root === 'projects' || visibleProjectGroups(project).includes(studioDestination(root).group);
+}
+
+export function studioHome(project?: StudioProject): StudioView {
+  if (project && studioViewEnabled('board', project)) return 'board';
+  return STUDIO_NAVIGATION.find(item => item.view !== 'settings' && studioViewEnabled(item.view, project) && (!studioDestination(item.view).requiresProject || project))?.view ?? 'settings';
 }
 
 /** Projects has its own switcher; focused subpages stay in their owning root. */

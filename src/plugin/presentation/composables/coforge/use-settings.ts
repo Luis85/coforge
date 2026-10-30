@@ -12,6 +12,7 @@ import { defaultSettings } from "../../../features/coforge/domain/seed";
 import { projectConfigurationIdentity } from "../../../features/coforge/domain/projects";
 import { useStudioShell } from "./use-studio-app";
 import { copyRequestObject } from './request-object-draft';
+import { visibleProjectGroups, projectFeatureGroupsCheck, type ProjectFeatureGroup } from '../../../features/coforge/domain/project-feature-groups';
 import {
   pickSettingsDraft,
   validateSettingsDraft,
@@ -28,6 +29,7 @@ function createSettings() {
     websiteUrl: store.activeProject?.websiteUrl ?? "",
     allowImplementation: store.activeProject?.allowImplementation ?? false,
     visibility: store.activeProject?.visibility ?? 'public',
+    featureGroups: [...visibleProjectGroups(store.activeProject)],
   }));
   const persistedKey = computed(() => JSON.stringify(persisted.value));
   const sourceProject = computed(() =>
@@ -43,7 +45,7 @@ function createSettings() {
   const expectedProjectId = ref(sourceProject.value?.id ?? "");
   const expectedConfiguration = ref(sourceIdentity.value);
   const expectedKey = ref(persistedKey.value);
-  const copyDraft = (value: SettingsDraft): SettingsDraft => ({ ...value, requestObject: value.requestObject ? copyRequestObject(value.requestObject) : undefined });
+  const copyDraft = (value: SettingsDraft): SettingsDraft => ({ ...value, featureGroups: value.featureGroups ? [...value.featureGroups] : undefined, requestObject: value.requestObject ? copyRequestObject(value.requestObject) : undefined });
   const draft = reactive<SettingsDraft>(copyDraft(persisted.value));
   const error = ref("");
   const saved = ref(false);
@@ -52,10 +54,10 @@ function createSettings() {
   const saving = ref(false);
 
   const dirty = computed(() => JSON.stringify(draft) !== expectedKey.value);
-  const visibilityOnlyDirty = computed(() => {
-    if (!dirty.value || draft.visibility === persisted.value.visibility || expectedProjectId.value !== sourceProject.value?.id
+  const metadataOnlyDirty = computed(() => {
+    if (!dirty.value || expectedProjectId.value !== sourceProject.value?.id
       || expectedConfiguration.value !== sourceIdentity.value || expectedKey.value !== persistedKey.value) return false;
-    return JSON.stringify({ ...draft, visibility: persisted.value.visibility }) === expectedKey.value;
+    return JSON.stringify({ ...draft, visibility: persisted.value.visibility, featureGroups: persisted.value.featureGroups }) === expectedKey.value;
   });
   const staleMessage = () =>
     `Project settings changed outside this form. Your draft for ${expectedProjectId.value || "the original project"} is kept. Copy any edits you want to retain, then discard changes to load the latest settings before saving.`;
@@ -172,12 +174,13 @@ function createSettings() {
   return reactive({
     store,
     draft,
+    featureGroups: computed({ get: () => draft.featureGroups ?? [], set: (groups: ProjectFeatureGroup[]) => { draft.featureGroups = projectFeatureGroupsCheck(groups); } }),
     error,
     saved,
     resetConfirm,
     checking,
     dirty,
-    visibilityOnlyDirty,
+    metadataOnlyDirty,
     pending,
     runtime,
     saving,
