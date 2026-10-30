@@ -35,14 +35,14 @@ and the Demo label contrast, with no new public/private data exposure.
 - Focused Design drawer browser journey: 2 passed, Simulation through Design,
   private reading, narrow/wide containment and WCAG scans in light and dark.
 - npm run check:views: 111 views, valid navigation coverage, current sitemap.
-- npm run verify:project: final integrated run in progress; no pass claimed yet.
-- Full GitHub check/ui/real-obsidian qualification will run with the e2e label.
+- npm run verify:project: canonical GitHub check passed on runtime candidate 8d0aba0. The local wrapper hit its 600s orchestration limit after typecheck, source lint, ESLint and maker types passed. The supported npm run check -- --timeout 3600000 plus verify:artifacts rerun and final exact-head CI results are recorded in PR #49; individual test limits remain unchanged.
+- Release record: https://github.com/Luis85/coforge/pull/49. The e2e label enables full check/ui/real-obsidian qualification; merge requires all three successful for the final PR head.
 
 ## UI evidence
 
 - Drawer captures inspected: reports/design-step/specification-{light,dark}-{1280,360}.png.
 - Board captures: reports/design-step/board-{light,dark}-{1920,720}.png.
-- Fresh npm run ui:gallery: in progress. No screenshot baselines changed or accepted.
+- Fresh npm run ui:gallery: 40 captures, zero failures; gallery and targeted drawer captures reviewed. No screenshot baselines changed or accepted.
 - Mechanical detector over follow-through UI targets: [].
 
 ## Obsidian evidence

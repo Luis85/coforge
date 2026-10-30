@@ -1,6 +1,6 @@
 # Task: Design specification before Build
 
-- Status: in progress (subagent improvement, qualification and PR merge)
+- Status: implementation and subagent review complete; release record: [PR #49](https://github.com/Luis85/coforge/pull/49)
 - Journey: request → screen → score → plan → design → build → review in BRIEF.md.
 
 ## Acceptance
@@ -102,4 +102,28 @@ edge found during review is corrected by keeping selected inputs required while
 including other earlier results only when present. Native persistence/reload/body
 and exact Build binding: 1 passed. Drawer browser confirmation: 2 passed in both
 themes with 1280/360px captures and WCAG scans. UI quality: 8 passed. View catalogue:
-111 valid/current. Final integrated local and GitHub qualification and PR link: pending.
+111 valid/current. Final integrated qualification and merge evidence are retained in [PR #49](https://github.com/Luis85/coforge/pull/49).
+
+## Release qualification record
+
+- Three independent reviewers covered workflow/provider correctness, UI/UX and
+  release readiness. The final closeout found no remaining production blocker.
+- The optional-context edge was reproduced through actual Simulation and corrected:
+  required Design stays mandatory; earlier host captures are included only when
+  present. Five behavior cases cover missing/present captures, invalidation,
+  restricted legacy inputs and reload. Core batch: 4 files / 34 passed.
+- UI/editor/drawer batch: 5 files / 17 passed; omitted/empty adoption cases 4 passed.
+  Focused drawer browser confirmation: 2 passed, light/dark, 1280/360px, WCAG scans.
+- Fresh UI quality: 8 passed. Fresh gallery: 40 captures, zero failures. Targeted
+  drawer screenshots inspected; mechanical detector [] and scoped lint exit 0.
+- Contained native Design journey: 1 passed, including definition save, two reloads,
+  body-byte preservation, private reading and exact Build input artifact IDs.
+  Final host smoke: status passed, errors [], hostErrorCount 0, pluginConsole [].
+- Runtime candidate 8d0aba0 passed canonical GitHub check and real-obsidian jobs.
+  Local verify:project reached its 600s test orchestration limit after the other
+  four stages passed; the supported extended orchestration rerun preserves every
+  individual test timeout and assertion. Final command outputs are in PR #49.
+- PR #49 carries e2e. Final-head check, ui and real-obsidian successes and an
+  expected-head merge guard are mandatory. The PR retains the authoritative
+  qualification and merge record, including the final full browser/native results.
+- The two pre-existing public export files remain outside the PR and unchanged.

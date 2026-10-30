@@ -390,7 +390,7 @@ recovery, project scope, host permissions and final human review.
 - The streamer loads the sample workspace, sends `!register`, then `!request CFP-001 Add a lantern` in the chat
   simulator, sees `CF-116` acknowledged and a new note `CoForge/Ideas/CF-116 Add a lantern.md`.
 - A second registered simulated viewer sends `!vote CF-116`; a repeated vote is reported as already counted.
-- The streamer screens, scores, plans and builds the idea from the idea drawer (demo
+- The streamer screens, scores, plans, designs and builds the idea from the idea drawer (demo
   agents), inspects plan and increment, and accepts it; the author's badges update.
 - With automation resumed, enabled stages run one at a time; restarting Obsidian pauses automation.
 - With the viewer website set up, accepting an idea and pushing the vault moves its card to Accepted on the
