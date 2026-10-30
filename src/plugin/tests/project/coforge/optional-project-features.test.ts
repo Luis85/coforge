@@ -3,7 +3,7 @@ import { workflowUiFixture } from './workflow-ui-fixture';
 import { OPTIONAL_PROJECT_FEATURES } from './optional-project-features-fixture';
 import { parseProjectNote, projectProperties } from '../../../features/coforge/domain/project-note';
 import { projectConfigurationIdentity } from '../../../features/coforge/domain/projects';
-import { studioViewEnabled, STUDIO_DESTINATIONS } from '../../../presentation/stores/studio-destinations';
+import { studioViewEnabled, studioHome, STUDIO_DESTINATIONS } from '../../../presentation/stores/studio-destinations';
 
 it.each(OPTIONAL_PROJECT_FEATURES)('selects %s independently and keeps essential navigation', async (id, _label, group) => {
   const fixture = await workflowUiFixture();
@@ -44,4 +44,15 @@ it('rejects invalid/stale/failed feature writes without changing committed choic
 it('covers every studio capability except essential settings/projects and the workflow alias', () => {
   const listed = OPTIONAL_PROJECT_FEATURES.map(([id]) => id);
   expect(Object.keys(STUDIO_DESTINATIONS).filter(id => !['settings', 'projects', 'workflow-settings'].includes(id)).sort()).toEqual([...listed].sort());
+});
+
+it('opens the first available destination in the visible group order when the board is hidden', async () => {
+  const fixture = await workflowUiFixture();
+  try {
+    const council = await fixture.studio.updateProject({ features: ['council', 'broadcast'] });
+    expect(studioHome(council)).toBe('council');
+    const design = await fixture.studio.updateProject({ features: ['service-design', 'broadcast'] });
+    expect(studioHome(design)).toBe('service-design');
+    expect(studioHome()).toBe('broadcast');
+  } finally { await fixture.dispose(); }
 });

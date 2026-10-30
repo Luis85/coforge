@@ -152,8 +152,12 @@ export function studioViewEnabled(view: StudioView, project?: StudioProject): bo
 }
 
 export function studioHome(project?: StudioProject): StudioView {
-  if (project && studioViewEnabled('board', project)) return 'board';
-  return STUDIO_NAVIGATION.find(item => item.view !== 'settings' && studioViewEnabled(item.view, project) && (!studioDestination(item.view).requiresProject || project))?.view ?? 'settings';
+  if (!project) return 'broadcast';
+  for (const group of STUDIO_GROUPS) {
+    const destination = STUDIO_NAVIGATION.find(item => item.group === group.id && item.view !== 'settings' && studioViewEnabled(item.view, project));
+    if (destination) return destination.view;
+  }
+  return 'settings';
 }
 
 /** Projects has its own switcher; focused subpages stay in their owning root. */
