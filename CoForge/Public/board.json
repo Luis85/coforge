@@ -1,6 +1,6 @@
 {
   "format": "coforge-public-board/v1",
-  "generatedAt": "2026-10-30T19:27:37.354Z",
+  "generatedAt": "2026-10-30T19:55:33.914Z",
   "project": "CoForge",
   "projectId": "CFP-002",
   "columns": [
@@ -46,6 +46,31 @@
               "Update `docs/components/views/coworkers.md` (if it exists) with the actions \"Hiring Pool\" and \"Hire\" and the state \"Pool open\". Note that hired CoWorkers are unsaved and disabled until reviewed."
             ]
           }
+        },
+        {
+          "id": "CF-134",
+          "title": "I want to save all of the stream chat messages",
+          "description": "I want to ship SQLite with the plugin and have the possibilty to analyze and further inspect past chat messages.",
+          "category": "World",
+          "status": "Planned",
+          "column": "design",
+          "votes": 1,
+          "rice": 8.8,
+          "author": "streamer",
+          "plan": {
+            "summary": "This first increment for CF-134 adds the storage contract and the capture pipeline for a chat archive, with no SQLite engine yet. It adds a `ChatArchivePort`, an in-memory adapter for tests, and a `ChatArchiveRecorder`. The recorder copies every committed chat message into the archive before `prepareStudioCommit` trims the live buffer to 250 messages. It also replays Twitch moderation removals (single message, user, clear chat) against the archive, so removed text is redacted there too, as the rule in `chat-removal.ts` requires. The archive is off by default.\n\nThe recorder follows the pattern in `application/viewer-note-recorder.ts`: it queues writes in batches, reports failures without blocking chat ingest, and flushes on dispose. The SQLite adapter (sql.js/WASM or better-sqlite3), the Studio \"Chat history\" view, retention and export are left for later increments, because the design draft's open questions Q1 (engine), Q2 (database location), Q3 (how to handle removed messages) and Q4 (which messages count as \"all\") need streamer answers first. Building the port now means the engine choice can be plugged in later without changing ingest. Files checked: `application/chat.ts` (`ingestChat` pushes the user message and an optional `system:coforge` reply inside `store.transaction`), `application/chat-removal.ts` (`removeTwitchChat` filters `state.chat`), `infrastructure/coforge/runtime.ts` (where the recorder would be wired) and `infrastructure/coforge/twitch-module.ts` (where removals arrive).",
+            "steps": [
+              "Read `src/plugin/features/coforge/application/studio-store.ts` to find out whether `StudioStore` has a post-commit listener or subscribe API. Capture must run after the transaction commits, so rolled-back economy commands are never archived. It must also run before the 250-message trim in `commit-policies.ts` (`prepareStudioCommit`), or it must see the pre-trim message list. Record which mechanism you chose in the PR description.",
+              "Create `src/plugin/features/coforge/application/chat-archive-ports.ts` with these types. `ArchivedChatMessage`: the `ChatMessage` fields plus `removedAt?`, with `text` nullable when redacted. `ChatArchiveFilter`: `from?`, `to?`, `userId?`, `kind?`, `ideaId?`, `source?`. `ChatArchiveStorage`: `append(messages): Promise<void>` (idempotent on `id`, and also on `(source, externalId)` when `externalId` is set), `applyRemoval(removal: ChatRemoval): Promise<void>`, `query(filter, { limit, offset }): Promise<ArchivedChatMessage[]>`, `count(filter): Promise<number>` and `close(): Promise<void>`.",
+              "Create `src/plugin/features/coforge/application/chat-archive-recorder.ts` (`ChatArchiveRecorder`), modelled on `ViewerNoteRecorder`. It takes `StudioStore`, `ChatArchiveStorage`, `Timers`, a `report()` callback and an options object `{ enabled, includeSimulator=false, includeSystem=true }`. It keeps a bounded set of already-archived chat ids and queues new messages. It flushes in batches of up to 200 through `timers.setTimeout`. If a write fails, the batch is put back in the queue and `report()` is called, and the error never reaches the ingest path. It exposes `status()` returning `{ pending, archived, failed }` and an async `dispose()` that does a final bounded flush.",
+              "Add `recordRemoval(removal)` to the recorder. It queues the removal in order after any pending appends, then calls `storage.applyRemoval`. Matching follows `removeTwitchChat`: by `externalId` for a single message, by `twitch:${userId}` for a user (only messages at or before `removal.at`), and every Twitch message at or before `removal.at` for clear chat. Only messages with the matching `twitchChannelId` are affected. Matching rows get `text` set to null and `removedAt` set.",
+              "Create `src/plugin/features/coforge/infrastructure/coforge/chat-archive-memory.ts` (or put it under `src/plugin/tests/project/coforge/` if test-only adapters live there, following `memory-storage.ts`). It is an in-memory `ChatArchiveStorage` that implements dedup, redaction, filtering, newest-first paging and count. A later SQLite adapter must pass the same contract tests.",
+              "Wiring in `src/plugin/infrastructure/coforge/runtime.ts`: create the recorder next to `ViewerNoteRecorder` (around line 160) with the memory adapter for now, guarded by a setting flag that is off by default. Dispose it on unload. Leave a short TODO saying the SQLite adapter replaces the memory adapter in the next increment. Do not add any npm dependency in this increment.",
+              "Wiring in `src/plugin/infrastructure/coforge/twitch-module.ts` (line 137, `onRemoval`): after `removeTwitchChat` resolves, call `chatArchive.recordRemoval(input)`, with the same generation and closed guards as the existing call. Pass the recorder in through the module's existing constructor or dependency object. Do not change `removeTwitchChat`'s signature.",
+              "Add the setting flag (e.g. `chatArchiveEnabled: false`) where integration and community settings are defined and validated, which is likely `domain/persisted.ts` plus the settings defaults. Default it to false, so persisted state from earlier versions stays valid without a migration, or add a defaulting migration if the validator requires one. No UI toggle yet, unless a settings toggle is trivial to add with the existing pattern.",
+              "Tests: create `src/plugin/tests/project/coforge/chat-archive.test.ts`, using the existing `memory-storage.ts` store helpers and the patterns in `viewer-notes.test.ts` and `chat-removal.test.ts`. Cover these cases. (a) Ingest 300 Twitch messages through `ingestChat`: the live `state.chat` stays capped at 250 and the archive holds all 300. (b) Replaying the same `messageId` adds no rows. (c) A failed economy command that triggers a rollback archives only the committed result. (d) Message, user and clear-chat removals each redact the matching archived rows, and a later replay of the removed message does not add the text back. (e) With the flag disabled, nothing is archived. (f) Simulator messages are excluded by default. (g) A storage `append` that throws calls `report()` and still lets `ingestChat` return a normal `ChatResult`. (h) `dispose()` flushes pending messages."
+            ]
+          }
         }
       ]
     },
@@ -68,8 +93,8 @@
       {
         "name": "streamer",
         "color": "purple",
-        "ideas": 10,
-        "votesReceived": 1,
+        "ideas": 11,
+        "votesReceived": 2,
         "implementations": 0,
         "badges": [
           {
@@ -77,7 +102,7 @@
             "title": "First spark",
             "description": "Contribute 1 idea that passes screening.",
             "earned": true,
-            "current": 10,
+            "current": 11,
             "threshold": 1
           },
           {
@@ -85,7 +110,7 @@
             "title": "Idea maker",
             "description": "Contribute 5 ideas that pass screening.",
             "earned": true,
-            "current": 10,
+            "current": 11,
             "threshold": 5
           },
           {
@@ -135,8 +160,8 @@
       {
         "name": "streamer",
         "color": "purple",
-        "ideas": 10,
-        "votesReceived": 1,
+        "ideas": 11,
+        "votesReceived": 2,
         "implementations": 0,
         "badges": [
           {
@@ -144,7 +169,7 @@
             "title": "First spark",
             "description": "Contribute 1 idea that passes screening.",
             "earned": true,
-            "current": 10,
+            "current": 11,
             "threshold": 1
           },
           {
@@ -152,7 +177,7 @@
             "title": "Idea maker",
             "description": "Contribute 5 ideas that pass screening.",
             "earned": true,
-            "current": 10,
+            "current": 11,
             "threshold": 5
           },
           {
@@ -204,8 +229,8 @@
     {
       "name": "streamer",
       "color": "purple",
-      "ideas": 10,
-      "votesReceived": 1,
+      "ideas": 11,
+      "votesReceived": 2,
       "implementations": 0,
       "badges": [
         {
@@ -213,7 +238,7 @@
           "title": "First spark",
           "description": "Contribute 1 idea that passes screening.",
           "earned": true,
-          "current": 10,
+          "current": 11,
           "threshold": 1
         },
         {
@@ -221,7 +246,7 @@
           "title": "Idea maker",
           "description": "Contribute 5 ideas that pass screening.",
           "earned": true,
-          "current": 10,
+          "current": 11,
           "threshold": 5
         },
         {
