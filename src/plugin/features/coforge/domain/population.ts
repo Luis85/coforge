@@ -1,6 +1,5 @@
 import { achievedRank, defaultCommunityEnvironment, type CommunityEnvironment } from "./community-environment";
 import { OBS_OPERATION_CODES } from './obs';
-import { MUSIC_OPERATION_CODES } from './music';
 import { HERDR_OPERATION_CODES } from './herdr';
 import { SCHEDULE_OPERATION_CODES } from './schedule';
 import { OBS_SHOW_OPERATION_CODES } from './obs-show';
@@ -37,6 +36,22 @@ export interface Player {
   rewardedXpMinutes?: number;
   rewardClaims: string[];
 }
+// Historical records remain readable after removal of the player.
+const LEGACY_MUSIC_OPERATION_CODES = [
+  "music-playlist-selected",
+  "music-library-refreshed",
+  "music-settings-saved",
+  "music-playlist-saved",
+  "music-metadata-opened",
+  "music-playback-requested",
+  "music-playback-started",
+  "music-playback-paused",
+  "music-playback-stopped",
+  "music-playback-failed",
+  "music-track-ended",
+  "music-position-changed",
+  "music-volume-changed",
+] as const;
 export const OPERATION_CODES = [
   ...OBS_SHOW_OPERATION_CODES,
   'twitch-operation-requested', 'twitch-operation-confirmed', 'twitch-operation-failed', 'twitch-operation-uncertain', 'twitch-operation-inspected',
@@ -63,9 +78,10 @@ export const OPERATION_CODES = [
   'stream-snapshot-saved', 'stream-history-ended', 'twitch-message-observed', 'twitch-command-observed',
   'stream-setup-opened', 'stream-setup-dismissed', 'stream-setup-completed',
   ...OBS_OPERATION_CODES,
-  ...MUSIC_OPERATION_CODES,
+  ...LEGACY_MUSIC_OPERATION_CODES,
   ...HERDR_OPERATION_CODES,
   ...SCHEDULE_OPERATION_CODES,
+  "schedule-playlist-selected", // Legacy history only.
   "registered",
   "greeted",
   "message-observed",

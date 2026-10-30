@@ -3,6 +3,7 @@ import { useSettings } from '../../composables/coforge/use-settings';
 import { useSettingsNavigation } from '../../composables/coforge/use-settings-navigation';
 import CfIcon from './CfIcon.vue';
 import SettingsGeneralSection from './SettingsGeneralSection.vue';
+import SettingsFeaturesSection from './SettingsFeaturesSection.vue';
 import SettingsDataSection from './SettingsDataSection.vue';
 import SettingsRuntimeSection from './SettingsRuntimeSection.vue';
 import SettingsRepositorySection from './SettingsRepositorySection.vue';
@@ -43,7 +44,10 @@ const navigation = useSettingsNavigation(model);
           <form :id="navigation.formId" class="cf-settings-form" @submit="model.submit">
             <fieldset v-if="navigation.formPage" class="cf-project-config-fields" :disabled="model.saving">
               <legend class="cf-sr-only">Project configuration</legend>
-              <SettingsGeneralSection v-if="model.store.settingsTool === 'general'" />
+              <template v-if="model.store.settingsTool === 'general'">
+                <SettingsGeneralSection />
+                <SettingsFeaturesSection />
+              </template>
               <template v-else-if="model.store.settingsTool === 'requests'">
                 <SettingsRequestObjectSection />
                 <p class="cf-settings-help cf-settings-related-help">Viewer feature requests have a fixed 5-minute cooldown across all projects. Manage registration under Viewers, prices and rewards under Economy, and XP and ranks under Community settings.</p>

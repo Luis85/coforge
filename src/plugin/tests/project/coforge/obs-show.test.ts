@@ -151,7 +151,20 @@ describe('OBS show production', () => {
     const unavailable = new ObsShowProductionExecutor(production, scenes, () => true);
     await expect(unavailable.execute({ kind: 'overlay', overlayId: 'public-council' })).rejects.toThrow('unavailable');
   });
-  it('runs an explicitly enabled music-change overlay cue while on air', async () => {
+  it('runs explicitly enabled OBS music automation with playback, mute and volume and deduplicates the trigger', async () => {
+    const app = await kit();
+    const steps: ObsShowStep[] = [{ kind: 'source-visible', sceneId: 'development', itemId: 10, enabled: true }, { kind: 'media', inputId: 'obs-music', action: 'restart' }, { kind: 'mute', inputId: 'obs-music', muted: false }, { kind: 'volume', inputId: 'obs-music', volumeDb: -18 }];
+    await app.workflow.savePlan({ ...plan, segments: [{ ...plan.segments[0]!, steps }] });
+    expect(app.calls).toEqual([]);
+    await app.workflow.handleEvent('stream-started', 200);
+    expect(app.calls).toEqual([]);
+    await app.workflow.setAutomation(true);
+    await app.workflow.handleEvent('stream-started', 201);
+    await app.workflow.handleEvent('stream-started', 201);
+    expect(app.calls).toEqual(steps);
+    expect(parsePersistedStudio((await app.storage.load()).data).obsShow?.run?.steps.every(step => step.status === 'confirmed')).toBe(true);
+  });
+  it('ignores legacy music event cues after music removal', async () => {
     const app = await kit();
     await app.workflow.savePlan({ ...plan, segments: [{ ...plan.segments[0]!, steps: [{ kind: 'overlay', overlayId: 'now-playing' }] }],
       bindings: [{ id: 'track-start', event: 'music-playback-started', cueId: 'development', enabled: true }] });
@@ -159,7 +172,7 @@ describe('OBS show production', () => {
     expect(app.calls).toEqual([]);
     await app.workflow.setAutomation(true);
     await app.workflow.handleEvent('music-playback-started', 101);
-    expect(app.calls).toEqual([{ kind: 'overlay', overlayId: 'now-playing' }]);
+    expect(app.calls).toEqual([]);
     app.workflow.dispose();
   });
 });

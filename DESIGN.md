@@ -40,6 +40,12 @@ private visibility live in the switcher; work pages do not repeat a context bann
 The backlog proceeds from its heading to filter tabs and toolbar, without a
 separate decision-summary section. Review and moderation counts stay in the tabs.
 
+General project settings offers explicitly saved visibility for Build & Improve,
+Stream, Community and Insights. Preferences belong to the project note. Hidden
+Stream also hides its board chat, chat toggle, stream profile and live dock.
+Shared services and background work continue. Missing preferences show all groups;
+the switcher and Project settings always remain reachable.
+
 The request board flows through Inbox, Up next, Design, In progress and Accepted.
 Planned requests occupy Design while their specification is prepared before Build.
 Keep all five columns on wide leaves and contain horizontal scrolling within the

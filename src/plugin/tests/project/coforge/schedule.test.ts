@@ -20,7 +20,6 @@ it("validates an explicit plan without scheduling any live side effects", () => 
     language: "en",
     liveSceneId: "live",
     breakSceneId: "brb",
-    playlistId: "",
     status: "planned",
   });
   expect(plan.startsAt).toBe("2026-11-01T19:00:00.000Z");
@@ -33,12 +32,11 @@ it("prepares only the explicitly requested capability and rejects scene configur
   const selectProject = vi.fn(async () => {});
   const updateChannel = vi.fn(async () => {});
   const configure = vi.fn(async () => {});
-  const selectPlaylist = vi.fn(async () => {});
   const preparation = new StreamPlanPreparation(
     { store, state: () => store.snapshot(), selectProject },
     { updateChannel },
     { configure },
-    { selectPlaylist },
+    { prepare: vi.fn(async () => {}) },
   );
   const plan = scheduledStream({
     id: "CFS-test",
@@ -53,11 +51,8 @@ it("prepares only the explicitly requested capability and rejects scene configur
     language: "en",
     liveSceneId: "live",
     breakSceneId: "brb",
-    playlistId: "music",
     status: "planned",
   });
-  await preparation.playlist(plan);
-  expect(selectPlaylist).toHaveBeenCalledWith("music");
   expect(updateChannel).not.toHaveBeenCalled();
   expect(configure).not.toHaveBeenCalled();
   await preparation.project(plan);

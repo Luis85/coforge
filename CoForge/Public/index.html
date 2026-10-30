@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
-  <title>No public project selected · Community board</title>
+  <title>CoForge · Community board</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="site-header">
-    <h1>No public project selected</h1>
-    <p class="project-id">No public project is selected.</p>
-    <p>Join with <code>!register</code> in stream chat. Use <code>!projects</code> to discover public games. Support a public request with <code>!vote &lt;request-id&gt;</code>.</p>
-    <p class="updated">Updated <time datetime="2026-10-29T19:52:37.339Z">Thu, 29 Oct 2026 19:52:37 GMT</time>. <a href="./">Refresh board</a></p>
+    <h1>CoForge</h1>
+    <p class="project-id">Community game project <strong>CFP-002</strong></p>
+    <p>Join with <code>!register</code> in stream chat. Suggest an idea with <code>!request CFP-002 &lt;idea&gt;</code>. Support a public request with <code>!vote &lt;request-id&gt;</code>.</p>
+    <p class="updated">Updated <time datetime="2026-10-30T19:27:37.354Z">Fri, 30 Oct 2026 19:27:37 GMT</time>. <a href="./">Refresh board</a></p>
     
     <nav aria-label="Viewer board sections"><a href="#requests">Idea board</a><a href="#leaderboards">Leaderboards</a><a href="#recognition">Badges</a></nav>
   </header>
@@ -27,8 +27,28 @@
     </section>
     <section class="column column-next" aria-labelledby="col-next">
       <h2 id="col-next">Up next <span class="count">0</span></h2>
-      <p class="hint">Ranked and planned</p>
+      <p class="hint">Ranked for planning</p>
       <p class="empty">Nothing here yet.</p>
+    </section>
+    <section class="column column-design" aria-labelledby="col-design">
+      <h2 id="col-design">Design <span class="count">1</span></h2>
+      <p class="hint">Specification before Build</p>
+      
+      <article class="card" aria-labelledby="CF-133-title">
+        <header><span class="id">CF-133</span><span class="category cat-qualityoflife">Quality of life</span></header>
+        <h3 id="CF-133-title">Recruiting new CoWorkers</h3>
+        <div class="description cf-markdown"><p>I want to have a &quot;Hiring Pool&quot; optino available at the CoWorkers page from where I can &quot;hire&quot; new CoWorkers. Those CoWorker are pre-defined agents which give me a starting point when I just have created a new environment or when adding a new project.</p></div>
+        <details class="plan"><summary>Implementation plan</summary>
+          <div class="cf-markdown"><p>This is the smallest useful version of CF-133 (Hiring Pool). The plugin will ship a small, read-only set of ready-made CoWorker templates in <code>agent/v1</code> format. The CoWorkers page gets a &quot;Hiring Pool&quot; option, opened from the toolbar and from the empty state. Hiring a template works like Create CoWorker does today: <code>createAgent()</code> in <code>src/plugin/presentation/composables/coforge/use-council-definitions.ts</code> passes the definition through <code>fresh(agentDefinitionCheck(...))</code>. The hired copy gets a new <code>agent-&lt;uuid&gt;</code> ID, starts with <code>enabled: false</code>, provider <code>demo</code> and model <code>sonnet</code>, and opens as an unsaved draft in the existing editor. Nothing is written to the vault until the user presses the existing Save.</p><p>The following are left out of this version:</p><ul><li><strong>Bulk hire.</strong></li><li><strong>Provenance and &quot;Hired&quot; badges.</strong> These would need the <code>origin</code> field in the <code>agent/v1</code> schema.</li><li><strong>Vault-local templates.</strong></li><li><strong>Default-provider substitution.</strong></li><li><strong>The prompt after a project is created.</strong></li><li><strong>Template updates.</strong></li></ul><p>Because the schema stays the same, nothing changes in validation, persistence or the public data views. Hiring the same template twice simply makes two separate drafts with different IDs.</p></div>
+          <ol><li class="cf-markdown"><p>Read <code>src/plugin/features/coforge/domain/council-definitions.ts</code> to confirm the exact <code>agent/v1</code> type, the <code>agentDefinitionCheck</code> signature, its allowed <code>provider</code> and <code>contextSources</code> values, and any length limits on <code>role</code> and <code>instructions</code>. Templates must match this type exactly.</p></li><li class="cf-markdown"><p>Add a new domain module, <code>src/plugin/features/coforge/domain/coworker-templates.ts</code>. It exports a frozen <code>COWORKER_TEMPLATES</code> array of <code>{ templateId, category, summary, definition }</code>, where <code>definition</code> is an <code>agent/v1</code> body without <code>id</code>. Include 4–6 starters: Chat Moderator, Community Manager, Idea Board Triage, Product Scorer, Spec Writer and Stream Planner. Each has a name, a role and short plain-text instructions. All use <code>enabled: false</code>, <code>provider: &#39;demo&#39;</code>, <code>model: &#39;sonnet&#39;</code>, <code>contextSources: []</code> and <code>requestedCapabilities: { project: &#39;none&#39;, messaging: false }</code>.</p></li><li class="cf-markdown"><p>In the same module, add a pure function <code>hireCoWorkerTemplate(template, id)</code>. It returns <code>agentDefinitionCheck({ schema: &#39;agent/v1&#39;, ...template.definition, id, enabled: false })</code>, so a hired copy always starts disabled and is always validated.</p></li><li class="cf-markdown"><p>In <code>src/plugin/presentation/composables/coforge/use-council-definitions.ts</code>, add <code>hireTemplate(templateId: string)</code> next to <code>createAgent()</code>. It looks up the template, calls <code>fresh(hireCoWorkerTemplate(t, </code>agent-${crypto.randomUUID()}<code>))</code>, and sets <code>store.error</code> if the ID is unknown. Add <code>hireTemplate</code> to the returned object near line 357.</p></li><li class="cf-markdown"><p>In <code>src/plugin/presentation/composables/coforge/use-coworkers.ts</code>, add a <code>poolOpen</code> ref and a <code>poolSearch</code> ref. Add a computed <code>pool</code> that filters <code>COWORKER_TEMPLATES</code> by name, role, summary and category. Add <code>hire(id)</code>, which calls <code>model.hireTemplate(id)</code> and closes the pool. Return all of these from the reactive object.</p></li><li class="cf-markdown"><p>Create <code>src/plugin/presentation/components/coforge/CoWorkerHiringPool.vue</code>. It is a section with <code>aria-label=&quot;Hiring Pool&quot;</code>. It contains a search field, then a list of template cards; each card shows the name, role, summary and category, plus a <code>&lt;details&gt;</code> preview of the instructions. Each card has a <code>cf-btn</code> button labelled &quot;Hire &lt;name&gt;&quot;, and the section has a Close button. Use <code>CfIcon</code> and the existing <code>cf-coworker-card</code> and <code>cf-btn</code> classes, and keep everything keyboard-accessible with real buttons.</p></li><li class="cf-markdown"><p>In <code>src/plugin/presentation/components/coforge/CoWorkerInventory.vue</code>, add a secondary &quot;Hiring Pool&quot; button next to Create CoWorker on line 14. It toggles <code>inventory.poolOpen</code> and is disabled while <code>store.busy</code> is true. Render <code>&lt;CoWorkerHiringPool&gt;</code> when the pool is open. In the empty state on line 34, when <code>!inventory.total</code>, add a &quot;Browse the Hiring Pool&quot; button.</p></li><li class="cf-markdown"><p>Add unit tests in <code>src/plugin/tests/unit/coworker-templates.test.ts</code>:</p><ul><li>Every template passes <code>agentDefinitionCheck</code>.</li><li><code>templateId</code>s and names are unique.</li><li>Every template has <code>enabled === false</code> and conservative capabilities.</li><li><code>hireCoWorkerTemplate</code> keeps the given ID, forces <code>enabled: false</code>, and does not modify the source template.</li></ul></li><li class="cf-markdown"><p>Extend <code>src/plugin/tests/project/coforge/coworker-inventory-ui.test.ts</code>, following its existing setup:</p><ul><li>The empty inventory shows &quot;Browse the Hiring Pool&quot;.</li><li>Opening the pool lists the templates.</li><li>Hiring one opens an editor draft with the template&#39;s name, role and instructions, with Disabled status, and causes no catalogue write before Save.</li><li>Hiring the same template twice gives two different IDs.</li><li>Search filters the pool.</li></ul></li><li class="cf-markdown"><p>Update <code>docs/components/views/coworkers.md</code> (if it exists) with the actions &quot;Hiring Pool&quot; and &quot;Hire&quot; and the state &quot;Pool open&quot;. Note that hired CoWorkers are unsaved and disabled until reviewed.</p></li></ol>
+        </details>
+        <footer>
+          <span class="author">by streamer</span>
+          <span class="status">Planned</span>
+          <span class="rice" title="RICE score">RICE 8.8</span>
+          <span class="votes" title="Unique votes">▲ 1</span>
+        </footer>
+      </article>
     </section>
     <section class="column column-progress" aria-labelledby="col-progress">
       <h2 id="col-progress">In progress <span class="count">0</span></h2>
@@ -45,13 +65,15 @@
     <div class="leaderboards">
       <section class="leaderboard" aria-labelledby="lb-votes-received">
         <h3 id="lb-votes-received">Most supported ideas</h3>
-        <p class="empty">No entries yet.</p>
+        <ol>
+          <li><span class="rank">1</span><span class="avatar c-purple" aria-hidden="true">S</span>
+            <span class="name">streamer</span><span class="metric">1 <small>votes received</small></span></li></ol>
       </section>
       <section class="leaderboard" aria-labelledby="lb-screened-ideas">
         <h3 id="lb-screened-ideas">Idea makers</h3>
         <ol>
           <li><span class="rank">1</span><span class="avatar c-purple" aria-hidden="true">S</span>
-            <span class="name">streamer</span><span class="metric">8 <small>screened ideas</small></span></li></ol>
+            <span class="name">streamer</span><span class="metric">10 <small>screened ideas</small></span></li></ol>
       </section>
       <section class="leaderboard" aria-labelledby="lb-accepted-builds">
         <h3 id="lb-accepted-builds">Co-creators</h3>

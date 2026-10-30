@@ -86,6 +86,10 @@ const model = useObsOverlays();
         Load selected project content
       </button>
     </div>
+    <p v-if="model.ui.kind === 'now-playing'" role="status">
+      This saved overlay used the retired CoForge player. Clear or remove it;
+      music playback now uses OBS media sources.
+    </p>
     <div class="cf-production-fields">
       <label class="cf-field"
         ><span>Public content</span
@@ -93,7 +97,6 @@ const model = useObsOverlays();
           <option value="request">Screened request</option>
           <option value="increment">Accepted increment</option>
           <option value="recognition">Community recognition</option>
-          <option value="now-playing">Now playing</option>
           <option value="council-excerpt">Approved Council excerpt</option>
         </select></label
       ><label class="cf-field"
@@ -129,10 +132,6 @@ const model = useObsOverlays();
         Council contributions are never imported automatically.</small
       ></label
     >
-    <p v-if="model.ui.kind === 'now-playing'">
-      Now playing uses the local music player’s public track metadata. Review
-      its attribution before publishing.
-    </p>
     <label class="cf-project-repository-toggle"
       ><input v-model="model.ui.publicConfirmed" type="checkbox" /><span
         >I approve the selected content for public display</span

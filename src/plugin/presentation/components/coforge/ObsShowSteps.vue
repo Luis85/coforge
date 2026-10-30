@@ -9,6 +9,7 @@ const model = useObsShow();
     aria-label="Cue actions"
   >
     <h3>Cue actions</h3>
+    <p>For music, choose an existing OBS media source. Combine playback, mute and volume actions with scene changes. Sources and audio routing are configured in OBS.</p>
     <p v-if="!model.cue.steps.length">
       Add the scene, audio or recording actions for this segment. Creating a
       segment does not change OBS.
@@ -21,7 +22,7 @@ const model = useObsShow();
             type="button"
             class="cf-btn cf-btn-secondary"
             :disabled="index === 0"
-            :aria-label="`Move action ${index + 1} up`"
+            :aria-label="`Move up: action ${index + 1}`"
             @click="model.moveStep(index, -1)"
           >
             Move up</button
@@ -29,7 +30,7 @@ const model = useObsShow();
             type="button"
             class="cf-btn cf-btn-secondary"
             :disabled="index === model.cue.steps.length - 1"
-            :aria-label="`Move action ${index + 1} down`"
+            :aria-label="`Move down: action ${index + 1}`"
             @click="model.moveStep(index, 1)"
           >
             Move down</button
@@ -54,7 +55,7 @@ const model = useObsShow();
           <option value="volume">Set volume</option>
           <option value="record">Recording action</option>
           <option value="replay-save">Save replay</option>
-          <option value="media">Media action</option>
+          <option value="media">Music / media playback</option>
           <option value="source-visible">Show / hide source</option>
           <option value="overlay">Refresh public overlay</option>
           <option value="marker">Add moment marker</option>
@@ -90,7 +91,7 @@ const model = useObsShow();
         ><select v-model="model.ui.inputId">
           <option value="">Choose an input</option>
           <option
-            v-for="input in model.production.ui.snapshot?.inputs"
+            v-for="input in model.targetInputs"
             :key="input.id"
             :value="input.id"
           >

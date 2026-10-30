@@ -13,11 +13,11 @@
 @import "./population.css";
 @import "./broadcast.css";
 @import './obs-production.css';
+@import './obs-show.css';
 @import './obs-live-summary.css';
 @import "./setup.css";
 @import "./statistics.css";
 @import "./live-studio.css";
-@import "./music.css";
 @import "./herdr.css";
 @import "./herdr-workflow-recovery.css";
 @import "./finance.css";

@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { useObsShow } from "../../composables/coforge/use-obs-show";
 import ObsShowSteps from "./ObsShowSteps.vue";
+import ObsShowRundown from "./ObsShowRundown.vue";
 const model = useObsShow();
 </script>
 <template>
-  <section class="cf-production-show" aria-label="Show plans and cues">
+  <section
+    class="cf-production-show"
+    aria-label="Show plans and cues"
+    :aria-busy="model.ui.pending"
+  >
     <header class="cf-production-heading">
       <div>
         <h2>Show plan</h2>
@@ -29,10 +34,14 @@ const model = useObsShow();
       {{ model.ui.error }}
     </p>
     <p v-if="model.ui.notice" role="status">{{ model.ui.notice }}</p>
+    <p v-if="model.ui.pending" role="status">Completing show action…</p>
     <div class="cf-production-fields">
       <label class="cf-field"
         ><span>Saved show plan</span
-        ><select v-model="model.ui.selectedPlan" :disabled="model.ui.dirty">
+        ><select
+          v-model="model.ui.selectedPlan"
+          :disabled="model.ui.dirty || model.ui.pending"
+        >
           <option value="">Choose a saved plan</option>
           <option
             v-for="plan in model.state.plans"
@@ -45,7 +54,7 @@ const model = useObsShow();
       ><button
         type="button"
         class="cf-btn cf-btn-secondary"
-        :disabled="!model.ui.selectedPlan || model.ui.dirty"
+        :disabled="!model.ui.selectedPlan || model.ui.dirty || model.ui.pending"
         @click="model.load()"
       >
         Load show plan
@@ -53,10 +62,17 @@ const model = useObsShow();
     </div>
     <p v-if="!model.state.plans.length && !model.ui.draft">
       Create your first plan to prepare Starting soon, Development, Council,
-      Playtest, BRB and Ending segments. New segments start without OBS actions.
+      Playtest, BRB and Ending segments. Matching scenes are added when
+      available; review the actions before saving. Creating a plan never changes
+      OBS.
     </p>
+    <ObsShowRundown />
     <template v-if="model.ui.draft">
-      <div class="cf-production-plan-editor">
+      <fieldset
+        class="cf-production-plan-editor cf-show-draft-fields"
+        :disabled="model.ui.pending"
+      >
+        <legend>Edit show plan</legend>
         <label class="cf-field"
           ><span>Show plan name</span
           ><input
@@ -93,6 +109,7 @@ const model = useObsShow();
           <button
             type="button"
             class="cf-btn cf-btn-secondary"
+            :disabled="!model.canMoveCueEarlier"
             @click="model.moveCue(-1)"
           >
             Move segment earlier
@@ -100,6 +117,7 @@ const model = useObsShow();
           <button
             type="button"
             class="cf-btn cf-btn-secondary"
+            :disabled="!model.canMoveCueLater"
             @click="model.moveCue(1)"
           >
             Move segment later
@@ -192,7 +210,7 @@ const model = useObsShow();
             </button>
           </div>
         </details>
-      </div>
+      </fieldset>
       <div class="cf-settings-actions cf-production-save">
         <button
           type="button"
@@ -212,30 +230,9 @@ const model = useObsShow();
           >Unsaved changes · cue execution uses saved definitions.</span
         >
       </div>
-      <section
-        class="cf-production-section"
-        aria-label="Run the selected show cue"
-      >
-        <h3>Run the show</h3>
-        <p>
-          Selected cue: <strong>{{ model.cue?.name }}</strong
-          >. All saved actions below run in order.
-        </p>
+      <section class="cf-production-section" aria-label="Event cue automation">
+        <h3>Event cues</h3>
         <button
-          type="button"
-          class="cf-btn cf-btn-primary"
-          :disabled="
-            !model.supported ||
-            model.ui.pending ||
-            model.ui.dirty ||
-            !model.saved ||
-            !model.cue?.steps.length ||
-            !model.production.canChange
-          "
-          @click="model.runCue()"
-        >
-          Run selected cue</button
-        ><button
           type="button"
           class="cf-btn cf-btn-secondary"
           :disabled="!model.supported || model.ui.pending"
@@ -261,15 +258,23 @@ const model = useObsShow();
           Remove {{ model.saved?.name }} and its event bindings. Existing run
           evidence remains.
         </p>
+        <p v-if="model.ui.dirty">
+          Save or discard your changes before removing this plan.
+        </p>
         <label class="cf-project-repository-toggle"
-          ><input v-model="model.ui.deleteConfirmation" type="checkbox" /><span
-            >Remove this saved plan</span
-          ></label
+          ><input
+            v-model="model.ui.deleteConfirmation"
+            type="checkbox"
+            :disabled="model.ui.dirty || model.ui.pending || !model.saved"
+          /><span>Remove this saved plan</span></label
         ><button
           type="button"
           class="cf-btn cf-btn-danger"
           :disabled="
-            !model.ui.deleteConfirmation || !model.saved || model.ui.pending
+            !model.ui.deleteConfirmation ||
+            !model.saved ||
+            model.ui.pending ||
+            model.ui.dirty
           "
           @click="model.deletePlan()"
         >
@@ -277,37 +282,6 @@ const model = useObsShow();
         </button>
       </details>
     </template>
-    <section
-      v-if="model.state.run"
-      class="cf-production-section"
-      aria-label="Latest cue outcome"
-    >
-      <h3>{{ model.state.run.name }} · {{ model.state.run.status }}</h3>
-      <p>
-        {{ model.elapsed }} elapsed · {{ model.remaining }} · Started
-        {{ model.state.run.startedAt }}
-      </p>
-      <ol>
-        <li v-for="(step, index) in model.state.run.steps" :key="index">
-          {{ model.describe(step.action) }} · <strong>{{ step.status }}</strong>
-        </li>
-      </ol>
-      <p v-if="model.state.run.error" class="cf-inline-error">
-        {{ model.state.run.error }}
-      </p>
-      <button
-        v-if="
-          model.state.run.status === 'uncertain' ||
-          model.state.run.status === 'failed'
-        "
-        type="button"
-        class="cf-btn cf-btn-secondary"
-        :disabled="model.ui.pending"
-        @click="model.recover()"
-      >
-        Acknowledge inspected partial cue
-      </button>
-    </section>
     <section class="cf-production-section" aria-label="Stream moment markers">
       <h3>Stream moments</h3>
       <div class="cf-production-fields">

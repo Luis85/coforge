@@ -74,3 +74,6 @@ __pycache__/
 
 # MCP Settings
 .mcp.json
+
+/prototypes
+/Music

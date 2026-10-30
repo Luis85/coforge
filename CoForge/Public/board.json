@@ -1,8 +1,8 @@
 {
   "format": "coforge-public-board/v1",
-  "generatedAt": "2026-10-29T19:52:37.339Z",
-  "project": "No public project selected",
-  "projectId": "",
+  "generatedAt": "2026-10-30T19:27:37.354Z",
+  "project": "CoForge",
+  "projectId": "CFP-002",
   "columns": [
     {
       "id": "inbox",
@@ -13,8 +13,41 @@
     {
       "id": "next",
       "title": "Up next",
-      "hint": "Ranked and planned",
+      "hint": "Ranked for planning",
       "ideas": []
+    },
+    {
+      "id": "design",
+      "title": "Design",
+      "hint": "Specification before Build",
+      "ideas": [
+        {
+          "id": "CF-133",
+          "title": "Recruiting new CoWorkers",
+          "description": "I want to have a \"Hiring Pool\" optino available at the CoWorkers page from where I can \"hire\" new CoWorkers. Those CoWorker are pre-defined agents which give me a starting point when I just have created a new environment or when adding a new project.",
+          "category": "Quality of life",
+          "status": "Planned",
+          "column": "design",
+          "votes": 1,
+          "rice": 8.8,
+          "author": "streamer",
+          "plan": {
+            "summary": "This is the smallest useful version of CF-133 (Hiring Pool). The plugin will ship a small, read-only set of ready-made CoWorker templates in `agent/v1` format. The CoWorkers page gets a \"Hiring Pool\" option, opened from the toolbar and from the empty state. Hiring a template works like Create CoWorker does today: `createAgent()` in `src/plugin/presentation/composables/coforge/use-council-definitions.ts` passes the definition through `fresh(agentDefinitionCheck(...))`. The hired copy gets a new `agent-<uuid>` ID, starts with `enabled: false`, provider `demo` and model `sonnet`, and opens as an unsaved draft in the existing editor. Nothing is written to the vault until the user presses the existing Save.\n\nThe following are left out of this version:\n- **Bulk hire.**\n- **Provenance and \"Hired\" badges.** These would need the `origin` field in the `agent/v1` schema.\n- **Vault-local templates.**\n- **Default-provider substitution.**\n- **The prompt after a project is created.**\n- **Template updates.**\n\nBecause the schema stays the same, nothing changes in validation, persistence or the public data views. Hiring the same template twice simply makes two separate drafts with different IDs.",
+            "steps": [
+              "Read `src/plugin/features/coforge/domain/council-definitions.ts` to confirm the exact `agent/v1` type, the `agentDefinitionCheck` signature, its allowed `provider` and `contextSources` values, and any length limits on `role` and `instructions`. Templates must match this type exactly.",
+              "Add a new domain module, `src/plugin/features/coforge/domain/coworker-templates.ts`. It exports a frozen `COWORKER_TEMPLATES` array of `{ templateId, category, summary, definition }`, where `definition` is an `agent/v1` body without `id`. Include 4–6 starters: Chat Moderator, Community Manager, Idea Board Triage, Product Scorer, Spec Writer and Stream Planner. Each has a name, a role and short plain-text instructions. All use `enabled: false`, `provider: 'demo'`, `model: 'sonnet'`, `contextSources: []` and `requestedCapabilities: { project: 'none', messaging: false }`.",
+              "In the same module, add a pure function `hireCoWorkerTemplate(template, id)`. It returns `agentDefinitionCheck({ schema: 'agent/v1', ...template.definition, id, enabled: false })`, so a hired copy always starts disabled and is always validated.",
+              "In `src/plugin/presentation/composables/coforge/use-council-definitions.ts`, add `hireTemplate(templateId: string)` next to `createAgent()`. It looks up the template, calls `fresh(hireCoWorkerTemplate(t, `agent-${crypto.randomUUID()}`))`, and sets `store.error` if the ID is unknown. Add `hireTemplate` to the returned object near line 357.",
+              "In `src/plugin/presentation/composables/coforge/use-coworkers.ts`, add a `poolOpen` ref and a `poolSearch` ref. Add a computed `pool` that filters `COWORKER_TEMPLATES` by name, role, summary and category. Add `hire(id)`, which calls `model.hireTemplate(id)` and closes the pool. Return all of these from the reactive object.",
+              "Create `src/plugin/presentation/components/coforge/CoWorkerHiringPool.vue`. It is a section with `aria-label=\"Hiring Pool\"`. It contains a search field, then a list of template cards; each card shows the name, role, summary and category, plus a `<details>` preview of the instructions. Each card has a `cf-btn` button labelled \"Hire <name>\", and the section has a Close button. Use `CfIcon` and the existing `cf-coworker-card` and `cf-btn` classes, and keep everything keyboard-accessible with real buttons.",
+              "In `src/plugin/presentation/components/coforge/CoWorkerInventory.vue`, add a secondary \"Hiring Pool\" button next to Create CoWorker on line 14. It toggles `inventory.poolOpen` and is disabled while `store.busy` is true. Render `<CoWorkerHiringPool>` when the pool is open. In the empty state on line 34, when `!inventory.total`, add a \"Browse the Hiring Pool\" button.",
+              "Add unit tests in `src/plugin/tests/unit/coworker-templates.test.ts`:\n- Every template passes `agentDefinitionCheck`.\n- `templateId`s and names are unique.\n- Every template has `enabled === false` and conservative capabilities.\n- `hireCoWorkerTemplate` keeps the given ID, forces `enabled: false`, and does not modify the source template.",
+              "Extend `src/plugin/tests/project/coforge/coworker-inventory-ui.test.ts`, following its existing setup:\n- The empty inventory shows \"Browse the Hiring Pool\".\n- Opening the pool lists the templates.\n- Hiring one opens an editor draft with the template's name, role and instructions, with Disabled status, and causes no catalogue write before Save.\n- Hiring the same template twice gives two different IDs.\n- Search filters the pool.",
+              "Update `docs/components/views/coworkers.md` (if it exists) with the actions \"Hiring Pool\" and \"Hire\" and the state \"Pool open\". Note that hired CoWorkers are unsaved and disabled until reviewed."
+            ]
+          }
+        }
+      ]
     },
     {
       "id": "progress",
@@ -31,13 +64,12 @@
   ],
   "awaitingScreening": 0,
   "leaderboards": {
-    "votes": [],
-    "ideas": [
+    "votes": [
       {
         "name": "streamer",
         "color": "purple",
-        "ideas": 8,
-        "votesReceived": 0,
+        "ideas": 10,
+        "votesReceived": 1,
         "implementations": 0,
         "badges": [
           {
@@ -45,7 +77,7 @@
             "title": "First spark",
             "description": "Contribute 1 idea that passes screening.",
             "earned": true,
-            "current": 8,
+            "current": 10,
             "threshold": 1
           },
           {
@@ -53,7 +85,7 @@
             "title": "Idea maker",
             "description": "Contribute 5 ideas that pass screening.",
             "earned": true,
-            "current": 8,
+            "current": 10,
             "threshold": 5
           },
           {
@@ -61,7 +93,7 @@
             "title": "Community favorite",
             "description": "Receive 10 unique votes on one eligible idea.",
             "earned": false,
-            "current": 0,
+            "current": 1,
             "threshold": 10
           },
           {
@@ -69,7 +101,74 @@
             "title": "Crowd favorite",
             "description": "Receive 25 unique votes on one eligible idea.",
             "earned": false,
+            "current": 1,
+            "threshold": 25
+          },
+          {
+            "id": "backer",
+            "title": "Backer",
+            "description": "Vote for 5 eligible ideas from other contributors.",
+            "earned": false,
             "current": 0,
+            "threshold": 5
+          },
+          {
+            "id": "co-creator",
+            "title": "Co-creator",
+            "description": "Have 1 implementation accepted by the streamer.",
+            "earned": false,
+            "current": 0,
+            "threshold": 1
+          },
+          {
+            "id": "world-builder",
+            "title": "World builder",
+            "description": "Have 3 implementations accepted by the streamer.",
+            "earned": false,
+            "current": 0,
+            "threshold": 3
+          }
+        ]
+      }
+    ],
+    "ideas": [
+      {
+        "name": "streamer",
+        "color": "purple",
+        "ideas": 10,
+        "votesReceived": 1,
+        "implementations": 0,
+        "badges": [
+          {
+            "id": "first-spark",
+            "title": "First spark",
+            "description": "Contribute 1 idea that passes screening.",
+            "earned": true,
+            "current": 10,
+            "threshold": 1
+          },
+          {
+            "id": "idea-maker",
+            "title": "Idea maker",
+            "description": "Contribute 5 ideas that pass screening.",
+            "earned": true,
+            "current": 10,
+            "threshold": 5
+          },
+          {
+            "id": "community-favorite",
+            "title": "Community favorite",
+            "description": "Receive 10 unique votes on one eligible idea.",
+            "earned": false,
+            "current": 1,
+            "threshold": 10
+          },
+          {
+            "id": "crowd-favorite",
+            "title": "Crowd favorite",
+            "description": "Receive 25 unique votes on one eligible idea.",
+            "earned": false,
+            "current": 1,
             "threshold": 25
           },
           {
@@ -105,8 +204,8 @@
     {
       "name": "streamer",
       "color": "purple",
-      "ideas": 8,
-      "votesReceived": 0,
+      "ideas": 10,
+      "votesReceived": 1,
       "implementations": 0,
       "badges": [
         {
@@ -114,7 +213,7 @@
           "title": "First spark",
           "description": "Contribute 1 idea that passes screening.",
           "earned": true,
-          "current": 8,
+          "current": 10,
           "threshold": 1
         },
         {
@@ -122,7 +221,7 @@
           "title": "Idea maker",
           "description": "Contribute 5 ideas that pass screening.",
           "earned": true,
-          "current": 8,
+          "current": 10,
           "threshold": 5
         },
         {
@@ -130,7 +229,7 @@
           "title": "Community favorite",
           "description": "Receive 10 unique votes on one eligible idea.",
           "earned": false,
-          "current": 0,
+          "current": 1,
           "threshold": 10
         },
         {
@@ -138,7 +237,7 @@
           "title": "Crowd favorite",
           "description": "Receive 25 unique votes on one eligible idea.",
           "earned": false,
-          "current": 0,
+          "current": 1,
           "threshold": 25
         },
         {

@@ -73,7 +73,7 @@ for (const [view, explore, selector] of examples) {
   });
 }
 
-test("live-monitor and music examples can be explicitly exited", async ({
+test("live-monitor examples can be explicitly exited", async ({
   page,
 }) => {
   await page.goto("/#surface=node-1");
@@ -90,23 +90,7 @@ test("live-monitor and music examples can be explicitly exited", async ({
     live.getByRole("button", { name: "Explore studio example", exact: true }),
   ).toBeVisible();
   await expect(live).not.toContainText("Example live metrics");
-  await page
-    .getByRole("navigation", { name: "Stream studio pages", exact: true })
-    .getByRole("button", { name: "Music", exact: true })
-    .click();
-  const music = page.locator(".cf-music");
-  await music
-    .getByRole("button", { name: "Explore music example", exact: true })
-    .click();
-  await music
-    .getByRole("button", { name: "Exit example", exact: true })
-    .click();
-  await expect(
-    music.getByRole("button", { name: "Explore music example", exact: true }),
-  ).toBeVisible();
-  await expect(music.getByLabel("Music playback", { exact: true })).toHaveCount(
-    0,
-  );
+
 });
 
 test("Herdr example can be explicitly exited without a native command", async ({

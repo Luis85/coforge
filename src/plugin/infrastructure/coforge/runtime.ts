@@ -14,14 +14,10 @@ import type { StructuredLogger } from '../../application/logging';
 import { ObsAdapter } from './obs-adapter';
 import { ObsWorkflow } from '../../features/coforge/application/obs-workflow';
 import { createObsStudioModule } from './obs-studio-module';
-import { obsNowPlaying } from './obs-now-playing';
 import { StreamRecorder } from '../../features/coforge/application/stream-recorder';
 import { StreamHistoryStorage } from './stream-history-storage';
 import { LiveStudioMonitor } from '../../features/coforge/application/live-studio-monitor';
-import { MusicService } from '../../features/coforge/application/music-service';
 import { recordOperation } from '../../features/coforge/application/population';
-import { VaultMusic } from './vault-music';
-import { LocalMusicPlayer } from './local-music-player';
 import { HerdrService } from '../../features/coforge/application/herdr-service';
 import { LocalHerdrGateway } from './herdr-gateway';
 import { HerdrStateStorage } from './herdr-storage';
@@ -44,6 +40,7 @@ import { ViewerNoteRecorder } from '../../features/coforge/application/viewer-no
 import { VaultViewerNotes } from './vault-viewer-notes';
 import { AICostService } from '../../features/coforge/application/ai-cost-service';
 import { ScheduleService } from '../../features/coforge/application/schedule-service';
+import { ObsMusicPreparation } from '../../features/coforge/application/obs-music-preparation';
 import { StreamPlanPreparation } from '../../features/coforge/application/schedule-preparation';
 import { VaultSchedule } from './vault-schedule';
 import { VaultAICosts } from './ai-cost-storage';
@@ -174,8 +171,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     setSecret: (name, value) => { const store = secrets(plugin.app); if (!store) throw new Error('Obsidian secret storage is unavailable.'); store.setSecret(name, value); },
   });
   const obs = new ObsWorkflow(studio.store, obsAdapter);
-  const music = new MusicService(new VaultMusic(plugin), new LocalMusicPlayer(plugin.app.vault), code => studio.store.transaction(state => recordOperation(state, code)));
-  const obsStudio = createObsStudioModule(studio.store, obsAdapter, obs, () => obsNowPlaying(music));
+  const obsStudio = createObsStudioModule(studio.store, obsAdapter, obs);
   const herdrAdmission = new HerdrAdmission();
   const herdr = new HerdrService(studio.store, new LocalHerdrGateway(), new HerdrStateStorage(plugin), timers, herdrAdmission);
   const herdrWorkflows = new HerdrWorkflowService(studio.store, herdr, herdrAdmission, new HerdrWorkflowStateStorage(plugin), new LocalHerdrWorkflowGateway(), new LocalHerdrAttemptFiles(undefined, workspaces), timers);
@@ -221,13 +217,12 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     mcp,
     council: council.actions,
     herdrWorkflows,
-    schedule: new ScheduleService(new VaultSchedule(plugin), new StreamPlanPreparation(studio, twitch.actions, obs, music), studio.store),
+    schedule: new ScheduleService(new VaultSchedule(plugin), new StreamPlanPreparation(studio, twitch.actions, obs, new ObsMusicPreparation(obsStudio.production, obsStudio.scenes)), studio.store),
     aiCosts,
     viewerNotes,
     streamViews: streamViews.actions, streamSource: streamSource.asPort(),
     alerts: alerts.actions,
     finance: new FinanceService(new VaultFinance(plugin), studio.store),
-    music,
     herdr,
     streamHistory: { list: () => streamHistory.list(), read: id => streamHistory.read(id), export: async id => {
       const history = await streamHistory.read(id);
@@ -317,7 +312,6 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       const stopWorkflow = herdrWorkflows.subscribe(updateHerdr);
       stopHerdrRuntime = () => { stopManual(); stopWorkflow(); };
       updateHerdr();
-      void music.refresh().catch(() => undefined);
       void (async () => { try { await herdr.start(); if (!disposed) await herdrWorkflows.start(); } catch { if (!disposed) notify('Herdr settings or workflow recovery records could not be loaded. Restore them before dispatching.', true); } if (disposed) return; try { await aiCosts.start(); } catch { if (!disposed) notify('AI cost history could not be loaded. Review the cost dashboard before relying on its totals.', true); } })();
       liveMonitor.start();
       void recorder.start();
@@ -339,7 +333,6 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       streamViews.dispose(); streamSource.dispose();
       await studio.engine.stop();
       await herdrWorkflows.dispose();
-      await music.dispose();
       await herdr.dispose();
       await liveMonitor.stop();
       await recorder.stop();

@@ -20,6 +20,8 @@ it("separates broadcast goals and retains an OBS draft across focused subpages w
   try {
     await flushPromises();
     const navigation = wrapper.get('nav[aria-label="Stream studio pages"]');
+    expect(navigation.findAll("button").slice(0, 2).map((button) => button.text()))
+      .toEqual(["Broadcast", "Show plan"]);
     const visit = async (name: string) => {
       const button = navigation
         .findAll("button")
@@ -43,8 +45,8 @@ it("separates broadcast goals and retains an OBS draft across focused subpages w
     );
     await visit("Scenes");
     expect(wrapper.get(".cf-obs-scene-manager").isVisible()).toBe(true);
-    await visit("Music");
-    expect(wrapper.get(".cf-music").isVisible()).toBe(true);
+    expect(navigation.text()).not.toContain("Music");
+    expect(wrapper.find(".cf-music").exists()).toBe(false);
     await visit("Public displays");
     expect(wrapper.get(".cf-stream-displays").isVisible()).toBe(true);
     await visit("History");

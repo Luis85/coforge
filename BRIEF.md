@@ -244,18 +244,23 @@ recovery, project scope, host permissions and final human review.
   that ends without code changes finishes its workflow only; it does not fabricate an increment or ship a feature.
   Removing screening never automatically makes private requests public. No imported workflow starts by itself.
 
-### Local stream music (owner decision, 2026-10-27)
+### OBS music integration without a built-in player (owner decisions, 2026-10-30)
 
-- A configurable folder inside the vault (default `CoForge/Music`) contains local MP3 files.
-  A same-basename Markdown companion stores title, artist, license, origin and attribution.
-  The streamer supplies and reviews the rights; CoForge does not infer a license.
-- Saved playlists are Obsidian-compatible frontmatter plus Markdown notes in the music folder's
-  `Playlists` subfolder. Track references are vault-relative paths; refresh detects missing files.
-- Playback runs inside Obsidian, continues while navigating CoForge and stops on plugin unload.
-  OBS must capture Obsidian/application or desktop audio; include setup guidance. No automatic
-  playback on startup or go-live. Provide play/pause/stop, previous/next, seeking and volume.
-- Playlist editing preserves unrelated frontmatter and Markdown body bytes. Metadata can be opened
-  or created from the library. External edits require refresh and must not be silently overwritten.
+- Remove CoForge's local music library, playlist editor and audio player. A community
+  plugin can handle personal playback; CoForge does not manage its library or files.
+- Keep music in stream-plan preparation, scenes and automations through existing
+  OBS Media/VLC sources (owner confirmation). Plans assign optional sources to Live
+  and BRB scenes. Preparation explicitly adds missing memberships disabled while OBS
+  is off air; it preserves existing source memberships and never sends playback.
+- Show plan cues combine scene visibility with play, pause, stop, restart, mute and
+  volume. Existing explicit execution, event opt-in, durable intent and uncertain
+  outcome recovery apply. OBS owns source configuration and playback; activating a
+  source can start media according to its OBS settings.
+- Preserve existing music files, metadata and playlist notes. Legacy plans remain
+  editable without erasing old playlist properties. Retain old OBS Now playing
+  ownership records for safe clearing/removal; the retired player emits no events.
+- Community-plugin selection, installation and direct API integration are outside
+  this change. Alert audio and OBS audio/media controls stay available.
 
 ## Surfaces (from the design)
 
@@ -338,8 +343,7 @@ recovery, project scope, host permissions and final human review.
 - Review every private, native-settings and public display view for a clear user goal and next action, then improve
   concrete navigation, hierarchy, empty/error-state, accessibility and spacing findings without replacing the native design.
 - The stream schedule stays local to CoForge. Each planned stream has an Obsidian-compatible Markdown note
-  for topics, scripts and storyboards, plus date/time, project, Twitch metadata, OBS scene choices and a music
-  playlist. Preparation is explicit; planning never automatically updates a live channel or starts playback/a stream.
+  for topics, scripts and storyboards, plus date/time, project, Twitch metadata, OBS scene choices. Preparation is explicit; planning never automatically updates a live channel or starts playback/a stream.
 - Render authored Markdown in requests, plans and appropriate long-form fields. Logs, configuration editors
   and diffs retain their source/code formatting. Rendering must not execute HTML, transclude vault notes or
   automatically load external media, especially in capture views.
@@ -412,6 +416,13 @@ recovery, project scope, host permissions and final human review.
   commits/merges/pushes of the game or the vault. Twitch chatbot replies and OAuth onboarding are now in scope.
 
 ## Decisions
+
+- 2026-10-30: select visible feature groups independently for each project in
+  Project settings. Hide unused navigation groups and their related panels (for
+  example Stream chat and live stream controls). This is a workspace preference;
+  shared stream/community services and background work keep running. Existing
+  projects retain all groups until explicitly changed. Project settings and the
+  project switcher always remain reachable; saving is explicit and reversible.
 
 - 2026-10-29: implement the three proposed Twitch integration increments end to end:
   reliable live operations (capabilities, activity, moderation, ads and raids), community
@@ -513,23 +524,26 @@ recovery, project scope, host permissions and final human review.
 
 ## Streamer workflow increment (2026-10-27)
 
-### OBS overhaul exploration (owner direction, 2026-10-29)
+### OBS integration scope (owner revision, 2026-10-30)
 
-- Explore a full redesign and expansion of Stream studio's OBS integration so the
-  streamer can operate the stream entirely from CoForge views during a broadcast.
-- Cover both full OBS setup and live production. The initial target is one PC
-  with a fresh, blank OBS installation.
-- Owner authorization (2026-10-29): implement all three proposed increments end to
-  end with subagents, complete an improvement and polishing pass, open a pull
-  request and merge after the required checks are green.
-- Increment 1 covers fresh studio creation, supported capture/audio/output setup,
-  rehearsal and essential live controls. Increment 2 covers visual source/layout
-  editing, audio management and public displays. Increment 3 covers show plans,
-  reusable manual cues, explicit opt-in event automation and recording/replay review.
-- OBS remains the media engine. One-time WebSocket bootstrap, device permissions
-  and unsupported vendor dialogs may require OBS or OS interaction during setup.
-  Source and output editors are capability-checked; sampled screenshots are labelled
-  as such and do not claim smooth audiovisual monitoring.
+- The main OBS integration is stream operation and scene management: start,
+  pause/resume and stop the stream; switch scenes; create and edit scenes.
+- Show plans remain in scope (owner confirmation, 2026-10-30). Improve and polish
+  planning and running the show equally, using subagents. Make segment order,
+  durations, notes and actions easy to review, with clear saved/draft boundaries
+  and explicit cue execution. Preserve private plans, durable outcomes, paused
+  event automation after reload and recovery without replay.
+- Show plan is the second Stream studio navigation tab, immediately after
+  Broadcast (owner correction, 2026-10-30).
+- Keep OBS screen previews and audio tuning in OBS. CoForge does not need to
+  reproduce those views or settings. Capture devices, source properties and output
+  configuration also remain in OBS, as in the existing workflow baseline below.
+- This supersedes the 2026-10-29 expansion into full OBS setup and live production,
+  including its preview and audio-management scope. The earlier three-increment
+  plan is historical; it does not require recreating every OBS control in CoForge.
+- Pause retains the existing BRB-scene behavior while broadcasting; Resume restores
+  the previous scene. Scene editing retains the existing scene/source-membership,
+  visibility and ordering operations described below.
 - Setup and navigation never broadcast. Credentials stay in secret storage; stream
   keys are write-only. Public displays keep explicit projections. Shared-source
   edits disclose their live impact. Multi-step actions retain individual outcomes;
