@@ -1,6 +1,6 @@
 # Task: Choose visible feature groups per project
 
-- Status: implemented; full shared-tree qualification failed during concurrent edits
+- Status: implemented; release qualification tracked in https://github.com/Luis85/coforge/pull/50
 - Journey in BRIEF.md: project-specific workspace configuration (2026-10-30 decision).
 
 ## Why
@@ -10,61 +10,42 @@ The owner chose presentation preferences while shared services keep running.
 
 ## Traceability
 
-- No requirement or interaction IDs are declared in design/traceability.json.
-- Acceptance: project-feature-groups.test.ts and project-feature-groups-ui.test.ts.
+No req-* or vi-* IDs are declared in design/traceability.json. Behavioural tests
+are project-feature-groups.test.ts and project-feature-groups-ui.test.ts, with
+browser and real-host journeys.
 
 ## Acceptance
 
-- Explicitly save Build & Improve, Stream, Community and Insights visibility per
-  canonical project note. Missing preferences retain all groups; an empty selection
-  is valid. Project switcher and settings remain reachable.
-- Switching/reloading restores each project's selection. Hidden Stream removes
-  the board chat, chat toggle, stream profile and live dock without losing drafts.
-- Hidden destinations resolve to an enabled destination or settings; existing
-  unsaved-setting guards remain authoritative.
-- Invalid input, stale saves and failed writes do not change committed choices.
-- Selecting groups does not stop shared services, delete data or dispatch work.
-
-## Plan
-
-1. Failing service, note and rendered UI assertions.
-2. Validated project-note preference, settings draft and shell projection.
-3. Full project, UI quality/gallery and contained Obsidian verification; self-review.
+- Save Build & Improve, Stream, Community and Insights visibility per canonical
+  project note. Missing preferences show all groups; an empty selection is valid.
+- Project settings and the switcher remain reachable. Hidden destinations resolve
+  to an available area, preserving unsaved-setting guards.
+- Switching/reloading restores the selection. Hiding Stream removes board chat,
+  its toggle, stream profile and live dock while preserving chat drafts.
+- Invalid input, stale saves and failed writes keep committed choices unchanged.
+- Workspace selection never stops shared services or active agent work.
+- Existing project IDs, unrelated frontmatter and exact Markdown body are preserved.
 
 ## Evidence
 
 - TDD red: 2 files / 4 failed for missing controls and unsupported featureGroups.
-- Feature service tests: 3 passed; rendered UI: 2 passed. Invalid input, stale
-  configuration, failed writes and an active run completing after hiding all
-  groups are covered.
-- Typecheck and scoped ESLint: exit 0. Full check typecheck, source lint, ESLint
-  and maker types passed.
-- Final current-tree focused batch: 4 files / 13 passed (19.60s). Final typecheck
-  retry encountered four concurrent schedule-music.test.ts errors: missing
-  removed adapter, enabled/music properties and an implicit parameter type.
-- npm run test:ui-quality: 8 passed (55.5s).
-- Targeted browser journey: 2 passed (39.9s), both themes, keyboard, explicit
-  save, 1280/480px widths and WCAG scans. Reviewed captures under
-  reports/project-feature-groups/; labels/help wrap without overflow.
-- npm run ui:gallery: 40 captures, failures []; representative light/wide and
-  dark/narrow captures reviewed. Impeccable detector: [].
-- npm run test:obsidian -- coforge-project-features: 1 passed (9.90s), canonical
-  note reload, unknown frontmatter and exact body preservation. Teardown complete.
-- npm run -s dev:obsidian -- --json: status passed, errors [], hostErrorCount 0,
-  pluginConsole []. Dev session ended (complete).
-- npm run check:views: 111 views documented, valid coverage, current sitemap.
-- npm run verify:project -- --timeout 3600000: failed in product tests;
-  349 files passed / 7 failed; 1362 tests passed / 3 failed / 6 skipped.
-  Music-removal files were edited/deleted concurrently during the run, yielding
-  missing test modules, INVALID_LOG_CATALOG imports and playlist/legacy schedule
-  failures. Full evidence: reports/project-feature-full-gate.json.
-- npm run verify:artifacts: exit 0; build complete, prototype embedding 1 passed;
-  generated UI-effects skipped (no visual definitions).
-- Self-review complete; .github/pull_request_template.md records real evidence.
+- Focused service/UI/privacy/navigation tests: 4 files / 13 passed.
+- Fresh isolated browser/UI-quality batch: 10 passed (1.7m), both themes,
+  narrow/wide layouts, keyboard controls and WCAG scans.
+- Fresh contained Obsidian test: 1 passed (11.72s), canonical-note reload and
+  exact human note preservation. Teardown stopped the host and removed scratch.
+- Fresh dev:obsidian -- --json --port 9236: status passed, errors [],
+  hostErrorCount 0, pluginConsole []; pinned Obsidian 1.14.4 / launcher 3.2.1.
+- check:views: 111 views documented; navigation coverage valid; sitemap current.
+- Scope review and git diff --check passed. No generated traceability, dependency
+  versions, checks, thresholds or screenshot baselines were changed.
+- Runtime candidate: 89bcea51fe6e5812b2c0e949b78fa3d77a54b097. Full local
+  verify:project and final-head GitHub check/ui/real-obsidian results are recorded
+  in PR #50 before merge. The e2e label enables complete browser and host suites.
 
-## Untested scope
+## Scope and limitations
 
-Full shared-tree qualification remains pending concurrent music removal and show
-plan work. No unrelated changes or failing tests were modified. No live external
-mutation, personal vault, billable provider, publication or push. Local Node/npm
-are 24.20.0/11.21.1 versus pins 24.21.0/11.19.1; dependencies unchanged.
+The release branch is isolated from concurrent music/OBS work in the original
+checkout. No personal vault, live Twitch/OBS mutation or billable provider was
+used. Local Node/npm are 24.20.0/11.21.1; GitHub uses pins 24.21.0/11.19.1.
+Shared runtime configuration remains authoritative; these are visibility choices.

@@ -21,26 +21,33 @@ is hidden.
 
 ## Validation
 
-- Earlier focused qualification: 13 service/UI/privacy/navigation tests passed.
-- Earlier UI quality: 8 passed; targeted browser journey: 2 passed.
-- Earlier contained Obsidian: 1 passed; dev loop status passed, errors [].
-- Isolated branch qualification is in progress; the PR stays draft until green.
+- Focused qualification: 4 files / 13 service/UI/privacy/navigation tests passed.
+- Fresh isolated UI quality and feature journey: 10 passed (1.7m).
+- Fresh isolated contained Obsidian: 1 passed (11.72s).
+- Fresh isolated dev loop: status passed, errors [], hostErrorCount 0, pluginConsole [].
+- check:views: 111 views; navigation coverage valid; sitemap current.
+- Scope review and git diff --check passed; no weakened checks or baselines.
+- Full local verify:project and exact final-head GitHub results are recorded in
+  https://github.com/Luis85/coforge/pull/50. Merge requires successful check, ui and
+  real-obsidian jobs; the e2e label enables the complete browser and host suites.
 
 ## UI evidence
 
-- Light/dark, wide/narrow feature controls inspected under reports/project-feature-groups/.
-- UI gallery: 40 captures, no failures; representative captures reviewed.
-- No screenshot baselines changed. Impeccable detector: [].
+- Light/dark, wide/narrow controls inspected under reports/project-feature-groups/.
+- UI gallery evidence is under reports/ui-gallery/ (reviewed; never a baseline).
+- Impeccable detector: [].
 
 ## Obsidian evidence
 
-- Existing contained-host test verifies saved groups after reload, unknown
-  frontmatter and exact human Markdown body preservation. Host teardown completed.
-- Fresh isolated qualification results will be recorded before marking ready.
+- Saved groups survive reload; unknown frontmatter and exact human body bytes
+  remain intact. Test teardown completed and scratch was removed.
+- Dev loop uses contained sandbox, Obsidian 1.14.4 / launcher 3.2.1; session ended.
+- Evidence: reports/obsidian/cases/coforge-project-features--saves-visibility-in-the-canonical-project-note-and-restores-it-after-reload/
+  and .obsidian-sandbox/logs/.
 
 ## Untested scope
 
-No personal vault, live Twitch/OBS mutation, billable provider invocation or
-external publication. Preferences affect the workspace only. Concurrent music
-and OBS changes in the original checkout are excluded from this branch.
-Local Node/npm are 24.20.0/11.21.1; GitHub uses pins 24.21.0/11.19.1.
+No personal vault, live Twitch/OBS mutation, billable provider or external
+publication. Preferences affect the workspace only. Concurrent music and OBS
+changes in the original checkout are excluded from this branch. Local Node/npm
+are 24.20.0/11.21.1; GitHub uses pins 24.21.0/11.19.1.
