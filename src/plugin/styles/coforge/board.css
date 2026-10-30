@@ -37,7 +37,7 @@
 
 /* Kanban */
 .cf-kanban {
-  display: grid; grid-template-columns: repeat(4, minmax(190px, 1fr)); gap: 13px; overflow-x: auto; align-items: start; min-height: 300px; padding-bottom: 20px; flex: 1;
+  display: grid; grid-template-columns: repeat(var(--cf-board-columns, 5), minmax(190px, 1fr)); gap: 13px; overflow-x: auto; align-items: start; min-height: 300px; padding-bottom: 20px; flex: 1;
 }
 .cf-kanban-column { min-width: 0; }
 .cf-column-header { display: flex; align-items: center; justify-content: space-between; height: 27px; margin-bottom: 4px; }
@@ -172,11 +172,11 @@
   .cf-board-tabs { gap: 16px; }
   .cf-board-page .cf-page-heading h1 { font-size: 25px; }
   .cf-board-page .cf-page-heading p { font-size: 11px; }
-  .cf-kanban { grid-template-columns: repeat(4, 205px); gap: 12px; }
+  .cf-kanban { grid-template-columns: repeat(var(--cf-board-columns, 5), 205px); gap: 12px; }
   .cf-board-footnote > span:nth-child(2) { display: none; }
 }
 @container plugin-shell-leaf (max-width: 1030px) {
-  .cf-kanban { grid-template-columns: repeat(4, minmax(190px, 1fr)); }
+  .cf-kanban { grid-template-columns: repeat(var(--cf-board-columns, 5), minmax(190px, 1fr)); }
   .cf-board-page { padding: 27px 24px 18px; }
   .cf-board-filters .cf-category-filter { display: flex; }
 }
@@ -185,7 +185,7 @@
   .cf-board-page .cf-page-heading { margin-bottom: 25px; }
   .cf-board-page .cf-page-heading h1 { font-size: 23px; }
   .cf-board-page .cf-page-heading p { font-size: 11px; max-width: 270px; }
-  .cf-kanban { grid-template-columns: repeat(4, 213px); }
+  .cf-kanban { grid-template-columns: repeat(var(--cf-board-columns, 5), 213px); }
   .cf-board-tabs { gap: 20px; }
   .cf-board-toolbar { gap: 6px; }
   .cf-studio .cf-board-search input, .cf-studio .cf-compact-select select { font-size: 11px; }
@@ -207,7 +207,7 @@
   .cf-board-search { max-width: none; min-width: 160px; }
   .cf-board-filters { margin-left: auto; gap: 9px; }
   .cf-studio .cf-segmented button { width: 26px; height: 25px; }
-  .cf-kanban { grid-template-columns: repeat(4, 231px); gap: 12px; }
+  .cf-kanban { grid-template-columns: repeat(var(--cf-board-columns, 5), 231px); gap: 12px; }
   .cf-studio .cf-idea-open { padding: 14px; }
   .cf-idea-author, .cf-idea-category { font-size: 11px; }
   .cf-idea-author > span:nth-child(2) { max-width: 95px; }

@@ -51,14 +51,14 @@ describe("atomic project workflow configuration", () => {
     await saveProjectWorkflow(
       store,
       projectId,
-      { ...original, steps: original.steps.slice().reverse() },
+      { ...original, steps: [original.steps[1]!, original.steps[0]!, ...original.steps.slice(2)] },
       JSON.stringify(original),
     );
     expect(
       store.snapshot().ideas.find((idea) => idea.id === "CF-107")?.workflowRun
         ?.definition,
     ).toEqual(original);
-    expect(store.snapshot().settings.workflow?.steps[0]?.id).toBe("implement");
+    expect(store.snapshot().settings.workflow?.steps[0]?.id).toBe("score");
   });
   it("publishes no event or canonical configuration when persistence fails", async () => {
     const { store, storage } = await seededStore();

@@ -8,6 +8,7 @@ import { escapeHtml, renderPublicSite } from '../../../features/coforge/domain/p
 import { createSeed } from '../../../features/coforge/domain/seed';
 import { emptyPopulation } from '../../../features/coforge/domain/population';
 import { PublicSitePublisher } from '../../../infrastructure/coforge/public-site-publisher';
+import { publicExportBoardCheck } from '../../../infrastructure/coforge/public-export-board-check';
 
 const now = new Date('2026-10-23T18:00:00Z');
 
@@ -23,6 +24,8 @@ describe('public viewer board', () => {
   it('publishes only screened board ideas and never platform IDs, chat or review data', () => {
     const state = createSeed(now.getTime());
     const board = buildPublicBoard(state, now);
+    expect(board.columns.map(column => column.id)).toEqual(['inbox', 'next', 'design', 'progress', 'done']);
+    expect(publicExportBoardCheck(board)).toEqual(board);
     const ids = board.columns.flatMap(column => column.ideas.map(idea => idea.id));
     expect(ids).not.toContain('CF-114'); // flagged
     expect(ids).not.toContain('CF-107'); // unscreened inbox
@@ -33,7 +36,7 @@ describe('public viewer board', () => {
     expect(json).not.toContain('Ignore previous instructions');
     expect(json).not.toContain('Accepted during the sample playtest');
     expect(json).not.toContain(state.chat[0]!.text);
-    expect(board.columns[1]?.ideas.find(idea => idea.id === 'CF-102')?.plan?.steps.length).toBeGreaterThan(0);
+    expect(board.columns.find(column => column.id === 'design')?.ideas.find(idea => idea.id === 'CF-102')?.plan?.steps.length).toBeGreaterThan(0);
     expect(board.leaderboards.votes[0]).toMatchObject({ name: 'luna_loop' });
   });
 

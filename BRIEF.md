@@ -11,11 +11,11 @@
 CoForge lets a streamer and their community build a game together with AI agents,
 from inside Obsidian. Viewers submit `!request` and `!vote` chat commands. Ideas get
 stable IDs and flow through injection screening, RICE prioritization, planning,
-implementation and mandatory streamer review. Votes signal demand; RICE remains an
+design, implementation and mandatory streamer review. Votes signal demand; RICE remains an
 explained estimate. Community recognition credits idea authors and accepted increments.
 
 It works when a streamer can run the complete loop (request → vote → screen → score →
-plan → build → review → recognition) in the studio view, with every idea kept as a
+plan → design → build → review → recognition) in the studio view, with every idea kept as a
 Markdown note in the vault.
 
 Source: the owner's local prototype (`PRODUCT.md`, `DESIGN.md`, `docs/ARCHITECTURE.md`
@@ -196,6 +196,18 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ### Configurable workflows (owner decisions, 2026-10-28)
 
+Kanban workflow correction (owner, 2026-10-30): add a separate AI Design step after
+Plan and before Build. It creates a saved design/specification that Build receives
+alongside the plan. Design has read-only project access; Build retains isolated
+worktree editing and mandatory streamer review. Show planned requests in a Design
+column before building/review. The standard definition used for future runs includes
+Design; saved custom definitions and captured runs retain their existing steps.
+Workflow settings provides the Design preset for explicitly updating a custom process.
+
+Follow-through (owner, 2026-10-30): perform a subagent-driven improvement and
+polishing pass, push the completed change, open a pull request and merge only
+after the required local and GitHub checks are green.
+
 Workflow increment (owner, 2026-10-29): AI workflow steps can select an optional
 reusable Answer/Output Template. Templates belong to one project and are canonical
 Markdown files, with create, read, edit and delete controls inside the plugin.
@@ -212,7 +224,7 @@ required local and CI checks are green. Preserve explicit saves, draft/conflict
 recovery, project scope, host permissions and final human review.
 
 - Give agent workflows a private Workflow settings subpage under Agent workflow, alongside Workflow runs and Herdr workspaces (owner revision, 2026-10-28). Agent workflow belongs to Project settings (owner revision, 2026-10-29); configuration and execution monitoring remain distinct local tasks.
-- Each project owns its workflow. New projects start with the standard Screen/Score/Plan/Build process.
+- Each project owns its workflow. New projects start with the standard Screen/Score/Plan/Design/Build process.
 - The streamer can add, rename, duplicate, remove, replace and reorder all steps, including core steps.
   Support AI steps and manual approval/checklist steps. Each AI step has a prompt, provider/agent/model,
   validated output contract and explicit access profile. Step IDs stay stable through edits and reordering.

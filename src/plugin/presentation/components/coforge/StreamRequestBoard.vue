@@ -32,8 +32,10 @@ defineProps<{ board: StreamSurfaceSnapshot["board"] }>();
               : column.id === "progress"
                 ? "The next build starts here."
                 : column.id === "next"
-                  ? "Scored ideas and saved plans appear here."
-                  : "Requests appear after screening."
+                  ? "Scored ideas waiting for planning appear here."
+                  : column.id === "design"
+                    ? "Planned requests prepare their specification here."
+                    : "Requests appear after screening."
           }}
         </p>
         <article

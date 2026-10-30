@@ -4,13 +4,15 @@ import { agentModelCheck, stageAgent } from './stage-agents';
 import { resolvedStagePrompts } from './stage-prompts';
 import { STAGES, STAGE_LABELS, type Provider, type Settings } from './types';
 
-export const WORKFLOW_OUTPUTS = ['markdown', 'screening', 'rice', 'plan', 'codechange'] as const;
+export const WORKFLOW_OUTPUTS = ['markdown', 'screening', 'rice', 'plan', 'design', 'codechange'] as const;
 export const WORKFLOW_ACCESS = ['none', 'readproject', 'editworktree'] as const;
 export type WorkflowOutput = typeof WORKFLOW_OUTPUTS[number];
 export type WorkflowAccess = typeof WORKFLOW_ACCESS[number];
 interface StepBase { id: string; name: string; instructions: string }
 export interface AiWorkflowStep extends StepBase {
   outputTemplateId?: string;
+  /** Include other preceding results without requiring optional host captures to exist. */
+  includePreviousResults?: boolean;
   kind: 'ai'; output: WorkflowOutput; access: WorkflowAccess; provider: Provider; model: string;
   herdrAgent?: 'claude'; automatic: boolean; minVotes?: number; inputs?: WorkflowOutput[];
 }
@@ -28,13 +30,14 @@ export const workflowIdCheck = text({ min: 1, max: 80, pattern: /^[a-zA-Z0-9][a-
 const base = { id: workflowIdCheck, name: text({ trim: true, min: 1, max: 100 }), instructions: text({ max: 8000 }) };
 const ai = shape({ ...base, kind: oneOf(['ai'] as const), output: oneOf(WORKFLOW_OUTPUTS), access: oneOf(WORKFLOW_ACCESS),
   outputTemplateId: optional(workflowIdCheck),
+  includePreviousResults: optional(boolean),
   provider: oneOf(['demo', 'claude', 'herdr'] as const), model: agentModelCheck, herdrAgent: optional(oneOf(['claude'] as const)),
-  automatic: boolean, minVotes: optional(number({ integer: true, min: 0, max: 10000 })), inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: 5 })),
+  automatic: boolean, minVotes: optional(number({ integer: true, min: 0, max: 10000 })), inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: WORKFLOW_OUTPUTS.length })),
 }, { strict: true });
 const approval = shape({ ...base, kind: oneOf(['approval'] as const) }, { strict: true });
 const checklist = shape({ ...base, kind: oneOf(['checklist'] as const), items: list(shape({ id: workflowIdCheck, label: text({ trim: true, min: 1, max: 500 }), required: boolean }, { strict: true }), { min: 1, max: 40 }) }, { strict: true });
-const nudge = shape({ ...base, kind: oneOf(['nudge'] as const), teamId: workflowIdCheck, agentId: workflowIdCheck, inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: 5 })), automatic: optional(boolean) }, { strict: true });
-const council = shape({ ...base, kind: oneOf(['council'] as const), councilId: workflowIdCheck, contextMode: optional(oneOf(['all', 'selected', 'none'] as const)), inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: 5 })), automatic: boolean }, { strict: true });
+const nudge = shape({ ...base, kind: oneOf(['nudge'] as const), teamId: workflowIdCheck, agentId: workflowIdCheck, inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: WORKFLOW_OUTPUTS.length })), automatic: optional(boolean) }, { strict: true });
+const council = shape({ ...base, kind: oneOf(['council'] as const), councilId: workflowIdCheck, contextMode: optional(oneOf(['all', 'selected', 'none'] as const)), inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: WORKFLOW_OUTPUTS.length })), automatic: boolean }, { strict: true });
 export function workflowStepCheck(value: unknown): WorkflowStep {
   const kind = record(value).kind;
   const step = kind === 'ai' ? ai(value) : kind === 'approval' ? approval(value) : kind === 'nudge' ? nudge(value) : kind === 'council' ? council(value) : checklist(value);
@@ -68,12 +71,29 @@ export function parseWorkflowDefinition(json: string): WorkflowDefinition {
   try { return workflowDefinitionCheck(JSON.parse(json)); } catch { throw new Error('The workflow JSON is invalid or uses unsupported steps, permissions or limits.'); }
 }
 export const serializeWorkflowDefinition = (value: WorkflowDefinition): string => JSON.stringify(workflowDefinitionCheck(value), null, 2);
+/** Design is a retained document, with no permission to edit the game repository. */
+export function designWorkflowStep(settings: Settings): AiWorkflowStep {
+  return { id: 'design', name: 'Design', kind: 'ai', output: 'design', access: 'readproject',
+    ...stageAgent(settings, 'plan'), automatic: settings.automation.plan, minVotes: 0, inputs: ['plan'],
+    instructions: 'Create a concrete design/specification for the captured request using the preceding implementation plan and the existing project. '
+      + 'Describe intended behavior and user interactions where relevant, architecture and affected components, data contracts and compatibility, '
+      + 'edge cases and failure/recovery behavior, and acceptance scenarios for Build to verify. Explain decisions, risks and unresolved questions; '
+      + 'do not invent resolved product decisions. Keep the increment within the plan. Return the specification as Markdown for the Build step. '
+      + 'Inspect project files read-only; do not implement changes.' };
+}
 export function defaultWorkflowDefinition(settings: Settings): WorkflowDefinition {
   const outputs: Record<typeof STAGES[number], WorkflowOutput> = { screen: 'screening', score: 'rice', plan: 'plan', implement: 'codechange' };
   const prompts = resolvedStagePrompts(settings.stagePrompts);
   const steps: WorkflowStep[] = STAGES.map(stage => ({ id: stage, name: STAGE_LABELS[stage], instructions: prompts[stage], kind: 'ai',
     output: outputs[stage], access: stage === 'implement' ? 'editworktree' : stage === 'plan' ? 'readproject' : 'none',
     ...stageAgent(settings, stage), automatic: settings.automation[stage], minVotes: stage === 'plan' ? settings.minVotes : 0 }));
+  steps.splice(3, 0, designWorkflowStep(settings));
+  const build = steps.find(step => step.id === 'implement');
+  if (build?.kind === 'ai') {
+    build.inputs = ['plan', 'design'];
+    if (!settings.stagePrompts?.implement)
+      build.instructions += '\n\nImplement the captured plan and Design specification supplied as preceding artifacts. Verify their acceptance scenarios and report unresolved gaps for human review.';
+  }
   const value = { format: 'coforge-workflow/v1' as const, name: 'Community development', limits: { timeoutSeconds: settings.timeoutSeconds,
     maxTurns: settings.maxTurns, maxBudgetUsd: settings.maxBudgetUsd, intervalSeconds: settings.intervalSeconds }, steps };
   return workflowDefinitionCheck({ ...value, revision: `legacy-${contextEventId(JSON.stringify(value))}` });

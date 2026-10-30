@@ -13,7 +13,7 @@ export function configuredIdea(state: InternalState, id: string): Idea {
   if (findProject(state, ideaProjectId(idea)).unavailable) throw new Error('Restore this project note before continuing.');
   return idea;
 }
-export function configuredInputs(run: WorkflowRun, step: Pick<AiWorkflowStep, 'inputs'>): WorkflowArtifact[] {
+export function configuredInputs(run: WorkflowRun, step: Pick<AiWorkflowStep, 'inputs' | 'includePreviousResults'>): WorkflowArtifact[] {
   const invalid = new Set(run.invalidatedArtifactIds);
   const preceding = run.artifacts.filter(artifact => !invalid.has(artifact.id) && artifact.proposalRevision === run.proposalRevision &&
     run.definition.steps.findIndex(item => item.id === artifact.stepId) < run.cursor);
@@ -22,7 +22,8 @@ export function configuredInputs(run: WorkflowRun, step: Pick<AiWorkflowStep, 'i
     if (artifact.output === 'codechange' && run.workspaceId && artifact.increment?.simulated) continue;
     if (artifact.output !== 'codechange' || artifact.hostSnapshot || !latest.get('codechange')?.hostSnapshot) latest.set(artifact.output, artifact);
   }
-  const inputs = step.inputs?.length ? step.inputs.flatMap(role => { const artifact = latest.get(role); return artifact ? [artifact] : []; }) : [...latest.values()];
+  const inputs = step.includePreviousResults || !step.inputs?.length ? [...latest.values()]
+    : step.inputs.flatMap(role => { const artifact = latest.get(role); return artifact ? [artifact] : []; });
   for (const role of step.inputs ?? []) if (!inputs.some(artifact => artifact.output === role)) throw new Error(`The step requires a valid preceding ${role} artifact.`);
   return inputs.map(workflowArtifactCheck);
 }
@@ -94,7 +95,7 @@ export function applyConfiguredOutput(idea: Idea, run: WorkflowRun, snapshot: Co
   if (snapshot.step.access === 'editworktree' && provider !== 'demo' && !captured && !result.increment)
     throw new Error('A verified cumulative workspace capture is required before this editing step can complete.');
   let payload: ArtifactPayload;
-  if (output === 'markdown') payload = { output, markdown: result.markdown };
+  if (output === 'markdown' || output === 'design') payload = { output, markdown: result.markdown };
   else if (output === 'screening') payload = { output, screening: result.screening ? { ...result.screening, provider } : undefined };
   else if (output === 'rice') payload = { output, rice: result.rice ? { ...result.rice, score: riceValue(result.rice) } : undefined };
   else if (output === 'plan') payload = { output, plan: result.plan };

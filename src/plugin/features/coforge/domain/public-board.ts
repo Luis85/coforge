@@ -9,7 +9,7 @@ import { projectIsPublic, publicRecognitionState } from './project-publicity';
  * screened ideas, display names, scores, plans and recognition: no platform user IDs, chat log,
  * run logs, review notes, worktree paths, settings or flagged/archived/unscreened requests.
  */
-export type PublicColumnId = 'inbox' | 'next' | 'progress' | 'done';
+export type PublicColumnId = 'inbox' | 'next' | 'design' | 'progress' | 'done';
 export interface PublicIdea {
   contexts?: Array<{ author: string; text: string }>;
   id: string; title: string; description: string; category: Category; status: string; column: PublicColumnId;
@@ -29,7 +29,8 @@ export interface PublicBoard {
 
 const COLUMNS: Array<{ id: PublicColumnId; title: string; hint: string; statuses: IdeaStatus[] }> = [
   { id: 'inbox', title: 'Inbox', hint: 'Screened requests waiting for a score', statuses: ['screened'] },
-  { id: 'next', title: 'Up next', hint: 'Ranked and planned', statuses: ['ranked', 'planned'] },
+  { id: 'next', title: 'Up next', hint: 'Ranked for planning', statuses: ['ranked'] },
+  { id: 'design', title: 'Design', hint: 'Specification before Build', statuses: ['planned'] },
   { id: 'progress', title: 'In progress', hint: 'Being built or reviewed', statuses: ['building', 'review'] },
   { id: 'done', title: 'Accepted', hint: 'Accepted by the streamer', statuses: ['shipped'] },
 ];

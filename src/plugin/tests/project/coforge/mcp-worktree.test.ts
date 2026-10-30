@@ -36,10 +36,12 @@ it('builds through real bounded file tools in a separate Git worktree and retain
     const tools = new McpWorkflowTools(studio, runner, new McpStepFiles());
     const ideaId = studio.state().ideas.find(idea => idea.status === 'inbox')!.id;
     const projectId = studio.state().activeProjectId!;
+    let readOnlySteps = 0;
     for (const output of [
       { verdict: 'clear', reason: 'A game feature', signals: [] },
       { reach: 10, impact: 1, confidence: 1, effort: 1, rationale: 'Small' },
       { summary: 'Add lantern', steps: ['Enable lantern'], acceptanceCriteria: ['Lantern is enabled'], risks: [] },
+      { markdown: '# Lantern specification\n\nEnable the existing lantern without changing the save format.' },
       { summary: 'Enabled lantern' },
     ]) {
       const started = record(await tools.call(projectId, 'coforge_begin_step', { ideaId }));
@@ -47,6 +49,7 @@ it('builds through real bounded file tools in a separate Git worktree and retain
       await expect.poll(() => studio.state().jobs.find(job => job.id === taskId)?.error ?? runner.tasks(projectId).some(task => task.taskId === taskId), { timeout: 10000 }).toBe(true);
       const context = record(await tools.call(projectId, 'coforge_step_context', { taskId }));
       if (context.access === 'readproject') {
+        readOnlySteps++;
         expect(await tools.call(projectId, 'coforge_read_file', { taskId, path: 'game.ts' })).toMatchObject({ content: 'export const lantern = false;\n' });
         await expect(tools.call(projectId, 'coforge_write_file', { taskId, path: 'game.ts', content: 'unsafe', expectedContent: null })).rejects.toThrow();
       }
@@ -56,6 +59,7 @@ it('builds through real bounded file tools in a separate Git worktree and retain
       await tools.call(projectId, 'coforge_submit_result', { taskId, output });
     }
     const idea = studio.state().ideas.find(idea => idea.id === ideaId)!;
+    expect(readOnlySteps).toBe(2);
     expect(idea).toMatchObject({ status: 'review', increment: { simulated: false, files: [{ path: 'game.ts', additions: 1, deletions: 1 }] } });
     expect(idea.increment?.diff).toContain('+export const lantern = true;');
     expect(await readFile(join(directory, 'game.ts'), 'utf8')).toBe('export const lantern = false;\n');

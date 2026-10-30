@@ -29,6 +29,16 @@ export function createDemoRunner(timers: Timers, delays: readonly [number, numbe
     await pause(timers, delays[1], signal);
     const now = new Date().toISOString();
     const output = workflow?.step.output ?? (stage === 'screen' ? 'screening' : stage === 'score' ? 'rice' : stage === 'plan' ? 'plan' : 'codechange');
+    if (output === 'design') {
+      const plan = workflow?.inputArtifacts.find(artifact => artifact.output === 'plan')?.plan;
+      return { markdown: `## Simulated Design: ${idea.title}\n\nDemonstration only: no model was called. This simulation did not inspect the repository, modify files or execute tests.\n\n`
+        + `### Intended behavior\n\n${plan?.summary ?? `Prepare a small specification for ${idea.title}.`}\n\n`
+        + `### Components and data\n\nUse the captured plan as the starting point: ${plan?.steps[0] ?? 'Identify the smallest affected interaction.'}\n\n`
+        + 'Reuse existing interaction and persistence contracts. Exact component names and data changes require repository inspection with a real provider.\n\n'
+        + `### Acceptance scenario\n\n${plan?.acceptanceCriteria[0] ?? 'The intended interaction is reachable during ordinary play.'}\n\n`
+        + '### Failure and recovery\n\nPreserve existing progress when the interaction is unavailable or interrupted. Identify the actual failure boundaries before implementation.\n\n'
+        + '### Open questions\n\nConfirm the affected components, save compatibility and edge cases against the repository. This illustrative specification is not evidence of implementation or verification.' };
+    }
     if (output === 'markdown') return { markdown: `## Simulated ${workflow?.step.name ?? 'analysis'}\n\nIllustrative notes for ${idea.id}: ${idea.title}. No model was called and no game files were modified.` };
     if (output === 'screening') {
       const signals = heuristicSignals(`${idea.title}\n${idea.description}\n${idea.requestObject ? JSON.stringify(idea.requestObject) : ''}`);

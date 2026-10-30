@@ -8,6 +8,8 @@ import {
   parseWorkflowDefinition,
   serializeWorkflowDefinition,
   workflowDefinitionCheck,
+  workflowStepCheck,
+  WORKFLOW_OUTPUTS,
 } from "../../../features/coforge/domain/configured-workflow";
 import {
   workflowArtifactCheck,
@@ -16,6 +18,20 @@ import {
 } from "../../../features/coforge/domain/configured-workflow-run";
 
 describe("portable ordered workflow contracts", () => {
+  it('accepts all current input roles for AI, nudge and Council steps without changing legacy Markdown contracts', () => {
+    const definition = defaultWorkflowDefinition(defaultSettings());
+    const base = { id: 'consumer', name: 'Consume earlier results', instructions: 'Inspect earlier results', inputs: [...WORKFLOW_OUTPUTS] };
+    const consumer = { ...base, kind: 'ai', output: 'markdown', access: 'none', provider: 'demo', model: 'sonnet', automatic: false };
+    expect(workflowStepCheck(consumer).kind).toBe('ai');
+    expect(workflowStepCheck({ ...base, kind: 'nudge', teamId: 'team', agentId: 'agent' }).kind).toBe('nudge');
+    expect(workflowStepCheck({ ...base, kind: 'council', councilId: 'council', automatic: false }).kind).toBe('council');
+    const legacy = { ...definition, revision: 'saved-legacy', steps: [{ ...consumer, inputs: [] }] };
+    expect(parseWorkflowDefinition(JSON.stringify(legacy))).toMatchObject({ revision: 'saved-legacy', steps: [{ output: 'markdown', inputs: [] }] });
+    const value = { id: 'old-artifact', runId: 'run', stepId: 'old-step', attemptId: 'old-attempt', proposalRevision: 'proposal', output: 'markdown' as const, markdown: '# Older report', createdAt: '2026-10-28T10:00:00Z' };
+    expect(workflowArtifactCheck({ ...value, contentHash: workflowArtifactHash(value) }).output).toBe('markdown');
+    const blank = { ...value, output: 'design' as const, markdown: ' \n\t ' };
+    expect(() => workflowArtifactCheck({ ...blank, contentHash: workflowArtifactHash(blank) })).toThrow('contain Markdown text');
+  });
   it("materializes legacy choices without modifying settings and permits replacement/repeated arbitrary roles", () => {
     const settings = defaultSettings();
     const before = structuredClone(settings);
@@ -24,6 +40,7 @@ describe("portable ordered workflow contracts", () => {
       "screen",
       "score",
       "plan",
+      "design",
       "implement",
     ]);
     expect(defaultWorkflowDefinition(settings)).toEqual(legacy);

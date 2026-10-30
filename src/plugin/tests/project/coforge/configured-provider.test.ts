@@ -44,7 +44,7 @@ import {
 import type { StageInput } from "../../../features/coforge/application/ports";
 import type { WorkflowWorkspaceRecord } from "../../../features/coforge/application/workflow-workspace-ports";
 const folders: string[] = [];
-it("uses the same bounded Markdown contract in provider schema and result interpretation", () => {
+it.each(['markdown', 'design'] as const)("uses the same bounded %s Markdown payload in provider schema and result interpretation", output => {
   const input: StageInput = {
     stage: "implement",
     idea: createSeed().ideas[0]!,
@@ -61,7 +61,7 @@ it("uses the same bounded Markdown contract in provider schema and result interp
         name: "Report",
         kind: "ai",
         instructions: "Explain",
-        output: "markdown",
+        output,
         access: "none",
         provider: "claude",
         model: "test-model",
@@ -86,6 +86,29 @@ it("uses the same bounded Markdown contract in provider schema and result interp
       markdown: "x".repeat(WORKFLOW_MARKDOWN_LIMIT + 1),
     }),
   ).toThrow();
+  if (output === 'design') {
+    expect(JSON.parse(schema).properties.markdown.pattern).toBe('\\S');
+    expect(() => executionResult(input, { markdown: ' \n\t ' })).toThrow();
+  } else expect(() => executionResult(input, { markdown: ' \n\t ' })).toThrow();
+});
+
+it('runs a Design specification through the native read-only profile and validates its Herdr transport payload', async () => {
+  const { input, workspaces, project } = await fixture();
+  const workflow = input.workflow!;
+  const designInput: StageInput = { ...input, stage: 'plan', workflow: { ...workflow, step: { ...workflow.step, id: 'design', name: 'Design', output: 'design', access: 'readproject' } } };
+  transport.run.mockImplementationOnce(async (args, options) => {
+    expect(args[args.indexOf('--tools') + 1]).toBe('Read,Glob,Grep');
+    expect(JSON.parse(args[args.indexOf('--json-schema') + 1]).required).toEqual(['markdown']);
+    expect(await readFile(join(options.cwd, 'game.txt'), 'utf8')).toBe('original\n');
+    return envelope({ markdown: '# Native Design\n\nRetain the existing save format.' });
+  });
+  const result = await runClaudeStage(designInput, workspaces);
+  expect(result.markdown).toContain('Retain the existing save format.');
+  expect(result.increment).toBeUndefined();
+  expect(await readFile(join(project, 'game.txt'), 'utf8')).toBe('original\n');
+  const expected = { id: 'design-transport', jobId: 'design-job', ideaId: input.idea.id, projectId: 'CFP-001', stage: designInput.stage, fingerprint: 'proposal-one', nonce: 'design-nonce', workflow: designInput.workflow };
+  expect(herdrResultOutput({ ...herdrResultEnvelope(expected), output: { markdown: '# Herdr Design' } }, expected)).toEqual({ markdown: '# Herdr Design' });
+  expect(() => herdrResultOutput({ ...herdrResultEnvelope(expected), output: { summary: 'Wrong contract' } }, expected)).toThrow();
 });
 afterEach(async () => {
   transport.run.mockReset();

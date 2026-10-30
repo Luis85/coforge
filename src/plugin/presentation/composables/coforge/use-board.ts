@@ -13,7 +13,8 @@ interface ColumnDefinition { title: string; hint: string; statuses: readonly Ide
 
 const COLUMNS: readonly ColumnDefinition[] = [
   { title: 'Inbox', hint: 'Listen & screen', statuses: ['inbox', 'screened', 'flagged'], icon: 'inbox', tone: 'inbox' },
-  { title: 'Up next', hint: 'Ranked & planned', statuses: ['ranked', 'planned'], icon: 'sparkles', tone: 'next' },
+  { title: 'Up next', hint: 'Ranked for planning', statuses: ['ranked'], icon: 'sparkles', tone: 'next' },
+  { title: 'Design', hint: 'Specification before Build', statuses: ['planned'], icon: 'pencil-ruler', tone: 'design' },
   { title: 'In progress', hint: 'Build & review', statuses: ['building', 'review'], icon: 'circle-dot', tone: 'progress' },
   { title: 'Accepted', hint: 'Community contributions', statuses: ['shipped'], icon: 'check-check', tone: 'done' },
 ];
