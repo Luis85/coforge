@@ -513,23 +513,32 @@ recovery, project scope, host permissions and final human review.
 
 ## Streamer workflow increment (2026-10-27)
 
-### OBS overhaul exploration (owner direction, 2026-10-29)
+### OBS integration scope (owner revision, 2026-10-30)
 
-- Explore a full redesign and expansion of Stream studio's OBS integration so the
-  streamer can operate the stream entirely from CoForge views during a broadcast.
-- Cover both full OBS setup and live production. The initial target is one PC
-  with a fresh, blank OBS installation.
-- Owner authorization (2026-10-29): implement all three proposed increments end to
-  end with subagents, complete an improvement and polishing pass, open a pull
-  request and merge after the required checks are green.
-- Increment 1 covers fresh studio creation, supported capture/audio/output setup,
-  rehearsal and essential live controls. Increment 2 covers visual source/layout
-  editing, audio management and public displays. Increment 3 covers show plans,
-  reusable manual cues, explicit opt-in event automation and recording/replay review.
-- OBS remains the media engine. One-time WebSocket bootstrap, device permissions
-  and unsupported vendor dialogs may require OBS or OS interaction during setup.
-  Source and output editors are capability-checked; sampled screenshots are labelled
-  as such and do not claim smooth audiovisual monitoring.
+- The main OBS integration is stream operation and scene management: start,
+  pause/resume and stop the stream; switch scenes; create and edit scenes.
+- Show plans remain in scope (owner confirmation, 2026-10-30). Improve and polish
+  planning and running the show equally, using subagents. Make segment order,
+  durations, notes and actions easy to review, with clear saved/draft boundaries
+  and explicit cue execution. Preserve private plans, durable outcomes, paused
+  event automation after reload and recovery without replay.
+- Show plan is the second Stream studio navigation tab, immediately after
+  Broadcast (owner correction, 2026-10-30).
+- Keep OBS screen previews and audio tuning in OBS. CoForge does not need to
+  reproduce those views or settings. Capture devices, source properties and output
+  configuration also remain in OBS, as in the existing workflow baseline below.
+- Remove the obsolete preview monitors, audio mixer/settings, source/layout
+  property editors and full-studio/output setup controls (owner follow-through,
+  2026-10-30). Retain connection/readiness setup, stream controls, scene management,
+  Show plans, public displays and history. Stop background screenshot/meter polling
+  for removed views; retain the observed state needed by supported cues. Push this
+  change, open a pull request, fix required checks and merge only when green.
+- This supersedes the 2026-10-29 expansion into full OBS setup and live production,
+  including its preview and audio-management scope. The earlier three-increment
+  plan is historical; it does not require recreating every OBS control in CoForge.
+- Pause retains the existing BRB-scene behavior while broadcasting; Resume restores
+  the previous scene. Scene editing retains the existing scene/source-membership,
+  visibility and ordering operations described below.
 - Setup and navigation never broadcast. Credentials stay in secret storage; stream
   keys are write-only. Public displays keep explicit projections. Shared-source
   edits disclose their live impact. Multi-step actions retain individual outcomes;

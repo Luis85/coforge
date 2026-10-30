@@ -2,50 +2,28 @@
 
 CoForge opens on Stream studio. Install OBS Studio 28 or later, configure its broadcast destination and output,
 then enable **Tools → WebSocket Server Settings** once. OBS WebSocket v5 normally uses port 4455.
-CoForge does not install OBS or read stream keys. The expanded studio can write
-a reviewed destination using a secret-store reference; it never fetches an
-existing key. Initial WebSocket enablement and OS/vendor permissions remain
-one-time bootstrap steps.
+CoForge does not install OBS or read stream keys. Initial WebSocket enablement,
+output/device configuration and OS/vendor permissions are completed in OBS.
 
-## Expanded studio workflow
+## Stream and show operation
 
-After connecting, open Setup → Create my studio. Choose a scene-name prefix and
-supported source/device settings, preview the exact changes and explicitly apply
-them. Setup creates or reuses Starting soon, Development, Council, Playtest, BRB
-and Ending scenes; compatible sources can be shared between selected scenes.
-Existing unrelated OBS content is preserved. Partial setup retains completed and
-pending operations for inspection; acknowledging recovery never repeats a write.
-Development and BRB assignments are saved only after their scenes are available.
+Broadcast contains explicit prepare, go-live, BRB/resume and stop controls with
+observed audience/health. Show plan is the second tab, followed by connection and
+readiness Setup, Scenes, Music, Public displays and History.
 
-Supported output controls cover video dimensions/frame rate, recording directory,
-a finite Simple Output quality preset and replay-buffer defaults. Profile settings
-can require restarting OBS before output handlers adopt them; the UI says when a
-saved preset requires reload. Destination writes are accepted but unverified: review
-the intended service and rehearse before going live. Setup never broadcasts.
-
-Broadcast is the live desk: program/preview screenshots, Studio Mode and transitions,
-compact audio controls and independent recording/replay/virtual-camera controls.
-Screenshots are sampled images with observation times, not smooth audiovisual
-monitoring or evidence that Twitch viewers receive the stream. Refresh controls
-after reconnecting; old observations never establish current readiness.
-
-Sources & layouts creates supported sources and edits supported properties,
-transforms, crop, locks and filters. Scenes retains membership, visibility and order.
-Source settings/audio/filters affect every scene that shares that input. Preview is
-not an isolated draft for shared sources. Unsupported vendor properties remain in
-OBS or the device's OS dialog rather than appearing as editable fake controls.
-
-Audio provides mute/volume, monitoring, sync and track routing where supported.
-Sync offsets use milliseconds, including the OBS-supported -950 to 20,000 ms
-range. Broadcast and Audio refresh meter samples every five seconds; disconnected
-meters are unavailable and unsaved advanced-audio edits survive a refresh.
-Meters require current OBS meter events; missing measurements are unavailable.
-OBS monitoring routes audio on the OBS machine. It does not stream sound into a
-CoForge preview. The Music page still runs local Obsidian playback and needs one
-deliberate OBS capture route to avoid silence or duplicate audio.
+Scenes creates, renames, duplicates, deletes and switches scenes, and manages
+existing source membership, visibility and order. Selecting an editor does not
+switch output. Shared source settings, devices, layouts, filters, audio tuning,
+program/preview monitoring and output configuration remain in OBS. Removed
+panels no longer fetch sampled screenshots or audio meter samples. Retained
+cue/public-display tasks inspect current identities without broadcasting.
 
 Show plan saves private named segments with finite explicit production actions,
-notes and durations. Saving/navigation never runs a cue. Run a selected cue to
+notes and durations. The ordered rundown shows durations and action counts; select a
+segment to review its notes/actions beside explicit Run controls. Choosing another
+plan in the load picker never changes the loaded execution/removal target until
+Load is pressed. Dirty or externally changed definitions must be saved/discarded
+or reloaded before execution. Saving/navigation never runs a cue. Run a selected cue to
 capture its definition, persist each pending step and retain confirmed/failed/
 uncertain outcomes. Local moment markers are not Twitch markers, recording
 chapters or replay files. Acknowledging a partial cue keeps completed effects
@@ -58,7 +36,7 @@ start broadcasting. Public displays continue to use only their approved public
 projections; private control panels and financial/agent data are not capture content.
 
 Public displays also includes a text-overlay composer. Create a supported OBS Text
-source, load public choices, select its exact target and public project, and preview
+source in OBS, load public choices, select its exact target and public project, and preview
 the outgoing text. Explicitly confirm the captured content before publishing and
 saving its mapping. Approved mappings can be refreshed manually or used by a show
 cue. Supported content includes a screened public request, accepted work, community

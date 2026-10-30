@@ -25,8 +25,8 @@ const model = useObsOverlays();
       </button>
     </header>
     <p v-if="!model.supported || !model.connected">
-      Connect OBS and create a supported Text source in Sources &amp; layouts.
-      Then load public choices here.
+      Connect OBS and create a supported Text source in OBS. Then load public
+      choices here.
     </p>
     <p v-if="model.ui.error" class="cf-inline-error" role="alert">
       {{ model.ui.error }}

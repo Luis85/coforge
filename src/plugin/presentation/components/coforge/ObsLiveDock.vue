@@ -42,24 +42,24 @@ const model = useBroadcast(false);
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
-        aria-label="Open the OBS audio mixer"
+        aria-label="Open the show plan"
         @click="
           model.store.view = 'broadcast';
-          model.store.broadcastTool = 'audio';
+          model.store.broadcastTool = 'show';
         "
       >
-        Audio
+        Show plan
       </button>
       <button
         type="button"
         class="cf-btn cf-btn-secondary"
-        aria-label="Open the live desk"
+        aria-label="Open broadcast controls"
         @click="
           model.store.view = 'broadcast';
           model.store.broadcastTool = 'live';
         "
       >
-        Live desk
+        Broadcast
       </button>
     </div>
     <p v-if="model.error" role="alert">{{ model.error }}</p>

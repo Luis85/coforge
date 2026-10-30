@@ -8,7 +8,7 @@ shown explicitly. Bitrate uses successive OBS byte counters; dropped-output perc
 The private stream archive still samples once per minute. Chat counts cover messages CoForge received,
 including commands; they cannot reconstruct messages missed while disconnected.
 
-Expand **OBS scenes and sources** after connecting. Selecting a scene opens its editor without switching
+Open **Scenes** after connecting. Selecting a scene opens its editor without switching
 program output. Create, rename, duplicate, delete and explicitly switch scenes; show/hide, reorder, add
 existing sources and remove memberships. Groups remain whole items; edit capture devices, group contents,
 audio properties and detailed source properties in OBS. Capabilities come from the connected server.

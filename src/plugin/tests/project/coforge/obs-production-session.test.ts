@@ -2,11 +2,7 @@
 import { defineComponent, h } from "vue";
 import { mount, flushPromises } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
-import {
-  setInterval as createInterval,
-  clearInterval as releaseInterval,
-} from "node:timers";
-import ObsAudioMixer from "../../../presentation/components/coforge/ObsAudioMixer.vue";
+
 import { useObsProductionSession } from "../../../presentation/composables/coforge/use-obs-production";
 import { useObsProductionUi } from "../../../presentation/stores/obs-production-ui";
 import {
@@ -20,7 +16,7 @@ import type { ObsProductionActions } from "../../../features/coforge/application
 import { ObsProductionServer } from "../../support/coforge/obs-production-server";
 import { workflowUiFixture } from "./workflow-ui-fixture";
 
-it("refreshes sampled audio levels on the Audio page without fetching video, and hides disconnected meter values", async () => {
+it("refreshes retained show and overlay data without requesting frames or sending OBS mutations", async () => {
   const fixture = await workflowUiFixture();
   const server = new ObsProductionServer();
   const adapter = new ObsProductionAdapter(
@@ -42,7 +38,7 @@ it("refreshes sampled audio levels on the Audio page without fetching video, and
   const ui = useObsProductionUi(fixture.pinia);
   ui.snapshot = initial;
   fixture.store.view = "broadcast";
-  fixture.store.broadcastTool = "audio";
+  fixture.store.broadcastTool = "show";
   await fixture.studio.store.updateRuntime({
     obs: {
       connection: "connected",
@@ -55,10 +51,13 @@ it("refreshes sampled audio levels on the Audio page without fetching video, and
   });
   const inspect = vi.fn(() => adapter.inspect());
   const frame = vi.fn((id: string) => adapter.frame(id));
+  const execute = vi.fn((input: unknown) =>
+    adapter.execute(obsProductionActionCheck(input)),
+  );
   const production: ObsProductionActions = {
     inspect,
     frame,
-    execute: (input) => adapter.execute(obsProductionActionCheck(input)),
+    execute,
     properties: (id, property) => adapter.properties(id, property),
     transform: (id, item) => adapter.transform(id, item),
     filters: (id) => adapter.filters(id),
@@ -83,20 +82,12 @@ it("refreshes sampled audio levels on the Audio page without fetching video, and
       }),
     },
   };
-  let tick = () => {};
-  const handle = createInterval(() => {}, 60000);
-  handle.unref();
-  const timer = vi
-    .spyOn(window, "setInterval")
-    .mockImplementation((handler) => {
-      if (typeof handler === "function") tick = () => handler();
-      return handle;
-    });
-  const clear = vi.spyOn(window, "clearInterval").mockImplementation(() => {});
+  const timer = vi.spyOn(window, "setInterval");
+  let refresh = async () => false;
   const Surface = defineComponent({
     setup() {
-      useObsProductionSession();
-      return () => h(ObsAudioMixer);
+      refresh = useObsProductionSession().refresh;
+      return () => h("div");
     },
   });
   const wrapper = mount(Surface, {
@@ -107,13 +98,33 @@ it("refreshes sampled audio levels on the Audio page without fetching video, and
   });
   try {
     await flushPromises();
-    expect(wrapper.text()).toContain("-6.0 dBFS");
+    expect(inspect).toHaveBeenCalledTimes(1);
+    expect(ui.snapshot?.inputs[0]?.audio.peakDb).toBeCloseTo(-6.02);
     observePeak(0.25);
-    tick();
+    fixture.store.broadcastTool = "live";
     await flushPromises();
-    expect(wrapper.text()).toContain("-12.0 dBFS");
-    expect(inspect).toHaveBeenCalled();
-    expect(frame).not.toHaveBeenCalled();
+    expect(inspect).toHaveBeenCalledTimes(1);
+    expect(timer).not.toHaveBeenCalled();
+    fixture.store.broadcastTool = "show";
+    await flushPromises();
+    expect(inspect).toHaveBeenCalledTimes(2);
+    expect(ui.snapshot?.inputs[0]?.audio.peakDb).toBeCloseTo(-12.04);
+    await refresh();
+    expect(inspect).toHaveBeenCalledTimes(3);
+    for (const page of ["displays", "history", "setup"] as const) {
+      fixture.store.broadcastTool = page;
+      await flushPromises();
+    }
+    expect(inspect).toHaveBeenCalledTimes(6);
+    await fixture.studio.store.transaction((state) => {
+      state.settings.projectName = "Unrelated project edit";
+    });
+    await flushPromises();
+    expect(inspect).toHaveBeenCalledTimes(6);
+    fixture.store.view = "board";
+    fixture.store.broadcastTool = "show";
+    await flushPromises();
+    expect(inspect).toHaveBeenCalledTimes(6);
     await fixture.studio.store.updateRuntime({
       obs: {
         connection: "disconnected",
@@ -124,13 +135,28 @@ it("refreshes sampled audio levels on the Audio page without fetching video, and
         uncertain: false,
       },
     });
+    fixture.store.view = "broadcast";
     await flushPromises();
-    expect(wrapper.find("meter").exists()).toBe(false);
+    expect(inspect).toHaveBeenCalledTimes(6);
+    server.epoch = 2;
+    await fixture.studio.store.updateRuntime({
+      obs: {
+        connection: "connected",
+        snapshot: await server.snapshot(),
+        busy: false,
+        prepared: false,
+        onBreak: false,
+        uncertain: false,
+      },
+    });
+    await flushPromises();
+    expect(inspect).toHaveBeenCalledTimes(7);
+    expect(ui.notice).toContain("Review the saved show actions");
+    expect(frame).not.toHaveBeenCalled();
+    expect(execute).not.toHaveBeenCalled();
   } finally {
     wrapper.unmount();
     timer.mockRestore();
-    clear.mockRestore();
-    releaseInterval(handle);
     await fixture.dispose();
   }
 });

@@ -8,9 +8,10 @@ route: studio.broadcastTool = show
 parent: "[[docs/components/views/broadcast]]"
 component: src/plugin/presentation/components/coforge/ObsShowPlan.vue
 entry:
-  - Open Stream studio, then choose Show plan.
+  - Open Stream studio, then choose Show plan (second tab, after Broadcast).
 actions:
   - Create and edit a show plan
+  - Select a segment from the ordered rundown
   - Run a selected cue
   - Inspect step outcomes and acknowledge a partial cue
   - Explicitly enable or pause supported event bindings
@@ -54,5 +55,12 @@ recording chapters, Twitch markers and saved replay files.
 ## Composition
 
 Owned by [Stream studio](broadcast.md). Definitions and bindings remain separate
-from run evidence. A retained partial result has a clear recovery action beside
-its step outcomes. Native semantic controls preserve keyboard and narrow-pane use.
+from run evidence. The ordered rundown shows segment durations and action counts;
+selecting a segment exposes its private notes and cue actions without executing
+them. Run controls identify the loaded plan and selected segment before the
+detailed editor, with an explanation when execution is blocked. Unsaved changes
+remain distinct from saved definitions. Choosing a plan in the loader does not
+change the loaded run/delete target until explicitly loaded.
+
+A retained partial result has a clear recovery action beside its step outcomes.
+Native semantic controls preserve keyboard and narrow-pane use.

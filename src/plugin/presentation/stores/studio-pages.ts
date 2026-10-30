@@ -1,11 +1,9 @@
 /** Local pages retain their view models while the streamer changes tasks. */
 export const BROADCAST_PAGES = [
   { id: "live", label: "Broadcast" },
+  { id: "show", label: "Show plan" },
   { id: "setup", label: "Setup" },
   { id: "scenes", label: "Scenes" },
-  { id: "sources", label: "Sources & layouts" },
-  { id: "audio", label: "Audio" },
-  { id: "show", label: "Show plan" },
   { id: "music", label: "Music" },
   { id: "displays", label: "Public displays" },
   { id: "history", label: "History" },
