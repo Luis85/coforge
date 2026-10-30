@@ -46,6 +46,24 @@ successful messages still clear normally. This resolves the project host test.
 - Evidence directories: reports/ui-gallery/, reports/obs-music/, reports/obsidian/
   and .obsidian-sandbox/. They are generated, reviewed and excluded from Git.
 
+## Qualification follow-through
+
+PR #51's runtime commit 09fbf8e passed GitHub's canonical project/build, complete
+browser, complete real-Obsidian and GitGuardian checks. A later local native pass
+recorded 39/40 before its Council test reread a rotating journal path after already
+observing completion. That test now retains the validated completed snapshot;
+all attempt/artifact/input and reload assertions remain. Its focused rerun passed
+1 case (15.60s). The remaining correction is test-only, with final-head checks
+required again before merge. No runtime behavior or assertion budget changed.
+
+Final combined contained reload: status passed, errors [], hostErrorCount 0,
+pluginConsole [], reload 724ms; dev.log confirms session ended (complete).
+Final music browser journey: 2 passed (37.8s); screenshots are attached to the
+Playwright report for CI artifact retention. The Windows full check is allowed a
+longer process budget because per-file isolation on this host exceeds the default
+600s wrapper deadline. The actual gate results and final commit are recorded in
+the PR validation body; check assertions, coverage and CI configuration are intact.
+
 ## Self-review and scope
 
 Domain/application code stays framework-free. Writes use the existing host-owned

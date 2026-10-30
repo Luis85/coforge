@@ -24,9 +24,14 @@ merged project visibility base and excludes unrelated Show plan changes.
 - UI quality: 8 passed (1.0m); browser music journey: 2 passed (37.7s).
 - Gallery: 40 captures, failures []; reviewed reports/ui-gallery/ and reports/obs-music/.
 - Targeted ESLint: exit 0; check:views: 110 views, valid coverage, current sitemap.
+- Contained reload: status passed; errors [], hostErrorCount 0, pluginConsole [].
+- Runtime commit 09fbf8e: GitHub check/build, browser, real-Obsidian and GitGuardian
+  checks all passed. The test-only journal snapshot correction passed its focused
+  native rerun (1 test, 15.60s), preserving all attempt/artifact/reload assertions.
 - Windows full check uses --timeout 1800000 after the serial suite exceeded the
   default process budget. Typecheck/lint/ESLint/maker types passed in that run;
-  final combined full check, artifact checks and exact-head GitHub jobs are pending.
+  final combined results and exact-head check links are recorded in PR #51.
+  The snapshot assertion avoids rereading a journal path during atomic rotation.
 
 ## Limits
 
