@@ -2,7 +2,7 @@ import type { SchedulePreparation } from "./schedule-ports";
 import type { ScheduledStream } from "../domain/schedule";
 import type { TwitchActions } from "../domain/twitch";
 import type { ObsActions } from "../domain/obs";
-import type { MusicActions } from "./music-ports";
+import type { ObsMusicPreparation } from "./obs-music-preparation";
 import type { StudioService } from "./studio";
 /** Explicit, independent preparation capabilities. This interface has no broadcast-start or audio-play operation. */
 export class StreamPlanPreparation implements SchedulePreparation {
@@ -13,8 +13,9 @@ export class StreamPlanPreparation implements SchedulePreparation {
     >,
     private readonly twitch: Pick<TwitchActions, "updateChannel">,
     private readonly obs: Pick<ObsActions, "configure">,
-    private readonly music: Pick<MusicActions, "selectPlaylist">,
+    private readonly musicPreparation: Pick<ObsMusicPreparation, "prepare">,
   ) {}
+  music(plan: ScheduledStream): Promise<void> { return this.musicPreparation.prepare(plan); }
   project(plan: ScheduledStream): Promise<void> {
     return this.studio.selectProject(plan.projectId);
   }
@@ -56,12 +57,5 @@ export class StreamPlanPreparation implements SchedulePreparation {
       liveSceneId: plan.liveSceneId,
       breakSceneId: plan.breakSceneId,
     });
-  }
-  async playlist(plan: ScheduledStream): Promise<void> {
-    if (!this.music.selectPlaylist)
-      throw new Error(
-        "Playlist preparation is unavailable. Update CoForge and refresh the music library.",
-      );
-    await this.music.selectPlaylist(plan.playlistId);
   }
 }

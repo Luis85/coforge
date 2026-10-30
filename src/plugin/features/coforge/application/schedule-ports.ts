@@ -4,7 +4,7 @@ export interface ScheduleStorage {
   save(plan: ScheduledStream, expected: string | null): Promise<ScheduleNote>;
   open(id: string): Promise<void>;
 }
-export type ScheduleStep = "project" | "channel" | "scenes" | "playlist";
+export type ScheduleStep = "project" | "channel" | "scenes" | "music";
 export interface ScheduleActions {
   list(): Promise<ScheduleNote[]>;
   save(input: unknown, expected: string | null): Promise<ScheduleNote>;
@@ -15,5 +15,5 @@ export interface SchedulePreparation {
   project(plan: ScheduledStream): Promise<void>;
   channel(plan: ScheduledStream): Promise<void>;
   scenes(plan: ScheduledStream): Promise<void>;
-  playlist(plan: ScheduledStream): Promise<void>;
+  music(plan: ScheduledStream): Promise<void>;
 }

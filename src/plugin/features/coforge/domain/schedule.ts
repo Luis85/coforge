@@ -1,6 +1,8 @@
-import { list, oneOf, shape, text, timestamp } from "./check";
+import { list, oneOf, optional, shape, text, timestamp } from "./check";
 import { escapeMarkdown } from "./sanitize";
+export interface ScheduleMusic { liveInputId: string; breakInputId: string }
 export interface ScheduledStream {
+  music?: ScheduleMusic;
   id: string;
   name: string;
   startsAt: string;
@@ -13,11 +15,11 @@ export interface ScheduledStream {
   language: string;
   liveSceneId: string;
   breakSceneId: string;
-  playlistId: string;
   status: "planned" | "completed" | "cancelled";
 }
 const check = shape(
   {
+    music: optional(shape({ liveInputId: text({ max: 300 }), breakInputId: text({ max: 300 }) }, { strict: true })),
     id: text({ min: 1, max: 80, pattern: /^CFS-[a-zA-Z0-9-]+$/ }),
     name: text({ trim: true, min: 1, max: 120 }),
     startsAt: timestamp,
@@ -32,7 +34,6 @@ const check = shape(
     language: text({ max: 10, pattern: /^(?:[a-z]{2,3}(?:-[A-Z]{2})?)?$/ }),
     liveSceneId: text({ max: 100 }),
     breakSceneId: text({ max: 100 }),
-    playlistId: text({ max: 300 }),
     status: oneOf(["planned", "completed", "cancelled"] as const),
   },
   { strict: true },
@@ -67,5 +68,5 @@ export const SCHEDULE_OPERATION_CODES = [
   "schedule-project-applied",
   "schedule-channel-applied",
   "schedule-scenes-applied",
-  "schedule-playlist-selected",
+  "schedule-music-prepared",
 ] as const;

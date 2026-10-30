@@ -10,8 +10,7 @@ const model = useObsProduction();
       <div>
         <h2>Audio mixer</h2>
         <p>
-          OBS inputs · CoForge’s local music player is managed separately under
-          Music.
+          Control audio inputs captured by OBS.
         </p>
       </div>
       <button

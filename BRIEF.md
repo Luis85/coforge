@@ -244,18 +244,23 @@ recovery, project scope, host permissions and final human review.
   that ends without code changes finishes its workflow only; it does not fabricate an increment or ship a feature.
   Removing screening never automatically makes private requests public. No imported workflow starts by itself.
 
-### Local stream music (owner decision, 2026-10-27)
+### OBS music integration without a built-in player (owner decisions, 2026-10-30)
 
-- A configurable folder inside the vault (default `CoForge/Music`) contains local MP3 files.
-  A same-basename Markdown companion stores title, artist, license, origin and attribution.
-  The streamer supplies and reviews the rights; CoForge does not infer a license.
-- Saved playlists are Obsidian-compatible frontmatter plus Markdown notes in the music folder's
-  `Playlists` subfolder. Track references are vault-relative paths; refresh detects missing files.
-- Playback runs inside Obsidian, continues while navigating CoForge and stops on plugin unload.
-  OBS must capture Obsidian/application or desktop audio; include setup guidance. No automatic
-  playback on startup or go-live. Provide play/pause/stop, previous/next, seeking and volume.
-- Playlist editing preserves unrelated frontmatter and Markdown body bytes. Metadata can be opened
-  or created from the library. External edits require refresh and must not be silently overwritten.
+- Remove CoForge's local music library, playlist editor and audio player. A community
+  plugin can handle personal playback; CoForge does not manage its library or files.
+- Keep music in stream-plan preparation, scenes and automations through existing
+  OBS Media/VLC sources (owner confirmation). Plans assign optional sources to Live
+  and BRB scenes. Preparation explicitly adds missing memberships disabled while OBS
+  is off air; it preserves existing source memberships and never sends playback.
+- Show plan cues combine scene visibility with play, pause, stop, restart, mute and
+  volume. Existing explicit execution, event opt-in, durable intent and uncertain
+  outcome recovery apply. OBS owns source configuration and playback; activating a
+  source can start media according to its OBS settings.
+- Preserve existing music files, metadata and playlist notes. Legacy plans remain
+  editable without erasing old playlist properties. Retain old OBS Now playing
+  ownership records for safe clearing/removal; the retired player emits no events.
+- Community-plugin selection, installation and direct API integration are outside
+  this change. Alert audio and OBS audio/media controls stay available.
 
 ## Surfaces (from the design)
 
@@ -338,8 +343,7 @@ recovery, project scope, host permissions and final human review.
 - Review every private, native-settings and public display view for a clear user goal and next action, then improve
   concrete navigation, hierarchy, empty/error-state, accessibility and spacing findings without replacing the native design.
 - The stream schedule stays local to CoForge. Each planned stream has an Obsidian-compatible Markdown note
-  for topics, scripts and storyboards, plus date/time, project, Twitch metadata, OBS scene choices and a music
-  playlist. Preparation is explicit; planning never automatically updates a live channel or starts playback/a stream.
+  for topics, scripts and storyboards, plus date/time, project, Twitch metadata, OBS scene choices and optional OBS music sources. Preparation is explicit; planning never automatically updates a live channel or starts playback/a stream.
 - Render authored Markdown in requests, plans and appropriate long-form fields. Logs, configuration editors
   and diffs retain their source/code formatting. Rendering must not execute HTML, transclude vault notes or
   automatically load external media, especially in capture views.

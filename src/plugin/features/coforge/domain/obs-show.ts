@@ -16,9 +16,10 @@ export type ObsShowStep =
 export interface ObsShowSegment { id: string; name: string; note: string; durationSeconds: number; steps: ObsShowStep[] }
 export const OBS_SHOW_EVENTS = [
   'stream-started', 'stream-paused', 'stream-resumed', 'stream-stopped', 'request-created', 'job-completed', 'workflow-run-finished',
-  'music-playback-started', 'music-playback-paused', 'music-playback-stopped', 'music-track-ended',
 ] as const satisfies readonly OperationCode[];
-export interface ObsShowBinding { id: string; event: typeof OBS_SHOW_EVENTS[number]; cueId: string; enabled: boolean }
+/** Read compatibility for existing plans and trigger history; these events no longer execute. */
+export const LEGACY_MUSIC_EVENTS = ['music-playback-started', 'music-playback-paused', 'music-playback-stopped', 'music-track-ended'] as const;
+export interface ObsShowBinding { id: string; event: typeof OBS_SHOW_EVENTS[number] | typeof LEGACY_MUSIC_EVENTS[number]; cueId: string; enabled: boolean }
 export interface ObsShowPlan { id: string; name: string; segments: ObsShowSegment[]; bindings: ObsShowBinding[] }
 export type ObsShowOutcome = 'pending' | 'confirmed' | 'failed' | 'uncertain' | 'skipped';
 export interface ObsShowRunStep { action: ObsShowStep; status: ObsShowOutcome }
@@ -35,7 +36,7 @@ export interface ObsShowState {
   outputFiles?: ObsOutputFile[];
   outputRestartRequired?: boolean;
   overlays?: import('./obs-overlay').ObsOverlayDefinition[];
-  lastTrigger?: { event: typeof OBS_SHOW_EVENTS[number]; sequence: number; reason: 'paused' | 'offline' | 'busy' | 'no-binding' | 'partial' | 'completed' | 'failed' };
+  lastTrigger?: { event: typeof OBS_SHOW_EVENTS[number] | typeof LEGACY_MUSIC_EVENTS[number]; sequence: number; reason: 'paused' | 'offline' | 'busy' | 'no-binding' | 'partial' | 'completed' | 'failed' };
 }
 export const emptyObsShow = (): ObsShowState => ({ plans: [], history: [], automationEnabled: false, lastEventSequence: 0, markers: [] });
 export const OBS_SHOW_OPERATION_CODES = [

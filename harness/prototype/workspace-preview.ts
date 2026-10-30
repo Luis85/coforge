@@ -98,7 +98,7 @@ export function createWorkspacePreview(store: StudioStore, timers: Timers) {
       project: async () => {},
       channel: async () => {},
       scenes: async () => {},
-      playlist: async () => {},
+      music: async () => { throw new Error("Preparing OBS music requires the Obsidian plugin."); },
     },
     store,
   );

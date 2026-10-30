@@ -52,7 +52,7 @@ export type ObsSceneAction = { expected: ObsSceneContext } & (
   | (Target & { kind: "scene-switch" })
   | (Target & { kind: "item-visible"; itemId: number; enabled: boolean })
   | (Target & { kind: "item-order"; itemId: number; direction: "up" | "down" })
-  | (Target & { kind: "item-add"; sourceId: string })
+  | (Target & { kind: "item-add"; sourceId: string; enabled?: boolean })
   | (Target & {
       kind: "item-remove";
       itemId: number;

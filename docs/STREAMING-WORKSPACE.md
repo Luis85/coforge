@@ -119,7 +119,7 @@ automatic exchange rate, subscription-cost allocation or inferred cash expense.
 ## Plan a stream
 
 Use **Schedule → New stream plan**. Set a start in the displayed local time zone,
-project, Twitch metadata, live/BRB scene choices and a saved playlist. Dates are
+project, Twitch metadata, live/BRB scene choices and optional existing OBS music sources. Dates are
 stored as instants with their planning time zone. A nonexistent daylight-saving
 time is rejected; a repeated local hour selects the earlier occurrence.
 
@@ -131,9 +131,9 @@ or cancelled to keep the historical note.
 
 Review the saved preparation, then apply each step explicitly. Twitch metadata
 updates the channel immediately. Scene assignments require connected, offline OBS.
-Selecting music prepares a saved playlist without starting or interrupting audio;
-use **Play prepared playlist** in Stream studio when ready. A failed step leaves
-other applied steps in place. Planning never publishes a Twitch schedule or starts
+Music preparation adds missing Media/VLC source memberships disabled, without
+playback, while OBS is off air. Use Scenes or Show plan cues to enable and play
+them; OBS owns the audio. A failed step leaves other applied steps in place. Planning never publishes a Twitch schedule or starts
 a stream. Finish Stream studio's readiness checks and press Go live yourself.
 
 ## Private viewer notes and workspace controls

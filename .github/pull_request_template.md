@@ -1,65 +1,32 @@
-## Summary
+## Music replacement (2026-10-30)
 
-Add Design between Plan and Build in the standard request workflow and Kanban.
-Design retains a private, bounded Markdown specification with read-only project
-access. Build requires the plan and the semantic Design result, so a later Council
-or Markdown report cannot replace the specification. Invalidated Design holds Build.
+Remove CoForge's local music library, playlists and player. Stream plans now select
+existing OBS Media/VLC inputs for Live/BRB scenes; explicit off-air preparation adds
+missing memberships disabled. Scenes and saved Show plan cues control visibility,
+play/pause/stop/restart, mute and volume through the established durable OBS gates.
+Existing MP3s, metadata, playlist notes, legacy plan fields and recovery ownership
+remain preserved. No community plugin is installed.
 
-Adopting the Design preset inserts it before the first Build with an earlier Plan
-and binds its required result in the editor draft. Existing required inputs and
-optional earlier context are preserved; optional host captures remain optional.
-Saved custom workflows and captured runs retain their definitions and explicit-save
-boundaries. Build keeps isolated worktree access and mandatory streamer review.
+Traceability: owner decisions in BRIEF.md; no req-* or vi-* IDs are declared.
+Task: docs/project-tasks/2026-10-30-remove-music.md.
 
-The private Plan & Design drawer reads/copies only current, successful, intact
-specifications and links to workflow evidence. Simulation produces an explicitly
-illustrative plan-grounded specification. Polish improves narrow heading wrapping
-and the Demo label contrast, with no new public/private data exposure.
+Evidence: focused tests 10 files / 74 passed; typecheck exit 0; UI quality 8 passed;
+OBS music browser journey 2 passed; gallery 40 captures with failures [], reviewed
+reports/ui-gallery/ and reports/obs-music/. Contained reload status passed with
+errors [], hostErrorCount 0 and pluginConsole []. Full real-host suite: 38 passed /
+2 failed; changed live-studio suite and lifecycle checks pass. Isolated project
+suite: 2 passed / 1 failed at coforge-projects.obsidian.ts:89 (disabled chat send).
+Full verify:project exited 1: the product test step exceeded its 600s process
+budget and the new fields initially violated vue/no-mutating-props. The prop issue
+is fixed; targeted ESLint exits 0, post-fix typecheck passes, 4 preparation/UI tests
+pass, and both browser journeys pass (37.7s). verify:artifacts exits 0 (build and
+1 prototype-embedding test; UI effects not applicable). Initial check:fast timed
+out while the shared tree was being edited. Final post-fix host reload also passes with errors [] and hostErrorCount 0;
+verify:artifacts rerun exits 0 (8.58s build, embedding 1 passed). check:views reports
+110 documented views, valid navigation coverage and current sitemap. No full
+product-suite pass is claimed after its timeout.
+Scoped diff whitespace check passes. No baselines or dependencies were changed.
 
-## Requirements and traceability
-
-- Owner Design step decision and subagent follow-through authorization, 2026-10-30,
-  recorded in BRIEF.md and docs/project-tasks/2026-10-30-kanban-design-step.md.
-- No imported req-* or vi-* obligation applies; generated traceability stays unchanged.
-- Independent workflow, UI and release reviews completed. Final closeout found no
-  production blockers after correcting optional-context adoption.
-
-## Validation
-
-- Core workflow/provider/MCP/v2 batch: 9 files / 34 passed; latest Design regressions
-  9 passed. Optional prior-results regressions: 4 files / 34 passed, including absent
-  and present host captures, required Design invalidation and reload compatibility.
-- UI/editor/drawer tests: 5 files / 17 passed; omitted/empty adoption cases: 4 passed.
-- Scoped typecheck and ESLint: exit 0; zero lint warnings.
-- npm run test:ui-quality: 8 passed, both themes, reflow and keyboard focus.
-- Focused Design drawer browser journey: 2 passed, Simulation through Design,
-  private reading, narrow/wide containment and WCAG scans in light and dark.
-- npm run check:views: 111 views, valid navigation coverage, current sitemap.
-- npm run verify:project: canonical GitHub check passed on runtime candidate 8d0aba0. The local wrapper hit its 600s orchestration limit after typecheck, source lint, ESLint and maker types passed. The supported npm run check -- --timeout 3600000 plus verify:artifacts rerun and final exact-head CI results are recorded in PR #49; individual test limits remain unchanged.
-- Release record: https://github.com/Luis85/coforge/pull/49. The e2e label enables full check/ui/real-obsidian qualification; merge requires all three successful for the final PR head.
-
-## UI evidence
-
-- Drawer captures inspected: reports/design-step/specification-{light,dark}-{1280,360}.png.
-- Board captures: reports/design-step/board-{light,dark}-{1920,720}.png.
-- Fresh npm run ui:gallery: 40 captures, zero failures; gallery and targeted drawer captures reviewed. No screenshot baselines changed or accepted.
-- Mechanical detector over follow-through UI targets: [].
-
-## Obsidian evidence
-
-- npm run test:obsidian -- coforge-design-workflow: 1 passed in 41.4s. The case saves
-  the definition, reloads, runs Simulation through Design, reads the private drawer,
-  reloads again and verifies exact Design retention, original body bytes and Build
-  input artifact IDs. Build remains awaiting human review.
-- npm run -s dev:obsidian -- --json: status passed, errors [], hostErrorCount 0,
-  pluginConsole []; Obsidian 1.14.4 / launcher 3.2.1, contained sandbox only.
-- Evidence: reports/obsidian/cases/ and .obsidian-sandbox/logs/; host teardown confirmed.
-
-## Untested scope
-
-No billable Claude/Herdr invocation or personal vault was used. Native provider
-profiles and bounded output/retry paths use synthetic transport fixtures; real
-Git worktree/file tools are covered separately. Local Node 24.20.0/npm 11.21.1 differ
-from pins 24.21.0/11.19.1; GitHub qualification uses the pins. The two pre-existing
-CoForge/Public data-file edits are excluded from this PR. No game/vault publication
-or automatic acceptance of a generated game increment is part of this change.
+Untested: actual audio audibility/routing and real OBS/Twitch mutations, direct
+community-plugin APIs. No push or PR requested. Concurrent project-visibility and
+Show plan changes are preserved; their evidence above belongs to those tasks.

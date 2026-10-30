@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ObsOverlayWorkflow } from '../../../features/coforge/application/obs-overlay-workflow';
 import type { ObsProductionSnapshot } from '../../../features/coforge/domain/obs-production';
-import type { ObsOverlayDefinition, ObsOverlayNowPlaying } from '../../../features/coforge/domain/obs-overlay';
+import type { ObsOverlayDefinition } from '../../../features/coforge/domain/obs-overlay';
 import { obsProductionActionCheck } from '../../../features/coforge/domain/obs-production-check';
 import { buildPublicBoard } from '../../../features/coforge/domain/public-board';
 import { IntegrationFailure } from '../../../features/coforge/domain/integration-failure';
@@ -20,7 +20,6 @@ async function kit() {
     studioMode: false, transitions: [], transition: null, recording: null, replayBuffer: null, virtualCamera: null, video: null, recordDirectory: null, lastRecording: null, lastReplay: null,
   };
   const calls: unknown[] = [];
-  let playing: ObsOverlayNowPlaying | null = { title: 'Reviewed track', artist: 'Artist', attribution: 'Music attribution' };
   const production = { inspect: async () => structuredClone(state), execute: async (input: unknown) => {
     const action = obsProductionActionCheck(input);
     expect(store.snapshot().obsShow?.overlays?.some(item => ['publishing', 'revocation-required'].includes(item.publication?.status ?? ''))).toBe(true);
@@ -28,9 +27,9 @@ async function kit() {
     if (action.kind === 'input-settings') state.inputs[0]!.settings = { ...state.inputs[0]!.settings, ...action.settings };
     return structuredClone(state);
   } };
-  const workflow = new ObsOverlayWorkflow(store, production, () => playing);
+  const workflow = new ObsOverlayWorkflow(store, production);
   const definition: ObsOverlayDefinition = { id: 'overlay-request', name: 'Current request', kind: 'request', projectId: board.projectId, inputId: 'overlay-source', subjectId: idea.id, publicConfirmed: true };
-  return { store, storage, state, calls, workflow, definition, idea, production, stopMusic: () => { playing = null; }, setMusic: (value: ObsOverlayNowPlaying) => { playing = value; } };
+  return { store, storage, state, calls, workflow, definition, idea, production };
 }
 describe('CoForge public OBS overlay composer', () => {
   it('keeps readable line breaks but rejects nonprinting control characters before public output', async () => {
@@ -78,12 +77,11 @@ describe('CoForge public OBS overlay composer', () => {
     expect(app.state.inputs[0]?.settings.text).toBe('External operator text');
     expect(app.workflow.snapshot()[0]?.publication?.status).toBe('revocation-required');
   });
-  it('renders now-playing metadata and fixed reviewed Council text without reading private task content', async () => {
+  it('rejects retired music overlays and renders fixed reviewed Council text without reading private task content', async () => {
     const app = await kit();
-    expect((await app.workflow.preview({ ...app.definition, kind: 'now-playing', subjectId: undefined })).text).toBe('Reviewed track — Artist\nMusic attribution');
+    await expect(app.workflow.preview({ ...app.definition, kind: 'now-playing', subjectId: undefined })).rejects.toThrow('OBS media sources');
     expect((await app.workflow.preview({ ...app.definition, kind: 'council-excerpt', excerpt: 'Reviewed public advice' })).text).toContain('Reviewed public advice');
     await expect(app.workflow.preview({ ...app.definition, kind: 'council-excerpt', excerpt: 'Private draft', publicConfirmed: false })).rejects.toThrow();
-    app.stopMusic();
     await expect(app.workflow.preview({ ...app.definition, kind: 'now-playing', subjectId: undefined })).rejects.toThrow();
   });
   it('keeps saved targets unique and rejects a write when definition intent cannot be persisted', async () => {
@@ -154,14 +152,17 @@ describe('CoForge public OBS overlay composer', () => {
     expect(increment.text + contributor.text).not.toMatch(/worktree|diff --git|src\//);
     expect(app.calls).toEqual([]);
   });
-  it('clears a stopped now-playing overlay as a normal cue outcome', async () => {
+  it('keeps legacy ownership readable and clears the retired music overlay on startup', async () => {
     const app = await kit();
-    const preview = await app.workflow.preview({ ...app.definition, kind: 'now-playing', subjectId: undefined });
-    await app.workflow.publish({ previewId: preview.id, confirmed: true });
-    app.stopMusic();
-    await app.workflow.refreshOverlay(app.definition.id);
+    app.state.inputs[0]!.settings = { text: 'Legacy track credit', read_from_file: false };
+    await app.store.transaction(state => { state.obsShow = { plans: [], history: [], automationEnabled: false, lastEventSequence: 0, markers: [], overlays: [{ ...app.definition, kind: 'now-playing', publication: { status: 'published', text: 'Legacy track credit', inputKind: 'text_gdiplus_v2' } }] }; });
+    expect(parsePersistedStudio((await app.storage.load()).data).obsShow?.overlays?.[0]?.kind).toBe('now-playing');
+    await app.workflow.start();
     expect(app.state.inputs[0]?.settings.text).toBe('');
     expect(app.workflow.snapshot()[0]?.publication?.status).toBe('cleared');
+    await app.workflow.remove(app.definition.id);
+    expect(app.workflow.snapshot()).toEqual([]);
+    app.workflow.dispose();
   });
   it('does not retain a preview or publish after disposal during its asynchronous source read', async () => {
     const app = await kit();
@@ -214,14 +215,18 @@ describe('CoForge public OBS overlay composer', () => {
   });
   it('round-trips the exact 4000-character public text limit and rejects longer content before publication', async () => {
     const app = await kit();
-    app.setMusic({ title: 'A', artist: '', attribution: 'B'.repeat(3998) });
-    const definition = { ...app.definition, kind: 'now-playing', subjectId: undefined } as const;
+    const choices = await app.workflow.candidates(app.definition.projectId);
+    const contributor = choices.recognition[0]!;
+    const definition = { ...app.definition, kind: 'recognition', subjectId: contributor.id } as const;
+    await app.store.transaction(state => { state.contributors.find(person => person.id === contributor.id)!.name = 'A'; });
+    const first = await app.workflow.preview(definition);
+    const name = 'A'.repeat(4001 - first.text.length);
+    await app.store.transaction(state => { state.contributors.find(person => person.id === contributor.id)!.name = name; });
     const preview = await app.workflow.preview(definition);
     expect(preview.text).toHaveLength(4000);
     await app.workflow.publish({ previewId: preview.id, confirmed: true });
-    const saved = parsePersistedStudio((await app.storage.load()).data);
-    expect(saved.obsShow?.overlays?.[0]?.publication?.text).toBe(preview.text);
-    app.setMusic({ title: 'A', artist: '', attribution: 'B'.repeat(3999) });
+    expect(parsePersistedStudio((await app.storage.load()).data).obsShow?.overlays?.[0]?.publication?.text).toBe(preview.text);
+    await app.store.transaction(state => { state.contributors.find(person => person.id === contributor.id)!.name = name + 'A'; });
     await expect(app.workflow.preview(definition)).rejects.toThrow(/oversized/);
     expect(app.calls).toHaveLength(1);
   });

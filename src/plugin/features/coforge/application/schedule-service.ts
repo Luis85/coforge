@@ -75,7 +75,7 @@ export class ScheduleService implements ScheduleActions {
         project: "schedule-project-applied",
         channel: "schedule-channel-applied",
         scenes: "schedule-scenes-applied",
-        playlist: "schedule-playlist-selected",
+        music: "schedule-music-prepared",
       } as const;
       await this.store.transaction((state) =>
         recordOperation(state, codes[step], "committed", undefined, 1, id),

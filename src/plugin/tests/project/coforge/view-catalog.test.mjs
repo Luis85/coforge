@@ -74,7 +74,7 @@ describe("view catalogue", () => {
     const board = views.find((view) => view.id === "board");
     expect(() => sourceCoverage(views.filter((view) => view !== board), root)).toThrow(/board/);
     expect(() => sourceCoverage([...views, { ...board, id: "board-copy" }], root)).toThrow(/coverage/);
-    expect(() => sourceCoverage(views.map((view) => view.id === "broadcast-music" ? { ...view, coverage: undefined } : view), root)).toThrow(/music/);
+    expect(() => sourceCoverage(views.map((view) => view.id === "broadcast-audio" ? { ...view, coverage: undefined } : view), root)).toThrow(/audio/);
     expect(() => sourceCoverage(views.map((view) => view.id === "settings-runtime" ? { ...view, coverage: undefined } : view), root)).toThrow(/runtime/);
     expect(() => sourceCoverage([...views, { ...board, id: "stale", coverage: { group: "studio", key: "retired" } }], root)).toThrow(/retired/);
   });

@@ -16,7 +16,7 @@ actions:
   - Open Markdown note
   - Refresh
   - Review saved preparation
-  - Apply project, channel, scenes or playlist
+  - Apply project, channel, scenes or music
 states:
   - Native unavailable
   - Example
@@ -51,15 +51,17 @@ iteration: ""
 
 Prepare a saved plan for a future stream.
 
-Plans are canonical Markdown notes. Saving does not update Twitch, OBS or playback. Preparation applies project, channel, scenes and playlist separately.
+Plans are canonical Markdown notes. Saving does not update Twitch, OBS or playback. Preparation applies project, channel, scenes and OBS music separately.
 
 For a saved plan, **Open Markdown note** opens its topics and script in Obsidian. Edit there and refresh this view; plan-property edits preserve the Markdown body and unrelated frontmatter. Mark a plan Planned, Completed or Cancelled through its status field.
 
 ## Entry and next action
 
-Choose Schedule in the studio navigation. Create or select a plan and save it, then choose **Review saved preparation** for a planned stream. Apply only the desired project, channel, scenes or playlist step. Return through the owning [CoForge studio](studio.md) surface.
+Choose Schedule in the studio navigation. Create or select a plan and save it, then choose **Review saved preparation** for a planned stream. Apply only the desired project, channel, scenes or music step. Return through the owning [CoForge studio](studio.md) surface.
 
-Applying channel metadata updates Twitch immediately. Scene assignments require OBS to be offline; playlist selection does not start playback. Finish checks and go live explicitly in Stream studio.
+Applying channel metadata updates Twitch immediately. Scene assignments require OBS to be offline; music preparation adds missing source memberships disabled without starting playback. Finish checks and go live explicitly in Stream studio.
+
+Music assignments select existing OBS Media/VLC sources for Live/BRB scenes. Refresh OBS sources explicitly; saved missing-source IDs remain visible for recovery. Configure files in OBS, then use Scenes and Show plan cues for visibility, playback, mute and volume. Existing memberships remain unchanged.
 
 ## States and recovery
 

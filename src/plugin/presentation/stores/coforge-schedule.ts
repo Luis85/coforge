@@ -1,12 +1,13 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import type { MusicPlaylist } from '../../features/coforge/domain/music';
 import type {
   ScheduledStream,
+  ScheduleMusic,
   ScheduleNote,
 } from "../../features/coforge/domain/schedule";
-export function scheduleDraft(): ScheduledStream {
+export function scheduleDraft(): ScheduledStream & { music: ScheduleMusic } {
   return {
+    music: { liveInputId: "", breakInputId: "" },
     id: `CFS-${crypto.randomUUID()}`,
     name: "",
     startsAt: "",
@@ -19,13 +20,11 @@ export function scheduleDraft(): ScheduledStream {
     language: "en",
     liveSceneId: "",
     breakSceneId: "",
-    playlistId: "",
     status: "planned",
   };
 }
 export const useScheduleStore = defineStore("coforge-schedule", () => {
   const notes = ref<ScheduleNote[]>([]);
-  const playlists = ref<MusicPlaylist[]>([]);
   const draft = ref(scheduleDraft());
   const expected = ref<string | null>(null);
   const date = ref("");
@@ -42,7 +41,6 @@ export const useScheduleStore = defineStore("coforge-schedule", () => {
   const stepResults = ref<Record<string, string>>({});
   return {
     notes,
-    playlists,
     draft,
     expected,
     date,
