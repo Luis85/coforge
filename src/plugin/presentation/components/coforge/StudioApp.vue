@@ -44,6 +44,7 @@ const model = useStudioApp();
       {
         'is-navigation-collapsed': model.shell.store.leftPanelCollapsed,
         'is-chat-expanded':
+          model.shell.streamVisible &&
           model.shell.store.view === 'board' &&
           !model.shell.store.rightPanelCollapsed,
       },
@@ -73,8 +74,8 @@ const model = useStudioApp();
         <StudioTopbar />
         <ObsLiveDock
           v-if="
-            model.shell.store.view !== 'broadcast' ||
-            model.shell.store.broadcastTool !== 'live'
+            model.shell.streamVisible && (model.shell.store.view !== 'broadcast' ||
+            model.shell.store.broadcastTool !== 'live')
           "
         />
         <div class="cf-workspace-body">
@@ -111,7 +112,7 @@ const model = useStudioApp();
             <SettingsView v-else />
           </section>
           <ChatPanel
-            v-if="model.shell.store.view === 'board'"
+            v-if="model.shell.streamVisible && model.shell.store.view === 'board'"
             :id="`${model.shell.store.layoutId}-chat`"
             :full="model.shell.store.narrowLayout"
             v-show="!model.shell.store.rightPanelCollapsed"

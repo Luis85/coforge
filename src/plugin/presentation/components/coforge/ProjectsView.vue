@@ -49,7 +49,7 @@ const model = useProjects();
         </div>
         <div class="cf-settings-actions">
           <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy || project.unavailable" :aria-label="`Settings for ${project.name}`" @click="model.edit(project.id)">Settings</button>
-          <button type="button" class="cf-btn cf-btn-primary" :disabled="model.store.busy || project.unavailable" :aria-label="`Open board for ${project.name}`" @click="model.open(project.id)">Open board</button>
+          <button type="button" class="cf-btn cf-btn-primary" :disabled="model.store.busy || project.unavailable" :aria-label="`${project.hasBoard ? 'Open board' : 'Open project'} for ${project.name}`" @click="model.open(project.id)">{{ project.hasBoard ? 'Open board' : 'Open project' }}</button>
         </div>
       </article>
     </div>

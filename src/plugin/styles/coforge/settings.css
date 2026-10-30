@@ -89,6 +89,7 @@
 .cf-settings-data h2 > .cf-icon { color: var(--cf-purple); }
 .cf-settings-description p { color: var(--cf-muted); font-size: 11px; line-height: 1.85; max-width: 31ch; }
 .cf-settings-fields { min-width: 0; }
+.cf-project-feature-fields { margin: 0; padding: 0; border: 0; }
 .cf-settings-fields .cf-field { margin: 0 0 17px; }
 .cf-settings-fields > .cf-field:last-child { margin-bottom: 0; }
 .cf-settings-fields .cf-field :is(input, textarea) { font-size: 12px; border-radius: var(--radius-s); }

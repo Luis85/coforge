@@ -95,7 +95,7 @@ const { shell: model, groups, settings, navigate, toggleGroup } = useStudioNavig
         <CfIcon name="circle-help" />
         <span>How it works</span>
       </button>
-      <div class="cf-streamer-profile">
+      <div v-if="model.streamVisible" class="cf-streamer-profile">
         <div>
           <strong>{{
             model.state?.runtime.twitch?.streamer?.login ||

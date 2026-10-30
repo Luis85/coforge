@@ -417,6 +417,13 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-10-30: select visible feature groups independently for each project in
+  Project settings. Hide unused navigation groups and their related panels (for
+  example Stream chat and live stream controls). This is a workspace preference;
+  shared stream/community services and background work keep running. Existing
+  projects retain all groups until explicitly changed. Project settings and the
+  project switcher always remain reachable; saving is explicit and reversible.
+
 - 2026-10-29: implement the three proposed Twitch integration increments end to end:
   reliable live operations (capabilities, activity, moderation, ads and raids), community
   interaction (Channel Points, redemption queues, polls and predictions), and content/
