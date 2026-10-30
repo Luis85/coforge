@@ -1,9 +1,10 @@
-import { computed, onMounted, onBeforeUnmount, reactive } from "vue";
+import { computed, onMounted, reactive, toRaw } from "vue";
 import { useCoforge } from "../../context/coforge-context";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { scheduleDraft, useScheduleStore } from "../../stores/coforge-schedule";
 import type { ScheduleNote } from "../../../features/coforge/domain/schedule";
 import type { ScheduleStep } from "../../../features/coforge/application/schedule-ports";
+import { obsMediaInputKind } from "../../../features/coforge/domain/obs-production";
 import { useTemporaryExample } from "./use-temporary-example";
 export function useSchedule() {
   const { host } = useCoforge();
@@ -11,9 +12,6 @@ export function useSchedule() {
   const studio = useStudioStore();
   const actions = () =>
     store.example ? host.previewSchedule?.() : host.schedule;
-  const music = () => (store.example ? host.previewMusic?.() : host.music);
-  let stopMusic = () => {};
-  onBeforeUnmount(() => stopMusic());
   const localDate = (iso: string) => {
     const date = new Date(iso);
     return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
@@ -47,13 +45,6 @@ export function useSchedule() {
     const service = actions();
     if (!service) return;
     store.notes = await service.list();
-    stopMusic();
-    const player = music();
-    store.playlists = player?.snapshot().library.playlists ?? [];
-    stopMusic =
-      player?.subscribe((state) => {
-        store.playlists = state.library.playlists;
-      }) ?? (() => {});
     if (selected.value && selected.value.revision !== store.expected) {
       store.review = "";
       if (!dirty()) choose(selected.value);
@@ -67,7 +58,7 @@ export function useSchedule() {
       return;
     }
     store.selected = note.plan.id;
-    store.draft = structuredClone(note.plan);
+    store.draft = { ...structuredClone(toRaw(note.plan)), music: structuredClone(toRaw(note.plan.music) ?? { liveInputId: "", breakInputId: "" }) };
     store.draft.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     store.expected = note.revision;
     store.date = localDate(note.plan.startsAt);
@@ -81,10 +72,8 @@ export function useSchedule() {
   });
   const exitExample = () => {
     if (!store.example) return;
-    stopMusic();
     store.example = false;
     store.notes = [];
-    store.playlists = [];
     store.selected = "";
     store.draft = scheduleDraft();
     store.expected = null;
@@ -107,17 +96,23 @@ export function useSchedule() {
     selected,
     available: computed(() => Boolean(actions())),
     canPreview: Boolean(host.previewSchedule),
-    playlists: computed(() => store.playlists),
     projectName: (id: string) =>
       studio.state?.projects?.find((project) => project.id === id)?.settings
         .projectName ?? id,
+    assignMusic: (field: "liveInputId" | "breakInputId", event: Event) => {
+      const target = event.target;
+      if (target instanceof HTMLSelectElement) store.draft.music[field] = target.value;
+    },
+    musicInputs: computed(() => studio.state?.runtime.obsProduction?.inputs.filter(input => obsMediaInputKind(input.kind)) ?? []),
+    refreshMusic: () => { void run(async () => {
+      if (!host.obsProduction || store.example) throw new Error("Connect OBS inside the Obsidian plugin to choose music sources.");
+      await host.obsProduction.inspect();
+    }); },
+    musicName: (id: string | undefined) => studio.state?.runtime.obsProduction?.inputs.find(input => input.id === id)?.name ?? (id ? "Saved source - refresh OBS to verify" : "Not assigned"),
     sceneName: (id: string) =>
       studio.state?.runtime.obs?.snapshot?.scenes.find(
         (scene) => scene.id === id,
       )?.name ?? (id ? "Saved scene · reconnect OBS to verify" : "Not set"),
-    playlistName: (id: string) =>
-      store.playlists.find((playlist) => playlist.id === id)?.name ??
-      (id ? "Saved playlist · refresh library to verify" : "Not set"),
     scenes: computed(() => studio.state?.runtime.obs?.snapshot?.scenes ?? []),
     projects: computed(
       () =>

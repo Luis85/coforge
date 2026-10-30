@@ -41,8 +41,10 @@ range. Broadcast and Audio refresh meter samples every five seconds; disconnecte
 meters are unavailable and unsaved advanced-audio edits survive a refresh.
 Meters require current OBS meter events; missing measurements are unavailable.
 OBS monitoring routes audio on the OBS machine. It does not stream sound into a
-CoForge preview. The Music page still runs local Obsidian playback and needs one
-deliberate OBS capture route to avoid silence or duplicate audio.
+CoForge preview. Music automation targets existing OBS Media/VLC sources. Stream plans
+assign them to Live/BRB scenes; preparation adds missing memberships disabled.
+Show plan cues enable sources and control playback, mute and volume. OBS owns
+source files and playback. Personal playback can use a community plugin.
 
 Show plan saves private named segments with finite explicit production actions,
 notes and durations. Saving/navigation never runs a cue. Run a selected cue to
@@ -62,12 +64,10 @@ source, load public choices, select its exact target and public project, and pre
 the outgoing text. Explicitly confirm the captured content before publishing and
 saving its mapping. Approved mappings can be refreshed manually or used by a show
 cue. Supported content includes a screened public request, accepted work, community
-recognition, current music display metadata and a fixed operator-reviewed Council
-excerpt. Private Council tasks and provider output are never automatically read or
-published. Now-playing uses companion-note title/artist/attribution from the playing
-track, excluding its path and private playback state.
-To refresh now-playing text on track changes, explicitly bind its overlay cue to
-the music playback/track events in Show plan and enable event cues for the session.
+recognition and a fixed operator-reviewed Council excerpt. Private Council tasks
+and provider output are never automatically read or published. Legacy Now playing
+mappings remain available for safe clearing/removal; they cannot publish new music.
+Music event bindings no longer execute.
 
 The composer changes shared OBS text immediately; its preview states that impact
 and whether a text-file source will switch to direct text. Revoked public content

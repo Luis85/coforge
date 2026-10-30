@@ -1,4 +1,4 @@
-import type { ObsOverlayCandidates, ObsOverlayDefinition, ObsOverlayNowPlaying, ObsOverlayPreview } from '../domain/obs-overlay';
+import type { ObsOverlayCandidates, ObsOverlayDefinition, ObsOverlayPreview } from '../domain/obs-overlay';
 import { obsOverlayDefinitionCheck } from '../domain/obs-overlay';
 import { overlayPublicBoard, overlayPublicContributors, overlayText } from '../domain/obs-overlay-content';
 import { projectIsPublic } from '../domain/project-publicity';
@@ -29,8 +29,7 @@ export class ObsOverlayWorkflow implements ObsOverlayActions {
   private handling = false;
   private unsubscribe = () => {};
   private lifecycle = 0;
-  constructor(private readonly store: StudioStore, private readonly production: Pick<ObsProductionActions, 'inspect' | 'execute'>,
-    private readonly nowPlaying: () => ObsOverlayNowPlaying | null = () => null) {}
+  constructor(private readonly store: StudioStore, private readonly production: Pick<ObsProductionActions, 'inspect' | 'execute'>) {}
   async start(): Promise<void> {
     const lifecycle = ++this.lifecycle;
     this.closed = true;
@@ -63,6 +62,7 @@ export class ObsOverlayWorkflow implements ObsOverlayActions {
   }
   private definition(input: unknown): ObsOverlayDefinition {
     const value = obsOverlayDefinitionCheck(input);
+    if (value.kind === 'now-playing') throw new IntegrationFailure('validation', 'Music uses OBS media sources. Clear or remove this legacy overlay.');
     delete value.publication;
     if (this.snapshot().some(mapping => mapping.id !== value.id && mapping.inputId === value.inputId))
       throw new IntegrationFailure('validation', 'Another saved overlay owns this OBS text source. Choose a different source.');
@@ -73,7 +73,7 @@ export class ObsOverlayWorkflow implements ObsOverlayActions {
     const input = state.inputs.find(input => input.id === definition.inputId);
     if (!input || !supported(input) || !state.available.includes('input-settings'))
       throw new IntegrationFailure('validation', 'Choose an available supported OBS text source.');
-    const rendered = overlayText(this.store.snapshot(), definition, this.nowPlaying());
+    const rendered = overlayText(this.store.snapshot(), definition);
     return { state, input, rendered };
   }
   async preview(input: unknown): Promise<ObsOverlayPreview> {
@@ -126,7 +126,7 @@ export class ObsOverlayWorkflow implements ObsOverlayActions {
       });
       recorded = true;
       this.open(lifecycle);
-      if (overlayText(this.store.snapshot(), definition, this.nowPlaying()) !== resolved.rendered)
+      if (overlayText(this.store.snapshot(), definition) !== resolved.rendered)
         throw new IntegrationFailure('validation', 'Public visibility changed before the overlay write. Review a new preview.');
       await this.production.execute({ kind: 'input-settings', inputId: definition.inputId, settings: literal(resolved.input, resolved.rendered), expected: resolved.state.context });
       this.open(lifecycle);
@@ -146,7 +146,6 @@ export class ObsOverlayWorkflow implements ObsOverlayActions {
     if (!mapping || !mapping.publicConfirmed) throw new IntegrationFailure('validation', 'Choose an approved saved overlay mapping.');
     if (!this.publiclyAvailable(mapping)) {
       await this.clear(id);
-      if (mapping.kind === 'now-playing' && projectIsPublic(this.store.snapshot(), mapping.projectId) && !this.nowPlaying()?.title) return;
       throw new IntegrationFailure('validation', 'The public source was revoked. Its owned OBS text was cleared.');
     }
     const definition = this.definition(mapping);
@@ -158,7 +157,7 @@ export class ObsOverlayWorkflow implements ObsOverlayActions {
     await this.write(definition, resolved);
   }
   private publiclyAvailable(mapping: ObsOverlayDefinition): boolean {
-    try { overlayText(this.store.snapshot(), mapping, this.nowPlaying()); return true; } catch { return false; }
+    try { overlayText(this.store.snapshot(), mapping); return true; } catch { return false; }
   }
   private async mark(id: string, status: 'revocation-required' | 'uncertain' | 'cleared'): Promise<void> {
     await this.store.transaction(state => {

@@ -24,7 +24,7 @@ export class VaultSchedule implements ScheduleStorage {
       throw new Error("Invalid stream plan");
     const raw = record(props.plan);
     const plan = Object.fromEntries(
-      Object.entries(raw).map(([key, value]) => [
+      Object.entries(raw).filter(([key]) => key !== "playlistId").map(([key, value]) => [
         key,
         typeof value === "string" ? cleanText(value) : value,
       ]),
@@ -76,7 +76,7 @@ export class VaultSchedule implements ScheduleStorage {
         await this.plugin.app.vault.process(file, (current) => {
           if (current !== expected) throw new Error("Plan changed");
           const { yaml, body } = splitNote(current);
-          written = `---\n${stringifyYaml({ ...record(parseYaml(yaml ?? "")), type: "coforge-scheduled-stream", version: 1, plan: stored })}---\n${body}`;
+          written = `---\n${stringifyYaml({ ...record(parseYaml(yaml ?? "")), type: "coforge-scheduled-stream", version: 1, plan: { ...record(record(parseYaml(yaml ?? "")).plan), ...stored } })}---\n${body}`;
           return written;
         });
       else {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useSchedule } from "../../composables/coforge/use-schedule";
+import ScheduleMusicFields from "./ScheduleMusicFields.vue";
 import MarkdownBody from "./MarkdownBody.vue";
 const model = useSchedule();
 </script>
@@ -172,10 +173,9 @@ const model = useSchedule();
                 maxlength="10"
             /></label>
           </div>
-          <h3>OBS and music</h3>
+          <h3>OBS scenes</h3>
           <p class="cf-schedule-section-help">
-            Plan scene assignments and a playlist. Saving a plan does not start
-            playback or broadcasting.
+            Plan scene assignments. Saving a plan does not start broadcasting.
           </p>
           <div class="cf-schedule-fields">
             <label
@@ -223,17 +223,6 @@ const model = useSchedule();
                 </option>
               </select></label
             ><label
-              >Music playlist<select v-model="model.store.draft.playlistId">
-                <option value="">No playlist</option>
-                <option
-                  v-for="playlist in model.playlists"
-                  :key="playlist.id"
-                  :value="playlist.id"
-                >
-                  {{ playlist.name }}
-                </option>
-              </select></label
-            ><label
               >Plan status<select v-model="model.store.draft.status">
                 <option value="planned">Planned</option>
                 <option value="completed">Completed</option>
@@ -241,6 +230,7 @@ const model = useSchedule();
               </select></label
             >
           </div>
+          <ScheduleMusicFields :model="model" />
           <div class="cf-actions cf-schedule-save">
             <button
               type="submit"
@@ -284,7 +274,7 @@ const model = useSchedule();
           <p>
             Review the saved plan before applying each step. Twitch metadata
             updates your channel immediately; scene assignments require OBS to
-            be offline. Music is selected without playing.
+            be offline. Music preparation adds new sources disabled; use a show cue to enable and play them.
           </p>
           <button
             type="button"
@@ -308,13 +298,13 @@ const model = useSchedule();
                 model.selected.plan.tags.join(", ") || "No tags"
               }}
             </dd>
+            <dt>Live / BRB music sources</dt>
+            <dd>{{ model.musicName(model.selected.plan.music?.liveInputId) }} / {{ model.musicName(model.selected.plan.music?.breakInputId) }}</dd>
             <dt>Live / BRB scenes</dt>
             <dd>
               {{ model.sceneName(model.selected.plan.liveSceneId) }} /
               {{ model.sceneName(model.selected.plan.breakSceneId) }}
             </dd>
-            <dt>Playlist</dt>
-            <dd>{{ model.playlistName(model.selected.plan.playlistId) }}</dd>
           </dl>
           <div v-if="model.store.review" class="cf-actions">
             <button
@@ -322,7 +312,7 @@ const model = useSchedule();
                 'project',
                 'channel',
                 'scenes',
-                'playlist',
+                'music',
               ] as const"
               :key="step"
               type="button"

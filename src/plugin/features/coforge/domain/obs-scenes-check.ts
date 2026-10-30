@@ -3,6 +3,7 @@ import {
   CheckError,
   number,
   oneOf,
+  optional,
   record,
   shape,
   text,
@@ -98,6 +99,7 @@ export function obsSceneAction(input: unknown): ObsSceneAction {
           kind: oneOf(["item-add"] as const),
           sceneId: id,
           sourceId: id,
+          enabled: optional(boolean),
         },
         { strict: true },
       )(input);

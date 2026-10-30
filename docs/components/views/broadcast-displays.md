@@ -53,7 +53,7 @@ Each **Open … tab** action opens a fresh main-workspace tab that can be detach
 
 The text-overlay composer sends selected public content to a supported OBS Text
 input. It captures an exact preview and target before explicit publication. Saved
-mappings support request, accepted-work, recognition, now-playing and fixed reviewed
+mappings support request, accepted-work, recognition and fixed reviewed
 Council-excerpt content; they can be refreshed by manual or explicitly bound show
 cues. It never extracts private Council prompts or publishes during navigation.
 Clearing checks ownership of the last published text. A disconnected or uncertain

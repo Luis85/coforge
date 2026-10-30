@@ -17,6 +17,14 @@ const kit = () => {
   };
 };
 describe("OBS scene RPC adapter", () => {
+  it("adds a prepared music source disabled without enabling other scene memberships", async () => {
+    const { server, adapter } = kit();
+    const detail = await adapter.inspect("scene-intro");
+    const source = detail.sources.find(source => source.kind === "input")!;
+    const result = await adapter.execute({ kind: "item-add", sceneId: detail.sceneId, sourceId: source.id, enabled: false, expected: detail.context });
+    expect(server.requests.find(request => request.type === "CreateSceneItem")?.data).toMatchObject({ sourceName: source.name, sceneItemEnabled: false });
+    expect(result.detail?.items.find(item => item.sourceId === source.id)?.enabled).toBe(false);
+  });
   it("duplicates a scene with shared sources, layout, visibility, order, locks and blend modes without switching program", async () => {
     const { server, adapter } = kit();
     const original = await adapter.inspect("scene-game");

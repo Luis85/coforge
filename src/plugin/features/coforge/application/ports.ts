@@ -110,13 +110,11 @@ export interface StudioHostActions {
   previewFinance?(): import('./finance-ports').FinanceActions;
   herdr?: import('./herdr-ports').HerdrActions;
   previewHerdr?(): import('./herdr-ports').HerdrActions;
-  previewMusic?(): import('./music-ports').MusicActions;
-  music?: import('./music-ports').MusicActions;
   previewLiveStudio?(): import('./studio-example').StudioExample;
   obsScenes?: import('../domain/obs-scenes').ObsSceneActions;
   previewStreamStatistics?(): import('../domain/stream-metrics').StreamHistory[];
   /** Browser-only temporary service disposal; never a vault or live integration mutation. */
-  discardPreview?(example: "finance" | "ai-costs" | "schedule" | "music" | "statistics" | "live-studio" | "council" | "herdr" | "task-scheduler"): void;
+  discardPreview?(example: "finance" | "ai-costs" | "schedule" | "statistics" | "live-studio" | "council" | "herdr" | "task-scheduler"): void;
   streamHistory?: import('./stream-metrics-ports').StreamHistoryActions;
   obs?: import('../domain/obs').ObsActions;
   twitch?: import('../domain/twitch').TwitchActions;

@@ -1,53 +1,42 @@
 ## Summary
 
-Add per-project feature group selection under Project settings → General. Explicit
-saves choose Build & Improve, Stream, Community and Insights in the canonical
-project note. Legacy projects show every group; an empty selection is valid.
-Settings and the project switcher stay reachable, and hidden destinations resolve
-to an available area.
+Replace CoForge's local music library, playlists and player with existing OBS
+Media/VLC sources. Stream plans assign Live/BRB music; explicit off-air preparation
+adds missing memberships disabled. Scenes and Show plan cues control visibility,
+playback, mute and volume through existing durable OBS gates. Existing files,
+playlist notes, legacy schedule properties and overlay recovery ownership survive.
 
-Hiding Stream removes its navigation, board chat/toggle, stream profile and live
-dock while retaining chat drafts. Shared services and agent execution continue.
-Stale drafts, failed writes, note identity, unrelated frontmatter and body bytes
-retain their existing protection. Project actions say Open project when the board
-is hidden.
+Also preserve a newer chat draft when an earlier send completes. This fixes a
+reproduced project-chat host failure; unchanged successful messages still clear.
 
-## Requirements and traceability
+## Traceability
 
-- Owner decision: BRIEF.md, 2026-10-30.
-- Task: docs/project-tasks/2026-10-30-project-feature-groups.md.
-- No imported req-* or vi-* IDs apply; design/traceability.json declares none.
-- Behavioural service/UI tests, browser journey and contained Obsidian reload test.
+Owner decisions in BRIEF.md. No req-* or vi-* obligations are declared. Task and
+evidence: docs/project-tasks/2026-10-30-remove-music.md. PR #51 includes the already
+merged project visibility base and excludes unrelated Show plan changes.
 
 ## Validation
 
-- Focused qualification: 4 files / 13 service/UI/privacy/navigation tests passed.
-- Fresh isolated UI quality and feature journey: 10 passed (1.7m).
-- Fresh isolated contained Obsidian: 1 passed (11.72s).
-- Fresh isolated dev loop: status passed, errors [], hostErrorCount 0, pluginConsole [].
-- check:views: 111 views; navigation coverage valid; sitemap current.
-- Scope review and git diff --check passed; no weakened checks or baselines.
-- Full local verify:project and exact final-head GitHub results are recorded in
-  https://github.com/Luis85/coforge/pull/50. Merge requires successful check, ui and
-  real-obsidian jobs; the e2e label enables the complete browser and host suites.
+- Focused music tests: 10 files / 74 passed; chat race: 2 passed after 2 red cases.
+- Isolated full real-Obsidian suite: 31 files / 38 passed (399.48s).
+- Direct music host journey after main integration: 1 passed (16.80s), including
+  disabled source preparation, explicit visibility/playback and reload without replay.
+- UI quality: 8 passed (1.0m); browser music journey: 2 passed (37.7s).
+- Gallery: 40 captures, failures []; reviewed reports/ui-gallery/ and reports/obs-music/.
+- Targeted ESLint: exit 0; check:views: 110 views, valid coverage, current sitemap.
+- Contained reload: status passed; errors [], hostErrorCount 0, pluginConsole [].
+- Runtime commit 09fbf8e: GitHub check/build, browser, real-Obsidian and GitGuardian
+  checks all passed. The test-only journal snapshot correction passed its focused
+  native rerun (1 test, 15.60s), preserving all attempt/artifact/reload assertions.
+- Windows full check uses --timeout 1800000 after the serial suite exceeded the
+  default process budget. Typecheck/lint/ESLint/maker types passed in that run;
+  final combined results and exact-head check links are recorded in PR #51.
+  The snapshot assertion avoids rereading a journal path during atomic rotation.
 
-## UI evidence
+## Limits
 
-- Light/dark, wide/narrow controls inspected under reports/project-feature-groups/.
-- UI gallery evidence is under reports/ui-gallery/ (reviewed; never a baseline).
-- Impeccable detector: [].
-
-## Obsidian evidence
-
-- Saved groups survive reload; unknown frontmatter and exact human body bytes
-  remain intact. Test teardown completed and scratch was removed.
-- Dev loop uses contained sandbox, Obsidian 1.14.4 / launcher 3.2.1; session ended.
-- Evidence: reports/obsidian/cases/coforge-project-features--saves-visibility-in-the-canonical-project-note-and-restores-it-after-reload/
-  and .obsidian-sandbox/logs/.
-
-## Untested scope
-
-No personal vault, live Twitch/OBS mutation, billable provider or external
-publication. Preferences affect the workspace only. Concurrent music and OBS
-changes in the original checkout are excluded from this branch. Local Node/npm
-are 24.20.0/11.21.1; GitHub uses pins 24.21.0/11.19.1.
+No real broadcast, Twitch mutation or audio audibility/routing test. Native UI uses
+pinned Obsidian and a loopback OBS fixture. No community-plugin installation or
+API integration. Generated evidence is excluded from Git. GitHub uses pinned
+Node/npm; local versions are 24.20.0/11.21.1. No dependencies or assertion thresholds
+changed. Merge only after final local and GitHub checks are green.

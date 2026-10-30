@@ -42,7 +42,7 @@
   border: 1px solid var(--cf-border);
 }
 .ps--coforge
-  :is(.cf-music, .cf-herdr)
+  .cf-herdr
   .cf-field
   :is(input:not([type="range"]), select) {
   width: 100%;

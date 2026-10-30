@@ -47,7 +47,7 @@ iteration: ""
 
 Operate the current broadcast with explicit stream controls.
 
-Live monitoring leads. Setup, scenes, sources/layouts, audio, show plans, music,
+Live monitoring leads. Setup, scenes, sources/layouts, audio, show plans,
 capture displays and history have separate local subpages. Connection and
 navigation never start broadcasting.
 
@@ -65,7 +65,7 @@ The stream workspace leads with the observed broadcast state and an explicit nex
 action. The live desk adds sampled program/preview frames, supported audio and
 independent recording/replay/virtual-camera controls. Setup owns fresh studio
 creation and supported output configuration. Sources & layouts, Audio and Show
-plan remain focused tasks alongside Scenes, Music, Public displays and History;
+plan remain focused tasks alongside Scenes, Public displays and History;
 changing pages preserves preparation drafts. Live BRB/resume controls remain
 available when navigating to other private work views.
 

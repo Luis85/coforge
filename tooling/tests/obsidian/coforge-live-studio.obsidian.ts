@@ -30,7 +30,7 @@ describe("Live studio in the contained vault", () => {
     await obsidian.screenshot("manual-finance-ledger");
     expect(obsidian.errors()).toEqual([]);
   });
-  test("saves music metadata and playlists without starting audio or Herdr", async ({
+  test("preserves legacy music notes across reload without exposing music controls or starting Herdr", async ({
     obsidian,
   }) => {
     await obsidian.eval(async ({ app }) => {
@@ -42,50 +42,20 @@ describe("Live studio in the contained vault", () => {
         new Uint8Array([73, 68, 51]).buffer,
       );
     });
-    const view = await obsidian.openView(
+    let view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
-    await view.getByRole("navigation", { name: "Stream studio pages", exact: true }).getByRole("button", { name: "Music", exact: true }).click();
-    const music = view.locator(".cf-music");
-    await music
-      .getByRole("button", { name: "Refresh music library", exact: true })
-      .click();
-    await browserExpect(
-      music.getByRole("button", {
-        name: "Create metadata note for Fixture",
-        exact: true,
-      }),
-    ).toBeVisible();
-    await music
-      .getByRole("button", { name: "Add to playlist: Fixture", exact: true })
-      .click();
-    await music
-      .getByLabel("Playlist name", { exact: true })
-      .fill("Contained playlist");
-    await music
-      .getByRole("button", { name: "Save playlist", exact: true })
-      .click();
-    await browserExpect(music).toContainText(
-      "Playlist saved as a Markdown note.",
-    );
-    const notes = await obsidian.eval(async ({ app }) =>
-      Promise.all(
-        app.vault
-          .getMarkdownFiles()
-          .filter((file) => file.path.includes("/Playlists/"))
-          .map((file) => app.vault.read(file)),
-      ),
-    );
-    expect(
-      notes.some(
-        (content) =>
-          content.includes("type: coforge-playlist") &&
-          content.includes("CoForge/Music/Fixture.mp3"),
-      ),
-    ).toBe(true);
-    await browserExpect(
-      music.getByRole("region", { name: "Music playback", exact: true }),
-    ).toContainText("stopped");
+    await browserExpect(view.getByRole("navigation", { name: "Stream studio pages", exact: true }).getByRole("button", { name: "Music", exact: true })).toHaveCount(0);
+    await browserExpect(view.locator(".cf-music")).toHaveCount(0);
+    const legacy = "---\ntype: coforge-playlist\nid: legacy\ntracks: [CoForge/Music/Fixture.mp3]\n---\n\nKeep my playlist.";
+    await obsidian.eval(async ({ app }, content) => {
+      await app.vault.create("CoForge/Music/Legacy.md", content);
+    }, legacy);
+    await obsidian.reloadPlugin();
+    view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await browserExpect(view.getByRole("button", { name: "Music", exact: true })).toHaveCount(0);
+    expect(await obsidian.eval(({ app }) => app.vault.adapter.read("CoForge/Music/Legacy.md"))).toBe(legacy);
+    expect(await obsidian.eval(async ({ app }) => Array.from(new Uint8Array(await app.vault.adapter.readBinary("CoForge/Music/Fixture.mp3"))))).toEqual([73, 68, 51]);
     await view.locator('.cf-project-switcher').click();
     await view.getByRole('button', { name: 'Add project', exact: true }).click();
     await view.getByLabel('Project name', { exact: true }).fill('Contained tools project');

@@ -1,6 +1,7 @@
 import type { ObsSnapshot } from './obs';
 import type { ObsSceneContext } from './obs-scenes';
 
+export const obsMediaInputKind = (kind: string): boolean => ['ffmpeg_source', 'vlc_source'].includes(kind);
 export type ObsSettingValue = string | number | boolean;
 export type ObsInputSettings = Record<string, ObsSettingValue>;
 export const OBS_TEXT_INPUT_KINDS = ['text_gdiplus_v2', 'text_gdiplus_v3', 'text_ft2_source_v2'] as const;

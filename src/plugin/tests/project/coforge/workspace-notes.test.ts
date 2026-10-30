@@ -22,7 +22,6 @@ const plan: ScheduledStream = {
   language: "en",
   liveSceneId: "live",
   breakSceneId: "brb",
-  playlistId: "playlist",
   status: "planned",
 };
 function fixture() {
@@ -57,17 +56,29 @@ it("round-trips schedule edits without losing a script or unrelated frontmatter 
   ).rejects.toThrow("Refresh");
   const fresh = (await storage.list())[0]!;
   const updated = await storage.save(
-    { ...plan, title: "New channel title" },
+    { ...plan, title: "New channel title", music: { liveInputId: "obs-music", breakInputId: "" } },
     fresh.revision,
   );
   expect(updated.body).toBe(fresh.body);
   expect(parseYaml(splitNote(updated.revision).yaml!)).toMatchObject({
     custom: "keep",
-    plan: { id: plan.id, title: "New channel title" },
+    plan: { id: plan.id, title: "New channel title", music: { liveInputId: "obs-music", breakInputId: "" } },
   });
   expect((await new VaultSchedule(plugin).list())[0]?.plan.title).toBe(
     "New channel title",
   );
+});
+it("loads legacy plans without playlist controls and preserves their old playlist and note bytes on save", async () => {
+  const { plugin, kit } = fixture();
+  const storage = new VaultSchedule(plugin);
+  await storage.save(plan, null);
+  const file = kit.app.vault.getFileByPath("CoForge/Schedule/CFS-test.md")!;
+  await kit.app.vault.process(file, content => content.replace("  status:", "  playlistId: legacy-playlist\n  status:") + "\r\nLegacy script.");
+  const legacy = (await storage.list())[0]!;
+  expect(legacy.plan).not.toHaveProperty("playlistId");
+  const updated = await storage.save({ ...legacy.plan, name: "Updated plan" }, legacy.revision);
+  expect(updated.body).toBe(legacy.body);
+  expect(parseYaml(splitNote(updated.revision).yaml!)).toMatchObject({ plan: { playlistId: "legacy-playlist", name: "Updated plan" } });
 });
 it("never prepares automatically and rejects stale/closed plans before external effects", async () => {
   const { plugin } = fixture();
@@ -83,11 +94,9 @@ it("never prepares automatically and rejects stale/closed plans before external 
       channel: async () => {
         calls.push("channel");
       },
+      music: async () => { calls.push("music"); },
       scenes: async () => {
         calls.push("scenes");
-      },
-      playlist: async () => {
-        calls.push("playlist");
       },
     },
     store,

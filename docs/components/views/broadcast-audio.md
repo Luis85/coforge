@@ -34,7 +34,7 @@ order: 37100
 
 Operate the OBS audio mix with explicit source identities and current observations.
 OBS monitoring changes where OBS routes audio; it does not create a remote audio
-player in CoForge. Local Music playback remains a separate service that OBS captures.
+player in CoForge. OBS owns music playback through configured Media/VLC sources; personal playback can use a community plugin.
 
 ## Interaction and recovery
 
