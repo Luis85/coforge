@@ -1,65 +1,53 @@
 ## Summary
 
-Add Design between Plan and Build in the standard request workflow and Kanban.
-Design retains a private, bounded Markdown specification with read-only project
-access. Build requires the plan and the semantic Design result, so a later Council
-or Markdown report cannot replace the specification. Invalidated Design holds Build.
+Add per-project feature group selection under Project settings → General. Explicit
+saves choose Build & Improve, Stream, Community and Insights in the canonical
+project note. Legacy projects show every group; an empty selection is valid.
+Settings and the project switcher stay reachable, and hidden destinations resolve
+to an available area.
 
-Adopting the Design preset inserts it before the first Build with an earlier Plan
-and binds its required result in the editor draft. Existing required inputs and
-optional earlier context are preserved; optional host captures remain optional.
-Saved custom workflows and captured runs retain their definitions and explicit-save
-boundaries. Build keeps isolated worktree access and mandatory streamer review.
-
-The private Plan & Design drawer reads/copies only current, successful, intact
-specifications and links to workflow evidence. Simulation produces an explicitly
-illustrative plan-grounded specification. Polish improves narrow heading wrapping
-and the Demo label contrast, with no new public/private data exposure.
+Hiding Stream removes its navigation, board chat/toggle, stream profile and live
+dock while retaining chat drafts. Shared services and agent execution continue.
+Stale drafts, failed writes, note identity, unrelated frontmatter and body bytes
+retain their existing protection. Project actions say Open project when the board
+is hidden.
 
 ## Requirements and traceability
 
-- Owner Design step decision and subagent follow-through authorization, 2026-10-30,
-  recorded in BRIEF.md and docs/project-tasks/2026-10-30-kanban-design-step.md.
-- No imported req-* or vi-* obligation applies; generated traceability stays unchanged.
-- Independent workflow, UI and release reviews completed. Final closeout found no
-  production blockers after correcting optional-context adoption.
+- Owner decision: BRIEF.md, 2026-10-30.
+- Task: docs/project-tasks/2026-10-30-project-feature-groups.md.
+- No imported req-* or vi-* IDs apply; design/traceability.json declares none.
+- Behavioural service/UI tests, browser journey and contained Obsidian reload test.
 
 ## Validation
 
-- Core workflow/provider/MCP/v2 batch: 9 files / 34 passed; latest Design regressions
-  9 passed. Optional prior-results regressions: 4 files / 34 passed, including absent
-  and present host captures, required Design invalidation and reload compatibility.
-- UI/editor/drawer tests: 5 files / 17 passed; omitted/empty adoption cases: 4 passed.
-- Scoped typecheck and ESLint: exit 0; zero lint warnings.
-- npm run test:ui-quality: 8 passed, both themes, reflow and keyboard focus.
-- Focused Design drawer browser journey: 2 passed, Simulation through Design,
-  private reading, narrow/wide containment and WCAG scans in light and dark.
-- npm run check:views: 111 views, valid navigation coverage, current sitemap.
-- npm run verify:project: canonical GitHub check passed on runtime candidate 8d0aba0. The local wrapper hit its 600s orchestration limit after typecheck, source lint, ESLint and maker types passed. The supported npm run check -- --timeout 3600000 plus verify:artifacts rerun and final exact-head CI results are recorded in PR #49; individual test limits remain unchanged.
-- Release record: https://github.com/Luis85/coforge/pull/49. The e2e label enables full check/ui/real-obsidian qualification; merge requires all three successful for the final PR head.
+- Focused qualification: 4 files / 13 service/UI/privacy/navigation tests passed.
+- Fresh isolated UI quality and feature journey: 10 passed (1.7m).
+- Fresh isolated contained Obsidian: 1 passed (11.72s).
+- Fresh isolated dev loop: status passed, errors [], hostErrorCount 0, pluginConsole [].
+- check:views: 111 views; navigation coverage valid; sitemap current.
+- Scope review and git diff --check passed; no weakened checks or baselines.
+- Full local verify:project and exact final-head GitHub results are recorded in
+  https://github.com/Luis85/coforge/pull/50. Merge requires successful check, ui and
+  real-obsidian jobs; the e2e label enables the complete browser and host suites.
 
 ## UI evidence
 
-- Drawer captures inspected: reports/design-step/specification-{light,dark}-{1280,360}.png.
-- Board captures: reports/design-step/board-{light,dark}-{1920,720}.png.
-- Fresh npm run ui:gallery: 40 captures, zero failures; gallery and targeted drawer captures reviewed. No screenshot baselines changed or accepted.
-- Mechanical detector over follow-through UI targets: [].
+- Light/dark, wide/narrow controls inspected under reports/project-feature-groups/.
+- UI gallery evidence is under reports/ui-gallery/ (reviewed; never a baseline).
+- Impeccable detector: [].
 
 ## Obsidian evidence
 
-- npm run test:obsidian -- coforge-design-workflow: 1 passed in 41.4s. The case saves
-  the definition, reloads, runs Simulation through Design, reads the private drawer,
-  reloads again and verifies exact Design retention, original body bytes and Build
-  input artifact IDs. Build remains awaiting human review.
-- npm run -s dev:obsidian -- --json: status passed, errors [], hostErrorCount 0,
-  pluginConsole []; Obsidian 1.14.4 / launcher 3.2.1, contained sandbox only.
-- Evidence: reports/obsidian/cases/ and .obsidian-sandbox/logs/; host teardown confirmed.
+- Saved groups survive reload; unknown frontmatter and exact human body bytes
+  remain intact. Test teardown completed and scratch was removed.
+- Dev loop uses contained sandbox, Obsidian 1.14.4 / launcher 3.2.1; session ended.
+- Evidence: reports/obsidian/cases/coforge-project-features--saves-visibility-in-the-canonical-project-note-and-restores-it-after-reload/
+  and .obsidian-sandbox/logs/.
 
 ## Untested scope
 
-No billable Claude/Herdr invocation or personal vault was used. Native provider
-profiles and bounded output/retry paths use synthetic transport fixtures; real
-Git worktree/file tools are covered separately. Local Node 24.20.0/npm 11.21.1 differ
-from pins 24.21.0/11.19.1; GitHub qualification uses the pins. The two pre-existing
-CoForge/Public data-file edits are excluded from this PR. No game/vault publication
-or automatic acceptance of a generated game increment is part of this change.
+No personal vault, live Twitch/OBS mutation, billable provider or external
+publication. Preferences affect the workspace only. Concurrent music and OBS
+changes in the original checkout are excluded from this branch. Local Node/npm
+are 24.20.0/11.21.1; GitHub uses pins 24.21.0/11.19.1.

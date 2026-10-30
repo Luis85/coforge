@@ -46,7 +46,7 @@ const model = useStudioShell();
     </div>
     <div class="cf-topbar-actions">
       <button
-        v-if="model.store.view === 'board'"
+        v-if="model.streamVisible && model.store.view === 'board'"
         type="button"
         class="cf-icon-button cf-panel-toggle"
         :aria-label="

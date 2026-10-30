@@ -1,7 +1,7 @@
 ---
 id: settings-general
 title: Project details
-goal: Set project identity, visibility, brief and shared agent instructions.
+goal: Set project identity, visibility, feature groups, brief and shared agent instructions.
 audience: streamer
 kind: subpage
 route: studio.settingsTool = general
@@ -12,6 +12,7 @@ entry:
 actions:
   - Edit project name and description
   - Choose public or private visibility
+  - Select visible feature groups for this project
   - Edit the general agent prompt
   - Save or discard project settings
 states:
@@ -56,6 +57,14 @@ or repository boundaries.
 Open Project settings at the bottom of navigation, then General. Edit the project
 name, visibility, description and general agent prompt under Project details. Save project settings
 explicitly; General, Requests and Repository share the same retained draft.
+
+Under Project features, select Build & Improve, Stream, Community and Insights.
+The saved choice belongs to this project's canonical note and is restored after
+switching projects or reloading. Hiding Stream also removes board chat, the chat
+toggle and live controls from this workspace; drafts remain available when shown
+again. Shared services and background work continue. The project switcher and
+Project settings remain available even with every group hidden. Projects without
+a saved selection keep all groups visible.
 
 ## States and recovery
 

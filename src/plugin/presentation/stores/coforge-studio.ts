@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import type { AppState } from "../../features/coforge/domain/types";
 import { configurationProblem } from "./configuration-guard";
 import { projectIdeas as scopedIdeas } from "../../features/coforge/domain/projects";
 import type { BroadcastPage, StreamPage, WorkflowPage, SettingsPage } from "./studio-pages";
-import { studioRoot } from "./studio-destinations";
+import { studioRoot, studioViewEnabled, studioHome } from "./studio-destinations";
 
 export type StudioView =
   | "service-design"
@@ -205,6 +205,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     );
   }
   function changeView(next: StudioView) {
+    if (!studioViewEnabled(next, activeProject.value)) next = studioHome(activeProject.value);
     const problem = configurationIssue(next);
     if (problem) {
       notify(problem, true);
@@ -246,6 +247,9 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     drawerTab.value = tab;
     activityOpen.value = false;
   }
+  watch(() => [activeProject.value, dirtySettings.value, dirtyWorkflow.value, dirtyCommunitySettings.value, dirtyEconomy.value], () => {
+    if (!studioViewEnabled(view.value, activeProject.value)) navigate(studioHome(activeProject.value));
+  }, { flush: 'sync' });
   function dispose() {
     for (const timer of timers) window.clearTimeout(timer);
     timers.clear();

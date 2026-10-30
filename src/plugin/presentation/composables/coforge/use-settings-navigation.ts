@@ -3,7 +3,7 @@ import { SETTINGS_PAGES, type SettingsPage } from '../../stores/studio-pages';
 import type { SettingsModel } from './use-settings';
 
 const details: Record<SettingsPage, { icon: string; description: string }> = {
-  general: { icon: 'sliders-horizontal', description: 'Identity, visibility and instructions' },
+  general: { icon: 'sliders-horizontal', description: 'Identity, features and instructions' },
   requests: { icon: 'list-filter', description: 'Categories and note properties' },
   repository: { icon: 'folder-git-2', description: 'Workspace and build permission' },
   workflow: { icon: 'workflow', description: 'Runs, steps and AI providers' },
