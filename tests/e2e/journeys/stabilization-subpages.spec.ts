@@ -19,10 +19,21 @@ async function capture(page: Page, scope: string, label: string, name: string) {
     }, theme);
     for (const width of [1280, 360]) {
       await page.setViewportSize({ width, height: 900 });
+      const overflow = await page.locator('.cf-content').evaluate(root => {
+        const bounds = root.getBoundingClientRect();
+        return [...root.querySelectorAll('*')].flatMap(element => {
+          const rect = element.getBoundingClientRect();
+          if (!rect.width || rect.right <= bounds.right + 1 && rect.left >= bounds.left - 1) return [];
+          const style = getComputedStyle(element);
+          return [{ tag: element.tagName, class: element.className, width: rect.width, left: rect.left, right: rect.right,
+            display: style.display, minWidth: style.minWidth, whiteSpace: style.whiteSpace }];
+        });
+      });
       expect(
         await page
           .locator(".cf-content")
           .evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
+        `${label} / ${name} / ${theme} / ${width}px: ${JSON.stringify(overflow)}`,
       ).toBe(true);
       await page.locator(scope).screenshot({
         path: `reports/stabilization-subpages/${label.replaceAll(" ", "-")}-${name.replaceAll(" ", "-")}-${theme}-${width}.png`,
@@ -112,6 +123,18 @@ test("focused chat and workflow pages are keyboard reachable", async ({ page }) 
   await openAgentWorkflow(page);
   for (const name of ["Idea Board Workflow", "Step attempts", "Timing & limits", "Answer / output templates", "Herdr"])
     await capture(page, ".cf-workflow-page", "Agent workflow pages", name);
+  const pages = page.getByRole('navigation', { name: 'Agent workflow pages', exact: true });
+  await pages.getByRole('button', { name: 'Timing & limits', exact: true }).click();
+  const configure = page.getByRole('button', { name: 'Configure Build execution', exact: true });
+  await configure.focus(); await configure.press('Enter');
+  const longName = `Build ${'W'.repeat(90)}`;
+  await page.getByLabel('Step name', { exact: true }).fill(longName);
+  await capture(page, '.cf-workflow-page', 'Agent workflow pages', 'Timing & limits');
+  await page.setViewportSize({ width: 360, height: 900 });
+  const namedAction = page.getByRole('button', { name: `Configure ${longName} execution`, exact: true });
+  await expect(namedAction).toBeVisible(); await namedAction.focus(); await namedAction.press('Enter');
+  await expect(pages.getByRole('button', { name: 'Idea Board Workflow', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByLabel('Step name', { exact: true })).toHaveValue(longName);
 });
 
 test("Council authoring, folders, intake and execution are distinct accessible pages", async ({

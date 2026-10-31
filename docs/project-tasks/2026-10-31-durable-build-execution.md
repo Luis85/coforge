@@ -172,6 +172,18 @@ remaining concrete blocker. No billable provider, live CF-135, personal vault or
 live OBS/Twitch operation was used. Local Node/npm are 24.20.0/11.21.1; CI uses
 repository pins 24.21.0/11.19.1.
 
+Final CI additionally exposed a Timing & limits action overflowing at 360px
+(234/235 browser cases passed on that head). Scoped description/action wrapping,
+long-name wrapping and a single-column narrow row fix it. The original overflow
+expression and one-pixel tolerance remain. The original failing journey passed
+afterward (54.1s), and now covers a valid 96-character name and keyboard return.
+The related browser/UI-quality batch passed 11/11, timing product tests 3/3, and
+the strengthened contained native case passed (15.61s). Typecheck, focused lint,
+diff and token checks passed; changed UI sources have zero scan findings.
+An optional whole-repo diagnostic still reports ten unchanged palette literals
+in the generated design-system file; no generated palette or rule was changed.
+The delivery gate re-runs all required CI on the corrected head before merge.
+
 Unchanged hot polls avoid canonical saves and mutation transactions; ordinary
 subscriber snapshot delivery retains the existing cloning/isolation contract.
 Unconfirmed bootstrap without a persisted original-child or exit/no-spawn proof

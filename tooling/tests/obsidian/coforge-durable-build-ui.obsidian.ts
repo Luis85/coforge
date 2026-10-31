@@ -4,9 +4,11 @@ import { test } from "./support/obsidian-fixture";
 import {
   openWorkflowDisclosure,
   openWorkflowSettings,
+  openWorkflowTiming,
 } from "../../../tests/e2e/support/workflow-navigation";
 
 const title = "Native activity " + "W".repeat(100);
+const buildName = "Build " + "W".repeat(90);
 
 describe("Durable Build configuration and studio activity in the contained host", () => {
   test("saves future Build policy and Node/lane settings across reload without running a provider, and keeps activity inside its viewport", async ({
@@ -42,6 +44,7 @@ describe("Durable Build configuration and studio activity in the contained host"
       .selectOption("background");
     await view.getByLabel("Set an elapsed deadline", { exact: true }).check();
     await view.getByLabel("Build deadline hours", { exact: true }).fill("120");
+    await view.getByLabel("Step name", { exact: true }).fill(buildName);
     await view
       .getByRole("button", { name: "Save workflow", exact: true })
       .click();
@@ -94,6 +97,29 @@ describe("Durable Build configuration and studio activity in the contained host"
     await browserExpect(
       view.getByLabel("Build deadline hours", { exact: true }),
     ).toHaveValue("120");
+    for (const [width, theme] of [[1440, "dark"], [820, "light"]] as const) {
+      await obsidian.page.setViewportSize({ width, height: 900 });
+      await obsidian.eval((_context, theme) => {
+        document.body.classList.toggle("theme-dark", theme === "dark");
+        document.body.classList.toggle("theme-light", theme === "light");
+      }, theme);
+      await openWorkflowTiming(view);
+      const overview = view.getByRole("region", { name: "Build execution policies", exact: true });
+      const action = overview.getByRole("button", { name: `Configure ${buildName} execution`, exact: true });
+      await overview.scrollIntoViewIfNeeded();
+      const geometry = await view.locator(".cf-content").evaluate(element => {
+        const button = element.querySelector(".cf-workflow-execution-overview button");
+        if (!button) throw new Error("Build execution action missing");
+        const content = element.getBoundingClientRect(); const control = button.getBoundingClientRect();
+        return { fits: element.scrollWidth <= element.clientWidth + 1,
+          actionInside: control.left >= content.left - 1 && control.right <= content.right + 1 };
+      });
+      expect(geometry).toEqual({ fits: true, actionInside: true });
+      await obsidian.screenshot(`native-build-execution-overview-${theme}-${width}`);
+      await action.focus(); await action.press("Enter");
+      await browserExpect(view.getByLabel("Step name", { exact: true })).toHaveValue(buildName);
+    }
+    await obsidian.page.setViewportSize({ width: 1440, height: 900 });
     await view.getByRole('region', { name: 'Build execution settings', exact: true }).evaluate(element => element.scrollIntoView({ block: 'start' }));
     await obsidian.screenshot("saved-background-build-policy");
     await view

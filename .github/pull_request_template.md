@@ -31,3 +31,9 @@ Ignored local evidence: reports/durable-final-project/, reports/durable-final-ui
 No billable vendor call or paid 100-hour soak, live CF-135 retry, personal-vault launch, live OBS/Twitch mutation, mobile qualification or alternate Obsidian version. Closing Obsidian differs from OS/provider failure: unknown process trees and startup without trustworthy original identity/exit evidence remain quarantined. No automatic paid-session resume is claimed. Final human review is still required for actual changes.
 
 No dependencies or audit exceptions were added. Local Node/npm are **24.20.0 / 11.21.1**; CI uses repository pins **24.21.0 / 11.19.1**. The `e2e` label must qualify full browser/native suites, and every final-head check must be green before merge.
+
+## CI layout follow-up
+
+The first complete browser qualification passed 234/235 cases and exposed a narrow Timing & limits action overflow. Scoped execution-overview wrapping and a narrow single-column row repair it. The original one-pixel overflow tolerance is unchanged. The original case now also checks a valid 96-character step name and keyboard return to the same draft.
+
+Fresh targeted proof: original failing journey passed (54.1s); durable/long-name/UI-quality batch **11/11 passed**; timing product tests **3/3 passed**; contained native save/reload/long-name Timing/action test **1 passed** (15.61s). Typecheck, focused lint, diff and token checks passed. A scoped UI-source scan returned zero findings. The optional whole-repository style-literal diagnostic reports ten unchanged raw palette colors in generated/styles/design-system/colors.css; the generated file, allowlists and thresholds are unchanged. Fresh final-head GitHub qualification is required after this fix.

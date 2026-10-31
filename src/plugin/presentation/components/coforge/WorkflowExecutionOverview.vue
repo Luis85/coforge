@@ -3,7 +3,7 @@ import { useWorkflowExecutionOverview } from "../../composables/coforge/use-work
 const execution = useWorkflowExecutionOverview();
 </script>
 <template>
-  <section class="cf-idea-section" aria-label="Build execution policies">
+  <section class="cf-idea-section cf-workflow-execution-overview" aria-label="Build execution policies">
     <h3>Build execution policies</h3>
     <p class="cf-settings-help">
       Background Builds use each step's captured execution policy. The
