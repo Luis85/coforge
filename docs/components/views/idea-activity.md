@@ -67,7 +67,7 @@ Journey tags: `request-to-recognition`, `recovery`.
 ## Workspace redesign
 
 The timeline and attempt sections share the request evidence heading scale. Each
-agent-run disclosure identifies its captured stage, provider/model, status and start
+agent-run disclosure identifies its captured stage, provider/model, recorded reasoning effort, status and start
 time. Expanding it reveals the captured prompt and response together; system
 instructions and execution logs have subordinate disclosures. All evidence stays
 literal, selectable text with line wrapping, native keyboard disclosure and visible focus.
@@ -94,6 +94,10 @@ an explicit truncation notice.
 not confirm that the provider received it; launch failures, cancellation and
 uncertain external delivery retain their original recovery semantics.
 
-Recognizable credentials in Claude response captures are redacted before retention
+Recognizable credentials in Claude and Codex response captures are redacted before retention
 and display. This privacy filter does not change the dispatched prompt or the raw
 semantic output used for validation. It does not claim to detect every secret.
+
+Reasoning effort appears only when captured in the dispatched workflow step.
+Missing/default effort stays unspecified, and simulation/external-client history
+never infers it from present-day settings.

@@ -29,7 +29,7 @@ const drawer = useIdeaDrawerContext();
           <span class="cf-idea-inline cf-idea-wrap">
             <span class="cf-idea-job-dot" :class="`is-${job.status}`" aria-hidden="true" />
             <strong>{{ job.label }}</strong>
-            <span class="cf-idea-source">{{ job.provider }}<template v-if="job.model"> · {{ job.model }}</template></span>
+            <span class="cf-idea-source">{{ job.provider }}<template v-if="job.model"> · {{ job.model }}</template><template v-if="job.effort"> · {{ job.effort }} effort</template></span>
           </span>
           <span class="cf-idea-run-meta">
             {{ job.simulated ? 'Simulation' : 'Chat history' }} · <time :datetime="job.startedAt" :title="job.startedAt">{{ job.startedLabel }}</time>

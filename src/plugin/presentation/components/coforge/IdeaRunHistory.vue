@@ -25,7 +25,7 @@ defineProps<{ job: IdeaRunHistory }>();
           <pre class="cf-idea-transcript">{{ job.conversation.response.text }}</pre>
           <p v-if="job.conversation.response.truncated" class="cf-idea-help cf-idea-truncation">Response capture truncated; only the retained beginning is shown.</p>
           <p class="cf-idea-help">Response captured for this attempt. Review remains required.</p>
-          <p v-if="job.provider === 'claude'" class="cf-idea-help">Recognizable credentials in Claude response captures are redacted.</p>
+          <p v-if="job.responsePrivacyLabel" class="cf-idea-help">Recognizable credentials in {{ job.responsePrivacyLabel }} response captures are redacted.</p>
         </template>
         <p v-else class="cf-idea-help">{{ job.missingResponse }}</p>
       </section>

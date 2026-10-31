@@ -7,6 +7,8 @@ import { captureProcess, childEnvironment, ProcessFailure, type ProcessOptions }
 import { codexExecutable } from './codex-executable';
 import { writeCodexModelProfile } from './codex-model-profile';
 import { codexOutputSchema, normalizeCodexOutput } from '../../features/coforge/application/codex-schema';
+import type { AgentConversationEvent } from '../../features/coforge/domain/agent-conversation';
+import { captureCodexResponse } from './codex-conversation';
 
 export interface CodexTransportInput {
   directory: string; executable?: string; model: string; effort?: ReasoningEffort;
@@ -14,6 +16,7 @@ export interface CodexTransportInput {
   mcp?: { url: string; token: string };
   capture?: (executable: string, args: readonly string[], options: ProcessOptions) => Promise<string>;
   telemetry?(usage: StageUsage | undefined): Promise<void>;
+  onConversation?(event: AgentConversationEvent): Promise<void>;
 }
 export function codexEnvironment(source: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
   return { ...childEnvironment(source), ...Object.fromEntries(Object.entries(source).filter(([key, value]) =>
@@ -25,18 +28,24 @@ export async function runCodexTransport(input: CodexTransportInput): Promise<{ o
   await writeFile(schemaPath, JSON.stringify(codexOutputSchema(input.schema)), { flag: 'wx', mode: 0o600 });
   const modelProfilePath = await writeCodexModelProfile(input.directory, input.model);
   const args = buildCodexArgs({ model: input.model, effort: input.effort, schemaPath, modelProfilePath, mcpUrl: input.mcp?.url });
+  const instructions = `${input.instructions}\n\nUse only the scoped CoForge MCP tools. Native project files, shell, browser, other MCP servers and delegation are unavailable. Return the required structured result.`;
+  const environment = { ...codexEnvironment(), ...(input.mcp ? { COFORGE_CODEX_MCP_TOKEN: input.mcp.token } : {}) };
   try {
+    await input.onConversation?.({ kind: 'request', instructions, prompt: input.prompt });
+    input.signal?.throwIfAborted();
     const raw = await (input.capture ?? captureProcess)(await codexExecutable(input.executable), args, {
       cwd: input.directory, timeoutMs: input.timeoutMs, signal: input.signal,
-      input: `${input.instructions}\n\nUse only the scoped CoForge MCP tools. Native project files, shell, browser, other MCP servers and delegation are unavailable. Return the required structured result.\n\n${input.prompt}`,
-      env: { ...codexEnvironment(), ...(input.mcp ? { COFORGE_CODEX_MCP_TOKEN: input.mcp.token } : {}) },
+      input: `${instructions}\n\n${input.prompt}`,
+      env: environment,
     });
     await input.telemetry?.(codexUsage(raw));
+    await captureCodexResponse(input.onConversation, raw, environment);
     const result = codexResult(raw);
     return { ...result, output: normalizeCodexOutput(result.output, input.schema) };
   } catch (error) {
     if (error instanceof ProcessFailure) {
       await input.telemetry?.(codexUsage(error.output));
+      await captureCodexResponse(input.onConversation, error.output, environment);
       throw new Error(/^Run (?:cancelled|timed out)/u.test(error.message) ? error.message : 'Codex did not complete this attempt. Check its local installation, sign-in, model access and configured limits; review partial worktree changes before retrying.');
     }
     if (error instanceof SyntaxError) throw new Error('Codex returned invalid structured output. The request was not advanced.');

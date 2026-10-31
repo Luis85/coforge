@@ -105,3 +105,39 @@ it('describes externally supplied context and submitted results without inventin
     expect(f.runner).not.toHaveBeenCalled();
   } finally { await f.close(); }
 });
+
+it('attributes Codex history to its captured model and effort after current settings and prompts change', async () => {
+  const captured: AgentJob = { ...job('codex'), provider: 'codex', model: 'gpt-6.1-sol', conversation: conversation(),
+    workflow: { runId: 'captured-run', definitionRevision: 'revision', proposalRevision: 'proposal', attemptId: 'attempt', inputArtifacts: [],
+      step: { id: 'analysis', name: 'Captured analysis', kind: 'ai', provider: 'codex', model: 'gpt-6.1-sol', effort: 'high', access: 'none', output: 'markdown', automatic: false, instructions: 'Captured original instructions' } },
+  };
+  const f = await fixture([captured]);
+  try {
+    const summary = f.wrapper.get('[data-job-id="codex"] > summary');
+    expect(summary.text()).toContain('codex');
+    expect(summary.text()).toContain('gpt-6.1-sol');
+    expect(summary.text()).toContain('high effort');
+    expect(f.wrapper.get('[aria-label="Chat history"]').text()).toContain('Recognizable credentials in Codex response captures are redacted.');
+    expect(f.wrapper.get('[data-job-id="codex"]').findAll('.cf-idea-transcript')[1]!.text()).toBe(conversation().response.text);
+    expect(f.wrapper.find('img').exists()).toBe(false);
+    f.store.state!.projects![0]!.settings.agentPrompt = 'Changed current instructions';
+    f.store.state!.projects![0]!.settings.model = 'new-model';
+    f.store.state!.projects![0]!.settings.stageAgents = { screen: { provider: 'codex', model: 'gpt-6.1-sol', effort: 'low' } };
+    await f.wrapper.vm.$nextTick();
+    expect(summary.text()).toContain('high effort');
+    expect(summary.text()).not.toContain('low effort');
+    expect(summary.text()).not.toContain('new-model');
+    delete f.store.state!.jobs[0]!.workflow!.step.effort;
+    await f.wrapper.vm.$nextTick();
+    expect(summary.text()).not.toContain('effort');
+    f.store.state!.jobs[0]!.workflow!.step.effort = 'high';
+    f.store.state!.jobs[0]!.provider = 'mcp';
+    await f.wrapper.vm.$nextTick();
+    expect(summary.text()).not.toContain('high effort');
+    f.store.state!.jobs[0]!.provider = 'demo';
+    await f.wrapper.vm.$nextTick();
+    expect(summary.text()).not.toContain('high effort');
+    expect(f.wrapper.text()).toContain('Captured original instructions');
+    expect(f.runner).not.toHaveBeenCalled();
+  } finally { await f.close(); }
+});

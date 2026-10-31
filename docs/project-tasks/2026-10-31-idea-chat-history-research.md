@@ -36,7 +36,8 @@ These are design inferences from the cited principles applied to this product, n
 8. HTML-like text, Markdown and long unbroken strings remain literal, selectable and wrapped. Keyboard disclosure and visible focus work in the actual Obsidian host.
 9. A different idea's attempts and private prompt/response text never appear in this idea or public viewer exports.
 10. External MCP clients identify supplied context and submitted output without claiming to capture the external conversation or know its model. Provider coverage describes the initial exchange; it never claims intermediate tool turns or hidden reasoning.
-11. Claude response captures redact recognizable credentials using the existing transport privacy filter and explain this change in the reading view. Dispatch and semantic validation remain unchanged; the filter does not promise exhaustive secret detection.
+11. Claude and Codex response captures redact recognizable credentials using the existing transport privacy filter and explain this change in the reading view. Dispatch and semantic validation remain unchanged; the filter does not promise exhaustive secret detection.
+12. Recorded workflow reasoning effort accompanies captured model provenance. Missing/default values and external/simulated runs do not infer effort from current settings. Codex records visible agent output, excluding transport tool events and hidden reasoning.
 
 ## Prioritized improvement and polishing plan
 

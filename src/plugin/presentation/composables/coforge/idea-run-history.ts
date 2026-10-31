@@ -21,7 +21,7 @@ function missingResponse(job: AgentJob): string {
 /** Read only captured attempt evidence; present-day settings cannot describe past dispatch. */
 export function ideaRunHistory(job: AgentJob) {
   const conversation = job.conversation;
-  const simulated = conversation?.simulated ?? job.provider === 'demo';
+  const simulated = job.provider === 'demo' || conversation?.simulated === true;
   const external = job.provider === 'mcp';
   const model = job.model ?? (job.workflow?.step.kind === 'ai' ? job.workflow.step.model : undefined);
   const lines = [job.logs.join('\n') || 'No log entries.'];
@@ -31,6 +31,8 @@ export function ideaRunHistory(job: AgentJob) {
     label: job.workflow?.step.name ?? STAGE_LABELS[job.stage],
     provider: job.provider,
     model: simulated || external ? '' : model || 'Model not recorded',
+    effort: simulated || external ? undefined : job.workflow?.step.effort,
+    responsePrivacyLabel: job.provider === 'claude' ? 'Claude' : job.provider === 'codex' ? 'Codex' : '',
     status: job.status,
     startedAt: job.startedAt,
     startedLabel: captureTime(job.startedAt),
