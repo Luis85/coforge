@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useSettingsForm } from "../../composables/coforge/use-settings";
 import CfIcon from "./CfIcon.vue";
+import BuildWorkerReadiness from './BuildWorkerReadiness.vue';
 
 const model = useSettingsForm();
 </script>
@@ -69,6 +70,7 @@ const model = useSettingsForm();
         </dd>
       </div>
     </dl>
+    <BuildWorkerReadiness />
     <div class="cf-settings-actions cf-settings-runtime-actions">
       <button type="button" class="cf-btn cf-btn-secondary" @click="model.store.openSettingsTool('repository')">Configure repository</button>
       <button v-if="model.store.featureEnabled('workflow')" type="button" class="cf-btn cf-btn-secondary" @click="model.store.openWorkflowTool('herdr')">Manage Herdr workspaces</button>

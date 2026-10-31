@@ -52,8 +52,11 @@ copies, startup preferences, per-request runs and durable Stop/Restart behavior.
 Community text is passed to Claude through **stdin** as structured data, never as a
 command-line argument. Every run uses non-interactive JSON output and a stage-specific
 JSON schema; CoForge validates the envelope and the fields again. Missing, malformed or
-failed output becomes a failed job. Runs have a timeout and an output-size limit, and
-only an allowlisted environment is passed to the child process.
+failed output becomes a failed job. Foreground runs retain their short timeout
+and output-size limit. Opt-in background Builds use their captured long-running
+policy, streamed private output and separate worker lifecycle. Only an allowlisted
+environment is passed to the child process. See [long-running native Builds](../WORKFLOWS.md#long-running-native-builds)
+for Node setup, both concurrency limits, resource bounds and recovery.
 
 ### Builds and review
 

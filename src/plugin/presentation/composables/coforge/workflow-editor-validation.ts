@@ -38,15 +38,22 @@ const labels: Record<string, string> = {
   "limits.intervalSeconds": "Automatic run interval",
   "limits.maxTurns": "Native CLI turns",
   "limits.maxBudgetUsd": "Native CLI budget",
+  execution: 'Build execution',
+  'execution.maxRuntimeSeconds': 'Execution deadline',
+  'execution.idleWarningSeconds': 'Inactivity warning',
+  'execution.maxTurns': 'Build turn/tool-call cap',
+  'execution.maxBudgetUsd': 'Build USD cap',
 };
 function targetFor(cause: unknown, step: boolean): string {
   if (cause instanceof CheckError) {
+    if (cause.path.startsWith('execution.')) return cause.path;
     const target = step && !cause.path.startsWith("items[")
       ? cause.path.split(/[.[\]]/u)[0] || "name"
       : cause.path;
     return target === 'contextMode' ? 'inputs' : target;
   }
   const message = cause instanceof Error ? cause.message : "";
+  if (message.startsWith('Background execution')) return 'execution';
   return message.includes("code-change")
     ? "access"
     : message.includes("prompt")
@@ -121,9 +128,9 @@ export function workflowEditorIssues(
         (cause.path === "name" || cause.path.startsWith("limits.")))
     ) {
       const path = cause instanceof CheckError ? cause.path : 'name';
-      const membership = /^steps\[(\d+)\]\.bucketId$/u.exec(path);
+      const membership = /^steps\[(\d+)\]\.(bucketId|execution|access)$/u.exec(path);
       const step = membership ? definition.steps[Number(membership[1])] : undefined;
-      const target = step ? 'bucketId' : path.startsWith('buckets') ? 'buckets' : path;
+      const target = step ? membership![2]! : path.startsWith('buckets') ? 'buckets' : path;
       issues.unshift({
         id: `workflow-${target}`,
         ...(step ? { stepId: step.id } : {}),

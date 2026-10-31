@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -23,6 +23,29 @@ it('forwards Codex credentials only to the Codex child environment', () => {
   const source = { PATH: '/tools', OPENAI_API_KEY: 'private-key', CODEX_HOME: '/custom-codex', UNRELATED_SECRET: 'hidden' };
   expect(codexEnvironment(source)).toEqual({ PATH: '/tools', OPENAI_API_KEY: 'private-key', CODEX_HOME: '/custom-codex' });
   expect(childEnvironment(source)).toEqual({ PATH: '/tools' });
+});
+it('reads a qualified background workspace only through protected broker tools without recapturing or clearing its increment', async () => {
+  const cwd = await realpath(await mkdtemp(join(tmpdir(), 'coforge-codex-reader-'))); folders.push(cwd);
+  await mkdir(join(cwd, 'Private')); await writeFile(join(cwd, 'Private', 'request.md'), 'PRIVATE'); await writeFile(join(cwd, 'game.ts'), 'captured code');
+  const capture = vi.fn(async () => undefined); const onChanges = vi.fn(); const validate = vi.fn(async () => {});
+  const lease: WorkflowWorkspaceLease = { cwd, id: 'bg-original', readOnly: true, protectedProjectPaths: ['Private'], validate, capture, release: vi.fn(async () => {}) };
+  const input: StageInput = { stage: 'plan', idea: createSeed().ideas[0]!, settings: { ...defaultSettings(), provider: 'codex', model: 'gpt-6.1-sol' },
+    integration: { ...defaultIntegration(), codexBin: 'synthetic-codex' }, onChanges,
+    workflow: { runId: 'run', definitionRevision: 'definition', proposalRevision: 'proposal', attemptId: 'summary', workspaceId: 'bg-original', inputArtifacts: [],
+      step: { id: 'summary', name: 'Summary', kind: 'ai', provider: 'codex', model: 'gpt-6.1-sol', instructions: 'Summarize', output: 'markdown', access: 'readproject', automatic: false } } };
+  transport.run.mockImplementation(async (_command: string, args: string[], options: ProcessOptions) => {
+    expect(options.cwd).not.toBe(cwd); expect(args).not.toContain(cwd);
+    const config = args.find(value => value.startsWith('mcp_servers='))!; const url = /"url" = "([^"]+)"/u.exec(config)?.[1]; if (!url) throw new Error('Missing reader broker');
+    const call = async (method: string, params?: object) => (await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${options.env?.COFORGE_CODEX_MCP_TOKEN}` },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, ...(params ? { params } : {}) }) })).json();
+    expect(await call('tools/list')).toMatchObject({ result: { tools: ['coforge_list_files', 'coforge_read_file', 'coforge_search_files'].map(name => ({ name })) } });
+    expect(await call('tools/call', { name: 'coforge_read_file', arguments: { path: 'Private/request.md' } })).toMatchObject({ result: { isError: true } });
+    expect(await call('tools/call', { name: 'coforge_read_file', arguments: { path: 'game.ts' } })).toMatchObject({ result: { structuredContent: { content: 'captured code' } } });
+    return envelope({ markdown: '# Summary of captured code' });
+  });
+  const result = await runCodexStage(input, { start: async () => {}, acquire: async () => lease, acknowledge: async () => {}, assertReviewable: async () => {} });
+  expect(result).toMatchObject({ markdown: '# Summary of captured code' }); expect(result.increment).toBeUndefined();
+  expect(capture).not.toHaveBeenCalled(); expect(onChanges).not.toHaveBeenCalled(); expect(validate).toHaveBeenCalled(); expect(lease.release).toHaveBeenCalledOnce();
 });
 
 it('runs Codex Build from a private directory while host tools guard files and capture actual changes', async () => {

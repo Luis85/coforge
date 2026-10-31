@@ -57,10 +57,13 @@ screening evidence, unrelated properties and note bodies are preserved.
 ## Shared stream, separate work
 
 Chat, the Twitch connection, contributors and community recognition are shared. Backlogs and
-workflow settings belong to individual projects. New projects start paused. Switching boards
-does not stop resumed projects: one shared worker rotates between eligible projects and keeps
-each run bound to its originating project's configuration. This also prevents simultaneous
-agent writes. Restarting Obsidian pauses automation for every project.
+workflow settings belong to individual projects. Legacy workflows start paused;
+new startup behavior follows each saved workflow's explicit Play/Paused choice.
+Switching boards does not stop resumed projects. Separate vault-wide short-task
+and background Build limits rotate eligible work across projects, defaulting to
+one run in each lane. Each request/workspace keeps exclusive write ownership and
+captured originating-project settings. Already-admitted background Builds can
+continue after Obsidian closes; see [project workflows](../WORKFLOWS.md).
 
 The native Claude executable and Twitch configuration remain in the CoForge plugin settings.
 Repository/worktree paths and implementation permission are configured per project in the

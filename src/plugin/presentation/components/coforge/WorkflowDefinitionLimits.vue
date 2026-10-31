@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useWorkflowEditorForm } from "../../composables/coforge/use-workflow-editor";
+import WorkflowExecutionOverview from './WorkflowExecutionOverview.vue';
 const model = useWorkflowEditorForm();
 </script>
 <template>
@@ -16,7 +17,7 @@ const model = useWorkflowEditorForm();
           step="1"
           required /></label
       ><label class="cf-field"
-        ><span>Step timeout · seconds</span
+        ><span>Step timeout · seconds · foreground tasks</span
         ><input
           v-model.number="model.draft.limits.timeoutSeconds"
           data-workflow-field="limits.timeoutSeconds"
@@ -52,12 +53,15 @@ const model = useWorkflowEditorForm();
       captured run continue immediately; manual steps wait for your decision.
     </p>
     <p class="cf-settings-help">
-      The timeout bounds CoForge’s wait for each AI step. A cancelled or
+      The timeout bounds foreground AI steps. Background Builds use the separate
+      execution policy below. A cancelled or
       timed-out Herdr agent can continue externally and needs recovery
       inspection. Herdr interactive spending and turn limits are configured
       externally; the native CLI caps do not enforce them.
       For Codex, the turn setting caps CoForge tool calls; its CLI does not
-      enforce the Claude USD spending cap. The step timeout still applies.
+      enforce the Claude USD spending cap. The foreground timeout and background
+      execution policy remain separate.
     </p>
+    <WorkflowExecutionOverview />
   </section>
 </template>

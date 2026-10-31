@@ -4,9 +4,10 @@ import type { StageInput } from '../../features/coforge/application/ports';
 import type { WorkflowWorkspaceLease } from '../../features/coforge/application/workflow-workspace-ports';
 import { executionAccess } from '../../features/coforge/application/workflow-execution';
 import { text, shape, optional, nullable } from '../../features/coforge/domain/check';
+import { protectedPrefix } from './durable-worker/protection';
 
 const MAX = 200000;
-const denied = (segment: string): boolean => /^(?:\.git|\.claude|\.codex|\.agents|\.mcp\.json|\.obsidian|node_modules|\.env(?:\..*)?|\.ssh|\.aws|\.npmrc|\.netrc|credentials?(?:\..*)?|secrets?(?:\..*)?)$/iu.test(segment) || /\.(?:pem|key|p12|pfx)$/iu.test(segment);
+const denied = (segment: string): boolean => /^(?:\.git|\.claude|\.codex|\.coforge|\.agents|\.mcp\.json|\.obsidian|node_modules|\.env(?:\..*)?|\.ssh|\.aws|\.npmrc|\.netrc|credentials?(?:\..*)?|secrets?(?:\..*)?)$/iu.test(segment) || /\.(?:pem|key|p12|pfx)$/iu.test(segment);
 const ambiguous = (segment: string): boolean => segment.trimEnd() !== segment || segment.endsWith('.') || [...segment].some(character => character.charCodeAt(0) < 32)
   || /^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/iu.test(segment);
 function parts(path: string): string[] {
@@ -46,12 +47,27 @@ type Task = { input: StageInput; lease: WorkflowWorkspaceLease };
 /** No arbitrary absolute paths, shell, Git operations, metadata or credential files. */
 export class McpStepFiles {
   private pending: Promise<unknown> = Promise.resolve();
+  private readonly protectedPaths: readonly string[];
+  constructor(protectedPaths: readonly string[] = []) { this.protectedPaths = protectedPaths.map(protectedPrefix); }
+  private protected(path: string): boolean {
+    const value = process.platform === 'win32' ? path.toLowerCase() : path;
+    return this.protectedPaths.some(prefix => { const folder = process.platform === 'win32' ? prefix.toLowerCase() : prefix; return value === folder || value.startsWith(folder + '/'); });
+  }
+  private async bound(root: string, path: string, missing = false): Promise<string> {
+    if (this.protected(parts(path).join('/'))) throw new Error('Managed vault notes and public outputs are outside this task’s repository authority.');
+    return bounded(root, path, missing);
+  }
   call(name: string, task: Task, raw: unknown): Promise<unknown> {
-    const next = this.pending.then(() => this.execute(name, task, raw));
+    const next = this.pending.then(async () => {
+      const scoped = task.lease.protectedProjectPaths?.length ? new McpStepFiles([...this.protectedPaths, ...task.lease.protectedProjectPaths]) : this;
+      const result = await scoped.execute(name, task, raw);
+      if (task.lease.readOnly) { task.input.signal?.throwIfAborted(); await task.lease.validate?.(); }
+      return result;
+    });
     this.pending = next.catch(() => undefined); return next;
   }
   private async list(root: string, path: string): Promise<{ files: string[]; truncated: boolean }> {
-    const start = await bounded(root, path);
+    const start = await this.bound(root, path);
     const files: string[] = [];
     let scanned = 0;
     let truncated = false;
@@ -61,6 +77,7 @@ export class McpStepFiles {
         if (++scanned > 4000 || files.length >= 1000) { truncated = true; return; }
         if (denied(entry.name) || ambiguous(entry.name) || entry.isSymbolicLink()) continue;
         const path = join(directory, entry.name);
+        if (this.protected(relative(root, path).split(sep).join('/'))) continue;
         if (entry.isDirectory()) await walk(path, depth + 1);
         else if (entry.isFile() && (await lstat(path)).nlink === 1) files.push(relative(root, path).split(sep).join('/'));
       }
@@ -84,7 +101,7 @@ export class McpStepFiles {
     }
     if (name === 'coforge_read_file') {
       const { path } = shape({ taskId, path: pathCheck }, { strict: true })(raw);
-      return { path, content: await read(await bounded(root, path)) };
+      return { path, content: await read(await this.bound(root, path)) };
     }
     if (name === 'coforge_search_files') {
       const { query } = shape({ taskId, query: text({ min: 1, max: 200 }) }, { strict: true })(raw);
@@ -93,7 +110,7 @@ export class McpStepFiles {
       let total = 0;
       for (const path of listing.files) {
         let content: string;
-        try { content = await read(await bounded(root, path)); } catch { continue; }
+        try { content = await read(await this.bound(root, path)); } catch { continue; }
         total += Buffer.byteLength(content);
         if (total > 2 * 1024 * 1024) return { matches, truncated: true };
         for (const [index, line] of content.split('\n').entries()) if (line.includes(query)) {
@@ -103,11 +120,11 @@ export class McpStepFiles {
       }
       return { matches, truncated: listing.truncated };
     }
-    if (!['coforge_write_file', 'coforge_delete_file'].includes(name) || access !== 'editworktree') throw new Error('This task cannot edit files.');
+    if (!['coforge_write_file', 'coforge_delete_file'].includes(name) || access !== 'editworktree' || task.lease.readOnly) throw new Error('This task cannot edit files.');
     if (name === 'coforge_delete_file') {
       const { path, expectedContent } = shape({ taskId, path: pathCheck, expectedContent: text({ max: MAX }) }, { strict: true })(raw);
       if (!path || /(?:^|\/)(?:package\.json|[^/]*lock[^/]*)$/iu.test(path)) throw new Error('This file cannot be edited by workflow agents.');
-      const target = await bounded(root, path);
+      const target = await this.bound(root, path);
       if (await read(target) !== expectedContent) throw new Error('File changed. Read its current content before deleting it.');
       task.input.signal?.throwIfAborted();
       await unlink(target); return { path, deleted: true };
@@ -115,17 +132,17 @@ export class McpStepFiles {
     const { path, content, expectedContent } = shape({ taskId, path: pathCheck, content: text({ max: MAX }), expectedContent: nullable(text({ max: MAX })) }, { strict: true })(raw);
     if (!path || /(?:^|\/)(?:package\.json|[^/]*lock[^/]*)$/iu.test(path)) throw new Error('This file cannot be edited by workflow agents.');
     if (Buffer.byteLength(content) > MAX) throw new Error('File content exceeds 200000 bytes.');
-    const target = await bounded(root, path, true);
+    const target = await this.bound(root, path, true);
     let before: string | null = null;
     try { before = await read(target); } catch (error) { if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error; }
     if (before !== expectedContent) throw new Error('File changed. Read its current content before replacing it.');
     task.input.signal?.throwIfAborted();
     await mkdir(dirname(target), { recursive: true });
-    await bounded(root, path, true);
+    await this.bound(root, path, true);
     const temporary = join(dirname(target), `.coforge-mcp-${crypto.randomUUID()}.tmp`);
     try {
       await writeFile(temporary, content, { flag: 'wx', mode: 0o600 });
-      await bounded(root, path, true);
+      await this.bound(root, path, true);
       task.input.signal?.throwIfAborted();
       if (before !== null && await read(target) !== before) throw new Error('File changed during replacement.');
       if (before === null) {

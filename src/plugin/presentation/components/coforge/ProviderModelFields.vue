@@ -23,5 +23,5 @@ const fields = useProviderModelFields(props);
     </select>
     <small v-if="choice.provider !== 'demo'">{{ fields.efforts.length ? 'Captured for future runs. Higher effort may use more time and tokens.' : 'No documented effort choices for this model. The provider controls its default.' }}</small>
   </label>
-  <p v-if="choice.provider === 'codex'" class="cf-settings-help">Codex uses your local sign-in and scoped CoForge tools. The step timeout applies; the turn setting bounds CoForge tool calls. Claude's USD/turn caps do not enforce Codex spending. Token usage is recorded when available; automatic USD cost is unavailable.</p>
+  <p v-if="choice.provider === 'codex'" class="cf-settings-help">Codex uses your local sign-in and scoped CoForge tools. The invoking task's captured execution policy applies; its turn setting bounds CoForge tool calls. Claude's USD/turn caps do not enforce Codex spending. Token usage is recorded when available; automatic USD cost is unavailable.</p>
 </template>

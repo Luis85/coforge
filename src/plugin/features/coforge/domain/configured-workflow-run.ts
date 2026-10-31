@@ -143,6 +143,7 @@ export function recoverConfiguredRuns(state: Pick<AppState, 'ideas' | 'jobs'>): 
     for (const attempt of run?.attempts ?? []) if (attempt.councilCancellation === 'requested') { attempt.councilCancellation = 'unknown'; if (run) { run.error = 'CoForge closed before Council cancellation was confirmed. Inspect the original discussion and acknowledge recovery.'; run.revision++; run.updatedAt = new Date().toISOString(); } }
     if (!run || run.state !== 'running') continue;
     const attempt = run.attempts.find(item => item.id === run.activeAttemptId);
+    if (attempt && state.jobs.some(job => job.durable && (['queued', 'running'].includes(job.status) || !job.durable.acknowledged) && job.workflow?.runId === run.id && job.workflow.attemptId === attempt.id)) continue;
     if (!attempt || !['ai', 'nudge', 'council'].includes(attempt.kind)) continue;
     if (attempt.kind === 'council' && attempt.nudgeState === 'submitted' && attempt.nudgeRunId) continue;
     run.state = 'attention';

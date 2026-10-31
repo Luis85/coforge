@@ -245,6 +245,10 @@ export class LocalHerdrAttemptFiles implements HerdrAttemptFiles {
       });
       cwd = lease.cwd;
       try {
+        if (lease.readOnly)
+          throw new Error(
+            "This background workspace requires broker-only read access. Choose native Claude or Codex, or a no-access Herdr step.",
+          );
         input.signal?.throwIfAborted();
         if (lease.id) await input.onWorkspace?.(lease.id);
         if (executionAccess(input) === "none") artifact = cwd;

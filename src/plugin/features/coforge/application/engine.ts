@@ -18,6 +18,10 @@ import type { WorkflowPlanHandoff } from './workflow-plan-handoff';
 import type { AutomationContext } from '../domain/automation-context';
 import type { AgentTaskPort } from './agent-task';
 import { recordAgentConversation } from './agent-conversation';
+import { DurableBuildCoordinator } from './durable-build-coordinator';
+import { DurableBuildCapacityError, type DurableBuildPort } from './durable-build-ports';
+import { WorkflowJobLanes, workerBackedJob } from './workflow-job-lanes';
+import { inspectDurableBuildEvidence, recoverDurableBuild } from './durable-build-recovery';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
@@ -69,24 +73,27 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   recordOperation(state, 'job-completed', 'committed', undefined, 1, job.id);
   if (result.costUsd !== undefined) job.costUsd = result.costUsd;
   job.logs.push(`${STAGE_LABELS[job.stage]} finished. ${idea.id} is ${idea.status}.`);
-  delete state.runtime.activeJobId;
+  if (state.runtime.activeJobId === job.id) delete state.runtime.activeJobId;
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
+export interface EngineOptions { durableBuilds?: DurableBuildPort; outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
 
-/** One worker, a FIFO queue of at most 50 jobs, optional timed automation and explicit cancellation. */
+/** Vault-wide Build and short-task pools with bounded FIFO queues and explicit cancellation. */
 export class WorkflowEngine {
   private readonly configured: ConfiguredWorkflowEngine;
-  private drainPromise: Promise<void> | null = null;
-  private controller: AbortController | null = null;
-  private activeId: string | null = null;
+  private readonly lanes: WorkflowJobLanes;
+  private readonly durable: DurableBuildCoordinator;
   private timer: number | null = null;
   private readonly lastAutomaticTick = new Map<string, number>();
   private lastProjectId: string | null = null;
   private stopped = false;
+  private dispatchDeferred = false;
+  private pulsing = false;
   constructor(readonly store: StudioStore, private readonly options: EngineOptions) {
-    this.configured = new ConfiguredWorkflowEngine(store, { outputTemplates: options.outputTemplates, agentTasks: options.agentTasks, runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
+    this.configured = new ConfiguredWorkflowEngine(store, { dispatchAllowed: () => !this.stopped && !this.dispatchDeferred, durableBuilds: options.durableBuilds, outputTemplates: options.outputTemplates, agentTasks: options.agentTasks, runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
+    this.durable = new DurableBuildCoordinator(store, options.durableBuilds, (state, job, result) => this.configured.complete(state, job, result), ideaId => this.configured.flushDelegated(ideaId).catch(error => this.report(error)));
+    this.lanes = new WorkflowJobLanes(store, (job, controller) => this.dispatch(job, controller), error => this.report(error));
   }
   acknowledgeWorkflowNudge(ideaId: string, revision: number, consent: boolean) { return this.configured.acknowledgeNudge(ideaId, revision, consent); }
   async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }
@@ -99,26 +106,32 @@ export class WorkflowEngine {
   async stopWorkflow(ideaId: string) {
     const job = this.store.snapshot().jobs.find(item => item.ideaId === ideaId && isActiveJob(item));
     const run = await this.configured.stop(ideaId);
-    if (job?.id === this.activeId) this.controller?.abort();
+    if (job?.durable) await this.durable.reconcile(ideaId);
+    else if (job) this.lanes.abort(job.id);
     return run;
   }
 
   start(): void {
     this.stopped = false;
+    this.dispatchDeferred = false;
+    this.lanes.open(); this.durable.attach();
     if (this.timer) return;
     this.timer = this.options.timers.setInterval(() => {
-      if (this.drainPromise) return;
-      void this.tick(false).catch(error => this.report(error));
+      if (this.pulsing || this.stopped) return;
+      this.pulsing = true;
+      void this.durable.reconcile().catch(error => this.report(error)).then(() => { if (!this.stopped) return this.tick(false); }).then(() => { if (!this.stopped) this.lanes.poke(); }).catch(error => this.report(error)).finally(() => { this.pulsing = false; });
     }, 750);
+    this.kick();
   }
+  preventDispatchUntilStart(): void { this.dispatchDeferred = true; this.lanes.pause(); }
 
   async stop(): Promise<void> {
     this.stopped = true;
     if (this.timer !== null) this.options.timers.clearInterval(this.timer);
     this.timer = null;
-    this.controller?.abort();
+    await this.durable.detach();
+    await this.lanes.close();
     await this.configured.dispose();
-    await this.drainPromise;
     await this.store.flush();
   }
 
@@ -153,8 +166,9 @@ export class WorkflowEngine {
   }
 
   async tick(manual = true): Promise<AgentJob | null> {
+    if (this.dispatchDeferred || this.stopped) return null;
     const state = this.store.internalSnapshot();
-    if (state.jobs.some(job => isActiveJob(job) && (!manual || job.projectId === state.activeProjectId))) return null;
+    if (state.jobs.filter(job => job.status === 'queued').length >= 50) return null;
     const index = state.projects.findIndex(project => project.id === this.lastProjectId);
     const projects = manual ? state.projects.filter(project => project.id === state.activeProjectId)
       : [...state.projects.slice(index + 1), ...state.projects.slice(0, index + 1)];
@@ -206,7 +220,15 @@ export class WorkflowEngine {
   }
 
   async cancel(jobId: string): Promise<void> {
-    if (this.activeId === jobId && this.controller) { this.controller.abort(); return; }
+    const workerJob = this.store.snapshot().jobs.find(job => job.id === jobId && (job.durable || workerBackedJob(job)));
+    if (workerJob) {
+      if (!isActiveJob(workerJob)) throw new Error('Only queued or running jobs can be cancelled.');
+      const state = this.store.snapshot(); const idea = state.ideas.find(item => item.id === workerJob.ideaId);
+      const available = idea && idea.workflowRun?.id === workerJob.workflow?.runId && !['shipped', 'rejected'].includes(idea.status) && !state.projects?.find(project => project.id === ideaProjectId(idea))?.unavailable;
+      if (workerJob.durable && !available) await this.durable.cancel(workerJob.id); else await this.stopWorkflow(workerJob.ideaId);
+      this.kick(); return;
+    }
+    if (this.lanes.abort(jobId)) return;
     await this.store.transaction(state => {
       const job = state.jobs.find(j => j.id === jobId);
       if (!job) throw new StudioError('Job not found.', 404);
@@ -229,27 +251,38 @@ export class WorkflowEngine {
   }
 
   async waitUntilIdle(): Promise<void> {
-    while (this.drainPromise) await this.drainPromise;
+    await this.lanes.idle();
     await this.store.flush();
   }
 
   private kick(): void {
-    if (this.drainPromise || this.stopped) return;
-    this.drainPromise = this.drain().catch(error => this.report(error)).finally(() => {
-      this.drainPromise = null;
-      if (!this.stopped && this.store.snapshot().jobs.some(j => j.status === 'queued')) this.kick();
-    });
+    if (!this.stopped && !this.dispatchDeferred) this.lanes.kick();
   }
-
-  private async drain(): Promise<void> {
-    while (!this.stopped) {
-      const next = this.store.snapshot().jobs.find(j => j.status === 'queued');
-      if (!next) return;
-      const controller = new AbortController();
-      this.controller = controller; this.activeId = next.id;
-      try { if (next.workflow) await this.configured.run(next, controller.signal); else await this.run(next, controller); }
-      catch (error) { if (next.workflow) await this.configured.fail(next, controller.signal.aborted, error); else await this.fail(next, controller.signal.aborted, error); }
-      finally { this.controller = null; this.activeId = null; }
+  async reconcileDurableBuild(ideaId?: string): Promise<void> {
+    await this.durable.reconcile(ideaId); if (!this.stopped && !this.dispatchDeferred) this.lanes.poke();
+    const failed = ideaId && this.store.durableBuildJobIds(ideaId).map(id => this.store.durableBuildError(id)).find(Boolean);
+    if (failed) throw new Error(failed);
+  }
+  async configureConcurrency(): Promise<void> { try { await this.durable.configure(); } finally { if (!this.stopped && !this.dispatchDeferred) this.lanes.poke(); } }
+  async syncDurableBuildCapacity(): Promise<void> { await this.durable.configure(); }
+  async cleanupUnstartedBackground(): Promise<void> {
+    const port = this.options.durableBuilds; if (!port) return;
+    const jobs = this.store.snapshot().jobs.filter(job => workerBackedJob(job) && !job.durable && ['failed', 'cancelled'].includes(job.status));
+    await Promise.allSettled(jobs.map(job => port.cancelUnstarted(job.id)));
+  }
+  inspectDurableBuildEvidence(ideaId: string, revision: number) { return inspectDurableBuildEvidence(this.store, this.options.durableBuilds, ideaId, revision); }
+  async recoverDurableBuild(ideaId: string, revision: number, consent: boolean): Promise<void> { await recoverDurableBuild(this.store, this.options.durableBuilds, ideaId, revision, consent, (id, snapshot) => this.durable.applyRecovered(id, snapshot)); this.kick(); }
+  private async dispatch(job: AgentJob, controller: AbortController): Promise<void> {
+    if (this.dispatchDeferred || this.stopped) return;
+    try {
+      if (workerBackedJob(job)) { await this.configured.verifyCoworker(job); await this.durable.launch(job); }
+      else if (job.workflow) await this.configured.run(job, controller.signal);
+      else await this.run(job, controller);
+    } catch (error) {
+      if (this.stopped) return;
+      if (this.store.snapshot().jobs.find(item => item.id === job.id)?.durable) return;
+      if (error instanceof DurableBuildCapacityError) { await this.store.transaction(state => { const current = state.jobs.find(item => item.id === job.id); if (current) current.error = 'Waiting for background worker capacity. No provider request was started.'; }); throw error; }
+      if (job.workflow) await this.configured.fail(job, controller.signal.aborted, error); else await this.fail(job, controller.signal.aborted, error);
     }
   }
 
@@ -311,7 +344,7 @@ export class WorkflowEngine {
       if (job) recordOperation(state, cancelled ? 'job-cancelled' : 'job-failed', cancelled ? 'committed' : 'none');
       const idea = state.ideas.find(i => i.id === next.ideaId);
       if (idea) { idea.lastError = message; idea.updatedAt = new Date().toISOString(); if (idea.status === 'building') idea.status = 'planned'; }
-      delete state.runtime.activeJobId;
+      if (state.runtime.activeJobId === next.id) delete state.runtime.activeJobId;
       addEvent(state, 'agent', `${STAGE_LABELS[next.stage]} ${cancelled ? 'cancelled' : 'failed'} for ${next.ideaId}. Manual retry required.`, next.ideaId);
     });
   }

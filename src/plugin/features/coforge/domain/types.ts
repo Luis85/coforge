@@ -39,6 +39,7 @@ export interface ChatMessage {
 }
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
+  durable?: import('./durable-build').DurableBuildExecution;
   conversation?: import('./agent-conversation').AgentConversation;
   workflow?: import('./configured-workflow-run').ConfiguredStepExecution;
   usage?: import('./ai-usage').StageUsage;
@@ -61,6 +62,10 @@ export interface Settings {
   requestCooldownSeconds: number;
 }
 export interface RuntimeInfo {
+  durableBuildSnapshots?: Record<string, import('./durable-build').DurableBuildSnapshot>;
+  durableBuildErrors?: Record<string, string>;
+  durableBuildInspections?: Record<string, import('./durable-build').DurableBuildInspectionReceipt>;
+  durableBuild?: import('./durable-build').DurableBuildReadiness;
   codexAvailable?: boolean;
   obsProduction?: import('./obs-production').ObsProductionSnapshot;
   /** Transient fail-closed publication holds; only an explicit public reconciliation clears them. */
@@ -112,6 +117,8 @@ export interface AppState {
 }
 /** Host-side configuration that replaced the prototype's .env file. Secrets are referenced by name only. */
 export interface IntegrationSettings {
+  executionConcurrency?: import('./execution-concurrency').ExecutionConcurrency;
+  workerNodeBin?: string;
   codexBin?: string;
   ideasFolder: string; claudeBin: string; projectPath: string; allowImplementation: boolean; worktreeFolder: string;
   twitchEnabled: boolean; twitchClientId: string; twitchBotUserId: string; twitchBroadcasterId: string; twitchTokenSecret: string;

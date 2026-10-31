@@ -61,6 +61,7 @@ export interface ManagedNoteFolderPolicy {
   reserve(folders: readonly string[]): () => void;
 }
 export interface StudioHost {
+  durableBuilds?: import('./durable-build-ports').DurableBuildPort;
   outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
   agentTasks?: import('./agent-task').AgentTaskPort;
   /** Private immutable reward tickets are reserved before command effects. */

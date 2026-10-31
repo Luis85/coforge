@@ -119,6 +119,15 @@ export function useStudioActions() {
       ),
     runWorkflowStep: (id: string) =>
       attempt(() => studio.runWorkflowStep(id), "Workflow step requested."),
+    checkDurableBuildWorker: () => attempt(() => studio.refreshDurableBuildRuntime()),
+    repairDurableBuildWorker: (consent: boolean) => attempt(async () => {
+      const readiness = await studio.repairDurableBuildRuntime(consent);
+      if (!readiness.ready) throw new Error(readiness.message);
+      return readiness;
+    }),
+    checkDurableBuild: (ideaId: string) => attempt(() => studio.reconcileDurableBuild(ideaId), 'Existing Build state checked.'),
+    inspectDurableBuildEvidence: (ideaId: string, revision: number) => attempt(() => studio.inspectDurableBuildEvidence(ideaId, revision), 'Retained Build evidence inspected.'),
+    recoverDurableBuild: (ideaId: string, revision: number, consent: boolean) => attempt(() => studio.recoverDurableBuild(ideaId, revision, consent), 'Original Build recovery checked. Its Stop hold remains in Inbox.'),
     restartWorkflow: (id: string) => attempt(() => studio.restartWorkflowFromOperator(id), 'Workflow restarted from its first step. Previous run evidence was preserved.'),
     stopWorkflow: (id: string) =>
       attempt(

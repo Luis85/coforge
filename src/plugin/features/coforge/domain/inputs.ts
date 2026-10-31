@@ -3,6 +3,7 @@ import { categoryNameCheck } from './request-categories';
 import { stagePromptsCheck } from './stage-prompts';
 import { agentModelCheck, stageAgentsCheck } from './stage-agents';
 import { workflowDefinitionCheck } from './configured-workflow';
+import { executionConcurrencyCheck } from './execution-concurrency';
 import { normalizeVaultFolder } from './vault-folder-policy';
 import { requestObjectDefinitionCheck, requestValuesInputCheck } from './request-object';
 
@@ -49,6 +50,8 @@ const pathText = text({ trim: true, max: 1000 });
 const twitchId = text({ trim: true, max: 100, pattern: /^[\w-]*$/ });
 
 export const integrationPatch = shape({
+  executionConcurrency: optional(executionConcurrencyCheck),
+  workerNodeBin: optional(text({ trim: true, min: 1, max: 1000 })),
   codexBin: optional(text({ trim: true, min: 1, max: 1000 })),
   ideasFolder: optional(folder), claudeBin: optional(text({ trim: true, min: 1, max: 1000 })), projectPath: optional(pathText),
   allowImplementation: optional(boolean), worktreeFolder: optional(pathText), twitchEnabled: optional(boolean),

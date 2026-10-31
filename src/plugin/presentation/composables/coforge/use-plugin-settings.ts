@@ -1,4 +1,4 @@
-import { computed, inject, provide, reactive, ref, watch, type InjectionKey } from 'vue';
+import { computed, inject, provide, reactive, ref, toRaw, watch, type InjectionKey } from 'vue';
 import { defaultIntegration } from '../../../features/coforge/domain/seed';
 import type { IntegrationSettings } from '../../../features/coforge/domain/types';
 import { useStudioApp } from './use-studio-app';
@@ -12,9 +12,11 @@ const TWITCH_ID = /^[\w-]*$/;
 const SECRET_NAME = /^[a-z0-9-]+$/;
 const ABSOLUTE = /^(?:[a-zA-Z]:[\\/]|\/|\\\\)/;
 const WRAPPER = /\.(?:cmd|bat|ps1)$/i;
-const TEXT_KEYS: TextKey[] = ['ideasFolder', 'claudeBin', 'codexBin', 'projectPath', 'worktreeFolder', 'twitchClientId', 'twitchBotUserId', 'twitchBroadcasterId', 'twitchTokenSecret', 'publicFolder'];
+const TEXT_KEYS: TextKey[] = ['ideasFolder', 'claudeBin', 'codexBin', 'workerNodeBin', 'projectPath', 'worktreeFolder', 'twitchClientId', 'twitchBotUserId', 'twitchBroadcasterId', 'twitchTokenSecret', 'publicFolder'];
 
 function validate(draft: IntegrationSettings): string | null {
+  if (draft.executionConcurrency && ![draft.executionConcurrency.builds, draft.executionConcurrency.shortTasks].every(value => Number.isInteger(value) && value >= 1 && value <= 16)) return 'Set each execution lane limit to a whole number from 1 to 16.';
+  if (draft.workerNodeBin !== undefined && (!draft.workerNodeBin.trim() || draft.workerNodeBin.length > 1000 || WRAPPER.test(draft.workerNodeBin.trim()))) return 'Set the worker Node path to a native executable or node on PATH, without a shell wrapper.';
   if (draft.codexBin !== undefined && (!draft.codexBin.trim() || draft.codexBin.length > 1000 || WRAPPER.test(draft.codexBin.trim()))) return 'Set Codex to a native executable or codex on PATH, without a shell wrapper.';
   const folder = draft.ideasFolder.trim();
   if (!folder || folder.length > 200 || !FOLDER.test(folder))
@@ -51,6 +53,9 @@ function changes(draft: IntegrationSettings, saved: IntegrationSettings): Partia
   if (draft.twitchBotUsesStreamer !== saved.twitchBotUsesStreamer) patch.twitchBotUsesStreamer = draft.twitchBotUsesStreamer;
   if (draft.twitchBotReplies !== saved.twitchBotReplies) patch.twitchBotReplies = draft.twitchBotReplies;
   if (draft.publicBoardEnabled !== saved.publicBoardEnabled) patch.publicBoardEnabled = draft.publicBoardEnabled;
+  const lanes = draft.executionConcurrency ?? { builds: 1, shortTasks: 1 };
+  const previous = saved.executionConcurrency ?? { builds: 1, shortTasks: 1 };
+  if (lanes.builds !== previous.builds || lanes.shortTasks !== previous.shortTasks) patch.executionConcurrency = { ...lanes };
   return patch;
 }
 
@@ -69,9 +74,14 @@ function createPluginSettings() {
   const website = ref('');
   const publishing = ref(false);
 
+  const replaceDraft = (next: IntegrationSettings) => {
+    Object.assign(draft, structuredClone(toRaw(next)));
+    if (next.executionConcurrency === undefined) delete draft.executionConcurrency;
+  };
   const load = () => {
-    saved.value = { ...defaultIntegration(), ...actions.integration() };
-    Object.assign(draft, saved.value);
+    const next = { ...defaultIntegration(), ...actions.integration() };
+    saved.value = structuredClone(next);
+    replaceDraft(next);
     tokenStored.value = actions.hasSecret(saved.value.twitchTokenSecret);
     loaded.value = true;
   };
@@ -84,7 +94,11 @@ function createPluginSettings() {
       if (value !== undefined && draft[key] === saved.value[key]) draft[key] = value;
     }
     for (const key of ['twitchEnabled', 'twitchBotUsesStreamer', 'twitchBotReplies'] as const) if (draft[key] === saved.value[key]) draft[key] = next[key];
-    saved.value = next;
+    if (JSON.stringify(draft.executionConcurrency) === JSON.stringify(saved.value.executionConcurrency)) {
+      if (next.executionConcurrency) draft.executionConcurrency = { ...next.executionConcurrency };
+      else delete draft.executionConcurrency;
+    }
+    saved.value = structuredClone(next);
   });
 
   const patch = computed(() => changes(draft, saved.value));
@@ -137,12 +151,13 @@ function createPluginSettings() {
     pending: computed(() => (store.state?.jobs ?? []).some(job => job.status === 'running' || job.status === 'queued')),
     folderChanged: computed(() => draft.ideasFolder.trim() !== saved.value.ideasFolder),
     wrapperWarning: computed(() => WRAPPER.test(draft.claudeBin.trim())),
+    workerNodeChanged: computed(() => (draft.workerNodeBin ?? 'node').trim() !== (saved.value.workerNodeBin ?? 'node').trim()),
     worktreeDefault: computed(() => draft.projectPath.trim()
       ? `${draft.projectPath.trim().replace(/[\\/]+$/, '')}-coforge-worktrees`
       : '<repository>-coforge-worktrees'),
     notice: computed(() => store.toasts[store.toasts.length - 1]),
     submit: (event: Event) => { event.preventDefault(); void save(); },
-    revert: () => { Object.assign(draft, saved.value); error.value = ''; },
+    revert: () => { replaceDraft(saved.value); error.value = ''; },
     checkClaude: () => { void checkClaude(); },
     saveToken,
   });

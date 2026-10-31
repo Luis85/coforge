@@ -64,6 +64,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
     const idea = selected.value;
     if (!idea) return "Select a request to run its workflow.";
     if (operatorHeld.value) return 'Right-click this card and choose Restart workflow';
+    if ((store.state?.jobs ?? []).some(job => job.ideaId === idea.id && job.durable && job.durable.acknowledged !== true)) return 'The original background Build is not acknowledged. Inspect or recover that execution before starting more work for this request.';
     if (uncertainNudges.value.length) return 'Inspect and acknowledge the uncertain task or cancellation before starting more work.';
     if (["shipped", "rejected", "flagged"].includes(idea.status))
       return "This request is closed or held for moderation.";
@@ -175,6 +176,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
         !store.busy &&
         !operatorHeld.value &&
         !uncertainNudges.value.length &&
+        !(store.state?.jobs ?? []).some(job => job.ideaId === selected.value?.id && job.durable && job.durable.acknowledged !== true) &&
         !run.value?.attempts.some(attempt => attempt.councilCancellation === 'requested') &&
         Boolean(terminal(run.value)) &&
         !selected.value?.increment?.files.length &&

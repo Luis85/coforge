@@ -38,7 +38,7 @@ defineProps<{ model: WorkflowModel }>();
           <span class="cf-workflow-history-provider">{{
             job.providerLabel
           }}</span>
-          <time>{{ job.time }}</time>
+          <time :datetime="job.at" :title="job.at">{{ job.time }}</time>
           <span class="cf-workflow-job-state" :class="`is-${job.status}`">
             {{ job.status }}
             <CfIcon name="chevron-right" size="sm" />
@@ -51,6 +51,7 @@ defineProps<{ model: WorkflowModel }>();
             <button
               type="button"
               class="cf-btn cf-btn-ghost cf-workflow-small-button"
+              :disabled="job.canOpenIdea === false"
               @click="model.openIdea(job.ideaId)"
             >
               Open idea <CfIcon name="arrow-right" size="sm" />

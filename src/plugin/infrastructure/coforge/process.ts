@@ -1,5 +1,6 @@
 import { spawn, type ChildProcess } from 'child_process';
 import { basename } from 'path';
+import { setTimeout as processTimeout, clearTimeout as clearProcessTimeout } from 'node:timers';
 
 export interface ProcessOptions {
   cwd: string; input?: string; signal?: AbortSignal; timeoutMs?: number; maxBytes?: number; env?: NodeJS.ProcessEnv;
@@ -40,7 +41,7 @@ export function captureProcess(executable: string, args: readonly string[], opti
       });
     } catch (error) { reject(error instanceof Error ? error : new Error(String(error))); return; }
     const chunks: Buffer[] = []; const errors: Buffer[] = [];
-    let bytes = 0; let errorBytes = 0; let failure: Error | undefined; let hardKill: number | undefined; let finished = false;
+    let bytes = 0; let errorBytes = 0; let failure: Error | undefined; let hardKill: ReturnType<typeof processTimeout> | undefined; let finished = false;
     const kill = (signal: NodeJS.Signals) => {
       if (!child.pid) return;
       try { if (process.platform !== 'win32') process.kill(-child.pid, signal); else child.kill(signal); } catch { /* The child may already have exited. */ }
@@ -48,12 +49,12 @@ export function captureProcess(executable: string, args: readonly string[], opti
     const stop = (message: string) => {
       if (failure || finished) return;
       failure = new Error(message); kill('SIGTERM');
-      hardKill = window.setTimeout(() => kill('SIGKILL'), 1500);
+      hardKill = processTimeout(() => kill('SIGKILL'), 1500);
     };
     const abort = () => stop('Run cancelled.');
-    const timeout = window.setTimeout(() => stop('Run timed out. Review any partial worktree changes before retrying.'), options.timeoutMs ?? 180_000);
+    const timeout = processTimeout(() => stop('Run timed out. Review any partial worktree changes before retrying.'), options.timeoutMs ?? 180_000);
     options.signal?.addEventListener('abort', abort, { once: true });
-    const cleanup = () => { finished = true; window.clearTimeout(timeout); if (hardKill !== undefined) window.clearTimeout(hardKill); options.signal?.removeEventListener('abort', abort); };
+    const cleanup = () => { finished = true; clearProcessTimeout(timeout); if (hardKill !== undefined) clearProcessTimeout(hardKill); options.signal?.removeEventListener('abort', abort); };
     child.stdout?.on('data', (chunk: Buffer) => {
       bytes += chunk.length;
       if (bytes > (options.maxBytes ?? OUTPUT_LIMIT)) stop('Process output exceeded its limit. The run was stopped.');

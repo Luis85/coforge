@@ -7,13 +7,14 @@ import {
   readFile,
   realpath,
   rename,
+  readdir,
   rm,
   symlink,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { LocalHerdrAttemptFiles } from "../../../infrastructure/coforge/herdr-workflow-files";
 import { captureProcess } from "../../../infrastructure/coforge/process";
 import {
@@ -65,6 +66,16 @@ const plan = {
 };
 
 describe("private Herdr workflow files", () => {
+  it("rejects a broker-only background read lease before exposing its directory or preparing an external attempt", async () => {
+    const { root, input, repository } = await fixture("plan");
+    const release = vi.fn(async () => {}); const onWorkspace = vi.fn(async () => {});
+    const files = new LocalHerdrAttemptFiles(root, { start: async () => {}, acquire: async () => ({ cwd: await realpath(repository), id: "bg-private",
+      readOnly: true, protectedProjectPaths: ["Private"], validate: async () => {}, capture: async () => undefined, release }), acknowledge: async () => {}, assertReviewable: async () => {} });
+    await expect(files.prepare({ ...input, onWorkspace, workflow: { runId: "run", definitionRevision: "definition", proposalRevision: "proposal",
+      attemptId: "attempt", workspaceId: "bg-private", inputArtifacts: [], step: { id: "summary", name: "Summary", kind: "ai", provider: "herdr", model: "default",
+        output: "markdown", access: "readproject", instructions: "Summarize", automatic: false } } })).rejects.toThrow("broker-only");
+    expect(onWorkspace).not.toHaveBeenCalled(); expect(release).toHaveBeenCalledOnce(); expect(await readdir(root)).toEqual(["game"]);
+  });
   it("isolates classification, starts with a fresh absent result and preserves recovery files on disposal", async () => {
     const { input, files, repository } = await fixture();
     const area = await files.prepare(input);

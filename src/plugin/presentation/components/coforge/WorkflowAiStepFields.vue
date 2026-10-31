@@ -6,6 +6,7 @@ import {
 } from "../../stores/workflow-editor-draft";
 import WorkflowOutputTemplatePicker from "./WorkflowOutputTemplatePicker.vue";
 import ProviderModelFields from './ProviderModelFields.vue';
+import WorkflowExecutionPolicy from './WorkflowExecutionPolicy.vue';
 const fields = useWorkflowAiFields();
 </script>
 <template>
@@ -143,6 +144,7 @@ const fields = useWorkflowAiFields();
     <p v-if="fields.readiness" class="cf-workflow-readiness" role="status">
       {{ fields.readiness }} Configuration can still be saved.
     </p>
+    <WorkflowExecutionPolicy />
     <details class="cf-workflow-options">
       <summary>Automation and previous results</summary>
       <p class="cf-settings-help">

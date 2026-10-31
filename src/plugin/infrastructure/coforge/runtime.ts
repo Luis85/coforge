@@ -67,6 +67,10 @@ import { VaultWorkflowV2 } from './vault-workflow-v2';
 import { ServiceDesign } from '../../features/service-design/application/service-design';
 import { VaultServiceDesign } from './vault-service-design';
 import { ManagedNoteFolders } from './managed-note-folders';
+import durableWorkerSource from 'virtual:coforge-durable-worker-source';
+import { durableBuildRuntime } from './durable-build-runtime';
+import { durableBuildWorkspaces } from './durable-build-client';
+import { executionConcurrency } from '../../features/coforge/domain/execution-concurrency';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -93,7 +97,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   let serviceDesignFolders: () => readonly string[] = () => [];
   const noteFolders = new ManagedNoteFolders(() => serviceDesignFolders());
   const storage = new VaultStudioStorage(plugin, () => councilPrivateFolders(), folders => noteFolders.assertAvailable(folders));
-  const workspaces = new LocalWorkflowWorkspaces(new WorkflowWorkspaceStateStorage(plugin));
+  const localWorkspaces = new LocalWorkflowWorkspaces(new WorkflowWorkspaceStateStorage(plugin));
+  const durableBuilds = durableBuildRuntime(plugin, durableWorkerSource, () => studio.integration().workerNodeBin,
+    () => ['CoForge', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders()]);
+  const workspaces = durableBuilds ? durableBuildWorkspaces(durableBuilds, localWorkspaces) : localWorkspaces;
   const log = operationsLog(logger);
   const listeners = new Set<(notice: StudioNotice) => void>();
   const notify = (message: string, error = false) => { for (const listener of listeners) listener({ message, error }); };
@@ -119,6 +126,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     catch { return { request: project.settings.workflow, unavailable: 'Proposal workflow references could not be read. Repair the project workflow note before relying on this list.' }; }
   });
   const studio: StudioService = new StudioService(storage, {
+    ...(durableBuilds ? { durableBuilds } : {}),
     outputTemplates,
     agentTasks: { prepareCoworker: (projectId, coworkerId) => workflowAgentTasks(plugin, studio, council.actions).prepareCoworker!(projectId, coworkerId), prepareCouncil: (projectId, councilId) => workflowAgentTasks(plugin, studio, council.actions).prepareCouncil!(projectId, councilId), create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => workflowAgentTasks(plugin, studio, council.actions).cancel!(id), result: id => workflowAgentTasks(plugin, studio, council.actions).result!(id) },
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
@@ -277,6 +285,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
         await protectPrivateData(plugin);
         if (disposed) return;
         ({ invalidNotes } = await studio.start({ deferAutomation: true }));
+        invocations.setConcurrency(executionConcurrency(studio.integration()).shortTasks);
         await blueprintStorage.initialize();
       }
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
@@ -296,7 +305,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
         change => { void studio.applyProjectNoteChange(change).catch(error => { report('coforge.note'); notify(errorMessage(error), true); }); },
         path => notify(`CoForge ignored a project note with invalid or duplicate properties: ${path}`, true),
       );
-      stopListening = studio.onIntegrationChange(integration => twitch.configure(integration));
+      stopListening = studio.onIntegrationChange(integration => {
+        invocations.setConcurrency(executionConcurrency(integration).shortTasks);
+        return twitch.configure(integration);
+      });
       stopPublishing = syncPublicBoard(studio, publisher, error => { report('coforge.public'); notify(`The viewer board could not be written: ${errorMessage(error)}`, true); });
       twitch.start();
       streamSource.start();
