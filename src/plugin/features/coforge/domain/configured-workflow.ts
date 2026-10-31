@@ -1,5 +1,6 @@
 import { boolean, list, number, oneOf, optional, record, shape, text } from './check';
 import { contextEventId } from './integrity';
+import { reasoningEffortCheck, validateModelEffort, type ReasoningEffort } from './provider-models';
 import { agentModelCheck, stageAgent } from './stage-agents';
 import { resolvedStagePrompts } from './stage-prompts';
 import { STAGES, STAGE_LABELS, type Provider, type Settings } from './types';
@@ -14,6 +15,7 @@ export interface AiWorkflowStep extends StepBase {
   /** Include other preceding results without requiring optional host captures to exist. */
   includePreviousResults?: boolean;
   kind: 'ai'; output: WorkflowOutput; access: WorkflowAccess; provider: Provider; model: string;
+  effort?: ReasoningEffort;
   herdrAgent?: 'claude'; automatic: boolean; minVotes?: number; inputs?: WorkflowOutput[];
 }
 export interface ApprovalWorkflowStep extends StepBase { kind: 'approval' }
@@ -31,7 +33,8 @@ const base = { id: workflowIdCheck, name: text({ trim: true, min: 1, max: 100 })
 const ai = shape({ ...base, kind: oneOf(['ai'] as const), output: oneOf(WORKFLOW_OUTPUTS), access: oneOf(WORKFLOW_ACCESS),
   outputTemplateId: optional(workflowIdCheck),
   includePreviousResults: optional(boolean),
-  provider: oneOf(['demo', 'claude', 'herdr'] as const), model: agentModelCheck, herdrAgent: optional(oneOf(['claude'] as const)),
+  provider: oneOf(['demo', 'claude', 'herdr', 'codex'] as const), model: agentModelCheck, herdrAgent: optional(oneOf(['claude'] as const)),
+  effort: optional(reasoningEffortCheck),
   automatic: boolean, minVotes: optional(number({ integer: true, min: 0, max: 10000 })), inputs: optional(list(oneOf(WORKFLOW_OUTPUTS), { max: WORKFLOW_OUTPUTS.length })),
 }, { strict: true });
 const approval = shape({ ...base, kind: oneOf(['approval'] as const) }, { strict: true });
@@ -41,6 +44,7 @@ const council = shape({ ...base, kind: oneOf(['council'] as const), councilId: w
 export function workflowStepCheck(value: unknown): WorkflowStep {
   const kind = record(value).kind;
   const step = kind === 'ai' ? ai(value) : kind === 'approval' ? approval(value) : kind === 'nudge' ? nudge(value) : kind === 'council' ? council(value) : checklist(value);
+  if (step.kind === 'ai') validateModelEffort(step);
   if (step.kind === 'council' && (!step.instructions.trim() || new Set(step.inputs).size !== (step.inputs?.length ?? 0))) throw new Error('Ask Council needs a prompt and unique input roles.');
   if (step.kind === 'council' && step.contextMode === 'selected' && !step.inputs?.length) throw new Error('Choose at least one earlier result role, or choose no earlier results.');
   if (step.kind === 'nudge' && (!step.instructions.trim() || new Set(step.inputs).size !== (step.inputs?.length ?? 0))) throw new Error('A nudge needs a prompt and unique input roles.');

@@ -6,13 +6,13 @@ export interface CouncilTaskBinding {
   councilId: string;
   councilName: string;
   identity: string;
-  members: { id: string; name: string; provider: 'demo' | 'claude' | 'herdr'; model: string }[];
+  members: { id: string; name: string; provider: 'demo' | 'claude' | 'herdr' | 'codex'; model: string }[];
 }
 export interface WorkflowCouncilBinding { stepId: string; binding: CouncilTaskBinding }
 const id = text({ min: 1, max: 80, pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/u });
 export const councilTaskBindingCheck = shape({
   format: oneOf(['coforge-council-binding/v1'] as const), projectId: id, councilId: id,
   councilName: text({ min: 1, max: 100 }), identity: id,
-  members: list(shape({ id, name: text({ min: 1, max: 100 }), provider: oneOf(['demo', 'claude', 'herdr'] as const), model: text({ min: 1, max: 200 }) }, { strict: true }), { min: 1, max: 24 }),
+  members: list(shape({ id, name: text({ min: 1, max: 100 }), provider: oneOf(['demo', 'claude', 'herdr', 'codex'] as const), model: text({ min: 1, max: 200 }) }, { strict: true }), { min: 1, max: 24 }),
 }, { strict: true });
 export const workflowCouncilBindingsCheck = list(shape({ stepId: id, binding: councilTaskBindingCheck }, { strict: true }), { max: 40 });

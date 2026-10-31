@@ -6,7 +6,7 @@ import { executionAccess } from '../../features/coforge/application/workflow-exe
 import { text, shape, optional, nullable } from '../../features/coforge/domain/check';
 
 const MAX = 200000;
-const denied = (segment: string): boolean => /^(?:\.git|\.claude|\.mcp\.json|\.obsidian|node_modules|\.env(?:\..*)?|\.ssh|\.aws|\.npmrc|\.netrc|credentials?(?:\..*)?|secrets?(?:\..*)?)$/iu.test(segment) || /\.(?:pem|key|p12|pfx)$/iu.test(segment);
+const denied = (segment: string): boolean => /^(?:\.git|\.claude|\.codex|\.agents|\.mcp\.json|\.obsidian|node_modules|\.env(?:\..*)?|\.ssh|\.aws|\.npmrc|\.netrc|credentials?(?:\..*)?|secrets?(?:\..*)?)$/iu.test(segment) || /\.(?:pem|key|p12|pfx)$/iu.test(segment);
 const ambiguous = (segment: string): boolean => segment.trimEnd() !== segment || segment.endsWith('.') || [...segment].some(character => character.charCodeAt(0) < 32)
   || /^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/iu.test(segment);
 function parts(path: string): string[] {

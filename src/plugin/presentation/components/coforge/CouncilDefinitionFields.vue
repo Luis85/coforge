@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useCouncilEditorForm } from "../../composables/coforge/use-council-definitions";
 import CouncilRoundEditor from "./CouncilRoundEditor.vue";
+import ProviderModelFields from './ProviderModelFields.vue';
 const model = useCouncilEditorForm();
 </script>
 <template>
@@ -39,23 +40,21 @@ const model = useCouncilEditorForm();
       <div class="cf-council-fields">
         <label class="cf-field"
           ><span>Provider</span
-          ><select v-model="model.store.draft.provider">
+          ><select v-model="model.store.draft.provider" aria-label="Provider">
             <option value="demo">Simulation</option>
             <option value="claude">Claude Code</option>
+            <option value="codex">Codex CLI</option>
             <option value="herdr" disabled>
               Herdr managed Claude · unavailable for Council execution
             </option>
           </select></label
         >
-        <label class="cf-field"
-          ><span>Model</span
-          ><input v-model="model.store.draft.model" maxlength="100" required
-        /></label>
+        <ProviderModelFields :choice="model.store.draft" />
       </div>
       <p class="cf-settings-help">
         Herdr cannot enforce the isolated invocation profile required for
         Council runs in this release. Existing Herdr selections are preserved;
-        choose Claude Code or Simulation before execution.
+        choose Claude Code, Codex or Simulation before execution.
       </p>
       <label class="cf-field"
         ><span>Default validated result contract</span
@@ -93,7 +92,7 @@ const model = useCouncilEditorForm();
         for repair.
       </p>
       <p class="cf-settings-help">
-        Local Claude Code uses the executable and sign-in already configured in
+        Native Claude Code and Codex use their executable and local sign-in configured in
         CoForge. Simulation has no external connection. These references do not
         store credentials or grant tools.
       </p>

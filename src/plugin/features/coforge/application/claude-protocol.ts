@@ -7,6 +7,7 @@ import {
   executionSystemPrompt,
 } from "./workflow-execution";
 import type { ConfiguredStepExecution } from "../domain/configured-workflow-run";
+import { reasoningEffortCheck, validateModelEffort, type ReasoningEffort } from '../domain/provider-models';
 import {
   hasTokenUsage,
   stageUsageCheck,
@@ -62,6 +63,7 @@ export function buildClaudeArgs(
   const access = executionAccess(input);
   return buildRestrictedClaudeArgs(settings, {
     access, model: workflow?.step.model ?? settings.model,
+    effort: workflow?.step.effort,
     schema: workflow ? executionSchema(input) : STAGE_JSON_SCHEMAS[stage],
     systemPrompt: workflow ? executionSystemPrompt(input) : stageSystemPrompt(stage, settings),
   });
@@ -70,9 +72,10 @@ export function buildClaudeArgs(
 /** Shared native transport policy; typed note invocations do not need a fabricated Idea. */
 export function buildRestrictedClaudeArgs(
   settings: Pick<Settings, 'maxTurns' | 'maxBudgetUsd'>,
-  invocation: { access: 'none' | 'readproject' | 'editworktree'; model: string; schema: object; systemPrompt: string },
+  invocation: { access: 'none' | 'readproject' | 'editworktree'; model: string; effort?: ReasoningEffort; schema: object; systemPrompt: string },
 ): string[] {
   const { access } = invocation;
+  validateModelEffort({ provider: 'claude', model: invocation.model, effort: invocation.effort });
   const tools =
     access === "none"
       ? ""
@@ -111,6 +114,7 @@ export function buildRestrictedClaudeArgs(
     String(settings.maxBudgetUsd),
     "--model",
     invocation.model,
+    ...(invocation.effort === undefined ? [] : ['--effort', reasoningEffortCheck(invocation.effort)]),
     "--system-prompt",
     invocation.systemPrompt,
   ];

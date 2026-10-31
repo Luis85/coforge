@@ -202,6 +202,7 @@ export function councilAdmission(
       agentRevision: item.agentRevision,
       provider: limits.simulation ? "demo" : item.agent.provider,
       model: item.agent.model,
+      ...(item.agent.effort === undefined || limits.simulation ? {} : { effort: item.agent.effort }),
       output: item.output,
       maxArtifactCharacters: plan.definition.limits.maxArtifactCharacters,
       instructions: projectInvocationInstructions(

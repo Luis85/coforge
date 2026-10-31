@@ -143,15 +143,14 @@ export class CouncilRunContext {
     for (const item of plan.invocations) {
       if (!simulation && item.agent.provider === "herdr")
         throw new Error(
-          "Herdr isolated typed invocation is unavailable. Select native Claude or Simulation.",
+          "Herdr isolated typed invocation is unavailable. Select native Claude, Codex or Simulation.",
         );
       if (
         !simulation &&
-        item.agent.provider === "claude" &&
-        !this.studio.state().runtime.cliAvailable
+        (item.agent.provider === 'claude' && !this.studio.state().runtime.cliAvailable || item.agent.provider === 'codex' && !this.studio.state().runtime.codexAvailable)
       )
         throw new Error(
-          "The native Claude runtime is unavailable. Check runtime settings first.",
+          "The selected native provider is unavailable. Check runtime settings first.",
         );
     }
     const projectState = this.studio.state();
@@ -292,8 +291,7 @@ export class CouncilRunContext {
           throw new ExecutionBlockError("member-revoked");
       }
       if (
-        invocation.provider === "claude" &&
-        !this.studio.state().runtime.cliAvailable
+        (invocation.provider === 'claude' && !this.studio.state().runtime.cliAvailable || invocation.provider === 'codex' && !this.studio.state().runtime.codexAvailable)
       )
         throw new ExecutionBlockError("provider-unavailable");
       return;
@@ -324,8 +322,7 @@ export class CouncilRunContext {
         throw new ExecutionBlockError("member-revoked");
     }
     if (
-      invocation.provider === "claude" &&
-      !this.studio.state().runtime.cliAvailable
+      (invocation.provider === 'claude' && !this.studio.state().runtime.cliAvailable || invocation.provider === 'codex' && !this.studio.state().runtime.codexAvailable)
     )
       throw new ExecutionBlockError("provider-unavailable");
   }

@@ -27,7 +27,8 @@ export function workflowStageProblem(
     if (runtime.herdrWorkflow.busy)
       return "Herdr is handling another workflow attempt. Wait before dispatching.";
   } else {
-    if (!runtime?.cliAvailable)
+    if (agent.provider === 'codex' && !runtime?.codexAvailable) return 'Codex is not detected. Check Runtime settings before enabling this step.';
+    if (agent.provider === 'claude' && !runtime?.cliAvailable)
       return "Claude Code is not detected. Check the CLI in project settings before enabling this step.";
     if ((stage === "plan" || stage === "implement") && !project.projectPath)
       return "Set this project’s workspace in Project settings before running this step.";

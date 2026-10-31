@@ -26,7 +26,7 @@ export function configuredAgentLabel(step: WorkflowStep): string {
       : "Streamer checklist"
     : step.provider === "demo"
       ? "Simulation · no model call"
-      : `${step.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${step.model}`;
+      : `${step.provider === 'codex' ? 'Codex' : step.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${step.model}${step.effort ? ` · ${step.effort} effort` : ''}`;
 }
 /** Advisory UI feedback mirrors execution constraints; it never grants permission to dispatch. */
 export function configuredStepProblem(
@@ -36,6 +36,7 @@ export function configuredStepProblem(
   idea?: Idea,
   run?: WorkflowRun,
 ): string {
+  if (!run?.external && step.provider === 'codex' && !runtime?.codexAvailable) return 'Codex CLI is not detected. Check the native Codex executable in Runtime settings.';
   if (!project || project.unavailable)
     return "Choose an available project before running this step.";
   if (idea && new Set(idea.voters).size < (step.minVotes ?? 0))

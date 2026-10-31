@@ -54,7 +54,7 @@ export interface ConfiguredStepExecution {
 const string = text({ max: 4096 });
 const stringList = list(text({ max: 2000 }), { max: 100 });
 const screening = shape({ verdict: oneOf(['clear', 'flagged'] as const), reason: text({ min: 1, max: 3000 }), signals: list(text({ max: 500 }), { max: 20 }),
-  checkedAt: timestamp, provider: oneOf(['demo', 'claude', 'herdr', 'mcp'] as const) }, { strict: true });
+  checkedAt: timestamp, provider: oneOf(['demo', 'claude', 'herdr', 'codex', 'mcp'] as const) }, { strict: true });
 const rice = shape({ reach: number({ integer: true, min: 1, max: 1000000 }), impact: oneOf([0.25, 0.5, 1, 2, 3] as const), confidence: number({ min: 0.05, max: 1 }),
   effort: number({ min: 0.25, max: 365 }), rationale: text({ min: 1, max: 6000 }), score: number({ min: 0, max: 1000000000000 }) }, { strict: true });
 const plan = shape({ summary: text({ min: 1, max: 4000 }), steps: list(text({ min: 1, max: 2000 }), { min: 1, max: 24 }),

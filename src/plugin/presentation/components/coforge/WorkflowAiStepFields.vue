@@ -5,6 +5,7 @@ import {
   WORKFLOW_OUTPUT_LABELS,
 } from "../../stores/workflow-editor-draft";
 import WorkflowOutputTemplatePicker from "./WorkflowOutputTemplatePicker.vue";
+import ProviderModelFields from './ProviderModelFields.vue';
 const fields = useWorkflowAiFields();
 </script>
 <template>
@@ -83,22 +84,7 @@ const fields = useWorkflowAiFields();
             </option>
           </select></label
         >
-        <label class="cf-field"
-          ><span>AI model</span
-          ><input
-            v-model="fields.step.model"
-            aria-label="AI model"
-            data-workflow-field="model"
-            maxlength="100"
-            required
-            :disabled="fields.step.provider === 'demo'"
-            pattern="[a-zA-Z0-9][a-zA-Z0-9._:\-]{0,99}"
-          /><small>{{
-            fields.step.provider === "demo"
-              ? "Simulation makes no model call; the model is retained for later."
-              : "Captured when the task is queued."
-          }}</small></label
-        >
+        <ProviderModelFields :choice="fields.step" model-label="AI model" />
       </div>
       <label class="cf-field"
         ><span>Project access</span

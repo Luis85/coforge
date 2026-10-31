@@ -3,6 +3,7 @@ import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 import { implementationOutput, planOutput, scoreOutput, screeningOutput, stageInput } from '../../features/coforge/application/agent-prompts';
 import { buildClaudeArgs, parseClaudeEnvelope, reportedClaudeCost, reportedClaudeUsage, supportsRequiredVersion } from '../../features/coforge/application/claude-protocol';
+import { claudeFailureMessage } from '../../features/coforge/application/claude-failure';
 import type { StageInput, StageResult } from '../../features/coforge/application/ports';
 import { CheckError } from '../../features/coforge/domain/check';
 import { cleanDeep } from '../../features/coforge/domain/sanitize';
@@ -91,7 +92,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
   } catch (error) {
     if (error instanceof ProcessFailure) { const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage); const tokens = reportedClaudeUsage(error.output); if (tokens) await input.onTokenUsage?.(tokens); }
     await changes(`Cumulative changes after failed ${input.workflow?.step.name ?? stage}`);
-    if (error instanceof ProcessFailure) throw new Error(error.message);
+    if (error instanceof ProcessFailure) throw new Error(/exited with code/u.test(error.message) ? claudeFailureMessage(error.output) ?? error.message : error.message);
     if (error instanceof CheckError) throw new Error('Claude output failed schema validation. The idea was not advanced.');
     if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))
       throw new Error(`Update native Claude Code to the current release; required restricted/safe-mode/structured-output flags are not supported. No permissive fallback is used. ${error.message}`);

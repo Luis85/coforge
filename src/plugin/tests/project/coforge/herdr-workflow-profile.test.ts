@@ -19,7 +19,8 @@ async function fixture(stage: HerdrWorkflowProfile['stage'] = 'screen') {
 describe('managed Herdr Claude launch policy', () => {
   it.each(['screen', 'score'] as const)('restricts %s to writing its own result artifact', async (stage) => {
     const { cwd, profile } = await fixture(stage);
-    const args = await buildHerdrWorkflowArgs(cwd, profile);
+    const args = await buildHerdrWorkflowArgs(cwd, { ...profile, effort: 'high' });
+    expect(args.slice(args.indexOf('--effort'), args.indexOf('--effort') + 2)).toEqual(['--effort', 'high']);
     expect(args.slice(args.indexOf('--model'), args.indexOf('--model') + 2)).toEqual(['--model', 'sonnet']);
     expect(args[args.indexOf('--tools') + 1]).toBe('Write');
     expect(args[args.indexOf('--allowedTools') + 1]).toMatch(/^Edit\(\/\/.*result\.json\)$/u);

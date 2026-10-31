@@ -17,7 +17,8 @@ it("selects an invalid step and opens and focuses its hidden model field without
   try {
     await flushPromises();
     await wrapper.get('[aria-label="AI provider"]').setValue("claude");
-    await wrapper.get('[aria-label="AI model"]').setValue("--invalid");
+    await wrapper.get('[aria-label="AI model"]').setValue('__custom');
+    await wrapper.get('[aria-label="Custom model ID"]').setValue("--invalid");
     await wrapper
       .findAll(".cf-workflow-step-select")
       .find((button) => button.text().includes("Plan"))!
@@ -33,7 +34,7 @@ it("selects an invalid step and opens and focuses its hidden model field without
     expect(fix).toBeDefined();
     await fix!.trigger("click");
     await flushPromises();
-    const input = wrapper.get('[aria-label="AI model"]');
+    const input = wrapper.get('[aria-label="Custom model ID"]');
     expect(input.element).toHaveProperty("value", "--invalid");
     expect(input.element.closest("details")).toHaveProperty("open", true);
     expect(document.activeElement).toBe(input.element);

@@ -42,7 +42,7 @@ export function workflowAgentTasks(plugin: Plugin, studio: StudioService, counci
     if (input.councilId) {
       const binding = await prepareCouncil(input.projectId, input.councilId);
       if (!input.councilBinding || input.councilBinding.identity !== binding.identity || input.councilBinding.projectId !== binding.projectId || input.councilBinding.councilId !== binding.councilId) throw new AgentTaskNotStartedError('Council membership, providers, instructions or project context changed after this workflow started. Review setup, stop this workflow and start a new one.');
-      if (!studio.state().runtime.cliAvailable) throw new AgentTaskNotStartedError('The native Claude runtime is unavailable. Check Project settings → Runtime before retrying this step.');
+      if (plan.invocations.some(item => item.agent.provider === 'claude' && !studio.state().runtime.cliAvailable || item.agent.provider === 'codex' && !studio.state().runtime.codexAvailable)) throw new AgentTaskNotStartedError('The selected native runtime is unavailable. Check Project settings → Runtime before retrying this step.');
     }
     return target;
   };

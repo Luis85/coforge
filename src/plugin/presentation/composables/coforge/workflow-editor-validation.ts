@@ -14,6 +14,7 @@ export interface WorkflowEditorIssue {
   message: string;
 }
 const labels: Record<string, string> = {
+  effort: 'Reasoning effort',
   name: "Step name",
   instructions: "Step instructions",
   model: "AI model",

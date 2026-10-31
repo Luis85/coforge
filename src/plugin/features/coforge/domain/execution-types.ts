@@ -1,4 +1,5 @@
 import type { StageUsage } from "./ai-usage";
+import type { ReasoningEffort } from './provider-models';
 import type { AutomationContext } from './automation-context';
 import type { CouncilPromptOrder } from "./council-prompt-order";
 import type { TeamMessageDraft } from "./team-messages";
@@ -21,12 +22,13 @@ export type ExecutionSubject =
       ideaRevision?: string;
     };
 export interface ExecutionInvocation {
+  effort?: ReasoningEffort;
   id: string;
   roundId: string;
   promptOrder?: CouncilPromptOrder;
   agentId: string;
   agentRevision: string;
-  provider: "demo" | "claude" | "herdr";
+  provider: "demo" | "claude" | "herdr" | "codex";
   model: string;
   instructions: string;
   access: "none";
@@ -62,6 +64,7 @@ export interface ExecutionAttempt {
   uncertaintyAcknowledgedAt?: string;
 }
 export interface ExecutionArtifact extends ExecutionResponse {
+  effort?: ReasoningEffort;
   id: string;
   runId: string;
   invocationId: string;
@@ -69,7 +72,7 @@ export interface ExecutionArtifact extends ExecutionResponse {
   roundId: string;
   agentId: string;
   agentRevision: string;
-  provider: "demo" | "claude" | "herdr";
+  provider: "demo" | "claude" | "herdr" | "codex";
   model: string;
   inputArtifactIds: string[];
   createdAt: string;

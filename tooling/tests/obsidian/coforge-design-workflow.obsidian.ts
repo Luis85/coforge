@@ -79,6 +79,9 @@ describe('Design specification handoff in the contained host', () => {
     await view.getByRole('button', { name: /^Idea board/ }).first().click();
     const card = () => view.locator('.cf-column-design .cf-idea-card').filter({ hasText: 'Native Design specification' });
     await browserExpect(card()).toBeVisible();
+    await browserExpect(card()).toContainText('Design complete · Ready to build');
+    await card().scrollIntoViewIfNeeded();
+    await obsidian.screenshot('design-complete-ready-to-build');
     await card().locator('.cf-idea-open').click();
     await view.getByRole('button', { name: 'Plan & Design', exact: true }).click();
     await browserExpect(view.getByRole('region', { name: 'Design specification', exact: true })).toContainText('Native Design specification');
@@ -90,6 +93,7 @@ describe('Design specification handoff in the contained host', () => {
     expect(reloaded.artifacts.find(artifact => artifact.output === 'design')).toEqual(design);
     expect(splitNote(await requestNote(obsidian)).body).toBe(body);
     await view.getByRole('button', { name: /^Idea board/ }).first().click();
+    await browserExpect(card()).toContainText('Design complete · Ready to build');
     await card().locator('.cf-idea-open').click();
     await view.getByRole('button', { name: 'Plan & Design', exact: true }).click();
     await browserExpect(view.getByRole('region', { name: 'Design specification', exact: true })).toContainText('Native Design specification');

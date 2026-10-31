@@ -68,7 +68,7 @@ export function captureProcess(executable: string, args: readonly string[], opti
     child.on('close', code => {
       cleanup();
       if (failure) reject(new ProcessFailure(failure.message, Buffer.concat(chunks).toString('utf8')));
-      else if (code !== 0) reject(new ProcessFailure(`${basename(executable)} exited with code ${String(code)}. ${redact(Buffer.concat(errors).toString('utf8')).slice(-1800) || 'Check the CLI installation and authentication.'}`, Buffer.concat(chunks).toString('utf8')));
+      else if (code !== 0) reject(new ProcessFailure(`${basename(executable)} exited with code ${String(code)}. ${redact(Buffer.concat(errors).toString('utf8'), options.env).slice(-1800) || 'Check the CLI installation and authentication.'}`, Buffer.concat(chunks).toString('utf8')));
       else resolve(Buffer.concat(chunks).toString('utf8'));
     });
     child.stdin?.on('error', () => { /* An early exit is reported by close. */ });

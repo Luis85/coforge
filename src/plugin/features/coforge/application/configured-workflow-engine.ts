@@ -22,7 +22,7 @@ import { appendWorkflowArtifact, applyConfiguredOutput, compatibilityStage, conf
 interface ConfiguredHost {
   outputTemplates?: WorkflowOutputTemplateActions;
   agentTasks?: AgentTaskPort;
-  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
+  runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   cost(id: string, value: number): Promise<void>; usage(id: string, value: StageUsage): Promise<void>;
 }
 const time = () => new Date().toISOString();

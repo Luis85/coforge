@@ -113,8 +113,10 @@ it('requires the saved specification before Build can be dispatched', async () =
     await f.engine.startWorkflow(f.idea.id);
     await f.engine.waitUntilIdle();
     expect(f.current().workflowRun?.cursor).toBe(4);
-    expect(cardState(f.current(), undefined)?.label).toBe('Ready · Build');
+    expect(cardState(f.current(), undefined)?.label).toBe('Design complete · Ready to build');
     const planned = f.current();
+    const stale = { ...planned, description: `${planned.description} Changed request` };
+    expect(cardState(stale, undefined)?.label).not.toContain('Design complete');
     expect(cardState({ ...planned, workflowRun: { ...planned.workflowRun!, state: 'stopped' } }, undefined)?.label).toBe('Plan ready');
     const designJob = f.store.snapshot().jobs.find(job => job.workflow?.step.id === 'design')!;
     expect(cardState(f.current(), { ...designJob, status: 'running' })?.label).toBe('Design running');
@@ -122,6 +124,7 @@ it('requires the saved specification before Build can be dispatched', async () =
       const run = state.ideas.find(idea => idea.id === f.idea.id)!.workflowRun!;
       run.invalidatedArtifactIds = run.artifacts.filter(artifact => artifact.stepId === 'design').map(artifact => artifact.id);
     });
+    expect(cardState(f.current(), undefined)?.label).not.toContain('Design complete');
     await expect(f.engine.runWorkflowStep(f.idea.id)).rejects.toThrow('preceding design artifact');
     expect(f.calls.some(input => input.workflow?.step.id === 'implement')).toBe(false);
     expect(f.current().plan).toBeDefined();

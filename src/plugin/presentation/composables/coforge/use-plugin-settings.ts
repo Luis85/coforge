@@ -4,7 +4,7 @@ import type { IntegrationSettings } from '../../../features/coforge/domain/types
 import { useStudioApp } from './use-studio-app';
 
 type Key = keyof IntegrationSettings;
-type TextKey = { [K in Key]: IntegrationSettings[K] extends string ? K : never }[Key];
+type TextKey = { [K in Key]-?: NonNullable<IntegrationSettings[K]> extends string ? K : never }[Key];
 
 /** Mirrors `integrationPatch` in domain/inputs.ts so a rejection is explained next to the form. */
 const FOLDER = /^(?!\/)(?!.*\.\.)[^\\:*?"<>|]+$/;
@@ -12,9 +12,10 @@ const TWITCH_ID = /^[\w-]*$/;
 const SECRET_NAME = /^[a-z0-9-]+$/;
 const ABSOLUTE = /^(?:[a-zA-Z]:[\\/]|\/|\\\\)/;
 const WRAPPER = /\.(?:cmd|bat|ps1)$/i;
-const TEXT_KEYS: TextKey[] = ['ideasFolder', 'claudeBin', 'projectPath', 'worktreeFolder', 'twitchClientId', 'twitchBotUserId', 'twitchBroadcasterId', 'twitchTokenSecret', 'publicFolder'];
+const TEXT_KEYS: TextKey[] = ['ideasFolder', 'claudeBin', 'codexBin', 'projectPath', 'worktreeFolder', 'twitchClientId', 'twitchBotUserId', 'twitchBroadcasterId', 'twitchTokenSecret', 'publicFolder'];
 
 function validate(draft: IntegrationSettings): string | null {
+  if (draft.codexBin !== undefined && (!draft.codexBin.trim() || draft.codexBin.length > 1000 || WRAPPER.test(draft.codexBin.trim()))) return 'Set Codex to a native executable or codex on PATH, without a shell wrapper.';
   const folder = draft.ideasFolder.trim();
   if (!folder || folder.length > 200 || !FOLDER.test(folder))
     return 'Use a vault-relative ideas folder such as CoForge/Ideas, without a leading slash, “..” or the characters \\ : * ? " < > |.';
@@ -41,7 +42,10 @@ function validate(draft: IntegrationSettings): string | null {
 /** Changed fields only, trimmed: moving the ideas folder is a real vault operation, so unchanged values are never resent. */
 function changes(draft: IntegrationSettings, saved: IntegrationSettings): Partial<IntegrationSettings> {
   const patch: Partial<IntegrationSettings> = {};
-  for (const key of TEXT_KEYS) if (draft[key].trim() !== saved[key]) patch[key] = draft[key].trim();
+  for (const key of TEXT_KEYS) {
+    const value = (draft[key] ?? '').trim();
+    if (value !== (saved[key] ?? '')) patch[key] = value;
+  }
   if (draft.allowImplementation !== saved.allowImplementation) patch.allowImplementation = draft.allowImplementation;
   if (draft.twitchEnabled !== saved.twitchEnabled) patch.twitchEnabled = draft.twitchEnabled;
   if (draft.twitchBotUsesStreamer !== saved.twitchBotUsesStreamer) patch.twitchBotUsesStreamer = draft.twitchBotUsesStreamer;
@@ -66,7 +70,7 @@ function createPluginSettings() {
   const publishing = ref(false);
 
   const load = () => {
-    saved.value = { ...actions.integration() };
+    saved.value = { ...defaultIntegration(), ...actions.integration() };
     Object.assign(draft, saved.value);
     tokenStored.value = actions.hasSecret(saved.value.twitchTokenSecret);
     loaded.value = true;
@@ -74,8 +78,11 @@ function createPluginSettings() {
   watch(() => store.state !== null, ready => { if (ready && !loaded.value) load(); }, { immediate: true });
   watch(() => store.state, () => {
     if (!loaded.value || !store.state) return;
-    const next = actions.integration();
-    for (const key of TEXT_KEYS) if (draft[key] === saved.value[key]) draft[key] = next[key];
+    const next = { ...defaultIntegration(), ...actions.integration() };
+    for (const key of TEXT_KEYS) {
+      const value = next[key];
+      if (value !== undefined && draft[key] === saved.value[key]) draft[key] = value;
+    }
     for (const key of ['twitchEnabled', 'twitchBotUsesStreamer', 'twitchBotReplies'] as const) if (draft[key] === saved.value[key]) draft[key] = next[key];
     saved.value = next;
   });

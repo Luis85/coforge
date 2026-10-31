@@ -19,7 +19,7 @@ import { streamSetupProgress } from '../domain/stream-setup';
 import { defaultObsSettings, emptyObsState } from '../domain/obs';
 import { disconnectedTwitch } from '../domain/twitch';
 import { normalizeStagePrompts } from '../domain/stage-prompts';
-import { hasClaudeStages, normalizeStageAgents } from '../domain/stage-agents';
+import { hasNativeStages, normalizeStageAgents } from '../domain/stage-agents';
 import { projectHasPendingWorkflow, saveProjectWorkflow } from './workflow-configuration';
 import { validateFolderLayout } from '../domain/vault-folder-policy';
 import { previewExampleCleanup, removeExampleContent } from './example-cleanup';
@@ -42,7 +42,7 @@ export class StudioService {
 
   async start(): Promise<{ invalidNotes: string[] }> {
     const loaded = await this.store.init();
-    if (this.store.snapshot().projects?.some(project => hasClaudeStages(project.settings))) await this.refreshRuntime();
+    if (this.store.snapshot().projects?.some(project => hasNativeStages(project.settings))) await this.refreshRuntime();
     else await this.store.updateRuntime(this.runtimeConfig());
     this.engine.start();
     return loaded;
@@ -84,13 +84,13 @@ export class StudioService {
 
   async createProject(input: unknown): Promise<StudioProject> {
     const project = await addProject(this.store, input);
-    if (hasClaudeStages(project.settings)) await this.refreshRuntime();
+    if (hasNativeStages(project.settings)) await this.refreshRuntime();
     return project;
   }
   async updateProject(input: unknown, id = this.state().activeProjectId!, expectedConfiguration?: string): Promise<StudioProject> {
     const project = await editProject(this.store, id, input, expectedConfiguration);
     if (input && typeof input === 'object' && 'visibility' in input && input.visibility === 'public') this.store.clearPublicationDenial(id);
-    if (hasClaudeStages(project.settings)) await this.refreshRuntime();
+    if (hasNativeStages(project.settings)) await this.refreshRuntime();
     await this.store.updateRuntime(this.runtimeConfig());
     return project;
   }
@@ -99,7 +99,7 @@ export class StudioService {
   }
   async saveWorkflow(projectId: string, definition: unknown, expectedIdentity: string): Promise<StudioProject> {
     const project = await saveProjectWorkflow(this.store, projectId, definition, expectedIdentity);
-    if (hasClaudeStages(project.settings)) await this.refreshRuntime();
+    if (hasNativeStages(project.settings)) await this.refreshRuntime();
     return project;
   }
   startWorkflow(ideaId: string) { return this.engine.startWorkflow(ideaId); }
@@ -128,7 +128,7 @@ export class StudioService {
       addEvent(state, 'system', change.kind === 'upsert' ? `Project “${next.settings.projectName}” changed in the vault. Automation is paused for review.` : 'A project note is missing. Restore it before running more work.');
     });
     if (change.kind === 'upsert' && change.project.visibility !== 'private' && !change.project.unavailable) this.store.clearPublicationDenial(id);
-    if (change.kind === 'upsert' && hasClaudeStages(change.project.settings)) await this.refreshRuntime();
+    if (change.kind === 'upsert' && hasNativeStages(change.project.settings)) await this.refreshRuntime();
   }
 
   async createIdea(input: unknown): Promise<ActionOutcome> {
@@ -172,7 +172,7 @@ export class StudioService {
       addEvent(state, 'system', patch.paused !== undefined ? `Automation ${patch.paused ? 'paused' : 'resumed'}.` : 'Project settings updated.');
       return state.settings;
     });
-    if ((patch.provider !== undefined || patch.stageAgents !== undefined) && hasClaudeStages(settings)) await this.refreshRuntime();
+    if ((patch.provider !== undefined || patch.stageAgents !== undefined) && hasNativeStages(settings)) await this.refreshRuntime();
     return settings;
   }
 
@@ -204,7 +204,8 @@ export class StudioService {
     const integration = this.integration();
     const runtime = await this.host.probeRuntime(integration);
     const cliAvailable = integration.claudeBin === this.integration().claudeBin && runtime.cliAvailable;
-    await this.store.updateRuntime({ cliAvailable, ...this.runtimeConfig() });
+    const codexAvailable = integration.codexBin === this.integration().codexBin && runtime.codexAvailable;
+    await this.store.updateRuntime({ cliAvailable, codexAvailable, ...this.runtimeConfig() });
     return this.state().runtime;
   }
 

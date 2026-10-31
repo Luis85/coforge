@@ -1,7 +1,7 @@
 /** CoForge domain contracts. Ported from the local prototype's src/shared/types.ts. */
 export type IdeaStatus = 'inbox' | 'screened' | 'ranked' | 'planned' | 'building' | 'review' | 'shipped' | 'flagged' | 'rejected';
 export type AgentStage = 'screen' | 'score' | 'plan' | 'implement';
-export type Provider = 'demo' | 'claude' | 'herdr';
+export type Provider = 'demo' | 'claude' | 'herdr' | 'codex';
 /** Bounded at note/input boundaries and checked against each new request's captured taxonomy. */
 export type Category = string;
 export type ExecutionProvider = Provider | 'mcp';
@@ -60,6 +60,7 @@ export interface Settings {
   requestCooldownSeconds: number;
 }
 export interface RuntimeInfo {
+  codexAvailable?: boolean;
   obsProduction?: import('./obs-production').ObsProductionSnapshot;
   /** Transient fail-closed publication holds; only an explicit public reconciliation clears them. */
   publicationDeniedProjectIds?: string[];
@@ -108,6 +109,7 @@ export interface AppState {
 }
 /** Host-side configuration that replaced the prototype's .env file. Secrets are referenced by name only. */
 export interface IntegrationSettings {
+  codexBin?: string;
   ideasFolder: string; claudeBin: string; projectPath: string; allowImplementation: boolean; worktreeFolder: string;
   twitchEnabled: boolean; twitchClientId: string; twitchBotUserId: string; twitchBroadcasterId: string; twitchTokenSecret: string;
   twitchStreamerSecret: string; twitchBotUsesStreamer: boolean; twitchBotReplies: boolean;
