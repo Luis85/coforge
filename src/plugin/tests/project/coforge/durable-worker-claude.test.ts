@@ -21,7 +21,7 @@ it('uses only its private MCP file tools to edit an isolated worktree and exclud
   await writeFile(join(repo, 'CoForge', 'Ideas', 'CF-fixture.md'), 'Private managed fixture');
   await writeFile(join(repo, 'PrivateRequests', 'request.md'), 'Custom managed fixture');
   await writeFile(join(repo, '.coforge', 'authority.json'), '{}');
-  await agentGit(repo, ['init', '--initial-branch=main']); await agentGit(repo, ['add', '--all']);
+  await agentGit(repo, ['init', '--initial-branch=main']); await agentGit(repo, ['config', 'core.autocrlf', 'false']); await agentGit(repo, ['add', '--all']);
   await agentGit(repo, ['-c', 'user.name=CoForge fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '--no-gpg-sign', '-m', 'Contained fixture']);
   const files = new WorkerFiles(join(root, 'private')); await files.initialize();
   const workspaces = workerWorkspaces(files); await workspaces.start();
