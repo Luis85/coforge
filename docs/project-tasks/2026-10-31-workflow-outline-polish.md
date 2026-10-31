@@ -64,6 +64,13 @@ behavior. Refine this component within the native Obsidian visual system.
   are now explicit in the scoped native grid. The 68px density limit, alignment,
   overflow and accessibility assertions remain unchanged. Fresh local native
   matrix: **1 passed (17.74s)**; final-head Linux qualification follows on the PR.
+- Full browser CI initially passed 229/231; the existing move/duplicate journeys
+  caught the sticky size container collapsing its child layout after a reorder.
+  Removed size containment in favor of natural header wrapping and clamped page
+  scroll measurements to the visible viewport. The unchanged configuration,
+  bucket, long-list and template journeys now pass locally: **14 passed (2.3m)**.
+  The final native matrix also passed: **1 passed (15.77s)**. Original 68px row,
+  alignment, toolbar, footer and Axe assertions remain intact.
 
 ## Untested scope
 

@@ -25,6 +25,11 @@ it('recomputes outline clearance when its footer wraps and releases observers/li
     window.dispatchEvent(new Event('resize'));
     callbacks.shift()!(0);
     expect(outline.style.getPropertyValue('--cf-workflow-outline-height')).toBe('572px');
+    pane.getBoundingClientRect = () => new DOMRect(0, -200, 600, 1000);
+    outline.getBoundingClientRect = () => new DOMRect(0, -60, 220, 500);
+    document.dispatchEvent(new Event('scroll'));
+    callbacks.shift()!(0);
+    expect(outline.style.getPropertyValue('--cf-workflow-outline-height')).toBe('692px');
     document.dispatchEvent(new Event('scroll'));
     stop();
     expect(cancel).toHaveBeenCalled();

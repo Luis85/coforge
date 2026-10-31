@@ -9,7 +9,7 @@ export function observeWorkflowOutline(list: HTMLElement): () => void {
   const update = () => {
     frame = 0;
     if (!list.isConnected) return;
-    const top = Math.max(pane.getBoundingClientRect().top, list.getBoundingClientRect().top);
+    const top = Math.max(0, pane.getBoundingClientRect().top, list.getBoundingClientRect().top);
     const viewportHeight = list.ownerDocument.defaultView?.innerHeight ?? view.innerHeight;
     const bottom = Math.min(viewportHeight, pane.getBoundingClientRect().bottom, footer.getBoundingClientRect().top);
     list.style.setProperty('--cf-workflow-outline-height', `${Math.max(240, Math.floor(bottom - top - 8))}px`);

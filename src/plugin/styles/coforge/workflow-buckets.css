@@ -40,7 +40,7 @@
 }
 .cf-studio .cf-workflow-bucket-select {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 0 110px;
   justify-content: flex-start;
   align-items: center;
   text-align: start;
@@ -63,14 +63,16 @@
 }
 .cf-workflow-bucket-identity {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   flex: 1 1 auto;
   min-width: 0;
   gap: 6px;
+  row-gap: 0;
 }
 .cf-workflow-bucket-identity > small {
   flex: 0 0 auto;
-  padding: 0 4px 0 0;
+  padding: 0 4px 0 6px;
   color: var(--cf-muted);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
@@ -116,7 +118,7 @@
   gap: 8px;
   min-height: 48px;
   height: auto;
-  padding: 8px;
+  padding: 6px 8px;
   border: 0;
   box-shadow: none;
   text-align: start;
@@ -185,18 +187,6 @@
   padding-top: 8px;
   margin-top: 8px;
 }
-@container workflow-outline (max-width: 260px) {
-  .cf-workflow-bucket-identity {
-    display: block;
-  }
-  .cf-studio .cf-workflow-bucket-select {
-    width: 100%;
-  }
-  .cf-workflow-bucket-identity > small {
-    display: block;
-    padding: 0 6px 4px;
-  }
-}
 .cf-workflow-bucket-editor > .cf-btn {
   max-width: 100%;
   white-space: normal;
@@ -225,6 +215,5 @@
   overflow-wrap: anywhere;
 }
 .cf-studio .cf-workflow-step-list {
-  container: workflow-outline / inline-size;
   max-height: var(--cf-workflow-outline-height, calc(100vh - 120px));
 }
