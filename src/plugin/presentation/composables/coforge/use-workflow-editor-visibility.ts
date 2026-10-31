@@ -1,4 +1,5 @@
 import { nextTick, onBeforeUnmount, type Ref } from "vue";
+import { observeWorkflowOutline } from './workflow-outline-layout';
 const element = (value: unknown): value is HTMLElement =>
   Boolean(
     value &&
@@ -11,7 +12,9 @@ export function useWorkflowEditorVisibility(selectedId: Ref<string>) {
   let editor: HTMLElement | undefined;
   let list: HTMLElement | undefined;
   let closed = false;
+  let stopOutline = () => {};
   onBeforeUnmount(() => {
+    stopOutline();
     closed = true;
     editor = undefined;
     list = undefined;
@@ -46,7 +49,14 @@ export function useWorkflowEditorVisibility(selectedId: Ref<string>) {
       editor = element(value) ? value : undefined;
     },
     bindStepList: (value: unknown) => {
-      list = element(value) ? value : undefined;
+      const next = element(value) ? value : undefined;
+      if (next === list) return;
+      stopOutline();
+      list = next;
+      stopOutline = () => {};
+      void nextTick().then(() => {
+        if (!closed && list === next && list) stopOutline = observeWorkflowOutline(list);
+      });
     },
     reveal,
     revealIssue: (field: string, workflow = false) => {
@@ -73,7 +83,7 @@ export function useWorkflowEditorVisibility(selectedId: Ref<string>) {
       });
     },
     showStepList: (id = selectedId.value) => {
-      list?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      list?.scrollIntoView({ block: "start", inline: "nearest" });
       rowButton(id)?.focus();
     },
     focusListRow: (id: string) => {
