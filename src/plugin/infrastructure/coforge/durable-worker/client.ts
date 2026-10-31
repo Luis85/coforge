@@ -210,7 +210,16 @@ export class DurableBuildClient implements DurableBuildPort {
   async detach(): Promise<void> { this.snapshots.clear(); /* A host detaches; it never cancels admitted execution. */ }
   async configureConcurrency(maxBuilds: number): Promise<void> {
     if (!Number.isInteger(maxBuilds) || maxBuilds < 1 || maxBuilds > 16) throw new Error('Choose between 1 and 16 concurrent background Builds.');
-    const descriptor = await this.existing(); if (descriptor) { await this.connected(descriptor); await rpc(descriptor, { op: 'configureConcurrency', builds: maxBuilds }); }
+    let descriptor;
+    try { descriptor = await this.existing(); }
+    catch (error) { if (!await this.settledGeneration()) throw error; }
+    if (descriptor) {
+      try { await this.connected(descriptor); await rpc(descriptor, { op: 'configureConcurrency', builds: maxBuilds }); }
+      catch (error) { if (!await this.settledGeneration()) throw error; }
+    } else {
+      try { if (await this.files.read('launch.json') && !await this.settledGeneration()) throw unreachable(); }
+      catch (error) { if (!missing(error)) throw error; }
+    }
     this.maxBuilds = maxBuilds;
   }
   async cancelUnstarted(jobId: string): Promise<void> {

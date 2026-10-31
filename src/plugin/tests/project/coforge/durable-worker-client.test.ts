@@ -10,6 +10,8 @@ import { captureProcess } from '../../../infrastructure/coforge/process';
 import { nativeIdentityCheck } from '../../../infrastructure/coforge/durable-worker/store';
 import { stopOwnedProcessTree } from '../../../infrastructure/coforge/durable-worker/process-identity';
 import { record } from '../../../features/coforge/domain/check';
+import { WorkerFiles } from '../../../infrastructure/coforge/durable-worker/files';
+import { WorkerStore } from '../../../infrastructure/coforge/durable-worker/store';
 
 const folders: string[] = []; const workerDirectories: string[] = [];
 afterEach(async () => {
@@ -48,8 +50,12 @@ it('checks readiness without creating private files, then reconnects to one deta
   expect(response.status).toBe(403);
   const daemon = record(JSON.parse(await readFile(join(directory, 'daemon.json'), 'utf8')));
   expect((await stopOwnedProcessTree(nativeIdentityCheck(daemon.identity))).treeConfirmed).toBe(true);
+  const reattached = createDurableBuildClient({ privateDirectory: directory, workerSource, nodeExecutable: process.execPath, vaultDirectory, protectedVaultFolders: () => ['CoForge'] });
+  await expect(reattached.configureConcurrency(2)).resolves.toBeUndefined();
+  expect(workerDescriptorCheck(JSON.parse(await readFile(join(directory, 'descriptor.json'), 'utf8'))).workerId).toBe(ref.workerId);
   const next = structuredClone(request); next.jobId = next.input.jobId = 'another-admission'; next.runId = next.input.workflow.runId = 'another-run'; next.attemptId = next.input.workflow.attemptId = 'another-attempt';
-  const replacement = await client.prepare(next); expect(replacement.workerId).not.toBe(ref.workerId);
+  const replacement = await reattached.prepare(next); expect(replacement.workerId).not.toBe(ref.workerId);
+  expect(JSON.parse(await readFile(join(directory, 'capacity.json'), 'utf8'))).toEqual({ builds: 2 });
   expect(await client.prepare(request)).toEqual(ref);
   await expect(client.start(ref)).rejects.toThrow();
   const edited = structuredClone(request); edited.input.settings.maxTurns++;
@@ -64,6 +70,19 @@ it('checks readiness without creating private files, then reconnects to one deta
   expect((await readFile(join(directory + '-archive', ref.workerId, 'provider-count.txt'), 'utf8')).trim()).toBe('job-one');
   await expect(access(join(directory, 'provider-count.txt'))).rejects.toThrow();
 }, 30000);
+it('refuses capacity synchronization to an unreachable generation with an unsettled original reservation', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'coforge-worker-unsettled-')); folders.push(directory);
+  const files = new WorkerFiles(directory); const store = new WorkerStore(files, 'worker-one'); await store.initialize(); const ref = await store.prepare(durableRequest());
+  const identity = { version: 1, workerId: ref.workerId, epoch: ref.epoch, nonce: 'nonce-one', token: 'a'.repeat(64), sourceHash: 'b'.repeat(64) };
+  await files.create('launch.json', identity);
+  await files.create('daemon.json', { workerId: ref.workerId, identity: { pid: process.pid, platform: process.platform, birth: 'not-this-supervisor', image: 'c'.repeat(64) } });
+  await files.create('descriptor.json', { ...identity, endpoint: 'http://127.0.0.1:1/v1', pid: process.pid, startedAt: new Date().toISOString() });
+  const client = createDurableBuildClient({ privateDirectory: directory, workerSource: '' });
+  await expect(client.configureConcurrency(2)).rejects.toThrow('unreachable');
+  await rm(files.path('descriptor.json'));
+  await expect(client.configureConcurrency(2)).rejects.toThrow('unreachable');
+  expect(store.get(ref).record.snapshot.phase).toBe('prepared'); expect(await files.read('capacity.json')).toBeUndefined();
+});
 it('inspects retained evidence with a missing descriptor and rolls a verified unused generation without retargeting old starts', async () => {
   const parent = await mkdtemp(join(tmpdir(), 'coforge-worker-rollover-')); folders.push(parent);
   const directory = join(parent, 'private'); const workerSource = await source();

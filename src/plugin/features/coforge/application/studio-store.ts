@@ -148,6 +148,7 @@ export class StudioStore {
     this.emit();
   }
   durableBuildJob(jobId: string) { const job = this.current().jobs.find(item => item.id === jobId); return job ? structuredClone(job) : undefined; }
+  workflowStopHeld(ideaId: string): boolean { return this.current().workflowStopHolds?.includes(ideaId) === true; }
   durableBuildJobIds(ideaId?: string): string[] { return this.current().jobs.filter(job => job.durable && !job.durable.acknowledged && (!ideaId || job.ideaId === ideaId)).map(job => job.id); }
   durableBuildSnapshot(jobId: string): DurableBuildSnapshot | undefined {
     const state = this.current(); const snapshot = state.runtime.durableBuildSnapshots?.[jobId] ?? state.jobs.find(job => job.id === jobId)?.durable?.snapshot;

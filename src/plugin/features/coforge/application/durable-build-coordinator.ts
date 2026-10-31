@@ -87,7 +87,6 @@ export class DurableBuildCoordinator {
     if (this.polling) return this.polling;
     const work = async () => {
       const jobs = this.store.durableBuildJobIds(ideaId);
-      if (jobs.length) { try { await this.configure(); } catch { for (const id of jobs) await this.noteError(id); return; } }
       for (const jobId of jobs) { if (this.detached) return; await this.check(jobId); }
     };
     this.polling = work().finally(() => { this.polling = undefined; });
@@ -104,15 +103,35 @@ export class DurableBuildCoordinator {
     if (!this.port) { await this.noteError(jobId); return; }
     try {
       if (execution.appliedSequence !== undefined) { await this.acknowledge(jobId); return; }
-      let snapshot = durableBuildSnapshotCheck(execution.intent === 'cancel' ? await this.port.cancel(execution.ref) : await this.port.inspect(execution.ref));
+      const initial = this.currentIntent(jobId, execution.ref); if (!initial) return;
+      let cancelled = initial.cancel;
+      const observed = cancelled ? await this.port.cancel(execution.ref) : await this.port.inspect(execution.ref);
+      let current = this.currentIntent(jobId, execution.ref); if (!current) return;
+      if (current.execution.appliedSequence !== undefined) { await this.acknowledge(jobId); return; }
+      let snapshot = durableBuildSnapshotCheck(current.cancel && !cancelled ? await this.port.cancel(execution.ref) : observed);
+      cancelled ||= current.cancel;
       const latest = this.store.durableBuildSnapshot(jobId);
       if (!sameDurableBuildRef(snapshot.ref, execution.ref) || latest && snapshot.sequence < latest.sequence) throw new Error('The original worker identity or journal sequence changed.');
-      if (snapshot.phase === 'prepared' && execution.intent === 'start') {
+      if (snapshot.phase === 'prepared' && !cancelled) {
         if (latest && latest.phase !== 'prepared') throw new Error('The original execution rolled back to preparation. Inspect before any further dispatch.');
-        snapshot = await this.port.start(execution.ref);
+        await this.configure();
+        current = this.currentIntent(jobId, execution.ref); if (!current) return;
+        if (current.execution.appliedSequence !== undefined) { await this.acknowledge(jobId); return; }
+        cancelled = current.cancel;
+        snapshot = cancelled ? await this.port.cancel(execution.ref) : await this.port.start(execution.ref);
+        current = this.currentIntent(jobId, execution.ref); if (!current) return;
+        if (current.cancel && !cancelled && current.execution.appliedSequence === undefined) { snapshot = await this.port.cancel(execution.ref); cancelled = true; }
       }
       await this.apply(jobId, snapshot);
+      current = this.currentIntent(jobId, execution.ref);
+      if (current?.cancel && !cancelled && current.execution.appliedSequence === undefined) await this.apply(jobId, await this.port.cancel(execution.ref));
     } catch { await this.noteError(jobId); }
+  }
+  private currentIntent(jobId: string, ref: DurableBuildRef) {
+    const job = this.store.durableBuildJob(jobId); const execution = job?.durable;
+    if (!job || !execution || execution.acknowledged || this.detached) return undefined;
+    if (!sameDurableBuildRef(execution.ref, ref)) throw new Error('The original background execution reference changed.');
+    return { execution, cancel: execution.intent === 'cancel' || this.store.workflowStopHeld(job.ideaId) || !['queued', 'running'].includes(job.status) && execution.appliedSequence === undefined };
   }
   private async apply(jobId: string, value: DurableBuildSnapshot): Promise<void> {
     if (this.detached) return;
