@@ -64,3 +64,10 @@ Use native buttons, labelled fields and navigation landmarks with visible keyboa
 Public capture roots use only their public projection and receive no private host controls. External mutations require the existing confirmation and recovery mechanisms. Color, layout and copy may clarify those mechanisms but cannot bypass them.
 
 Motion is limited to short state transitions and respects reduced motion. No page-load choreography delays operation. Review both themes and wide/narrow leaves using current rendered screenshots and accessibility tests.
+
+Request Activity retains one native disclosure per agent attempt. Its summary makes
+chat history discoverable through stage, textual status, captured provider/model and
+time. Expanded attempts pair the captured prompt and response; instructions and
+execution logs remain subordinate. Preserve whitespace with wrapped, selectable
+literal text. Distinguish unavailable, waiting, simulated and truncated evidence,
+keep history private, and never reconstruct past prompts from current settings.

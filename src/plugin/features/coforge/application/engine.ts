@@ -16,6 +16,7 @@ import { ConfiguredWorkflowEngine } from './configured-workflow-engine';
 import type { WorkflowPlanHandoff } from './workflow-plan-handoff';
 import type { AutomationContext } from '../domain/automation-context';
 import type { AgentTaskPort } from './agent-task';
+import { recordAgentConversation } from './agent-conversation';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
@@ -275,6 +276,7 @@ export class WorkflowEngine {
     if (!runner) throw new Error('The selected workflow runner is unavailable.');
     const result = await runner({
       jobId: next.id, stage: next.stage, ...snapshot, signal: controller.signal,
+      onConversation: event => recordAgentConversation(this.store, next.id, event),
       onUsage: cost => this.recordCost(next.id, cost),
       onTokenUsage: usage => this.recordTokens(next.id, usage),
       onLog: message => {

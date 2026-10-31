@@ -39,6 +39,7 @@ export interface ChatMessage {
 }
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
+  conversation?: import('./agent-conversation').AgentConversation;
   workflow?: import('./configured-workflow-run').ConfiguredStepExecution;
   usage?: import('./ai-usage').StageUsage;
   herdrAgent?: 'claude';

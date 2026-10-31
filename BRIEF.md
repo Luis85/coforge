@@ -417,6 +417,15 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-10-31: Idea board request details expose the captured prompt and LLM
+  response inside each corresponding Activity agent-run disclosure. Keep attempts
+  distinct and retain private evidence through reload, failure and retry. Historical
+  runs without captured evidence say so; do not reconstruct sent prompts from later
+  settings. Simulations are explicitly labelled. Preserve literal text, provider/model
+  attribution, existing execution/review gates and exclusion from public projections.
+  Research and implement the increment through subagents in a dedicated worktree,
+  qualify and polish it end to end, then open a PR and merge only when green.
+
 - 2026-10-30: extend Project features with individual selections for every
   standalone workspace capability, including Service Design. Keep the four group
   controls and list Idea board, The Council, CoWorkers, Service Design, Agent

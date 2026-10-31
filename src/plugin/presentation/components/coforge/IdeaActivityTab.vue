@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
 import CfIcon from './CfIcon.vue';
+import IdeaRunHistory from './IdeaRunHistory.vue';
 
 const drawer = useIdeaDrawerContext();
 </script>
@@ -20,16 +21,23 @@ const drawer = useIdeaDrawerContext();
   </section>
   <section class="cf-idea-section">
     <h3><CfIcon name="bot" /> Agent runs</h3>
-    <details v-for="job in drawer.jobs" :key="job.id" class="cf-idea-run">
+    <p v-if="drawer.jobs.length" class="cf-idea-help">Expand a run to inspect its chat history and execution log.</p>
+    <details v-for="job in drawer.jobs" :key="job.id" class="cf-idea-run" :data-job-id="job.id">
       <summary>
-        <span class="cf-idea-inline">
-          <span class="cf-idea-job-dot" :class="`is-${job.status}`" aria-hidden="true" />
-          {{ job.label }}
-          <span class="cf-idea-source">{{ job.provider }}</span>
+        <CfIcon name="chevron-right" class="cf-idea-run-chevron" size="sm" />
+        <span class="cf-idea-run-heading">
+          <span class="cf-idea-inline cf-idea-wrap">
+            <span class="cf-idea-job-dot" :class="`is-${job.status}`" aria-hidden="true" />
+            <strong>{{ job.label }}</strong>
+            <span class="cf-idea-source">{{ job.provider }}<template v-if="job.model"> · {{ job.model }}</template></span>
+          </span>
+          <span class="cf-idea-run-meta">
+            {{ job.simulated ? 'Simulation' : 'Chat history' }} · <time :datetime="job.startedAt" :title="job.startedAt">{{ job.startedLabel }}</time>
+          </span>
         </span>
-        <span class="cf-muted">{{ job.status }}</span>
+        <span class="cf-muted cf-idea-run-status">{{ job.status }}</span>
       </summary>
-      <pre class="cf-idea-code">{{ job.log }}</pre>
+      <IdeaRunHistory :job="job" />
     </details>
     <p v-if="drawer.jobs.length === 0" class="cf-idea-help">No agent runs yet.</p>
   </section>

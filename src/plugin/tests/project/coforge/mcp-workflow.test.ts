@@ -101,6 +101,16 @@ it('returns the same active attempt without replay and fails an interrupted atte
   expect(f.studio.state().ideas.find(idea => idea.id === f.idea.id)?.workflowRun).toMatchObject({ state: 'attention', cursor: 0, external: true });
   expect(f.runner.tasks(f.projectId)).toEqual([]);
 });
+it('retains rejected and corrected external submissions without blocking the existing correction flow', async () => {
+  const f = await fixture(); const context = await f.next();
+  await expect(f.tools.call(f.projectId, 'coforge_submit_result', { taskId: context.taskId, output: { verdict: 'invalid' } })).rejects.toThrow();
+  await f.tools.call(f.projectId, 'coforge_submit_result', { taskId: context.taskId, output: { verdict: 'clear', reason: 'Corrected response', signals: [] } });
+  const job = f.studio.state().jobs.find(job => job.id === context.taskId);
+  expect(job?.status).toBe('succeeded');
+  expect(job?.conversation?.response?.text).toContain('invalid');
+  expect(job?.conversation?.response?.text).toContain('Additional submitted response');
+  expect(job?.conversation?.response?.text).toContain('Corrected response');
+});
 it('acknowledges one completed project step while another project is queued, without blocking its tools', async () => {
   const f = await fixture(); const first = await f.next();
   const other = await f.studio.createProject({ projectName: 'Queued game', projectBrief: 'A second project with queued external work.', projectPath: '/other' });

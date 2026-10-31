@@ -13,6 +13,7 @@ import { captureIncrement, prepareWorktree, projectRoot } from './agent-worktree
 import type { WorkflowWorkspaceLease, WorkflowWorkspaces } from '../../features/coforge/application/workflow-workspace-ports';
 import { executionAccess, executionResult, executionTaskPrompt } from '../../features/coforge/application/workflow-execution';
 import { ideaProjectId } from '../../features/coforge/domain/projects';
+import { captureClaudeResponse } from './claude-conversation';
 
 function executable(integration: IntegrationSettings): string {
   const command = integration.claudeBin.trim() || 'claude';
@@ -76,11 +77,16 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
   try {
     const access = executionAccess(input);
     onLog(`Claude ${input.workflow?.step.name ?? stage}: ${access === 'none' ? 'no tools; isolated temporary directory' : access === 'readproject' ? 'read-only project access' : 'file editing in an isolated worktree'}.`);
-    const raw = await captureProcess(executable(integration), buildClaudeArgs(stage, settings, input.workflow), {
-      cwd, input: input.workflow ? executionTaskPrompt(input) : stageInput(stage, idea, settings), timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
+    const args = buildClaudeArgs(stage, settings, input.workflow);
+    const prompt = input.workflow ? executionTaskPrompt(input) : stageInput(stage, idea, settings);
+    await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt });
+    signal?.throwIfAborted();
+    const raw = await captureProcess(executable(integration), args, {
+      cwd, input: prompt, timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
     });
     const usage = reportedClaudeCost(raw); if (usage !== undefined) await input.onUsage?.(usage);
     const tokens = reportedClaudeUsage(raw); if (tokens) await input.onTokenUsage?.(tokens);
+    await captureClaudeResponse(input, raw);
     const envelope = parseClaudeEnvelope(raw);
     // Model output is saved to notes and shown to viewers: it gets the same sanitizing as chat before validation.
     const result = input.workflow ? executionResult(input, envelope.output) : await interpret(input, cleanDeep(envelope.output), envelope.costUsd, worktree, onLog);
@@ -89,8 +95,13 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     if (envelope.costUsd !== undefined) result.costUsd = envelope.costUsd;
     return { ...result, ...(tokens ? { usage: tokens } : {}) };
   } catch (error) {
-    if (error instanceof ProcessFailure) { const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage); const tokens = reportedClaudeUsage(error.output); if (tokens) await input.onTokenUsage?.(tokens); }
-    await changes(`Cumulative changes after failed ${input.workflow?.step.name ?? stage}`);
+    try {
+      if (error instanceof ProcessFailure) {
+        const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage);
+        const tokens = reportedClaudeUsage(error.output); if (tokens) await input.onTokenUsage?.(tokens);
+        await captureClaudeResponse(input, error.output);
+      }
+    } finally { await changes(`Cumulative changes after failed ${input.workflow?.step.name ?? stage}`); }
     if (error instanceof ProcessFailure) throw new Error(error.message);
     if (error instanceof CheckError) throw new Error('Claude output failed schema validation. The idea was not advanced.');
     if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))

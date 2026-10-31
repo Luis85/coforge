@@ -133,10 +133,29 @@
 .cf-studio .cf-idea-timeline li p { font-size: 12px; line-height: 1.7; margin: 0 0 5px; color: var(--cf-text); overflow-wrap: anywhere; }
 .cf-idea-timeline time { font-size: 10px; color: var(--cf-muted); }
 .cf-idea-run { border-bottom: 1px solid var(--cf-border); padding: 12px 0; }
-.cf-idea-run summary {
+.cf-idea-run > summary {
   display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; list-style: none; font-size: 12px;
 }
-.cf-idea-run summary::-webkit-details-marker { display: none; }
+.cf-idea-run > summary::-webkit-details-marker { display: none; }
+.cf-idea-run > summary:focus-visible, .cf-idea-evidence > summary:focus-visible {
+  outline: 2px solid var(--cf-accent); outline-offset: 4px; border-radius: var(--radius-s);
+}
+.cf-idea-run-chevron { flex: 0 0 auto; color: var(--cf-muted); }
+.cf-idea-run[open] > summary .cf-idea-run-chevron { transform: rotate(90deg); }
+.cf-idea-run-heading { flex: 1; min-width: 0; }
+.cf-idea-run .cf-idea-source { white-space: normal; overflow-wrap: anywhere; }
+.cf-idea-run-meta { display: block; margin-top: 6px; color: var(--cf-muted); font-size: 11px; line-height: 1.6; }
+.cf-idea-run-status { flex: 0 0 auto; font-size: 11px; }
+.cf-idea-history { padding: 4px 0 4px 23px; min-width: 0; }
+.cf-idea-message { margin-top: 20px; min-width: 0; }
+.cf-studio .cf-idea-message h4 { margin: 0 0 5px; font-size: 12px; font-weight: 650; color: var(--cf-text); }
+.cf-idea-message > time { color: var(--cf-muted); font-size: 10px; }
+.cf-studio .cf-idea-transcript {
+  margin: 9px 0 0; padding: 13px 15px; border-radius: var(--radius-s); background: var(--cf-surface); color: var(--cf-text);
+  font: 12px/1.8 var(--font-interface); white-space: pre-wrap; overflow-wrap: anywhere; word-break: normal; user-select: text;
+}
+.cf-idea-evidence { margin-top: 18px; min-width: 0; }
+.cf-idea-evidence > summary { cursor: pointer; color: var(--cf-muted); font-size: 12px; line-height: 1.7; }
 .cf-idea-job-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; background: var(--color-green); }
 .cf-idea-job-dot.is-queued { background: var(--color-yellow); }
 .cf-idea-job-dot.is-running { background: var(--color-purple); }
