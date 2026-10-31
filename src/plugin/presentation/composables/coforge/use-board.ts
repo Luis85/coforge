@@ -4,21 +4,13 @@ import { rankedIdeas, STATUS_LABELS } from '../../../features/coforge/domain/typ
 import { requestCategoryNames } from '../../../features/coforge/domain/request-categories';
 import { useStudioStore } from '../../stores/coforge-studio';
 import { contributorName } from './format';
+import { workflowDefinition } from '../../../features/coforge/domain/configured-workflow';
+import { workflowBoardColumns } from '../../../features/coforge/domain/workflow-board';
+import { defaultSettings } from '../../../features/coforge/domain/seed';
 
 export type BoardFilter = 'all' | 'review' | 'flagged' | 'rejected';
 export type BoardSort = 'rice' | 'votes' | 'newest';
 export type BoardLayout = 'board' | 'list';
-
-interface ColumnDefinition { title: string; hint: string; statuses: readonly IdeaStatus[]; icon: string; tone: string }
-
-const COLUMNS: readonly ColumnDefinition[] = [
-  { title: 'Inbox', hint: 'Listen & screen', statuses: ['inbox', 'screened', 'flagged'], icon: 'inbox', tone: 'inbox' },
-  { title: 'Up next', hint: 'Ranked for planning', statuses: ['ranked'], icon: 'sparkles', tone: 'next' },
-  { title: 'Design', hint: 'Specification before Build', statuses: ['planned'], icon: 'pencil-ruler', tone: 'design' },
-  { title: 'In progress', hint: 'Build & review', statuses: ['building', 'review'], icon: 'circle-dot', tone: 'progress' },
-  { title: 'Accepted', hint: 'Community contributions', statuses: ['shipped'], icon: 'check-check', tone: 'done' },
-];
-const ARCHIVE_COLUMN: ColumnDefinition = { title: 'Archived', hint: 'Ideas kept for context', statuses: ['rejected'], icon: 'inbox', tone: 'inbox' };
 
 export const SORT_OPTIONS: ReadonlyArray<{ value: BoardSort; label: string }> = [
   { value: 'rice', label: 'RICE priority' }, { value: 'votes', label: 'Most votes' }, { value: 'newest', label: 'Newest first' },
@@ -59,11 +51,11 @@ function createBoard() {
     { key: 'rejected', label: 'Archived', count: countOf('rejected') },
   ] as const).map(tab => ({ ...tab, selected: filter.value === tab.key, highlight: tab.key === 'review' && tab.count > 0 })));
 
-  const columns = computed(() => (filter.value === 'rejected' ? [ARCHIVE_COLUMN] : COLUMNS)
+  const columns = computed(() => workflowBoardColumns(
+    workflowDefinition(store.activeProject?.settings ?? defaultSettings()), filtered.value, store.state?.workflowStopHolds,
+  ).filter(column => filter.value === 'rejected' ? column.archived : !column.archived)
     .map(column => ({
       ...column,
-      ideas: filtered.value.filter(idea => column.statuses.includes(idea.status)),
-      canAdd: column.title === 'Inbox',
       emptyText: isFiltered.value ? 'No matching requests' : 'No requests',
     })));
 

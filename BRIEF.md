@@ -196,6 +196,22 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ### Configurable workflows (owner decisions, 2026-10-28)
 
+Bucket workflow redesign (owner request, 2026-10-31): configure the Idea board's
+ordered buckets from Inbox to Accepted, then the dedicated ordered AI/human steps
+inside each bucket. Support configurable intermediate buckets and keep the step
+detail panel aligned left. Bucket and step identities remain stable; explicit
+Save applies the definition to future runs. Existing runs retain captured
+definitions, and legacy workflows keep their execution order. Inbox/Accepted
+retain their lifecycle roles; editable buckets never bypass screening, recovery,
+worktree permissions or final human acceptance. Empty buckets execute nothing;
+removing a populated bucket requires moving its steps first. Historical requests
+remain visible when their captured buckets differ from current configuration.
+The private board adopts these buckets; public/capture projections retain their
+existing screened lifecycle contract. Research/specification and the test-first
+implementation plan are in `docs/project-tasks/2026-10-31-bucket-workflows.md`.
+Deliver through subagents, qualify and polish, then push/open/merge a PR only
+after local and GitHub checks are green.
+
 Workspace/workflow increment (owner requests, 2026-10-31):
 
 - Save the independent left-navigation and right-chat collapse choices in localStorage

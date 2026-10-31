@@ -56,6 +56,16 @@ starts. The standard workflow retains Design as a private Markdown artifact and
 passes it with the plan to Build. The public board shows the same Design stage
 without exposing private workflow artifacts or instructions.
 
+These are the default buckets. Configure the private board's names, descriptions,
+intermediate sequence and nested work in Project settings → Agent workflow →
+Idea Board Workflow. Saved configuration applies to future runs; existing runs
+retain captured buckets. Occupied renamed/removed historical process buckets
+remain visible as Earlier workflow columns, so no request disappears. Legacy
+requests use lifecycle placement. Operator-held/stopped and flagged requests
+remain in Inbox, rejected requests remain Archived, and only shipped requests
+enter Accepted. Bucket configuration never grants acceptance or public visibility.
+Public/capture boards keep the existing screened lifecycle columns.
+
 ## Entry and next action
 
 Choose Idea board in the studio navigation. Available actions: Filter and search; Switch Kanban or table; Open request; Create request; Use valid context actions. Return through the owning [CoForge studio](studio.md) surface.

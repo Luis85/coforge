@@ -65,31 +65,31 @@ for (const theme of ["light", "dark"]) {
       document.body.classList.toggle("theme-light", theme === "light");
       document.body.classList.toggle("theme-dark", theme === "dark");
     }, theme);
-    const steps = page.getByRole("list", {
-      name: "Workflow steps",
+    const steps = page.getByRole("region", {
+      name: "Workflow step order",
       exact: true,
     });
-    await expect(steps.getByRole("listitem")).toHaveCount(5);
+    await expect(steps.locator('[data-step-id]')).toHaveCount(5);
     await expect(steps).toContainText('Design');
     await page.getByLabel("Step name", { exact: true }).fill("Request review");
     await page
       .getByRole("button", { name: "Move Request review down", exact: true })
       .click();
-    await expect(steps.getByRole("listitem").nth(1)).toHaveAttribute(
+    await expect(steps.locator('[data-step-id]').nth(1)).toHaveAttribute(
       "data-step-id",
       "screen",
     );
     await page
       .getByRole("button", { name: "Duplicate Request review", exact: true })
       .click();
-    await expect(steps.getByRole("listitem")).toHaveCount(6);
+    await expect(steps.locator('[data-step-id]')).toHaveCount(6);
     await page
       .getByRole("button", {
         name: "Remove Request review copy from workflow",
         exact: true,
       })
       .click();
-    await expect(steps.getByRole("listitem")).toHaveCount(5);
+    await expect(steps.locator('[data-step-id]')).toHaveCount(5);
     await page
       .getByRole("button", { name: "Add checklist", exact: true })
       .click();

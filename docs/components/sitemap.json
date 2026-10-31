@@ -4799,6 +4799,9 @@
         "Open Project settings, Agent workflow, then Idea Board Workflow."
       ],
       "actions": [
+        "Configure ordered buckets and descriptions",
+        "Add, reorder or remove empty intermediate buckets",
+        "Assign steps to buckets",
         "Add or select step",
         "Reorder or replace",
         "Edit prompts and provider",
@@ -4859,6 +4862,8 @@
         "Open Workflow settings, then select a step in the step list."
       ],
       "actions": [
+        "Select and edit a bucket",
+        "Move a step to another bucket",
         "Rename",
         "Choose kind",
         "Edit contract and access",

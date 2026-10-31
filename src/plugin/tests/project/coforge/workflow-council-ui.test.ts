@@ -28,7 +28,7 @@ it('authors and explicitly saves an Ask Council step using only a Council select
     await openAddStep(wrapper);
     await askButton(wrapper, 'Add Ask Council').trigger('click'); await flushPromises();
     const editor = wrapper.get('[aria-label="Selected workflow step"]');
-    await editor.get('select').setValue('advice');
+    await editor.get('select[data-workflow-field="councilId"]').setValue('advice');
     await editor.get('textarea').setValue('Compare options and recommend a path.');
     expect(editor.text()).toContain('Reviewer');
     expect(editor.text()).toContain('waits for all published Council answers');
@@ -39,7 +39,7 @@ it('authors and explicitly saves an Ask Council step using only a Council select
     expect(askButton(wrapper, 'Save workflow').attributes('disabled')).toBeUndefined();
     await wrapper.get('form.cf-workflow-editor').trigger('submit'); await flushPromises();
     expect(wrapper.find('[role="alert"]').exists() ? wrapper.get('[role="alert"]').text() : '').toBe('');
-    expect(f.studio.state().settings.workflow?.steps.at(-1)).toMatchObject({ kind: 'council', councilId: 'advice', instructions: 'Compare options and recommend a path.', contextMode: 'none', inputs: [] });
+    expect(f.studio.state().settings.workflow?.steps.find(step => step.kind === 'council')).toMatchObject({ kind: 'council', councilId: 'advice', instructions: 'Compare options and recommend a path.', contextMode: 'none', inputs: [] });
     expect(f.module.actions.snapshot().runs).toHaveLength(0);
   } finally { wrapper.unmount(); await f.dispose(); }
 });
@@ -50,7 +50,7 @@ it('shows an actionable simulation readiness boundary without starting or claimi
   try {
     await openAddStep(wrapper);
     await askButton(wrapper, 'Add Ask Council').trigger('click'); await flushPromises();
-    const editor = wrapper.get('[aria-label="Selected workflow step"]'); await editor.get('select').setValue('advice');
+    const editor = wrapper.get('[aria-label="Selected workflow step"]'); await editor.get('select[data-workflow-field="councilId"]').setValue('advice');
     expect(editor.get('[aria-label="Live Council execution readiness"]').text()).toContain('uses Simulation');
     expect(editor.text()).toContain('Request workflows require live Claude or Codex CoWorkers');
     expect(askButton(wrapper, 'Open Council setup').exists()).toBe(true);

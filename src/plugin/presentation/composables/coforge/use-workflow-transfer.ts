@@ -6,6 +6,7 @@ import {
 } from "../../../features/coforge/domain/configured-workflow";
 import { storeToRefs } from "pinia";
 import { useWorkflowEditorStore } from "../../stores/coforge-workflow-editor";
+import { materializeWorkflowBuckets } from '../../../features/coforge/domain/workflow-buckets';
 interface TransferContext {
   draft: Ref<WorkflowDefinition>;
   selectedId: Ref<string>;
@@ -116,9 +117,9 @@ export function useWorkflowTransfer(context: TransferContext) {
     inspect,
     replace: () => {
       if (!preview.value) return;
-      context.draft.value = parseWorkflowDefinition(
+      context.draft.value = materializeWorkflowBuckets(parseWorkflowDefinition(
         serializeWorkflowDefinition(preview.value),
-      );
+      ));
       context.selectedId.value = context.draft.value.steps[0]?.id ?? "";
       preview.value = null;
       mode.value = null;

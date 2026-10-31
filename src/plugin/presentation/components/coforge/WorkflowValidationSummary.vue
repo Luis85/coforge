@@ -10,7 +10,7 @@ const model = useWorkflowEditorForm();
   >
     <h2>Review before saving</h2>
     <p>
-      Your draft is kept. Choose an issue to open its step and the field that
+      Your draft is kept. Choose an issue to open its bucket or step and the field that
       needs attention.
     </p>
     <ul>

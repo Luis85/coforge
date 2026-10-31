@@ -18,15 +18,17 @@ export function useWorkflowEditorVisibility(selectedId: Ref<string>) {
   });
   const rowButton = (id: string) =>
     [
-      ...(list?.querySelectorAll<HTMLElement>(".cf-workflow-step-select") ??
+      ...(list?.querySelectorAll<HTMLElement>(".cf-workflow-step-select, .cf-workflow-bucket-select") ??
         []),
-    ].find((button) => button.closest("li")?.dataset.stepId === id);
+    ].find((button) => {
+      const row = button.closest<HTMLElement>('li');
+      return row?.dataset.stepId === id || row?.dataset.bucketId === id;
+    });
   const reveal = () => {
     void nextTick().then(() => {
       if (closed || !editor) return;
-      const field = editor.querySelector<HTMLElement>(
-        "input, textarea, select",
-      );
+      const field = editor.querySelector<HTMLElement>('[data-workflow-field="name"]')
+        ?? editor.querySelector<HTMLElement>('input, textarea, select');
       if (!field) return;
       const rect = field.getBoundingClientRect();
       const pane = editor.closest(".cf-content")?.getBoundingClientRect();
@@ -70,9 +72,12 @@ export function useWorkflowEditorVisibility(selectedId: Ref<string>) {
         target.focus({ preventScroll: true });
       });
     },
-    showStepList: () => {
+    showStepList: (id = selectedId.value) => {
       list?.scrollIntoView({ block: "nearest", inline: "nearest" });
-      rowButton(selectedId.value)?.focus();
+      rowButton(id)?.focus();
+    },
+    focusListRow: (id: string) => {
+      void nextTick().then(() => { if (!closed) rowButton(id)?.focus({ preventScroll: true }); });
     },
     retainMoveFocus: (id: string, work: () => void) => {
       const focused = list?.ownerDocument.activeElement;

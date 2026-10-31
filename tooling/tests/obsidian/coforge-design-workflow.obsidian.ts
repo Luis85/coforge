@@ -35,7 +35,7 @@ describe('Design specification handoff in the contained host', () => {
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Contained Design workflow');
 
     await openWorkflowSettings(view);
-    await browserExpect(view.getByRole('list', { name: 'Workflow steps', exact: true }).getByRole('listitem')).toHaveCount(5);
+    await browserExpect(view.getByRole('region', { name: 'Workflow step order', exact: true }).locator('[data-step-id]')).toHaveCount(5);
     await openWorkflowDisclosure(view, 'Workflow tools');
     await view.getByRole('button', { name: 'Preview workflow export', exact: true }).click();
     const exported = await view.getByLabel('Workflow export JSON', { exact: true }).textContent();

@@ -4,6 +4,7 @@ import {
   onBeforeUnmount,
   provide,
   reactive,
+  ref,
   watch,
   type InjectionKey,
 } from "vue";
@@ -21,11 +22,14 @@ import {
   createWorkflowStep,
   duplicateWorkflowStep,
   moveWorkflowStep,
-  insertWorkflowPreset,
+  presetWorkflowStep,
   type WorkflowPreset,
 } from "../../stores/workflow-editor-draft";
 import { useWorkflowTransfer } from "./use-workflow-transfer";
 import { useWorkflowEditorVisibility } from "./use-workflow-editor-visibility";
+import { materializeWorkflowBuckets } from '../../../features/coforge/domain/workflow-buckets';
+import { appendBucketStep } from '../../stores/workflow-bucket-draft';
+import { useWorkflowBuckets } from './use-workflow-buckets';
 import { workflowTemplatePageKey } from "./use-workflow-output-templates";
 import {
   workflowEditorIssues,
@@ -51,7 +55,8 @@ function createWorkflowEditor() {
     notice,
     stale,
   } = storeToRefs(editor);
-  draft.value = structuredClone(source.value);
+  draft.value = materializeWorkflowBuckets(source.value);
+  const baseline = ref(JSON.stringify(draft.value));
   expectedIdentity.value = identity.value;
   expectedProject.value = project.value?.id ?? "";
   selectedId.value = draft.value.steps.some(
@@ -71,8 +76,9 @@ function createWorkflowEditor() {
   editor.exportPath = "";
   editor.exporting = false;
   const visibility = useWorkflowEditorVisibility(selectedId);
+  const buckets = useWorkflowBuckets({ draft, selectedId, notice, visibility });
   const dirty = computed(
-    () => JSON.stringify(draft.value) !== expectedIdentity.value,
+    () => JSON.stringify(draft.value) !== baseline.value,
   );
   const selected = computed(() =>
     draft.value.steps.find((step) => step.id === selectedId.value),
@@ -88,13 +94,14 @@ function createWorkflowEditor() {
     }
   });
   function loadSource() {
-    draft.value = structuredClone(source.value);
+    draft.value = materializeWorkflowBuckets(source.value);
+    baseline.value = JSON.stringify(draft.value);
     expectedIdentity.value = identity.value;
     expectedProject.value = project.value?.id ?? "";
     stale.value = false;
     error.value = "";
     notice.value = "";
-    if (!draft.value.steps.some((step) => step.id === selectedId.value))
+    if (!buckets.selectedBucket && !draft.value.steps.some((step) => step.id === selectedId.value))
       selectedId.value = draft.value.steps[0]?.id ?? "";
   }
   watch([identity, () => project.value?.id], () => {
@@ -110,7 +117,7 @@ function createWorkflowEditor() {
     dirty,
     (value) => {
       store.dirtyWorkflow = value;
-      if (value) notice.value = "";
+      if (value && notice.value.startsWith('Workflow saved.')) notice.value = '';
     },
     { immediate: true },
   );
@@ -172,13 +179,13 @@ function createWorkflowEditor() {
     }
   }
   function add(step: WorkflowStep) {
-    if (draft.value.steps.length >= 40) return;
-    draft.value.steps.push(step);
+    if (!buckets.activeBucket || !appendBucketStep(draft.value, step, buckets.activeBucket.id)) return;
     selectedId.value = step.id;
     visibility.reveal();
   }
   return reactive({
     ...visibility,
+    buckets,
     store,
     project,
     draft,
@@ -209,6 +216,7 @@ function createWorkflowEditor() {
         selectedId.value = issue.stepId;
         store.workflowStepSelection = issue.stepId;
       }
+      if (issue.bucketId) buckets.selectBucket(issue.bucketId);
       visibility.revealIssue(issue.target, !issue.stepId);
     },
     blocked,
@@ -218,7 +226,7 @@ function createWorkflowEditor() {
     ),
     canSave: computed(
       () =>
-        (dirty.value || !project.value?.settings.workflow) &&
+        (dirty.value || !project.value?.settings.workflow?.buckets) &&
         !saving.value &&
         !blocked.value &&
         !validation.value,
@@ -233,8 +241,7 @@ function createWorkflowEditor() {
         createWorkflowStep(kind, project.value?.settings ?? defaultSettings()),
       ),
     addPreset: (stage: WorkflowPreset) => {
-      const step = insertWorkflowPreset(draft.value, stage, project.value?.settings ?? defaultSettings());
-      if (step) { selectedId.value = step.id; visibility.reveal(); }
+      add(presetWorkflowStep(stage, project.value?.settings ?? defaultSettings()));
     },
     duplicate: (id: string) => {
       const copy = duplicateWorkflowStep(draft.value, id);
@@ -244,17 +251,23 @@ function createWorkflowEditor() {
       }
     },
     move: (id: string, direction: -1 | 1) =>
-      visibility.retainMoveFocus(id, () =>
-        moveWorkflowStep(draft.value, id, direction),
-      ),
+      visibility.retainMoveFocus(id, () => {
+        moveWorkflowStep(draft.value, id, direction);
+        const step = draft.value.steps.find(item => item.id === id);
+        const peers = draft.value.steps.filter(item => item.bucketId === step?.bucketId);
+        notice.value = `${step?.name ?? 'Step'} moved to step ${peers.findIndex(item => item.id === id) + 1} of ${peers.length} in its bucket.`;
+      }),
     remove: (id: string) => {
       const index = draft.value.steps.findIndex((step) => step.id === id);
       if (index < 0) return;
+      const bucketId = draft.value.steps[index]?.bucketId;
       draft.value.steps.splice(index, 1);
       if (id === selectedId.value)
         selectedId.value =
           draft.value.steps[Math.min(index, draft.value.steps.length - 1)]
             ?.id ?? "";
+      if (!selectedId.value && bucketId) buckets.selectBucket(bucketId);
+      visibility.focusListRow(selectedId.value || bucketId || '');
     },
     addChecklistItem: () => {
       const step = selected.value;
@@ -267,7 +280,7 @@ function createWorkflowEditor() {
         step.items = step.items.filter((item) => item.id !== id);
     },
     resetStandard: () => {
-      draft.value = structuredClone(
+      draft.value = materializeWorkflowBuckets(
         workflowDefinition({
           ...(project.value?.settings ?? defaultSettings()),
           workflow: undefined,

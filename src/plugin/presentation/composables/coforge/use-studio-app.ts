@@ -21,6 +21,27 @@ export function useStudioShell() {
   const store = useStudioStore();
   const actions = useStudioActions();
   const state = computed(() => store.state);
+  const pipeline = computed(() => {
+    const definition = workflowDefinition(store.activeProject?.settings ?? state.value?.settings ?? defaultSettings());
+    const job = store.activeJob;
+    const capture = job?.workflow;
+    const currentAttempt = capture?.definitionRevision === definition.revision && job?.projectId === store.activeProject?.id;
+    if (definition.buckets) return definition.buckets.map((bucket, index) => {
+      const steps = definition.steps.filter(step => step.bucketId === bucket.id);
+      return {
+        stage: bucket.id, bucketId: bucket.id, number: index + 1, label: bucket.name,
+        outcome: bucket.role === 'accepted', title: bucket.role === 'accepted' ? `${bucket.name}: outcome after your review` : bucket.description,
+        enabled: bucket.role === 'accepted' || steps.some(step => step.kind !== 'ai' || step.automatic),
+        working: Boolean(currentAttempt && bucket.role !== 'accepted' && capture?.step.bucketId === bucket.id
+          && steps.some(step => step.id === capture.step.id && step.bucketId === capture.step.bucketId)),
+      };
+    });
+    return definition.steps.map((step, index) => ({
+      stage: step.id, bucketId: undefined, number: index + 1, label: step.name, outcome: false, title: '',
+      enabled: step.kind !== 'ai' || step.automatic,
+      working: Boolean(currentAttempt && capture?.step.id === step.id && capture.step.bucketId === step.bucketId),
+    }));
+  });
   return reactive({
     store,
     actions,
@@ -86,17 +107,7 @@ export function useStudioShell() {
         ? `${store.activeJob.provider === "demo" ? "Simulation" : store.activeJob.provider === "mcp" ? "External MCP client" : store.activeJob.provider === "codex" ? "Codex" : store.activeJob.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${store.activeJob.workflow?.step.name ?? STAGE_LABELS[store.activeJob.stage]}`
         : "",
     ),
-    stages: computed(() =>
-      workflowDefinition(state.value?.settings ?? defaultSettings()).steps.map(
-        (step, index) => ({
-          stage: step.id,
-          number: index + 1,
-          label: step.name,
-          enabled: step.kind !== "ai" || step.automatic,
-          working: store.activeJob?.workflow?.step.id === step.id,
-        }),
-      ),
-    ),
+    stages: pipeline,
     events: computed(() =>
       [...(state.value?.events ?? [])]
         .reverse()
