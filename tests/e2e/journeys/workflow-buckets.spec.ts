@@ -36,6 +36,12 @@ for (const width of [1280, 360]) for (const theme of ['light', 'dark']) {
     const editor = page.getByRole('region', { name: 'Selected workflow step', exact: true });
     const name = editor.getByLabel('Step name', { exact: true });
     await name.scrollIntoViewIfNeeded();
+    expect(await outline.locator('.cf-workflow-step-select').evaluateAll(buttons => buttons.every(button => {
+      const row = button.getBoundingClientRect();
+      const number = button.querySelector('.cf-workflow-step-number')!.getBoundingClientRect();
+      const title = button.querySelector('strong')!.getBoundingClientRect();
+      return number.left - row.left <= 14 && title.left - row.left <= 46 && row.height <= 68;
+    }))).toBe(true);
     expect(await editor.evaluate(root => {
       const targets = root.querySelectorAll('h2, label, input, select, textarea, summary, p');
       return [...targets].filter(el => el.getBoundingClientRect().width > 0)

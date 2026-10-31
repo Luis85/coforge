@@ -1,40 +1,79 @@
+.cf-studio .cf-workflow-step-list-header h2 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.cf-workflow-step-list-header h2 > span {
+  font-variant-numeric: tabular-nums;
+}
+.cf-workflow-step-list-header > .cf-settings-help {
+  margin: 0;
+  line-height: 1.5;
+}
+.cf-studio .cf-workflow-step-list-header > .cf-btn {
+  margin-top: 12px;
+  min-height: 30px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.cf-studio .cf-workflow-step-list > .cf-workflow-buckets {
+  list-style: none;
+  padding: 0 4px 0 0;
+  margin-block: 12px;
+  scroll-padding-block: 4px;
+}
+.cf-studio .cf-workflow-buckets > .cf-workflow-bucket {
+  list-style: none;
+  margin: 0;
+  padding-block: 8px;
+  border: 0;
+}
+.cf-workflow-buckets > .cf-workflow-bucket + .cf-workflow-bucket {
+  border-top: 1px solid var(--cf-border);
+}
 .cf-workflow-bucket-heading {
   display: flex;
-  align-items: start;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
 }
-.cf-workflow-bucket-select {
+.cf-studio .cf-workflow-bucket-select {
   display: flex;
-  width: 100%;
-  flex-direction: column;
-  align-items: start;
-  gap: 4px;
+  flex: 1 1 auto;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: start;
   height: auto;
   min-height: 32px;
   min-width: 0;
-  padding: 8px 8px 2px;
+  padding: 4px 6px;
   border: 0;
   box-shadow: none;
   background: transparent;
   color: var(--cf-text);
-  text-align: start;
   white-space: normal;
   cursor: pointer;
 }
 .cf-workflow-bucket-select strong {
   font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
   overflow-wrap: anywhere;
 }
 .cf-workflow-bucket-identity {
+  display: flex;
+  align-items: center;
   flex: 1 1 auto;
   min-width: 0;
+  gap: 6px;
 }
 .cf-workflow-bucket-identity > small {
-  display: block;
-  padding: 2px 8px 8px;
+  flex: 0 0 auto;
+  padding: 0 4px 0 0;
   color: var(--cf-muted);
   font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }
 .cf-workflow-bucket-select:hover {
   background: var(--cf-hover);
@@ -44,24 +83,91 @@
   flex-shrink: 0;
   gap: 2px;
 }
-.cf-workflow-bucket-actions .cf-btn {
-  padding-inline: 4px;
+.cf-studio .cf-workflow-bucket-actions .cf-btn {
+  flex: 0 0 28px;
+  width: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px;
 }
 .cf-workflow-bucket.is-selected-bucket > .cf-workflow-bucket-heading {
   background: var(--cf-accent-soft);
   border-radius: var(--radius-s);
 }
-.cf-workflow-bucket-steps {
+.cf-studio .cf-workflow-bucket-steps {
   list-style: none;
-  padding: 0;
-  margin: 4px 0 8px 8px;
+  padding: 0 0 0 8px;
+  margin: 4px 0 4px 6px;
+  border-left: 1px solid var(--cf-border);
 }
-.cf-workflow-bucket-steps > li {
-  border-block-start: 1px solid var(--cf-border);
+.cf-studio .cf-workflow-bucket-steps > li {
+  list-style: none;
+  margin: 2px 0;
+  padding: 0;
+  border: 0;
+}
+/* Native Obsidian buttons center flex content; this outline owns its row grid. */
+.cf-studio .cf-workflow-step-list .cf-workflow-step-select {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  justify-content: start;
+  justify-items: start;
+  gap: 8px;
+  min-height: 48px;
+  height: auto;
+  padding: 8px;
+  text-align: start;
+  white-space: normal;
+  border-radius: var(--radius-s);
+}
+.cf-workflow-bucket-steps .cf-workflow-step-number {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 1px solid var(--cf-border);
+  border-radius: var(--radius-s);
+  font-size: 11px;
+  line-height: 1;
+}
+.cf-workflow-bucket-steps .cf-workflow-step-select > span:last-child {
+  display: grid;
+  gap: 2px;
+  justify-self: stretch;
+}
+.cf-workflow-bucket-steps .cf-workflow-step-select strong {
+  font-weight: 600;
+  line-height: 1.45;
+}
+.cf-workflow-bucket-steps .cf-workflow-step-select small {
+  margin: 0;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.cf-workflow-bucket-steps li.is-selected .cf-workflow-step-number {
+  color: var(--text-accent);
+  border-color: var(--cf-accent);
+}
+.cf-workflow-bucket-steps .cf-workflow-step-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  padding: 0 8px 6px 36px;
+  gap: 2px;
+}
+.cf-studio .cf-workflow-step-actions > .cf-btn {
+  flex: 0 0 26px;
+  width: 26px;
+  min-width: 26px;
+  min-height: 28px;
+  padding: 4px;
+}
+.cf-workflow-step-list :is(.cf-workflow-step-select, .cf-workflow-bucket-select):focus-visible {
+  outline-offset: -2px;
 }
 .cf-workflow-bucket-empty {
-  padding: 4px 8px;
-  margin: 0 0 8px;
+  padding: 4px 6px;
+  margin: 0;
+  font-size: 11px;
 }
 .cf-workflow-step-editor :is(p, summary, h2, h3, label, legend) {
   text-align: start;
@@ -70,12 +176,22 @@
   align-items: start;
   text-align: start;
 }
-.cf-workflow-step-list-header > .cf-btn {
-  margin-top: 12px;
+.cf-workflow-step-list-tools > .cf-workflow-presets {
+  border-top: 0;
+  padding-top: 8px;
+  margin-top: 8px;
 }
-.cf-workflow-step-list-header h2 {
-  flex-wrap: wrap;
-  row-gap: 4px;
+@container workflow-outline (max-width: 260px) {
+  .cf-workflow-bucket-identity {
+    display: block;
+  }
+  .cf-studio .cf-workflow-bucket-select {
+    width: 100%;
+  }
+  .cf-workflow-bucket-identity > small {
+    display: block;
+    padding: 0 6px 4px;
+  }
 }
 .cf-workflow-bucket-editor > .cf-btn {
   max-width: 100%;
@@ -103,4 +219,8 @@
 }
 .cf-studio .cf-kanban .cf-column-hint {
   overflow-wrap: anywhere;
+}
+.cf-studio .cf-workflow-step-list {
+  container: workflow-outline / inline-size;
+  max-height: var(--cf-workflow-outline-height, calc(100vh - 120px));
 }

@@ -9,8 +9,8 @@ const model = useWorkflowEditorForm();
   <section :ref="model.bindStepList" class="cf-workflow-step-list" data-workflow-field="steps" tabindex="-1" aria-label="Workflow step order">
     <div class="cf-workflow-step-list-header">
       <h2>Buckets &amp; steps <span>{{ model.draft.steps.length }}/40 steps</span></h2>
-      <p class="cf-settings-help">Buckets run top to bottom, then each step within them. Empty buckets have no work to run.</p>
-      <button type="button" class="cf-btn cf-btn-secondary" :disabled="(model.draft.buckets?.length ?? 0) >= 12" @click="model.buckets.addBucket()">Add bucket</button>
+      <p class="cf-settings-help">Set bucket order, then edit the steps inside.</p>
+      <button type="button" class="cf-btn cf-btn-secondary" :disabled="(model.draft.buckets?.length ?? 0) >= 12" @click="model.buckets.addBucket()"><CfIcon name="plus" size="sm" />Add bucket</button>
     </div>
     <ol class="cf-workflow-buckets" aria-label="Workflow buckets" data-workflow-field="buckets" tabindex="-1">
       <li v-for="bucket in model.buckets.rows" :key="bucket.id" :data-bucket-id="bucket.id" class="cf-workflow-bucket" :class="{ 'is-selected-bucket': model.buckets.selectedBucketId === bucket.id }">
