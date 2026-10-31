@@ -1,6 +1,6 @@
 # Task: Make the bucket and step outline readable in Obsidian
 
-- Status: in progress
+- Status: done (implementation/local qualification; final PR checks and merge recorded on GitHub)
 - Journey: configure Idea board buckets and their ordered steps.
 - Traceability: owner screenshot/follow-up; the requirement/interaction scaffold has no entries.
 
@@ -31,9 +31,37 @@ behavior. Refine this component within the native Obsidian visual system.
 
 ## Evidence
 
-Pending. The prior increment's screenshot/acceptance did not catch the host's
-actual content positioning; this increment asserts rendered geometry in Obsidian.
+- Real-Obsidian RED: eight-step fixture failed its number-inset assertion before
+  the grid reset. The earlier checks verified text alignment but missed actual
+  content positions under native button styling.
+- Final native layout test: **1 passed (18.05s)**, covering light/dark at 1360px
+  and 760px. Checks actual number/title insets, compact rows, ordinary bucket
+  labels, one-line selected toolbar, keyboard return focus, no overflow, footer
+  clearance and zero Axe WCAG A/AA findings. Four native panel captures reviewed.
+- Native verification found a footer-binding timing issue; measurement now binds
+  after the form footer mounts. Its observer/listener cleanup and wrapped-footer
+  resizing are covered by a focused DOM test. Explicit Step list navigation brings
+  the outline back to the top of the visible pane.
+- `npm run verify:project`: **5 passed, 0 failed, 0 skipped in 1221.8s**; **1,580
+  product tests passed**, zero failures/TODOs, six existing platform skips. Build
+  and embedding passed. UI effects explicitly skip without visual definitions.
+- After the final footer/viewport changes: **7 focused product tests passed**,
+  including the new observer test; final typecheck and targeted zero-warning
+  ESLint passed. Full GitHub qualification includes the newly added test.
+- Final bucket/long-list browser regressions: **7 passed (1.7m)**. UI quality:
+  **8 passed (1.1m)**. Gallery: **40 captures, failures []**, reviewed together
+  with the native panel matrix. Screenshots remain ignored evidence.
+- Final contained `dev:obsidian -- --json`: **status passed**, `errors: []`,
+  `hostErrorCount: 0`, `pluginConsole: []`. Pinned Obsidian 1.14.4.
+- Final Impeccable scan: **[]**. Token check passed (968 observed / 133 reviewed).
+  Diff/line-limit/architecture/draft/privacy self-review passed. No baseline,
+  accessibility rule or numeric threshold was weakened.
+- Evidence: ignored `reports/workflow-buckets/outline-*`, `reports/ui-gallery/`,
+  `reports/obsidian/` and `.obsidian-sandbox/logs/`. The durable-build session is
+  isolated and the shared live install stays unchanged until this polish qualifies.
 
 ## Untested scope
 
-No workflow execution or persistence behavior is being redesigned.
+No billable provider, personal vault or live external service mutation was used.
+Local Node/npm remain 24.20.0/11.21.1; GitHub uses the repository pins. Workflow
+execution/persistence and mobile/alternate host versions are outside this polish.
