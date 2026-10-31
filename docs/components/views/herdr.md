@@ -8,7 +8,7 @@ route: studio.workflowTool = herdr
 parent: "[[docs/components/views/workflow]]"
 component: src/plugin/presentation/components/coforge/HerdrPanel.vue
 entry:
-  - Open Project settings, Agent workflow, then Herdr workspaces.
+  - Open Project settings, Agent workflow, then Herdr.
 actions:
   - Refresh identities
   - Manage native agents
@@ -28,7 +28,7 @@ privacy: Private vault workspace; excluded from public projections.
 coverage:
   group: workflow
   key: herdr
-order: 88000
+order: 92000
 type: PBI
 status: ""
 started: ""
@@ -52,7 +52,7 @@ A dispatch prefixes the parent-project prompt. Verify agent and directory. Deliv
 
 ## Entry and next action
 
-Open Project settings, Agent workflow, then Herdr workspaces. Available actions: Refresh identities; Manage native agents; Review dispatch; Send; Acknowledge recovery. Return through the owning [Agent workflow](workflow.md) surface.
+Open Project settings, Agent workflow, then Herdr. Available actions: Refresh identities; Manage native agents; Review dispatch; Send; Acknowledge recovery. Return through the owning [Agent workflow](workflow.md) surface.
 
 ## States and recovery
 

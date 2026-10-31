@@ -4,10 +4,12 @@ import { test } from "./support/obsidian-fixture.ts";
 import {
   openWorkflowRuns,
   openWorkflowSettings,
+  openWorkflowTemplates,
 } from "../../../tests/e2e/support/workflow-navigation.ts";
 
 async function library(view: Locator) {
   const result = view.locator(".cf-workflow-template-library");
+  if (!(await result.isVisible())) await openWorkflowTemplates(view);
   if (!(await result.evaluate((element) => element.hasAttribute("open"))))
     await result.locator("summary").first().click();
   return result;
@@ -111,6 +113,7 @@ describe("Project Markdown workflow output templates in Obsidian", () => {
         return file ? app.vault.read(file) : null;
       }, created!.path),
     ).toContain('owner_annotation: "keep exactly" # human');
+    await openWorkflowSettings(view);
     await view.locator(".cf-workflow-tools > summary").click();
     await view
       .getByRole("button", { name: "Import JSON", exact: true })
@@ -238,7 +241,7 @@ describe("Project Markdown workflow output templates in Obsidian", () => {
     view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
-    await openWorkflowRuns(view);
+    await openWorkflowRuns(view, view.locator('.cf-idea-card').filter({ hasText: 'Review the forest bridge' }));
     const manual = view.getByRole("region", {
       name: "Manual workflow step",
       exact: true,

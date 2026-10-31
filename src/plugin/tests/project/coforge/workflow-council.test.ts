@@ -67,6 +67,6 @@ it('cancels the original child when its workflow is stopped and ignores later an
   const f = await fixture(); await f.studio.startWorkflow(f.id);
   await f.studio.stopWorkflow(f.id);
   expect(f.cancelled).toEqual(['child-council']);
-  await expect(f.studio.runWorkflowStep(f.id)).rejects.toThrow('current state');
+  await expect(f.studio.runWorkflowStep(f.id)).rejects.toThrow('Restart workflow');
   expect(f.calls).toHaveLength(1);
 });

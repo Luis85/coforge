@@ -6,6 +6,7 @@ import {
   reactive,
   watch,
   type ComponentPublicInstance,
+  type InjectionKey,
 } from "vue";
 import { coforgeKey } from "../../context/coforge-context";
 import {
@@ -14,6 +15,8 @@ import {
 } from "../../stores/coforge-output-templates";
 import { workflowOutputTemplateInputCheck } from "../../../features/coforge/domain/workflow-output-templates";
 import type { WorkflowOutputTemplate } from "../../../features/coforge/application/workflow-output-templates";
+
+export const workflowTemplatePageKey: InjectionKey<() => void> = Symbol("workflow-template-page");
 
 const dirty = (editor: ProjectOutputTemplateEditor) =>
   JSON.stringify(editor.draft) !== editor.saved;
@@ -54,6 +57,7 @@ export function useWorkflowOutputTemplates(
   const context = inject(coforgeKey, null);
   const actions = context?.host.outputTemplates;
   const store = useOutputTemplateStore();
+  const showTemplatePage = inject(workflowTemplatePageKey, undefined);
   const editor = computed(() => store.editor(projectId()));
   const busy = computed(() => editor.value.loading || editor.value.working);
   let library: LibraryElement | undefined;
@@ -187,6 +191,7 @@ export function useWorkflowOutputTemplates(
     bindDelete: (value: RefValue) => bindTarget("delete", value),
     bindKeep: (value: RefValue) => bindTarget("keep", value),
     manage: () => {
+      showTemplatePage?.();
       store.requestLibrary(projectId());
     },
     busy,

@@ -14,6 +14,8 @@ export interface WorkflowEditorIssue {
   message: string;
 }
 const labels: Record<string, string> = {
+  coworkerId: 'Assigned CoWorker',
+  startupMode: 'Automation on startup',
   effort: 'Reasoning effort',
   name: "Step name",
   instructions: "Step instructions",

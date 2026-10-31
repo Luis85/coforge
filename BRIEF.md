@@ -196,6 +196,51 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ### Configurable workflows (owner decisions, 2026-10-28)
 
+Workspace/workflow increment (owner requests, 2026-10-31):
+
+- Save the independent left-navigation and right-chat collapse choices in localStorage
+  and restore them after reopening. Responsive chat defaults apply only when the
+  owner has no explicit saved choice. Storage failures must leave controls usable.
+- Each project configures idea-board automation to start in Play or Paused on
+  reopening CoForge; missing preferences retain the paused default. Saving this
+  preference does not immediately run or resume work. Keep interrupted/uncertain
+  attempt recovery, project permissions and final review; Council, schedules and
+  event automation keep their separate startup policies.
+- AI workflow steps choose either a saved enabled CoWorker or manual provider,
+  model and reasoning effort. A CoWorker supplies its saved role/instructions and
+  execution profile alongside the step's task prompt. Step/project host permissions
+  remain authoritative. Capture the resolved definition for each run; later edits
+  affect future runs, and unavailable profiles never silently fall back.
+- Saved request workflows from other projects can be selected as independent
+  copies into the destination editor draft. Save explicitly; copying never starts
+  work and edits never change the source project. Review and repair project-owned
+  template/Council/team references rather than granting cross-project authority.
+- Per-feature Workflow runs belong in the feature/request detail view. Project
+  workflow settings retains Step attempts, workflow controls, configuration and
+  Herdr setup; navigation preserves current drafts, review and recovery controls.
+- Agent workflow uses one flat tab row in this order: Idea Board Workflow,
+  Step attempts, Timing & limits, Answer / output templates, Herdr. Rename the
+  configuration tab to Idea Board Workflow. Timing/limits and templates have
+  their own panes, with the existing explicit definition/template save boundaries.
+- Project settings and native Obsidian integration settings action footers must
+  meet the bottom of their visible scroll area, with an opaque surface and no
+  underlying page showing through. Retain host status-bar visibility and usable
+  controls in narrow/short panes and both themes.
+- A Kanban card's context menu can stop its workflow and return it to Inbox.
+  Persist an operator hold: Play, reload, events and agent/API requests cannot
+  restart it. Only the user's context-menu Restart workflow action releases the
+  hold and starts a new run from its first step. Retain stopped-run history,
+  partial work and recovery evidence; preserved changes require explicit human
+  review before a fresh run can start.
+- Review notifications throughout the plugin and improve the feature-detail
+  attention row. Icons must not grow into empty columns; text, actions and dismiss
+  controls must align and wrap clearly in narrow panes. Keep readable severity,
+  accessible announcements and all recovery/error information.
+
+Deliver this increment subagent-driven, then create and execute a comprehensive
+improvement/polishing plan, qualify all increments end to end, perform a final
+polish, and commit/push/open/merge a PR only when all checks are green.
+
 Design-column readiness (owner correction, 2026-10-30): keep requests whose
 Design is complete and whose next captured step is Build in the Design column.
 Show "Design complete · Ready to build" clearly; do not add another column or

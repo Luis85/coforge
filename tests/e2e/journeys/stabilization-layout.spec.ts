@@ -21,7 +21,7 @@ const views = [
   ["projects", "Projects", ".cf-projects-page"],
   ["community-settings", "Community settings", ".cf-community-settings-page"],
   ["settings", "Project settings", ".cf-settings-page"],
-  ["workflow-settings", "Workflow settings", ".cf-settings-page"],
+  ["workflow-settings", "Idea Board Workflow", ".cf-settings-page"],
 ] as const;
 
 for (const theme of ["light", "dark"]) {
@@ -49,7 +49,7 @@ for (const theme of ["light", "dark"]) {
       await expect(view).toBeVisible();
       if (id === 'workflow-settings') {
         await expect(view.locator('.cf-workflow-settings-page')).toBeVisible();
-        await expect(view.getByRole('heading', { name: 'Workflow settings', exact: true })).toBeVisible();
+        await expect(view.getByRole('heading', { name: 'Idea Board Workflow', exact: true })).toBeVisible();
         await expect(view.getByRole('heading', { name: 'Agent workflow', level: 2, exact: true })).toBeVisible();
         await expect(view.getByRole('heading', { level: 1 })).toHaveCount(1);
         await expect(view.locator('.cf-project-work-context')).toHaveCount(0);

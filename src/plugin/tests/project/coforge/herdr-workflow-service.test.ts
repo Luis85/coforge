@@ -7,6 +7,7 @@ import type { HerdrAttemptFiles, HerdrWorkflowGateway, HerdrWorkflowRecord, Herd
 import type { StageInput, Timers } from '../../../features/coforge/application/ports';
 import { emptyHerdr } from '../../../features/coforge/domain/herdr';
 import { HERDR_RESULT_FORMAT } from '../../../features/coforge/application/herdr-result';
+import { workflowProposalRevision } from '../../../features/coforge/domain/configured-workflow-run';
 import { seededStore } from './memory-storage';
 import type { AgentConversationEvent } from '../../../features/coforge/domain/agent-conversation';
 
@@ -147,6 +148,19 @@ describe('automatic Herdr workflow orchestration', () => {
     expect(f.gateway.createWorkspace).not.toHaveBeenCalled();
     expect(f.gateway.startAgent).not.toHaveBeenCalled();
     expect(f.control.records.at(-1)?.phase).toBe('attention');
+  });
+  it('rejects a long assigned CoWorker before launching Herdr without truncating its captured persona', async () => {
+    const f = await fixture();
+    const instructions = `${'r'.repeat(15900)} END OF CAPTURED ROLE`;
+    f.input.workflow = { runId: 'assigned-run', definitionRevision: 'assigned-definition', proposalRevision: workflowProposalRevision(f.input.idea), attemptId: 'assigned-attempt', inputArtifacts: [],
+      step: { id: 'screen', name: 'Screen', kind: 'ai', coworkerId: 'saved-reviewer', provider: 'herdr', model: 'sonnet', instructions: 'Screen the request.', automatic: false, output: 'screening', access: 'none' },
+      coworker: { format: 'coforge-workflow-coworker/v1', id: 'saved-reviewer', revision: 'role-revision', name: 'Saved reviewer', role: 'Compatibility reviewer', instructions, provider: 'herdr', model: 'sonnet' } };
+    await expect(f.service.run(f.input)).rejects.toThrow('bounded prompt interface');
+    expect(f.input.workflow.coworker?.instructions).toBe(instructions);
+    expect(f.service.snapshot().error).toContain('no text was truncated or sent');
+    expect(f.gateway.createWorkspace).not.toHaveBeenCalled();
+    expect(f.gateway.startAgent).not.toHaveBeenCalled();
+    expect(f.gateway.sendPrompt).not.toHaveBeenCalled();
   });
   it.each([true, false])('reuses a workspace only after fresh original idle-target recovery (matching=%s)', async matching => {
     const f = await fixture(false);

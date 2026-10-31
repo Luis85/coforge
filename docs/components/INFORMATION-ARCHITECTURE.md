@@ -51,17 +51,19 @@ Subpages keep focused tasks together without expanding the global navigation:
   History. OBS owns previews, audio tuning, device/source properties and output setup.
 - Stream chat: Chat, Twitch settings and Bot messages.
 - Project settings: General, Requests, Repository, Agent workflow, Runtime and Data & examples.
-- Agent workflow: Workflow runs, Herdr workspaces and Workflow settings.
+- Agent workflow, in one row: Idea Board Workflow, Step attempts, Timing & limits,
+  Answer / output templates and Herdr.
 - Economy: Command prices, Earning, Rewards, Loot boxes and Fulfillment.
 - The Council has four task families, each with visible secondary navigation:
   Ask (New question, Existing note); Activity (Runs & answers, Team messages);
   Setup (Councils & roster, Storage folders); Automation (Watched inboxes,
   Schedules, Event triggers, Proposal workflows). Opening it starts on New question
   with scoped task history. All ten existing internal page IDs remain stable.
-- Request details: Overview, Plan, Increment and Activity.
+- Request details: Overview, Plan & Design, Increment, Activity and Workflow runs.
 
-Agent workflow is a Project settings subpage. Workflow settings configures the
-same process that Workflow runs monitors, so both remain distinct nested tasks.
+Agent workflow is a Project settings subpage. Its flat tabs configure future work
+and inspect project-wide step attempts. Workflow runs belongs to the selected
+request's details and never falls back to another request.
 One Project settings heading frames these tasks. General, Requests and Repository
 share a project-settings draft; workflow authoring has its own save boundary.
 Dirty-draft guards apply across nested tasks and global destinations. Runtime

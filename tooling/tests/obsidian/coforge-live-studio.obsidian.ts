@@ -63,7 +63,7 @@ describe("Live studio in the contained vault", () => {
     await view.getByLabel('Description', { exact: true }).fill('Contained host integration checks.');
     await view.getByRole('button', { name: 'Create project', exact: true }).click();
     await openAgentWorkflow(view);
-    await view.getByRole("navigation", { name: "Agent workflow pages", exact: true }).getByRole("button", { name: "Herdr workspaces", exact: true }).click();
+    await view.getByRole("navigation", { name: "Agent workflow pages", exact: true }).getByRole("button", { name: "Herdr", exact: true }).click();
     const herdr = view.locator(".cf-herdr");
     await browserExpect(herdr).toContainText("start the chosen Herdr session");
     await browserExpect(

@@ -260,7 +260,7 @@ describe("actual configured workflow execution", () => {
     expect(f.runner).not.toHaveBeenCalled();
   });
 
-  it("stops manual waits and requires a fresh explicit start, preserving previous run history", async () => {
+  it("stops manual waits and requires an operator Restart, preserving previous run history", async () => {
     const f = await fixture([
       { id: "approve", name: "Approve", instructions: "", kind: "approval" },
     ]);
@@ -268,9 +268,10 @@ describe("actual configured workflow execution", () => {
     const original = f.current().workflowRun!.id;
     await f.engine.stopWorkflow(f.idea.id);
     await expect(f.engine.runWorkflowStep(f.idea.id)).rejects.toThrow(
-      "current state",
+      "Restart workflow",
     );
-    await f.engine.startWorkflow(f.idea.id);
+    await expect(f.engine.startWorkflow(f.idea.id)).rejects.toThrow('Restart workflow');
+    await f.engine.restartWorkflowFromOperator(f.idea.id);
     expect(f.current().workflowRun!.id).not.toBe(original);
     expect(f.current().workflowHistory?.[0]?.id).toBe(original);
   });

@@ -65,6 +65,7 @@ const integration: Check<IntegrationSettings> = shape({
   publicFolder: text({ min: 1 }), publicBoardEnabled: boolean,
 });
 const persisted: Check<PersistedStudio> = shape({
+  workflowStopHolds: optional(list(text({ pattern: /^CF-\d{3,7}$/ }))),
   obsShow: optional(obsShowStateCheck),
   obsSetup: optional(obsSetupStateCheck),
   twitchOperations: optional(twitchOperationsCheck),

@@ -7,25 +7,7 @@ defineProps<{ model: WorkflowModel }>();
 </script>
 <template>
   <section class="cf-configured-run" aria-label="Request workflow execution">
-    <label class="cf-field"
-      ><span>Workflow request</span
-      ><select
-        :value="model.selected?.id ?? ''"
-        aria-label="Workflow request"
-        @change="model.selectRequest($event)"
-      >
-        <option v-if="!model.store.projectIdeas.length" value="">
-          No requests yet
-        </option>
-        <option
-          v-for="idea in model.store.projectIdeas"
-          :key="idea.id"
-          :value="idea.id"
-        >
-          {{ idea.id }} · {{ idea.title }}
-        </option>
-      </select></label
-    >
+    <p v-if="model.error" role="alert" class="cf-inline-error">{{ model.error }}</p>
     <template v-if="model.selected"
       ><div class="cf-configured-run-heading">
         <div>
@@ -63,7 +45,7 @@ defineProps<{ model: WorkflowModel }>();
       </section>
       <ConfiguredManualStep
         v-if="
-          model.run?.state === 'waiting-human' &&
+          !model.operatorHeld && model.run?.state === 'waiting-human' &&
           model.currentStep &&
           (model.currentStep.kind === 'approval' ||
             model.currentStep.kind === 'checklist')
@@ -89,7 +71,7 @@ defineProps<{ model: WorkflowModel }>();
             v-if="model.run?.state === 'awaiting-review'"
             type="button"
             class="cf-btn cf-btn-primary"
-            @click="model.openIdea(model.selected.id)"
+            @click="model.reviewCode()"
           >
             Review code changes</button
           ><button
@@ -174,13 +156,13 @@ defineProps<{ model: WorkflowModel }>();
       <h2>
         {{
           model.store.activeProject
-            ? "A request starts the workflow"
+            ? "Request unavailable"
             : "Choose a project"
         }}
       </h2>
       <p v-if="model.store.activeProject">
-        Add a request on the Idea board, or accept one from Twitch chat, then
-        select it here.
+        This request is no longer available. Open the Idea board to inspect
+        an available request.
       </p>
       <p v-else>
         Create or select a project to run requests and configure its workflow.

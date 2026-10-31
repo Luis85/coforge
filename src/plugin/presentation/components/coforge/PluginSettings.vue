@@ -45,7 +45,7 @@ const model = usePluginSettings();
           <dt>Workflow settings</dt>
           <dd>
             Agent providers, models, prompts and run limits for each project,
-            under Agent workflow → Workflow settings.
+            under Agent workflow → Idea Board Workflow.
           </dd>
         </div>
       </dl>
@@ -79,6 +79,22 @@ const model = usePluginSettings();
       <PluginSettingsMcp />
       <PluginSettingsTwitch />
       <PluginSettingsWebsite />
+      <div
+        v-if="model.notice && model.notice.message !== model.error"
+        class="cf-plugin-settings-message"
+        :class="{ 'is-error': model.notice.error }"
+      >
+        <CfIcon :name="model.notice.error ? 'circle-alert' : 'check'" size="sm" />
+        <span class="cf-notice-body" :role="model.notice.error ? 'alert' : 'status'" aria-atomic="true">{{ model.notice.message }}</span>
+        <button
+          type="button"
+          class="cf-icon-button"
+          aria-label="Dismiss message"
+          @click="model.store.dismiss(model.notice.id)"
+        >
+          <CfIcon name="x" size="sm" />
+        </button>
+      </div>
       <div class="cf-plugin-settings-save">
         <div
           v-if="model.error"
@@ -86,7 +102,7 @@ const model = usePluginSettings();
           role="alert"
         >
           <CfIcon name="circle-alert" size="sm" />
-          <span>{{ model.error }}</span>
+          <span class="cf-notice-body">{{ model.error }}</span>
         </div>
         <span v-else class="cf-plugin-settings-status" aria-live="polite">
           <template v-if="model.dirty">You have unsaved changes.</template>
@@ -115,23 +131,5 @@ const model = usePluginSettings();
         </div>
       </div>
     </form>
-    <div
-      v-if="model.notice && model.notice.message !== model.error"
-      class="cf-plugin-settings-message"
-      :class="{ 'is-error': model.notice.error }"
-      role="status"
-      aria-live="polite"
-    >
-      <CfIcon :name="model.notice.error ? 'circle-alert' : 'check'" size="sm" />
-      <span>{{ model.notice.message }}</span>
-      <button
-        type="button"
-        class="cf-icon-button"
-        aria-label="Dismiss message"
-        @click="model.store.dismiss(model.notice.id)"
-      >
-        <CfIcon name="x" size="sm" />
-      </button>
-    </div>
   </div>
 </template>

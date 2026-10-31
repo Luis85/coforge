@@ -22,7 +22,7 @@ const views = [
     ".cf-community-settings-page",
   ],
   ["14-project-settings", "Project settings", ".cf-settings-page"],
-  ["14b-workflow-settings", "Workflow settings", ".cf-settings-page"],
+  ["14b-workflow-settings", "Idea Board Workflow", ".cf-settings-page"],
 ] as const;
 for (const [step, label, selector] of views) {
   test(`view intent: ${label} remains usable at desktop and narrow widths`, async ({
@@ -35,7 +35,7 @@ for (const [step, label, selector] of views) {
     );
     if (label === "Projects")
       await page.locator(".cf-project-switcher").click();
-    else if (label === 'Workflow settings') await openWorkflowSettings(page);
+    else if (label === 'Idea Board Workflow') await openWorkflowSettings(page);
     else if (label === 'Agent workflow') await openAgentWorkflow(page);
     else
       await page
@@ -47,9 +47,9 @@ for (const [step, label, selector] of views) {
         .click();
     const view = page.locator(selector);
     await expect(view).toBeVisible();
-    if (label === 'Workflow settings') {
+    if (label === 'Idea Board Workflow') {
       await expect(view.locator('.cf-workflow-settings-page')).toBeVisible();
-      await expect(view.getByRole('heading', { name: 'Workflow settings', exact: true })).toBeVisible();
+      await expect(view.getByRole('heading', { name: 'Idea Board Workflow', exact: true })).toBeVisible();
     }
     await expect(view.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(view.locator(".cf-page-heading p").first()).toBeVisible();

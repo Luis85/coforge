@@ -2,14 +2,16 @@
 
 CoForge starts with simulated chat and simulated agents. Those modes need no account or
 API key. Demo plans, diffs, test results and community activity are illustrative and do
-not modify a game. The **Demo agents** / **Claude Code CLI** indicator in the studio top
-bar shows which provider is selected; every saved increment also records whether it was
+not modify a game. The studio's provider indicator names the selected provider;
+every saved increment also records whether it was
 simulated.
 
 Shared integration settings (native CLI executable, Twitch and publishing) live in
 **Settings → Community plugins → CoForge**. Each project's description, repository/worktree
 paths, links and agent configuration live in its **Project settings** in the studio and its
-vault-backed project note. Changes take effect immediately; no restart is needed.
+vault-backed project note. Saves configure future work. The workflow's explicit
+startup Play/Paused preference applies on the next CoForge startup; saving it does
+not change current automation or release a stopped card.
 See [Projects](PROJECTS.md) for IDs and the required `!request <project-id> <idea>` syntax.
 
 ## 1. Connect Claude Code
@@ -26,12 +28,19 @@ See [Projects](PROJECTS.md) for IDs and the required `!request <project-id> <ide
    Windows use the native `claude.exe`, not an npm `.cmd` wrapper — CoForge never starts
    a shell). Set the project's absolute workspace path under **Project settings → Agent workspace**.
    It may be outside the vault. A repository URL is a metadata link, not a clone or initialization action.
-4. In the project's **Workflow settings**, choose **Claude Code** for the AI steps and save. In native integration settings, press
+4. In **Project settings → Agent workflow → Idea Board Workflow**, choose **Claude Code** for manual AI-step configuration, or assign a saved CoWorker, and save. In native integration settings, press
    **Check Claude Code**. The check only probes the CLI version; it makes no model call.
 5. Run screening/scoring manually on a harmless idea first. These stages have no tools
    and run in an empty temporary folder. Planning reads the repository.
 6. To allow real game edits, enable **Allow real implementation for this project**. The game must be a
    Git repository with at least one commit and a clean working tree.
+
+The manual provider picker also supports native **Codex**, Herdr and Simulation,
+with provider-specific model and effort choices. Set the native Codex executable
+in integration settings and use its runtime check before dispatch. CoWorker
+assignment captures the enabled profile for a new run; it does not grant broader
+repository access. See [Project workflows](../WORKFLOWS.md) for independent workflow
+copies, startup preferences, per-request runs and durable Stop/Restart behavior.
 
 | Stage  | Filesystem/tool access                                        | Saved result |
 | ------ | ------------------------------------------------------------- | ------------ |

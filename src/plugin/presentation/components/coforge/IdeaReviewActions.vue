@@ -8,7 +8,7 @@ const drawer = useIdeaDrawerContext();
 </script>
 <template>
   <footer class="cf-idea-footer">
-    <template v-if="idea.status === 'review' && drawer.canFinalReview">
+    <template v-if="drawer.reviewable && drawer.canFinalReview">
       <label class="cf-field cf-idea-field">
         <span
           >Review note
@@ -56,7 +56,7 @@ const drawer = useIdeaDrawerContext();
       <CfIcon name="loader-circle" size="lg" class="cf-spin" />
       <span>The agent is preparing an increment for your review.</span>
     </div>
-    <template v-else-if="drawer.nextAction">
+    <template v-else-if="drawer.nextAction && !drawer.operatorHeld">
       <p class="cf-idea-help">{{ drawer.nextHelp }}</p>
       <button
         type="button"

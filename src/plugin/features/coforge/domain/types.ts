@@ -87,6 +87,8 @@ export interface StudioProject {
   unavailable?: boolean;
 }
 export interface AppState {
+  /** Durable operator stop policy; only the host's explicit Restart control releases an ID. */
+  workflowStopHolds?: string[];
   obsShow?: import('./obs-show').ObsShowState;
   obsSetup?: import('./obs-setup').ObsSetupState;
   twitchOperations?: import('./twitch-operations').TwitchOperationsState;

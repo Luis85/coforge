@@ -6,6 +6,7 @@ import { projectIdeas as scopedIdeas } from "../../features/coforge/domain/proje
 import type { BroadcastPage, StreamPage, WorkflowPage, SettingsPage } from "./studio-pages";
 import { studioRoot, studioViewEnabled, studioHome } from "./studio-destinations";
 import { projectFeatureEnabled, type ProjectFeature } from '../../features/coforge/domain/project-features';
+import { useSidepanelPreferences } from '../composables/coforge/use-sidepanel-preferences';
 
 export type StudioView =
   | "service-design"
@@ -29,7 +30,7 @@ export type StudioView =
   | "ai-costs"
   | "schedule"
   | "workflow-settings";
-export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity";
+export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow';
 export interface Toast {
   id: number;
   message: string;
@@ -66,9 +67,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   const creating = ref(false);
   const help = ref(false);
   const activityOpen = ref(false);
-  const leftPanelCollapsed = ref(false);
-  const rightPanelCollapsed = ref(false);
-  const rightPanelManual = ref(false);
+  const { leftPanelCollapsed, rightPanelCollapsed, rightPanelManual } = useSidepanelPreferences();
   const narrowLayout = ref(false);
   const layoutId = `cf-layout-${crypto.randomUUID()}`;
   const dirtySettings = ref(false);
@@ -78,7 +77,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   const dirtyCommunitySettings = ref(false);
   const dirtyEconomy = ref(false);
   const streamTool = ref<StreamPage>("channel");
-  const workflowTool = ref<WorkflowPage>("runs");
+  const workflowTool = ref<WorkflowPage>('settings');
   const settingsTool = ref<SettingsPage>("general");
   const broadcastTool = ref<BroadcastPage>("live");
   const setupStep = ref(0);
@@ -223,19 +222,19 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     if (next === "settings" && studioRoot(view.value) === "settings" && studioViewEnabled(view.value, activeProject.value)) return true;
     const destination =
       (next === "workflow" || (next === "settings" && settingsTool.value === "workflow" && featureEnabled('workflow'))) &&
-      (view.value === "workflow-settings" || workflowTool.value === "settings")
+      (view.value === "workflow-settings" || ['settings', 'limits', 'templates'].includes(workflowTool.value))
         ? "workflow-settings"
         : next === "settings" && settingsTool.value === "workflow" && featureEnabled('workflow') ? "workflow" : next;
     if (!changeView(destination)) return false;
     if (view.value === "workflow" || view.value === "workflow-settings") settingsTool.value = "workflow";
-    if (view.value === "workflow-settings") workflowTool.value = "settings";
+    if (view.value === "workflow-settings" && !['settings', 'limits', 'templates'].includes(workflowTool.value)) workflowTool.value = "settings";
     return true;
   }
   function openStreamTool(next: StreamPage) {
     if (navigate("stream")) streamTool.value = next;
   }
   function openWorkflowTool(next: WorkflowPage) {
-    if (changeView(next === "settings" ? "workflow-settings" : "workflow") && featureEnabled('workflow')) {
+    if (changeView(['settings', 'limits', 'templates'].includes(next) ? "workflow-settings" : "workflow") && featureEnabled('workflow')) {
       settingsTool.value = "workflow";
       workflowTool.value = next;
     }

@@ -2,7 +2,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it } from "vitest";
 import WorkflowEditorView from "../../../presentation/components/coforge/WorkflowEditorView.vue";
-import WorkflowView from "../../../presentation/components/coforge/WorkflowView.vue";
+import IdeaWorkflowTab from "../../../presentation/components/coforge/IdeaWorkflowTab.vue";
 import { workflowUiFixture } from "./workflow-ui-fixture";
 import { workflowDefinition } from "../../../features/coforge/domain/configured-workflow";
 
@@ -46,6 +46,8 @@ it("leads AI step editing with its purpose and keeps agent and automation contro
         ?.find('[aria-label="Minimum votes before this step"]')
         .exists(),
     ).toBe(true);
+    fixture.store.openWorkflowTool("settings");
+    await flushPromises();
     const chooser = wrapper
       .findAll("details")
       .find((details) => details.get("summary").text() === "Add a step");
@@ -92,7 +94,8 @@ it("distinguishes a completed checkpoint workflow from code accepted through fin
   const idea = fixture.studio.state().ideas[0]!;
   const run = await fixture.studio.startWorkflow(idea.id);
   await fixture.studio.completeWorkflowManual(idea.id, run.revision, []);
-  const wrapper = mount(WorkflowView, {
+  const wrapper = mount(IdeaWorkflowTab, {
+    props: { idea: fixture.store.state!.ideas[0]! },
     global: {
       plugins: [fixture.pinia, fixture.provider],
       directives: { "cf-icon": () => {} },
@@ -132,7 +135,8 @@ it("explains the next workflow action and marks the current step without startin
     category: "Gameplay",
     username: "Owner",
   });
-  const wrapper = mount(WorkflowView, {
+  const wrapper = mount(IdeaWorkflowTab, {
+    props: { idea: fixture.store.state!.ideas[0]! },
     global: {
       plugins: [fixture.pinia, fixture.provider],
       directives: { "cf-icon": () => {} },

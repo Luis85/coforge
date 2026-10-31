@@ -40,11 +40,11 @@ export class StudioService {
     this.engine = new WorkflowEngine(this.store, { outputTemplates: host.outputTemplates, agentTasks: host.agentTasks, runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}), ...(host.assertWorkflowReviewable ? { assertWorkflowReviewable: host.assertWorkflowReviewable } : {}) });
   }
 
-  async start(): Promise<{ invalidNotes: string[] }> {
+  async start(options: { deferAutomation?: boolean } = {}): Promise<{ invalidNotes: string[] }> {
     const loaded = await this.store.init();
     if (this.store.snapshot().projects?.some(project => hasNativeStages(project.settings))) await this.refreshRuntime();
     else await this.store.updateRuntime(this.runtimeConfig());
-    this.engine.start();
+    if (!options.deferAutomation) this.engine.start();
     return loaded;
   }
   async stop(): Promise<void> { await this.engine.stop(); this.store.disposeObservers(); }
@@ -103,6 +103,7 @@ export class StudioService {
     return project;
   }
   startWorkflow(ideaId: string) { return this.engine.startWorkflow(ideaId); }
+  restartWorkflowFromOperator(ideaId: string) { return this.engine.restartWorkflowFromOperator(ideaId); }
   runWorkflowStep(ideaId: string) { return this.engine.runWorkflowStep(ideaId); }
   completeWorkflowManual(ideaId: string, expectedRevision: number, checkedIds: string[], note = '') { return this.engine.completeWorkflowManual(ideaId, expectedRevision, checkedIds, note); }
   stopWorkflow(ideaId: string) { return this.engine.stopWorkflow(ideaId); }

@@ -104,7 +104,7 @@ test("Herdr example can be explicitly exited without a native command", async ({
   await openAgentWorkflow(page);
   await page
     .getByRole("navigation", { name: "Agent workflow pages", exact: true })
-    .getByRole("button", { name: "Herdr workspaces", exact: true })
+    .getByRole("button", { name: "Herdr", exact: true })
     .click();
   const herdr = page.locator(".cf-herdr");
   await herdr

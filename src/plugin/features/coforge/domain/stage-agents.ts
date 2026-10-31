@@ -63,6 +63,6 @@ export function hasClaudeStages(
 }
 export function hasNativeStages(settings: Pick<Settings, 'provider' | 'model' | 'stageAgents' | 'workflow'>): boolean {
   return hasClaudeStages(settings) || (settings.workflow
-    ? settings.workflow.steps.some(step => step.kind === 'ai' && step.provider === 'codex')
+    ? settings.workflow.steps.some(step => step.kind === 'ai' && (step.provider === 'codex' || step.coworkerId !== undefined))
     : STAGES.some(stage => stageAgent(settings, stage).provider === 'codex'));
 }

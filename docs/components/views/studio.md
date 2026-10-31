@@ -58,6 +58,12 @@ Improve. Group headers collapse their destinations independently; the plugin's
 localStorage restores their state on reload. See the
 [information architecture](../INFORMATION-ARCHITECTURE.md).
 
+Navigation and chat sidepanel collapse preferences also persist in localStorage
+and remain separate from temporary narrow-layout hiding. The view reserves only
+the actual overlapping Obsidian status-bar inset; detached views do not inherit
+another window's footer gap. Notifications use a bounded, dismissible stack;
+success text announces status and error text announces an alert.
+
 ## Entry and next action
 
 Use the CoForge ribbon or the Open CoForge command in Obsidian. Available actions: Choose navigation group; Select project; Reopen navigation or chat; Open help. This is an independent entry surface.

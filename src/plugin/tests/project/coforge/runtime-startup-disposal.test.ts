@@ -15,6 +15,8 @@ it.each([
   "coforge-workspaces.json",
   "coforge-council-settings.json",
   "coforge-execution-v2.json",
+  "coforge-herdr.json",
+  "coforge-herdr-workflow.json",
 ])(
   "does not revive listeners or timers when %s returns after unload",
   async (filename) => {

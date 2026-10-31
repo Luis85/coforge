@@ -3,8 +3,7 @@ import { useWorkflowEditorForm } from "../../composables/coforge/use-workflow-ed
 const model = useWorkflowEditorForm();
 </script>
 <template>
-  <details class="cf-workflow-definition-limits">
-    <summary>Workflow timing and native CLI limits</summary>
+  <section class="cf-workflow-definition-limits" aria-label="Workflow timing and native CLI limits">
     <div class="cf-workflow-field-grid">
       <label class="cf-field"
         ><span>Automatic run interval · seconds</span
@@ -60,5 +59,5 @@ const model = useWorkflowEditorForm();
       For Codex, the turn setting caps CoForge tool calls; its CLI does not
       enforce the Claude USD spending cap. The step timeout still applies.
     </p>
-  </details>
+  </section>
 </template>

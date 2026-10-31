@@ -67,7 +67,28 @@ const fields = useWorkflowAiFields();
         {{ WORKFLOW_ACCESS_LABELS[fields.step.access] }}. Instructions and
         templates cannot expand these permissions.
       </p>
-      <div class="cf-workflow-field-grid">
+      <label class="cf-field"><span>Step agent configuration</span>
+        <select v-model="fields.coworker.mode" aria-label="Step agent configuration">
+          <option value="manual">Configure provider, model and effort</option>
+          <option value="coworker" :disabled="!fields.coworker.choices.length && fields.step.coworkerId === undefined">Assign a saved CoWorker</option>
+        </select>
+      </label>
+      <template v-if="fields.coworker.mode === 'coworker'">
+        <label class="cf-field"><span>Assigned CoWorker</span>
+          <select v-model="fields.coworker.selection" aria-label="Assigned CoWorker" data-workflow-field="coworkerId">
+            <option value="">Choose an enabled saved CoWorker</option>
+            <option v-for="agent in fields.coworker.choices" :key="agent.id" :value="agent.id">{{ agent.name }}</option>
+            <option v-if="fields.coworker.unavailable" :value="fields.step.coworkerId" disabled>{{ fields.step.coworkerId }} · unavailable saved CoWorker</option>
+          </select>
+          <small>Each new run captures this CoWorker's role, instructions, provider, model and effort. Step access, bound inputs and final review remain authoritative.</small>
+        </label>
+        <p v-if="fields.coworker.selected" class="cf-settings-help">{{ fields.agentSummary }}. Switch to manual configuration to customize these provider values for this step.</p>
+        <p v-if="fields.coworker.unavailable" class="cf-inline-error" role="status">This CoWorker is missing or disabled. Choose an enabled profile or switch to manual configuration before starting new work.</p>
+        <button type="button" class="cf-btn cf-btn-secondary" :disabled="fields.coworker.loading" @click="fields.coworker.refresh()">Refresh saved CoWorkers</button>
+      </template>
+      <p v-if="fields.coworker.error" class="cf-settings-help" role="status">{{ fields.coworker.error }}</p>
+      <p v-else-if="!fields.coworker.loading && !fields.coworker.choices.length" class="cf-settings-help">Create and enable a saved CoWorker on CoWorkers to make it available here. Manual provider configuration remains available.</p>
+      <div v-if="fields.coworker.mode === 'manual'" class="cf-workflow-field-grid">
         <label class="cf-field"
           ><span>AI provider</span
           ><select
@@ -102,7 +123,7 @@ const fields = useWorkflowAiFields();
           </option>
         </select></label
       >
-      <label v-if="fields.step.provider === 'herdr'" class="cf-field"
+      <label v-if="fields.step.provider === 'herdr' && fields.coworker.mode === 'manual'" class="cf-field"
         ><span>Herdr agent type</span
         ><select v-model="fields.step.herdrAgent" aria-label="Herdr agent type">
           <option :value="undefined">Claude Code (default)</option>

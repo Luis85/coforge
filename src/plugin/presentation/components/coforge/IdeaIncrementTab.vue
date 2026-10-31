@@ -82,7 +82,7 @@ const drawer = useIdeaDrawerContext();
       }}</pre>
     </section>
     <div
-      v-if="idea.status === 'review' && drawer.canFinalReview"
+      v-if="drawer.reviewable && drawer.canFinalReview"
       class="cf-idea-alert"
     >
       <CfIcon name="clipboard-check" />

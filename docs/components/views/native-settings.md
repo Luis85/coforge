@@ -59,6 +59,9 @@ Loading; Startup failure; Unsaved; Saved; Validation or save error. Inspect an e
 
 A compact ownership guide distinguishes these vault-wide integrations from Project settings and Workflow settings. Native setting rows, secret storage references, explicit Save/Discard and the unsaved state remain in the Obsidian settings surface.
 
+The final fields and Save/Discard remain reachable in the native scroll container.
+Footer clearance follows actual host overlap rather than a reserved blank region.
+
 ## Composition and boundaries
 
 Source: [src/plugin/presentation/components/coforge/PluginSettings.vue](../../../src/plugin/presentation/components/coforge/PluginSettings.vue). Use Obsidian’s native settings container, CoForge settings rows and shared field/button styles. These controls share the native settings form rather than the studio content container.

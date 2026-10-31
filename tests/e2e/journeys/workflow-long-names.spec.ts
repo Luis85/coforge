@@ -45,7 +45,7 @@ test('valid 100-character workflow and template names reflow with selected and c
   await selected.screenshot({ path: 'reports/workflow-output-templates/long-selected-source-320.png' });
   await page.getByRole('button', { name: 'Save workflow', exact: true }).click();
   await expect(page.getByText('Workflow saved. New runs use this definition; existing runs retain their captured steps.', { exact: true })).toBeVisible();
-  await openWorkflowRuns(page);
+  await openWorkflowRuns(page, 'CF-101');
   const run = page.getByRole('region', { name: 'Request workflow execution', exact: true });
   await run.getByRole('button', { name: 'Start · Hold for review', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Manual workflow step', exact: true })).toBeVisible();
@@ -56,8 +56,8 @@ test('valid 100-character workflow and template names reflow with selected and c
   await captured.getByText('Markdown source', { exact: true }).click();
   await expect(captured.getByLabel(`Captured Markdown source for ${templateName}`, { exact: true })).toHaveText(markdown);
   const capturedSize = await dimensions(captured);
-  const pageSize = await dimensions(page.locator('.cf-workflow-page'));
-  const overflowingElements = await page.locator('.cf-workflow-page').evaluate(root => {
+  const pageSize = await dimensions(page.locator('.cf-idea-drawer'));
+  const overflowingElements = await page.locator('.cf-idea-drawer').evaluate(root => {
     const right = root.getBoundingClientRect().right;
     return [...root.querySelectorAll('*')]
       .filter(element => element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().right > right + 1)

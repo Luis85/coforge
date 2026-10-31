@@ -17,6 +17,28 @@ import { createSeed } from '../../../features/coforge/domain/seed';
 import { AgentTaskNotStartedError } from '../../../features/coforge/application/agent-task';
 import { MemoryStorage, nodeTimers } from './memory-storage';
 
+it('captures an enabled reusable CoWorker without a Team or delegation and rejects later disablement', async () => {
+  const app = new App(); const kit = createTestApp({ app, layoutReady: true });
+  class TestPlugin extends Plugin {}
+  const plugin = new TestPlugin(app, { id: 'coforge', name: 'CoForge', version: '0.1.0', minAppVersion: '1.13.7', author: '', description: '' });
+  const timers = nodeTimers(); const gate = new InvocationGate();
+  const studio = new StudioService(new MemoryStorage(createSeed()), { timers, runners: { demo: async () => ({}), claude: async () => ({}) }, probeRuntime: async () => ({ cliAvailable: false, projectPath: null, allowImplementation: false }) }); await studio.start();
+  const module = new CouncilModule(plugin, studio, timers, gate); await module.start();
+  try {
+    await module.actions.catalogue.save({ schema: 'agent/v1', id: 'profile-only', name: 'Profile only', enabled: true, role: 'Reviewer', instructions: 'Preserve compatibility.', provider: 'claude', model: 'sonnet', effort: 'high', contextSources: ['Private/context.md'], requestedCapabilities: { project: 'read', messaging: true } });
+    const entry = (await module.actions.catalogue.list()).valid.find(item => item.definition.id === 'profile-only');
+    if (!entry || entry.definition.schema !== 'agent/v1') throw new Error('Expected saved profile');
+    const port = workflowAgentTasks(plugin, studio, module.actions);
+    const profile = await port.prepareCoworker!(studio.state().activeProjectId!, 'profile-only');
+    expect(profile).toMatchObject({ id: 'profile-only', revision: entry.revision, role: 'Reviewer', model: 'sonnet', effort: 'high' });
+    expect(profile).not.toHaveProperty('contextSources'); expect(profile).not.toHaveProperty('requestedCapabilities');
+    expect((await module.actions.catalogue.list()).valid.some(item => item.definition.schema === 'team/v1')).toBe(false);
+    await module.actions.catalogue.save({ ...entry.definition, enabled: false }, entry.revision);
+    await expect(port.prepareCoworker!(studio.state().activeProjectId!, 'profile-only')).rejects.toThrow('disabled');
+    expect(module.actions.snapshot().runs).toHaveLength(0); expect(kit.errors).toEqual([]);
+  } finally { await module.dispose(); gate.dispose(); await studio.stop(); }
+});
+
 it('admits one allowed project agent with captured context and tighter parent limits, preserving sources and rejecting replay', async () => {
   const app = new App(); const kit = createTestApp({ app, layoutReady: true });
   class TestPlugin extends Plugin {}

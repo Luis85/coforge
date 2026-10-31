@@ -100,3 +100,8 @@ The General section belongs to [Project settings](settings.md) and uses the shar
 project-settings save boundary. Local navigation never saves or starts agents.
 Canonical note identity, unrelated frontmatter and Markdown body remain preserved.
 The project switcher identifies the active project and its private visibility.
+
+Agent workflow is a sibling settings section. Its flat Idea Board Workflow,
+Step attempts, Timing & limits, Answer / output templates and Herdr tabs have
+their own authoring boundaries. General settings does not own the workflow's
+startup preference or release per-request operator stop holds.

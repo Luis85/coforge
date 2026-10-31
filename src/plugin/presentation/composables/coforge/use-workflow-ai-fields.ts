@@ -5,11 +5,13 @@ import { WORKFLOW_OUTPUT_LABELS } from "../../stores/workflow-editor-draft";
 import type { WorkflowOutput } from "../../../features/coforge/domain/configured-workflow";
 import { PROVIDERS } from "./settings-fields";
 import { configuredAgentLabel } from "./configured-workflow-display";
+import { useWorkflowCoworkerFields } from './use-workflow-coworker-fields';
 export function useWorkflowAiFields() {
   const model = useWorkflowEditorForm();
   const step = computed(() =>
     model.selected?.kind === "ai" ? model.selected : undefined,
   );
+  const coworker = useWorkflowCoworkerFields(() => step.value);
   const roles = computed(() => {
     const available = new Set<WorkflowOutput>();
     for (const previous of model.draft.steps.slice(
@@ -30,16 +32,17 @@ export function useWorkflowAiFields() {
   });
   return reactive({
     step,
+    coworker,
     roles,
     providers: PROVIDERS,
     projectId: computed(() => model.project?.id ?? ""),
     agentSummary: computed(() =>
-      step.value ? configuredAgentLabel(step.value) : "",
+      step.value ? `${coworker.selected ? `${coworker.selected.name} · ` : ''}${configuredAgentLabel(coworker.effective ?? step.value, Boolean(coworker.selected))}` : "",
     ),
     readiness: computed(() =>
       step.value
         ? configuredStepProblem(
-            step.value,
+            coworker.effective ?? step.value,
             model.project,
             model.store.state?.runtime,
           )

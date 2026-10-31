@@ -28,9 +28,9 @@ function eligible(idea: Idea, stage: AgentStage): boolean {
  * Automatic dispatch: enabled stages rotate after the most recently dispatched stage; within a stage the
  * highest-ranked eligible idea wins. Busy, failed/cancelled and manually held ideas are skipped.
  */
-export function nextEligible(state: { ideas: Idea[]; jobs: AgentJob[]; settings: Settings; manualHolds: string[] }): { idea: Idea; stage: AgentStage } | null {
+export function nextEligible(state: { ideas: Idea[]; jobs: AgentJob[]; settings: Settings; manualHolds: string[]; workflowStopHolds?: string[] }): { idea: Idea; stage: AgentStage } | null {
   const busy = new Set(state.jobs.filter(isActiveJob).map(job => job.ideaId));
-  const candidates = rankedIdeas(state.ideas).filter(idea => !busy.has(idea.id) && !idea.lastError && !state.manualHolds.includes(idea.id));
+  const candidates = rankedIdeas(state.ideas).filter(idea => !busy.has(idea.id) && !idea.lastError && !state.manualHolds.includes(idea.id) && !state.workflowStopHolds?.includes(idea.id));
   const last = state.jobs[state.jobs.length - 1]?.stage;
   const start = last ? (STAGES.indexOf(last) + 1) % STAGES.length : 0;
   const order = [...STAGES.slice(start), ...STAGES.slice(0, start)];

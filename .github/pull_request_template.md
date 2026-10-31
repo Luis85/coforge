@@ -1,73 +1,90 @@
 ## Summary
 
-Idea board → request details → Activity now exposes the captured prompt and LLM
-response inside each matching agent-run dropdown. Previously these showed only
-diagnostic logs. Each attempt retains private instructions/input/output, captured
-provider/model/effort and timestamps; retries and reloads preserve earlier evidence.
+Workflow configuration and request execution now have separate homes. Projects
+can reuse a saved workflow as an independent draft, choose startup Play/Paused,
+and assign saved CoWorkers or manual provider/model/effort settings to AI steps.
+Stopped cards return to Inbox with a durable hold that only the operator's card
+menu Restart action releases.
 
-Capture before dispatch and result validation, retain failed/rejected output,
-label simulations and legacy/missing/truncated history, and render literal wrapped
-text. Keep system instructions and execution logs subordinate. Preserve existing
-human review, recovery, privacy and public projection boundaries.
-
-Includes the newly merged native Codex provider (PR #54): retain visible assistant
-messages, exclude internal tool/reasoning streams, redact recognized credentials,
-and keep reported usage and partial workspace cleanup when evidence storage fails.
-MCP shows supplied task context/submitted results without claiming the external
-client's full conversation or model.
+- Persist independent navigation/chat collapse choices in localStorage, including
+  explicit expanded chat at narrow widths; blocked storage keeps controls usable.
+- Capture CoWorker identity, revision, role, instructions and execution settings
+  per run/job. Preserve queued settings, reject missing/disabled profiles without
+  fallback, and retain host step/project permissions without requiring a Team.
+- Copy other projects' saved v1 definitions without changing source notes/runs.
+  Preview startup behavior and repair project-scoped references before saving.
+- Move execution, captured results/history, checkpoints and recovery into the
+  selected feature's Workflow runs tab. Keep project automation controls and Step
+  attempts in settings. Tabs are Idea Board Workflow, Step attempts, Timing &
+  limits, Answer / output templates, then Herdr.
+- Preserve per-run MCP/native summaries in details while keeping the project
+  summary independent. Definition/timing panes share a draft; templates save
+  independently. Startup preferences apply on reopen, without dispatch on save.
+- Stop persists before aborting work. Play, reload, triggers, MCP and generic
+  starts cannot unlock a card. Late diffs/responses stay with the original run;
+  preserved changes and unknown outcomes retain human review/recovery gates.
+- Make project/native settings footers flush and opaque while keeping buttons
+  clear of the native status bar. Align notification icons/body/actions, improve
+  error-text contrast and keyboard-readable logs, and keep floating notices clear
+  of measured action footers, including wrapped and pop-out layouts.
 
 ## Requirements and traceability
 
-Owner decision in BRIEF.md (2026-10-31). No req-* or vi-* obligations are declared
-in the current traceability scaffold. Research, acceptance and executed improvement
-increments: docs/project-tasks/2026-10-31-idea-chat-history.md and its companion
-idea-chat-history-research.md. Three subagents covered UX/accessibility/product
-research, backend/provider integrity, and privacy/native qualification, followed
-by independent reviews and a polishing pass.
+Owner requests recorded in BRIEF.md on 2026-10-31. The traceability scaffold has
+no declared req-* or vi-* obligations for these requests; no IDs were invented.
+
+Implementation and executed subagent review/polishing plan:
+
+- docs/project-tasks/2026-10-31-workflow-workspace-preferences.md
+- docs/project-tasks/2026-10-31-workflow-polishing-plan.md
+
+Three agents implemented the increments, independently reviewed boundaries and
+executed focused browser/host proofs. Integrated main's 18aec07 private prompt/
+response history and retained it across Stop/Restart and late responses.
 
 ## Validation
 
-- Test-first evidence: initial Claude capture cases 3 failed; Codex capture cases
-  7 failed; UI history 2 failed; captured-effort case failed. All subsequently passed.
-- Focused Claude/privacy/MCP/Herdr suite: 6 files / 42 tests passed; additional
-  Claude prose+structured-output regression passed; final Codex capture/runner
-  suite 2 files / 12 tests passed; mounted UI 4 tests passed.
-- First integrated npm run verify:project: 3 steps passed, 2 failed (876.0s).
-  370 files / 1,468 tests passed; 1 catalogue-sync test failed; 6 existing skips.
-  Fixed the UI fixture's typed effort mutation and regenerated the catalogue.
-  Fix qualification: npm run typecheck exit 0; UI/catalogue tests 16 passed;
-  npm run docs:views: 108 views documented, navigation coverage valid.
-- Corrected full local rerun was running when the draft PR was opened. Its final
-  result and GitHub checks are recorded in the PR validation/checks before merge.
-  Earlier full/fast attempts superseded by upstream integration are not counted.
-- npm run test:ui-quality: 8 passed (54.6s).
-- npm run ui:gallery: 40 screenshots; wide dark and narrow light reviewed.
-- npm run test:obsidian -- coforge-idea-chat-history coforge-provider-settings
-  coforge-design-workflow: 3 files / 3 tests passed (46.88s).
-- npm run -s dev:obsidian -- --json: status passed, errors [], hostErrorCount 0,
-  pluginConsole []; pinned Obsidian 1.14.4 / launcher 3.2.1.
-- Native history: keyboard disclosures, two distinct captures, persisted reload,
-  unchanged authored body, no dispatch from reading, narrow containment; eight
-  input/response screenshots reviewed across light/dark and 1280/720 widths.
-- Manual Impeccable detector: [] findings. npm run check:self-review: no findings
-  in 35 changed files before this evidence update. git diff --check: clean.
+- npm run verify:project: passed, 5/5 check stages (871.4s); 1536 product tests
+  passed, zero failed, six existing Windows/platform skips. Release build passed;
+  prototype embedding 1 passed. UI effects explicitly skip because this project
+  declares no visual definitions.
+- UI quality: 8 passed, including both themes, 360px reflow and keyboard/focus.
+- Final gallery: 40 captures, failures empty; wide dark/narrow light reviewed.
+- Whole native suite: 49/51 passed across 44 files. Fixed its two failures:
+  active Alerts text contrast and a stale four-tab expectation. Fresh targeted
+  rerun: 2/2 passed, preserving all Axe rules and checking both themes.
+- After the final shared-summary/admission repairs: focused product 27+1 UI cases
+  and 30 admission/assignment/engine/Stop cases passed; browser 6 passed; fresh
+  native detail/Activity/Council/manual workflow 4 passed.
+- Native startup/copy, CoWorker save/reload/manual, panel reload, operator hold/
+  Restart, footer theme/width/scroll matrix and floating-notice clearance passed.
+  Source note/body preservation and zero vendor dispatch are asserted.
+- npm run -s dev:obsidian -- --json: passed on pinned Obsidian 1.14.4 after reload;
+  errors [], hostErrorCount 0, pluginConsole []. Contained sandbox only.
+- Tokens passed (968 observed / 133 reviewed); Impeccable detector returned []
+  across 22 Vue/CSS targets. Self-review/diff checks passed; current view
+  catalogue/sitemap validates 110 views.
 
-## Evidence and limitations
+The complete gate found and verified fixes for admission FIFO ordering and an
+earlier-save assignment race. Current assignments must have matching captures;
+there is no fallback to a saved manual shadow. Existing integrity, recovery,
+identity and no-dispatch assertions remain in the migrated tests.
 
-Local logs: reports/idea-chat-history-final-*.log. Gallery: reports/ui-gallery/.
-Host screenshots/results: reports/obsidian/; dev logs: .obsidian-sandbox/logs/.
-Generated evidence is excluded from Git. Full GitHub browser/native checks
-run with the e2e label; merge only when all required checks are green.
+## Evidence and limits
 
-History begins with newly captured runs. Older runs cannot be reconstructed.
-Capture precedes dispatch and alone does not prove delivery. Tool/internal reasoning
-turns are unavailable; external MCP clients expose only CoForge context/submissions.
-Recognizable credentials in Claude/Codex response captures are redacted, without
-claiming exhaustive secret detection. Retained text is bounded to 64,000 characters
-per field, visibly truncated, within the existing latest-500-job retention policy.
+Evidence is untracked under reports/, including final-gallery, final-ui-quality,
+final-native-suite-initial, final-native-targeted, final-summary-native and the
+workflow increment evidence directories. No screenshot baselines were accepted.
 
-No live billable provider call, personal vault or game repository mutation was used.
-Native end-to-end calls are explicitly simulated; provider boundaries use deterministic
-transport tests. Local Node/npm: 24.20.0/11.21.1; repository pins 24.21.0/11.19.1;
-GitHub uses the pins. No dependencies, lint thresholds, tests or execution gates
-were weakened. The original checkout and other sessions remain untouched.
+No billable vendor request, live OBS/Twitch mutation, personal-vault launch or
+CF-134 retry. Existing live Public exports remain uncommitted and untouched.
+Herdr retains its existing 10k full-task guard; oversized tasks fail before
+external commands, without truncation. Claude/Codex preserve full personas via
+stdin and retain the existing read/write gates.
+
+Local Node/npm: 24.20.0/11.21.1; CI uses pinned 24.21.0/11.19.1. The additional
+style-literal audit reports ten existing values in unchanged generated palette
+CSS; this increment adds no raw palette values or rule exceptions.
+
+GitHub qualification uses the e2e label for the complete browser and real-host
+jobs. Merge requires every check to finish green on the final head.

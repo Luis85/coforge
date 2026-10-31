@@ -131,7 +131,7 @@ describe("Configured human workflows in Obsidian", () => {
     view = await obsidian.openView(
       `${obsidian.pluginId}-view-project-workbench`,
     );
-    await openWorkflowRuns(view);
+    await openWorkflowRuns(view, view.locator('.cf-idea-card').filter({ hasText: 'Review the forest path' }));
     const manual = view.getByRole("region", {
       name: "Manual workflow step",
       exact: true,

@@ -26,6 +26,7 @@ import {
 } from "../../stores/workflow-editor-draft";
 import { useWorkflowTransfer } from "./use-workflow-transfer";
 import { useWorkflowEditorVisibility } from "./use-workflow-editor-visibility";
+import { workflowTemplatePageKey } from "./use-workflow-output-templates";
 import {
   workflowEditorIssues,
   type WorkflowEditorIssue,
@@ -33,6 +34,7 @@ import {
 function createWorkflowEditor() {
   const { studio, host } = useCoforge();
   const store = useStudioStore();
+  provide(workflowTemplatePageKey, () => store.openWorkflowTool("templates"));
   const project = computed(() => store.activeProject);
   const source = computed(() =>
     workflowDefinition(project.value?.settings ?? defaultSettings()),
@@ -202,6 +204,7 @@ function createWorkflowEditor() {
     ),
     issues: computed(() => workflowEditorIssues(draft.value)),
     fixIssue: (issue: WorkflowEditorIssue) => {
+      store.openWorkflowTool(issue.target.startsWith('limits.') ? 'limits' : 'settings');
       if (issue.stepId) {
         selectedId.value = issue.stepId;
         store.workflowStepSelection = issue.stepId;

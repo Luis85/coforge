@@ -2,6 +2,7 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { expect, it } from 'vitest';
 import WorkflowView from '../../../presentation/components/coforge/WorkflowView.vue';
+import IdeaWorkflowTab from '../../../presentation/components/coforge/IdeaWorkflowTab.vue';
 import { workflowDefinition } from '../../../features/coforge/domain/configured-workflow';
 import { workflowProposalRevision } from '../../../features/coforge/domain/configured-workflow-run';
 import { workflowUiFixture } from './workflow-ui-fixture';
@@ -16,9 +17,19 @@ it('describes a selected MCP run as explicit external steps while preserving cap
     idea.workflowRun = { id: 'mcp-summary-run', ideaId: idea.id, projectId: f.project.id, definition, proposalRevision: workflowProposalRevision(idea), revision: 0, cursor: 0, state: 'ready', attempts: [], artifacts: [], external: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   });
   const original = f.studio.state().ideas[0]!.workflowRun!.definition;
-  const wrapper = mount(WorkflowView, { global: { plugins: [f.pinia, f.provider] } });
+  const idea = f.studio.state().ideas[0]!;
+  f.store.openWorkflowTool('runs');
+  f.store.select(idea.id, 'workflow');
+  const project = mount(WorkflowView, { global: { plugins: [f.pinia, f.provider], directives: { 'cf-icon': () => {} } } });
+  const wrapper = mount(IdeaWorkflowTab, { props: { idea }, global: { plugins: [f.pinia, f.provider], directives: { 'cf-icon': () => {} } } });
   try {
     await flushPromises(); const writes = f.storage.saves;
+    const projectSummary = project.get('.cf-workflow-summary').text();
+    expect(projectSummary).toContain('4 AI steps automatic'); expect(projectSummary).toContain('New automatic runs');
+    expect(projectSummary).toContain('Simulation'); expect(projectSummary).not.toContain('External MCP run');
+    expect(project.get('.cf-workflow-mode-tag').attributes('title')).not.toContain('captured-sonnet');
+    expect(project.findAll('button').some(button => button.text() === 'Resume automation')).toBe(true);
+    expect(wrapper.findAll('button').some(button => ['Resume automation', 'Pause automation'].includes(button.text()))).toBe(false);
     const summary = () => wrapper.get('.cf-workflow-summary').text();
     expect(summary()).toContain('External MCP run');
     expect(summary()).toContain('AI steps require explicit client calls');
@@ -31,5 +42,8 @@ it('describes a selected MCP run as explicit external steps while preserving cap
     await f.studio.store.transaction(state => { delete state.ideas[0]!.workflowRun!.external; }); await flushPromises();
     expect(summary()).toContain('5 AI steps automatic'); expect(summary()).toContain('New automatic runs');
     expect(summary()).toContain('Claude Code CLI'); expect(summary()).not.toContain('External MCP run');
-  } finally { wrapper.unmount(); await f.dispose(); }
+    expect(project.get('.cf-workflow-summary').text()).toBe(projectSummary);
+    expect(f.studio.state().ideas[0]!.workflowRun!.definition).toEqual(original);
+    expect(f.runner).not.toHaveBeenCalled();
+  } finally { wrapper.unmount(); project.unmount(); await f.dispose(); }
 });

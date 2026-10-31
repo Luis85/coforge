@@ -119,6 +119,7 @@ export function useStudioActions() {
       ),
     runWorkflowStep: (id: string) =>
       attempt(() => studio.runWorkflowStep(id), "Workflow step requested."),
+    restartWorkflow: (id: string) => attempt(() => studio.restartWorkflowFromOperator(id), 'Workflow restarted from its first step. Previous run evidence was preserved.'),
     stopWorkflow: (id: string) =>
       attempt(
         () => studio.stopWorkflow(id),

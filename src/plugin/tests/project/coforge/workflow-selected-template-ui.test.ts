@@ -2,7 +2,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it } from "vitest";
 import WorkflowEditorView from "../../../presentation/components/coforge/WorkflowEditorView.vue";
-import WorkflowView from "../../../presentation/components/coforge/WorkflowView.vue";
+import IdeaWorkflowTab from "../../../presentation/components/coforge/IdeaWorkflowTab.vue";
 import { useWorkflowEditorStore } from "../../../presentation/stores/coforge-workflow-editor";
 import { useOutputTemplateStore } from "../../../presentation/stores/coforge-output-templates";
 import { workflowUiFixture } from "./workflow-ui-fixture";
@@ -92,7 +92,10 @@ it("shows a persisted admission hold without inventing a run and offers an expli
     state.ideas[0]!.lastError =
       "An output template is missing. Refresh templates and clear or replace its selection.";
   });
-  const wrapper = mount(WorkflowView, {
+  const idea = fixture.studio.state().ideas[0]!;
+  fixture.store.select(idea.id, 'workflow');
+  const wrapper = mount(IdeaWorkflowTab, {
+    props: { idea },
     global: {
       plugins: [fixture.pinia, fixture.provider],
       directives: { "cf-icon": () => {} },
@@ -103,12 +106,9 @@ it("shows a persisted admission hold without inventing a run and offers an expli
     const next = wrapper.get('[aria-label="Next workflow action"]');
     expect(next.text()).toContain("Workflow start needs attention");
     expect(next.text()).toContain("An output template is missing");
-    expect(
-      wrapper
-        .findAll("button")
-        .find((button) => button.text() === "Retry starting workflow")
-        ?.attributes("disabled"),
-    ).toBeUndefined();
+    const retry = wrapper.findAll("button").find((button) => button.text() === "Retry starting workflow");
+    expect(retry).toBeDefined();
+    expect(retry!.attributes("disabled")).toBeUndefined();
     expect(fixture.studio.state().ideas[0]?.workflowRun).toBeUndefined();
     expect(fixture.studio.state().jobs).toEqual([]);
     expect(fixture.runner).not.toHaveBeenCalled();

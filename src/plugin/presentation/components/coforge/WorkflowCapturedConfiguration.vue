@@ -16,10 +16,20 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
       <code>{{ model.workflowRevision }}</code>
     </p>
     <p class="cf-settings-help">
-      This run uses these saved versions, including on retry. Template edits and
+      This run uses these saved versions, including on retry. CoWorker and template edits and
       deletions affect future runs. Current host permissions and review gates
       still apply.
     </p>
+    <section v-if="model.coworkers.length" aria-label="Captured CoWorkers">
+      <h3>Captured CoWorkers</h3>
+      <details v-for="coworker in model.coworkers" :key="coworker.stepId" class="cf-workflow-template-preview">
+        <summary>{{ coworker.name }} · {{ coworker.stepName }}</summary>
+        <p>{{ coworker.execution }}</p>
+        <p>{{ coworker.role }}</p>
+        <p>CoWorker revision <code>{{ coworker.revision }}</code></p>
+        <MarkdownBody :source="coworker.instructions" />
+      </details>
+    </section>
     <p v-if="!model.templates.length" class="cf-settings-help">
       No output templates were captured for this run.
     </p>

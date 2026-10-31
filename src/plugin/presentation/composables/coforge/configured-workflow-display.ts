@@ -17,9 +17,10 @@ export const CONFIGURED_RUN_LABELS = {
   "awaiting-review": "Code changes await review",
   stopped: "Workflow stopped",
 } as const;
-export function configuredAgentLabel(step: WorkflowStep): string {
+export function configuredAgentLabel(step: WorkflowStep, resolved = false): string {
   if (step.kind === 'council') return `Ask Council · ${step.councilId || 'Choose Council'} · waits for answers`;
   if (step.kind === 'nudge') return `Agent task · ${step.agentId || 'Choose recipient'}`;
+  if (step.kind === 'ai' && step.coworkerId && !resolved) return 'Assigned CoWorker · settings captured at run start';
   return step.kind !== "ai"
     ? step.kind === "approval"
       ? "Streamer approval"
@@ -35,20 +36,21 @@ export function configuredStepProblem(
   runtime: RuntimeInfo | undefined,
   idea?: Idea,
   run?: WorkflowRun,
+  deferProviderReadiness = false,
 ): string {
-  if (!run?.external && step.provider === 'codex' && !runtime?.codexAvailable) return 'Codex CLI is not detected. Check the native Codex executable in Runtime settings.';
+  if (!deferProviderReadiness && !run?.external && step.provider === 'codex' && !runtime?.codexAvailable) return 'Codex CLI is not detected. Check the native Codex executable in Runtime settings.';
   if (!project || project.unavailable)
     return "Choose an available project before running this step.";
   if (idea && new Set(idea.voters).size < (step.minVotes ?? 0))
     return `Needs ${step.minVotes} votes before this step can run.`;
-  if (!run?.external && step.provider === "demo") return "";
+  if (!deferProviderReadiness && !run?.external && step.provider === "demo") return "";
   if (step.access !== "none" && !project.projectPath)
     return "Set the project path in Project settings before running this step.";
   if (step.access === "editworktree" && !project.allowImplementation)
     return "Enable real implementation in Project settings → Agent workspace before running an editing step.";
-  if (!run?.external && step.provider === "claude" && !runtime?.cliAvailable)
+  if (!deferProviderReadiness && !run?.external && step.provider === "claude" && !runtime?.cliAvailable)
     return "Claude Code is not detected. Check the native CLI connection in Project settings.";
-  if (!run?.external && step.provider === "herdr") {
+  if (!deferProviderReadiness && !run?.external && step.provider === "herdr") {
     if (!runtime?.herdrWorkflow?.ready)
       return (
         runtime?.herdrWorkflow?.message ||

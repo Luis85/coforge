@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
-import { defaultSettings } from "../../../features/coforge/domain/seed";
+import { createSeed, defaultSettings } from "../../../features/coforge/domain/seed";
 import { defaultWorkflowDefinition } from '../../../features/coforge/domain/configured-workflow';
+import { workflowAttemptRows } from '../../../presentation/composables/coforge/configured-workflow-history';
 import {
   stageAgentLabel,
   workflowProviderSummary,
@@ -26,4 +27,9 @@ it('never describes a Council action as a manual streamer-only workflow', () => 
   expect(summary.label).toBe('Council workflow');
   expect(summary.title).toContain('Council discussion');
   expect(summary.title).not.toContain('Ask Council: Streamer');
+});
+it('attributes legacy Codex attempts to Codex when there is no captured configured workflow', () => {
+  const idea = createSeed().ideas[0]!;
+  const row = workflowAttemptRows([idea], [{ id: 'legacy-codex', ideaId: idea.id, stage: 'plan', status: 'succeeded', provider: 'codex', model: 'gpt-6.1-sol', startedAt: new Date().toISOString(), logs: [] }])[0];
+  expect(row?.providerLabel).toBe('Codex · gpt-6.1-sol');
 });

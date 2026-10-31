@@ -27,6 +27,8 @@ async function requestNote(obsidian: ObsidianHarness) {
 }
 
 async function openActivity(view: Locator) {
+  const close = view.getByRole('button', { name: 'Close idea details', exact: true });
+  if (await close.isVisible()) await close.click();
   await view.getByRole('button', { name: /^Idea board/ }).first().click();
   await view.locator('.cf-idea-card').filter({ hasText: TITLE }).locator('.cf-idea-open').click();
   await view.getByRole('button', { name: 'Activity', exact: true }).click();
@@ -69,7 +71,7 @@ describe('Idea activity conversation history in the contained host', () => {
     await browserExpect(view.locator('.cf-idea-card').filter({ hasText: TITLE })).toBeVisible();
     const authoredBody = splitNote(await requestNote(obsidian)).body;
 
-    await openWorkflowRuns(view);
+    await openWorkflowRuns(view, view.locator('.cf-idea-card').filter({ hasText: TITLE }));
     const execution = view.getByRole('region', { name: 'Request workflow execution', exact: true });
     await execution.getByRole('button', { name: 'Start · Screen', exact: true }).click();
     await browserExpect(execution.getByRole('button', { name: 'Run · Score', exact: true })).toBeEnabled();

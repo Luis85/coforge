@@ -55,7 +55,7 @@ for (const theme of ['light', 'dark']) {
     await openProjectSettings(page, 'Runtime');
     await page.getByRole('button', { name: 'Manage Herdr workspaces', exact: true }).click();
     await expect(settingsPageButton(page, 'Agent workflow')).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Herdr workspaces', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Herdr', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.locator('.cf-herdr')).toBeVisible();
     await openProjectSettings(page, 'General');
     await expect(page.getByLabel('Project name', { exact: true })).toHaveValue('Mosslight');

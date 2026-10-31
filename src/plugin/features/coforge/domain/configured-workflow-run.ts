@@ -3,6 +3,7 @@ import { automationContextCheck, type AutomationContext } from './automation-con
 import { contextEventId } from './integrity';
 import { requestObjectIdentity } from './request-object';
 import { workflowCouncilBindingsCheck, type WorkflowCouncilBinding } from './workflow-council-binding';
+import { workflowCoworkerBindingsCheck, workflowCoworkerProfileCheck, type WorkflowCoworkerBinding, type WorkflowCoworkerProfile } from './workflow-coworker-binding';
 import { WORKFLOW_OUTPUTS, workflowDefinitionCheck, workflowIdCheck, workflowStepCheck, type AiWorkflowStep, type WorkflowDefinition, type WorkflowOutput } from './configured-workflow';
 import type { AppState, Idea, ImplementationPlan, Increment, RiceScore, Screening } from './types';
 import { workflowOutputTemplateCheck, workflowOutputTemplateListCheck, type WorkflowOutputTemplate } from './workflow-output-templates';
@@ -35,6 +36,7 @@ export interface WorkflowAttempt {
   councilCancellation?: 'requested' | 'confirmed' | 'unknown';
 }
 export interface WorkflowRun {
+  coworkerBindings?: WorkflowCoworkerBinding[];
   outputTemplates?: WorkflowOutputTemplate[];
   automationEvent?: AutomationContext;
   external?: boolean;
@@ -46,6 +48,7 @@ export interface WorkflowRun {
   projectContext?: { name: string; brief: string; agentPrompt: string; projectPath: string; worktreeFolder: string };
 }
 export interface ConfiguredStepExecution {
+  coworker?: WorkflowCoworkerProfile;
   outputTemplate?: WorkflowOutputTemplate;
   automationEvent?: AutomationContext;
   runId: string; definitionRevision: string; proposalRevision: string; attemptId: string;
@@ -84,6 +87,7 @@ const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: 
   status: oneOf(['queued', 'running', 'waiting-human', 'succeeded', 'failed', 'cancelled'] as const), inputs: list(workflowIdCheck, { max: 200 }), startedAt: timestamp,
   finishedAt: optional(timestamp), jobId: optional(workflowIdCheck), checkedIds: optional(list(workflowIdCheck, { max: 40 })), note: optional(text({ max: 3000 })), error: optional(text({ max: 4000 })) }, { strict: true });
 const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: workflowIdCheck, definition: workflowDefinitionCheck, proposalRevision: workflowIdCheck,
+  coworkerBindings: optional(workflowCoworkerBindingsCheck),
   councilBindings: optional(workflowCouncilBindingsCheck),
   outputTemplates: optional(workflowOutputTemplateListCheck),
   automationEvent: optional(automationContextCheck),
@@ -95,6 +99,8 @@ const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: wor
 export function workflowRunCheck(value: unknown): WorkflowRun {
   if (workflowSerializedSize(value) > WORKFLOW_RUN_LIMIT_BYTES) throw new Error('This workflow run exceeds 2 MiB. Preserve/export its evidence and start a fresh run; nothing was truncated.');
   const checked = run(value);
+  const assigned = checked.definition.steps.filter(step => step.kind === 'ai' && step.coworkerId);
+  if (assigned.length !== (checked.coworkerBindings?.length ?? 0) || assigned.some(step => step.kind !== 'ai' || checked.coworkerBindings?.filter(item => item.stepId === step.id && item.profile.id === step.coworkerId && item.profile.provider === step.provider && item.profile.model === step.model && item.profile.effort === step.effort).length !== 1)) throw new Error('The captured CoWorkers do not match this workflow definition.');
   if (new Set(checked.councilBindings?.map(item => item.stepId)).size !== (checked.councilBindings?.length ?? 0) || checked.councilBindings?.some(item => item.binding.projectId !== checked.projectId || !checked.definition.steps.some(step => step.id === item.stepId && step.kind === 'council' && step.councilId === item.binding.councilId))) throw new Error('The workflow Council captures do not match its definition.');
   const selectedTemplates = [...new Set(checked.definition.steps.flatMap(step => step.kind === 'ai' && step.outputTemplateId ? [step.outputTemplateId] : []))];
   if (selectedTemplates.length !== (checked.outputTemplates?.length ?? 0) || selectedTemplates.some(id => checked.outputTemplates?.filter(template => template.id === id && template.projectId === checked.projectId).length !== 1)) throw new Error('The captured output templates do not match this workflow project and definition.');
@@ -107,10 +113,12 @@ export function workflowRunCheck(value: unknown): WorkflowRun {
 }
 export function configuredStepExecutionCheck(value: unknown): ConfiguredStepExecution {
   const checked = shape({ runId: workflowIdCheck, definitionRevision: workflowIdCheck, proposalRevision: workflowIdCheck, attemptId: workflowIdCheck,
+    coworker: optional(workflowCoworkerProfileCheck),
     outputTemplate: optional(workflowOutputTemplateCheck),
     automationEvent: optional(automationContextCheck),
     step: workflowStepCheck, inputArtifacts: list(workflowArtifactCheck, { max: 200 }), workspaceId: optional(workflowIdCheck) }, { strict: true })(value);
   if (checked.step.kind !== 'ai') throw new Error('Only an AI step can be dispatched to a provider.');
+  if (checked.step.coworkerId !== checked.coworker?.id || checked.coworker && (checked.coworker.provider !== checked.step.provider || checked.coworker.model !== checked.step.model || checked.coworker.effort !== checked.step.effort)) throw new Error('The captured CoWorker does not match this AI step.');
   if (checked.step.outputTemplateId !== checked.outputTemplate?.id) throw new Error('The captured output template does not match this step.');
   if (checked.inputArtifacts.some(item => item.runId !== checked.runId || item.proposalRevision !== checked.proposalRevision)) throw new Error('The workflow inputs belong to a different run or proposal.');
   return { ...checked, step: checked.step };

@@ -3,6 +3,7 @@ import { mount, flushPromises, type VueWrapper } from '@vue/test-utils';
 import { expect, it, vi } from 'vitest';
 vi.mock('obsidian', () => import('@test/obsidian'));
 import WorkflowEditorView from '../../../presentation/components/coforge/WorkflowEditorView.vue';
+import IdeaWorkflowTab from '../../../presentation/components/coforge/IdeaWorkflowTab.vue';
 import WorkflowView from '../../../presentation/components/coforge/WorkflowView.vue';
 import { coforgeKey } from '../../../presentation/context/coforge-context';
 import { councilAskFixture, askButton } from './council-ask-fixture';
@@ -90,17 +91,19 @@ it('keeps named completed and historical Council links and clears filters on ins
   const latest = retainedRun(f.projectId, 'parent-latest', 'child-latest', 'Current advice Council'); latest.ideaId = idea.id;
   const history = retainedRun(f.projectId, 'parent-history', 'child-history', 'Earlier advice Council'); history.ideaId = idea.id;
   await f.studio.store.transaction(state => { const target = state.ideas.find(item => item.id === idea.id)!; target.workflowRun = latest; target.workflowHistory = [history]; });
-  f.studioUi.workflowRequestSelection = idea.id;
-  const wrapper = mount(WorkflowView, { global: { plugins: [f.pinia], provide: { [coforgeKey as symbol]: f.context }, directives: { 'cf-icon': () => {} } } });
+  f.studioUi.openWorkflowTool('runs');
+  f.studioUi.select(idea.id, 'workflow');
+  const project = mount(WorkflowView, { global: { plugins: [f.pinia], provide: { [coforgeKey as symbol]: f.context }, directives: { 'cf-icon': () => {} } } });
+  const wrapper = mount(IdeaWorkflowTab, { props: { idea }, global: { plugins: [f.pinia], provide: { [coforgeKey as symbol]: f.context }, directives: { 'cf-icon': () => {} } } });
   try {
     await flushPromises();
     expect(wrapper.get('[aria-label="Workflow Council activity"]').text()).toContain('Current advice Council');
     expect(wrapper.findAll('button').some(button => button.text() === 'Check Council answer')).toBe(false);
     f.ui.projectFilter = 'wrong-project'; f.ui.stateFilter = 'cancelled'; f.ui.teamFilter = 'wrong-team'; f.ui.targetFilter = 'wrong-member'; f.ui.sourceFilter = 'wrong-source';
-    const older = wrapper.get('button[aria-label="Read Council discussion Earlier advice Council for Ask Council"]');
+    const older = project.get('button[aria-label="Read Council discussion Earlier advice Council for Ask Council"]');
     await older.trigger('click'); await flushPromises();
     expect(f.ui.inspectedRun).toBe('child-history'); expect(f.ui.tab).toBe('monitor');
     expect(f.ui.projectFilter).toBe(f.projectId); expect(f.ui.stateFilter).toBe(''); expect(f.ui.sourceFilter).toBe(''); expect(f.ui.teamFilter).toBe(''); expect(f.ui.targetFilter).toBe('');
     expect(f.module.actions.snapshot().runs).toHaveLength(0);
-  } finally { wrapper.unmount(); await f.dispose(); }
+  } finally { wrapper.unmount(); project.unmount(); await f.dispose(); }
 });

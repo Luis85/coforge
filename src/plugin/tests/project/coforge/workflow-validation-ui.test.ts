@@ -140,7 +140,8 @@ it("takes a dependency problem to previous results and a timing problem to the e
     const timeout = wrapper.get(
       '[data-workflow-field="limits.timeoutSeconds"]',
     );
-    expect(timeout.element.closest("details")).toHaveProperty("open", true);
+    expect(fixture.store.workflowTool).toBe("limits");
+    expect(timeout.isVisible()).toBe(true);
     expect(document.activeElement).toBe(timeout.element);
     expect(fixture.runner).not.toHaveBeenCalled();
     expect(fixture.studio.state().settings.workflow).toBeUndefined();

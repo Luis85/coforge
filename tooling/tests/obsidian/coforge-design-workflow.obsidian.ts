@@ -64,7 +64,7 @@ describe('Design specification handoff in the contained host', () => {
     await browserExpect(view.locator('.cf-idea-card').filter({ hasText: 'Native Design specification' })).toBeVisible();
     const body = splitNote(await requestNote(obsidian)).body;
 
-    await openWorkflowRuns(view);
+    await openWorkflowRuns(view, view.locator('.cf-idea-card').filter({ hasText: 'Native Design specification' }));
     const execution = () => view.getByRole('region', { name: 'Request workflow execution', exact: true });
     for (const [index, name] of ['Screen', 'Score', 'Plan', 'Design'].entries()) {
       await execution().getByRole('button', { name: `${index === 0 ? 'Start' : 'Run'} · ${name}`, exact: true }).click();
@@ -76,6 +76,7 @@ describe('Design specification handoff in the contained host', () => {
     expect(design?.markdown).toContain('Native Design specification');
     expect(saved.cursor).toBe(4);
     expect(saved.attempts.some(attempt => attempt.stepId === 'implement')).toBe(false);
+    await view.getByRole('button', { name: 'Close idea details', exact: true }).click();
     await view.getByRole('button', { name: /^Idea board/ }).first().click();
     const card = () => view.locator('.cf-column-design .cf-idea-card').filter({ hasText: 'Native Design specification' });
     await browserExpect(card()).toBeVisible();
@@ -98,7 +99,7 @@ describe('Design specification handoff in the contained host', () => {
     await view.getByRole('button', { name: 'Plan & Design', exact: true }).click();
     await browserExpect(view.getByRole('region', { name: 'Design specification', exact: true })).toContainText('Native Design specification');
     await view.getByRole('button', { name: 'Close idea details', exact: true }).click();
-    await openWorkflowRuns(view);
+    await openWorkflowRuns(view, view.locator('.cf-idea-card').filter({ hasText: 'Native Design specification' }));
     await execution().getByRole('button', { name: 'Run · Build', exact: true }).click();
     await browserExpect(execution().getByRole('button', { name: 'Review code changes', exact: true })).toBeVisible();
     const built = retainedRun(await requestNote(obsidian));
