@@ -29,7 +29,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     input.onLog?.(`Codex ${snapshot.step.name}: scoped CoForge tools; native project access is disabled. Claude USD/turn caps are not Codex spending limits.`);
     const response = await runCodexTransport({ directory, executable: input.integration.codexBin, model: snapshot.step.model, effort: snapshot.step.effort,
       schema: executionSchema(input), instructions: executionSystemPrompt(input), prompt: executionTaskPrompt(input), timeoutMs: input.settings.timeoutSeconds * 1000,
-      signal: input.signal, mcp: bridge, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); } });
+      signal: input.signal, mcp: bridge, onConversation: input.onConversation, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); } });
     await bridge.dispose();
     bridge.assertBudget();
     const result = executionResult(input, response.output);

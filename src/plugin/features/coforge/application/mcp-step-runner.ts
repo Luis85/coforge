@@ -34,9 +34,13 @@ export class McpStepRunner {
   }
   async complete(projectId: string, taskId: string, raw: unknown): Promise<void> {
     const task = this.task(projectId, taskId);
-    const validated = validateExecutionOutput(task.input, raw);
-    const result = executionResult(task.input, validated);
     task.completing = true;
+    let result: StageResult;
+    try {
+      await task.input.onConversation?.({ kind: 'response', text: JSON.stringify(raw, null, 2) ?? String(raw), append: true });
+      const validated = validateExecutionOutput(task.input, raw);
+      result = executionResult(task.input, validated);
+    } catch (error) { task.completing = false; throw error; }
     try {
       if (executionAccess(task.input) === 'editworktree') {
         const increment = await task.lease.capture(result.summary ?? result.plan?.summary ?? 'MCP workflow changes');
@@ -59,6 +63,7 @@ export class McpStepRunner {
       if (lease.id) await input.onWorkspace?.(lease.id);
       if (this.disposed) throw new Error('MCP stopped.');
       input.signal?.throwIfAborted();
+      await input.onConversation?.({ kind: 'request', instructions: executionSystemPrompt(input), prompt: executionTaskPrompt(input) });
       return await new Promise<StageResult>((resolve, reject) => {
         const stop = () => { cleanup(); reject(new Error('MCP task interrupted. Inspect its saved attempt and workspace before retrying.')); };
         const timer = this.timers.setTimeout(stop, input.settings.timeoutSeconds * 1000);

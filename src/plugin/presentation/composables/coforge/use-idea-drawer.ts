@@ -11,7 +11,6 @@ import type {
   AgentJob,
   IdeaAction,
 } from "../../../features/coforge/domain/types";
-import { STAGE_LABELS } from "../../../features/coforge/domain/types";
 import { isActiveJob } from "../../../features/coforge/domain/workflow";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { avatarStyle, formatTime } from "./format";
@@ -21,6 +20,7 @@ import { ideaProjectId } from "../../../features/coforge/domain/projects";
 import { ideaWorkflowAction } from "./idea-workflow-action";
 import { projectFeatureEnabled } from '../../../features/coforge/domain/project-features';
 import { currentDesignSpecification } from "./use-idea-design";
+import { ideaRunHistory } from './idea-run-history';
 
 export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity";
 const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
@@ -36,11 +36,6 @@ const NOTE_REQUIRED =
 
 const jobTitle = (job: AgentJob): string =>
   `${job.provider === "demo" ? "Simulating" : "Agent running"}: ${job.workflow?.step.name ?? (job.stage === "implement" ? "implementation" : job.stage)}`;
-const jobLog = (job: AgentJob): string => {
-  const lines = [job.logs.join("\n") || "No log entries."];
-  if (job.error) lines.push(`Error: ${job.error}`);
-  return lines.join("\n");
-};
 
 function createIdeaDrawer() {
   const store = useStudioStore();
@@ -255,13 +250,7 @@ function createIdeaDrawer() {
         .map((event) => ({ ...event, when: formatTime(event.createdAt) })),
     ),
     jobs: computed(() =>
-      [...ideaJobs.value].reverse().map((job) => ({
-        id: job.id,
-        status: job.status,
-        provider: job.provider,
-        label: job.workflow?.step.name ?? STAGE_LABELS[job.stage],
-        log: jobLog(job),
-      })),
+      [...ideaJobs.value].reverse().map(ideaRunHistory),
     ),
     close,
     selectTab: (value: IdeaDrawerTab) => {

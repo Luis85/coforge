@@ -30,8 +30,8 @@ it('runs Codex Build from a private directory while host tools guard files and c
   await writeFile(join(cwd, 'game.ts'), 'before');
   const captured = vi.fn(async () => ({ summary: 'Host capture', files: [{ path: 'game.ts', additions: 1, deletions: 1 }], diff: '-before\n+after', tests: [], createdAt: new Date().toISOString(), simulated: false }));
   const lease: WorkflowWorkspaceLease = { cwd, id: 'workspace', capture: captured, release: vi.fn(async () => {}), validate: async () => {} };
-  const onChanges = vi.fn(); const onTokenUsage = vi.fn();
-  const input: StageInput = { stage: 'implement', idea: createSeed().ideas[0]!, settings: { ...defaultSettings(), provider: 'codex', model: 'gpt-6.1-sol' }, integration: { ...defaultIntegration(), codexBin: 'synthetic-codex' }, onChanges, onTokenUsage,
+  const onChanges = vi.fn(); const onTokenUsage = vi.fn(); const onConversation = vi.fn(async () => {});
+  const input: StageInput = { stage: 'implement', idea: createSeed().ideas[0]!, settings: { ...defaultSettings(), provider: 'codex', model: 'gpt-6.1-sol' }, integration: { ...defaultIntegration(), codexBin: 'synthetic-codex' }, onChanges, onTokenUsage, onConversation,
     workflow: { runId: 'run', definitionRevision: 'definition', proposalRevision: 'proposal', attemptId: 'attempt', inputArtifacts: [], step: { id: 'build', name: 'Build', kind: 'ai', provider: 'codex', model: 'gpt-6.1-sol', effort: 'high', instructions: 'Implement', output: 'codechange', access: 'editworktree', automatic: false } } };
   transport.run.mockImplementation(async (_command: string, args: string[], options: ProcessOptions) => {
     expect(options.cwd).not.toBe(cwd); expect(args).not.toContain(cwd);
@@ -49,6 +49,8 @@ it('runs Codex Build from a private directory while host tools guard files and c
   const result = await runCodexStage(input, { acquire: async () => lease, assertReviewable: async () => {}, start: async () => {}, acknowledge: async () => {} });
   expect(result.increment?.files[0]?.path).toBe('game.ts'); expect(result).not.toHaveProperty('costUsd');
   expect(onChanges).toHaveBeenCalled(); expect(onTokenUsage).toHaveBeenCalledWith({ inputTokens: 30, outputTokens: 8, cacheReadInputTokens: 10 });
+  expect(onConversation).toHaveBeenCalledWith(expect.objectContaining({ kind: 'request', prompt: expect.stringContaining(input.idea.title) }));
+  expect(onConversation).toHaveBeenCalledWith({ kind: 'response', text: '{"summary":"Updated game"}' });
   expect(lease.release).toHaveBeenCalled();
 });
 
@@ -60,6 +62,18 @@ it('uses Codex for isolated CoWorker contributions and retains unknown dollar co
   const result = await runCouncilProvider({ provider: 'codex', model: 'gpt-6.1-sol', effort: 'medium', instructions: 'Review', prompt: 'Captured task', timeoutSeconds: 30, maxTurns: 5, maxBudgetUsd: 1 }, { executable: 'synthetic-codex', gate: new InvocationGate(), capture });
   expect(result).toMatchObject({ markdown: '# Independent opinion', simulated: false, usage: { inputTokens: 30, cacheReadInputTokens: 10, outputTokens: 8 } });
   expect(result).not.toHaveProperty('costUsd');
+});
+
+it('retains the provider response before semantic output validation rejects it', async () => {
+  const cwd = await realpath(await mkdtemp(join(tmpdir(), 'coforge-codex-invalid-result-'))); folders.push(cwd);
+  const onConversation = vi.fn(async () => {});
+  const lease: WorkflowWorkspaceLease = { cwd, capture: async () => undefined, release: vi.fn(async () => {}), validate: async () => {} };
+  const input: StageInput = { stage: 'plan', idea: createSeed().ideas[0]!, settings: { ...defaultSettings(), provider: 'codex', model: 'gpt-6.1-sol' }, integration: { ...defaultIntegration(), codexBin: 'synthetic-codex' }, onConversation,
+    workflow: { runId: 'run', definitionRevision: 'definition', proposalRevision: 'proposal', attemptId: 'attempt', inputArtifacts: [], step: { id: 'review', name: 'Review', kind: 'ai', provider: 'codex', model: 'gpt-6.1-sol', instructions: 'Review', output: 'markdown', access: 'none', automatic: false } } };
+  transport.run.mockResolvedValue(envelope({ markdown: 42 }));
+  await expect(runCodexStage(input, { acquire: async () => lease, assertReviewable: async () => {}, start: async () => {}, acknowledge: async () => {} })).rejects.toThrow('expected text');
+  expect(onConversation).toHaveBeenCalledWith({ kind: 'response', text: '{"markdown":42}' });
+  expect(lease.release).toHaveBeenCalledOnce();
 });
 
 it('waits for active host calls before closing authority for the final workspace capture', async () => {

@@ -5,7 +5,7 @@ export interface ProcessOptions {
   cwd: string; input?: string; signal?: AbortSignal; timeoutMs?: number; maxBytes?: number; env?: NodeJS.ProcessEnv;
 }
 const OUTPUT_LIMIT = 2 * 1024 * 1024;
-/** Transport-only output for usage recovery. Adapters must not pass this object or its output to UI/logs. */
+/** Raw transport output for usage recovery and response extraction. Never expose raw output to UI/logs; extracted evidence must be redacted. */
 export class ProcessFailure extends Error { constructor(message: string, readonly output: string) { super(message); this.name = 'ProcessFailure'; } }
 const ENVIRONMENT = new Set([
   'PATH', 'Path', 'PATHEXT', 'SystemRoot', 'SYSTEMROOT', 'COMSPEC', 'WINDIR', 'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA',

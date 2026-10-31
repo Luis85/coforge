@@ -15,6 +15,7 @@ import { exampleRemovalCutoffsCheck, requestOriginsCheck } from './example-conte
 import { obsShowStateCheck } from './obs-show-check';
 import { obsSetupStateCheck } from './obs-setup-check';
 import { twitchOperationsCheck } from './twitch-operations-validation';
+import { agentConversationCheck } from './agent-conversation';
 
 export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: string }>; lastRequests: Record<string, string>; chatRemovals?: import('./chat-removal').ChatRemovalHistory }
 /** Everything except the idea notes. Stored as one JSON file in the plugin folder. */
@@ -36,6 +37,7 @@ const increment = shape({
   branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
 });
 const job: Check<AgentJob> = shape({
+  conversation: optional(agentConversationCheck),
   workflow: optional(configuredStepExecutionCheck),
   usage: optional(stageUsageCheck), herdrAgent: optional(oneOf(['claude'] as const)),
   model: optional(text({ max: 100 })),

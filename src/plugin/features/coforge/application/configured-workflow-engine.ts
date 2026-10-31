@@ -10,6 +10,7 @@ import type { StageUsage } from '../domain/ai-usage';
 import type { StageInput, StageRunner, InternalState } from './ports';
 import { recordOperation } from './population';
 import type { StudioStore } from './studio-store';
+import { recordAgentConversation } from './agent-conversation';
 import { uncertainTaskAttempt, type AgentTaskPort } from './agent-task';
 import { ConfiguredWorkflowCouncil } from './configured-workflow-council';
 import { workflowCouncilProjectContext } from './workflow-council-context';
@@ -281,6 +282,7 @@ export class ConfiguredWorkflowEngine {
     const runner = this.host.runners[job.provider];
     if (!runner) throw new Error('The configured workflow runner is unavailable.');
     const payload: StageInput = { ...input, onUsage: cost => this.host.cost(job.id, cost), onTokenUsage: usage => this.host.usage(job.id, usage),
+      onConversation: event => recordAgentConversation(this.store, job.id, event),
       onWorkspace: async workspaceId => { await this.store.transaction(state => {
         const { run } = configuredAttempt(state, job, true);
         if (run.workspaceId && run.workspaceId !== workspaceId) throw new Error('This run already owns a different workspace.');

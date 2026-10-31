@@ -8,6 +8,7 @@ import type { StageInput, Timers } from '../../../features/coforge/application/p
 import { emptyHerdr } from '../../../features/coforge/domain/herdr';
 import { HERDR_RESULT_FORMAT } from '../../../features/coforge/application/herdr-result';
 import { seededStore } from './memory-storage';
+import type { AgentConversationEvent } from '../../../features/coforge/domain/agent-conversation';
 
 const JOB = 'f1234567-1234-4567-89ab-123456789abc';
 async function fixture(start = true) {
@@ -74,6 +75,69 @@ async function fixture(start = true) {
 }
 
 describe('automatic Herdr workflow orchestration', () => {
+  it('captures the exact sent prompt and configured instructions before dispatch and the returned artifact before completion', async () => {
+    const f = await fixture();
+    const events: AgentConversationEvent[] = [];
+    f.input.onConversation = vi.fn(async event => { events.push(event); });
+    const createWorkspace = f.gateway.createWorkspace;
+    f.gateway.createWorkspace = async (...args) => {
+      expect(events).toHaveLength(1);
+      expect(events[0]?.kind).toBe('request');
+      return createWorkspace(...args);
+    };
+    const finish = f.area.finish;
+    f.area.finish = vi.fn(async () => {
+      expect(events).toHaveLength(2);
+      const response = events[1];
+      if (response?.kind !== 'response') throw new Error('The provider artifact was not captured.');
+      expect(JSON.parse(response.text)).toMatchObject({ jobId: JOB, output: { verdict: 'clear' } });
+      return finish();
+    });
+    await f.service.run(f.input);
+    const request = events[0];
+    if (request?.kind !== 'request') throw new Error('The provider request was not captured.');
+    expect(f.gateway.sendPrompt).toHaveBeenCalledWith(expect.anything(), expect.anything(), request.prompt, expect.anything());
+    expect(f.gateway.startAgent).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ systemPrompt: request.instructions }), expect.anything());
+    expect(request.simulated).not.toBe(true);
+  });
+
+  it('retains a mismatched provider artifact as evidence before rejecting it without canonical advancement', async () => {
+    const f = await fixture();
+    const events: AgentConversationEvent[] = [];
+    f.input.onConversation = async event => { events.push(event); };
+    f.control.invalid = 'nonce';
+    await expect(f.service.run(f.input)).rejects.toThrow('attention');
+    const response = events.find(event => event.kind === 'response');
+    if (response?.kind !== 'response') throw new Error('The rejected provider artifact was not captured.');
+    expect(JSON.parse(response.text)).toMatchObject({ nonce: 'wrong', output: { verdict: 'clear' } });
+    expect(f.area.finish).not.toHaveBeenCalled();
+    expect(f.control.records.at(-1)?.phase).toBe('attention');
+    expect(f.store.snapshot().ideas.find(idea => idea.id === f.input.idea.id)?.screening).toEqual(f.input.idea.screening);
+  });
+
+  it('stops before external mutations if saving conversation input fails', async () => {
+    const f = await fixture();
+    f.input.onConversation = vi.fn(async () => { throw new Error('Conversation evidence cannot be saved.'); });
+    await expect(f.service.run(f.input)).rejects.toThrow('attention');
+    expect(f.gateway.createWorkspace).not.toHaveBeenCalled();
+    expect(f.gateway.startAgent).not.toHaveBeenCalled();
+    expect(f.gateway.sendPrompt).not.toHaveBeenCalled();
+    expect(f.control.records.at(-1)?.phase).toBe('attention');
+  });
+
+  it('preserves recovery without replay if saving returned conversation evidence fails', async () => {
+    const f = await fixture();
+    f.input.onConversation = async event => {
+      if (event.kind === 'response') throw new Error('Conversation evidence cannot be saved.');
+    };
+    await expect(f.service.run(f.input)).rejects.toThrow('attention');
+    expect(f.gateway.sendPrompt).toHaveBeenCalledOnce();
+    expect(f.area.finish).not.toHaveBeenCalled();
+    expect(f.control.records.at(-1)?.phase).toBe('attention');
+    await expect(f.service.run(f.input)).rejects.toThrow('attention');
+    expect(f.gateway.sendPrompt).toHaveBeenCalledOnce();
+  });
+
   it('retains an actionable bounded-prompt error before sending any external command', async () => {
     const f = await fixture();
     f.input.settings.agentPrompt = 'a'.repeat(8000);

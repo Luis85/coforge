@@ -2299,12 +2299,17 @@
       ],
       "actions": [
         "Read chronological events",
-        "Inspect attempts"
+        "Inspect attempts",
+        "Read captured prompts and responses"
       ],
       "states": [
         "No activity",
         "Recorded events",
-        "Failed attempt"
+        "Failed attempt",
+        "History unavailable",
+        "Waiting for response",
+        "Simulated conversation",
+        "Truncated capture"
       ],
       "journeys": [
         "request-to-recognition",

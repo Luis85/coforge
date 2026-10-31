@@ -156,6 +156,7 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
       if (area.workspaceId) { record.workspaceId = area.workspaceId; if (record.workflow) record.workflow.workspaceId = area.workspaceId; }
       const systemPrompt = herdrSystemPrompt(input, area.resultPath);
       const prompt = herdrTaskPrompt(input, record, area.resultPath);
+      await input.onConversation?.({ kind: 'request', instructions: systemPrompt, prompt });
       this.check(input, deadline, record);
       Object.assign(record, { cwd: area.cwd, resultPath: area.resultPath,
         configuration: { systemPrompt, timeoutSeconds: input.settings.timeoutSeconds, sessionId: input.jobId } });
@@ -197,6 +198,7 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
           await this.bounded(controller.signal, () => prepared.captureChanges?.() ?? Promise.resolve(undefined));
           const raw = await this.bounded(controller.signal, () => prepared.readResult());
           if (raw !== null) {
+            await input.onConversation?.({ kind: 'response', text: JSON.stringify(raw, null, 2) });
             const output = herdrResultOutput(raw, record);
             const result = await this.bounded(controller.signal, () => prepared.finish(output));
             externalUncertain = true;
