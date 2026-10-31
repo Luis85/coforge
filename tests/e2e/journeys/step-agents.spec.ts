@@ -12,8 +12,15 @@ async function step(page: Page, id: string, provider: string, model: string) {
   await page.locator(`[data-step-id="${id}"] .cf-workflow-step-select`).click();
   await openWorkflowDisclosure(page, "Agent and project access");
   await page.getByLabel("AI provider", { exact: true }).selectOption(provider);
-  if (provider !== "demo")
-    await page.getByLabel("AI model", { exact: true }).fill(model);
+  if (provider !== "demo") {
+    const field = page.getByLabel('AI model', { exact: true });
+    const options = await field.locator('option').evaluateAll(items => items.map(item => item.getAttribute('value')));
+    if (options.includes(model)) await field.selectOption(model);
+    else {
+      await field.selectOption('__custom');
+      await page.getByLabel('Custom model ID', { exact: true }).fill(model);
+    }
+  }
 }
 async function save(page: Page) {
   await page
@@ -115,10 +122,10 @@ test("keeps an invalid explicit model draft and prevents navigation from discard
   await expect(
     page.getByRole("heading", { name: "Workflow settings", exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("AI model", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("Custom model ID", { exact: true })).toHaveValue(
     "not a model",
   );
-  await page.getByLabel("AI model", { exact: true }).fill("haiku");
+  await page.getByLabel("AI model", { exact: true }).selectOption("haiku");
   await save(page);
   await openWorkflowRuns(page);
   await expect(

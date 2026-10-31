@@ -7,7 +7,7 @@ const fields = useProviderModelFields(props);
   <label class="cf-field"><span>{{ modelLabel || 'Model' }}</span>
     <select v-model="fields.model" :aria-label="modelLabel || 'Model'" :data-workflow-field="fields.custom && choice.provider !== 'demo' ? undefined : 'model'" :disabled="choice.provider === 'demo'">
       <option v-for="item in fields.models" :key="item.value" :value="item.value">{{ item.label }}</option>
-      <option value="__custom">{{ choice.provider === 'demo' ? 'No model call (simulation)' : 'Custom model ID' }}</option>
+      <option :value="choice.provider === 'demo' ? choice.model : '__custom'">{{ choice.provider === 'demo' ? 'No model call (simulation)' : 'Custom model ID' }}</option>
     </select>
     <small v-if="choice.provider === 'demo'">Simulation makes no model call; the model is retained for later.</small>
     <small v-else>Documented provider choices. Aliases resolve in your CLI; account access and policy apply.</small>

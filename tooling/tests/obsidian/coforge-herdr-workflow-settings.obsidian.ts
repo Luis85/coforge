@@ -34,7 +34,7 @@ describe("Managed Herdr workflow configuration", () => {
     await view
       .getByLabel("Herdr agent type", { exact: true })
       .selectOption("claude");
-    await view.getByLabel("AI model", { exact: true }).fill("haiku");
+    await view.getByLabel("AI model", { exact: true }).selectOption("haiku");
     await view
       .getByRole("button", { name: "Save workflow", exact: true })
       .click();

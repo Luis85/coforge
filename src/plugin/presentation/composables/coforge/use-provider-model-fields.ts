@@ -17,7 +17,7 @@ export function useProviderModelFields(props: { choice: ProviderModelChoice }) {
   });
   return reactive({
     models, custom, efforts,
-    model: computed({ get: () => custom.value ? '__custom' : props.choice.model, set: value => {
+    model: computed({ get: () => props.choice.provider === 'demo' ? props.choice.model : custom.value ? '__custom' : props.choice.model, set: value => {
       if (value !== '__custom') props.choice.model = value;
       else props.choice.model = '';
       reconcileEffort();

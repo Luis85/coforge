@@ -49,6 +49,13 @@ Detailed evidence: docs/project-tasks/2026-10-30-provider-model-effort.md.
 
 ## Evidence and limitations
 
+PR qualification follow-up (2026-10-31): adapt the existing browser/host model
+controls to dropdown selection and the Custom model ID input, preserving their
+original assertions. A failing unit assertion also caught the disabled Simulation
+selector displaying an internal sentinel; it now retains the actual saved model.
+Focused validation: 3 unit tests, 5 browser journeys and 2 real-Obsidian specs
+passed; changed-file typecheck/lint passed. Full GitHub checks are enabled via e2e.
+
 UI evidence: reports/ui-gallery/ and reports/obsidian/cases/.
 Host reload evidence: .obsidian-sandbox/logs/.
 Generated evidence is excluded from Git. Existing live public-export changes

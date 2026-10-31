@@ -29,6 +29,7 @@ it('offers documented model choices, filters effort, preserves custom IDs and di
     expect(choice.model).toBe('my-provider-deployment');
     choice.provider = 'demo'; await flushPromises();
     expect(wrapper.get('[aria-label="Model"]').attributes('disabled')).toBeDefined();
+    expect(wrapper.get('[aria-label="Model"]').element).toHaveProperty('value', 'my-provider-deployment');
     expect(choice.model).toBe('my-provider-deployment');
     choice.provider = 'herdr'; await flushPromises();
     expect(wrapper.get('[aria-label="Custom model ID"]').element).toHaveProperty('value', 'my-provider-deployment');

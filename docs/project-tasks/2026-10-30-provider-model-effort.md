@@ -100,6 +100,21 @@ not counted as final passing checks.
   previous run saw its earlier-loaded module; its corrected focused rerun passed
   (2 files, 8 tests). That stale full-run failure is not counted as green.
 
+## Pull request qualification (2026-10-31)
+
+- PR #54: https://github.com/Luis85/coforge/pull/54. Initial implementation
+  committed as ab4c962; the live public exports remain outside the commit.
+- End-to-end review found older browser/host specs still calling fill() on the
+  new model dropdown. The existing invalid-draft case now uses Custom model ID;
+  known aliases use selectOption(), preserving all persistence and privacy checks.
+- A new assertion reproduced a Simulation selector-value regression (__custom
+  instead of the retained model). The disabled option now keeps its actual model
+  value while continuing to describe that no model call is made.
+- Focused unit test: 1 file, 3 passed. Browser step-agent/Herdr journeys:
+  5 passed (54.1s). Contained Obsidian step-agent/Herdr persistence specs:
+  2 passed (23.69s). Typecheck and lint over the changed files: exit 0.
+- Full GitHub CI, browser and real-Obsidian jobs are enabled with the e2e label.
+
 ## CF-134 investigation
 
 The retained Build attempt `4ea01566-7688-487c-89fb-253ce54958c9` used Sonnet,
