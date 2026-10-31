@@ -1,6 +1,6 @@
 # Task: Keep long Builds durable across Obsidian lifecycles
 
-- Status: in progress
+- Status: implemented and locally qualified; final-head CI and merge are recorded in the delivery PR.
 - Journey: Idea board → native Build → preserved work → final human review.
 - Owner decisions: background worker survives Obsidian close/reload; separate
   Build/short-task lanes with configurable vault-wide concurrency, default one
@@ -129,20 +129,48 @@ finding with a behavioral regression, then qualify the combined increment.
 
 | Increment | Improvement and end-to-end obligation | Current evidence/status |
 | --- | --- | --- |
-| 1. Sustained execution | Keep hot progress separate from canonical notes; bound semantic writes/output; elapsed deadlines must survive host detach and sleep. | Focused 101-hour fake-clock and high-volume child tests; 1,000 host polls cause zero extra canonical saves. Full final gate pending. |
-| 2. Admission and startup | Prove separate 2-Build/2-short operation, safe reductions, delayed startup dispatch, and lost-prepare unpaid cleanup. | Focused application regressions passed. Source freeze and combined qualification pending. |
-| 3. Original-owner recovery | Preserve completed/lost-ACK receipts; inspect actual workspace evidence; retain unknown process ownership; cancel by known job even after metadata removal. Honor completed and unused authorization tombstones across archived generations. | Application regressions passed; real replay reproduction found and repaired a second-admission bug across generation rollover. Native recovery suites passed; final combined qualification pending. |
-| 4. Private authority | Keep machine-local files outside canonical vault aliases; exclude configured managed folders and tracked copies; preserve old generations and never move a nested worktree. | Storage-alias regression RED → GREEN; bootstrap/generation tests extended; broker protection and native client tests in progress. |
-| 5. Accurate, usable controls | Keep captured limits/profile distinct from observed progress; expose offline lost-ACK recovery and retained orphan attempts; preserve drafts/errors and explicit consent. | Initial policy/settings/monitor tests and four browser cases passed; peer-found recovery/orphan cases in progress. |
-| 6. Activity layout | Wrap long event text/tokens; align markers/actions; preserve keyboard, close/focus and timestamps in both themes and widths. | Original 535px overflow reproduced; four focused browser cases passed and images reviewed by presentation owner. Final gallery/host qualification pending. |
-| 7. Follow-up compatibility | Keep no-access steps isolated and provide qualified broker-only readonly continuation in the original workspace. Reject mixed foreground/background editing definitions before saving; never adopt a worker-owned foreground writer. | Native review reproduced downstream rejection; scoped lease/reader fixes and regressions in progress. |
-| 8. Delivery closeout | Integrate board-outline PR58; review final diff against brief/rules; run full project, UI, gallery, host smoke/native and final-head CI; merge only green. | PR58 merge 0b519ec integrated cleanly. Actual contained Windows host quit/reconnect proof passed with one admission; native policy/activity proof passed with zero jobs. Full gates pending source freeze. No paid 100-hour run or live CF-135 retry. |
+| 1. Sustained execution | Keep hot progress separate from canonical notes; bound semantic writes/output; elapsed deadlines must survive host detach and sleep. | Qualified: simulated 101-hour execution, high-volume child output and 1,000 hot polls with zero extra canonical saves. Included in the full passing gate. |
+| 2. Admission and startup | Prove separate 2-Build/2-short operation, safe reductions, delayed startup dispatch, and lost-prepare unpaid cleanup. | Qualified: independent lane operation/reductions, startup dispatch fence, unused cleanup and fresh-client rollover after verified daemon retirement. |
+| 3. Original-owner recovery | Preserve completed/lost-ACK receipts; inspect actual workspace evidence; retain unknown process ownership; cancel by known job even after metadata removal. Honor completed and unused authorization tombstones across archived generations. | Qualified: actual replay reproduction repaired, Stop intent rechecked after delayed inspection/configuration/start, existing cancel/ACK independent of future capacity sync, and immutable terminal receipts preserved. |
+| 4. Private authority | Keep machine-local files outside canonical vault aliases; exclude configured managed folders and tracked copies; preserve old generations and never move a nested worktree. | Qualified: storage aliases, bound exit/no-spawn proofs, nested/unindexed evidence, original process birth, scoped broker and managed-folder protections. Shared shell tooling restored; project build/test profiles register the hook. |
+| 5. Accurate, usable controls | Keep captured limits/profile distinct from observed progress; expose offline lost-ACK recovery and retained orphan attempts; preserve drafts/errors and explicit consent. | Qualified: recovery/empty-capture/orphan regressions, four browser cases, actual settings reload/Node/lane saves and zero-job native check. |
+| 6. Activity layout | Wrap long event text/tokens; align markers/actions; preserve keyboard, close/focus and timestamps in both themes and widths. | Qualified: original 535px overflow reproduced and repaired; focused browser checks, 8 UI-quality checks, 40 gallery captures and actual native wide-dark/narrow-light images reviewed. |
+| 7. Follow-up compatibility | Keep no-access steps isolated and provide qualified broker-only readonly continuation in the original workspace. Reject mixed foreground/background editing definitions before saving; never adopt a worker-owned foreground writer. | Qualified: actual Git read-lease identity/diff/journal tests, Claude/Codex protected read brokers, preserved prior changes, and prelaunch Herdr refusal. |
+| 8. Delivery closeout | Integrate board-outline PR58; review final diff against brief/rules; run full project, UI, gallery, host smoke/native and final-head CI; merge only green. | PR58 merge 0b519ec integrated. All local gates below passed on frozen source 027db86. Final-head GitHub CI is mandatory before merge. No paid 100-hour run or live CF-135 retry. |
 
 ## Evidence
 
-The focused evidence above is incremental qualification, not a claim that the
-full final gate has passed. Final command outputs, contained-host evidence,
-reviewed gallery and PR/CI head will be recorded at closeout.
+- `npm run verify:project`: exit 0; five check stages passed, zero failed/skipped
+  stages in **1035.3s**. Product result: **1,702 passed, zero failed, six existing
+  Windows skips**. Release build passed (2,003 modules); prototype embedding
+  **1 passed**. UI effects explicitly skip without declared visual definitions.
+- `npm run test:ui-quality`: **8/8 passed** (1.0m). `npm run ui:gallery`:
+  **40 captures, zero failures**. Representative four-theme/size combinations,
+  captured policy and activity images reviewed; no baselines changed.
+- `npm run -s dev:obsidian -- --json --port 9322`: **passed** after reload on
+  pinned Obsidian **1.14.4**, launcher **3.2.1**; errors, host errors and plugin
+  console empty. Debug report has zero error logs; screenshot reviewed; port closed.
+- `npm run test:obsidian`: **55/55 passed across 48 files**, zero failures/pending,
+  **617.80s**. All 55 teardowns completed and 56 owned sessions stopped. No live
+  owned PIDs, bad installed assets or capture errors. Both new durable native
+  cases passed, including actual host exit before the original worker finished.
+- Product-profile hook relocation: **6 unit and 11 focused product tests passed**,
+  lint passed, and old/new release `main.js` SHA256 matched exactly. This keeps
+  framework tooling generic without changing the runtime artifact.
+
+Ignored evidence lives under `reports/durable-final-project/`,
+`reports/durable-final-ui-quality/`, `reports/durable-final-ui-gallery/`,
+`reports/durable-config-hook-qualification/`,
+`reports/workflow-increment-evidence/final-native-027db86/` and
+`.obsidian-sandbox/logs/`. The delivery PR records final-head GitHub qualification.
+
+Independent review found real Stop and capacity-recovery races after the first
+freeze. The in-progress gate was interrupted before edits; failing regressions
+were implemented, peers reviewed the fixes, and the complete gate above reran.
+No skipped/TODO test counts as acceptance. The final polishing pass found no
+remaining concrete blocker. No billable provider, live CF-135, personal vault or
+live OBS/Twitch operation was used. Local Node/npm are 24.20.0/11.21.1; CI uses
+repository pins 24.21.0/11.19.1.
 
 Unchanged hot polls avoid canonical saves and mutation transactions; ordinary
 subscriber snapshot delivery retains the existing cloning/isolation contract.
