@@ -26,15 +26,19 @@ it('forwards Codex credentials only to the Codex child environment', () => {
 });
 
 it('runs Codex Build from a private directory while host tools guard files and capture actual changes', async () => {
+  const persona = `${'r'.repeat(15900)} END OF SAVED CODEX PERSONA`;
   const cwd = await realpath(await mkdtemp(join(tmpdir(), 'coforge-codex-test-'))); folders.push(cwd);
   await writeFile(join(cwd, 'game.ts'), 'before');
   const captured = vi.fn(async () => ({ summary: 'Host capture', files: [{ path: 'game.ts', additions: 1, deletions: 1 }], diff: '-before\n+after', tests: [], createdAt: new Date().toISOString(), simulated: false }));
   const lease: WorkflowWorkspaceLease = { cwd, id: 'workspace', capture: captured, release: vi.fn(async () => {}), validate: async () => {} };
   const onChanges = vi.fn(); const onTokenUsage = vi.fn(); const onConversation = vi.fn(async () => {});
   const input: StageInput = { stage: 'implement', idea: createSeed().ideas[0]!, settings: { ...defaultSettings(), provider: 'codex', model: 'gpt-6.1-sol' }, integration: { ...defaultIntegration(), codexBin: 'synthetic-codex' }, onChanges, onTokenUsage, onConversation,
-    workflow: { runId: 'run', definitionRevision: 'definition', proposalRevision: 'proposal', attemptId: 'attempt', inputArtifacts: [], step: { id: 'build', name: 'Build', kind: 'ai', provider: 'codex', model: 'gpt-6.1-sol', effort: 'high', instructions: 'Implement', output: 'codechange', access: 'editworktree', automatic: false } } };
+    workflow: { runId: 'run', definitionRevision: 'definition', proposalRevision: 'proposal', attemptId: 'attempt', inputArtifacts: [],
+      coworker: { format: 'coforge-workflow-coworker/v1', id: 'saved-builder', revision: 'builder-revision', name: 'Saved builder', role: 'Compatibility engineer', instructions: persona, provider: 'codex', model: 'gpt-6.1-sol', effort: 'high' },
+      step: { id: 'build', name: 'Build', kind: 'ai', coworkerId: 'saved-builder', provider: 'codex', model: 'gpt-6.1-sol', effort: 'high', instructions: 'Implement', output: 'codechange', access: 'editworktree', automatic: false } } };
   transport.run.mockImplementation(async (_command: string, args: string[], options: ProcessOptions) => {
     expect(options.cwd).not.toBe(cwd); expect(args).not.toContain(cwd);
+    expect(options.input).toContain(persona); expect(args.join(' ')).not.toContain(persona);
     expect(args).toContain('model_reasoning_effort="high"');
     const config = args.find(value => value.startsWith('mcp_servers='))!;
     const url = /"url" = "([^"]+)"/u.exec(config)?.[1];

@@ -13,6 +13,7 @@ import { stageUsageCheck, hasTokenUsage, type StageUsage } from '../domain/ai-us
 import { workflowIntegrityKey } from './workflow-note-integrity';
 import { workflowProposalRevision } from '../domain/configured-workflow-run';
 import { ConfiguredWorkflowEngine } from './configured-workflow-engine';
+import { assertWorkflowNotStopped } from './workflow-stop-policy';
 import type { WorkflowPlanHandoff } from './workflow-plan-handoff';
 import type { AutomationContext } from '../domain/automation-context';
 import type { AgentTaskPort } from './agent-task';
@@ -89,6 +90,7 @@ export class WorkflowEngine {
   }
   acknowledgeWorkflowNudge(ideaId: string, revision: number, consent: boolean) { return this.configured.acknowledgeNudge(ideaId, revision, consent); }
   async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }
+  async restartWorkflowFromOperator(ideaId: string) { const run = await this.configured.restart(ideaId); this.kick(); return run; }
   async startTriggeredWorkflow(ideaId: string, event: AutomationContext, expectedDefinitionJson: string) { const run = await this.configured.start(ideaId, true, undefined, false, event, expectedDefinitionJson); this.kick(); return run; }
   async startMcpWorkflow(ideaId: string) { const run = await this.configured.start(ideaId, true, undefined, true); this.kick(); return run; }
   async startWorkflowFromPlan(ideaId: string, handoff: WorkflowPlanHandoff) { const run = await this.configured.start(ideaId, true, handoff); this.kick(); return run; }
@@ -96,8 +98,9 @@ export class WorkflowEngine {
   async completeWorkflowManual(ideaId: string, revision: number, checkedIds: string[], note = '') { const run = await this.configured.manual(ideaId, revision, checkedIds, note); this.kick(); return run; }
   async stopWorkflow(ideaId: string) {
     const job = this.store.snapshot().jobs.find(item => item.ideaId === ideaId && isActiveJob(item));
-    if (job) await this.cancel(job.id);
-    return this.configured.stop(ideaId);
+    const run = await this.configured.stop(ideaId);
+    if (job?.id === this.activeId) this.controller?.abort();
+    return run;
   }
 
   start(): void {
@@ -125,6 +128,7 @@ export class WorkflowEngine {
       if (!idea) throw new StudioError('Idea not found.', 404);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
+      assertWorkflowNotStopped(state, ideaId);
       if (settings.workflow || idea.workflowRun || Object.hasOwn(state.integrity, workflowIntegrityKey(idea))) throw new StudioError('Use this project’s configured workflow controls instead of legacy stage actions. Restore missing managed progress before reviewing preserved changes.', 409);
       const agent = stageAgent(settings, stage);
       if (agent.provider === 'herdr' && !this.options.runners.herdr) throw new StudioError('Herdr workflow execution is unavailable in this host.', 409);

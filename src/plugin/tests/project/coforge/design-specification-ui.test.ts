@@ -52,9 +52,12 @@ it.each(['invalidated', 'older request', 'tampered', 'foreign run'] as const)('d
     expect(f.wrapper.get('[aria-label="Design specification"]').text()).not.toContain('Preserve save compatibility.');
     expect(f.wrapper.findAll('button').some(button => button.text() === 'Copy Design Markdown')).toBe(false);
     const writes = f.storage.saves;
+    const page = f.store.view;
     await f.wrapper.findAll('button').find(button => button.text() === 'Inspect workflow evidence')!.trigger('click');
-    expect(f.store.workflowRequestSelection).toBe(current.id);
-    expect(f.store.view).toBe('workflow');
+    expect(f.store.selected).toBe(current.id);
+    expect(f.store.drawerTab).toBe('workflow');
+    expect(f.store.view).toBe(page);
+    expect(f.wrapper.get('[aria-label="Request workflow execution"]').text()).toContain(current.id);
     expect(f.storage.saves).toBe(writes);
     expect(f.runner).not.toHaveBeenCalled();
   } finally { await f.close(); }

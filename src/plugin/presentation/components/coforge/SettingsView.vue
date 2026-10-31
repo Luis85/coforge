@@ -33,7 +33,7 @@ const navigation = useSettingsNavigation(model);
       <div class="cf-settings-content">
         <div v-if="model.error" class="cf-settings-alert is-error" role="alert">
           <CfIcon name="circle-alert" />
-          <span>{{ model.error }}<small v-if="model.dirty">Your draft is kept while you review General, Requests and Repository.</small></span>
+          <span class="cf-notice-body">{{ model.error }}<small v-if="model.dirty">Your draft is kept while you review General, Requests and Repository.</small></span>
         </div>
         <section v-if="!model.availableProject && !model.dirty && !['data', 'workflow'].includes(model.store.settingsTool)" class="cf-empty-state" aria-label="Choose a project for settings">
           <h2>Choose a project</h2>

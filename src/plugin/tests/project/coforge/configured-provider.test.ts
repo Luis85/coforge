@@ -95,8 +95,12 @@ it.each(['markdown', 'design'] as const)("uses the same bounded %s Markdown payl
 it('runs a Design specification through the native read-only profile and validates its Herdr transport payload', async () => {
   const { input, workspaces, project } = await fixture();
   const workflow = input.workflow!;
-  const designInput: StageInput = { ...input, stage: 'plan', workflow: { ...workflow, step: { ...workflow.step, id: 'design', name: 'Design', output: 'design', access: 'readproject' } } };
+  const persona = `${'r'.repeat(15900)} END OF SAVED CLAUDE PERSONA`;
+  const designInput: StageInput = { ...input, stage: 'plan', workflow: { ...workflow,
+    coworker: { format: 'coforge-workflow-coworker/v1', id: 'saved-designer', revision: 'designer-revision', name: 'Saved designer', role: 'Compatibility designer', instructions: persona, provider: 'claude', model: workflow.step.model },
+    step: { ...workflow.step, id: 'design', name: 'Design', coworkerId: 'saved-designer', output: 'design', access: 'readproject' } } };
   transport.run.mockImplementationOnce(async (args, options) => {
+    expect(options.input).toContain(persona); expect(args.join(' ')).not.toContain(persona);
     expect(args[args.indexOf('--tools') + 1]).toBe('Read,Glob,Grep');
     expect(JSON.parse(args[args.indexOf('--json-schema') + 1]).required).toEqual(['markdown']);
     expect(await readFile(join(options.cwd, 'game.txt'), 'utf8')).toBe('original\n');

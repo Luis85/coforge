@@ -1,4 +1,4 @@
-import { computed, reactive, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useCouncilEntry } from './use-council-entry';
 import { uncertainTaskAttempt } from '../../../features/coforge/application/agent-task';
 import { storeToRefs } from "pinia";
@@ -8,6 +8,7 @@ import type { WorkflowRun } from "../../../features/coforge/domain/configured-wo
 import { workflowDefinition } from "../../../features/coforge/domain/configured-workflow";
 import { isActiveJob } from "../../../features/coforge/domain/workflow";
 import { defaultSettings } from "../../../features/coforge/domain/seed";
+import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
 import { workflowProviderSummary } from "./agent-labels";
@@ -17,35 +18,29 @@ import {
   CONFIGURED_RUN_LABELS,
 } from "./configured-workflow-display";
 /** Shared workflow workspace; execution reads captured definitions and settings edit future runs. */
-export function useWorkflow() {
+export function useWorkflow(ideaId?: () => string | undefined) {
   const openCouncil = useCouncilEntry();
   const store = useStudioStore();
   const actions = useStudioActions();
+  const shared = storeToRefs(useConfiguredWorkflowUiStore());
+  const scoped = { monitorError: ref(''), historyExpanded: ref(false), nudgeRecoveryKey: ref(''), nudgeRecoveryConsent: ref(false) };
   const {
     monitorError: error,
     historyExpanded: expanded,
     nudgeRecoveryKey,
     nudgeRecoveryConsent,
-  } = storeToRefs(useConfiguredWorkflowUiStore());
-  const settings = computed(() => store.state?.settings ?? defaultSettings());
+  } = ideaId ? scoped : shared;
+  const selected = computed(() => ideaId ? store.state?.ideas.find(idea => idea.id === ideaId()) : undefined);
+  const project = computed(() => selected.value
+    ? store.state?.projects?.find(project => project.id === ideaProjectId(selected.value!))
+    : ideaId ? undefined : store.activeProject);
+  const settings = computed(() => project.value?.settings ?? defaultSettings());
   const savedDefinition = computed(() => workflowDefinition(settings.value));
-  const selected = computed(
-    () =>
-      store.projectIdeas.find(
-        (idea) => idea.id === store.workflowRequestSelection,
-      ) ??
-      store.projectIdeas.find(
-        (idea) =>
-          idea.workflowRun &&
-          !["finished", "stopped"].includes(idea.workflowRun.state),
-      ) ??
-      store.projectIdeas.find(
-        (idea) => !["shipped", "rejected"].includes(idea.status),
-      ) ??
-      store.projectIdeas[0],
-  );
   const run = computed(() => selected.value?.workflowRun);
-  watch(() => `${run.value?.id}:${run.value?.revision}`, key => { if (key !== nudgeRecoveryKey.value) { nudgeRecoveryKey.value = key; nudgeRecoveryConsent.value = false; } });
+  const operatorHeld = computed(() => Boolean(selected.value && store.state?.workflowStopHolds?.includes(selected.value.id)));
+  const preservedReview = computed(() => operatorHeld.value && Boolean(selected.value?.increment) && run.value?.state === 'awaiting-review');
+  watch(() => `${selected.value?.id}:${run.value?.id}:${run.value?.revision}`, key => { if (key !== nudgeRecoveryKey.value) { nudgeRecoveryKey.value = key; nudgeRecoveryConsent.value = false; } });
+  watch(() => `${selected.value?.id}:${run.value?.id}`, () => { error.value = ''; });
   const uncertainNudges = computed(() => run.value?.attempts.filter(uncertainTaskAttempt) ?? []);
   const councilAttempt = computed(() => run.value?.attempts.find(attempt => attempt.id === run.value?.activeAttemptId && attempt.kind === 'council' && attempt.nudgeRunId) ?? [...(run.value?.attempts ?? [])].reverse().find(attempt => attempt.kind === 'council' && attempt.nudgeRunId));
   const definition = computed(
@@ -61,17 +56,19 @@ export function useWorkflow() {
     workflowProviderSummary(
       { ...settings.value, workflow: definition.value },
       run.value?.external,
+      Boolean(run.value),
     ),
   );
   const enabledCount = computed(() => run.value?.external ? 0 : definition.value.steps.filter(step => (step.kind === 'ai' || step.kind === 'council' || step.kind === 'nudge') && step.automatic).length);
   const blocked = computed(() => {
     const idea = selected.value;
     if (!idea) return "Select a request to run its workflow.";
+    if (operatorHeld.value) return 'Right-click this card and choose Restart workflow';
     if (uncertainNudges.value.length) return 'Inspect and acknowledge the uncertain task or cancellation before starting more work.';
     if (["shipped", "rejected", "flagged"].includes(idea.status))
       return "This request is closed or held for moderation.";
     if (
-      store.projectJobs.some(
+      (store.state?.jobs ?? []).some(
         (job) => job.ideaId === idea.id && isActiveJob(job),
       )
     )
@@ -90,16 +87,20 @@ export function useWorkflow() {
     return currentStep.value?.kind === "ai"
       ? configuredStepProblem(
           currentStep.value,
-          store.activeProject,
+          project.value,
           store.state?.runtime,
           idea,
           run.value,
+          !run.value && currentStep.value.coworkerId !== undefined,
         )
       : "";
   });
   function perform(work: () => Promise<boolean>) {
+    const requestId = selected.value?.id;
+    const runId = run.value?.id;
     error.value = "";
     void work().then((ok) => {
+      if (selected.value?.id !== requestId || run.value?.id !== runId) return;
       if (!ok)
         error.value =
           store.toasts.at(-1)?.message || "The workflow could not be updated.";
@@ -107,15 +108,26 @@ export function useWorkflow() {
   }
   const terminal = (value: WorkflowRun | undefined) =>
     value && ["finished", "stopped"].includes(value.state);
+  async function editDefinition(stepId?: string) {
+    const owner = project.value;
+    if (!owner) return;
+    const problem = store.configurationIssue(owner.id === store.activeProject?.id ? 'workflow-settings' : undefined);
+    if (problem) { store.notify(problem, true); return; }
+    if (owner.id !== store.activeProject?.id && !(await actions.selectProject(owner.id))) return;
+    if (stepId) store.workflowStepSelection = stepId;
+    store.select(null);
+    store.openWorkflowTool('settings');
+  }
   return reactive({
     store,
     page: computed(() =>
-      store.view === "workflow-settings" ? "settings" : store.workflowTool,
+      store.view === 'workflow-settings' && !['settings', 'limits', 'templates'].includes(store.workflowTool) ? 'settings' : store.workflowTool,
     ),
     error,
     expanded,
     selected,
     run,
+    operatorHeld,
     definition,
     currentStep,
     councilAttempt,
@@ -147,7 +159,7 @@ export function useWorkflow() {
           : "Automation resumed",
     ),
     runLabel: computed(() =>
-      run.value ? CONFIGURED_RUN_LABELS[run.value.state] : "Not started",
+      preservedReview.value ? 'Stopped — preserved changes need review' : operatorHeld.value ? 'Stopped' : run.value ? CONFIGURED_RUN_LABELS[run.value.state] : "Not started",
     ),
     capturedEarlier: computed(() =>
       Boolean(
@@ -161,6 +173,7 @@ export function useWorkflow() {
     canRestart: computed(
       () =>
         !store.busy &&
+        !operatorHeld.value &&
         !uncertainNudges.value.length &&
         !run.value?.attempts.some(attempt => attempt.councilCancellation === 'requested') &&
         Boolean(terminal(run.value)) &&
@@ -172,6 +185,7 @@ export function useWorkflow() {
     canStop: computed(
       () =>
         !store.busy &&
+        !operatorHeld.value &&
         Boolean(
           run.value &&
           ["ready", "running", "waiting-human", "attention"].includes(
@@ -185,6 +199,8 @@ export function useWorkflow() {
         : `${run.value?.state === "attention" ? "Retry" : run.value ? "Run" : "Start"} · ${currentStep.value?.name ?? "workflow"}`,
     ),
     nextActionHeading: computed(() => {
+      if (preservedReview.value) return 'Stopped — preserved changes need review';
+      if (operatorHeld.value) return 'This workflow is stopped';
       if (!run.value && selected.value?.lastError)
         return "Workflow start needs attention";
       if (run.value?.state === "waiting-human") return "Your decision is next";
@@ -199,6 +215,7 @@ export function useWorkflow() {
       return `${run.value?.state === "attention" ? "Review before retrying" : run.value ? "Next step" : "Start with"} · ${currentStep.value?.name ?? "workflow"}`;
     }),
     nextActionHelp: computed(() => {
+      if (operatorHeld.value) return `${preservedReview.value ? 'Review the preserved changes before deciding what to keep. ' : 'The captured history is retained. '}Right-click this card and choose Restart workflow`;
       if (!run.value && selected.value?.lastError)
         return selected.value.lastError;
       if (run.value?.state === "running")
@@ -217,7 +234,7 @@ export function useWorkflow() {
       if (currentStep.value?.kind === 'council') return 'This step admits a captured live Council discussion and waits for its complete published answer. Council execution and recovery controls remain in The Council.';
       if (currentStep.value?.kind === 'nudge') return 'This step creates a separate CoWorker task and continues after admission. Follow its results in The Council.';
       return currentStep.value?.kind === "ai"
-        ? `${configuredAgentLabel(currentStep.value)}. Starting this step captures its inputs and waits for the required result.`
+        ? `${configuredAgentLabel(currentStep.value, Boolean(run.value))}. Starting this step captures its inputs and waits for the required result.`
         : "This step waits for explicit streamer input before the workflow advances.";
     }),
     progressLabel: computed(
@@ -232,7 +249,7 @@ export function useWorkflow() {
         agent:
           run.value?.external && step.kind === "ai"
             ? "External MCP client"
-            : configuredAgentLabel(step),
+            : configuredAgentLabel(step, Boolean(run.value)),
         current:
           index === (run.value?.cursor ?? 0) &&
           !run.value?.state?.match(/^(finished|stopped|awaiting-review)$/u),
@@ -255,11 +272,11 @@ export function useWorkflow() {
     ),
     runNext: () => {
       const id = selected.value?.id;
-      if (id) perform(() => actions.runWorkflowStep(id));
+      if (id && !operatorHeld.value) perform(() => actions.runWorkflowStep(id));
     },
     restart: () => {
       const id = selected.value?.id;
-      if (id) perform(() => actions.startWorkflow(id));
+      if (id && !operatorHeld.value) perform(() => actions.startWorkflow(id));
     },
     stop: () => {
       const id = selected.value?.id;
@@ -267,24 +284,14 @@ export function useWorkflow() {
     },
     togglePause: () =>
       perform(() => actions.changeSettings({ paused: !settings.value.paused })),
-    selectRequest: (event: Event) => {
-      if (
-        event.target &&
-        "value" in event.target &&
-        typeof event.target.value === "string"
-      )
-        store.workflowRequestSelection = event.target.value;
-    },
     selectPage: (page: import("../../stores/studio-pages").WorkflowPage) =>
       store.openWorkflowTool(page),
-    editWorkflow: () => store.openWorkflowTool("settings"),
-    editPrompt: (id: string) => {
-      store.workflowStepSelection = id;
-      store.openWorkflowTool("settings");
-    },
+    editWorkflow: () => { void editDefinition(); },
+    editPrompt: (id: string) => { void editDefinition(id); },
     openIdea: (id: string) => {
-      void actions.openIdea(id);
+      store.select(id, 'workflow');
     },
+    reviewCode: () => { if (selected.value) store.select(selected.value.id, 'increment'); },
     cancel: (id: string) => perform(() => actions.cancelJob(id)),
     toggleExpanded: () => {
       expanded.value = !expanded.value;

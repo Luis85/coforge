@@ -82,16 +82,28 @@ describe('Project Request Object in the contained host', () => {
     });
     expect(surface.opacity).toBe('1'); expect(surface.background).not.toBe('transparent'); expect(surface.alpha).toBe(1);
     const tabs = drawer.getByRole('navigation', { name: 'Idea sections', exact: true });
+    await browserExpect(tabs.getByRole('button')).toHaveText(['Overview', 'Plan & Design', 'Increment', 'Workflow runs', 'Activity']);
     await browserExpect(tabs).toHaveCSS('flex-direction', 'row'); await browserExpect(tabs).toHaveCSS('flex-wrap', 'wrap');
     const geometry = await tabs.evaluate(element => {
       const bounds = element.getBoundingClientRect(); const style = getComputedStyle(element);
-      const buttons = [...element.querySelectorAll('button')].map(button => { const box = button.getBoundingClientRect(); return { top: box.top, width: box.width, left: box.left, right: box.right }; });
-      return { width: bounds.width, left: bounds.left, right: bounds.right, basis: style.flexBasis, buttons, fits: element.scrollWidth <= element.clientWidth + 1 };
+      const buttons = [...element.querySelectorAll('button')].map(button => { const box = button.getBoundingClientRect(); return { top: box.top, bottom: box.bottom, width: box.width, left: box.left, right: box.right }; });
+      const padding = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
+      return { width: bounds.width, top: bounds.top, bottom: bounds.bottom, left: bounds.left, right: bounds.right, contentWidth: bounds.width - padding, gap: Number.parseFloat(style.columnGap) || 0, basis: style.flexBasis, buttons, fits: element.scrollWidth <= element.clientWidth + 1 };
     });
-    expect(geometry.buttons).toHaveLength(4); expect(geometry.basis).toBe('auto'); expect(geometry.fits).toBe(true);
-    expect(Math.max(...geometry.buttons.map(button => button.top)) - Math.min(...geometry.buttons.map(button => button.top))).toBeLessThan(1);
-    expect(geometry.buttons[1]!.left - geometry.buttons[0]!.right).toBeGreaterThanOrEqual(8);
-    for (const button of geometry.buttons) { expect(button.width).toBeLessThan(geometry.width / 2); expect(button.left).toBeGreaterThanOrEqual(geometry.left); expect(button.right).toBeLessThanOrEqual(geometry.right + 1); }
+    expect(geometry.buttons).toHaveLength(5); expect(geometry.basis).toBe('auto'); expect(geometry.fits).toBe(true);
+    const neededWidth = geometry.buttons.reduce((sum, button) => sum + button.width, 0) + geometry.gap * (geometry.buttons.length - 1);
+    if (neededWidth <= geometry.contentWidth + 1)
+      expect(Math.max(...geometry.buttons.map(button => button.top)) - Math.min(...geometry.buttons.map(button => button.top))).toBeLessThan(1);
+    const rows = geometry.buttons.reduce<Array<typeof geometry.buttons>>((groups, button) => {
+      const row = groups.find(group => Math.abs(group[0]!.top - button.top) < 1);
+      if (row) row.push(button); else groups.push([button]);
+      return groups;
+    }, []);
+    for (const [index, row] of rows.entries()) {
+      for (let button = 1; button < row.length; button++) expect(row[button]!.left - row[button - 1]!.right).toBeGreaterThanOrEqual(8);
+      if (index) expect(row[0]!.top).toBeGreaterThanOrEqual(Math.max(...rows[index - 1]!.map(button => button.bottom)));
+    }
+    for (const button of geometry.buttons) { expect(button.width).toBeLessThan(geometry.width / 2); expect(button.left).toBeGreaterThanOrEqual(geometry.left); expect(button.right).toBeLessThanOrEqual(geometry.right + 1); expect(button.top).toBeGreaterThanOrEqual(geometry.top); expect(button.bottom).toBeLessThanOrEqual(geometry.bottom + 1); }
     expect(obsidian.errors()).toEqual([]);
     await obsidian.screenshot('request-object-captured-schema-and-human-note');
   });

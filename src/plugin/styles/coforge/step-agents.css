@@ -14,8 +14,9 @@
   padding: 0;
   min-width: 0;
 }
-.ps--coforge .cf-settings-save {
-  bottom: var(--cf-host-status-inset, 0px);
+.ps--coforge .cf-settings-page .cf-settings-save {
+  bottom: 0;
+  padding-bottom: calc(16px + var(--cf-host-status-inset, 0px));
 }
 .ps--coforge .cf-settings-fields .cf-settings-help,
 .ps--coforge .cf-workflow-help {

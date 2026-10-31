@@ -3,6 +3,7 @@ import { omit } from '../domain/objects';
 import { synchronizeProject } from '../domain/projects';
 import type { AppState } from '../domain/types';
 import type { InternalState, LoadedStudio, SaveOptions, StudioStorage } from './ports';
+import { enforceWorkflowStopHolds } from './workflow-stop-policy';
 import { assemble, enforceIntegrity } from './studio-state';
 import { prepareStudioCommit } from './commit-policies';
 import { StudioEvents, type StudioEventListener, type StudioEventSink } from './studio-events';
@@ -58,9 +59,10 @@ export class StudioStore {
     }
     delete state.runtime.activeJobId;
     recoverConfiguredRuns(state);
+    enforceWorkflowStopHolds(state);
     enforceIntegrity(state, new Set());
-    state.settings.paused = true; // Unattended execution never resumes merely because the plugin restarted.
-    for (const project of state.projects) project.settings.paused = true;
+    state.settings.paused = state.projects.some(project => project.id === state.activeProjectId && project.unavailable) || state.settings.workflow?.startupMode !== 'play';
+    for (const project of state.projects) project.settings.paused = project.unavailable === true || project.settings.workflow?.startupMode !== 'play';
     synchronizeProject(state);
     const release = await this.beforeCommit?.(state, null);
     try {
@@ -113,6 +115,7 @@ export class StudioStore {
       const previous = this.current();
       const next = structuredClone(previous);
       const result = await mutate(next);
+      enforceWorkflowStopHolds(next);
       const { events, fromNotes } = prepareStudioCommit(previous, next, options);
       const revoked = previous.projects.filter(project => projectIsPublic({ projects: previous.projects }, project.id) && !projectIsPublic({ projects: next.projects }, project.id)).map(project => project.id);
       this.denyPublicProjects(revoked);

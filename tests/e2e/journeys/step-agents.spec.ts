@@ -43,7 +43,7 @@ test("configures explicit mixed step agents independently and restores the stand
   await expect(page.locator(".cf-topbar .cf-provider-pill")).toContainText(
     "Mixed providers",
   );
-  await openWorkflowRuns(page);
+  await openWorkflowRuns(page, 'CF-107');
   await expect(
     page.getByRole("list", { name: "Captured workflow steps", exact: true }),
   ).toContainText("haiku");
@@ -118,16 +118,16 @@ test("keeps an invalid explicit model draft and prevents navigation from discard
   await expect(
     page.getByRole("button", { name: "Save workflow", exact: true }),
   ).toBeDisabled();
-  await page.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Workflow runs', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Step attempts', exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Workflow settings", exact: true }),
+    page.getByRole("heading", { name: "Idea Board Workflow", exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("Custom model ID", { exact: true })).toHaveValue(
     "not a model",
   );
   await page.getByLabel("AI model", { exact: true }).selectOption("haiku");
   await save(page);
-  await openWorkflowRuns(page);
+  await openWorkflowRuns(page, 'CF-107');
   await expect(
     page.getByRole("list", { name: "Captured workflow steps", exact: true }),
   ).toContainText("haiku");

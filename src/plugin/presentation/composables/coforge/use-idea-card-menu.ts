@@ -18,6 +18,7 @@ import {
 } from "./idea-workflow-action";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
+import { useWorkflowStopControls } from './use-workflow-stop-controls';
 const elementNode = (value: unknown): value is HTMLElement =>
   Boolean(
     value &&
@@ -47,6 +48,7 @@ export function useIdeaCardMenu(
       if (open) contextOpen.value = false;
     }
     if (open) {
+      stopControls.review();
       reviewed.value = ideaWorkflowActionIdentity(props.idea, project.value);
       reviewedCouncil.value = councilIdeaRevision(props.idea);
     }
@@ -70,15 +72,9 @@ export function useIdeaCardMenu(
       : (nextAction.value?.blocked ?? ""),
   );
   const openWorkflow = () => {
-    const guard = store.configurationIssue("workflow");
-    if (guard) {
-      store.notify(guard, true);
-      return;
-    }
-    store.workflowRequestSelection = props.idea.id;
-    store.select(null);
-    store.openWorkflowTool("runs");
+    store.select(props.idea.id, 'workflow');
   };
+  const stopControls = useWorkflowStopControls(props, project, openWorkflow);
   const runStage = () => {
     if (!projectFeatureEnabled(project.value, 'workflow')) return;
     const current = store.state?.ideas.find(
@@ -187,7 +183,7 @@ export function useIdeaCardMenu(
         },
       },
     ]);
-    if (action)
+    if (action && !stopControls.held.value)
       groups.push([
         { type: "label", label: "Configured workflow" },
         {
@@ -198,7 +194,8 @@ export function useIdeaCardMenu(
           onSelect: runStage,
         },
       ]);
-    if (idea.status === "review" || idea.status === "shipped")
+    if (stopControls.items.value.length) groups.push(stopControls.items.value);
+    if (idea.status === "review" || idea.status === "shipped" || (stopControls.held.value && idea.increment))
       groups.push([
         {
           label: "Review increment",

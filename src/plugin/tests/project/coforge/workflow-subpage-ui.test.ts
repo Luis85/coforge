@@ -10,7 +10,7 @@ it('owns Agent workflow inside bottom project settings and guards a dirty local 
   try {
     await flushPromises();
     const sidebar = wrapper.get('.cf-sidebar');
-    expect(sidebar.findAll('button').filter(button => button.text().trim() === 'Workflow settings')).toHaveLength(0);
+    expect(sidebar.findAll('button').filter(button => button.text().trim() === 'Idea Board Workflow')).toHaveLength(0);
     expect(sidebar.findAll('button').filter(button => button.text().trim() === 'Agent workflow')).toHaveLength(0);
     const rootNavigation = sidebar.get('nav[aria-label="CoForge navigation"]');
     expect(rootNavigation.findAll('.cf-nav-item').at(-1)?.text().trim()).toBe('Project settings');
@@ -27,12 +27,12 @@ it('owns Agent workflow inside bottom project settings and guards a dirty local 
       if (!button) throw new Error(`Missing workflow subpage ${label}`);
       await button.trigger('click'); await flushPromises();
     };
-    await select('Workflow settings');
+    await select('Idea Board Workflow');
     expect(fixture.store.view).toBe('workflow-settings');
     expect(wrapper.findAll('h1').map(heading => heading.text())).toEqual(['Project settings']);
-    expect(wrapper.get('.cf-workflow-settings-page h2').text()).toBe('Workflow settings');
+    expect(wrapper.get('.cf-workflow-settings-page h2').text()).toBe('Idea Board Workflow');
     expect(sidebar.get('[title="Project settings"]').attributes('aria-current')).toBe('page');
-    const name = wrapper.get('.cf-workflow-editor > fieldset > .cf-field input');
+    const name = wrapper.get('[data-workflow-field="name"]');
     await name.setValue('A protected local workflow draft'); await flushPromises();
     expect(fixture.store.dirtyWorkflow).toBe(true);
     const general = settingsPages.findAll('button').find(button => button.get('strong').text() === 'General');
@@ -40,19 +40,19 @@ it('owns Agent workflow inside bottom project settings and guards a dirty local 
     await general.trigger('click'); await flushPromises();
     expect(workflowPage.attributes('aria-current')).toBe('page');
     expect(name.element).toHaveProperty('value', 'A protected local workflow draft');
-    await select('Workflow runs');
+    await select('Step attempts');
     expect(fixture.store.view).toBe('workflow-settings');
     expect(name.element).toHaveProperty('value', 'A protected local workflow draft');
-    await select('Herdr workspaces');
+    await select('Herdr');
     expect(fixture.store.view).toBe('workflow-settings');
     const discard = wrapper.findAll('button').find(button => button.text().trim() === 'Discard workflow changes');
     if (!discard) throw new Error('Missing discard action');
     await discard.trigger('click'); await flushPromises();
-    await select('Workflow runs');
+    await select('Step attempts');
     expect(fixture.store.view).toBe('workflow');
     expect(fixture.store.dirtyWorkflow).toBe(false);
-    expect(wrapper.get('[aria-label="Request workflow runs"]').isVisible()).toBe(true);
-    expect(local.get('[aria-current="page"]').text()).toBe('Workflow runs');
+    expect(wrapper.get('[aria-label="Workflow step attempts"]').isVisible()).toBe(true);
+    expect(local.get('[aria-current="page"]').text()).toBe('Step attempts');
     expect(fixture.storage.saves).toBe(writes);
     expect(fixture.studio.state().jobs).toEqual([]);
     expect(fixture.runner).not.toHaveBeenCalled();
@@ -74,7 +74,7 @@ it('keeps the local configuration prerequisite reachable before a project exists
     if (!workflow) throw new Error('Missing Agent workflow settings subpage');
     await workflow.trigger('click'); await flushPromises();
     expect(workflow.attributes('aria-current')).toBe('page');
-    const settings = wrapper.get('nav[aria-label="Agent workflow pages"]').findAll('button').find(button => button.text().trim() === 'Workflow settings');
+    const settings = wrapper.get('nav[aria-label="Agent workflow pages"]').findAll('button').find(button => button.text().trim() === 'Idea Board Workflow');
     if (!settings) throw new Error('Missing settings subpage');
     await settings.trigger('click'); await flushPromises();
     expect(wrapper.get('.cf-workflow-settings-page').text()).toContain('Choose a project');

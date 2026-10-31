@@ -98,6 +98,7 @@ it("routes task-specific workflow links to runs and preserves the selected page 
 
 it("separates request execution from Herdr workspace administration without dispatching work", async () => {
   const fixture = await workflowUiFixture();
+  fixture.store.openWorkflowTool("runs");
   const wrapper = mount(WorkflowView, {
     attachTo: document.body,
     global: {
@@ -109,17 +110,17 @@ it("separates request execution from Herdr workspace administration without disp
     await flushPromises();
     const navigation = wrapper.get('nav[aria-label="Agent workflow pages"]');
     expect(
-      wrapper.get('[aria-label="Request workflow runs"]').isVisible(),
+      wrapper.get('[aria-label="Workflow step attempts"]').isVisible(),
     ).toBe(true);
     expect(wrapper.get(".cf-herdr").isVisible()).toBe(false);
     const herdr = navigation
       .findAll("button")
-      .find((button) => button.text() === "Herdr workspaces");
+      .find((button) => button.text() === "Herdr");
     if (!herdr) throw new Error("Herdr workspace navigation is missing.");
     await herdr.trigger("click");
     expect(wrapper.get(".cf-herdr").isVisible()).toBe(true);
     expect(
-      wrapper.get('[aria-label="Request workflow runs"]').isVisible(),
+      wrapper.get('[aria-label="Workflow step attempts"]').isVisible(),
     ).toBe(false);
     expect(fixture.runner).not.toHaveBeenCalled();
     expect(fixture.studio.state().jobs).toHaveLength(0);

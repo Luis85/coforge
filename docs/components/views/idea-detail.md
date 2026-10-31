@@ -42,7 +42,9 @@ iteration: ""
 
 Decide the next valid action for one request.
 
-Focused overview, plan, increment and activity children support one request. The footer preserves mandatory review and services reject invalid transitions.
+Overview, Plan & Design, Increment, Activity and Workflow runs support exactly one
+request. Workflow runs contains its captured process and retained run history.
+The footer preserves mandatory review and services reject invalid transitions.
 
 ## Entry and next action
 
@@ -60,4 +62,7 @@ Journey tags: `request-to-recognition`.
 
 ## Workspace redesign
 
-The request heading is a distinct project-work surface; evidence sections use a larger reading hierarchy. Overview, plan, increment and activity keep their existing local navigation and review gates.
+The request heading is a distinct project-work surface; evidence sections use a
+larger reading hierarchy. A stopped Inbox request with preserved changes exposes
+Increment review, with an actionable explanation before Restart. The card menu
+owns explicit Stop/Restart; detail navigation never releases the durable hold.

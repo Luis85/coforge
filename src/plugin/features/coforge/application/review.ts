@@ -13,15 +13,16 @@ export function applyReview(state: InternalState, ideaId: string, action: Exclud
   if (!idea) throw new StudioError('Idea not found.', 404);
   if (state.jobs.some(j => j.ideaId === ideaId && isActiveJob(j))) throw new StudioError('Cancel or finish this idea’s agent job before reviewing it.', 409);
   const text = cleanText(note, 3000);
+  const preservedReview = state.workflowStopHolds?.includes(ideaId) && idea.status === 'inbox' && idea.workflowRun?.state === 'awaiting-review' && Boolean(idea.increment);
   if (action === 'approve') {
     if (!idea.workflowRun && Object.hasOwn(state.integrity, workflowIntegrityKey(idea)))
       throw new StudioError('Managed workflow progress is missing. Restore the original request metadata before accepting its preserved changes.', 409);
-    if (idea.status !== 'review' || !idea.increment) throw new StudioError('Only a completed increment in review can be accepted.', 409);
+    if ((idea.status !== 'review' && !preservedReview) || !idea.increment) throw new StudioError('Only a completed increment in review can be accepted.', 409);
     idea.status = 'shipped';
     idea.reviewNote = text || 'Accepted by the streamer.';
     addEvent(state, 'review', `${ideaId} accepted by the streamer. ${idea.increment.simulated ? 'Demo increment; no files were merged.' : 'Git merge and release remain manual.'}`, ideaId);
   } else if (action === 'changes') {
-    if (idea.status !== 'review') throw new StudioError('Changes can only be requested during increment review.', 409);
+    if (idea.status !== 'review' && !preservedReview) throw new StudioError('Changes can only be requested during increment review.', 409);
     if (text.length < 3) throw new StudioError('Describe the changes you want before returning this increment.');
     idea.status = 'planned';
     idea.reviewNote = text;

@@ -11,6 +11,7 @@ export type WorkflowOutput = typeof WORKFLOW_OUTPUTS[number];
 export type WorkflowAccess = typeof WORKFLOW_ACCESS[number];
 interface StepBase { id: string; name: string; instructions: string }
 export interface AiWorkflowStep extends StepBase {
+  coworkerId?: string;
   outputTemplateId?: string;
   /** Include other preceding results without requiring optional host captures to exist. */
   includePreviousResults?: boolean;
@@ -25,12 +26,14 @@ export interface CouncilWorkflowStep extends StepBase { kind: 'council'; council
 export type WorkflowStep = AiWorkflowStep | ApprovalWorkflowStep | ChecklistWorkflowStep | NudgeWorkflowStep | CouncilWorkflowStep;
 export interface WorkflowDefinition {
   format: 'coforge-workflow/v1'; revision: string; name: string;
+  startupMode?: 'paused' | 'play';
   limits: { timeoutSeconds: number; maxTurns: number; maxBudgetUsd: number; intervalSeconds: number };
   steps: WorkflowStep[];
 }
 export const workflowIdCheck = text({ min: 1, max: 80, pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/u });
 const base = { id: workflowIdCheck, name: text({ trim: true, min: 1, max: 100 }), instructions: text({ max: 8000 }) };
 const ai = shape({ ...base, kind: oneOf(['ai'] as const), output: oneOf(WORKFLOW_OUTPUTS), access: oneOf(WORKFLOW_ACCESS),
+  coworkerId: optional(workflowIdCheck),
   outputTemplateId: optional(workflowIdCheck),
   includePreviousResults: optional(boolean),
   provider: oneOf(['demo', 'claude', 'herdr', 'codex'] as const), model: agentModelCheck, herdrAgent: optional(oneOf(['claude'] as const)),
@@ -54,6 +57,7 @@ export function workflowStepCheck(value: unknown): WorkflowStep {
   return step;
 }
 const definition = shape({ format: oneOf(['coforge-workflow/v1'] as const), revision: workflowIdCheck, name: text({ trim: true, min: 1, max: 100 }),
+  startupMode: optional(oneOf(['paused', 'play'] as const)),
   limits: shape({ timeoutSeconds: number({ integer: true, min: 15, max: 1800 }), maxTurns: number({ integer: true, min: 1, max: 50 }),
     maxBudgetUsd: number({ min: 0.1, max: 20 }), intervalSeconds: number({ integer: true, min: 2, max: 3600 }) }, { strict: true }),
   steps: list(workflowStepCheck, { min: 1, max: 40 }),

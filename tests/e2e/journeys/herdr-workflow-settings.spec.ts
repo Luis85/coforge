@@ -61,7 +61,7 @@ for (const theme of ["light", "dark"])
           .analyze()
       ).violations,
     ).toEqual([]);
-    await openWorkflowRuns(page);
+    await openWorkflowRuns(page, 'CF-101');
     await expect(
       page.getByRole("list", { name: "Captured workflow steps", exact: true }),
     ).toContainText("Herdr · Claude Code · haiku");

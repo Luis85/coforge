@@ -84,7 +84,8 @@ it('does not replay cancellation when an unknown outcome marker cannot be saved'
     release(); await starting;
     expect(cancel).toHaveBeenCalledTimes(1);
     expect(f.current()).toMatchObject({ state: 'stopped', attempts: [{ nudgeRunId: 'confirmed-child', councilCancellation: 'unknown' }] });
-    await expect(f.studio.startWorkflow(f.id)).rejects.toThrow('acknowledge');
+    await expect(f.studio.startWorkflow(f.id)).rejects.toThrow('Restart workflow');
+    await expect(f.studio.restartWorkflowFromOperator(f.id)).rejects.toThrow('acknowledge');
     expect(f.calls).toHaveLength(1);
   } finally { release(); await starting.catch(() => undefined); }
 });
@@ -97,7 +98,8 @@ it('commits stop before awaiting cancellation and prevents a concurrent handoff'
   const stopping = f.studio.stopWorkflow(f.id);
   try {
     await vi.waitFor(() => expect(f.current().state).toBe('stopped'));
-    await expect(f.studio.runWorkflowStep(f.id)).rejects.toThrow('current state');
+    await expect(f.studio.runWorkflowStep(f.id)).rejects.toThrow('Restart workflow');
+    await expect(f.studio.restartWorkflowFromOperator(f.id)).rejects.toThrow('cancellation');
     expect(f.current().artifacts).toHaveLength(0);
     expect(f.current().cursor).toBe(0);
   } finally { release(); await stopping; }
@@ -108,7 +110,8 @@ it('retains a known child and requires inspection if cancellation cannot be conf
   await f.studio.startWorkflow(f.id);
   await f.studio.stopWorkflow(f.id).catch(() => undefined);
   expect(f.current()).toMatchObject({ state: 'stopped', attempts: [{ nudgeRunId: 'confirmed-child', councilSourceId: 'confirmed-source', councilCancellation: 'unknown' }] });
-  await expect(f.studio.startWorkflow(f.id)).rejects.toThrow('acknowledge');
+  await expect(f.studio.startWorkflow(f.id)).rejects.toThrow('Restart workflow');
+  await expect(f.studio.restartWorkflowFromOperator(f.id)).rejects.toThrow('acknowledge');
   expect(f.calls).toHaveLength(1);
 });
 
@@ -124,7 +127,8 @@ it.each(['awaiting-review', 'finished'] as const)('acknowledges cancellation met
   expect(f.current().attempts.find(attempt => attempt.kind === 'council')).toMatchObject({ nudgeRunId: 'confirmed-child', councilCancellation: 'unknown', nudgeAcknowledgedAt: expect.any(String) });
   const idea = f.studio.state().ideas.find(item => item.id === f.id)!;
   expect(idea.increment?.files).toEqual([{ path: 'game.ts', additions: 1, deletions: 0 }]);
-  expect(idea.status).toBe(phase === 'finished' ? 'shipped' : 'review');
+  expect(idea.status).toBe(phase === 'finished' ? 'shipped' : 'inbox');
+  expect(f.studio.state().workflowStopHolds).toContain(f.id);
   await expect(f.studio.runWorkflowStep(f.id)).rejects.toThrow();
   expect(f.calls).toHaveLength(1);
 });
@@ -224,7 +228,8 @@ it('holds interrupted cancellation after reload and ignores a late confirmation 
   try {
     const loaded = restarted.state().ideas.find(idea => idea.id === f.id)!.workflowRun!;
     expect(loaded).toMatchObject({ state: 'stopped', attempts: [{ nudgeRunId: 'confirmed-child', councilCancellation: 'unknown' }] });
-    await expect(restarted.startWorkflow(f.id)).rejects.toThrow('acknowledge');
+    await expect(restarted.startWorkflow(f.id)).rejects.toThrow('Restart workflow');
+    await expect(restarted.restartWorkflowFromOperator(f.id)).rejects.toThrow('acknowledge');
     expect(cancel).not.toHaveBeenCalled();
     release(); await stopping;
     expect((await f.storage.load()).notes.find(idea => idea.id === f.id)?.workflowRun?.attempts[0]?.councilCancellation).toBe('unknown');

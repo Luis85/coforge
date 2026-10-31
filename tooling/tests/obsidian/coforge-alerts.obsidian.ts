@@ -136,9 +136,12 @@ describe('Alerts in the contained native studio', () => {
       await browserExpect(view.getByRole('alert')).toContainText('cannot supply: viewer');
       await browserExpect(view.getByRole('button', { name: 'Save alert', exact: true })).toBeDisabled();
       await browserExpect(view.locator('.cf-alerts-page iframe, .cf-alerts-page frame')).toHaveCount(0);
-      const editorIssues = await new AxeBuilder({ page: obsidian.page }).setLegacyMode(true).include('.cf-alerts-page').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
-      expect(editorIssues.violations).toEqual([]);
-      await obsidian.screenshot('alerts-editor-invalid-light');
+      for (const theme of ['light', 'dark']) {
+        await obsidian.page.evaluate(theme => { document.body.classList.remove('theme-light', 'theme-dark'); document.body.classList.add(`theme-${theme}`); }, theme);
+        const editorIssues = await new AxeBuilder({ page: obsidian.page }).setLegacyMode(true).include('.cf-alerts-page').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+        expect(editorIssues.violations).toEqual([]);
+        await obsidian.screenshot(`alerts-editor-invalid-${theme}`);
+      }
       expect(failures).toEqual([]); expect(obsidian.errors()).toEqual([]);
       await obsidian.disablePlugin();
       await expect.poll(async () => { try { await fetch(url); return false; } catch { return true; } }).toBe(true);

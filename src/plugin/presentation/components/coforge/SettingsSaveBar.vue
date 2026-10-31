@@ -8,7 +8,7 @@ const model = useSettingsForm();
   <div class="cf-settings-save">
     <div class="cf-settings-save-message" aria-live="polite">
       <CfIcon :name="model.dirty ? 'circle-alert' : 'circle-check'" size="sm" />
-      <span>
+      <span class="cf-notice-body">
         <strong v-if="model.saving">Saving project settings…</strong>
         <strong v-else-if="model.status === 'saved'">Settings saved</strong>
         <strong v-else-if="model.dirty">Unsaved project changes</strong>

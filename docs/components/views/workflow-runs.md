@@ -4,13 +4,13 @@ title: Workflow runs
 goal: Resolve the next checkpoint or attempt outcome.
 audience: streamer
 kind: subpage
-route: studio.workflowTool = runs
-parent: "[[docs/components/views/workflow]]"
+route: studio.drawerTab = workflow
+parent: "[[docs/components/views/idea-detail]]"
 component: src/plugin/presentation/components/coforge/ConfiguredWorkflowExecution.vue
 entry:
-  - Open Project settings, Agent workflow, then Workflow runs.
+  - Open a request's details, then Workflow runs.
 actions:
-  - Select request run
+  - Inspect this request's current or retained run
   - Inspect captured steps and results
   - Complete required checklist
   - Inspect attempt history
@@ -27,8 +27,8 @@ journeys:
   - recovery
 privacy: Private vault workspace; excluded from public projections.
 coverage:
-  group: workflow
-  key: runs
+  group: idea
+  key: workflow
 order: 89000
 type: PBI
 status: ""
@@ -53,11 +53,23 @@ Checkpoints do not occupy the AI worker and do not accept code. Attempts retain 
 
 ## Entry and next action
 
-Open Project settings, Agent workflow, then Workflow runs. Available actions: Select request run; Inspect captured steps and results; Complete required checklist; Inspect attempt history; Recover Herdr attempt. Return through the owning [Agent workflow](workflow.md) surface.
+Open a request's details, then Workflow runs, or use its card's Open agent workflow action. Inspect only that request's captured steps, results, checklist, attempts and retained runs. Edit future runs links to project configuration. Project-wide [Step attempts](workflow-attempts.md) remains in Agent workflow.
 
 ## States and recovery
 
 No runs; Queued; Running; Human checkpoint; Failed; Complete. Inspect an error beside the affected action before retrying. Saved state or observed external confirmation is evidence of completion; an unconfirmed effect requires inspection before another mutation.
+
+The card's Stop workflow commits a durable operator hold and returns it to Inbox.
+Only right-click Restart workflow releases that hold and creates a fresh first-step
+run; generic starts, automatic ticks, startup Play, event triggers and MCP cannot.
+Active work must settle first. Late captures retain old evidence without advancing
+the held card or attaching old results to a fresh run.
+
+Stopped — preserved changes need review exposes the existing Increment review
+controls while the card remains in Inbox. Accept still checks the attributed
+workspace and may explicitly ship; Request changes retains old diff/worktree
+evidence and the stop hold. Unknown external outcomes still require inspection
+and acknowledgement. Neither review nor acknowledgement restarts execution.
 
 ## Composition and boundaries
 
@@ -76,7 +88,7 @@ opens configuration without altering the active definition or captured templates
 
 If automatic admission cannot resolve a selected template, the request retains a
 visible setup hold before any run or attempt is created. Repair the selection in
-Workflow settings, then explicitly retry starting the workflow; timer ticks do
+Idea Board Workflow, then explicitly retry starting the workflow; timer ticks do
 not repeatedly retry the held request. Captured configuration shows the current
 run's workflow revision and exact template content, with literal Markdown source
 and a safe rendered preview. Retained prior runs expose their own captured

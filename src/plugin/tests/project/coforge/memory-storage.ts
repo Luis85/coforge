@@ -13,6 +13,7 @@ export function toLoaded(state: AppState | InternalState): LoadedStudio {
   const notes: NoteIdea[] = state.ideas.map(noteOnly);
   const internal = state as Partial<InternalState>;
   const data: PersistedStudio = {
+    workflowStopHolds: state.workflowStopHolds,
     twitchOperations: state.twitchOperations,
     requestOrigins: state.requestOrigins,
     exampleRemovalCutoffs: state.exampleRemovalCutoffs,

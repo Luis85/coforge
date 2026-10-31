@@ -5,10 +5,10 @@ goal: Maintain reusable Markdown answer formats for one project's workflow steps
 audience: streamer
 kind: panel
 route: project output template library
-parent: "[[docs/components/views/workflow-settings]]"
+parent: "[[docs/components/views/workflow]]"
 component: src/plugin/presentation/components/coforge/WorkflowOutputTemplates.vue
 entry:
-  - Open Workflow settings and expand Answer / output templates.
+  - Open Project settings, Agent workflow, then Answer / output templates.
   - The same project library is available in Council workflows.
 actions:
   - Create a Markdown template
@@ -29,7 +29,10 @@ states:
 journeys:
   - workflow-configuration
 privacy: Project-scoped private Markdown files; excluded from public projections.
-order: 91500
+coverage:
+  group: workflow
+  key: templates
+order: 91000
 ---
 
 # Answer and output templates
@@ -44,7 +47,7 @@ plugin or directly in Obsidian; unrelated frontmatter stays intact.
 
 ## Entry and next action
 
-Open [Workflow settings](workflow-settings.md) and expand Answer / output templates.
+Open Agent workflow's Answer / output templates tab.
 Choose New template, enter its name and Markdown, then Save template. Select the
 saved template in an AI step's Answer / output template field and explicitly save
 the workflow. The same library serves agent and council steps in

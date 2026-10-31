@@ -110,7 +110,7 @@ test("focused chat and workflow pages are keyboard reachable", async ({ page }) 
   for (const name of ["Chat", "Twitch settings", "Bot messages"])
     await capture(page, ".cf-stream-page", "Stream tools", name);
   await openAgentWorkflow(page);
-  for (const name of ["Workflow runs", "Herdr workspaces", "Workflow settings"])
+  for (const name of ["Idea Board Workflow", "Step attempts", "Timing & limits", "Answer / output templates", "Herdr"])
     await capture(page, ".cf-workflow-page", "Agent workflow pages", name);
 });
 

@@ -1,4 +1,4 @@
-import { openWorkflowDisclosure, openWorkflowRuns, openWorkflowSettings } from "../support/workflow-navigation";
+import { openWorkflowDisclosure, openWorkflowRuns, openWorkflowSettings, openWorkflowAttempts } from "../support/workflow-navigation";
 import { test, expect, type Page } from "@playwright/test";
 import { AxeBuilder } from "@axe-core/playwright";
 import { mkdir } from "node:fs/promises";
@@ -12,7 +12,7 @@ async function editor(page: Page) {
     await openWorkflowDisclosure(page, "Workflow tools");
     await openWorkflowDisclosure(page, "Add a step");
   await expect(
-    page.getByRole("heading", { name: "Workflow settings", exact: true }),
+    page.getByRole("heading", { name: "Idea Board Workflow", exact: true }),
   ).toBeVisible();
 }
 const definition = {
@@ -138,7 +138,7 @@ for (const theme of ["light", "dark"]) {
       .first()
       .click();
     await expect(
-      page.getByRole("heading", { name: "Workflow settings", exact: true }),
+      page.getByRole("heading", { name: "Idea Board Workflow", exact: true }),
     ).toBeVisible();
     await page
       .getByRole("button", { name: "Save workflow", exact: true })
@@ -200,7 +200,7 @@ for (const theme of ["light", "dark"]) {
         { exact: true },
       ),
     ).toBeVisible();
-    await openWorkflowRuns(page);
+    await openWorkflowRuns(page, 'CF-101');
     const run = page.getByRole("region", {
       name: "Request workflow execution",
       exact: true,
@@ -208,15 +208,7 @@ for (const theme of ["light", "dark"]) {
     await run
       .getByRole("button", { name: "Start · Approve scope", exact: true })
       .click();
-    await page
-      .getByRole("button", { name: /^Idea board/ })
-      .first()
-      .click();
-    await page
-      .locator(".cf-idea-card")
-      .filter({ hasText: "Let us pet the forest foxes" })
-      .locator(".cf-idea-open")
-      .click();
+    await page.getByRole("button", { name: "Overview", exact: true }).click();
     await expect(
       page.getByRole("button", { name: "Adjust score", exact: true }),
     ).toBeDisabled();
@@ -226,7 +218,7 @@ for (const theme of ["light", "dark"]) {
     await page
       .getByRole("button", { name: "Close idea details", exact: true })
       .click();
-    await openWorkflowRuns(page);
+    await openWorkflowRuns(page, 'CF-101');
     const manual = page.getByRole("region", {
       name: "Manual workflow step",
       exact: true,
@@ -257,26 +249,25 @@ for (const theme of ["light", "dark"]) {
     await expect(
       run.getByRole("button", { name: "Review code changes", exact: true }),
     ).toHaveCount(0);
-    await expect(
-      page.getByRole("heading", { name: "Step attempts", exact: true }),
-    ).toBeVisible();
     await mkdir("reports/configured-workflows", { recursive: true });
     for (const width of [1280, 360]) {
       await page.setViewportSize({ width, height: 900 });
       expect(
         await page
-          .locator(".cf-workflow-page")
+          .locator(".cf-idea-drawer")
           .evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
       ).toBe(true);
       await page
-        .locator(".cf-workflow-page")
+        .locator(".cf-idea-drawer")
         .screenshot({
           path: `reports/configured-workflows/run-${theme}-${width}.png`,
         });
     }
     expect(
-      (await new AxeBuilder({ page }).include(".cf-workflow-page").analyze())
+      (await new AxeBuilder({ page }).include(".cf-idea-drawer").analyze())
         .violations,
     ).toEqual([]);
+    await openWorkflowAttempts(page);
+    await expect(page.getByRole("heading", { name: "Step attempts", exact: true })).toBeVisible();
   });
 }

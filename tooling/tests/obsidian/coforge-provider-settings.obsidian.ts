@@ -21,7 +21,7 @@ describe('Provider model and effort in the contained host', () => {
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Provider configuration');
     await view.getByRole('button', { name: 'Project settings', exact: true }).click();
     await view.getByRole('button', { name: 'Agent workflow', exact: true }).click();
-    await view.getByRole('button', { name: 'Workflow settings', exact: true }).click();
+    await view.getByRole('button', { name: 'Idea Board Workflow', exact: true }).click();
     await view.locator('.cf-workflow-options summary').filter({ hasText: 'Agent and project access' }).click();
     await view.getByLabel('AI provider', { exact: true }).selectOption('codex');
     await view.getByLabel('AI model', { exact: true }).selectOption('gpt-6.1-sol');
@@ -52,7 +52,7 @@ describe('Provider model and effort in the contained host', () => {
     await browserExpect(view.getByLabel('Reasoning effort', { exact: true })).toHaveValue('high');
     await view.getByRole('button', { name: 'Project settings', exact: true }).click();
     await view.getByRole('button', { name: 'Agent workflow', exact: true }).click();
-    await view.getByRole('button', { name: 'Workflow settings', exact: true }).click();
+    await view.getByRole('button', { name: 'Idea Board Workflow', exact: true }).click();
     await view.locator('.cf-workflow-options summary').filter({ hasText: 'Agent and project access' }).click();
     await browserExpect(view.getByLabel('AI model', { exact: true })).toHaveValue('gpt-6.1-sol');
     await browserExpect(view.getByLabel('Reasoning effort', { exact: true })).toHaveValue('xhigh');

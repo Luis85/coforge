@@ -16,7 +16,13 @@ export function collectCostTasks(
     const projectId = job.projectId ?? idea?.projectId ?? "";
     const project = projects.get(projectId);
     const captured = managed.find(record => record.jobId === job.id);
-    const attribution = captured ? herdrCostAttribution(captured.settings.session, captured.target) : undefined;
+    const coworker = job.workflow?.coworker;
+    const workflow = [idea?.workflowRun, ...(idea?.workflowHistory ?? [])].find(run => run?.id === job.workflow?.runId);
+    const attribution = coworker ? { kind: 'agent' as const, agentNamespace: 'reusable' as const,
+      agentId: coworker.id, agentName: coworker.name, agentRevision: coworker.revision,
+      runId: job.workflow?.runId, workflowRevision: job.workflow?.definitionRevision,
+      ...(workflow ? { workflowName: workflow.definition.name } : {}), subjectKind: 'idea' as const }
+      : captured ? herdrCostAttribution(captured.settings.session, captured.target) : undefined;
     return {
       id: `job:${job.id}`,
       featureId: job.ideaId,

@@ -56,6 +56,8 @@ export function configuredAttempt(state: InternalState, job: AgentJob, allowStop
   }
   const template = run.outputTemplates?.find(item => item.id === snapshot.step.outputTemplateId);
   if (JSON.stringify(template) !== JSON.stringify(snapshot.outputTemplate)) throw new Error('The captured output template changed. Its result cannot advance this run.');
+  const coworker = run.coworkerBindings?.find(item => item.stepId === snapshot.step.id)?.profile;
+  if (JSON.stringify(coworker) !== JSON.stringify(snapshot.coworker)) throw new Error('The captured CoWorker changed. Its result cannot advance this run.');
   return { idea, run, attempt, snapshot };
 }
 /** Host-captured files remain attributable even when semantic inputs changed or the run was stopped. */

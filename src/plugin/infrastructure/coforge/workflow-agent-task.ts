@@ -9,6 +9,7 @@ import { automationSourceGuard } from '../../features/coforge/application/automa
 import { captureWorkflowCouncil } from '../../features/coforge/application/workflow-council-context';
 import type { CouncilTarget } from '../../features/coforge/application/council-execution';
 import { decodeCouncilPlan } from '../../features/coforge/application/council-execution';
+import { captureWorkflowCoworker } from '../../features/coforge/domain/workflow-coworker-binding';
 
 /** Local workflow nudges use the same source-note and reviewed admission as manual agent tasks. */
 export function workflowAgentTasks(plugin: Plugin, studio: StudioService, council: CouncilActions): AgentTaskPort {
@@ -47,6 +48,17 @@ export function workflowAgentTasks(plugin: Plugin, studio: StudioService, counci
     return target;
   };
   return {
+    async prepareCoworker(projectId, coworkerId) {
+      if (!studio.state().projects?.some(project => project.id === projectId && !project.unavailable)) throw new AgentTaskNotStartedError('Choose an available project before assigning a CoWorker.');
+      let catalogue: import('../../features/coforge/application/council-catalogue').CouncilCatalogueSnapshot;
+      try { catalogue = await council.catalogue.list(); }
+      catch { throw new AgentTaskNotStartedError('Saved CoWorker definitions could not be loaded. Refresh or repair the catalogue before starting.'); }
+      const entry = catalogue.valid.find(item => item.definition.id === coworkerId);
+      if (!entry || entry.definition.schema !== 'agent/v1') throw new AgentTaskNotStartedError('The selected CoWorker is unavailable. Refresh saved CoWorkers before starting.');
+      if (!entry.definition.enabled) throw new AgentTaskNotStartedError('The selected CoWorker is disabled. Choose an enabled saved CoWorker.');
+      try { return captureWorkflowCoworker(entry.definition, entry.revision); }
+      catch { throw new AgentTaskNotStartedError('The selected CoWorker configuration is invalid. Repair its saved definition before starting.'); }
+    },
     prepareCouncil,
     async create(input) {
       const recheckSource = automationSourceGuard(council, input.sourcePath);

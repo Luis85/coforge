@@ -1,6 +1,6 @@
 ---
 id: workflow-settings
-title: Workflow settings
+title: Idea Board Workflow
 goal: Save the process that new requests will follow.
 audience: streamer
 kind: subpage
@@ -8,11 +8,14 @@ route: "studio.workflowTool = settings (compatibility: studio.view = workflow-se
 parent: "[[docs/components/views/workflow]]"
 component: src/plugin/presentation/components/coforge/WorkflowEditorView.vue
 entry:
-  - Open Project settings, Agent workflow, then Workflow settings.
+  - Open Project settings, Agent workflow, then Idea Board Workflow.
 actions:
   - Add or select step
   - Reorder or replace
   - Edit prompts and provider
+  - Assign a saved CoWorker or configure provider/model/effort manually
+  - Choose startup Play or Paused
+  - Copy another project's saved workflow into a draft
   - Preview import or export
   - Save or discard
   - Attach an event trigger
@@ -32,7 +35,7 @@ coverage:
     key: workflow-settings
   - group: workflow
     key: settings
-order: 91000
+order: 88000
 type: PBI
 status: ""
 started: ""
@@ -46,7 +49,7 @@ assignee: ""
 iteration: ""
 ---
 
-# Workflow settings
+# Idea Board Workflow
 
 ## Purpose
 
@@ -54,17 +57,34 @@ Save the process that new requests will follow.
 
 Each project owns a v1 definition with stable step IDs. Existing runs keep captured revisions. Import changes the draft after preview; saving is explicit.
 
+Choose a saved vault CoWorker for an AI step or configure provider, model and
+effort manually. Available values follow the selected provider. A CoWorker's
+current enabled definition is captured when a new run starts; retries retain the
+captured identity and configuration. Repository access and human review gates remain.
+
+Automation on startup defaults to Paused for legacy workflows. Play applies only
+after CoForge reopens and startup recovery settles. Saving, importing or copying
+this preference never resumes current automation. Council, scheduler and event
+startup policies remain separate, and interrupted/unknown work is never replayed.
+
+Copy workflow from another project lists actually saved valid workflows in
+available projects. Preview shows the source startup choice and cleared local
+template/Council/nudge bindings. Copy into draft deep-clones a new revision;
+mandatory destination bindings must be repaired before Save. Vault-wide CoWorker
+IDs remain selected. Source notes and source runs stay unchanged. Replacing an
+unsaved destination draft requires an explicit acknowledgement.
+
 ## Entry and next action
 
-Open [Project settings](settings.md), choose [Agent workflow](workflow.md), then Workflow settings in its local navigation. Available actions: Add or select step; Reorder or replace; Edit prompts and provider; Preview import or export; Save or discard; Attach an event trigger. Workflow runs and Herdr workspaces remain sibling tasks in the same workspace. The Council link and event-trigger action navigate to their owning tools through the existing draft guard; neither action dispatches work.
+Open [Project settings](settings.md), choose [Agent workflow](workflow.md), then Idea Board Workflow in its flat navigation. Add or select steps, assign CoWorkers or manual AI settings, choose startup mode, preview a saved workflow copy or JSON transfer, then Save explicitly. Step attempts, Timing & limits, Answer / output templates and Herdr are sibling tabs. Request-specific Workflow runs is in request details. Council and event-trigger links use the existing draft guard and never dispatch work.
 
 ## States and recovery
 
-No project; Standard defaults; Saved; Unsaved draft; Validation error; Active-work guard. Save or discard a dirty workflow before changing local tasks, global destinations or projects. A blocked transition retains the current subpage and draft. Import only replaces the reviewed draft; saving remains explicit and existing runs retain their captured definitions.
+No project; Standard defaults; Saved; Unsaved draft; Validation error; Active-work guard. Definition and Timing & limits retain one draft across their flat tabs. Leaving the authoring workspace or changing projects still uses the dirty-draft guard. Import and cross-project copy replace only the explicitly reviewed draft; Save remains separate.
 
 ## Composition and boundaries
 
-Source: [src/plugin/presentation/components/coforge/WorkflowEditorView.vue](../../../src/plugin/presentation/components/coforge/WorkflowEditorView.vue), embedded inside [WorkflowView](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). Project settings owns the H1 and main-navigation entry; Agent workflow and its editor use subordinate headings with their own local navigation and authoring controls. Workflow settings has no separate global sidebar entry.
+Source: [WorkflowEditorView.vue](../../../src/plugin/presentation/components/coforge/WorkflowEditorView.vue), embedded inside [WorkflowView](../../../src/plugin/presentation/components/coforge/WorkflowView.vue). Project settings owns the H1 and main-navigation entry; Agent workflow and its editor use subordinate headings. The workflow editor has no separate global sidebar entry.
 
 The internal `studio.view = workflow-settings` locator remains a compatibility alias for existing guarded navigation. It selects this same local task; it does not create a second page or host tab. Both the compatibility locator and `workflowTool = settings` are covered by this one canonical view contract.
 
@@ -83,7 +103,7 @@ internally. Save workflow explicitly. Existing runs retain their captured steps.
 At execution, the step admits one private child task and waits for its published
 answers. Later AI steps can bind the attributed Markdown report. Paused execution,
 human checkpoints and uncertain outcomes hold the workflow. Inspect Council activity
-or check its answer from Workflow runs. Admission is never reported as completion;
+or check its answer from the request's Workflow runs tab. Admission is never reported as completion;
 reload retains a confirmed child instead of submitting it again.
 
 ## Captured Council bridge and context

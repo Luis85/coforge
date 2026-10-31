@@ -63,7 +63,7 @@ export const STUDIO_DESTINATIONS = {
     parent: "settings",
   },
   "workflow-settings": {
-    label: "Workflow settings",
+    label: 'Idea Board Workflow',
     icon: "sliders-horizontal",
     group: "build",
     scope: "project",

@@ -1,24 +1,31 @@
 # Project workflows
 
-Open **Workflow settings** in the Build navigation group to maintain the selected
-project's process. **Agent workflow** monitors execution. **Project settings** keeps
+Open **Project settings → Agent workflow → Idea Board Workflow** to maintain the
+selected project's process. Its flat row also contains **Step attempts**,
+**Timing & limits**, **Answer / output templates** and **Herdr**, in that order.
+Open an individual request's **Workflow runs** detail tab for captured execution.
+**Project settings** keeps
 the general project prompt, game brief, paths, links and implementation permission.
 
-New and legacy projects resolve to the standard Screen → Score → Plan → Build
+New and legacy projects resolve to the standard Screen → Score → Plan → Design → Build
 workflow. Existing effective prompts, agents, models, votes threshold and limits
 are retained. Opening the editor does not rewrite a legacy project note or run an
 agent. **Use standard workflow** explicitly saves its definition.
 
 ## Edit the process
 
-Add, duplicate, rename, remove or move any step, including the original four. The
+Add, duplicate, rename, remove or move any step, including the standard five. The
 ordered list is the execution order; step IDs remain stable through rename/reorder.
 New copies receive new IDs. Save changes explicitly. Saved revisions apply to new
 runs; existing runs retain their captured definition and project context.
 
-AI steps choose their instructions, provider/model, result contract, project access,
+AI steps choose a saved **CoWorker**, or manual provider/model/effort settings,
+with supported options for the selected provider. Native Codex is available
+alongside Claude Code, Herdr and Simulation. A fresh run resolves and captures
+the enabled CoWorker; existing runs retain their captured profile and effective
+configuration. Steps also choose instructions, result contract, project access,
 automatic continuation, minimum votes and required earlier result types. Contracts
-are Markdown, screening, RICE, plan or code change. Access is no project access,
+are Markdown, screening, RICE, plan, Design specification or code change. Access is no project access,
 read-only project access or editing in an isolated worktree. A code-change result
 requires editing access. Instructions cannot grant more tools or accept work.
 
@@ -35,6 +42,19 @@ The automatic run interval throttles new background runs. Automatic steps inside
 an existing run continue immediately; manual steps pause. Project automation must
 be resumed for automatic AI continuation. Timeouts bound CoForge's wait. Native
 Claude budget/turn caps do not enforce spending by an interactive Herdr agent.
+
+**Idea board automation on startup** selects **Start paused** or **Start playing**
+for the next CoForge startup. Legacy definitions start paused. Save explicitly;
+changing or saving this preference does not start or resume current work. Startup
+recovery and required host services settle before automatic admission. Council,
+scheduler and event startup policies remain separate; unknown effects never replay.
+
+**Copy workflow from another project** previews a saved valid workflow and its
+startup choice, then copies it into an independent destination draft with a new
+revision. Source notes and runs remain unchanged. Project-local templates are
+cleared with warnings; Council/nudge selections require explicit destination
+repair before Save. Vault-wide CoWorker selections remain. Unsaved destination
+edits require an explicit replacement acknowledgement. Copying never dispatches.
 
 ## Import and export JSON
 
@@ -110,7 +130,21 @@ Omitting screening never automatically publishes a previously private request.
 Project paths/general context and displayed RICE estimates cannot change during
 an unfinished run. Future workflow definitions remain editable. To apply a new
 process to existing work, stop/recover the old run, review any pending changes and
-start a fresh run. Previous runs and their original names/results remain preserved.
+use the card's explicit Restart workflow. Previous runs and their original
+names/results remain preserved.
+
+Right-click **Stop workflow** commits a durable operator hold and returns the
+card to Inbox. Automatic ticks, startup Play, event triggers, MCP and ordinary
+Start calls cannot release it. Only right-click **Restart workflow** starts a
+fresh first-step run after active attempts settle. Workflow saves, copies and
+request edits never unlock the card. Late results retain evidence in the old run.
+
+If stopped work has preserved changes, its detail view explains **Stopped —
+preserved changes need review**. Inspect Increment and accept or request changes
+using the existing human review controls. Acceptance still verifies the attributed
+workspace; requesting changes preserves old diff/worktree evidence and keeps
+Inbox and the hold. Unknown task/cancellation outcomes require inspection and
+acknowledgement before Restart. Neither recovery nor review automatically restarts.
 
 Herdr cancellation stops the local wait; its agent can continue externally. Inspect
 the original session before acknowledging recovery. Only a verified idle original

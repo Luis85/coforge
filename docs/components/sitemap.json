@@ -2204,7 +2204,7 @@
       "parent": "workflow",
       "component": "src/plugin/presentation/components/coforge/HerdrPanel.vue",
       "entry": [
-        "Open Project settings, Agent workflow, then Herdr workspaces."
+        "Open Project settings, Agent workflow, then Herdr."
       ],
       "actions": [
         "Refresh identities",
@@ -2229,7 +2229,7 @@
         "group": "workflow",
         "key": "herdr"
       },
-      "order": 88000,
+      "order": 92000,
       "type": "PBI",
       "status": "",
       "started": "",
@@ -4586,10 +4586,8 @@
         "Choose Project settings at the bottom of navigation, then Agent workflow."
       ],
       "actions": [
-        "Inspect execution",
-        "Complete checkpoint",
         "Pause or resume",
-        "Inspect history",
+        "Inspect step attempts",
         "Configure workflow",
         "Manage Herdr workspaces"
       ],
@@ -4631,16 +4629,82 @@
       "file": "workflow.md"
     },
     {
+      "id": "workflow-attempts",
+      "title": "Step attempts",
+      "goal": "Inspect project-wide agent job outcomes without selecting a request run.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.workflowTool = runs",
+      "parent": "workflow",
+      "component": "src/plugin/presentation/components/coforge/WorkflowHistory.vue",
+      "entry": [
+        "Open Project settings, Agent workflow, then Step attempts."
+      ],
+      "actions": [
+        "Inspect attempt status and logs",
+        "Inspect recorded cost and usage",
+        "Cancel eligible active work"
+      ],
+      "states": [
+        "No attempts",
+        "Queued or running",
+        "Completed, failed or cancelled"
+      ],
+      "journeys": [
+        "request-to-recognition",
+        "recovery"
+      ],
+      "privacy": "Private project job evidence; excluded from public projections.",
+      "coverage": {
+        "group": "workflow",
+        "key": "runs"
+      },
+      "order": 89000,
+      "file": "workflow-attempts.md"
+    },
+    {
+      "id": "workflow-limits",
+      "title": "Timing and limits",
+      "goal": "Configure the timing and native CLI bounds captured by future workflow runs.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.workflowTool = limits",
+      "parent": "workflow",
+      "component": "src/plugin/presentation/components/coforge/WorkflowDefinitionLimits.vue",
+      "entry": [
+        "Open Project settings, Agent workflow, then Timing & limits."
+      ],
+      "actions": [
+        "Adjust cadence, timeout, turns and budget",
+        "Save or discard the shared workflow draft"
+      ],
+      "states": [
+        "Saved",
+        "Unsaved draft",
+        "Invalid limits"
+      ],
+      "journeys": [
+        "workflow-configuration"
+      ],
+      "privacy": "Private project configuration; excluded from public projections.",
+      "coverage": {
+        "group": "workflow",
+        "key": "limits"
+      },
+      "order": 90000,
+      "file": "workflow-limits.md"
+    },
+    {
       "id": "workflow-output-templates",
       "title": "Answer and output templates",
       "goal": "Maintain reusable Markdown answer formats for one project's workflow steps.",
       "audience": "streamer",
       "kind": "panel",
       "route": "project output template library",
-      "parent": "workflow-settings",
+      "parent": "workflow",
       "component": "src/plugin/presentation/components/coforge/WorkflowOutputTemplates.vue",
       "entry": [
-        "Open Workflow settings and expand Answer / output templates.",
+        "Open Project settings, Agent workflow, then Answer / output templates.",
         "The same project library is available in Council workflows."
       ],
       "actions": [
@@ -4665,7 +4729,11 @@
         "workflow-configuration"
       ],
       "privacy": "Project-scoped private Markdown files; excluded from public projections.",
-      "order": 91500,
+      "coverage": {
+        "group": "workflow",
+        "key": "templates"
+      },
+      "order": 91000,
       "file": "workflow-output-templates.md"
     },
     {
@@ -4674,14 +4742,14 @@
       "goal": "Resolve the next checkpoint or attempt outcome.",
       "audience": "streamer",
       "kind": "subpage",
-      "route": "studio.workflowTool = runs",
-      "parent": "workflow",
+      "route": "studio.drawerTab = workflow",
+      "parent": "idea-detail",
       "component": "src/plugin/presentation/components/coforge/ConfiguredWorkflowExecution.vue",
       "entry": [
-        "Open Project settings, Agent workflow, then Workflow runs."
+        "Open a request's details, then Workflow runs."
       ],
       "actions": [
-        "Select request run",
+        "Inspect this request's current or retained run",
         "Inspect captured steps and results",
         "Complete required checklist",
         "Inspect attempt history",
@@ -4701,8 +4769,8 @@
       ],
       "privacy": "Private vault workspace; excluded from public projections.",
       "coverage": {
-        "group": "workflow",
-        "key": "runs"
+        "group": "idea",
+        "key": "workflow"
       },
       "order": 89000,
       "type": "PBI",
@@ -4720,7 +4788,7 @@
     },
     {
       "id": "workflow-settings",
-      "title": "Workflow settings",
+      "title": "Idea Board Workflow",
       "goal": "Save the process that new requests will follow.",
       "audience": "streamer",
       "kind": "subpage",
@@ -4728,12 +4796,15 @@
       "parent": "workflow",
       "component": "src/plugin/presentation/components/coforge/WorkflowEditorView.vue",
       "entry": [
-        "Open Project settings, Agent workflow, then Workflow settings."
+        "Open Project settings, Agent workflow, then Idea Board Workflow."
       ],
       "actions": [
         "Add or select step",
         "Reorder or replace",
         "Edit prompts and provider",
+        "Assign a saved CoWorker or configure provider/model/effort manually",
+        "Choose startup Play or Paused",
+        "Copy another project's saved workflow into a draft",
         "Preview import or export",
         "Save or discard",
         "Attach an event trigger",
@@ -4761,7 +4832,7 @@
           "key": "settings"
         }
       ],
-      "order": 91000,
+      "order": 88000,
       "type": "PBI",
       "status": "",
       "started": "",

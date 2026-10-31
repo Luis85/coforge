@@ -12,17 +12,14 @@ for (const theme of ['light', 'dark']) {
       document.body.classList.toggle('theme-light', theme === 'light');
       document.body.classList.toggle('theme-dark', theme === 'dark');
     }, theme);
-    await openWorkflowRuns(page);
+    await openWorkflowRuns(page, 'CF-101');
     const execution = page.getByRole('region', { name: 'Request workflow execution', exact: true });
-    await execution.getByLabel('Workflow request', { exact: true }).selectOption('CF-101');
     for (const name of ['Start · Screen', 'Run · Score', 'Run · Plan', 'Run · Design']) {
       const action = execution.getByRole('button', { name, exact: true });
       await expect(action).toBeEnabled();
       await action.click();
     }
     await expect(execution.getByRole('button', { name: 'Run · Build', exact: true })).toBeEnabled();
-    await page.getByRole('navigation', { name: 'CoForge navigation' }).getByRole('button', { name: /^Idea board/ }).click();
-    await page.locator('.cf-idea-card').filter({ hasText: 'Let us pet the forest foxes' }).locator('.cf-idea-open').click();
     const drawer = page.getByRole('dialog', { name: 'Let us pet the forest foxes', exact: true });
     await drawer.getByRole('button', { name: 'Plan & Design', exact: true }).click();
     const specification = drawer.getByRole('region', { name: 'Design specification', exact: true });

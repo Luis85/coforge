@@ -22,11 +22,12 @@ import { projectFeatureEnabled } from '../../../features/coforge/domain/project-
 import { currentDesignSpecification } from "./use-idea-design";
 import { ideaRunHistory } from './idea-run-history';
 
-export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity";
+export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow';
 const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
   { value: "overview", label: "Overview" },
   { value: "plan", label: "Plan & Design" },
   { value: "increment", label: "Increment" },
+  { value: 'workflow', label: 'Workflow runs' },
   { value: "activity", label: "Activity" },
 ];
 /** Contributor ids the streamer votes under (the studio votes as the simulator's `streamer`). */
@@ -56,6 +57,9 @@ function createIdeaDrawer() {
 
   const idea = computed(() => store.selectedIdea);
   const state = computed(() => store.state);
+  const operatorHeld = computed(() => Boolean(idea.value && state.value?.workflowStopHolds?.includes(idea.value.id)));
+  const preservedReview = computed(() => operatorHeld.value && idea.value?.status === 'inbox' && Boolean(idea.value.increment) && idea.value.workflowRun?.state === 'awaiting-review');
+  const reviewable = computed(() => idea.value?.status === 'review' || preservedReview.value);
   const author = computed(() =>
     state.value?.contributors.find(
       (person) => person.id === idea.value?.authorId,
@@ -85,14 +89,7 @@ function createIdeaDrawer() {
   const openWorkflow = () => {
     const id = idea.value?.id;
     if (!id || !projectFeatureEnabled(project.value, 'workflow')) return;
-    const guard = store.configurationIssue("workflow");
-    if (guard) {
-      store.notify(guard, true);
-      return;
-    }
-    store.workflowRequestSelection = id;
-    store.select(null);
-    store.openWorkflowTool("runs");
+    store.select(id, 'workflow');
   };
   async function runConfigured() {
     const current = idea.value;
@@ -172,12 +169,15 @@ function createIdeaDrawer() {
     error,
     pending,
     isBusy,
+    operatorHeld,
+    preservedReview,
+    reviewable,
     nextAction,
     workflowVisible: computed(() => projectFeatureEnabled(project.value, 'workflow')),
     blockedBuild,
     activeJob,
     tabs: computed(() =>
-      TABS.map((item) => ({
+      TABS.filter(item => item.value !== 'workflow' || projectFeatureEnabled(project.value, 'workflow') || Boolean(idea.value?.workflowRun)).map((item) => ({
         ...item,
         active: tab.value === item.value,
         dot:
@@ -220,14 +220,15 @@ function createIdeaDrawer() {
     showFooter: computed(
       () =>
         Boolean(nextAction.value) ||
+        preservedReview.value ||
         idea.value?.status === "review" ||
         idea.value?.status === "building",
     ),
     canAccept: computed(
       () =>
         Boolean(idea.value?.increment) &&
-        idea.value?.status === "review" &&
-        (!idea.value.workflowRun ||
+        reviewable.value &&
+        (!idea.value?.workflowRun ||
           idea.value.workflowRun.state === "awaiting-review"),
     ),
     nextLabel: computed(() => nextAction.value?.label ?? ""),

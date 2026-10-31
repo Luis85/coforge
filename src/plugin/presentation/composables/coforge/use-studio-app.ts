@@ -83,7 +83,7 @@ export function useStudioShell() {
     ),
     dockTitle: computed(() =>
       store.activeJob
-        ? `${store.activeJob.provider === "demo" ? "Simulation" : store.activeJob.provider === "mcp" ? "External MCP client" : store.activeJob.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${store.activeJob.workflow?.step.name ?? STAGE_LABELS[store.activeJob.stage]}`
+        ? `${store.activeJob.provider === "demo" ? "Simulation" : store.activeJob.provider === "mcp" ? "External MCP client" : store.activeJob.provider === "codex" ? "Codex" : store.activeJob.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${store.activeJob.workflow?.step.name ?? STAGE_LABELS[store.activeJob.stage]}`
         : "",
     ),
     stages: computed(() =>

@@ -4,11 +4,13 @@ import { mkdir, writeFile } from "node:fs/promises";
 import {
   openWorkflowRuns,
   openWorkflowSettings,
+  openWorkflowTemplates,
 } from "../support/workflow-navigation";
 import { openCouncilPage } from "../support/council-navigation";
 
 async function openLibrary(page: Page) {
   const library = page.locator(".cf-workflow-template-library");
+  if (!(await library.isVisible())) await openWorkflowTemplates(page);
   await expect(library).toBeVisible();
   if (!(await library.evaluate((element) => element.hasAttribute("open"))))
     await library.locator("summary").first().click();
@@ -116,6 +118,7 @@ test("Council workflows reuse project templates and require fresh review after t
   });
 });
 async function importWorkflow(page: Page) {
+  await openWorkflowSettings(page);
   const transfer = page.locator(".cf-workflow-tools");
   if (!(await transfer.evaluate((element) => element.hasAttribute("open"))))
     await transfer.locator("summary").first().click();
@@ -234,6 +237,7 @@ for (const theme of ["light", "dark"]) {
       name: "Workflow steps",
       exact: true,
     });
+    await openWorkflowSettings(page);
     await steps
       .getByRole("button", { name: /Write answer/ })
       .first()
@@ -263,7 +267,7 @@ for (const theme of ["light", "dark"]) {
         { exact: true },
       ),
     ).toBeVisible();
-    await openWorkflowRuns(page);
+    await openWorkflowRuns(page, 'CF-101');
     const run = page.getByRole("region", {
       name: "Request workflow execution",
       exact: true,
@@ -301,7 +305,7 @@ for (const theme of ["light", "dark"]) {
     await page.setViewportSize({ width: 320, height: 900 });
     expect(
       await page
-        .locator(".cf-workflow-page")
+        .locator(".cf-idea-drawer")
         .evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
     ).toBe(true);
     await complete.focus();
@@ -354,6 +358,7 @@ for (const theme of ["light", "dark"]) {
     await expect(
       library.getByRole("button", { name: "New template", exact: true }),
     ).toBeFocused();
+    await openWorkflowSettings(page);
     await steps
       .getByRole("button", { name: /Write answer/ })
       .first()

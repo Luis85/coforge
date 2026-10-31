@@ -28,7 +28,7 @@ for (const theme of ["light", "dark"])
     await openAgentWorkflow(page);
     await page
       .getByRole("navigation", { name: "Agent workflow pages" })
-      .getByRole("button", { name: "Herdr workspaces", exact: true })
+      .getByRole("button", { name: "Herdr", exact: true })
       .click();
     const herdr = page.locator(".cf-herdr");
     await herdr

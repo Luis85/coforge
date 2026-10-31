@@ -40,6 +40,18 @@ async function fixture() {
   };
   return { studio, tools, runner, projectId, idea, next, captures };
 }
+it('does not expose operator Restart or allow an external agent to release a stopped request', async () => {
+  const f = await fixture(); await f.next();
+  await f.studio.stopWorkflow(f.idea.id); await f.studio.engine.waitUntilIdle();
+  const count = f.studio.state().jobs.length;
+  expect(f.tools.tools().some(tool => /restart/i.test(tool.name))).toBe(false);
+  await expect(f.tools.call(f.projectId, 'coforge_restart_workflow', { ideaId: f.idea.id })).rejects.toThrow();
+  await expect(f.tools.call(f.projectId, 'coforge_begin_step', { ideaId: f.idea.id })).rejects.toThrow('Restart workflow');
+  expect(f.studio.state().workflowStopHolds).toContain(f.idea.id);
+  expect(f.studio.state().ideas.find(idea => idea.id === f.idea.id)?.status).toBe('inbox');
+  expect(f.studio.state().jobs).toHaveLength(count);
+});
+
 it('lets an external agent perform all five default steps, preserving the design handoff and human review', async () => {
   const f = await fixture();
   const outputs = [

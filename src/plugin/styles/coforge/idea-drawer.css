@@ -169,7 +169,7 @@
   background: var(--cf-surface); border-radius: var(--radius-m); margin: 0 0 20px; font-size: 12px; line-height: 1.65;
 }
 .cf-idea-alert > .cf-icon { margin-top: 2px; color: var(--cf-muted); }
-.cf-idea-alert > span { flex: 1; min-width: 0; }
+.cf-idea-alert > .cf-notice-body { min-width: 0; }
 .cf-idea-alert strong { display: block; margin-bottom: 3px; font-size: 12px; }
 .cf-idea-alert small { display: block; color: var(--cf-text); font-size: 11px; overflow-wrap: anywhere; }
 .cf-idea-alert.is-error {

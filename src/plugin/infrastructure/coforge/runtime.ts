@@ -120,7 +120,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   });
   const studio: StudioService = new StudioService(storage, {
     outputTemplates,
-    agentTasks: { prepareCouncil: (projectId, councilId) => workflowAgentTasks(plugin, studio, council.actions).prepareCouncil!(projectId, councilId), create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => workflowAgentTasks(plugin, studio, council.actions).cancel!(id), result: id => workflowAgentTasks(plugin, studio, council.actions).result!(id) },
+    agentTasks: { prepareCoworker: (projectId, coworkerId) => workflowAgentTasks(plugin, studio, council.actions).prepareCoworker!(projectId, coworkerId), prepareCouncil: (projectId, councilId) => workflowAgentTasks(plugin, studio, council.actions).prepareCouncil!(projectId, councilId), create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => workflowAgentTasks(plugin, studio, council.actions).cancel!(id), result: id => workflowAgentTasks(plugin, studio, council.actions).result!(id) },
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
     economyReservations: storage.economyReservations,
     privateFolders: () => councilPrivateFolders(),
@@ -276,7 +276,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
         if (disposed) return;
         await protectPrivateData(plugin);
         if (disposed) return;
-        ({ invalidNotes } = await studio.start());
+        ({ invalidNotes } = await studio.start({ deferAutomation: true }));
         await blueprintStorage.initialize();
       }
       catch (error) { failure = errorMessage(error); notify(failure, true); throw error; }
@@ -286,12 +286,6 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));
       if (disposed) return;
       await council.start();
-      if (disposed) return;
-      await mcp.start();
-      if (disposed) return;
-      await taskScheduler.start().catch(() => notify('Task scheduler could not start. Open The Council → Automation → Schedules and restore its private journal before scheduling work.', true));
-      if (disposed) return;
-      await workflowTriggers.start().catch(() => notify('Workflow triggers could not start. Restore their private journal before enabling event automation.', true));
       if (disposed) return;
       for (const path of invalidNotes) notify(`CoForge skipped an idea note with invalid properties: ${path}`, true);
       storage.watch(
@@ -315,9 +309,24 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       const stopWorkflow = herdrWorkflows.subscribe(updateHerdr);
       stopHerdrRuntime = () => { stopManual(); stopWorkflow(); };
       updateHerdr();
-      void (async () => { try { await herdr.start(); if (!disposed) await herdrWorkflows.start(); } catch { if (!disposed) notify('Herdr settings or workflow recovery records could not be loaded. Restore them before dispatching.', true); } if (disposed) return; try { await aiCosts.start(); } catch { if (!disposed) notify('AI cost history could not be loaded. Review the cost dashboard before relying on its totals.', true); } })();
+      try { await herdr.start(); if (!disposed) await herdrWorkflows.start(); }
+      catch { if (!disposed) notify('Herdr settings or workflow recovery records could not be loaded. Restore them before dispatching.', true); }
+      if (disposed) return;
+      try { await aiCosts.start(); }
+      catch { if (!disposed) notify('AI cost history could not be loaded. Review the cost dashboard before relying on its totals.', true); }
+      if (disposed) return;
+      await studio.store.flush();
+      if (disposed) return;
+      await mcp.start();
+      if (disposed) return;
+      await taskScheduler.start().catch(() => notify('Task scheduler could not start. Open The Council → Automation → Schedules and restore its private journal before scheduling work.', true));
+      if (disposed) return;
+      await workflowTriggers.start().catch(() => notify('Workflow triggers could not start. Restore their private journal before enabling event automation.', true));
+      if (disposed) return;
       liveMonitor.start();
       void recorder.start();
+      // A saved Play preference is honored only after host services and recovery journals settle.
+      studio.engine.start();
     },
     async dispose() {
       disposed = true;

@@ -7,8 +7,13 @@ import WorkflowDefinitionLimits from "./WorkflowDefinitionLimits.vue";
 import WorkflowDefinitionTransfer from "./WorkflowDefinitionTransfer.vue";
 import WorkflowOutputTemplates from "./WorkflowOutputTemplates.vue";
 import WorkflowValidationSummary from "./WorkflowValidationSummary.vue";
-withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
+import WorkflowLibraryPicker from './WorkflowLibraryPicker.vue';
+import WorkflowStartupMode from './WorkflowStartupMode.vue';
+import type { WorkflowPage } from '../../stores/studio-pages';
+import { useWorkflowEditorPane } from '../../composables/coforge/use-workflow-editor-pane';
+const props = withDefaults(defineProps<{ embedded?: boolean; pane?: WorkflowPage }>(), { embedded: false });
 const model = useWorkflowEditor();
+const pane = useWorkflowEditorPane(props, model);
 const openEventTriggers = useEventTriggerLink();
 </script>
 <template>
@@ -18,15 +23,15 @@ const openEventTriggers = useEventTriggerLink();
       :class="{ 'cf-workflow-subpage-heading': embedded }"
     >
       <div>
-        <component :is="embedded ? 'h2' : 'h1'">Workflow settings</component>
-        <p>
+        <component :is="embedded ? 'h2' : 'h1'">{{ pane === 'limits' ? 'Timing & limits' : pane === 'templates' ? 'Answer / output templates' : 'Idea Board Workflow' }}</component>
+        <p v-if="pane === 'settings'">
           Design the ordered AI and human steps for
           {{ model.project?.settings.projectName || "this project" }}. Saving
           prepares future runs; it never starts an agent.
         </p>
       </div>
     </header>
-    <details v-if="model.store.featureEnabled('council')" class="cf-workflow-related">
+    <details v-if="model.store.featureEnabled('council')" v-show="pane === 'settings'" class="cf-workflow-related">
       <summary>Request workflows and Council proposal processes</summary>
       <p>
         Use this workflow to move an existing request through ordered AI and
@@ -56,9 +61,10 @@ const openEventTriggers = useEventTriggerLink();
         Manage projects
       </button>
     </section>
-    <form v-else class="cf-workflow-editor" @submit.prevent="model.save()">
+    <form v-else v-show="pane !== 'templates'" class="cf-workflow-editor" @submit.prevent="model.save()">
       <fieldset :disabled="model.saving">
         <legend class="cf-sr-only">Project workflow configuration</legend>
+        <div v-show="pane === 'settings'">
         <div class="cf-workflow-editor-toolbar">
           <div>
             <code>{{ model.project.id }}</code
@@ -97,6 +103,8 @@ const openEventTriggers = useEventTriggerLink();
             </div>
           </details>
         </div>
+        <WorkflowLibraryPicker />
+        <WorkflowStartupMode />
         <label class="cf-field"
           ><span>Workflow name</span
           ><input
@@ -114,18 +122,19 @@ const openEventTriggers = useEventTriggerLink();
           >. Select a step to define its task and answer. Changes apply to new
           runs after saving; code changes still need final review.
         </p>
+        <WorkflowDefinitionTransfer />
+        </div>
         <p v-if="model.error" class="cf-inline-error" role="alert">
           {{ model.error }}
         </p>
         <p v-if="model.notice" class="cf-workflow-editor-notice" role="status">
           {{ model.notice }}
         </p>
-        <WorkflowDefinitionTransfer />
         <WorkflowValidationSummary />
-        <div class="cf-workflow-editor-layout">
+        <div v-show="pane === 'settings'" class="cf-workflow-editor-layout">
           <WorkflowStepList /><WorkflowStepEditor />
         </div>
-        <WorkflowDefinitionLimits />
+        <div v-show="pane === 'limits'"><WorkflowDefinitionLimits /></div>
         <div class="cf-workflow-editor-save">
           <div>
             <p
@@ -167,6 +176,8 @@ const openEventTriggers = useEventTriggerLink();
     </form>
     <WorkflowOutputTemplates
       v-if="model.project && !model.project.unavailable"
+      v-show="pane === 'templates'"
+      :open="pane === 'templates'"
       :project-id="model.project.id"
     />
   </div>

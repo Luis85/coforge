@@ -37,7 +37,7 @@
 .cf-settings-page .cf-settings-save { margin-top: 32px; padding: 16px 0; align-items: flex-start; }
 .cf-settings-save-message { display: flex; align-items: flex-start; gap: 9px; flex: 1 1 240px; font-size: 12px; line-height: 1.6; }
 .cf-settings-save-message > .cf-icon { margin-top: 2px; color: var(--cf-muted); flex-shrink: 0; }
-.cf-settings-save-message > span { display: grid; gap: 3px; }
+.cf-settings-save-message > .cf-notice-body { display: grid; gap: 3px; }
 .cf-settings-save-message strong { font-size: 12px; font-weight: 600; color: var(--cf-text); }
 .cf-settings-save-message small { font-size: 12px; color: var(--cf-muted); max-width: 55ch; }
 .cf-settings-page .cf-settings-alert { font-size: 13px; overflow-wrap: anywhere; }
@@ -196,7 +196,10 @@
 }
 
 /* Plugin settings tab: rows mimic Obsidian's native .setting-item layout (name and description left, control right). */
+.ps--coforge.vertical-tab-content:has(.cf-plugin-settings) { padding-bottom: 0; }
+.ps--coforge.vertical-tab-content > .generated-workbench:has(.cf-plugin-settings) { padding-bottom: 0; }
 .cf-plugin-settings { line-height: var(--line-height-normal); }
+.cf-plugin-settings-form { margin-bottom: 0; }
 .cf-plugin-settings code { font-family: var(--cf-font-mono); font-size: 0.92em; }
 .cf-plugin-settings-loading p { display: flex; align-items: center; gap: 8px; color: var(--cf-muted); padding: 0.75em 0; margin: 0; }
 .cf-plugin-settings-loading p[role="alert"] { color: var(--cf-danger); }
@@ -267,7 +270,7 @@
 }
 .cf-plugin-settings > .cf-plugin-settings-message { margin-top: var(--size-4-2); }
 .cf-plugin-settings-message > .cf-icon { color: var(--cf-green); margin-top: 2px; }
-.cf-plugin-settings-message > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.cf-plugin-settings-message > .cf-notice-body { min-width: 0; overflow-wrap: anywhere; }
 .cf-plugin-settings-message.is-error { color: var(--cf-danger); border-color: color-mix(in srgb, var(--text-error) 35%, transparent); }
 .cf-plugin-settings-message.is-error > .cf-icon { color: var(--cf-danger); }
 .cf-plugin-settings-message > .cf-icon-button { width: 22px; height: 22px; }

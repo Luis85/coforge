@@ -12,6 +12,9 @@
   min-width: 0;
   margin-inline: auto;
 }
+.ps--coforge .cf-content > .cf-settings-page:has(.cf-settings-save) {
+  padding-bottom: 0;
+}
 .ps--coforge .cf-page-heading {
   display: flex;
   align-items: flex-start;

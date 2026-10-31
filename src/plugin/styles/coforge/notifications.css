@@ -1,0 +1,62 @@
+/* Message shells share a fixed decorative icon, readable body and trailing actions. */
+.ps--coforge { --cf-error-text: color-mix(in srgb, var(--cf-danger) 70%, var(--cf-text)); }
+.ps--coforge :is(.cf-idea-alert, .cf-settings-alert, .cf-settings-save-message, .cf-plugin-settings-message, .cf-toast) {
+  display: grid;
+  grid-template-columns: var(--size-4-4) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--cf-space-sm);
+  min-width: 0;
+  text-align: start;
+}
+.ps--coforge :is(.cf-idea-alert, .cf-settings-alert, .cf-plugin-settings-message, .cf-toast):has(> button) {
+  grid-template-columns: var(--size-4-4) minmax(0, 1fr) auto;
+}
+.ps--coforge :is(.cf-idea-alert, .cf-settings-alert, .cf-settings-save-message, .cf-plugin-settings-message, .cf-toast) > .cf-icon {
+  grid-column: 1;
+  inline-size: var(--size-4-4);
+  block-size: var(--size-4-4);
+  min-inline-size: var(--size-4-4);
+  --cf-icon-size: var(--size-4-4);
+  flex: none;
+  margin-top: calc(var(--cf-space-xs) / 2);
+}
+.ps--coforge .cf-notice-body {
+  display: grid;
+  gap: calc(var(--cf-space-xs) / 2);
+  grid-column: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+.ps--coforge .cf-notice-body :is(strong, small) { min-width: 0; margin: 0; font-size: inherit; line-height: inherit; }
+.ps--coforge :is(.cf-idea-alert, .cf-settings-alert, .cf-plugin-settings-message, .cf-toast) > button {
+  grid-column: 3;
+  align-self: start;
+  margin: 0;
+}
+.ps--coforge .cf-idea-alert.is-agent .cf-notice-body small {
+  max-block-size: calc(var(--size-4-4) * 8);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.ps--coforge .cf-notice-body [tabindex]:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: var(--cf-space-xs); }
+.ps--coforge .cf-toast-stack {
+  max-block-size: 50%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+}
+.ps--coforge :is(.cf-inline-error, p[role="alert"]),
+.ps--coforge :is(.cf-idea-alert, .cf-settings-alert, .cf-plugin-settings-message).is-error > .cf-notice-body {
+  color: var(--cf-error-text);
+}
+.ps--coforge :is(.cf-inline-error, p[role="alert"]) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-size: var(--font-ui-small);
+}
+@container plugin-shell-leaf (max-width: 420px) {
+  .ps--coforge .cf-idea-alert.is-agent > button { grid-column: 2 / -1; justify-self: start; }
+}

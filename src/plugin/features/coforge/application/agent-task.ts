@@ -19,6 +19,7 @@ export interface AgentTaskRequest {
 export interface AgentTaskReceipt { runId: string; sourcePath: string; sourceId?: string; simulated?: boolean }
 export type AgentTaskResult = { state: 'pending' | 'attention' | 'cancelled' | 'missing' } | { state: 'completed'; projectId: string; sourcePath: string; sourceId?: string; markdown: string };
 export interface AgentTaskPort {
+  prepareCoworker?(projectId: string, coworkerId: string): Promise<import('../domain/workflow-coworker-binding').WorkflowCoworkerProfile>;
   create(input: AgentTaskRequest): Promise<AgentTaskReceipt>;
   prepareCouncil?(projectId: string, councilId: string): Promise<CouncilTaskBinding>;
   cancel?(runId: string): Promise<void>;
