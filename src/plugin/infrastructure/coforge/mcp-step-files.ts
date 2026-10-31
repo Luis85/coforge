@@ -7,6 +7,8 @@ import { text, shape, optional, nullable } from '../../features/coforge/domain/c
 import { protectedPrefix } from './durable-worker/protection';
 
 const MAX = 200000;
+const narrowingHint = 'Results are incomplete. Retry with a narrower repository-relative path; list_files query filters file paths before the result limit.';
+const incomplete = { truncated: true, narrowingHint };
 const denied = (segment: string): boolean => /^(?:\.git|\.claude|\.codex|\.coforge|\.agents|\.mcp\.json|\.obsidian|node_modules|\.env(?:\..*)?|\.ssh|\.aws|\.npmrc|\.netrc|credentials?(?:\..*)?|secrets?(?:\..*)?)$/iu.test(segment) || /\.(?:pem|key|p12|pfx)$/iu.test(segment);
 const ambiguous = (segment: string): boolean => segment.trimEnd() !== segment || segment.endsWith('.') || [...segment].some(character => character.charCodeAt(0) < 32)
   || /^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/iu.test(segment);
@@ -66,7 +68,7 @@ export class McpStepFiles {
     });
     this.pending = next.catch(() => undefined); return next;
   }
-  private async list(root: string, path: string): Promise<{ files: string[]; truncated: boolean }> {
+  private async list(root: string, path: string, query = ''): Promise<{ files: string[]; truncated: boolean; narrowingHint?: string }> {
     const start = await this.bound(root, path);
     const files: string[] = [];
     let scanned = 0;
@@ -79,11 +81,14 @@ export class McpStepFiles {
         const path = join(directory, entry.name);
         if (this.protected(relative(root, path).split(sep).join('/'))) continue;
         if (entry.isDirectory()) await walk(path, depth + 1);
-        else if (entry.isFile() && (await lstat(path)).nlink === 1) files.push(relative(root, path).split(sep).join('/'));
+        else if (entry.isFile() && (await lstat(path)).nlink === 1) {
+          const name = relative(root, path).split(sep).join('/');
+          if (name.toLowerCase().includes(query.toLowerCase())) files.push(name);
+        }
       }
     };
     await walk(start, 0);
-    return { files: files.sort(), truncated };
+    return { files: files.sort(), truncated, ...(truncated ? { narrowingHint } : {}) };
   }
   private async execute(name: string, task: Task, raw: unknown): Promise<unknown> {
     const access = executionAccess(task.input);
@@ -95,30 +100,31 @@ export class McpStepFiles {
     if (root !== resolve(task.lease.cwd)) throw new Error('The task repository boundary changed.');
     const taskId = optional(text({ min: 1, max: 100 }));
     const pathCheck = text({ max: 1000 });
+    const queryCheck = text({ min: 1, max: 200 });
     if (name === 'coforge_list_files') {
-      const { path = '' } = shape({ taskId, path: optional(pathCheck) }, { strict: true })(raw);
-      return this.list(root, path);
+      const { path = '', query } = shape({ taskId, path: optional(pathCheck), query: optional(queryCheck) }, { strict: true })(raw);
+      return this.list(root, path, query);
     }
     if (name === 'coforge_read_file') {
       const { path } = shape({ taskId, path: pathCheck }, { strict: true })(raw);
       return { path, content: await read(await this.bound(root, path)) };
     }
     if (name === 'coforge_search_files') {
-      const { query } = shape({ taskId, query: text({ min: 1, max: 200 }) }, { strict: true })(raw);
-      const listing = await this.list(root, '');
+      const { query, path = '' } = shape({ taskId, query: queryCheck, path: optional(pathCheck) }, { strict: true })(raw);
+      const listing = await this.list(root, path);
       const matches: Array<{ path: string; line: number; text: string }> = [];
       let total = 0;
       for (const path of listing.files) {
         let content: string;
         try { content = await read(await this.bound(root, path)); } catch { continue; }
         total += Buffer.byteLength(content);
-        if (total > 2 * 1024 * 1024) return { matches, truncated: true };
+        if (total > 2 * 1024 * 1024) return { matches, ...incomplete };
         for (const [index, line] of content.split('\n').entries()) if (line.includes(query)) {
           matches.push({ path, line: index + 1, text: line.slice(0, 1000) });
-          if (matches.length >= 100) return { matches, truncated: true };
+          if (matches.length >= 100) return { matches, ...incomplete };
         }
       }
-      return { matches, truncated: listing.truncated };
+      return { matches, truncated: listing.truncated, ...(listing.truncated ? { narrowingHint } : {}) };
     }
     if (!['coforge_write_file', 'coforge_delete_file'].includes(name) || access !== 'editworktree' || task.lease.readOnly) throw new Error('This task cannot edit files.');
     if (name === 'coforge_delete_file') {

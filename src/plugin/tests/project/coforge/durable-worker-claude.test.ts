@@ -46,7 +46,13 @@ it('uses only its private MCP file tools to edit an isolated worktree and exclud
       const body: unknown = await response.json(); return record(body).result;
     };
     expect(await call('tools/list')).toMatchObject({ tools: tools.map(name => ({ name })) });
+    expect(await call('tools/list')).toMatchObject({ tools: expect.arrayContaining([
+      expect.objectContaining({ name: 'coforge_list_files', inputSchema: expect.objectContaining({ required: [], properties: expect.objectContaining({ query: expect.any(Object) }) }) }),
+      expect.objectContaining({ name: 'coforge_search_files', inputSchema: expect.objectContaining({ required: ['query'], properties: expect.objectContaining({ path: expect.any(Object) }) }) }),
+    ]) });
     expect(await call('tools/call', { name: 'coforge_list_files', arguments: { path: '' } })).toMatchObject({ structuredContent: { files: ['game.ts'] } });
+    expect(await call('tools/call', { name: 'coforge_list_files', arguments: { query: 'GAME' } })).toMatchObject({ structuredContent: { files: ['game.ts'], truncated: false } });
+    expect(await call('tools/call', { name: 'coforge_search_files', arguments: { path: '', query: 'radius' } })).toMatchObject({ structuredContent: { matches: [{ path: 'game.ts', line: 1 }], truncated: false } });
     for (const path of ['CoForge/Ideas/CF-fixture.md', 'PrivateRequests/request.md', '.coforge/authority.json']) {
       expect(await call('tools/call', { name: 'coforge_read_file', arguments: { path } })).toMatchObject({ isError: true });
     }
@@ -56,7 +62,7 @@ it('uses only its private MCP file tools to edit an isolated worktree and exclud
   };
   try {
     const result = await runBackgroundClaude(input, workspaces, files, capture, ['CoForge', 'PrivateRequests'], async () => { observedOperations++; });
-    expect(observedOperations).toBe(2); // Successful listing and write; denied requests and contact are not progress.
+    expect(observedOperations).toBe(4); // Successful discovery, search and write; denied requests and contact are not progress.
     expect(result.increment?.files.map(file => file.path)).toEqual(['game.ts']); expect(result.costUsd).toBe(0.01);
     expect(result.increment?.diff).toContain('+export const radius = 4;'); expect(workspaceId).toMatch(/^bg-/u);
     expect(await readFile(join(repo, 'game.ts'), 'utf8')).toBe('export const radius = 1;\n');

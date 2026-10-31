@@ -91,6 +91,10 @@ it('discovers projects through one connection and requires explicit project rout
   expect(await vault.call('coforge_request', { projectId: f.projectId, ideaId: f.idea.id })).toMatchObject({ request: { id: f.idea.id, projectId: f.projectId } });
   expect(await vault.call('coforge_help', {})).toMatchObject({ nextTool: 'coforge_projects', steps: expect.any(Array) });
   for (const tool of vault.tools().filter(tool => !['coforge_projects', 'coforge_help'].includes(tool.name))) expect(record(tool.inputSchema).required).toContain('projectId');
+  expect(vault.tools()).toEqual(expect.arrayContaining([
+    expect.objectContaining({ name: 'coforge_list_files', inputSchema: expect.objectContaining({ required: ['projectId', 'taskId'], properties: expect.objectContaining({ query: expect.any(Object), path: expect.any(Object) }) }) }),
+    expect.objectContaining({ name: 'coforge_search_files', inputSchema: expect.objectContaining({ required: ['projectId', 'taskId', 'query'], properties: expect.objectContaining({ path: expect.any(Object) }) }) }),
+  ]));
 });
 it('rejects malformed results, stale requests, wrong projects and unknown tools without advancing', async () => {
   const f = await fixture();

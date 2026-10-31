@@ -6,16 +6,17 @@ import { executionAccess } from '../../features/coforge/application/workflow-exe
 
 const path = { type: 'string', maxLength: 1000 };
 const content = { type: 'string', maxLength: 200000 };
-function tool(name: string, description: string, properties: Record<string, object>, readOnlyHint = true): McpTool {
-  return { name, description, inputSchema: { type: 'object', properties, required: Object.keys(properties), additionalProperties: false }, annotations: { readOnlyHint, destructiveHint: !readOnlyHint, idempotentHint: readOnlyHint, openWorldHint: false } };
+const query = { type: 'string', minLength: 1, maxLength: 200 };
+function tool(name: string, description: string, properties: Record<string, object>, readOnlyHint = true, required = Object.keys(properties)): McpTool {
+  return { name, description, inputSchema: { type: 'object', properties, required, additionalProperties: false }, annotations: { readOnlyHint, destructiveHint: !readOnlyHint, idempotentHint: readOnlyHint, openWorldHint: false } };
 }
 /** Codex never receives a local project path; every file operation rechecks the captured lease. */
 export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorkspaceLease, protectedPaths: readonly string[] = [], onActivity?: () => Promise<void>) {
   const access = executionAccess(input);
   const tools: McpTool[] = access === 'none' ? [] : [
-    tool('coforge_list_files', 'List allowed repository files. Use an empty relative path for the root.', { path }),
+    tool('coforge_list_files', 'Discover allowed repository file paths. Optional path narrows the directory; optional query filters paths by a case-insensitive literal substring before the result limit. Truncated results are incomplete; narrow path and retry.', { path, query }, true, []),
     tool('coforge_read_file', 'Read one bounded UTF-8 repository file.', { path }),
-    tool('coforge_search_files', 'Search allowed repository text for an exact string.', { query: { type: 'string', minLength: 1, maxLength: 200 } }),
+    tool('coforge_search_files', 'Search allowed UTF-8 repository text for a case-sensitive literal string. Optional path narrows the directory. Truncated results are incomplete; narrow path and retry.', { query, path }, true, ['query']),
     ...(access === 'editworktree' ? [
       tool('coforge_write_file', 'Create or replace a file in the isolated worktree. expectedContent must exactly match the previous read, or be null for a new file. Protected files are denied.', { path, content, expectedContent: { anyOf: [content, { type: 'null' }] } }, false),
       tool('coforge_delete_file', 'Delete a worktree file only after an exact content check. Protected files are denied.', { path, expectedContent: content }, false),

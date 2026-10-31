@@ -39,6 +39,8 @@ it('reads a qualified background workspace only through protected broker tools w
     const call = async (method: string, params?: object) => (await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${options.env?.COFORGE_CODEX_MCP_TOKEN}` },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, ...(params ? { params } : {}) }) })).json();
     expect(await call('tools/list')).toMatchObject({ result: { tools: ['coforge_list_files', 'coforge_read_file', 'coforge_search_files'].map(name => ({ name })) } });
+    expect(await call('tools/call', { name: 'coforge_list_files', arguments: { query: 'game' } })).toMatchObject({ result: { structuredContent: { files: ['game.ts'], truncated: false } } });
+    expect(await call('tools/call', { name: 'coforge_search_files', arguments: { path: '', query: 'captured' } })).toMatchObject({ result: { structuredContent: { matches: [{ path: 'game.ts', line: 1 }], truncated: false } } });
     expect(await call('tools/call', { name: 'coforge_read_file', arguments: { path: 'Private/request.md' } })).toMatchObject({ result: { isError: true } });
     expect(await call('tools/call', { name: 'coforge_read_file', arguments: { path: 'game.ts' } })).toMatchObject({ result: { structuredContent: { content: 'captured code' } } });
     return envelope({ markdown: '# Summary of captured code' });
