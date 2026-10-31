@@ -1,6 +1,6 @@
 # Task: Configure board buckets and the work inside them
 
-- Status: in progress
+- Status: done (implementation and local qualification; final PR checks/merge recorded on GitHub)
 - Journey in `BRIEF.md`: request → screen → score → plan → design → build → review → recognition.
 - Owner request: research through subagents, write a spec and implementation plan, implement through subagents, qualify, push, open a PR and merge only when green.
 
@@ -89,7 +89,14 @@ Branching/nested workflow engines, arbitrary status dragging, new AI capabilitie
 - Independent implementation reviews repaired intact Design-evidence correlation, readiness through intervening manual steps, stable historical-column ordering, reserved UI key collisions, explicit legacy adoption, field-specific validation repair and keyboard focus restoration.
 - Browser qualification found a label/content mismatch in bucket controls. The structural repair puts secondary context outside the name-only action button, preserving accessible descriptions. No Axe rules or thresholds were relaxed. Corrected focused journeys passed 14/14 before isolation; final qualification reruns against the isolated feature below.
 - A concurrent durable-build task began editing the shared checkout during qualification. Only this feature's 50 owned paths were copied into the managed `bucket-workflows` worktree from the original base, separating the shared BRIEF/schema edits by responsibility. Its unrelated runtime/tests/decisions are excluded. Shared source edits were preserved because that checkout is actively used by the other task.
+- Final `npm run verify:project`: exit 0; check summary **5 passed, 0 failed, 0 skipped in 1203.0s**. Product report: **1,580 passed, 0 failed, six existing Windows/platform skips, zero TODOs**. Release build passed; prototype embedding **1 passed**. UI effects explicitly skip because no visual definitions are declared.
+- Final focused browser command (bucket/editor/long-list/template journeys, distinct artifact directory): **14 passed (3.6m)**. An earlier parallel run collided with another suite's trace directory; the separated final run passed without changing production code or assertions.
+- `npm run test:ui-quality`: **8 passed (1.4m)**. `npm run ui:gallery -- --json`: **40 captures**, `failures: []`. Reviewed wide/light and narrow/dark workflow screenshots plus wide/dark studio and narrow/light integration gallery captures. Screenshots are evidence only, never committed baselines.
+- Full `npm run test:obsidian`: **51 passed / 52**, 44 files passed; the new scenario checked the board-only pipeline before leaving settings. Moved that assertion after the existing board navigation. Fresh `npm run test:obsidian -- coforge-workflow-buckets`: **1 passed (23.11s)**, including pipeline labels, bucket save/reload, captured definitions, Design readiness/history and final Build review. All original numeric, privacy, note-byte and no-dispatch assertions remain.
+- `npm run -s dev:obsidian -- --json`: **status passed**, pinned Obsidian **1.14.4**, `errors: []`, `hostErrorCount: 0`, `pluginConsole: []` after reload. Only contained vaults used.
+- `npm run check:views`: **110 views documented; navigation coverage valid; sitemap current**. Token check passed (**968 observed / 133 reviewed**). Impeccable detector: exit 0, **[]**. `git diff --check` passed. Self-review found no remaining architecture, identity, draft, privacy, logging or line-limit violation.
+- Local evidence lives in ignored `reports/workflow-buckets/`, `reports/ui-gallery/`, `reports/obsidian/` and `.obsidian-sandbox/logs/`. The PR uses the `e2e` label and must finish all final-head GitHub checks before merge.
 
 ## Untested scope
 
-Qualification pending. No billable provider or live Twitch/OBS mutation is required.
+No billable provider call, live Twitch/OBS mutation, personal vault, mobile host or alternate Obsidian version was exercised. Public board bucket customization and durable background Build execution are outside this increment. GitHub's pinned Linux qualification is required before merge; local toolchain differences are recorded above.

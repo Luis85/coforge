@@ -68,8 +68,8 @@ describe('Bucket-first Idea board workflow in the contained host', () => {
     await openWorkflowSettings(view);
     outline = view.getByRole('region', { name: 'Workflow step order', exact: true });
     await browserExpect(outline.getByRole('button', { name: 'Edit Research bucket', exact: true })).toBeVisible();
-    await browserExpect(view.locator('.cf-pipeline-stage-label')).toHaveText(['Inbox', 'Discovery', 'Research', 'Design', 'In progress', 'Accepted']);
     await view.getByRole('button', { name: /^Idea board/ }).first().click();
+    await browserExpect(view.locator('.cf-pipeline-stage-label')).toHaveText(['Inbox', 'Discovery', 'Research', 'Design', 'In progress', 'Accepted']);
     await view.locator('.cf-board-page > .cf-page-heading').getByRole('button', { name: 'New request', exact: true }).click();
     const dialog = view.getByRole('dialog');
     await dialog.getByLabel('The idea', { exact: true }).fill('Bucket workflow lantern');
