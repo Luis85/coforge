@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils';
 import { expect, it } from 'vitest';
 import type { AgentJob } from '../../../features/coforge/domain/types';
 import { createSeed } from '../../../features/coforge/domain/seed';
+import { defaultWorkflowDefinition } from '../../../features/coforge/domain/configured-workflow';
 import IdeaDrawer from '../../../presentation/components/coforge/IdeaDrawer.vue';
 import { workflowUiFixture } from './workflow-ui-fixture';
 
@@ -122,7 +123,11 @@ it('attributes Codex history to its captured model and effort after current sett
     expect(f.wrapper.find('img').exists()).toBe(false);
     f.store.state!.projects![0]!.settings.agentPrompt = 'Changed current instructions';
     f.store.state!.projects![0]!.settings.model = 'new-model';
-    f.store.state!.projects![0]!.settings.stageAgents = { screen: { provider: 'codex', model: 'gpt-6.1-sol', effort: 'low' } };
+    const currentWorkflow = defaultWorkflowDefinition(f.store.state!.projects![0]!.settings);
+    const currentStep = currentWorkflow.steps[0];
+    if (currentStep?.kind !== 'ai') throw new Error('Missing current workflow step');
+    currentStep.provider = 'codex'; currentStep.model = 'gpt-6.1-sol'; currentStep.effort = 'low';
+    f.store.state!.projects![0]!.settings.workflow = currentWorkflow;
     await f.wrapper.vm.$nextTick();
     expect(summary.text()).toContain('high effort');
     expect(summary.text()).not.toContain('low effort');
