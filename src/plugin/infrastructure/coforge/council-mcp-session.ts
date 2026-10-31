@@ -6,6 +6,7 @@ import { LocalMcpServer, type McpTool } from './mcp-server';
 import { McpToolError } from './mcp-errors';
 
 export interface CouncilMcpScope {
+  maxToolCalls?: number;
   prompt: string; instructions: string;
   identity?: { projectId: string; runId: string; attemptId: string; agentId: string; teamId: string; roundId: string };
   inputs: Array<{ id: string; agentId: string; roundId: string; markdown: string }>;
@@ -14,6 +15,7 @@ export interface CouncilMcpScope {
   signal?: AbortSignal;
 }
 export interface CouncilMcpSession {
+  assertBudget?(): void;
   configPath: string;
   messageDrafts(): TeamMessageDraft[];
   dispose(): Promise<void>;
@@ -29,6 +31,9 @@ export async function createCouncilMcpSession(directory: string, scope: CouncilM
   let closed = false; let closing: Promise<void> | undefined;
   const requests = new Map<string, TeamMessageDraft>();
   let pending: Promise<unknown> = Promise.resolve();
+  let calls = 0;
+  let exceeded = false;
+  const assertBudget = () => { if (exceeded) throw new McpToolError('PERMISSION_DENIED', 'The captured Codex tool-call allowance was exhausted. Review retained work before an explicit retry.'); };
   const assert = async () => {
     if (closed || scope.signal?.aborted) throw new McpToolError('PERMISSION_DENIED', 'This invocation’s CoForge connection is closed.');
     await scope.recheck();
@@ -42,6 +47,8 @@ export async function createCouncilMcpSession(directory: string, scope: CouncilM
     ],
     call(name, raw) {
       const next = pending.then(async () => {
+        if (scope.maxToolCalls !== undefined && ++calls > scope.maxToolCalls) exceeded = true;
+        assertBudget();
         await assert();
         if (name === 'coforge_invocation') {
           shape({}, { strict: true })(raw);
@@ -76,6 +83,6 @@ export async function createCouncilMcpSession(directory: string, scope: CouncilM
     await writeFile(configPath, JSON.stringify({ mcpServers: { coforge: { type: 'http', url: endpoint, headers: { Authorization: `Bearer ${token}` } } } }), { flag: 'wx', mode: 0o600 });
     scope.signal?.addEventListener('abort', abort, { once: true });
     await assert();
-    return { configPath, messageDrafts: () => structuredClone([...requests.values()]), dispose };
+    return { configPath, messageDrafts: () => structuredClone([...requests.values()]), assertBudget, dispose };
   } catch (error) { await dispose(); throw error; }
 }

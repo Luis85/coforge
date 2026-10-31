@@ -170,6 +170,7 @@ export class HerdrWorkflowService implements HerdrWorkflowActions {
       externalUncertain = true;
       const started = await this.bounded(controller.signal, () => this.gateway.startAgent(record.settings, workspace.pane, {
         name: `cf-${record.id.replaceAll('-', '').slice(0, 24)}`, kind: 'claude', model, stage: input.stage,
+        effort: input.workflow?.step.effort,
         resultPath: prepared.resultPath, systemPrompt, sessionId: input.jobId, ...(input.workflow ? { access: executionAccess(input) } : {}),
       }, input.signal));
       Object.assign(record, { target: started.agent, launchArgv: started.argv });

@@ -196,6 +196,29 @@ connect to the local Claude Code CLI. Viewers interact only through chat.
 
 ### Configurable workflows (owner decisions, 2026-10-28)
 
+Design-column readiness (owner correction, 2026-10-30): keep requests whose
+Design is complete and whose next captured step is Build in the Design column.
+Show "Design complete · Ready to build" clearly; do not add another column or
+move the request to In progress before Build starts. Only current, valid saved
+Design evidence may claim completion.
+
+Provider model settings (owner request, 2026-10-30): selecting a provider in
+Agent workflow settings or a CoWorker definition exposes real supported model
+and reasoning-effort choices. Save the selected values and capture them for
+execution; missing effort preserves the provider default for legacy definitions.
+Preserve explicit custom model IDs. Simulation has no model/effort call. Provider
+and model capabilities constrain effort; account access remains provider-owned.
+
+Codex provider (owner addition, 2026-10-30): add the locally authenticated Codex
+CLI to workflow and CoWorker providers with its real model/effort choices. Preserve
+captured definitions, scoped CoForge tools, isolated worktrees and final review.
+Use a private, text-only native model profile and host-checked MCP file operations;
+never allow native shell, browser, file/image or delegation tools to bypass scope.
+Codex's step timeout and finite CoForge tool-call allowance apply; the existing
+turn setting bounds those calls. Claude's native turn/USD flags do not cap Codex
+spending. Keep missing dollar cost unknown and record provider token usage when
+available. Local model metadata must recognize the requested model before dispatch.
+
 Kanban workflow correction (owner, 2026-10-30): add a separate AI Design step after
 Plan and before Build. It creates a saved design/specification that Build receives
 alongside the plan. Design has read-only project access; Build retains isolated

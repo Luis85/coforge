@@ -25,6 +25,7 @@ describe("typed note provider invocation", () => {
         }),
         timeoutSeconds: 30,
         maxTurns: 2,
+        effort: 'high',
         maxBudgetUsd: 0.1,
       },
       { gate: new InvocationGate(), executable: "claude.exe", capture },
@@ -37,6 +38,7 @@ describe("typed note provider invocation", () => {
     });
     const args = capture.mock.calls[0]?.[1] ?? [];
     expect(args).toContain("--restricted");
+    expect(args.slice(args.indexOf('--effort'), args.indexOf('--effort') + 2)).toEqual(['--effort', 'high']);
     expect(args).toContain("--no-session-persistence");
     expect(args[args.indexOf("--tools") + 1]).toBe("");
     expect(args).toContain('--strict-mcp-config');

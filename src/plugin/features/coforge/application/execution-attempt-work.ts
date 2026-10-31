@@ -70,6 +70,7 @@ export class ExecutionAttemptWork {
           agentRevision: invocation.agentRevision,
           provider: invocation.provider,
           model: invocation.model,
+          ...(invocation.effort === undefined ? {} : { effort: invocation.effort }),
           inputArtifactIds: [...attempt.dispatch.inputArtifactIds],
           createdAt: this.host.now(),
         };

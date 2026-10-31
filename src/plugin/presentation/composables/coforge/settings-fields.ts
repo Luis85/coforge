@@ -23,6 +23,7 @@ export const PROVIDERS: Array<{
   title: string;
   text: string;
 }> = [
+  { value: 'codex', icon: 'bot', title: 'Codex CLI', text: 'Local Codex with scoped CoForge tools and your configured account.' },
   {
     value: "demo",
     icon: "flask-conical",

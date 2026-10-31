@@ -25,7 +25,7 @@ export interface PersistedStudio extends Omit<AppState, 'ideas' | 'runtime' | 'p
 }
 
 const str = text();
-const provider = oneOf(['demo', 'claude', 'herdr'] as const);
+const provider = oneOf(['demo', 'claude', 'herdr', 'codex'] as const);
 const stage = oneOf(['screen', 'score', 'plan', 'implement'] as const);
 
 function dictionary<T>(item: Check<T>): Check<Record<string, T>> {
@@ -41,7 +41,7 @@ const job: Check<AgentJob> = shape({
   workflow: optional(configuredStepExecutionCheck),
   usage: optional(stageUsageCheck), herdrAgent: optional(oneOf(['claude'] as const)),
   model: optional(text({ max: 100 })),
-  id: str, ideaId: str, stage, status: oneOf(['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const), provider: oneOf(['demo', 'claude', 'herdr', 'mcp'] as const),
+  id: str, ideaId: str, stage, status: oneOf(['queued', 'running', 'succeeded', 'failed', 'cancelled'] as const), provider: oneOf(['demo', 'claude', 'herdr', 'codex', 'mcp'] as const),
   startedAt: timestamp, finishedAt: optional(timestamp), logs: list(str), error: optional(str), costUsd: optional(number({ min: 0 })),
   projectId: optional(str),
 });
@@ -58,6 +58,7 @@ export const settingsCheck: Check<Settings> = shape({
   timeoutSeconds: number({ gt: 0 }), model: str, requestCooldownSeconds: number({ min: 0 }),
 });
 const integration: Check<IntegrationSettings> = shape({
+  codexBin: optional(text({ min: 1, max: 1000 })),
   ideasFolder: text({ min: 1 }), claudeBin: text({ min: 1 }), projectPath: str, allowImplementation: boolean, worktreeFolder: str,
   twitchEnabled: boolean, twitchClientId: str, twitchBotUserId: str, twitchBroadcasterId: str, twitchTokenSecret: str,
   twitchStreamerSecret: str, twitchBotUsesStreamer: boolean, twitchBotReplies: boolean,

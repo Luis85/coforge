@@ -3,7 +3,9 @@ import { createDemoRunner } from '../../features/coforge/application/demo-agent'
 import type { StudioHostActions, Timers } from '../../features/coforge/application/ports';
 import { StudioService } from '../../features/coforge/application/studio';
 import { errorMessage } from '../../features/coforge/domain/errors';
-import { probeClaude, runClaudeStage } from './claude-runner';
+import { runClaudeStage } from './claude-runner';
+import { probeNativeRuntimes } from './native-runtime-probe';
+import { runCodexStage } from './codex-runner';
 import { syncPublicBoard } from './public-board-sync';
 import { PublicSitePublisher } from './public-site-publisher';
 import type { HttpRequest } from './twitch-http';
@@ -125,11 +127,12 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     noteFolders,
     runners: { demo: input => invocations.run(() => demo(input), input.signal),
       claude: input => invocations.run(() => runClaudeStage(input, workspaces), input.signal),
+      codex: input => invocations.run(() => runCodexStage(input, workspaces), input.signal),
       herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal),
       mcp: input => invocations.run(() => {
         if (!mcp.status().active) throw new Error('Activate CoForge MCP before reserving an external step.');
         return mcpRunner.run(input);
-      }, input.signal) }, timers, probeRuntime: probeClaude,
+      }, input.signal) }, timers, probeRuntime: probeNativeRuntimes,
     assertWorkflowReviewable: (id, increment) => workspaces.assertReviewable(id, increment),
     assertExampleCleanup: async ids => {
       if (!ids.length) return;

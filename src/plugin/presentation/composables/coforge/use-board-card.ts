@@ -3,6 +3,7 @@ import type { AgentJob, AgentStage, Idea } from '../../../features/coforge/domai
 import { useStudioStore } from '../../stores/coforge-studio';
 import { avatarStyle, categoryClass, contributorName, initials } from './format';
 import { useStudioActions } from './use-studio-actions';
+import { currentDesignSpecification } from './use-idea-design';
 
 /** Voter ids the studio uses for the streamer across chat sources. */
 const STREAMER_VOTERS = ['local:streamer', 'streamer', 'simulator:streamer'];
@@ -19,6 +20,8 @@ export function cardState(idea: Idea, job: AgentJob | undefined): CardState | nu
   if (idea.lastError) return { tone: 'flagged', icon: 'flag', label: 'Run needs attention', spin: false };
   if (idea.status === 'planned') {
     const step = idea.workflowRun?.state === 'ready' ? idea.workflowRun.definition.steps[idea.workflowRun.cursor] : undefined;
+    if (step?.kind === 'ai' && step.output === 'codechange' && currentDesignSpecification(idea))
+      return { tone: 'agent', icon: 'file-check', label: 'Design complete · Ready to build', spin: false };
     return { tone: 'agent', icon: 'file-text', label: step ? `Ready · ${step.name}` : 'Plan ready', spin: false };
   }
   if (idea.status === 'review') return { tone: 'review', icon: 'circle-dot', label: 'Your review', spin: false };

@@ -1,6 +1,7 @@
 import { lstat, realpath, stat } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, normalize, relative, resolve, sep } from 'node:path';
 import type { HerdrWorkflowProfile } from '../../features/coforge/application/herdr-workflow-ports';
+import { validateModelEffort } from '../../features/coforge/domain/provider-models';
 
 const DENIED = [
   'mcp__*', 'Bash', 'PowerShell', 'WebFetch', 'WebSearch', 'NotebookEdit', 'Agent',
@@ -35,6 +36,7 @@ function exactEditRule(path: string): string {
 
 /** Interactive flags only: Herdr does not enforce the native print runner's turn or spending caps. */
 export async function buildHerdrWorkflowArgs(cwd: string, profile: HerdrWorkflowProfile): Promise<string[]> {
+  validateModelEffort({ provider: 'herdr', model: profile.model, effort: profile.effort });
   const access = profile.access ?? (profile.stage === 'screen' || profile.stage === 'score' ? 'none' : profile.stage === 'plan' ? 'readproject' : 'editworktree');
   if (profile.kind !== 'claude' || !/^[a-z][a-z0-9_-]{0,31}$/u.test(profile.name) ||
       !/^[a-zA-Z0-9][a-zA-Z0-9._:/@+[\]-]{0,199}$/u.test(profile.model) ||
@@ -61,5 +63,6 @@ export async function buildHerdrWorkflowArgs(cwd: string, profile: HerdrWorkflow
     '--tools', tools, '--allowedTools', allowed, '--disallowedTools', DENIED.join(','),
     '--permission-mode', 'dontAsk', ...(access === 'readproject' ? ['--add-dir', artifactParent] : []),
     '--model', profile.model, ...(profile.sessionId ? ['--session-id', profile.sessionId] : []), '--system-prompt', systemPrompt,
+    ...(profile.effort === undefined ? [] : ['--effort', profile.effort]),
   ];
 }

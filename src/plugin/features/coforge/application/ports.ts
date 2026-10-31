@@ -72,9 +72,9 @@ export interface StudioHost {
   /** Keep canonical note owners separate without restricting ordinary watched source notes. */
   noteFolders?: Partial<ManagedNoteFolderPolicy>;
   assertWorkflowReviewable?(workspaceId: string, expectedIncrement: Increment): Promise<void>;
-  runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
+  runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
   timers: Timers;
-  probeRuntime(integration: IntegrationSettings): Promise<Pick<RuntimeInfo, 'cliAvailable' | 'projectPath' | 'allowImplementation'>>;
+  probeRuntime(integration: IntegrationSettings): Promise<Pick<RuntimeInfo, 'cliAvailable' | 'codexAvailable' | 'projectPath' | 'allowImplementation'>>;
   report?(error: Error): void;
   events?: import('./studio-events').StudioEventSink;
   observerFailed?(): void;

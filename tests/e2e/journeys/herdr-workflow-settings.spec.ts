@@ -24,7 +24,7 @@ for (const theme of ["light", "dark"])
       "Claude Code",
     ]);
     await agent.selectOption("claude");
-    await page.getByLabel("AI model", { exact: true }).fill("haiku");
+    await page.getByLabel("AI model", { exact: true }).selectOption("haiku");
     const fields = page.getByRole("region", {
       name: "Selected workflow step",
       exact: true,
