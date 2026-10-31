@@ -10,6 +10,9 @@ component: src/plugin/presentation/components/coforge/WorkflowEditorView.vue
 entry:
   - Open Project settings, Agent workflow, then Idea Board Workflow.
 actions:
+  - Configure ordered buckets and descriptions
+  - Add, reorder or remove empty intermediate buckets
+  - Assign steps to buckets
   - Add or select step
   - Reorder or replace
   - Edit prompts and provider
@@ -56,6 +59,19 @@ iteration: ""
 Save the process that new requests will follow.
 
 Each project owns a v1 definition with stable step IDs. Existing runs keep captured revisions. Import changes the draft after preview; saving is explicit.
+
+Configure the Idea board's bucket sequence first, then its nested steps. Select a
+bucket to edit its name/description or a step for the shared detail panel. Inbox
+and Accepted keep fixed start/outcome roles; intermediate buckets can be added,
+reordered with their steps and removed once empty. Each step belongs to one
+nonterminal bucket. Empty buckets are visible and perform no work. Bucket order
+and local step order define the flat captured execution sequence. Invalid result
+dependencies preserve the draft and block Save until repaired.
+
+Legacy definitions are grouped only in the editor draft until explicitly saved.
+Existing runs retain their captured process. The private Idea board retains
+occupied earlier-workflow columns when configuration changes, while public
+surfaces retain their established screened lifecycle projection.
 
 Choose a saved vault CoWorker for an AI step or configure provider, model and
 effort manually. Available values follow the selected provider. A CoWorker's
@@ -146,10 +162,11 @@ The standard process is Screen → Score → Plan → Design → Build. Design p
 a retained Markdown specification with read-only project access; Build requires
 both that specification and the plan. Design initially inherits Plan's agent/model
 and automation choice and can be configured independently in the workflow draft.
-To update an existing custom workflow, add the Design preset. When a Plan precedes
-a Build, the editor inserts Design before that Build and requires its specification,
-preserving the other earlier results that Build already receives. Otherwise, adjust
-the draft order/inputs or replace it with the standard workflow. Saving is explicit;
+To update an existing custom workflow, select the intended bucket and add the
+Design preset. Place it after a Plan and before Build, and select its specification
+in Build's required previous results, keeping other needed results selected. Presets
+are added to the selected bucket; the validation summary identifies missing earlier
+producers. Alternatively replace the draft with the standard workflow. Saving is explicit;
 existing runs retain their captured definitions.
 
 The private request drawer has a Plan & Design tab for reading and copying the

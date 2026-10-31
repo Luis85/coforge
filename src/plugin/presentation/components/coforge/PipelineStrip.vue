@@ -18,10 +18,14 @@ const model = useStudioShell();
         v-for="item in model.stages"
         :key="item.stage"
         class="cf-pipeline-stage"
-        :class="{ 'is-enabled': item.enabled, 'is-working': item.working }"
+        :class="{ 'is-enabled': item.enabled, 'is-working': item.working, 'is-outcome': item.outcome }"
+        :data-bucket-id="item.bucketId"
+        :title="item.title"
       >
-        <span>{{ item.number }}</span
-        >{{ item.label }}<CfIcon name="chevron-right" size="xs" />
+        <CfIcon v-if="item.outcome" name="check-check" size="xs" />
+        <span v-else class="cf-pipeline-stage-number">{{ item.number }}</span>
+        <span class="cf-pipeline-stage-label">{{ item.label }}</span>
+        <CfIcon v-if="!item.outcome" name="chevron-right" size="xs" />
       </span>
       <span class="cf-pipeline-human"
         ><CfIcon name="shield-check" size="sm" /> Your review</span

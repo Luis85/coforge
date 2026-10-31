@@ -5,6 +5,7 @@ import { App, Plugin, parseYaml } from "obsidian";
 import { createTestApp } from "@test/obsidian";
 import { StudioService } from "../../../features/coforge/application/studio";
 import { workflowDefinition } from "../../../features/coforge/domain/configured-workflow";
+import { materializeWorkflowBuckets } from "../../../features/coforge/domain/workflow-buckets";
 import { VaultStudioStorage } from "../../../infrastructure/coforge/vault-storage";
 import { splitNote } from "../../../infrastructure/coforge/markdown";
 import { nodeTimers } from "./memory-storage";
@@ -53,13 +54,15 @@ it("keeps canonical project/request body bytes and human annotations through wor
         ) + "\r\n## Human notes\r\nKeep all body bytes.",
     );
     const projectBody = splitNote(kit.read(file.path)).body;
-    const definition = workflowDefinition(project.settings);
+    const definition = materializeWorkflowBuckets(workflowDefinition(project.settings));
+    definition.buckets![0]!.description = 'Keep [[bucket]] and {{description}}.\r\nExact bytes.';
     definition.steps = [
       {
         id: "review",
         name: "Manual review",
         kind: "approval",
         instructions: "Review [[this]] and {{that}}.\n\nKeep the prompt.",
+        bucketId: 'inbox',
       },
     ];
     const saved = await studio.saveWorkflow(

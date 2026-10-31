@@ -35,6 +35,7 @@ export function moveWorkflowStep(
   const index = definition.steps.findIndex((step) => step.id === id);
   const target = index + direction;
   if (index < 0 || target < 0 || target >= definition.steps.length) return;
+  if (definition.buckets && definition.steps[index]?.bucketId !== definition.steps[target]?.bucketId) return;
   const [step] = definition.steps.splice(index, 1);
   if (step) definition.steps.splice(target, 0, step);
 }

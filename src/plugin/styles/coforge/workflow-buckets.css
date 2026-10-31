@@ -1,0 +1,106 @@
+.cf-workflow-bucket-heading {
+  display: flex;
+  align-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+.cf-workflow-bucket-select {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: start;
+  gap: 4px;
+  height: auto;
+  min-height: 32px;
+  min-width: 0;
+  padding: 8px 8px 2px;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--cf-text);
+  text-align: start;
+  white-space: normal;
+  cursor: pointer;
+}
+.cf-workflow-bucket-select strong {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.cf-workflow-bucket-identity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cf-workflow-bucket-identity > small {
+  display: block;
+  padding: 2px 8px 8px;
+  color: var(--cf-muted);
+  font-size: 11px;
+}
+.cf-workflow-bucket-select:hover {
+  background: var(--cf-hover);
+}
+.cf-workflow-bucket-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+}
+.cf-workflow-bucket-actions .cf-btn {
+  padding-inline: 4px;
+}
+.cf-workflow-bucket.is-selected-bucket > .cf-workflow-bucket-heading {
+  background: var(--cf-accent-soft);
+  border-radius: var(--radius-s);
+}
+.cf-workflow-bucket-steps {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 8px 8px;
+}
+.cf-workflow-bucket-steps > li {
+  border-block-start: 1px solid var(--cf-border);
+}
+.cf-workflow-bucket-empty {
+  padding: 4px 8px;
+  margin: 0 0 8px;
+}
+.cf-workflow-step-editor :is(p, summary, h2, h3, label, legend) {
+  text-align: start;
+}
+.cf-workflow-step-editor .cf-intent-empty {
+  align-items: start;
+  text-align: start;
+}
+.cf-workflow-step-list-header > .cf-btn {
+  margin-top: 12px;
+}
+.cf-workflow-step-list-header h2 {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.cf-workflow-bucket-editor > .cf-btn {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.cf-studio .cf-kanban .cf-column-header {
+  height: auto;
+  min-height: 27px;
+  align-items: flex-start;
+  gap: 6px;
+}
+.cf-studio .cf-kanban .cf-column-header > div {
+  flex: 1 1 auto;
+  align-items: baseline;
+}
+.cf-studio .cf-kanban .cf-column-header h2 {
+  min-width: 0;
+  margin-block: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.cf-studio .cf-kanban .cf-column-count {
+  flex-shrink: 0;
+}
+.cf-studio .cf-kanban .cf-column-hint {
+  overflow-wrap: anywhere;
+}

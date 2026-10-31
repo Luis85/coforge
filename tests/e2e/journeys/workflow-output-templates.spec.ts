@@ -233,8 +233,8 @@ for (const theme of ["light", "dark"]) {
       path: `reports/workflow-output-templates/template-library-${theme}.png`,
     });
     await importWorkflow(page);
-    const steps = page.getByRole("list", {
-      name: "Workflow steps",
+    const steps = page.getByRole("region", {
+      name: "Workflow step order",
       exact: true,
     });
     await openWorkflowSettings(page);

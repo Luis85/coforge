@@ -14,6 +14,35 @@ agent. **Use standard workflow** explicitly saves its definition.
 
 ## Edit the process
 
+Configure the board buckets first, then the ordered steps inside each bucket.
+The default outline is **Inbox** (Screen, Score), **Up next** (Plan), **Design**
+(Design), **In progress** (Build), and **Accepted** (the reviewed outcome).
+Select a bucket to edit its name and description. Add intermediate buckets,
+move them up/down with all their steps, or remove them once empty. Inbox and
+Accepted keep their start/outcome roles and positions even when renamed.
+
+Select a step to edit it in the left-aligned detail panel. **Bucket** moves it
+to the end of another nonterminal bucket; the row's up/down buttons reorder
+within its bucket. Add a step or preset to the selected bucket. Execution follows
+bucket order and then local step order. Empty buckets execute nothing. Accepted
+contains no executable steps: only the existing human acceptance action can
+accept changes. A completed analytical workflow remains in its last process
+bucket without claiming a shipped increment.
+
+Reordering can break an earlier-result dependency. The draft and dependencies
+are kept; repair the identified input/order before saving. Save remains explicit.
+Import/export and independent project copies include buckets and step assignments.
+Legacy definitions acquire compatible grouping in the editor without rewriting
+their notes or captured runs. Existing custom step order is preserved.
+
+The private Idea board uses the saved buckets. Existing grouped runs keep their
+captured labels/placement; occupied removed or renamed process buckets remain
+visible as **Earlier workflow** columns. Legacy requests retain their lifecycle
+placement. Stopped/held and flagged requests stay in Inbox, archived requests in
+the Archived filter, and only accepted requests enter Accepted. A completed Design
+stays in Design until Build starts. Public viewer/capture boards retain their
+screened lifecycle columns and never receive private bucket definitions.
+
 Add, duplicate, rename, remove or move any step, including the standard five. The
 ordered list is the execution order; step IDs remain stable through rename/reorder.
 New copies receive new IDs. Save changes explicitly. Saved revisions apply to new

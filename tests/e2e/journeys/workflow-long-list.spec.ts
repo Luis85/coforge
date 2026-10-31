@@ -54,7 +54,7 @@ for (const width of [1280, 360])
       exact: true,
     });
     const list = page.getByRole("list", {
-      name: "Workflow steps",
+      name: "Workflow buckets",
       exact: true,
     });
     await navigation.scrollIntoViewIfNeeded();
@@ -122,7 +122,7 @@ for (const width of [1280, 360])
     await up.focus();
     await page.keyboard.press("Enter");
     await expect(up).toBeFocused();
-    await expect(list.getByRole("listitem").nth(18)).toHaveAttribute(
+    await expect(list.locator('[data-step-id]').nth(18)).toHaveAttribute(
       "data-step-id",
       "step-20",
     );
@@ -134,10 +134,10 @@ for (const width of [1280, 360])
     });
     await expect(add).toBeInViewport();
     await expect(
-      navigation.getByRole("heading", { name: /Steps/ }),
+      navigation.getByRole("heading", { name: /Buckets/ }),
     ).toBeInViewport();
     await add.click();
-    await expect(list.getByRole("listitem")).toHaveCount(21);
+    await expect(list.locator('[data-step-id]')).toHaveCount(21);
     await expect(name).toHaveValue("New AI step");
     await page.getByRole("button", { name: "Step list", exact: true }).click();
     await navigation
@@ -146,7 +146,7 @@ for (const width of [1280, 360])
         exact: true,
       })
       .click();
-    await expect(list.getByRole("listitem")).toHaveCount(20);
+    await expect(list.locator('[data-step-id]')).toHaveCount(20);
     expect(
       await page
         .locator(".cf-workflow-settings-page")

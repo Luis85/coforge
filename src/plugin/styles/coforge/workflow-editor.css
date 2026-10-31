@@ -180,9 +180,11 @@
   min-width: 0;
   border-left: 1px solid var(--cf-border);
   padding-left: 28px;
+  text-align: start;
 }
 .cf-workflow-step-heading {
   align-items: baseline;
+  justify-content: flex-start;
   margin-bottom: 16px;
 }
 .cf-workflow-step-heading > h2 {
@@ -199,6 +201,7 @@
 }
 .cf-workflow-editor .cf-field :is(input, select, textarea) {
   font-size: 13px;
+  text-align: start;
 }
 .cf-workflow-editor .cf-field > small {
   font-size: 11px;

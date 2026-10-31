@@ -7,7 +7,7 @@ const model = useBoardView();
 </script>
 <template>
   <div class="cf-kanban" :class="{ 'is-filtered': model.filter !== 'all' }" :style="{ '--cf-board-columns': model.columns.length }">
-    <section v-for="column in model.columns" :key="column.title" class="cf-kanban-column" :class="`cf-column-${column.tone}`">
+    <section v-for="column in model.columns" :key="column.id" :data-bucket-id="column.id" class="cf-kanban-column" :class="`cf-column-${column.tone}`">
       <header class="cf-column-header">
         <div>
           <CfIcon :name="column.icon" />

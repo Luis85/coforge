@@ -75,7 +75,7 @@ it("repairs an empty checklist at its add action and focuses the exact invalid l
       .find((button) => button.text() === "Add checklist item");
     expect(document.activeElement).toBe(add!.element);
     const editor = useWorkflowEditorStore(fixture.pinia);
-    const checklist = editor.draft.steps.at(-1);
+    const checklist = editor.draft.steps.find(step => step.id === editor.selectedId);
     if (!checklist || checklist.kind !== "checklist")
       throw new Error("Expected a checklist");
     checklist.items = [

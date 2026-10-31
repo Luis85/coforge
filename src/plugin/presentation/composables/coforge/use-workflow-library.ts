@@ -2,6 +2,7 @@ import { computed, reactive, ref, toRaw, watch } from 'vue';
 import { workflowDefinitionCheck, type WorkflowDefinition } from '../../../features/coforge/domain/configured-workflow';
 import { prepareWorkflowCopy, type WorkflowCopyPreview } from '../../../features/coforge/application/workflow-copy';
 import { useWorkflowEditorForm } from './use-workflow-editor';
+import { materializeWorkflowBuckets } from '../../../features/coforge/domain/workflow-buckets';
 
 interface SavedWorkflow { projectId: string; projectName: string; definition: WorkflowDefinition }
 interface Preview extends WorkflowCopyPreview { projectId: string; projectName: string; identity: string }
@@ -34,7 +35,7 @@ export function useWorkflowLibrary() {
     sources, sourceId, preview, replaceDraft, copied, stale, disabled, refresh: inspect,
     copy: () => {
       if (disabled.value || !preview.value) return;
-      editor.draft = structuredClone(toRaw(preview.value.definition));
+      editor.draft = materializeWorkflowBuckets(toRaw(preview.value.definition));
       editor.selectedId = editor.draft.steps[0]?.id ?? '';
       copied.value = `Copied from ${preview.value.projectName} into this draft. Review the steps and startup choice, then Save workflow. The original is unchanged.`;
       replaceDraft.value = false;

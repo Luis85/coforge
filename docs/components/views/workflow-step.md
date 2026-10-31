@@ -10,6 +10,8 @@ component: src/plugin/presentation/components/coforge/WorkflowStepEditor.vue
 entry:
   - Open Workflow settings, then select a step in the step list.
 actions:
+  - Select and edit a bucket
+  - Move a step to another bucket
   - Rename
   - Choose kind
   - Edit contract and access
@@ -45,6 +47,13 @@ iteration: ""
 Configure one stable workflow step.
 
 Contracts and access remain separate from identity and ordering. Edits stay in the workflow draft until an explicit save.
+
+The shared panel edits a selected bucket's label/description or a selected step.
+The **Bucket** selector moves a step to the end of another nonterminal bucket;
+row controls reorder it within its current bucket. IDs and required inputs remain
+unchanged. Moving work can invalidate dependencies, which must be repaired before
+Save. Accepted remains an outcome with no executable steps. Panel headings,
+labels, help, disclosures and native fields share a consistent left/start edge.
 
 ## Entry and next action
 

@@ -5,10 +5,12 @@ import {
   type WorkflowDefinition,
   type WorkflowOutput,
 } from "../../../features/coforge/domain/configured-workflow";
+import { workflowBucketCheck } from '../../../features/coforge/domain/workflow-buckets';
 
 export interface WorkflowEditorIssue {
   id: string;
   stepId?: string;
+  bucketId?: string;
   target: string;
   label: string;
   message: string;
@@ -16,6 +18,8 @@ export interface WorkflowEditorIssue {
 const labels: Record<string, string> = {
   coworkerId: 'Assigned CoWorker',
   startupMode: 'Automation on startup',
+  bucketId: 'Bucket',
+  buckets: 'Workflow buckets',
   effort: 'Reasoning effort',
   name: "Step name",
   instructions: "Step instructions",
@@ -56,6 +60,15 @@ export function workflowEditorIssues(
   definition: WorkflowDefinition,
 ): WorkflowEditorIssue[] {
   const issues: WorkflowEditorIssue[] = [];
+  definition.buckets?.forEach((bucket, index) => {
+    try { workflowBucketCheck(bucket); }
+    catch (cause) {
+      const field = cause instanceof CheckError ? cause.path : 'name';
+      issues.push({ id: `bucket-${index}-${field}`, bucketId: bucket.id, target: `bucket.${field}`,
+        label: `${bucket.name || `Bucket ${index + 1}`} · ${field === 'description' ? 'Bucket description' : 'Bucket name'}`,
+        message: cause instanceof Error ? cause.message.replace(/^[^:]+: /u, '') : 'Review this bucket.' });
+    }
+  });
   const available = new Set<WorkflowOutput>();
   definition.steps.forEach((step, index) => {
     try {
@@ -107,9 +120,13 @@ export function workflowEditorIssues(
       (cause instanceof CheckError &&
         (cause.path === "name" || cause.path.startsWith("limits.")))
     ) {
-      const target = cause instanceof CheckError ? cause.path : "name";
+      const path = cause instanceof CheckError ? cause.path : 'name';
+      const membership = /^steps\[(\d+)\]\.bucketId$/u.exec(path);
+      const step = membership ? definition.steps[Number(membership[1])] : undefined;
+      const target = step ? 'bucketId' : path.startsWith('buckets') ? 'buckets' : path;
       issues.unshift({
         id: `workflow-${target}`,
+        ...(step ? { stepId: step.id } : {}),
         target,
         label:
           target === "name"
