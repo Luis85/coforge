@@ -59,6 +59,12 @@ response history and retained it across Stop/Restart and late responses.
 - Native startup/copy, CoWorker save/reload/manual, panel reload, operator hold/
   Restart, footer theme/width/scroll matrix and floating-notice clearance passed.
   Source note/body preservation and zero vendor dispatch are asserted.
+- Initial complete CI: product and all 51 native tests passed; browser 220/226.
+  Its six failures were stale tab-count/padding expectations and an unscoped
+  inline/global-alert selector. Tests now assert the exact five tabs, actual
+  opaque/flush footer geometry and both error regions with targeted dismissal.
+  All original numeric/Axe/recovery checks remain; focused browser rerun 6/6
+  passed (1.2m), with independent peer review. Production code is unchanged.
 - npm run -s dev:obsidian -- --json: passed on pinned Obsidian 1.14.4 after reload;
   errors [], hostErrorCount 0, pluginConsole []. Contained sandbox only.
 - Tokens passed (968 observed / 133 reviewed); Impeccable detector returned []

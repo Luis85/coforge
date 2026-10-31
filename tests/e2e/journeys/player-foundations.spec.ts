@@ -174,9 +174,21 @@ for (const theme of ["dark", "light"]) {
         exact: true,
       })
       .click();
-    await expect(
-      page.getByRole("alert").filter({ hasText: "Connect a Twitch channel" }),
-    ).toBeVisible();
+    const messages = page.getByRole("region", { name: "Recurring bot messages", exact: true });
+    const inlineError = messages.getByRole("alert");
+    const connectionError = "Connect a Twitch channel before activating stream messages.";
+    await expect(inlineError).toHaveText(connectionError);
+    await expect(inlineError).toBeVisible();
+    const notification = page.getByRole("region", { name: "Notifications", exact: true })
+      .locator(".cf-toast-error").filter({ hasText: connectionError });
+    await expect(notification.getByRole("alert")).toHaveText(connectionError);
+    await notification.getByRole("button", { name: "Dismiss notification", exact: true }).click();
+    await expect(notification).toHaveCount(0);
+    await expect(inlineError).toBeVisible();
+    const message = messages.locator(".cf-stream-message-list > li").filter({ hasText: "Join The Hood with !register" });
+    await expect(message.locator("strong").first()).toHaveText("Paused");
+    await expect(message).toContainText("Last confirmed send: Not confirmed yet");
+    await expect(message.getByRole("button", { name: "Activate Join The Hood with !register", exact: true })).toBeEnabled();
     await capture(page, `messages-${theme}-1280`);
     await page.setViewportSize({ width: 360, height: 900 });
     await quality(page);

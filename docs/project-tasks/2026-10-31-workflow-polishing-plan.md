@@ -195,6 +195,14 @@ Owner: root orchestrates; agents execute focused E2E and independent reviews.
 
 ## Closeout
 
+First complete GitHub head qualification passed product, security and all 51
+native tests. Browser passed 220/226; its six stale contracts were updated for
+five tabs, footer-specific zero padding and separate inline/global alert regions.
+The follow-up retains all numeric/Axe/identity checks, adds actual footer
+flush/opacity/control bounds and targeted toast dismissal with persistent inline
+error. Combined six-case rerun passed (1.2m); peer review and lint/diff checks
+passed. Production code is unchanged; final-head CI must pass before merge.
+
 All implementation and delegated polishing increments were executed and locally
 qualified. The gallery covers top-level Workspace/Preferences surfaces; nested
 workflow/drawer changes have separate targeted browser/native evidence. No
