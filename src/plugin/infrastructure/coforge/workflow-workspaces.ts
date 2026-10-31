@@ -22,6 +22,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
   constructor(
     private readonly storage: WorkflowWorkspaceStorage,
     private readonly temporaryRoot = tmpdir(),
+    private readonly idPrefix = '',
   ) {}
   private command<T>(work: () => Promise<T>): Promise<T> {
     const next = this.pending.then(work);
@@ -203,6 +204,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
           await agentGit(root, ["rev-parse", "--show-toplevel"], request.signal)
         ).trim(),
       );
+      if (this.idPrefix === 'bg-' && top !== root) throw new Error('The captured background repository root changed before workspace admission.');
       if (
         (
           await agentGit(
@@ -222,7 +224,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         ? resolve(request.integration.worktreeFolder.trim())
         : join(dirname(top), `${basename(top)}-coforge-worktrees`);
       await mkdir(folder, { recursive: true });
-      const id = crypto.randomUUID();
+      const id = `${this.idPrefix}${crypto.randomUUID()}`;
       const reservation: WorkflowWorkspaceRecord = {
         id,
         runId: request.runId,

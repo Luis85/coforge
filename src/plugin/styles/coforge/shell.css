@@ -83,13 +83,19 @@
 }
 .cf-activity-popover > header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--cf-border); }
 .cf-activity-popover h2 { font-size: 14px; }
-.cf-activity-popover > div { overflow: auto; padding: 8px; }
-.cf-activity-item { display: flex; gap: 11px; align-items: start; background: none; border: 0; width: 100%; padding: 11px 10px; text-align: left; border-radius: var(--radius-m); height: auto; }
-.cf-activity-item:disabled { opacity: 1; cursor: default; }
-.cf-activity-item:hover:not(:disabled) { background: var(--cf-hover); }
-.cf-activity-item > div { flex: 1; }
-.cf-activity-item p { font-size: 11px; line-height: 1.7; }
-.cf-activity-item time { font-size: 10px; color: var(--cf-muted); display: block; margin-top: 4px; }
+.cf-activity-popover > header, .cf-activity-popover > .cf-activity-intent { flex-shrink: 0; }
+.cf-activity-scroll { overflow-y: auto; overflow-x: hidden; min-height: 0; min-width: 0; padding: 8px; }
+.cf-activity-list { list-style: none; margin: 0; padding: 0; }
+.ps--coforge .cf-studio .cf-activity-popover .cf-activity-item {
+  display: grid; grid-template-columns: 6px minmax(0, 1fr) 16px; gap: 11px; align-items: start; justify-content: start;
+  background: none; border: 0; width: 100%; max-width: 100%; min-width: 0; padding: 11px 10px;
+  text-align: start; white-space: normal; border-radius: var(--radius-m); height: auto; color: var(--cf-text);
+}
+.cf-activity-popover button.cf-activity-item:hover { background: var(--cf-hover); }
+.cf-activity-body { display: block; min-width: 0; overflow-wrap: anywhere; white-space: normal; }
+.cf-activity-message { display: block; font-size: var(--font-ui-small); line-height: 1.7; overflow-wrap: anywhere; white-space: normal; }
+.cf-activity-action { align-self: start; margin-top: 2px; width: 16px; }
+.cf-activity-item time, .cf-activity-scope { font-size: var(--font-ui-smaller); color: var(--cf-muted); display: block; margin-top: 4px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
 .cf-activity-dot { width: 6px; height: 6px; background: var(--cf-purple); border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
 .cf-activity-review { background: var(--cf-orange); }
 .cf-activity-vote { background: var(--cf-green); }

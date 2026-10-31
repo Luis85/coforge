@@ -1,4 +1,6 @@
 import type { Check } from './check';
+import { durableBuildExecutionCheck } from './durable-build';
+import { executionConcurrencyCheck } from './execution-concurrency';
 import { boolean, list, number, oneOf, optional, record, shape, text, timestamp } from './check';
 import { defaultIntegration, defaultSettings } from './seed';
 import { obsSettingsCheck, obsCommandCheck } from './obs-check';
@@ -37,6 +39,7 @@ const increment = shape({
   branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
 });
 const job: Check<AgentJob> = shape({
+  durable: optional(durableBuildExecutionCheck),
   conversation: optional(agentConversationCheck),
   workflow: optional(configuredStepExecutionCheck),
   usage: optional(stageUsageCheck), herdrAgent: optional(oneOf(['claude'] as const)),
@@ -58,6 +61,8 @@ export const settingsCheck: Check<Settings> = shape({
   timeoutSeconds: number({ gt: 0 }), model: str, requestCooldownSeconds: number({ min: 0 }),
 });
 const integration: Check<IntegrationSettings> = shape({
+  executionConcurrency: optional(executionConcurrencyCheck),
+  workerNodeBin: optional(text({ min: 1, max: 1000 })),
   codexBin: optional(text({ min: 1, max: 1000 })),
   ideasFolder: text({ min: 1 }), claudeBin: text({ min: 1 }), projectPath: str, allowImplementation: boolean, worktreeFolder: str,
   twitchEnabled: boolean, twitchClientId: str, twitchBotUserId: str, twitchBroadcasterId: str, twitchTokenSecret: str,

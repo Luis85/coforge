@@ -15,6 +15,7 @@ import type { WorkflowWorkspaceLease, WorkflowWorkspaces } from '../../features/
 import { executionAccess, executionResult, executionTaskPrompt } from '../../features/coforge/application/workflow-execution';
 import { ideaProjectId } from '../../features/coforge/domain/projects';
 import { captureClaudeResponse } from './claude-conversation';
+import { captureBrokeredClaudeRead, hasBrokeredReadScope } from './claude-brokered-reader';
 
 function executable(integration: IntegrationSettings): string {
   const command = integration.claudeBin.trim() || 'claude';
@@ -50,7 +51,7 @@ async function interpret(input: StageInput, output: unknown, costUsd: number | u
 }
 
 /** Runs one stage through the native Claude Code CLI with stage-specific tool restrictions. */
-export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWorkspaces): Promise<StageResult> {
+export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWorkspaces, capture: typeof captureProcess = captureProcess): Promise<StageResult> {
   const { stage, idea, settings, integration, signal } = input;
   const onLog = input.onLog ?? (() => undefined);
   if (signal?.aborted) throw new Error('Run cancelled.');
@@ -58,7 +59,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
   let lease: WorkflowWorkspaceLease | undefined;
   let captured = false;
   const changes = async (summary: string) => {
-    if (!lease || captured) return undefined;
+    if (!lease || captured || hasBrokeredReadScope(lease)) return undefined;
     const increment = await lease.capture(summary); captured = true;
     if (lease.id) await input.onChanges?.(increment ?? null);
     return increment;
@@ -68,7 +69,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     lease = await workspaces.acquire({ runId: input.workflow.runId, projectId: ideaProjectId(idea), attemptId: input.workflow.attemptId,
       access: executionAccess(input), integration, ...(input.workflow.workspaceId ? { workspaceId: input.workflow.workspaceId } : {}), ...(signal ? { signal } : {}) });
     cwd = lease.cwd;
-    try { if (lease.id) await input.onWorkspace?.(lease.id); }
+    try { if (lease.id && !hasBrokeredReadScope(lease)) await input.onWorkspace?.(lease.id); }
     catch (error) { await lease.release(); throw error; }
   } else if (stage === 'screen' || stage === 'score') cwd = temporary = await mkdtemp(join(tmpdir(), 'coforge-classifier-'));
   else {
@@ -76,15 +77,19 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     if (stage === 'implement') { worktree = await prepareWorktree(input, cwd, onLog); cwd = worktree.cwd; }
   }
   try {
-    const access = executionAccess(input);
-    onLog(`Claude ${input.workflow?.step.name ?? stage}: ${access === 'none' ? 'no tools; isolated temporary directory' : access === 'readproject' ? 'read-only project access' : 'file editing in an isolated worktree'}.`);
-    const args = buildClaudeArgs(stage, settings, input.workflow);
-    const prompt = input.workflow ? executionTaskPrompt(input) : stageInput(stage, idea, settings);
-    await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt });
-    signal?.throwIfAborted();
-    const raw = await captureProcess(executable(integration), args, {
-      cwd, input: prompt, timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
-    });
+    let raw: string;
+    if (lease && hasBrokeredReadScope(lease)) raw = await captureBrokeredClaudeRead(input, lease, executable(integration), capture);
+    else {
+      const access = executionAccess(input);
+      onLog(`Claude ${input.workflow?.step.name ?? stage}: ${access === 'none' ? 'no tools; isolated temporary directory' : access === 'readproject' ? 'read-only project access' : 'file editing in an isolated worktree'}.`);
+      const args = buildClaudeArgs(stage, settings, input.workflow);
+      const prompt = input.workflow ? executionTaskPrompt(input) : stageInput(stage, idea, settings);
+      await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt });
+      signal?.throwIfAborted();
+      raw = await capture(executable(integration), args, {
+        cwd, input: prompt, timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
+      });
+    }
     const usage = reportedClaudeCost(raw); if (usage !== undefined) await input.onUsage?.(usage);
     const tokens = reportedClaudeUsage(raw); if (tokens) await input.onTokenUsage?.(tokens);
     await captureClaudeResponse(input, raw);

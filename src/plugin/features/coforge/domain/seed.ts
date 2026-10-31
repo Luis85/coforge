@@ -12,6 +12,7 @@ export const defaultSettings = (): Settings => ({
 });
 
 export const defaultIntegration = (): IntegrationSettings => ({
+  workerNodeBin: 'node',
   codexBin: 'codex',
   ideasFolder: 'CoForge/Ideas', claudeBin: 'claude', projectPath: '', allowImplementation: false, worktreeFolder: '',
   twitchEnabled: false, twitchClientId: '', twitchBotUserId: '', twitchBroadcasterId: '', twitchTokenSecret: 'coforge-twitch-token',

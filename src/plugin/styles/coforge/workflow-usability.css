@@ -283,7 +283,26 @@
 .cf-proposal-step .cf-workflow-reference {
   margin-block: 16px;
 }
+.cf-workflow-execution-overview .cf-settings-runtime-list dt {
+  overflow-wrap: anywhere;
+}
+.cf-workflow-execution-overview .cf-settings-runtime-list dd {
+  flex-wrap: wrap;
+}
+.cf-workflow-execution-overview .cf-settings-runtime-list dd > p {
+  flex: 1 1 180px;
+  min-width: 0;
+  margin: 0;
+}
+.cf-workflow-execution-overview .cf-btn {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 @container plugin-shell-leaf (max-width: 600px) {
+  .cf-workflow-execution-overview .cf-settings-runtime-list > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .cf-workflow-tools {
     text-align: start;
   }

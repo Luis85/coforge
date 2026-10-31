@@ -10,7 +10,7 @@ function tool(name: string, description: string, properties: Record<string, obje
   return { name, description, inputSchema: { type: 'object', properties, required: Object.keys(properties), additionalProperties: false }, annotations: { readOnlyHint, destructiveHint: !readOnlyHint, idempotentHint: readOnlyHint, openWorldHint: false } };
 }
 /** Codex never receives a local project path; every file operation rechecks the captured lease. */
-export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorkspaceLease) {
+export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorkspaceLease, protectedPaths: readonly string[] = [], onActivity?: () => Promise<void>) {
   const access = executionAccess(input);
   const tools: McpTool[] = access === 'none' ? [] : [
     tool('coforge_list_files', 'List allowed repository files. Use an empty relative path for the root.', { path }),
@@ -21,7 +21,7 @@ export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorks
       tool('coforge_delete_file', 'Delete a worktree file only after an exact content check. Protected files are denied.', { path, expectedContent: content }, false),
     ] : []),
   ];
-  const files = new McpStepFiles();
+  const files = new McpStepFiles(protectedPaths);
   let calls = 0;
   let exceeded = false;
   let closed = false;
@@ -33,7 +33,9 @@ export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorks
       if (++calls > input.settings.maxTurns) { exceeded = true; throw new Error('The captured Codex tool-call limit was reached.'); }
       if (!tools.some(item => item.name === name)) throw new Error('This operation is not permitted for this invocation.');
       input.signal?.throwIfAborted();
-      return files.call(name, { input, lease }, args);
+      const result = await files.call(name, { input, lease }, args);
+      await onActivity?.();
+      return result;
     });
     pending = next.catch(() => undefined);
     return next;

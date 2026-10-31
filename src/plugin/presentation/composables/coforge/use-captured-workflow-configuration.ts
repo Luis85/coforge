@@ -1,5 +1,6 @@
 import { computed, reactive } from "vue";
 import type { WorkflowRun } from "../../../features/coforge/domain/configured-workflow-run";
+import { buildDuration } from './durable-build-display';
 
 /** Provenance comes entirely from the selected run; current definitions are never read. */
 export function useCapturedWorkflowConfiguration(run: () => WorkflowRun) {
@@ -7,6 +8,13 @@ export function useCapturedWorkflowConfiguration(run: () => WorkflowRun) {
   return reactive({
     workflowName: computed(() => run().definition.name),
     workflowRevision: computed(() => run().definition.revision),
+    executionPolicies: computed(() => run().definition.steps.flatMap(step => step.kind === 'ai' && step.output === 'codechange' ? [{
+      id: step.id, name: step.name,
+      execution: run().external ? 'External MCP client lifecycle' : step.provider === 'herdr' ? 'External Herdr lifecycle' : step.execution ? 'Background Build' : 'Foreground',
+      deadline: run().external ? 'Native deadline not applied by CoForge' : step.execution ? step.execution.maxRuntimeSeconds === undefined ? 'No elapsed deadline' : buildDuration(step.execution.maxRuntimeSeconds) : `${run().definition.limits.timeoutSeconds} seconds ${step.provider === 'herdr' ? 'CoForge wait' : 'timeout'}`,
+      turns: step.execution?.maxTurns ?? run().definition.limits.maxTurns,
+      budget: step.execution?.maxBudgetUsd ?? run().definition.limits.maxBudgetUsd,
+    }] : [])),
     startedAt: computed(() =>
       new Date(run().createdAt).toLocaleString(undefined, {
         dateStyle: "medium",

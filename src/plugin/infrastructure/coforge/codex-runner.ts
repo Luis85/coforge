@@ -7,8 +7,9 @@ import { executionAccess, executionResult, executionSchema, executionSystemPromp
 import { ideaProjectId } from '../../features/coforge/domain/projects';
 import { codexWorkflowTools } from './codex-workflow-tools';
 import { runCodexTransport } from './codex-transport';
+import type { captureProcess } from './process';
 
-export async function runCodexStage(input: StageInput, workspaces: WorkflowWorkspaces): Promise<StageResult> {
+export async function runCodexStage(input: StageInput, workspaces: WorkflowWorkspaces, capture?: typeof captureProcess, protectedPaths?: readonly string[], onActivity?: () => Promise<void>): Promise<StageResult> {
   if (!input.workflow) throw new Error('Codex requires a captured workflow. Save and start the project workflow before dispatching.');
   input.signal?.throwIfAborted();
   const snapshot = input.workflow;
@@ -17,7 +18,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
   let bridge: Awaited<ReturnType<typeof codexWorkflowTools>> | undefined;
   let captured = false;
   const changes = async (summary: string) => {
-    if (captured) return;
+    if (captured || lease.readOnly) return;
     const increment = await lease.capture(summary); captured = true;
     if (lease.id) await input.onChanges?.(increment ?? null);
     return increment;
@@ -25,11 +26,11 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
   try {
     if (lease.id) await input.onWorkspace?.(lease.id);
     directory = await mkdtemp(join(tmpdir(), 'coforge-codex-'));
-    bridge = await codexWorkflowTools(input, lease);
+    bridge = await codexWorkflowTools(input, lease, protectedPaths ?? lease.protectedProjectPaths ?? [], onActivity);
     input.onLog?.(`Codex ${snapshot.step.name}: scoped CoForge tools; native project access is disabled. Claude USD/turn caps are not Codex spending limits.`);
     const response = await runCodexTransport({ directory, executable: input.integration.codexBin, model: snapshot.step.model, effort: snapshot.step.effort,
       schema: executionSchema(input), instructions: executionSystemPrompt(input), prompt: executionTaskPrompt(input), timeoutMs: input.settings.timeoutSeconds * 1000,
-      signal: input.signal, mcp: bridge, onConversation: input.onConversation, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); } });
+      signal: input.signal, mcp: bridge, capture, onConversation: input.onConversation, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); } });
     await bridge.dispose();
     bridge.assertBudget();
     const result = executionResult(input, response.output);

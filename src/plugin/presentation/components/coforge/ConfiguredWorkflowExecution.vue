@@ -3,6 +3,7 @@ import type { WorkflowModel } from "../../composables/coforge/use-workflow";
 import ConfiguredManualStep from "./ConfiguredManualStep.vue";
 import ConfiguredWorkflowResults from "./ConfiguredWorkflowResults.vue";
 import WorkflowCapturedConfiguration from "./WorkflowCapturedConfiguration.vue";
+import DurableBuildStatus from './DurableBuildStatus.vue';
 defineProps<{ model: WorkflowModel }>();
 </script>
 <template>
@@ -36,6 +37,7 @@ defineProps<{ model: WorkflowModel }>();
           <button v-if="model.canCheckCouncil" type="button" class="cf-btn cf-btn-secondary" :disabled="model.store.busy" @click="model.checkCouncil()">Check Council answer</button>
         </div>
       </section>
+      <DurableBuildStatus :idea-id="model.selected.id" :run-id="model.run?.id" />
       <section v-if="model.uncertainNudges.length" :aria-label="model.uncertainNudges.some(attempt => attempt.kind === 'council') ? 'Council task recovery' : 'Agent nudge recovery'">
         <h3>Inspect the original task</h3>
         <p>The previous task may have been admitted, or its cancellation may be unconfirmed. Inspect the retained source and original discussion before creating a fresh task.</p>

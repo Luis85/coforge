@@ -30,6 +30,11 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
         <MarkdownBody :source="coworker.instructions" />
       </details>
     </section>
+    <section v-if="model.executionPolicies.length" aria-label="Captured execution policies">
+      <h3>Captured Build execution</h3>
+      <dl class="cf-settings-runtime-list"><div v-for="policy in model.executionPolicies" :key="policy.id"><dt>{{ policy.name }}</dt><dd>{{ policy.execution }} · {{ policy.deadline }} · {{ policy.turns }} turns/tool calls · USD{{ policy.budget }} configured cap</dd></div></dl>
+      <p class="cf-settings-help">These values belong to this run. Current workflow changes affect future admissions; provider-specific enforcement and final review remain separate.</p>
+    </section>
     <p v-if="!model.templates.length" class="cf-settings-help">
       No output templates were captured for this run.
     </p>

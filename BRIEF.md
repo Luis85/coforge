@@ -39,7 +39,9 @@ The owner requested implementation of The Council PRD and explicitly accepted al
 9. Generic notes use typed analytical subjects; creating/linking an Idea is explicit.
 10. Destinations share one execution kernel; councils compile their protocol into it.
 11. Existing v1 workflows retain their semantics; new capabilities use explicit v2 definitions.
-12. One designated desktop executes work only while CoForge is active.
+12. One designated desktop executes work. Council, schedules and event dispatch
+    execute only while CoForge is active. The durable Build exception below
+    governs already-admitted native Builds after Obsidian closes.
 
 Definitions are canonical Markdown. Run evidence and local publication/delivery intents
 are durable and private. Round robin persists and projects each contribution before
@@ -213,6 +215,43 @@ Deliver through subagents, qualify and polish, then push/open/merge a PR only
 after local and GitHub checks are green.
 
 Workspace/workflow increment (owner requests, 2026-10-31):
+
+Long-running Build execution (owner revision after CF-135, 2026-10-31):
+
+Activity polishing (additional owner request): Studio activity rows must remain
+inside their panel. Wrap long request/event text, align markers/timestamps/open
+actions and retain vertical scrolling, keyboard access and request-detail links
+without horizontal overflow or clipped event content.
+
+- Support Builds lasting multiple hours/days, including observed tasks approaching
+  100 hours. A normal short-step wall-clock timeout must not terminate an admitted
+  background Build. Give long execution a separately captured policy, with
+  explicit resource bounds and an optional execution deadline.
+- The owner chose a persistent local background worker: an admitted Build may
+  continue when Obsidian closes or the plugin reloads. Reopening attaches to the
+  original execution and reconciles durable evidence; it never blindly resubmits.
+- The owner chose separate Build and short-task lanes on the designated desktop,
+  then requested configurable maximum concurrent runs on each lane so multiple
+  Design and Build items can progress in parallel. Keep defaults at one each;
+  configure the caps vault-wide. Raising a cap admits queued work; lowering it
+  does not cancel active work. Preserve per-idea/workspace exclusion and explicit
+  provider spending limits.
+- Keep worker liveness, last provider activity, disconnected observation,
+  cancellation request, confirmed termination and final completion distinct.
+  Heartbeats do not prove useful progress. Quiet time may warn without killing
+  healthy execution. A sleeping/offline local machine cannot make progress.
+- The worker owns its provider process, tool access, workspace lease and private
+  durable journal. Obsidian remains the canonical note writer and applies verified
+  results idempotently. Preserve final human review and existing operator Stop /
+  Inbox hold / explicit Restart behavior.
+- Worker/OS crashes and unknown process outcomes require inspection/recovery;
+  missing heartbeats do not grant authority to start a duplicate writer. Retain
+  bounded hot summaries and private evidence independently of renderer memory.
+- Existing captured attempts and limits are not silently changed. CF-135's timed
+  out attempt and partial code are preserved; do not automatically adopt, replay
+  or retry it. Native Claude/Codex worker-backed Build is the first supported
+  execution path; external MCP, Herdr and Council keep their explicitly separate
+  lifecycles until qualified, with no provider fallback.
 
 - Save the independent left-navigation and right-chat collapse choices in localStorage
   and restore them after reopening. Responsive chat defaults apply only when the

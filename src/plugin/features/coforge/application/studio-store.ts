@@ -4,6 +4,7 @@ import { synchronizeProject } from '../domain/projects';
 import type { AppState } from '../domain/types';
 import type { InternalState, LoadedStudio, SaveOptions, StudioStorage } from './ports';
 import { enforceWorkflowStopHolds } from './workflow-stop-policy';
+import { sameDurableBuildRef, type DurableBuildSnapshot, type DurableBuildInspectionReceipt } from '../domain/durable-build';
 import { assemble, enforceIntegrity } from './studio-state';
 import { prepareStudioCommit } from './commit-policies';
 import { StudioEvents, type StudioEventListener, type StudioEventSink } from './studio-events';
@@ -51,6 +52,7 @@ export class StudioStore {
     const now = new Date().toISOString();
     for (const job of state.jobs) {
       if (job.status !== 'running' && job.status !== 'queued') continue;
+      if (job.durable) continue;
       job.status = 'failed'; job.finishedAt = now;
       job.error = 'Obsidian closed or the plugin reloaded during this run. Inspect any partial worktree before retrying.';
       job.logs.push(job.error);
@@ -143,6 +145,38 @@ export class StudioStore {
     await this.pending;
     const state = this.current();
     this.state = { ...state, runtime: { ...state.runtime, ...patch } };
+    this.emit();
+  }
+  durableBuildJob(jobId: string) { const job = this.current().jobs.find(item => item.id === jobId); return job ? structuredClone(job) : undefined; }
+  workflowStopHeld(ideaId: string): boolean { return this.current().workflowStopHolds?.includes(ideaId) === true; }
+  durableBuildJobIds(ideaId?: string): string[] { return this.current().jobs.filter(job => job.durable && !job.durable.acknowledged && (!ideaId || job.ideaId === ideaId)).map(job => job.id); }
+  durableBuildSnapshot(jobId: string): DurableBuildSnapshot | undefined {
+    const state = this.current(); const snapshot = state.runtime.durableBuildSnapshots?.[jobId] ?? state.jobs.find(job => job.id === jobId)?.durable?.snapshot;
+    return snapshot ? structuredClone(snapshot) : undefined;
+  }
+  durableBuildError(jobId: string): string | undefined { return this.current().runtime.durableBuildErrors?.[jobId] ?? this.current().jobs.find(job => job.id === jobId)?.durable?.reconcileError; }
+  /** Worker heartbeat/log observations never enter a canonical transaction or write storage. */
+  async observeDurableBuild(jobId: string, snapshot?: DurableBuildSnapshot, error?: string, remove = false): Promise<void> {
+    await this.pending;
+    const state = this.current(); const job = state.jobs.find(item => item.id === jobId);
+    if (!job?.durable || snapshot && !sameDurableBuildRef(job.durable.ref, snapshot.ref)) return;
+    if (job.durable.acknowledged && !remove) return;
+    if (!snapshot && !remove && state.runtime.durableBuildErrors?.[jobId] === error) return;
+    const snapshots = { ...state.runtime.durableBuildSnapshots }; const errors = { ...state.runtime.durableBuildErrors }; const inspections = { ...state.runtime.durableBuildInspections };
+    if (snapshot) snapshots[jobId] = snapshot;
+    if (error) errors[jobId] = error; else delete errors[jobId];
+    if (remove) { delete snapshots[jobId]; delete errors[jobId]; delete inspections[jobId]; }
+    this.state = { ...state, runtime: { ...state.runtime, durableBuildSnapshots: snapshots, durableBuildErrors: errors, durableBuildInspections: inspections } };
+    this.emit();
+  }
+  durableBuildInspection(jobId: string): DurableBuildInspectionReceipt | undefined { const receipt = this.current().runtime.durableBuildInspections?.[jobId]; return receipt ? structuredClone(receipt) : undefined; }
+  async observeDurableBuildInspection(jobId: string, receipt: DurableBuildInspectionReceipt): Promise<void> {
+    await this.pending;
+    const state = this.current(); const job = state.jobs.find(item => item.id === jobId);
+    if (!job?.durable || !sameDurableBuildRef(job.durable.ref, receipt.ref)) throw new Error('The original worker identity changed during inspection.');
+    const run = state.ideas.find(idea => idea.id === receipt.ideaId)?.workflowRun;
+    if (run?.id !== receipt.runId || run.revision !== receipt.runRevision) throw new Error('The workflow changed during inspection. Inspect its current retained evidence again.');
+    this.state = { ...state, runtime: { ...state.runtime, durableBuildInspections: { ...state.runtime.durableBuildInspections, [jobId]: receipt } } };
     this.emit();
   }
 

@@ -9,13 +9,15 @@ const clock = (at: string) =>
   });
 export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
   const byId = new Map(jobs.map((job) => [job.id, job]));
+  const byAttempt = new Map(jobs.flatMap(job => job.workflow ? [[JSON.stringify([job.ideaId, job.workflow.runId, job.workflow.attemptId]), job] as const] : []));
   const current = ideas.flatMap((idea) =>
     [
       ...(idea.workflowHistory ?? []),
       ...(idea.workflowRun ? [idea.workflowRun] : []),
     ].flatMap((run) =>
       run.attempts.map((attempt) => {
-        const job = attempt.jobId ? byId.get(attempt.jobId) : undefined;
+        const linked = attempt.jobId ? byId.get(attempt.jobId) : undefined;
+        const job = linked?.ideaId === idea.id && (!linked.workflow || linked.workflow.runId === run.id && linked.workflow.attemptId === attempt.id) ? linked : byAttempt.get(JSON.stringify([idea.id, run.id, attempt.id]));
         const step = run.definition.steps.find(
           (step) => step.id === attempt.stepId,
         );
@@ -23,6 +25,7 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
         return {
           id: attempt.id,
           ideaId: idea.id,
+          canOpenIdea: true,
           councilRunId: attempt.kind === 'council' ? attempt.nudgeRunId ?? '' : '',
           councilProjectId: run.projectId,
           councilName,
@@ -49,28 +52,30 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
       }),
     ),
   );
+  const represented = new Set(current.map(row => row.jobId).filter(Boolean));
   const legacy = jobs
-    .filter((job) => !job.workflow)
+    .filter((job) => !job.workflow || !represented.has(job.id))
     .map((job) => ({
       id: job.id,
       ideaId: job.ideaId,
+      canOpenIdea: ideas.some(idea => idea.id === job.ideaId),
       councilRunId: '', councilProjectId: job.projectId ?? '', councilName: '',
       status: job.status,
-      stageLabel: STAGE_LABELS[job.stage],
+      stageLabel: job.workflow?.step.name ?? STAGE_LABELS[job.stage],
       providerLabel:
-        job.provider === "demo"
+        job.workflow && job.provider !== 'mcp' ? configuredAgentLabel(job.workflow.step, true) : job.provider === "demo"
           ? "Simulation"
           : job.provider === "mcp" ? "External MCP client · model not reported" : `${job.provider === 'codex' ? 'Codex' : job.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${job.model ?? "model not recorded"}`,
       time: clock(job.startedAt),
       at: job.startedAt,
-      canCancel: isActiveJob(job),
+      canCancel: isActiveJob(job) || Boolean(job.durable && job.durable.acknowledged !== true),
       jobId: job.id,
       costText:
         job.costUsd === undefined
           ? ""
           : `Reported cost: $${job.costUsd.toFixed(4)}`,
       log:
-        [...job.logs, ...(job.error ? [job.error] : [])].join("\n") ||
+        [...(job.workflow ? ['Request/run metadata is unavailable. This row shows retained attempt evidence; restore the original metadata before restarting.'] : []), ...job.logs, ...(job.error ? [job.error] : [])].join("\n") ||
         "No additional notes.",
     }));
   return [...current, ...legacy].sort((a, b) => b.at.localeCompare(a.at));

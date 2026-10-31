@@ -48,6 +48,8 @@ export function configuredStepProblem(
     return "Set the project path in Project settings before running this step.";
   if (step.access === "editworktree" && !project.allowImplementation)
     return "Enable real implementation in Project settings → Agent workspace before running an editing step.";
+  if (step.execution?.mode === 'background' && !run?.external && !runtime?.durableBuild?.ready)
+    return `${runtime?.durableBuild?.message || 'The background Build worker is not verified.'} Check Project settings → Runtime before starting.`;
   if (!deferProviderReadiness && !run?.external && step.provider === "claude" && !runtime?.cliAvailable)
     return "Claude Code is not detected. Check the native CLI connection in Project settings.";
   if (!deferProviderReadiness && !run?.external && step.provider === "herdr") {

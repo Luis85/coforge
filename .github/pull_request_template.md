@@ -1,31 +1,39 @@
 ## Summary
 
-Native Obsidian button styling centered each step’s number and text independently, producing the large ragged indent shown in the owner’s screenshot. The outline now uses a scoped number/text grid, compact bucket grouping and responsive role/count context. Selected actions fit on one line, and the outline measures the actual space above the settings save bar so its tools stay reachable.
+Native Builds were tied to Obsidian's foreground process and short-step timeout. CF-135 stopped after roughly three minutes despite retaining a real partial increment. This increment adds opt-in native background Builds that keep their original process, workspace and evidence after Obsidian closes, then reconcile the result once on reopening.
 
-The saved workflow, step identities, explicit save/recovery boundaries and execution rules retain their existing behavior.
+Build and short-task lanes have independent vault-wide limits of 1–16, defaulting to one each. Workflow steps capture their execution policy, optional elapsed deadline, advisory inactivity warning and explicit resource overrides. Existing attempts retain their policy and are never silently resumed. Vault integrations configure native Node 22+, worker readiness and both limits.
+
+The worker uses a versioned bundled Node module, authenticated loopback IPC, private atomic journals and scoped file tools. Host persistence precedes paid start; canonical result persistence precedes ACK. Stop keeps the Inbox hold, recovery binds actual workspace/process evidence, and retained authorization/tombstones prevent replay across worker generations. Qualified native read-only follow-ups use the original worktree through a broker; foreground writers cannot adopt it. Managed notes remain protected even when tracked copies exist in the repository.
+
+The activity panel now wraps long events inside its viewport, aligns markers/actions/timestamps, and preserves request links, keyboard closing and focus restoration. Missing workflow metadata no longer hides a retained job's cancellation control.
 
 ## Requirements and traceability
 
-Owner screenshot/follow-up on 2026-10-31. No req-* or vi-* entries exist in the scaffold; no IDs were invented. Plan and evidence: docs/project-tasks/2026-10-31-workflow-outline-polish.md.
+Owner requests in BRIEF.md. The scaffold has no req-* or vi-* obligations for this increment; no IDs were invented. The implementation and eight-increment improvement/polishing plan are recorded in docs/project-tasks/2026-10-31-durable-build-execution.md. Three implementation agents and independent cross-reviews drove the work; PR58's board-outline polish is integrated as the base.
 
 ## Validation
 
-- npm run verify:project: 5 passed, 0 failed, 0 skipped in 1221.8s. Product report: 1,580 passed, zero failures/TODOs and six existing platform skips. Release build and embedding passed; UI effects explicitly skip without visual definitions.
-- After final viewport/footer adjustments: typecheck and targeted ESLint passed with zero diagnostics/warnings; 7 focused editor/layout product tests passed, including the new resize/disposal case.
-- Final Playwright configuration/bucket/long-list/template regressions: 14 passed (2.3m), with actual number/title position assertions and keyboard/focus checks.
-- npm run test:ui-quality: 8 passed (1.1m). npm run ui:gallery: 40 captures, failures []. Native light/dark and wide/narrow panel captures plus gallery reviewed; no screenshot baselines accepted.
-- npm run test:obsidian -- coforge-workflow-outline: 1 passed (18.05s), covering eight steps in four theme/size combinations. Asserts row alignment/density, normal bucket labels, one-line actions, footer clearance, accessible keyboard return and zero Axe A/AA findings. Electron uses the established in-page Axe mode; no rules are suppressed.
-- npm run -s dev:obsidian -- --json: passed on pinned Obsidian 1.14.4 after reload; errors [], hostErrorCount 0, pluginConsole [].
-- Impeccable detector: []. Token audit passed (968 observed / 133 reviewed). Diff, architecture, line-limit, draft and privacy self-review passed.
+- `npm run verify:project`: passed on final project-profile wiring. Check summary: **5 passed, 0 failed, 0 skipped in 1035.3s**. Product report: **1,702 passed, zero failures, six existing Windows skips**. Release build passed (2,003 modules); prototype embedding **1 passed**. UI effects explicitly skip because no visual definitions are declared.
+- `npm run test:ui-quality`: **8 passed** (1.0m). `npm run ui:gallery`: **40 captures, zero failures**. Wide/narrow and light/dark gallery views, captured policy and native activity images reviewed; no baselines updated.
+- Project-only worker-hook registration: **6 existing unit tests and 11 focused product tests passed**, focused lint passed, and release `main.js` was byte-identical before/after relocation. Shared framework tooling has no final diff.
+- Simulated **101-hour** quiet execution, explicit long deadline, bounded high-volume child output, independent lane concurrency/reduction, and **1,000 hot polls with zero extra canonical saves** are covered. Subscriber delivery retains the existing snapshot isolation contract.
+- Real detached worker/Git/broker proofs cover protected managed folders, scoped edits, host absence, original-reference completion/ACK, lost replies, generation replay, Stop races, changed evidence, verified empty captures, missing metadata, readonly follow-ups and conservative process identity.
+- `npm run -s dev:obsidian -- --json --port 9322`: **passed** on pinned Obsidian **1.14.4**, launcher **3.2.1**, after reload; `errors: []`, `hostErrorCount: 0`, `pluginConsole: []`.
+- Full `npm run test:obsidian`: **55/55 passed across 48 files** (617.80s), zero failures/pending, all 55 teardowns completed and 56 owned sessions stopped with no live owned PIDs or capture errors. The new native cases prove actual Obsidian quit/reconnect with one original fake-provider admission, and policy/Node/lane save+reload plus activity bounds/focus with zero jobs.
 
-The native alignment test failed before the fix. Native review also caught a wrapped toolbar and a footer measurement binding before the footer mounted; both were repaired and the original assertions retained. The complete GitHub gate will include the newly added product/native cases.
+Independent review found and repaired cross-generation authorization replay, delayed prepared inspection starting after Stop, capacity configuration blocking original cancellation/ACK, missing-metadata control loss, stale empty-worktree previews, and native follow-up workspace rejection. Behavioral regressions failed before the fixes. The final source is frozen during qualification.
 
 ## Evidence and limits
 
-Ignored evidence: reports/workflow-buckets/outline-*, reports/workflow-outline/, reports/ui-gallery/, reports/obsidian/ and .obsidian-sandbox/logs/. The e2e label qualifies the full browser and native suites before merge.
+Ignored local evidence: reports/durable-final-project/, reports/durable-final-ui-quality/, reports/durable-final-ui-gallery/, reports/durable-config-hook-qualification/, reports/durable-ui-evidence/, reports/obsidian/ and .obsidian-sandbox/logs/.
 
-No billable model call, personal vault or live external service mutation. Local Node/npm are 24.20.0/11.21.1; CI uses the repository pins. The durable-build session uses its independent worktree/sandboxes; the shared plugin install stays on the prior merged version until this polish qualifies.
+No billable vendor call or paid 100-hour soak, live CF-135 retry, personal-vault launch, live OBS/Twitch mutation, mobile qualification or alternate Obsidian version. Closing Obsidian differs from OS/provider failure: unknown process trees and startup without trustworthy original identity/exit evidence remain quarantined. No automatic paid-session resume is claimed. Final human review is still required for actual changes.
 
-Initial Linux native qualification passed 52/53 cases and caught a wrapped output label exceeding the existing row-density limit. Scoped row typography/border resets now retain that limit across font metrics; the 68px bound and all alignment/overflow/Axe assertions are unchanged. The fresh local native matrix passed (17.74s). Final-head CI requalifies the complete suites.
+No dependencies or audit exceptions were added. Local Node/npm are **24.20.0 / 11.21.1**; CI uses repository pins **24.21.0 / 11.19.1**. The `e2e` label must qualify full browser/native suites, and every final-head check must be green before merge.
 
-The existing full browser suite also caught size containment collapsing the sticky outline after reordering (229/231 on that earlier head). The fix uses natural header wrapping and viewport-clamped page-scroll measurements. Both original failing journeys remain unchanged and passed in the final 14-case local run. The final local native matrix passed again (15.77s), retaining every original geometry and Axe assertion.
+## CI layout follow-up
+
+The first complete browser qualification passed 234/235 cases and exposed a narrow Timing & limits action overflow. Scoped execution-overview wrapping and a narrow single-column row repair it. The original one-pixel overflow tolerance is unchanged. The original case now also checks a valid 96-character step name and keyboard return to the same draft.
+
+Fresh targeted proof: original failing journey passed (54.1s); durable/long-name/UI-quality batch **11/11 passed**; timing product tests **3/3 passed**; contained native save/reload/long-name Timing/action test **1 passed** (15.61s). Typecheck, focused lint, diff and token checks passed. A scoped UI-source scan returned zero findings. The optional whole-repository style-literal diagnostic reports ten unchanged raw palette colors in generated/styles/design-system/colors.css; the generated file, allowlists and thresholds are unchanged. Fresh final-head GitHub qualification is required after this fix.

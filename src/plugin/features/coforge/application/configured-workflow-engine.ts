@@ -1,18 +1,18 @@
 import { workflowDefinition } from '../domain/configured-workflow';
 import { automationContextCheck, type AutomationContext } from '../domain/automation-context';
 import { WORKFLOW_ATTEMPT_RESERVE_BYTES, WORKFLOW_HISTORY_LIMIT_BYTES, WORKFLOW_RUN_LIMIT_BYTES, workflowSerializedSize, workflowProposalRevision, type ConfiguredStepExecution, type WorkflowRun } from '../domain/configured-workflow-run';
-import { copySettings, findProject, ideaProjectId, projectPaths, projectSettings } from '../domain/projects';
+import { findProject, ideaProjectId, projectSettings } from '../domain/projects';
 import type { AgentJob, IdeaAction } from '../domain/types';
 import { isActiveJob } from '../domain/workflow';
-import { errorMessage } from '../domain/errors';
-import { cleanText } from '../domain/sanitize';
 import type { StageUsage } from '../domain/ai-usage';
-import type { StageInput, StageRunner, InternalState } from './ports';
+import type { StageInput, StageRunner, StageResult, InternalState } from './ports';
+import type { DurableBuildPort } from './durable-build-ports';
+import { configuredJobInput, completeConfiguredJob, failConfiguredJob } from './configured-workflow-job';
 import { recordOperation } from './population';
 import type { StudioStore } from './studio-store';
 import { recordAgentConversation } from './agent-conversation';
 import { uncertainTaskAttempt, type AgentTaskPort } from './agent-task';
-import { assertWorkflowNotStopped, holdWorkflow, releaseWorkflowStop } from './workflow-stop-policy';
+import { assertWorkflowNotStopped, assertDurableWorkflowMetadata, holdWorkflow, releaseWorkflowStop } from './workflow-stop-policy';
 import { ConfiguredWorkflowCouncil } from './configured-workflow-council';
 import { workflowCouncilProjectContext } from './workflow-council-context';
 import type { WorkflowCouncilBinding } from '../domain/workflow-council-binding';
@@ -20,9 +20,11 @@ import { ConfiguredWorkflowNudges } from './configured-workflow-nudges';
 import { captureWorkflowOutputTemplates, WorkflowOutputTemplateUnavailableError, type WorkflowOutputTemplateActions } from './workflow-output-templates';
 import { attachWorkflowPlan, type WorkflowPlanHandoff } from './workflow-plan-handoff';
 import { assertWorkflowCoworkerAvailable, bindWorkflowCoworkers, coworkerAdmissionReady, prepareWorkflowCoworkers, WorkflowCoworkerUnavailableError } from './configured-workflow-coworkers';
-import { appendWorkflowArtifact, applyConfiguredOutput, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
+import { appendWorkflowArtifact, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
 
 interface ConfiguredHost {
+  dispatchAllowed?(): boolean;
+  durableBuilds?: DurableBuildPort;
   outputTemplates?: WorkflowOutputTemplateActions;
   agentTasks?: AgentTaskPort;
   runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner };
@@ -92,8 +94,10 @@ export class ConfiguredWorkflowEngine {
       return null;
     }
     const provider = run.external ? 'mcp' : step.provider;
+    if (step.execution && (run.external || !['claude', 'codex'].includes(provider) || !this.host.durableBuilds)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
+    if (step.execution && state.runtime.durableBuild?.ready === false) throw new Error(state.runtime.durableBuild.message || 'Check the background worker before admitting another Build.');
     configuredRuntime(state, idea, step, run.external);
-    if (!this.host.runners[provider]) throw new Error('This step’s selected provider is unavailable.');
+    if (!step.execution && !this.host.runners[provider]) throw new Error('This step’s selected provider is unavailable.');
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
     const inputs = configuredInputs(run, step);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
@@ -115,6 +119,7 @@ export class ConfiguredWorkflowEngine {
   async restart(ideaId: string): Promise<WorkflowRun> { return this.admit(ideaId, true, undefined, false, undefined, undefined, true); }
   private async admit(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff, external = false, automationEvent?: AutomationContext, expectedDefinitionJson?: string, operatorRestart = false): Promise<WorkflowRun> {
     const starting = this.store.internalSnapshot();
+    assertDurableWorkflowMetadata(starting, ideaId);
     if (!operatorRestart) assertWorkflowNotStopped(starting, ideaId);
     const startingIdea = starting.ideas.find(idea => idea.id === ideaId);
     const startingProject = startingIdea ? starting.projects.find(project => project.id === ideaProjectId(startingIdea)) : undefined;
@@ -127,6 +132,8 @@ export class ConfiguredWorkflowEngine {
     await this.store.transaction(async state => {
       if (operatorRestart) releaseWorkflowStop(state, ideaId, startingIdea?.workflowRun); else assertWorkflowNotStopped(state, ideaId);
       const idea = configuredIdea(state, ideaId);
+      assertDurableWorkflowMetadata(state, ideaId);
+      assertDurableWorkflowMetadata(state, ideaId);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
       const sourceDefinition = workflowDefinition(settings);
@@ -165,8 +172,7 @@ export class ConfiguredWorkflowEngine {
       recordOperation(state, 'workflow-run-started', 'committed', undefined, 1, idea.workflowRun.id);
       this.queue(state, ideaId, explicit);
     });
-    await this.nudges.run(ideaId);
-    await this.council.run(ideaId);
+    await this.flushDelegated(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async next(ideaId: string): Promise<WorkflowRun> {
@@ -175,8 +181,7 @@ export class ConfiguredWorkflowEngine {
     const councilAttempt = current?.attempts.find(item => item.id === current.activeAttemptId);
     if (councilAttempt?.kind === 'council' && councilAttempt.nudgeState === 'submitted') {
       await this.council.reconcile(ideaId);
-      await this.nudges.run(ideaId);
-      await this.council.run(ideaId);
+      await this.flushDelegated(ideaId);
       return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
     }
     if (!this.store.snapshot().ideas.find(idea => idea.id === ideaId)?.workflowRun) return this.start(ideaId);
@@ -192,8 +197,7 @@ export class ConfiguredWorkflowEngine {
       }
       this.queue(state, ideaId, true);
     });
-    await this.nudges.run(ideaId);
-    await this.council.run(ideaId);
+    await this.flushDelegated(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async manual(ideaId: string, expectedRevision: number, checkedIds: string[], note = ''): Promise<WorkflowRun> {
@@ -213,8 +217,7 @@ export class ConfiguredWorkflowEngine {
       recordOperation(state, 'workflow-manual-completed', 'committed', undefined, 1, attempt.id);
       if (run.cursor === run.definition.steps.length) finish(state, ideaId); else this.automatic(state, ideaId);
     });
-    await this.nudges.run(ideaId);
-    await this.council.run(ideaId);
+    await this.flushDelegated(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async stop(ideaId: string): Promise<WorkflowRun> {
@@ -234,11 +237,10 @@ export class ConfiguredWorkflowEngine {
   }
   async tick(projectId: string, manual: boolean, allowNew = true): Promise<AgentJob | null> {
     let state = this.store.internalSnapshot();
-    const waiting = state.ideas.filter(idea => ideaProjectId(idea) === projectId && idea.workflowRun?.attempts.some(attempt => attempt.id === idea.workflowRun?.activeAttemptId && attempt.kind === 'council'));
+    const waiting = state.ideas.filter(idea => ideaProjectId(idea) === projectId && !state.jobs.some(job => job.ideaId === idea.id && job.durable && !job.durable.acknowledged) && idea.workflowRun?.attempts.some(attempt => attempt.id === idea.workflowRun?.activeAttemptId && ['council', 'nudge'].includes(attempt.kind)));
     for (const idea of waiting) {
       await this.council.reconcile(idea.id);
-      await this.nudges.run(idea.id);
-      await this.council.run(idea.id);
+      await this.flushDelegated(idea.id);
     }
     if (waiting.length) state = this.store.internalSnapshot();
     const settings = projectSettings(state, projectId);
@@ -265,7 +267,7 @@ export class ConfiguredWorkflowEngine {
     if (!candidate) return null;
     try {
       if (!candidate.workflowRun && settings.workflow && !await coworkerAdmissionReady(settings.workflow, projectId, candidate, state, this.host.agentTasks)) return null;
-      if (candidate.workflowRun) { await this.store.transaction(next => { this.queue(next, candidate.id, manual); }); await this.nudges.run(candidate.id); await this.council.run(candidate.id); }
+      if (candidate.workflowRun) { await this.store.transaction(next => { this.queue(next, candidate.id, manual); }); await this.flushDelegated(candidate.id); }
       else await this.start(candidate.id, manual);
     } catch (cause) {
       if ((cause instanceof WorkflowOutputTemplateUnavailableError || cause instanceof WorkflowCoworkerUnavailableError) && !candidate.workflowRun) await this.store.transaction(next => {
@@ -280,22 +282,12 @@ export class ConfiguredWorkflowEngine {
     return this.store.snapshot().jobs.find(job => job.ideaId === candidate.id && job.status === 'queued') ?? null;
   }
   async run(job: AgentJob, signal: AbortSignal): Promise<void> {
+    if (job.workflow?.step.execution) throw new Error('Background Builds require durable worker admission.');
     if (job.workflow?.coworker) await assertWorkflowCoworkerAvailable(job.workflow.coworker, job.projectId ?? '', this.host.agentTasks);
-    const input = await this.store.transaction(state => {
-      assertWorkflowNotStopped(state, job.ideaId);
-      const current = state.jobs.find(item => item.id === job.id);
-      if (!current || current.status !== 'queued') return null;
-      const { idea, run, attempt, snapshot } = configuredAttempt(state, current);
-      configuredRuntime(state, idea, snapshot.step, run.external);
-      const project = findProject(state, run.projectId);
-      if (run.projectContext && (run.projectContext.projectPath !== project.projectPath || run.projectContext.worktreeFolder !== project.worktreeFolder)) throw new Error('This run’s project directory changed. Stop and start a fresh workflow.');
-      current.status = 'running'; current.startedAt = time(); attempt.status = 'running'; attempt.startedAt = current.startedAt; touch(run);
-      state.runtime.activeJobId = current.id; recordOperation(state, 'job-started', 'none', undefined, 1, current.id);
-      const settings = { ...copySettings(projectSettings(state, run.projectId)), ...run.definition.limits, provider: snapshot.step.provider, model: snapshot.step.model,
-        ...(snapshot.step.herdrAgent ? { herdrAgent: snapshot.step.herdrAgent } : {}), ...(run.projectContext ? { projectName: run.projectContext.name, projectBrief: run.projectContext.brief, agentPrompt: run.projectContext.agentPrompt } : {}) };
-      return { jobId: current.id, stage: current.stage, idea: structuredClone(idea), settings, integration: { ...state.integration, ...projectPaths(project) }, workflow: structuredClone(snapshot), signal };
-    });
+    const input = await this.store.transaction(state => configuredJobInput(state, job, signal));
     if (!input) return;
+    const execution = input.workflow;
+    if (!execution) throw new Error('The configured execution snapshot is missing.');
     signal.throwIfAborted();
     const runner = this.host.runners[job.provider];
     if (!runner) throw new Error('The configured workflow runner is unavailable.');
@@ -308,7 +300,7 @@ export class ConfiguredWorkflowEngine {
         const current = state.jobs.find(item => item.id === job.id);
         if (current?.workflow) current.workflow.workspaceId = workspaceId;
         touch(run);
-      }); input.workflow.workspaceId = workspaceId; },
+      }); execution.workspaceId = workspaceId; },
       onChanges: async increment => { await this.store.transaction(state => {
         const { idea, run, snapshot } = configuredChanges(state, job);
         if (increment && !increment.simulated && !run.workspaceId) throw new Error('Real code changes require a verified attributed run workspace.');
@@ -324,38 +316,21 @@ export class ConfiguredWorkflowEngine {
     if (result.costUsd !== undefined) await this.host.cost(job.id, result.costUsd);
     if (result.usage) await this.host.usage(job.id, result.usage);
     signal.throwIfAborted();
-    await this.store.transaction(state => {
-      const current = state.jobs.find(item => item.id === job.id);
-      if (!current || current.status !== 'running') throw new Error('The task is no longer active.');
-      const { idea, run, attempt, snapshot } = configuredAttempt(state, current);
-      if (result.increment && !result.increment.simulated && !run.workspaceId) throw new Error('Real code changes require a verified attributed run workspace.');
-      applyConfiguredOutput(idea, run, snapshot, result, current.provider, time());
-      attempt.status = 'succeeded'; attempt.finishedAt = time(); current.status = 'succeeded'; current.finishedAt = attempt.finishedAt;
-      run.cursor++; run.state = idea.screening?.verdict === 'flagged' ? 'attention' : 'ready'; delete run.activeAttemptId;
-      if (run.state === 'attention') run.error = 'Resolve the moderation flag before continuing.';
-      delete idea.lastError; idea.updatedAt = time(); touch(run); delete state.runtime.activeJobId; recordOperation(state, 'job-completed', 'committed', undefined, 1, current.id);
-      if (run.cursor === run.definition.steps.length && run.state === 'ready') finish(state, idea.id);
-      else if (run.state === 'ready') this.automatic(state, idea.id);
-    });
-    await this.nudges.run(job.ideaId);
-    await this.council.run(job.ideaId);
+    await this.store.transaction(state => this.complete(state, job, result));
+    await this.flushDelegated(job.ideaId);
   }
   async fail(job: AgentJob, cancelled: boolean, error: unknown): Promise<void> {
-    await this.store.transaction(state => {
-      const message = cleanText(`${cancelled ? 'Cancelled. ' : ''}${errorMessage(error)}`, 3900) || 'The step did not complete. Inspect its resources before explicitly retrying.';
-      const current = state.jobs.find(item => item.id === job.id);
-      if (current) { current.status = cancelled ? 'cancelled' : 'failed'; current.finishedAt = time(); current.error = message; }
-      const idea = state.ideas.find(item => item.id === job.ideaId);
-      const run = idea?.workflowRun;
-      if (idea && run && run.id === job.workflow?.runId) {
-        const attempt = run.attempts.find(item => item.id === job.workflow?.attemptId);
-        if (attempt) { attempt.status = cancelled ? 'cancelled' : 'failed'; attempt.error = current?.error; attempt.finishedAt = time(); }
-        run.state = run.state === 'stopped' ? (idea.increment?.files.length ? 'awaiting-review' : 'stopped') : 'attention';
-        run.error = current?.error; delete run.activeAttemptId; idea.lastError = current?.error; touch(run);
-      }
-      delete state.runtime.activeJobId; recordOperation(state, cancelled ? 'job-cancelled' : 'job-failed', 'none', undefined, 1, job.id);
-    });
+    await this.store.transaction(state => failConfiguredJob(state, job, cancelled, error));
   }
+  complete(state: InternalState, job: AgentJob, result: StageResult): void {
+    const { idea, run } = completeConfiguredJob(state, job, result);
+    if (run.cursor === run.definition.steps.length && run.state === 'ready') finish(state, idea.id);
+    else if (run.state === 'ready') this.automatic(state, idea.id);
+  }
+  async verifyCoworker(job: AgentJob): Promise<void> {
+    if (job.workflow?.coworker) await assertWorkflowCoworkerAvailable(job.workflow.coworker, job.projectId ?? '', this.host.agentTasks);
+  }
+  async flushDelegated(ideaId: string): Promise<void> { if (this.host.dispatchAllowed?.() === false) return; await this.nudges.run(ideaId); await this.council.run(ideaId); }
   review(state: InternalState, ideaId: string, action: IdeaAction): void {
     const idea = state.ideas.find(item => item.id === ideaId);
     const run = idea?.workflowRun;

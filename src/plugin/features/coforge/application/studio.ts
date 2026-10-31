@@ -7,6 +7,8 @@ import { isActiveJob } from '../domain/workflow';
 import { addVote, createIdea, ingestChat, simulateMessage, type ChatInput, type ChatResult } from './chat';
 import { WorkflowEngine } from './engine';
 import type { ExternalNoteChange, StudioHost, StudioStorage } from './ports';
+import { executionConcurrencyCheck } from '../domain/execution-concurrency';
+import type { DurableBuildReadiness } from '../domain/durable-build';
 import { adjustRice } from './review';
 import { addEvent, mergeNote, StudioStore } from './studio-store';
 import { addProject, editProject } from './projects';
@@ -37,13 +39,16 @@ export class StudioService {
   private readonly integrationListeners = new Set<(integration: IntegrationSettings) => void>();
   constructor(storage: StudioStorage, private readonly host: StudioHost) {
     this.store = new StudioStore(storage, host.events, host.observerFailed, host.beforeCommit);
-    this.engine = new WorkflowEngine(this.store, { outputTemplates: host.outputTemplates, agentTasks: host.agentTasks, runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}), ...(host.assertWorkflowReviewable ? { assertWorkflowReviewable: host.assertWorkflowReviewable } : {}) });
+    this.engine = new WorkflowEngine(this.store, { durableBuilds: host.durableBuilds, outputTemplates: host.outputTemplates, agentTasks: host.agentTasks, runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}), ...(host.assertWorkflowReviewable ? { assertWorkflowReviewable: host.assertWorkflowReviewable } : {}) });
   }
 
   async start(options: { deferAutomation?: boolean } = {}): Promise<{ invalidNotes: string[] }> {
+    if (options.deferAutomation) this.engine.preventDispatchUntilStart();
     const loaded = await this.store.init();
+    void this.engine.cleanupUnstartedBackground();
     if (this.store.snapshot().projects?.some(project => hasNativeStages(project.settings))) await this.refreshRuntime();
     else await this.store.updateRuntime(this.runtimeConfig());
+    await this.refreshDurableBuildRuntime();
     if (!options.deferAutomation) this.engine.start();
     return loaded;
   }
@@ -182,6 +187,10 @@ export class StudioService {
     const release = this.host.noteFolders?.reserve?.(patch.ideasFolder ? [patch.ideasFolder] : []);
     try {
       const integration = await this.store.transaction(state => {
+        if (patch.executionConcurrency) {
+          executionConcurrencyCheck(patch.executionConcurrency);
+          state.runtime.durableBuild = { ready: false, message: 'Concurrency is saved with this change. Check the worker to confirm its background capacity.' };
+        }
         validateFolderLayout({ ...state.integration, ...patch }, this.host.privateFolders?.() ?? []);
         this.host.noteFolders?.assertAvailable?.([patch.ideasFolder ?? state.integration.ideasFolder]);
         if (patch.claudeBin && patch.claudeBin !== state.integration.claudeBin && state.jobs.some(isActiveJob))
@@ -191,10 +200,12 @@ export class StudioService {
           throw new StudioError('Finish or stop this project’s queued runs and workflow before editing its repository configuration.', 409);
         if (patch.ideasFolder && patch.ideasFolder !== state.integration.ideasFolder && state.jobs.some(isActiveJob))
           throw new StudioError('Finish or cancel queued runs before moving the ideas folder.', 409);
+        if (patch.workerNodeBin !== undefined && patch.workerNodeBin !== state.integration.workerNodeBin) state.runtime.durableBuild = { ready: false, message: 'Check the background worker after changing its native Node executable.' };
         state.integration = { ...state.integration, ...patch };
         return state.integration;
       });
       await this.store.updateRuntime(this.runtimeConfig());
+      if (patch.executionConcurrency) await this.engine.configureConcurrency().then(() => this.refreshDurableBuildRuntime()).catch(() => undefined);
       for (const listener of this.integrationListeners) listener(integration);
       return integration;
     } finally { release?.(); }
@@ -209,6 +220,24 @@ export class StudioService {
     await this.store.updateRuntime({ cliAvailable, codexAvailable, ...this.runtimeConfig() });
     return this.state().runtime;
   }
+  async refreshDurableBuildRuntime(): Promise<DurableBuildReadiness> {
+    let readiness: DurableBuildReadiness = { ready: false, message: 'Background Builds require a verified native Node worker.' };
+    try { if (this.host.durableBuilds) { readiness = await this.host.durableBuilds.readiness(); if (readiness.ready) await this.engine.syncDurableBuildCapacity(); } }
+    catch { readiness = { ready: false, message: 'The background worker could not be verified. Check its native Node executable and private storage.' }; }
+    await this.store.updateRuntime({ durableBuild: readiness });
+    return readiness;
+  }
+  async repairDurableBuildRuntime(consent: boolean): Promise<DurableBuildReadiness> {
+    if (consent !== true) throw new Error('Explicit acknowledgement of the unused startup inspection is required.');
+    let readiness: DurableBuildReadiness = { ready: false, repairable: false, message: 'This runtime does not support verified unused-startup repair.' };
+    try { if (this.host.durableBuilds?.repairBootstrap) readiness = await this.host.durableBuilds.repairBootstrap(true); }
+    catch { readiness = { ready: false, repairable: false, message: 'The unused startup could not be proven safe to repair. Its data and locks were retained.' }; }
+    await this.store.updateRuntime({ durableBuild: readiness });
+    return readiness;
+  }
+  reconcileDurableBuild(ideaId: string): Promise<void> { return this.engine.reconcileDurableBuild(ideaId); }
+  inspectDurableBuildEvidence(ideaId: string, revision: number) { return this.engine.inspectDurableBuildEvidence(ideaId, revision); }
+  recoverDurableBuild(ideaId: string, revision: number, consent: boolean): Promise<void> { return this.engine.recoverDurableBuild(ideaId, revision, consent); }
 
   /** Replaces the project with the illustrative sample workspace. Existing idea notes go to the vault trash. */
   async loadSample(): Promise<void> {

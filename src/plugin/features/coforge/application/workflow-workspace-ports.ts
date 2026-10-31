@@ -32,6 +32,8 @@ export interface WorkflowWorkspaceStorage {
   save(records: WorkflowWorkspaceRecord[]): Promise<void>;
 }
 export interface WorkflowWorkspaceLease {
+  readOnly?: true;
+  protectedProjectPaths?: readonly string[];
   id?: string;
   cwd: string;
   validate?(): Promise<void>;
