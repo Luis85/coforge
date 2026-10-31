@@ -11,6 +11,7 @@ import { McpToolError } from './mcp-errors';
 const id = text({ min: 1, max: 100 });
 const identifier = { type: 'string', minLength: 1, maxLength: 100 };
 const pathSchema = { type: 'string', maxLength: 1000 };
+const querySchema = { type: 'string', minLength: 1, maxLength: 200 };
 const schema = (properties: Record<string, object>, required = Object.keys(properties)) => ({ type: 'object', properties, required, additionalProperties: false });
 const definition = (name: string, description: string, inputSchema: object, readOnlyHint = true): McpTool => ({ name, description, inputSchema,
   annotations: { readOnlyHint, destructiveHint: !readOnlyHint, idempotentHint: readOnlyHint, openWorldHint: false } });
@@ -28,9 +29,9 @@ export class McpWorkflowTools {
       definition('coforge_step_context', 'Read the pinned instructions, untrusted input, required output schema and permitted tools for an active task.', schema({ taskId: identifier })),
       definition('coforge_submit_result', 'Submit the schema object for an active task. Host validates and persists it, captures actual Build changes and requires human review. Never fabricates cost or test results.', schema({ taskId: identifier, output: { type: 'object' } }), false),
       definition('coforge_cancel_step', 'Cancel this request’s active MCP step. Partial changes stay in its private workspace for inspection.', schema({ taskId: identifier }), false),
-      definition('coforge_list_files', 'List bounded files beneath the task repository. Unavailable for Screen/Score. Credentials, metadata and symlinks are excluded.', schema({ taskId: identifier, path: pathSchema }, ['taskId'])),
+      definition('coforge_list_files', 'Discover bounded repository file paths. Optional path narrows the directory; optional query filters file paths by a case-insensitive literal substring before the result limit. Truncated results are incomplete; narrow path and retry. Credentials, metadata, managed notes and symlinks are excluded.', schema({ taskId: identifier, path: pathSchema, query: querySchema }, ['taskId'])),
       definition('coforge_read_file', 'Read a bounded UTF-8 repository file using the task access profile.', schema({ taskId: identifier, path: pathSchema })),
-      definition('coforge_search_files', 'Search literal text in bounded UTF-8 repository files. Returns matching lines with file names.', schema({ taskId: identifier, query: { type: 'string', minLength: 1, maxLength: 200 } })),
+      definition('coforge_search_files', 'Search case-sensitive literal text in bounded UTF-8 repository files. Optional path narrows the directory. Returns matching lines with file names. Truncated results are incomplete; narrow path and retry.', schema({ taskId: identifier, query: querySchema, path: pathSchema }, ['taskId', 'query'])),
       definition('coforge_write_file', 'Create or replace a UTF-8 file only in this task’s Build worktree. Existing file content must match expectedContent; use null to create. No shell or Git mutation is available.', schema({ taskId: identifier, path: pathSchema, content: { type: 'string', maxLength: 200000 }, expectedContent: { type: ['string', 'null'], maxLength: 200000 } }), false),
       definition('coforge_delete_file', 'Delete one regular UTF-8 file only in the Build worktree, with its exact previous content. No directories, metadata or credentials.', schema({ taskId: identifier, path: pathSchema, expectedContent: { type: 'string', maxLength: 200000 } }), false),
     ];

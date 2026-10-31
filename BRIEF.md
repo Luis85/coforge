@@ -540,6 +540,15 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-10-31: review the first complete CF-133 intake-to-increment run through
+  dedicated product-perspective subagents, then perform a subagent-driven plugin
+  improvement and polishing pass so agents can present better-quality increments.
+  The pass improves bounded repository discovery, truthful execution/quality
+  handoffs and private increment-review evidence within existing capabilities and
+  mandatory human review. Preserve the original request/run evidence. Follow-up:
+  commit and push the improvements, open a PR and merge only after all required
+  checks are green.
+
 - 2026-10-31: Idea board request details expose the captured prompt and LLM
   response inside each corresponding Activity agent-run disclosure. Keep attempts
   distinct and retain private evidence through reload, failure and retry. Historical

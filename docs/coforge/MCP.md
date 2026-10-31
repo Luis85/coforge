@@ -26,6 +26,25 @@ Start with `coforge_projects`, then pass an explicit `projectId` to project, req
 
 External workflow runs are marked separately and never automatically switch to native providers between steps. Custom v1 AI steps use their pinned output/access contracts; manual checkpoints remain in the plugin. Existing native runs cannot be taken over. Build requires a clean Git repository.
 
+Repository discovery is bounded. Use `coforge_list_files` with an optional `path`
+directory and an optional case-insensitive literal `query` to find filenames, then
+read the exact paths returned. Use `coforge_search_files` with a case-sensitive
+content `query` and optional directory `path` to inspect a focused area. For
+example, search filenames for `coworkers` under `src`, then search content under
+`src/plugin/styles`. A truncated reply is incomplete: narrow the directory and
+retry before concluding that a file does not exist. These options preserve the
+existing protected-path, file-size and scan limits.
+
+Native request-workflow invocations receive only their supplied task tools.
+Instructions asking for subagents, executed tests or browser inspection do not
+grant those capabilities. The vault-level CoWorker tools below are a separate
+analytical route; they are not implicitly available inside a native request step.
+Keep generated source tests separate from executed verification, and carry
+unfinished styling, documentation, open questions and qualification steps into
+the final handoff. In the private Increment view, saved criteria and captured
+follow-up findings support human review; a successful AI step alone does not
+verify the increment.
+
 ## CoWorker subagents and analytical tasks
 
 These tools use the same vault connection. Pass an explicit `projectId` on every call.

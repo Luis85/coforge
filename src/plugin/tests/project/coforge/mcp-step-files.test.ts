@@ -43,3 +43,41 @@ it('enforces stage permissions, denies traversal, metadata, secrets, symlinks an
   const noFiles = await fixture('none');
   await expect(noFiles.files.call('coforge_list_files', noFiles.task, {})).rejects.toThrow();
 });
+it('narrows discovery by relative path and filename before the returned-file limit', async () => {
+  const f = await fixture('readproject');
+  await mkdir(join(f.cwd, 'src/styles'), { recursive: true });
+  await writeFile(join(f.cwd, 'src/styles/coworkers.css'), '.pool { display: grid; }');
+  await mkdir(join(f.cwd, 'archive'));
+  await Promise.all(Array.from({ length: 1001 }, (_, index) => writeFile(join(f.cwd, 'archive', `${index}.txt`), 'historical')));
+  expect(await f.files.call('coforge_list_files', f.task, {})).toMatchObject({ truncated: true, narrowingHint: expect.stringContaining('path') });
+  expect(await f.files.call('coforge_list_files', f.task, { path: '', query: 'coworkers' }))
+    .toEqual({ files: ['src/styles/coworkers.css'], truncated: false });
+  expect(await f.files.call('coforge_search_files', f.task, { path: 'src/styles', query: 'display' }))
+    .toEqual({ matches: [{ path: 'src/styles/coworkers.css', line: 1, text: '.pool { display: grid; }' }], truncated: false });
+});
+it('does not expose excluded files or escape the lease when narrowing discovery', async () => {
+  const f = await fixture('readproject');
+  await mkdir(join(f.cwd, 'managed'));
+  await writeFile(join(f.cwd, 'managed/private.md'), 'PRIVATE');
+  const task = { ...f.task, lease: { ...f.task.lease, readOnly: true as const, protectedProjectPaths: ['managed'], validate: async () => {} } };
+  expect(await f.files.call('coforge_list_files', task, { query: 'private' })).toEqual({ files: [], truncated: false });
+  for (const path of ['../outside', '.git', 'managed']) {
+    await expect(f.files.call('coforge_search_files', task, { path, query: 'PRIVATE' })).rejects.toThrow();
+    await expect(f.files.call('coforge_list_files', task, { path, query: 'private' })).rejects.toThrow();
+  }
+});
+it('reports content-byte and match limits as incomplete and lets the agent narrow the path', async () => {
+  const f = await fixture('readproject');
+  await mkdir(join(f.cwd, 'archive'));
+  await mkdir(join(f.cwd, 'src'));
+  await Promise.all(Array.from({ length: 12 }, (_, index) => writeFile(join(f.cwd, 'archive', `${index}.txt`), 'x'.repeat(190000))));
+  await writeFile(join(f.cwd, 'src/view.css'), '.pool {}');
+  expect(await f.files.call('coforge_search_files', f.task, { query: '.pool' }))
+    .toMatchObject({ matches: [], truncated: true, narrowingHint: expect.stringContaining('path') });
+  expect(await f.files.call('coforge_search_files', f.task, { path: 'src', query: '.pool' }))
+    .toMatchObject({ matches: [{ path: 'src/view.css' }], truncated: false });
+  await writeFile(join(f.cwd, 'src/matches.txt'), Array.from({ length: 101 }, () => 'match').join('\n'));
+  const result = await f.files.call('coforge_search_files', f.task, { path: 'src', query: 'match' });
+  expect(result).toMatchObject({ matches: expect.any(Array), truncated: true, narrowingHint: expect.stringContaining('path') });
+  expect(result).toHaveProperty('matches.length', 100);
+});

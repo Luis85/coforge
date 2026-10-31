@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { Idea } from "../../../features/coforge/domain/types";
 import { useIdeaDrawerContext } from "../../composables/coforge/use-idea-drawer";
+import { useIncrementReview } from "../../composables/coforge/use-increment-review";
 import CfIcon from "./CfIcon.vue";
 import MarkdownBody from "./MarkdownBody.vue";
 
-defineProps<{ idea: Idea }>();
+const props = defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
+const review = useIncrementReview(props);
 </script>
 <template>
   <template v-if="idea.increment">
@@ -24,7 +26,31 @@ const drawer = useIdeaDrawerContext();
         <CfIcon name="code" /> What changed
         <span v-if="idea.increment.simulated" class="cf-badge">Demo</span>
       </h3>
+      <p class="cf-idea-help">Agent-reported summary · review against the captured changes and criteria.</p>
       <MarkdownBody class="cf-idea-body" :source="idea.increment.summary" />
+    </section>
+    <section v-if="review.evidence.followups.length" class="cf-idea-section" aria-label="Post-build findings">
+      <h3><CfIcon name="clipboard-check" /> Post-build findings</h3>
+      <p class="cf-idea-help">Agent assessments of this increment. Completed runs do not verify acceptance or replace your decision.</p>
+      <details v-for="finding in review.evidence.followups" :key="finding.id" class="cf-idea-evidence cf-increment-finding" open>
+        <summary>{{ finding.name }} <span class="cf-idea-run-meta">{{ finding.assessmentLabel }} · <time :datetime="finding.createdAt">{{ finding.savedLabel }}</time></span></summary>
+        <MarkdownBody class="cf-idea-body" :source="finding.markdown" />
+      </details>
+    </section>
+    <section class="cf-idea-section" aria-label="Planned acceptance criteria">
+      <h3><CfIcon name="list-checks" /> Acceptance criteria</h3>
+      <p class="cf-idea-help">Saved plan · not verified. Check each criterion against the increment and verification evidence.</p>
+      <ul v-if="review.evidence.criteria.length" class="cf-idea-check-list">
+        <li v-for="(criterion, index) in review.evidence.criteria" :key="index">
+          <span class="cf-idea-check-box" aria-hidden="true" />
+          <MarkdownBody :source="criterion" />
+        </li>
+      </ul>
+      <p v-else class="cf-idea-help">No saved acceptance criteria are bound to this Build. Inspect Plan &amp; Design and Workflow runs for earlier context.</p>
+    </section>
+    <section class="cf-idea-section">
+      <h3><CfIcon name="file-code" /> {{ idea.increment.simulated ? 'Illustrative changes' : review.evidence.hostCaptured ? 'Host-captured changes' : 'Recorded changes' }}</h3>
+      <p v-if="!idea.increment.simulated && review.evidence.hostCaptured" class="cf-idea-help">CoForge captured these files and the diff from the worktree. This records changes; it does not prove they work.</p>
       <div
         v-if="idea.increment.branch"
         class="cf-idea-code-meta"
@@ -60,6 +86,7 @@ const drawer = useIdeaDrawerContext();
     </section>
     <section class="cf-idea-section">
       <h3><CfIcon name="flask-conical" /> Verification notes</h3>
+      <p class="cf-idea-help">Read the recorded outcomes and limitations below. Written tests and successful agent runs are not executed checks.</p>
       <ul v-if="idea.increment.tests.length" class="cf-idea-list">
         <li v-for="(test, index) in idea.increment.tests" :key="index">
           <MarkdownBody :source="test" />
@@ -77,7 +104,7 @@ const drawer = useIdeaDrawerContext();
           idea.increment.simulated ? "Illustrative diff" : "Working tree diff"
         }}
       </h3>
-      <pre class="cf-idea-code" tabindex="0">{{
+      <pre class="cf-idea-code" tabindex="0" role="region" :aria-label="idea.increment.simulated ? 'Illustrative diff' : 'Working tree diff'">{{
         idea.increment.diff || "No diff available."
       }}</pre>
     </section>
