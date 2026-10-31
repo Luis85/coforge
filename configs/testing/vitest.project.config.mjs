@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { configDefaults, defineConfig } from 'vitest/config';
 import { sharedConfig } from '../../tooling/bundling/vite-shared.mjs';
+import { durableWorkerSource } from '../../src/plugin/build/durable-worker-source.mjs';
 const shared = sharedConfig();
 // Product tests. A bare `obsidian` import throws on purpose: each test file opts in to the
 // in-memory host with `vi.mock('obsidian', () => import('@test/obsidian'))` (docs/framework/testing/OBSIDIAN-TEST-KIT.md).
@@ -13,7 +14,7 @@ const testKit = { '@test/obsidian': fileURLToPath(new URL('../../src/plugin/test
 // Keep Vitest's default console reporters and retain diagnostics beyond the CLI's bounded child output.
 // JUnit also records unhandled errors, which Vitest's JSON reporter does not include.
 // `npm run make` writes the tests of the features it creates to src/plugin/tests/unit/generated.
-export default defineConfig({ ...shared, resolve: { ...shared.resolve, alias: { ...shared.resolve?.alias, ...testKit } }, plugins: [...shared.plugins, hostBoundary], test: {
+export default defineConfig({ ...shared, resolve: { ...shared.resolve, alias: { ...shared.resolve?.alias, ...testKit } }, plugins: [durableWorkerSource(), ...shared.plugins, hostBoundary], test: {
   include: ["src/plugin/tests/project/**/*.test.{ts,mjs}", "src/plugin/tests/unit/generated/**/*.test.ts"], environment: 'node', fileParallelism: false,
   reporters: [...configDefaults.reporters, 'json', 'junit'],
   outputFile: { json: fileURLToPath(new URL('../../reports/product-tests.json', import.meta.url)), junit: 'reports/tests/project-results.xml' },

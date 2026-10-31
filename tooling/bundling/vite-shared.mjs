@@ -6,7 +6,6 @@ import ui from '@nuxt/ui/vite';
 import { journeyFlow } from './journey-flow.mjs';
 import { cssOwnership } from './css-ownership.mjs';
 import { localIcons } from './local-icons.mjs';
-import { durableWorkerSource } from '../../src/plugin/build/durable-worker-source.mjs';
 const root = process.cwd();
 const profile = JSON.parse(readFileSync(resolve(root, 'tooling/bundling/ui-adaptation.json'), 'utf8'));
 const replacements = new Map(Object.keys(profile.replaced).map((p, index) => [resolve(root, p).replaceAll('\\', '/'), index]));
@@ -27,7 +26,7 @@ function staticVendor() {
 export function sharedConfig() {
   const identity = JSON.parse(readFileSync(resolve(root, 'manifest.json'), 'utf8'));
   return {
-    plugins: [durableWorkerSource(), journeyFlow(root), staticVendor(), vue(), ui({ root, router: false, colorMode: false, autoImport: false, components: false,
+    plugins: [journeyFlow(root), staticVendor(), vue(), ui({ root, router: false, colorMode: false, autoImport: false, components: false,
       experimental: { componentDetection: true },
       theme: { prefix: 'ps', colors: ['primary', 'secondary', 'success', 'info', 'warning', 'error'] },
       icon: { mode: 'svg', clientBundle: { icons: localIcons } },
