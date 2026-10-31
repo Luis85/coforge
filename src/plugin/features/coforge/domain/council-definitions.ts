@@ -10,6 +10,7 @@ import {
 } from "./check";
 import { contextEventId } from "./integrity";
 import { agentModelCheck } from "./stage-agents";
+import { reasoningEffortCheck, validateModelEffort, type ReasoningEffort } from './provider-models';
 import type { Provider } from "./types";
 import { agentConnectionProfileIssue } from "./agent-connection-profiles";
 import {
@@ -31,6 +32,7 @@ export interface AgentDefinition {
   instructions: string;
   provider: Provider;
   model: string;
+  effort?: ReasoningEffort;
   outputDefault?: "markdown" | "plan";
   connectionProfile?: string;
   contextSources: string[];
@@ -93,8 +95,9 @@ const agent = shape(
     schema: oneOf(["agent/v1"] as const),
     role: text({ max: 500 }),
     instructions,
-    provider: oneOf(["demo", "claude", "herdr"] as const),
+    provider: oneOf(["demo", "claude", "herdr", "codex"] as const),
     model: agentModelCheck,
+    effort: optional(reasoningEffortCheck),
     outputDefault: optional(oneOf(["markdown", "plan"] as const)),
     connectionProfile: optional(councilIdCheck),
     contextSources: list(text({ min: 1, max: 300 }), { max: 40 }),
@@ -123,6 +126,7 @@ function unique(values: readonly string[], name: string): void {
 }
 export function agentDefinitionCheck(value: unknown): AgentDefinition {
   const checked = agent(value);
+  validateModelEffort(checked);
   const issue = agentConnectionProfileIssue(checked);
   if (checked.enabled && issue) throw new Error(issue);
   return checked;

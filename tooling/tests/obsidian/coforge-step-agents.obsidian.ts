@@ -56,14 +56,14 @@ describe("Dedicated project workflow editor in the contained vault", () => {
     await view
       .getByLabel("AI provider", { exact: true })
       .selectOption("claude");
-    await view.getByLabel("AI model", { exact: true }).fill("haiku");
+    await view.getByLabel("AI model", { exact: true }).selectOption("haiku");
     await view
       .locator('[data-step-id="plan"] .cf-workflow-step-select')
       .click();
     await view
       .getByLabel("AI provider", { exact: true })
       .selectOption("claude");
-    await view.getByLabel("AI model", { exact: true }).fill("sonnet");
+    await view.getByLabel("AI model", { exact: true }).selectOption("sonnet");
     await view
       .getByRole("button", { name: "Save workflow", exact: true })
       .click();
@@ -95,7 +95,7 @@ describe("Dedicated project workflow editor in the contained vault", () => {
     await browserExpect(
       view.getByLabel("AI model", { exact: true }),
     ).toHaveValue("haiku");
-    await view.getByLabel("AI model", { exact: true }).fill("sonnet");
+    await view.getByLabel("AI model", { exact: true }).selectOption("sonnet");
     await view.getByLabel("AI provider", { exact: true }).selectOption("demo");
     await view
       .getByRole("button", { name: "Save workflow", exact: true })

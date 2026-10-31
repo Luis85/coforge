@@ -1,5 +1,6 @@
 import { list, number, oneOf, optional, shape, text, boolean } from "./check";
 import { stageUsageCheck } from "./ai-usage";
+import { reasoningEffortCheck } from './provider-models';
 import { councilPromptOrderCheck } from "./council-prompt-order";
 import {
   workflowPlanCheck,
@@ -16,7 +17,7 @@ export const executionIdsCheck = list(executionIdCheck, { max: 200 });
 export const executionProviderCheck = oneOf([
   "demo",
   "claude",
-  "herdr",
+  "herdr", "codex",
 ] as const);
 const id = executionIdCheck;
 const ids = executionIdsCheck;
@@ -56,6 +57,7 @@ export const executionInvocationCheck = shape(
     agentRevision: id,
     provider,
     model: text({ min: 1, max: 200 }),
+    effort: optional(reasoningEffortCheck),
     instructions: text({ min: 1, max: 16000 }),
     access: oneOf(["none"] as const),
     inputRoundIds: ids,

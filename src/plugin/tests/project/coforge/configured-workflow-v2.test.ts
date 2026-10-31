@@ -3,6 +3,7 @@ import { workflowV2DefinitionCheck, type WorkflowV2Definition } from '../../../f
 import { compileWorkflowV2, resolveWorkflowV2Inputs } from '../../../features/coforge/application/workflow-v2-compiler';
 import { defaultCouncilDefinition, type AgentDefinition, type TeamDefinition } from '../../../features/coforge/domain/council-definitions';
 import type { ExecutionArtifact } from '../../../features/coforge/domain/execution-run';
+import { executionInvocationCheck } from '../../../features/coforge/domain/execution-values';
 
 const agent = (id: string): AgentDefinition => ({ schema: 'agent/v1', id, name: id, enabled: true, role: 'Reviewer', instructions: `Role ${id}`, provider: 'demo', model: 'sonnet', contextSources: [], requestedCapabilities: { project: 'none', messaging: false } });
 const team: TeamDefinition = { schema: 'team/v1', id: 'team', name: 'Team', enabled: true, projectId: 'project', members: ['a', 'b', 'c'], pinnedContext: [], recentMessages: 10, allowedRecipients: [] };
@@ -18,6 +19,16 @@ function artifact(invocationId: string, roundId: string, index: number): Executi
   return { id: `artifact-${index}`, runId: 'run', invocationId, attemptId: `attempt-${index}`, roundId, agentId: 'a', agentRevision: 'r1', provider: 'demo', model: 'sonnet', inputArtifactIds: [], createdAt: '2026-10-28T12:00:00.000Z', markdown: `Result ${index}`, simulated: true };
 }
 describe('explicit v2 workflows', () => {
+  it('captures effort for direct CoWorkers and Council members before later definition edits', () => {
+    const agents = catalogue.agents.map(item => ({ ...item, provider: 'claude' as const, effort: 'high' as const }));
+    const plan = compileWorkflowV2(definition(), subject, { ...catalogue, agents });
+    expect(plan.invocations.length).toBeGreaterThan(3);
+    for (const invocation of plan.invocations) {
+      expect(executionInvocationCheck(JSON.parse(JSON.stringify(invocation)))).toMatchObject({ provider: 'claude', model: 'sonnet', effort: 'high' });
+    }
+    agents[0]!.model = 'claude-opus-4-6';
+    expect(plan.invocations[0]).toMatchObject({ model: 'sonnet', effort: 'high' });
+  });
   it('compiles councils into the shared invocation lane and places checkpoints at action boundaries', () => {
     const plan = compileWorkflowV2(definition(), subject, catalogue);
     expect(plan.invocations).toHaveLength(7); expect(plan.invocations.slice(0, 3).map(item => item.inputRoundIds)).toEqual([[], [], []]);

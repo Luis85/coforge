@@ -28,10 +28,10 @@ export function useWorkflowCouncil() {
     if (!host.council) return 'Live Council workflows are available in desktop Obsidian.';
     if (selection.issue) return selection.issue;
     if (!selection.selected) return 'Choose a Council to review its live execution readiness.';
-    if (selection.members.some(member => member.provider === 'demo')) return 'This Council uses Simulation. Request workflows require live Claude CoWorkers. Try a simulation from The Council or select live CoWorkers before starting this workflow.';
-    if (selection.members.some(member => member.provider === 'herdr')) return 'Herdr does not support isolated Council workflow invocations. Select live Claude CoWorkers.';
-    if (!editor.store.state?.runtime.cliAvailable) return 'Council configuration is ready, but the native Claude runtime is unavailable. Check Project settings → Runtime before running.';
-    return 'Council configuration and the observed Claude runtime are ready. The designated Council desktop still controls execution and pause state.';
+    if (selection.members.some(member => member.provider === 'demo')) return 'This Council uses Simulation. Request workflows require live Claude or Codex CoWorkers. Try a simulation from The Council or select live CoWorkers before starting this workflow.';
+    if (selection.members.some(member => member.provider === 'herdr')) return 'Herdr does not support isolated Council workflow invocations. Select live Claude or Codex CoWorkers.';
+    if (selection.members.some(member => member.provider === 'claude' && !editor.store.state?.runtime.cliAvailable || member.provider === 'codex' && !editor.store.state?.runtime.codexAvailable)) return 'Council configuration is ready, but a selected native runtime is unavailable. Check Project settings → Runtime before running.';
+    return 'Council configuration and the selected native runtimes are ready. The designated Council desktop still controls execution and pause state.';
   });
   return reactive({ step, selection, inputs, error, loading, readiness, refresh,
     contextMode: computed(() => step.value?.contextMode ?? (step.value?.inputs?.length ? 'selected' : 'all')),

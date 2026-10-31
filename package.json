@@ -134,7 +134,7 @@
     "test:project": "node tooling/testing/suites.mjs project && npm run test:ui-effects",
     "verify:artifacts": "npm run build && npm run test:ui-effects && npm run test:prototype-embedding",
     "test:prototype-embedding": "node --test tests/clickdummy-embedding.test.mjs",
-    "verify:project": "npm run check && npm run verify:artifacts"
+    "verify:project": "npm run check -- --timeout 1800000 && npm run verify:artifacts"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,

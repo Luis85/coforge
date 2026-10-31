@@ -8,6 +8,7 @@ import {
 import { stageAgent } from "../../../features/coforge/domain/stage-agents";
 
 export function screeningProviderLabel(provider: ExecutionProvider): string {
+  if (provider === 'codex') return 'Codex screening';
   if (provider === 'mcp') return 'External MCP client screening';
   if (provider === 'demo') return 'Simulated screening';
   return provider === 'herdr' ? 'Herdr · Claude Code screening' : 'Claude Code screening';
@@ -23,7 +24,7 @@ export function stageAgentLabel(
   const agent = stageAgent(settings, stage);
   return agent.provider === "demo"
     ? "Simulation"
-    : `${agent.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${agent.model}`;
+    : `${agent.provider === 'codex' ? 'Codex' : agent.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${agent.model}`;
 }
 export function workflowProviderSummary(settings: AgentSettings, external = false) {
   const hasCouncil = settings.workflow?.steps.some(step => step.kind === 'council') ?? false;
@@ -45,7 +46,7 @@ export function workflowProviderSummary(settings: AgentSettings, external = fals
         ? "mixed"
         : providers.has("herdr")
           ? "herdr"
-          : providers.has("claude")
+          : providers.has('codex') ? 'codex' : providers.has("claude")
             ? "claude"
             : "demo";
   const summary = {
@@ -59,7 +60,7 @@ export function workflowProviderSummary(settings: AgentSettings, external = fals
           ? hasDelegated ? 'AI and delegated tasks' : "Mixed providers"
           : mode === "herdr"
             ? "Herdr"
-            : mode === "claude"
+            : mode === 'codex' ? 'Codex CLI' : mode === "claude"
               ? "Claude Code CLI"
               : "Simulation",
     icon:
@@ -71,14 +72,14 @@ export function workflowProviderSummary(settings: AgentSettings, external = fals
           ? "workflow"
           : mode === "herdr"
             ? "network"
-            : mode === "claude"
+            : mode === 'codex' ? 'bot' : mode === "claude"
               ? "bot"
               : "flask-conical",
     title: settings.workflow
       ? settings.workflow.steps
           .map(
             (step) =>
-              `${step.name}: ${step.kind === 'council' ? 'Council discussion · waits for answers' : step.kind === 'nudge' ? 'CoWorker task · admission only' : step.kind !== "ai" ? "Streamer" : step.provider === "demo" ? "Simulation" : `${step.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${step.model}`}`,
+              `${step.name}: ${step.kind === 'council' ? 'Council discussion · waits for answers' : step.kind === 'nudge' ? 'CoWorker task · admission only' : step.kind !== "ai" ? "Streamer" : step.provider === "demo" ? "Simulation" : `${step.provider === "codex" ? "Codex" : step.provider === "herdr" ? "Herdr · Claude Code" : "Claude Code"} · ${step.model}`}`,
           )
           .join(" · ")
       : STAGES.map(

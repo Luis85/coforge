@@ -57,6 +57,8 @@ const model = useWorkflowEditorForm();
       timed-out Herdr agent can continue externally and needs recovery
       inspection. Herdr interactive spending and turn limits are configured
       externally; the native CLI caps do not enforce them.
+      For Codex, the turn setting caps CoForge tool calls; its CLI does not
+      enforce the Claude USD spending cap. The step timeout still applies.
     </p>
   </details>
 </template>

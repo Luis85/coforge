@@ -1,6 +1,7 @@
 import type { AgentDefinition } from "./council-definitions";
 
 export const AGENT_CONNECTION_PROFILES = [
+  { id: 'local-codex', provider: 'codex', label: 'Configured local Codex CLI' },
   {
     id: "simulation",
     provider: "demo",

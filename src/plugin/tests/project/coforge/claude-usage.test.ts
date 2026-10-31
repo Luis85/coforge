@@ -63,4 +63,7 @@ it("reports provider tokens before invalid structured output or process failure 
   );
   await expect(runClaudeStage(input)).rejects.toThrow("Run cancelled.");
   expect(seen[2]).toEqual(seen[1]);
+  transport.run.mockRejectedValueOnce(new ProcessFailure('claude exited with code 1. Check the CLI installation and authentication.', failed));
+  await expect(runClaudeStage(input)).rejects.toThrow('turn limit');
+  expect(seen[3]).toEqual(seen[1]);
 });

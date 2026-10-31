@@ -1,4 +1,5 @@
 import { assertExecutionRunConsistency } from "./execution-consistency";
+import { reasoningEffortCheck } from './provider-models';
 import { automationContextCheck } from './automation-context';
 import {
   executionAllowanceCheck,
@@ -53,6 +54,7 @@ const artifactCheck = shape(
     agentRevision: id,
     provider,
     model: text({ min: 1, max: 200 }),
+    effort: optional(reasoningEffortCheck),
     inputArtifactIds: ids,
     createdAt: timestamp,
     markdown: text({ min: 1, max: 16000 }),

@@ -15,7 +15,7 @@ export const agentModelCheck = text({
   max: 100,
   pattern: MODEL_PATTERN,
 });
-const providerCheck = oneOf(["demo", "claude", "herdr"] as const);
+const providerCheck = oneOf(["demo", "claude", "herdr", "codex"] as const);
 const agentCheck = shape(
   { provider: optional(providerCheck), model: optional(agentModelCheck), herdrAgent: optional(oneOf(['claude'] as const)) },
   { strict: true },
@@ -60,4 +60,9 @@ export function hasClaudeStages(
   return STAGES.some(
     (stage) => stageAgent(settings, stage).provider === "claude",
   );
+}
+export function hasNativeStages(settings: Pick<Settings, 'provider' | 'model' | 'stageAgents' | 'workflow'>): boolean {
+  return hasClaudeStages(settings) || (settings.workflow
+    ? settings.workflow.steps.some(step => step.kind === 'ai' && step.provider === 'codex')
+    : STAGES.some(stage => stageAgent(settings, stage).provider === 'codex'));
 }

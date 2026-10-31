@@ -33,6 +33,7 @@ export function configuredRuntime(state: InternalState, idea: Idea, step: AiWork
   const project = findProject(state, ideaProjectId(idea));
   if (!external && step.provider === 'demo') return;
   if (!external && step.provider === 'claude' && !state.runtime.cliAvailable) throw new Error('The native Claude runtime is unavailable.');
+  if (!external && step.provider === 'codex' && !state.runtime.codexAvailable) throw new Error('The native Codex runtime is unavailable. Check Runtime settings.');
   if (!external && step.provider === 'herdr' && !state.runtime.herdrWorkflow?.ready) throw new Error(state.runtime.herdrWorkflow?.message || 'The Herdr runtime or recovery journal is not ready.');
   if (step.access !== 'none' && !project.projectPath) throw new Error('Set this project’s repository path before repository access.');
   if (step.access === 'editworktree' && !project.allowImplementation) throw new Error('Enable implementation for this project before worktree editing.');

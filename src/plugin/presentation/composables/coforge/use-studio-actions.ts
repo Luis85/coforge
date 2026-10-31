@@ -176,9 +176,9 @@ export function useStudioActions() {
       attempt(
         () => studio.refreshRuntime(),
         (runtime) =>
-          runtime.cliAvailable
+          (runtime.cliAvailable
             ? "Claude Code CLI is available."
-            : "Claude Code CLI was not found or is too old.",
+            : "Claude Code CLI was not found or is too old.") + (runtime.codexAvailable ? ' Codex CLI is available.' : ' Codex CLI is unavailable or too old.'),
       ),
     setSecret: (name: string, value: string): boolean => {
       const saved = host.setSecret(name, value);

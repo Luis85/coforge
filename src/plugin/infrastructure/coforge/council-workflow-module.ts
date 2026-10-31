@@ -230,15 +230,14 @@ export class CouncilWorkflowModule {
     for (const invocation of plan.invocations) {
       if (!simulation && invocation.provider === "herdr")
         throw new Error(
-          "This provider cannot enforce the required isolated typed invocation. Select native Claude or Simulation.",
+          "This provider cannot enforce the required isolated typed invocation. Select native Claude, Codex or Simulation.",
         );
       if (
         !simulation &&
-        invocation.provider === "claude" &&
-        !this.studio.state().runtime.cliAvailable
+        (invocation.provider === 'claude' && !this.studio.state().runtime.cliAvailable || invocation.provider === 'codex' && !this.studio.state().runtime.codexAvailable)
       )
         throw new Error(
-          "Native Claude is unavailable. Check the runtime configuration.",
+          "The selected native provider is unavailable. Check the runtime configuration.",
         );
     }
     const note = await this.sources.read(normalized);

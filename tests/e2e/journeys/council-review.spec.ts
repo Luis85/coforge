@@ -133,7 +133,9 @@ for (const theme of ["light", "dark"]) {
     });
     await provider.focus();
     await provider.press("End");
-    await expect(provider).toHaveValue("claude");
+    await expect(provider).toHaveValue("codex");
+    await expect(page.getByRole('combobox', { name: 'Model', exact: true })).toHaveValue('gpt-6.1-sol');
+    await expect(page.getByRole('combobox', { name: 'Reasoning effort', exact: true })).toBeEnabled();
     await page
       .getByRole("searchbox", { name: "Search CoWorkers", exact: true })
       .fill("Architect");

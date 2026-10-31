@@ -26,8 +26,9 @@ function assertRuntime(state: InternalState, stage: AgentStage, projectId: strin
     if (stage === 'implement' && !project.allowImplementation) throw new StudioError('Real implementation is disabled for this project.', 409);
     return;
   }
-  if (provider !== 'claude') return;
-  if (!state.runtime.cliAvailable) throw new StudioError('Claude Code CLI is not available. Install it, sign in locally, then check the runtime in CoForge settings.', 409);
+  if (provider !== 'claude' && provider !== 'codex') return;
+  if (provider === 'codex' && !state.runtime.codexAvailable) throw new StudioError('Codex CLI is not available. Install it, sign in locally, then check Runtime settings.', 409);
+  if (provider === 'claude' && !state.runtime.cliAvailable) throw new StudioError('Claude Code CLI is not available. Install it, sign in locally, then check the runtime in CoForge settings.', 409);
   if (!project.projectPath && (stage === 'plan' || stage === 'implement'))
     throw new StudioError('Set this project’s repository path in Project settings before planning or building.', 409);
   if (stage === 'implement' && !project.allowImplementation)
@@ -70,7 +71,7 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
+export interface EngineOptions { outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
 
 /** One worker, a FIFO queue of at most 50 jobs, optional timed automation and explicit cancellation. */
 export class WorkflowEngine {

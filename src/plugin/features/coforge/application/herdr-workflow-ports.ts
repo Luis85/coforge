@@ -2,7 +2,7 @@ import type { HerdrAgent, HerdrPane, HerdrSettings, HerdrWorkspace } from '../do
 import type { AgentStage, Increment } from '../domain/types';
 import type { StageInput, StageResult } from './ports';
 
-export interface HerdrWorkflowProfile { access?: import('../domain/configured-workflow').WorkflowAccess; name: string; kind: 'claude'; model: string; stage: AgentStage; resultPath: string; systemPrompt: string; sessionId?: string }
+export interface HerdrWorkflowProfile { effort?: import('../domain/provider-models').ReasoningEffort; access?: import('../domain/configured-workflow').WorkflowAccess; name: string; kind: 'claude'; model: string; stage: AgentStage; resultPath: string; systemPrompt: string; sessionId?: string }
 export interface HerdrWorkflowTarget extends HerdrAgent { stateChangeSeq?: number; completionSeq?: number }
 export interface HerdrWorkflowGateway {
   createWorkspace(settings: HerdrSettings, cwd: string, label: string, signal?: AbortSignal): Promise<{ workspace: HerdrWorkspace; pane: HerdrPane }>;

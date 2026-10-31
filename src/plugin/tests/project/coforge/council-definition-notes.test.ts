@@ -25,6 +25,13 @@ const agent = () =>
   });
 
 describe("canonical reusable definition notes", () => {
+  it('round-trips explicit model effort with a new definition revision', () => {
+    const legacy = agent();
+    const revised = { ...legacy, provider: 'claude' as const, model: 'claude-opus-4-6', effort: 'max' as const };
+    const written = writeCouncilDefinitionNote('', revised);
+    expect(readCouncilDefinitionNote(written)).toMatchObject(revised);
+    expect(definitionRevision(revised)).not.toBe(definitionRevision(legacy));
+  });
   it("round-trips body instructions and preserves exact unrelated frontmatter and text on edits", () => {
     const original =
       '---\r\ncustom: "Exact quoted value" # retain me\r\nx-organization:\r\n  field:   true\r\n---\r\n# Human introduction\r\n\r\nKeep my annotation.\r\n';

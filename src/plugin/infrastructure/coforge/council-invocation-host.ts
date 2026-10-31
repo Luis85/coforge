@@ -51,6 +51,7 @@ export class CouncilInvocationHost {
         {
           provider: invocation.provider,
           model: invocation.model,
+          effort: invocation.effort,
           instructions: invocation.instructions,
           output: invocation.output,
           maxArtifactCharacters: invocation.maxArtifactCharacters,
@@ -72,7 +73,7 @@ export class CouncilInvocationHost {
             await this.recheck?.(run, invocation);
             await prepare();
           },
-          executable: this.studio.integration().claudeBin,
+          executable: invocation.provider === 'codex' ? this.studio.integration().codexBin ?? 'codex' : this.studio.integration().claudeBin,
           telemetry: (usage, cost) =>
             this.kernel().recordTelemetry(run.id, attempt.id, usage, cost),
         },
