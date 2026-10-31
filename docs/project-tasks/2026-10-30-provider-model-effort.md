@@ -114,6 +114,12 @@ not counted as final passing checks.
   5 passed (54.1s). Contained Obsidian step-agent/Herdr persistence specs:
   2 passed (23.69s). Typecheck and lint over the changed files: exit 0.
 - Full GitHub CI, browser and real-Obsidian jobs are enabled with the e2e label.
+- On e445d47, GitHub's product/build/install gate passed and all 42 real-Obsidian
+  tests passed. Browser CI passed 218/220 cases; the remaining light/dark cases
+  expected End in the provider dropdown to select Claude. Codex is now the last
+  enabled provider. The keyboard test now expects Codex and additionally checks
+  its model and effort controls, retaining the disabled-Herdr assertion. Both
+  corrected cases passed locally (33.6s); the full checks rerun on the follow-up.
 
 ## CF-134 investigation
 

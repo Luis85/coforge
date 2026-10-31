@@ -56,6 +56,11 @@ selector displaying an internal sentinel; it now retains the actual saved model.
 Focused validation: 3 unit tests, 5 browser journeys and 2 real-Obsidian specs
 passed; changed-file typecheck/lint passed. Full GitHub checks are enabled via e2e.
 
+The first complete browser run passed 218/220 cases. Its two remaining keyboard
+checks still expected Claude as the last enabled provider. They now expect Codex,
+also verify its model/effort controls, and retain the disabled-Herdr assertion.
+Both cases pass locally (33.6s); the full checks rerun on the follow-up commit.
+
 UI evidence: reports/ui-gallery/ and reports/obsidian/cases/.
 Host reload evidence: .obsidian-sandbox/logs/.
 Generated evidence is excluded from Git. Existing live public-export changes
