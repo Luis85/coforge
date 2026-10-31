@@ -117,6 +117,8 @@
   min-height: 48px;
   height: auto;
   padding: 8px;
+  border: 0;
+  box-shadow: none;
   text-align: start;
   white-space: normal;
   border-radius: var(--radius-s);
@@ -136,12 +138,14 @@
   justify-self: stretch;
 }
 .cf-workflow-bucket-steps .cf-workflow-step-select strong {
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 .cf-workflow-bucket-steps .cf-workflow-step-select small {
+  font-size: 11px;
   margin: 0;
-  line-height: 1.45;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 .cf-workflow-bucket-steps li.is-selected .cf-workflow-step-number {

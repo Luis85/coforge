@@ -25,3 +25,5 @@ The native alignment test failed before the fix. Native review also caught a wra
 Ignored evidence: reports/workflow-buckets/outline-*, reports/workflow-outline/, reports/ui-gallery/, reports/obsidian/ and .obsidian-sandbox/logs/. The e2e label qualifies the full browser and native suites before merge.
 
 No billable model call, personal vault or live external service mutation. Local Node/npm are 24.20.0/11.21.1; CI uses the repository pins. The durable-build session uses its independent worktree/sandboxes; the shared plugin install stays on the prior merged version until this polish qualifies.
+
+Initial Linux native qualification passed 52/53 cases and caught a wrapped output label exceeding the existing row-density limit. Scoped row typography/border resets now retain that limit across font metrics; the 68px bound and all alignment/overflow/Axe assertions are unchanged. The fresh local native matrix passed (17.74s). Final-head CI requalifies the complete suites.

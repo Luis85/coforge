@@ -47,12 +47,12 @@ describe('Bucket and step outline layout in native Obsidian', () => {
         const row = button.getBoundingClientRect();
         const number = button.querySelector('.cf-workflow-step-number')!.getBoundingClientRect();
         const name = button.querySelector('strong')!.getBoundingClientRect();
-        return { numberInset: number.left - row.left, nameInset: name.left - row.left,
+        return { name: button.querySelector('strong')!.textContent, numberInset: number.left - row.left, nameInset: name.left - row.left,
           height: row.height, overflows: button.scrollWidth > button.clientWidth + 1 };
       }));
       expect(geometry.every(row => row.numberInset >= 4 && row.numberInset <= 14)).toBe(true);
       expect(geometry.every(row => row.nameInset <= 46 && row.nameInset > row.numberInset)).toBe(true);
-      expect(geometry.every(row => row.height <= 68 && !row.overflows)).toBe(true);
+      expect(geometry.every(row => row.height <= 68 && !row.overflows), JSON.stringify({ width, theme, geometry })).toBe(true);
       expect(await outline.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
       // Electron's CDP host cannot create Axe's auxiliary page; retain the same rules in-page.
       expect((await new AxeBuilder({ page: obsidian.page }).setLegacyMode(true).include('.cf-workflow-step-list')

@@ -59,6 +59,11 @@ behavior. Refine this component within the native Obsidian visual system.
 - Evidence: ignored `reports/workflow-buckets/outline-*`, `reports/ui-gallery/`,
   `reports/obsidian/` and `.obsidian-sandbox/logs/`. The durable-build session is
   isolated and the shared live install stays unchanged until this polish qualifies.
+- Initial Linux native CI: 52/53 passed; the new density assertion caught an
+  output label wrapping under Linux font metrics. Row typography and border resets
+  are now explicit in the scoped native grid. The 68px density limit, alignment,
+  overflow and accessibility assertions remain unchanged. Fresh local native
+  matrix: **1 passed (17.74s)**; final-head Linux qualification follows on the PR.
 
 ## Untested scope
 
