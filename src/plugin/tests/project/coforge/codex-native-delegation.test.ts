@@ -15,7 +15,7 @@ it('enables only provider-native v2 delegation with finite concurrency and inher
   const args = buildCodexArgs({ ...invocation, nativeTools });
   expect(args).toContain('features.multi_agent_v2={ "enabled" = true, "max_concurrent_threads_per_session" = 3, "expose_spawn_agent_model_overrides" = false }');
   expect(args).toContain('features.multi_agent=false');
-  expect(args).toContain('cli_auth_credentials_store="file"'); expect(args).toContain('features.secret_auth_storage=false');
+  expect(args.join(' ')).not.toContain('cli_auth_credentials_store'); expect(args.join(' ')).not.toContain('secret_auth_storage');
   for (const disabled of ['shell_tool', 'unified_exec', 'browser_use', 'apps', 'plugins', 'hooks', 'code_mode', 'code_mode_host']) expect(args).toContain(`features.${disabled}=false`);
   expect(args).toContain('--ignore-user-config'); expect(args).toContain('--ignore-rules'); expect(args).not.toContain('--ephemeral'); expect(args).toContain('read-only');
   expect(args).not.toContain('--dangerously-bypass-approvals-and-sandbox');

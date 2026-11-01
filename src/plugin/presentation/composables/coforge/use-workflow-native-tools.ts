@@ -2,6 +2,7 @@ import { computed, reactive } from 'vue';
 import { useWorkflowEditorForm } from './use-workflow-editor';
 import { useCoforge } from '../../context/coforge-context';
 import type { NativeWorkflowTools } from '../../../features/coforge/domain/native-workflow-tools';
+import { CODEX_PROVIDER_CONTEXT_HELP } from './codex-provider-context';
 
 export interface NativeToolsSubject { nativeTools?: NativeWorkflowTools; provider: string; coworkerId?: string; access?: string }
 export function useWorkflowNativeTools(props: { subject?: NativeToolsSubject; prefix?: string } = {}) {
@@ -12,6 +13,7 @@ export function useWorkflowNativeTools(props: { subject?: NativeToolsSubject; pr
   function clean(): void { const current = step.value; if (current?.nativeTools && !current.nativeTools.delegation && !current.nativeTools.verification) delete current.nativeTools; }
   return reactive({
     step, host,
+    providerContextHelp: computed(() => step.value?.provider === 'codex' ? CODEX_PROVIDER_CONTEXT_HELP : ''),
     access: computed(() => step.value?.access ?? 'editworktree'),
     label: (text: string) => props.prefix ? `${props.prefix} ${text}` : text,
     supported: computed(() => !!step.value?.coworkerId || ['claude', 'codex'].includes(step.value?.provider ?? '')),

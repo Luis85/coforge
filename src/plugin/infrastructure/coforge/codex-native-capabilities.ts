@@ -27,24 +27,35 @@ export async function assertCodexNativeCapabilities(executable: string, director
   }
 }
 
-/** Refresh advertised model metadata through the isolated native runtime. This command performs no model inference. */
+/** Read configured catalogue metadata with canonical SDK authentication and closed provider/tool settings. No inference. */
 export async function nativeCodexCatalogue(executable: string, directory: string, model: string, nativeTools: NativeWorkflowTools,
-  environment: NodeJS.ProcessEnv, signal?: AbortSignal): Promise<{ models: Record<string, unknown>[] }> {
+  environment: NodeJS.ProcessEnv, args: readonly string[], signal?: AbortSignal): Promise<{ models: Record<string, unknown>[] }> {
   const env = { ...environment }; delete env.COFORGE_CODEX_MCP_TOKEN;
+  const overrides: string[] = [];
+  for (let index = 0; index < args.length; index++) {
+    const value = args[index + 1];
+    if (args[index] === '--config' && value) {
+      index++;
+      if (!/^(?:model_catalog_json|mcp_servers|features.multi_agent_v2)=/u.test(value)) overrides.push('--config', value);
+    }
+  }
+  overrides.push('--config', 'mcp_servers={}', '--config', 'features.multi_agent_v2=false');
+  // Unlike exec, debug models cannot ignore personal config. Pin discovery endpoints only;
+  // exec must retain the SDK's auth-dependent ChatGPT/API endpoint selection.
+  overrides.push('--config', 'openai_base_url="https://api.openai.com/v1"', '--config', 'chatgpt_base_url="https://chatgpt.com/backend-api/"');
   let models: Record<string, unknown>[];
   try {
-    const raw = await captureProcess(executable, ['debug', 'models', '--config', 'cli_auth_credentials_store="file"', '--config', 'features.secret_auth_storage=false',
-      '--config', 'features.apps=false', '--config', 'features.hooks=false', '--config', 'features.plugins=false'], { cwd: directory, env, signal, timeoutMs: 15000, maxBytes: 2 * 1024 * 1024 });
+    const raw = await captureProcess(executable, ['debug', 'models', ...overrides], { cwd: directory, env, signal, timeoutMs: 15000, maxBytes: 2 * 1024 * 1024 });
     const parsed: unknown = JSON.parse(raw);
     const values = Array.isArray(parsed) ? parsed : record(parsed).models;
     if (!Array.isArray(values)) throw new Error('Invalid catalogue');
     models = values.map(value => record(value));
   } catch {
     signal?.throwIfAborted();
-    throw new Error('Codex could not refresh native model availability in its isolated profile. Check file-based sign-in or an explicit Codex API-key environment, then retry. No model inference was started.');
+    throw new Error('Codex could not refresh native model availability. Check its normal CLI sign-in and configuration, then retry. No model inference was started.');
   }
   const selected = models.find(item => item.slug === model);
-  if (!selected) throw new Error('The selected model is not advertised by this isolated Codex runtime. Explicitly choose an available native model; CoForge never substitutes another model. No model inference was started.');
+  if (!selected) throw new Error('The selected model is not advertised by this configured native Codex runtime. Explicitly choose an available native model; CoForge never substitutes another model. No model inference was started.');
   if (nativeTools.delegation && selected.multi_agent_version !== 'v2') throw new Error('The selected native Codex model does not advertise v2 delegation. Explicitly choose a supported model. No model inference was started.');
   return { models };
 }

@@ -24,7 +24,7 @@ export function restrictedCodexModel(model: string, cache: unknown, nativeTools?
 }
 export async function writeCodexModelProfile(directory: string, model: string, nativeTools?: NativeWorkflowTools, nativeCatalogue?: unknown): Promise<string> {
   let cache: unknown = nativeCatalogue;
-  if (nativeTools && cache === undefined) throw new Error('Native Codex requires model metadata refreshed through its isolated runtime before provider start.');
+  if (nativeTools && cache === undefined) throw new Error('Native Codex requires model metadata refreshed through its configured native runtime before provider start.');
   if (!nativeTools) {
     try { cache = JSON.parse(await readFile(join(process.env.CODEX_HOME ?? join(homedir(), '.codex'), 'models_cache.json'), 'utf8')); }
     catch { throw new Error('Codex model metadata is unavailable. Open Codex once to refresh its model catalogue.'); }

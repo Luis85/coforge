@@ -33,7 +33,7 @@ describe('Native workflow tools authoring in the contained host', () => {
     await openWorkflowSettings(view);
     await view.locator('[data-step-id="implement"] .cf-workflow-step-select').click();
     await openWorkflowDisclosure(view, 'Agent and project access');
-    await view.getByLabel('AI provider', { exact: true }).selectOption('claude');
+    await view.getByLabel('AI provider', { exact: true }).selectOption('codex');
     await view.getByLabel('Allow provider-native assistants', { exact: true }).check();
     await view.getByLabel('Maximum concurrent native assistants', { exact: true }).fill('3');
     await view.getByLabel('Allow verification: Product tests', { exact: true }).check();
@@ -44,9 +44,12 @@ describe('Native workflow tools authoring in the contained host', () => {
     await openWorkflowSettings(view);
     await view.locator('[data-step-id="implement"] .cf-workflow-step-select').click();
     await browserExpect(view.getByLabel('Allow provider-native assistants', { exact: true })).toBeChecked();
+    await browserExpect(view.getByLabel('AI model', { exact: true })).toHaveValue('gpt-6.1-sol');
     await browserExpect(view.getByLabel('Maximum concurrent native assistants', { exact: true })).toHaveValue('3');
     await browserExpect(view.getByLabel('Allow verification: Product tests', { exact: true })).toBeChecked();
     const tools = view.getByRole('region', { name: 'Native workflow tools', exact: true });
+    await browserExpect(tools).toContainText('global AGENTS.md and skills');
+    await browserExpect(tools).toContainText('do not grant tools');
     for (const width of [1360, 760]) for (const theme of ['light', 'dark']) {
       await obsidian.page.setViewportSize({ width, height: 900 });
       await obsidian.eval((_context, selected) => {

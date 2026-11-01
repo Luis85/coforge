@@ -21,6 +21,7 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
       Explicit background retry approvals are recorded separately below. Current
       host permissions and review gates still apply.
     </p>
+    <p v-if="model.providerContextHelp" class="cf-settings-help">{{ model.providerContextHelp }}</p>
     <WorkflowBackgroundRetryHistory :run="run" />
     <section v-if="model.nativePolicies.length" aria-label="Captured native tool policies">
       <h3>Captured native tools</h3>

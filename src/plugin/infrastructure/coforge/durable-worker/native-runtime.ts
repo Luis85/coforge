@@ -4,7 +4,7 @@ import { sameNativeProcessIdentity } from './process-identity';
 import type { WorkerStore, WorkerRecord } from './store';
 import { purgeCodexPrivateRuntime } from '../codex-private-runtime';
 
-/** A private auth/session receipt exists before opaque native credentials are copied. */
+/** An owned private state receipt exists before invocation SQLite and logs are prepared. */
 export function workerNativeRuntimeHooks(store: WorkerStore, ref: DurableBuildRef) {
   const identity = (record: { runId: string; attemptId: string; projectId: string }) => {
     const request = store.get(ref).request;

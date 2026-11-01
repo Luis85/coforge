@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it, vi } from 'vitest';
@@ -82,7 +82,7 @@ process.stdout.write(JSON.stringify({type:'item.completed',agent:{agent_name:'/r
   } finally { await rm(root, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 }); probes.capture.mockReset(); vi.unstubAllEnvs(); }
 }, 30000);
 
-it('retains the private auth copy and quarantines the lease when original provider-tree termination is unknown', async () => {
+it('retains private state and canonical authentication when original provider-tree termination is unknown', async () => {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'coforge-native-unknown-proof-')));
   const actual = await vi.importActual<typeof import('../../../infrastructure/coforge/process')>('../../../infrastructure/coforge/process');
   const home = join(root, 'auth-source'); await mkdir(home); await writeFile(join(home, 'auth.json'), 'OPAQUE_FAKE_AUTH');
@@ -102,7 +102,9 @@ it('retains the private auth copy and quarantines the lease when original provid
   try {
     await expect(runCodexStage(input, { start: async () => {}, acquire: async () => ({ cwd: root, readOnly: true, validate: async () => {}, capture: async () => undefined, release }), acknowledge: async () => {}, assertReviewable: async () => {} }, capture)).rejects.toBeInstanceOf(actual.ProcessOwnershipUnknown);
     expect(release).toHaveBeenCalledWith(true);
-    expect(await readFile(join(retainedDirectory!, 'codex-home', 'auth.json'), 'utf8')).toBe('OPAQUE_FAKE_AUTH');
+    expect(await readdir(join(retainedDirectory!, 'codex-home'))).toEqual(['logs', 'sqlite']);
+    await expect(readFile(join(retainedDirectory!, 'codex-home', 'auth.json'))).rejects.toMatchObject({ code: 'ENOENT' });
+    expect(await readFile(join(home, 'auth.json'), 'utf8')).toBe('OPAQUE_FAKE_AUTH');
   } finally {
     // This test's fake provider never started; explicit fixture cleanup is safe.
     if (retainedDirectory) await rm(retainedDirectory, { recursive: true, force: true });

@@ -7,6 +7,7 @@ const tools = useWorkflowNativeTools(props);
   <section v-if="tools.step" class="cf-idea-section" :aria-label="tools.label('Native workflow tools')" data-workflow-field="nativeTools">
     <h3>Native tools</h3>
     <p class="cf-settings-help">Claude Code and Codex can coordinate their own native assistants within this invocation. They share this attempt's scope, cancellation and finite limits. CoForge does not dispatch separate CoWorker runs.</p>
+    <p v-if="tools.providerContextHelp" class="cf-settings-help">{{ tools.providerContextHelp }}</p>
     <p v-if="!tools.supported" class="cf-settings-help">Select native Claude Code, Codex or a supported saved CoWorker to configure these tools. Simulation, Herdr and external MCP clients retain their separate capabilities.</p>
     <label class="cf-workflow-check"><input v-model="tools.delegation" type="checkbox" :disabled="!tools.supported && !tools.delegation" :aria-label="tools.label('Allow provider-native assistants')" />Allow provider-native assistants</label>
     <label v-if="tools.delegation" class="cf-field"><span>Maximum concurrent assistants</span><input v-model.number="tools.concurrency" type="number" min="1" max="8" step="1" :aria-label="tools.label('Maximum concurrent native assistants')" /><small>Native children inherit the scoped tool broker. They cannot widen repository access or bypass final review. Background Codex delegation also requires an elapsed deadline.</small></label>

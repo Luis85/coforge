@@ -118,6 +118,11 @@ it('attributes Codex history to its captured model and effort after current sett
     expect(summary.text()).toContain('codex');
     expect(summary.text()).toContain('gpt-6.1-sol');
     expect(summary.text()).toContain('high effort');
+    const capture = f.wrapper.get('[aria-label="Chat history"]');
+    expect(capture.text()).toContain('global AGENTS.md and skills');
+    expect(capture.text()).toContain('not the complete SDK prompt');
+    expect(capture.findAll('h4').map(heading => heading.text())).toContain('CoForge task prompt');
+    expect(capture.findAll('summary').map(summary => summary.text())).toContain('CoForge instructions');
     expect(f.wrapper.get('[aria-label="Chat history"]').text()).toContain('Recognizable credentials in Codex response captures are redacted.');
     expect(f.wrapper.get('[data-job-id="codex"]').findAll('.cf-idea-transcript')[1]!.text()).toBe(conversation().response.text);
     expect(f.wrapper.find('img').exists()).toBe(false);

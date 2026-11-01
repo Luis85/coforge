@@ -1,7 +1,7 @@
 import { nativeWorkflowPrivateRuntimeCheck, nativeWorkflowProcessRecordCheck, type NativeWorkflowPrivateRuntime, type NativeWorkflowProcessRecord } from '../domain/native-workflow-process';
 import type { StudioStore } from './studio-store';
 
-/** Retain the cleanup capability before any opaque native credential copy is created. */
+/** Retain the cleanup capability before native runtime state preparation. */
 export async function recordWorkflowNativeRuntime(store: StudioStore, jobId: string, input: NativeWorkflowPrivateRuntime | undefined): Promise<void> {
   const runtime = input ? nativeWorkflowPrivateRuntimeCheck(input) : undefined;
   await store.transaction(state => {

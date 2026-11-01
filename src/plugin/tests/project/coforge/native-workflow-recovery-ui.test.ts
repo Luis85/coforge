@@ -47,7 +47,10 @@ it('shows orphaned private preparation without inventing a provider PID or askin
   const check = vi.spyOn(f.studio, 'checkNativeWorkflowRecovery').mockImplementation(async () => { await f.studio.store.transaction(state => { delete state.jobs[0]!.nativeRuntime; }); });
   const wrapper = mount(NativeWorkflowRecovery, { props: { jobId: 'prepared-only' }, global: { plugins: [f.pinia, f.provider] } });
   try {
-    expect(wrapper.text()).toContain('Private preparation was interrupted before a provider process was recorded');
+    expect(wrapper.text()).toContain('Native runtime preparation was interrupted before a provider process was recorded');
+    expect(wrapper.text()).toContain('invocation state');
+    expect(wrapper.text()).not.toContain('OAuth');
+    expect(wrapper.text()).not.toContain('/private/native');
     expect(wrapper.text()).not.toContain('captured root PID'); expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false);
     await wrapper.get('button').trigger('click'); await flushPromises();
     expect(check).toHaveBeenCalledWith('prepared-only'); expect(wrapper.find('[aria-label="Original native execution recovery"]').exists()).toBe(false);

@@ -17,8 +17,9 @@ defineProps<{ job: IdeaRunHistory }>();
     <p v-else-if="job.external" class="cf-idea-help">The external app's conversation is unavailable. This shows the supplied task context and submitted result.</p>
     <template v-else-if="job.conversation">
       <p class="cf-idea-help">Captured before dispatch; capture alone does not confirm delivery.</p>
-      <p class="cf-idea-help">Includes the initial prompt and recorded output. Intermediate tool turns are not retained.</p>
+      <p class="cf-idea-help">{{ job.captureScopeHelp }}</p>
     </template>
+    <p v-if="job.providerContextHelp" class="cf-idea-help">{{ job.providerContextHelp }}</p>
     <template v-if="job.conversation">
       <section class="cf-idea-message">
         <h4>{{ job.promptLabel }}</h4>
@@ -38,7 +39,7 @@ defineProps<{ job: IdeaRunHistory }>();
         <p v-else class="cf-idea-help">{{ job.missingResponse }}</p>
       </section>
       <details class="cf-idea-evidence">
-        <summary>System instructions</summary>
+        <summary>{{ job.instructionsLabel }}</summary>
         <pre class="cf-idea-transcript">{{ job.conversation.instructions.text }}</pre>
         <p v-if="job.conversation.instructions.truncated" class="cf-idea-help cf-idea-truncation">Instruction capture truncated; only the retained beginning is shown.</p>
       </details>

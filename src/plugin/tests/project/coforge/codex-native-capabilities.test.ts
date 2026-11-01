@@ -27,7 +27,7 @@ async function fixture(problem?: 'old' | 'feature' | 'flags' | 'model' | 'contex
     if (args[0] === 'debug') return JSON.stringify([{ role: 'developer', content: `There are ${problem === 'context' ? 2 : 3} available concurrency slots, meaning that up to ${problem === 'context' ? 2 : 3} agents can be active at once, including you.` }]);
     return [{ type: 'thread.started', thread_id: 'primary' }, { type: 'item.completed', item: { type: 'agent_message', text: '{"summary":"Native root"}' } }, { type: 'turn.completed', usage: { input_tokens: 10, cached_input_tokens: 0, output_tokens: 5 } }].map(event => JSON.stringify(event)).join('\n');
   });
-  return { directory, calls, request: { directory, executable: 'synthetic-codex', model: 'gpt-6.1-sol', schema: { type: 'object', properties: { summary: { type: 'string' } }, required: ['summary'] },
+  return { directory, source, calls, request: { directory, executable: 'synthetic-codex', model: 'gpt-6.1-sol', schema: { type: 'object', properties: { summary: { type: 'string' } }, required: ['summary'] },
     instructions: 'Implement', prompt: 'Request', timeoutMs: 10000, nativeTools: { delegation: { maxConcurrent: 2 } }, privateRuntime } };
 }
 
@@ -43,11 +43,29 @@ it('validates installed native flags and bounded v2 feature configuration locall
   }
   expect(f.calls[2]!.args.join(' ')).toContain('max_concurrent_threads_per_session');
   expect(f.calls[3]!.args.slice(0, 2)).toEqual(['debug', 'models']);
-  expect(f.calls[3]!.options.env?.CODEX_HOME).toBe(join(f.directory, 'codex-home'));
+  expect(f.calls[3]!.options.env?.CODEX_HOME).toBe(f.source);
   expect(f.calls[3]!.options.env?.COFORGE_CODEX_MCP_TOKEN).toBeUndefined();
+  const discovery = f.calls[3]!.args.join(' ');
+  expect(discovery).toContain('model_provider="openai"');
+  expect(discovery).toContain('openai_base_url="https://api.openai.com/v1"');
+  expect(discovery).toContain('chatgpt_base_url="https://chatgpt.com/backend-api/"');
+  expect(discovery).toContain('mcp_servers={}');
+  expect(discovery).toContain('features.hooks=false');
+  expect(discovery).toContain('features.plugins=false');
+  expect(discovery).not.toContain('cli_auth_credentials_store');
+  expect(discovery).not.toContain('secret_auth_storage');
   expect(f.calls[4]!.args.slice(0, 2)).toEqual(['debug', 'prompt-input']);
   const invocation = f.calls[5]!;
-  expect(invocation.options.env?.CODEX_HOME).toBe(join(f.directory, 'codex-home'));
+  expect(invocation.options.env?.CODEX_HOME).toBe(f.source);
+  expect(invocation.args.join(' ')).toContain('sqlite_home=');
+  expect(invocation.args.join(' ')).toContain('/codex-home/sqlite');
+  expect(invocation.args.join(' ')).toContain('log_dir=');
+  expect(invocation.args.join(' ')).toContain('/codex-home/logs');
+  expect(invocation.args).toContain('history.persistence="none"');
+  expect(invocation.args.join(' ')).not.toContain('cli_auth_credentials_store');
+  // Exec ignores personal settings and must let the SDK choose its native ChatGPT/API endpoint from authentication.
+  expect(invocation.args.join(' ')).not.toContain('openai_base_url=');
+  expect(invocation.args.join(' ')).not.toContain('chatgpt_base_url=');
   expect(invocation.options.ownedTree).toBe(true);
   expect(invocation.args).toContain('--ignore-user-config');
   expect(invocation.options.input).toContain('provider-native subagents');
@@ -63,7 +81,7 @@ it('rejects native context that does not reserve exactly one coordinator slot be
   expect(f.calls.filter(call => call.args[0] === 'exec' && !call.args.includes('--help'))).toHaveLength(0);
 });
 
-it('rejects a cached model not advertised by the isolated native catalogue before any inference', async () => {
+it('rejects a cached model not advertised by the configured native catalogue before any inference', async () => {
   const f = await fixture('model');
   await expect(runCodexTransport(f.request)).rejects.toThrow('not advertised');
   expect(fake.model).not.toHaveBeenCalled();

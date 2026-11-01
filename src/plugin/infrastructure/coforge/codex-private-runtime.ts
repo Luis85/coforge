@@ -8,7 +8,7 @@ import { nativeWorkflowPrivateRuntimeCheck, type NativeWorkflowPrivateRuntime } 
 
 const MARKER = 'native-runtime-owner.json';
 const markerCheck = shape({ version: oneOf([1]), runtime: nativeWorkflowPrivateRuntimeCheck }, { strict: true });
-const ownershipError = () => new Error('Private Codex runtime ownership could not be verified. Its credentials remain quarantined; check the original runtime and retry cleanup.');
+const ownershipError = () => new Error('Private Codex runtime ownership could not be verified. Its state remains quarantined; check the original runtime and retry cleanup.');
 const absent = (error: unknown) => error instanceof Error && 'code' in error && error.code === 'ENOENT';
 
 async function canonicalDirectory(directory: string): Promise<string | undefined> {

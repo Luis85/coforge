@@ -79,7 +79,7 @@ export async function recoverForegroundVerification(store: StudioStore, recover 
         if (!prepared && job.nativeProcess?.phase !== 'terminated' && !job.nativeProcess?.operatorAcknowledgedAt) throw new Error('Original provider cessation must be checked before private runtime cleanup.');
         if (purged) { if (prepared) delete job.nativeRuntime; else if (job.nativeProcess) delete job.nativeProcess.privateRuntime; }
         else {
-          job.error = 'Private native credentials and sessions remain quarantined. Check original execution and retry verified cleanup before starting another attempt.';
+          job.error = 'Private native runtime state remains quarantined. Check original execution and retry verified cleanup before starting another attempt.';
           state.workflowStopHolds ??= [];
           if (!state.workflowStopHolds.includes(job.ideaId)) state.workflowStopHolds.push(job.ideaId);
         }

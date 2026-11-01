@@ -19,8 +19,8 @@ export function useNativeWorkflowRecovery(props: { jobId: string }) {
   const error = ref('');
   const review = computed(() => {
     if (!store.state) return { identity: '', reason: 'The studio is unavailable.' };
-    if (job.value?.nativeRuntime && !job.value.nativeProcess) return { identity: '', reason: 'Private preparation remains; no provider process was recorded. Check original execution to clean the retained private runtime.' };
-    if (job.value?.nativeProcess?.phase === 'terminated' && job.value.nativeProcess.privateRuntime) return { identity: '', reason: 'The provider is stopped. Check original execution to finish private runtime cleanup.' };
+    if (job.value?.nativeRuntime && !job.value.nativeProcess) return { identity: '', reason: 'Native runtime preparation remains; no provider process was recorded. Check original execution to clean the retained invocation state.' };
+    if (job.value?.nativeProcess?.phase === 'terminated' && job.value.nativeProcess.privateRuntime) return { identity: '', reason: 'The provider is stopped. Check original execution to finish invocation state cleanup.' };
     try { return { identity: nativeWorkflowAcknowledgementReview(store.state, props.jobId), reason: '' }; }
     catch (error) { return { identity: '', reason: error instanceof Error ? error.message : 'Check original execution recovery.' }; }
   });

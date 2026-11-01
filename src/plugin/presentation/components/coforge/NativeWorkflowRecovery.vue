@@ -10,7 +10,7 @@ const recovery = useNativeWorkflowRecovery(props);
     <p v-if="recovery.acknowledged" class="cf-idea-help">The operator acknowledged that the original provider and its native assistants stopped. This is a recorded human statement, not OS termination proof. Stop holds, workspace review and explicit retry still apply.</p>
     <p v-else-if="recovery.settled" class="cf-idea-help">Original owned execution is confirmed stopped. No provider or verification command was replayed. Existing Stop and review gates remain.</p>
     <template v-else>
-      <p v-if="recovery.job.nativeRuntime && !recovery.job.nativeProcess" class="cf-idea-help">Private preparation was interrupted before a provider process was recorded. Recovery cleans the attributable private runtime; it never starts a provider.</p>
+      <p v-if="recovery.job.nativeRuntime && !recovery.job.nativeProcess" class="cf-idea-help">Native runtime preparation was interrupted before a provider process was recorded. Recovery cleans the attributable invocation state; it never starts a provider.</p>
       <p v-else class="cf-idea-help">Check the captured provider process and original Docker engine. Recovery stops owned original processes and containers; it never starts a provider or replays a command. Restore the original Docker runtime if it is unavailable.</p>
       <button type="button" class="cf-btn cf-btn-secondary" :disabled="recovery.busy" @click="recovery.check()">{{ recovery.busy ? 'Checking original execution…' : 'Check original execution' }}</button>
       <p v-if="recovery.review.reason" class="cf-idea-help">{{ recovery.review.reason }}</p>

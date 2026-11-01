@@ -5,7 +5,7 @@ import { nativeWorkflowToolsCheck, type NativeWorkflowTools } from '../domain/na
 import { codexReconnectNotice, rootCodexEvents } from './codex-events';
 
 const DISABLED = ['shell_tool', 'unified_exec', 'shell_snapshot', 'apps', 'plugins', 'hooks', 'memories', 'multi_agent', 'multi_agent_v2', 'browser_use', 'browser_use_external', 'browser_use_full_cdp_access', 'computer_use', 'image_generation', 'in_app_browser', 'code_mode', 'code_mode_host', 'workspace_dependencies', 'goals', 'skill_search', 'skill_mcp_dependency_install', 'tool_suggest'];
-export interface CodexInvocation { model: string; effort?: ReasoningEffort; schemaPath: string; modelProfilePath: string; mcpUrl?: string; mcpToolTimeoutSeconds?: number; nativeTools?: NativeWorkflowTools }
+export interface CodexInvocation { model: string; effort?: ReasoningEffort; schemaPath: string; modelProfilePath: string; mcpUrl?: string; mcpToolTimeoutSeconds?: number; nativeTools?: NativeWorkflowTools; nativeState?: { sqliteHome: string; logDir: string } }
 /** Native execution remains read-only in a private directory. Project effects use host-scoped MCP. */
 export function buildCodexArgs(input: CodexInvocation): string[] {
   validateModelEffort({ provider: 'codex', model: input.model, effort: input.effort });
@@ -15,14 +15,18 @@ export function buildCodexArgs(input: CodexInvocation): string[] {
   for (const feature of DISABLED) config[`features.${feature}`] = false;
   const delegation = input.nativeTools ? nativeWorkflowToolsCheck(input.nativeTools).delegation : undefined;
   if (input.nativeTools) {
-    config.cli_auth_credentials_store = 'file';
-    config['features.secret_auth_storage'] = false;
+    config.model_provider = 'openai'; config.model_providers = {};
+    config['history.persistence'] = 'none';
+    if (input.nativeState) {
+      config.sqlite_home = input.nativeState.sqliteHome.replaceAll('\\', '/');
+      config.log_dir = input.nativeState.logDir.replaceAll('\\', '/');
+    }
   }
   // Native V2 counts the coordinator in its session slots; the host policy counts assistants only.
   if (delegation) config['features.multi_agent_v2'] = { enabled: true, max_concurrent_threads_per_session: delegation.maxConcurrent + 1, expose_spawn_agent_model_overrides: false };
   if (input.effort) config.model_reasoning_effort = input.effort;
   // TOML inline tables are constructed below; strings use TOML-compatible JSON quoting.
-  // V2 native forks require a registered root rollout. It persists only in the invocation's private home.
+  // V2 requires a registered root rollout. The SDK retains rollouts in its canonical home; its thread index is private.
   return ['exec', '--strict-config', '--ignore-user-config', '--ignore-rules', ...(!delegation ? ['--ephemeral'] : []), '--skip-git-repo-check', '--sandbox', 'read-only', '--json', '--color', 'never', '--model', input.model, '--output-schema', input.schemaPath,
     ...Object.entries(config).flatMap(([key, value]) => ['--config', `${key}=${toml(value)}`]), '-'];
 }

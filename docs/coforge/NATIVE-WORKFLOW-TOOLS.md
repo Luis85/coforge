@@ -15,13 +15,19 @@ The Improve & polish configuration offers the same choices for new passes.
 
 Native tools require a supported Claude Code or Codex installation and the
 selected account's model access. Unsupported providers fail before dispatch;
-CoForge never silently substitutes a provider or model. Custom saved instructions
+CoForge never silently substitutes a provider or model. Codex discovery reports
+the configured runtime's catalogue, which can include a personal catalogue
+override; it is not proof of account entitlement. The provider decides whether
+the exact selected model is accessible. Custom saved instructions
 are preserved: revise instructions that prohibit delegation or checks when you
 intend to enable those activities.
 
 Parent and assistants use the same scoped CoForge broker, exact-content write
-checks and protected-file rules. Native host shell, unrelated MCP servers,
-personal customizations and unrestricted file/image/browser tools are not granted.
+checks and protected-file rules. Native host shell, unrelated MCP servers and
+unrestricted file/image/browser tools are not granted. Codex retains the existing
+native CLI sign-in and its SDK-managed global AGENTS/skills context. Those
+instructions are context, not permission to expand the captured tools. Runtime
+hooks, additional MCP servers and custom agent configuration stay disabled.
 The provider's working directory contains private transport data, not project
 files. File-tool arguments are repository-relative paths with forward slashes.
 
@@ -98,14 +104,21 @@ a command make earlier results historical. Read-only post-Build checks remain
 attributed to their producing review attempt. Polishing Apply retains producer
 evidence as historical until the new worktree is verified.
 
+CoForge records the instructions and task text it supplies. The native SDK may
+add its own global instructions, skills and built-in context; the record does not
+claim to capture every provider-generated prompt augmentation.
+
 Original provider/container ownership is private. Stop and recovery act only on
 matching original identities. Lost outcomes never authorize automatic replay.
 Use **Check original execution** when recovery is required. An explicit operator
 acknowledgement of an inspected stopped provider is distinct from OS proof;
-containers must first have verified termination. Private Codex authentication and
-session copies are removed after known completion or attributable recovery.
-Keyring-only authentication cannot silently fall back to an unrestricted global
-home when isolated authentication is unavailable.
+containers must first have verified termination. Private Codex SQLite, log and
+model-profile state is removed after known completion or attributable recovery.
+CoForge never copies, synchronizes or deletes the native credential bundle. The
+SDK refreshes its canonical credentials normally. Native rollout files remain
+in provider-owned storage, outside CoForge cleanup. The SDK may index existing
+rollouts into invocation SQLite; the native ownership boundary prevents access
+to another invocation's assistants, including known indexed child IDs.
 
 ## Provider references
 

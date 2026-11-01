@@ -11,7 +11,7 @@ import type { AgentConversationEvent } from '../../features/coforge/domain/agent
 import { captureCodexResponse } from './codex-conversation';
 import type { NativeWorkflowTools } from '../../features/coforge/domain/native-workflow-tools';
 import { assertCodexNativeCapabilities, assertCodexNativeContext, nativeCodexCatalogue } from './codex-native-capabilities';
-import { prepareNativeCodexHome } from './codex-private-auth';
+import { prepareNativeCodexState } from './codex-private-state';
 import { assertCodexPrivateRuntime } from './codex-private-runtime';
 import type { NativeWorkflowPrivateRuntime } from '../../features/coforge/domain/native-workflow-process';
 
@@ -37,15 +37,16 @@ export async function runCodexTransport(input: CodexTransportInput): Promise<{ o
   await writeFile(schemaPath, JSON.stringify(codexOutputSchema(input.schema)), { flag: 'wx', mode: 0o600 });
   const executable = await codexExecutable(input.executable);
   const delegated = Boolean(input.nativeTools?.delegation);
-  const invocation = { model: input.model, effort: input.effort, schemaPath, mcpUrl: input.mcp?.url, mcpToolTimeoutSeconds: input.mcp?.toolTimeoutSeconds, nativeTools: input.nativeTools };
-  const proposedArgs = buildCodexArgs({ ...invocation, modelProfilePath: join(input.directory, 'model-profile.json') });
-  if (delegated) await assertCodexNativeCapabilities(executable, input.directory, proposedArgs, input.signal);
   if (input.nativeTools) {
-    if (!input.privateRuntime) throw new Error('Native Codex requires a retained private runtime ownership receipt before credential preparation.');
+    if (!input.privateRuntime) throw new Error('Native Codex requires a retained private runtime ownership receipt before state preparation.');
     await assertCodexPrivateRuntime(input.privateRuntime, input.directory);
   }
-  const environment = { ...codexEnvironment(), ...(input.nativeTools ? await prepareNativeCodexHome(input.directory) : {}), ...(input.mcp ? { COFORGE_CODEX_MCP_TOKEN: input.mcp.token } : {}) };
-  const catalogue = input.nativeTools ? await nativeCodexCatalogue(executable, input.directory, input.model, input.nativeTools, environment, input.signal) : undefined;
+  const nativeState = input.nativeTools ? await prepareNativeCodexState(input.directory) : undefined;
+  const invocation = { model: input.model, effort: input.effort, schemaPath, mcpUrl: input.mcp?.url, mcpToolTimeoutSeconds: input.mcp?.toolTimeoutSeconds, nativeTools: input.nativeTools, nativeState };
+  const proposedArgs = buildCodexArgs({ ...invocation, modelProfilePath: join(input.directory, 'model-profile.json') });
+  if (delegated) await assertCodexNativeCapabilities(executable, input.directory, proposedArgs, input.signal);
+  const environment = { ...codexEnvironment(), ...(input.mcp ? { COFORGE_CODEX_MCP_TOKEN: input.mcp.token } : {}) };
+  const catalogue = input.nativeTools ? await nativeCodexCatalogue(executable, input.directory, input.model, input.nativeTools, environment, proposedArgs, input.signal) : undefined;
   const modelProfilePath = await writeCodexModelProfile(input.directory, input.model, input.nativeTools, catalogue);
   const args = buildCodexArgs({ ...invocation, modelProfilePath });
   if (input.nativeTools?.delegation) await assertCodexNativeContext(executable, input.directory, input.model, input.nativeTools.delegation.maxConcurrent, args, environment, input.signal);
@@ -72,7 +73,7 @@ export async function runCodexTransport(input: CodexTransportInput): Promise<{ o
       await captureCodexResponse(input.onConversation, error.output, environment);
       if (error instanceof ProcessOwnershipUnknown) throw error;
       throw new Error(/^Run (?:cancelled|timed out)/u.test(error.message) ? error.message : input.nativeTools
-        ? 'Codex did not complete this isolated native-tools attempt. Check file-based sign-in or an explicit Codex API-key environment, model access and configured limits. Keyring-only authentication cannot fall back to your global Codex home. Review retained changes before explicitly retrying.'
+        ? 'Codex did not complete this native-tools attempt. Check its normal CLI sign-in, model access and configured limits. Review retained changes before explicitly retrying.'
         : 'Codex did not complete this attempt. Check its local installation, sign-in, model access and configured limits; review partial worktree changes before retrying.');
     }
     if (error instanceof SyntaxError) throw new Error('Codex returned invalid structured output. The request was not advanced.');

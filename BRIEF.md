@@ -585,6 +585,14 @@ recovery, project scope, host permissions and final human review.
   for explicitly enabled, supported workflow invocations; existing captured runs
   retain their original capabilities. Test execution requires actual isolation
   and observed outcomes; a model's summary is not an executed test result.
+  Authentication follow-up (owner choice): keep the existing Codex CLI sign-in
+  and its SDK-managed global AGENTS/skills context. Use the canonical native
+  credential store; do not clone OAuth bundles or require a new sign-in/API key.
+  Global context never expands CoForge's tool permissions. Keep invocation
+  SQLite/log/model-profile state private; native provider rollout files remain
+  provider-owned. Captured CoForge instructions/task text are distinct from
+  additional SDK-managed context, rather than a claim to capture every provider
+  prompt augmentation.
 
 - 2026-10-31: review the first complete CF-133 intake-to-increment run through
   dedicated product-perspective subagents, then perform a subagent-driven plugin
@@ -705,12 +713,7 @@ recovery, project scope, host permissions and final human review.
 
 ## Open questions
 
-- TODO(owner): choose the authentication/context policy for native Codex workflow
-  agents. Existing CLI sign-in preserves its SDK-managed global AGENTS/skills;
-  strict context isolation needs a separately authenticated CoForge-owned store
-  or an explicit API key. Per-invocation copies of the existing OAuth bundle must
-  not ship because refreshed credentials can be lost or raced. The implementation
-  and merge remain pending this decision.
+- None recorded.
 
 ## Service Design (owner decisions, 2026-10-29)
 

@@ -17,7 +17,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
   input.signal?.throwIfAborted();
   const snapshot = input.workflow;
   validateNativeWorkflowTools(snapshot.step, 'codex');
-  if (snapshot.step.nativeTools && !input.onNativeRuntime) throw new Error('Native Codex requires retained private runtime preparation before credentials can be copied.');
+  if (snapshot.step.nativeTools && !input.onNativeRuntime) throw new Error('Native Codex requires retained private runtime preparation before native state can be created.');
   if (snapshot.step.nativeTools && !capture && !input.onNativeProcess) throw new Error('Native Codex tools require durable foreground process ownership before provider start. Open the contained desktop host or use the admitted background worker.');
   const lease = await workspaces.acquire({ runId: snapshot.runId, projectId: ideaProjectId(input.idea), attemptId: snapshot.attemptId, access: executionAccess(input), integration: input.integration, workspaceId: snapshot.workspaceId, signal: input.signal });
   let directory: string | undefined;

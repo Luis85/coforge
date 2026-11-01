@@ -43,6 +43,11 @@ it('authors native assistants as an explicit future-step policy without dispatch
     await wrapper.get('[aria-label="Improvement Allow provider-native assistants"]').setValue(true);
     expect(wrapper.get('[aria-label="Improvement Maximum concurrent native assistants"]').element).toHaveProperty('value', '2');
     expect(wrapper.text()).toContain('Verification applies to code polishing only');
+    await provider.setValue('codex');
+    expect(wrapper.get('[aria-label="Native workflow tools"]').text()).toContain('global AGENTS.md and skills');
+    expect(wrapper.get('[aria-label="Native workflow tools"]').text()).toContain('do not grant tools');
+    await provider.setValue('claude');
+    expect(wrapper.get('[aria-label="Native workflow tools"]').text()).not.toContain('global AGENTS.md and skills');
     expect(f.studio.state().jobs).toEqual([]);
     expect(f.runner).not.toHaveBeenCalled();
   } finally { wrapper.unmount(); await f.dispose(); }
