@@ -85,3 +85,25 @@ CI suite includes an additional live-output test that verifies the container is
 still running when sanitized observations arrive; no skipped acceptance is used.
 
 Final UI refresh passed: UI quality 8/8, gallery 40 reviewed captures with zero failures, and pinned Obsidian load/reload passed with errors [], hostErrorCount 0 and pluginConsole []. The contained host stopped. Evidence is retained under reports/card-sessions-dev-loop/.
+
+## Integrated qualification follow-up
+
+PR #64 incorporates main PR #63's polishing feedback/card alignment. Combined
+Sessions/polishing DOM coverage passed 20/20; four browser cases passed and all
+20 captures were reviewed. An Axe label-content mismatch was fixed by including
+the visible parent count in the Sessions accessible name.
+
+Initial integrated CI found four catalogue assertions blocked by the missing
+authored Sessions view contract, one native five-tab expectation and two browser
+five-tab expectations. The authored child contract and regenerated 111-view
+sitemap now validate; the existing catalogue suite passed 12/12. Exact six-tab
+names/order/count assertions retain the original geometry/ownership checks;
+affected DOM tests passed 13/13 and the browser journey passed 2/2. No assertion,
+threshold or coverage was removed.
+
+The first local full aggregate recorded 2,080 passes, six existing Windows skips
+and five failures: the four catalogue cases plus a 45-second timeout in unchanged
+native Git/EOL code. A quiet rerun of that case passed in 14.01s at its original
+limit; the integrated Linux CI case had also passed in 274.72ms. The failed local
+run is retained, and final full integrated CI plus cached Windows-native checks
+are reported in [PR #64](https://github.com/Luis85/coforge/pull/64).

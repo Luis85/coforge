@@ -15,14 +15,14 @@ for (const theme of ['light', 'dark']) test(`request drawer section tabs resist 
   await mkdir('reports/idea-drawer-layout', { recursive: true });
   for (const width of [1280, 480, 360]) {
     await page.setViewportSize({ width, height: 1000 });
-    await expect(tabs.getByRole('button')).toHaveText(['Overview', 'Plan & Design', 'Increment', 'Workflow runs', 'Activity']);
+    await expect(tabs.getByRole('button')).toHaveText(['Overview', 'Sessions', 'Plan & Design', 'Increment', 'Workflow runs', 'Activity']);
     const layout = await tabs.evaluate(element => {
       const bounds = element.getBoundingClientRect(); const style = getComputedStyle(element);
       const buttons = [...element.querySelectorAll('button')].map(button => { const box = button.getBoundingClientRect(); return { top: box.top, bottom: box.bottom, left: box.left, right: box.right, width: box.width }; });
       const padding = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
       return { width: bounds.width, contentWidth: bounds.width - padding, height: bounds.height, top: bounds.top, bottom: bounds.bottom, left: bounds.left, right: bounds.right, gap: Number.parseFloat(style.columnGap) || 0, basis: style.flexBasis, buttons, fits: element.scrollWidth <= element.clientWidth + 1 };
     });
-    expect(layout.buttons).toHaveLength(5); expect(layout.basis).toBe('auto'); expect(layout.fits).toBe(true);
+    expect(layout.buttons).toHaveLength(6); expect(layout.basis).toBe('auto'); expect(layout.fits).toBe(true);
     expect(layout.height).toBeLessThan(110);
     expect(Math.abs(layout.buttons[0]!.top - layout.buttons[1]!.top)).toBeLessThan(1);
     expect(layout.buttons[1]!.left - layout.buttons[0]!.right).toBeGreaterThanOrEqual(8);
