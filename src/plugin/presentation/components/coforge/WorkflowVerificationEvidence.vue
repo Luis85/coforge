@@ -6,8 +6,8 @@ const evidence = useVerificationEvidence(props);
 </script>
 <template>
   <section v-if="evidence.records.length" class="cf-idea-section" aria-label="Observed verification commands">
-    <h3>Observed verification commands</h3>
-    <p class="cf-idea-help">CoForge recorded these command outcomes in an isolated Docker source copy. Exit zero does not verify every acceptance criterion. Agent summaries and written tests remain separate evidence.</p>
+    <h3>Isolated verification records</h3>
+    <p class="cf-idea-help">CoForge recorded these command outcomes through the captured Docker verification profile. They are separate from provider or MCP command observations in a coding worktree. Exit zero does not verify every acceptance criterion. Agent summaries and written tests remain separate evidence.</p>
     <details v-for="record in evidence.records" :key="record.id" class="cf-idea-evidence cf-verification-evidence">
       <summary><strong>{{ record.label }}</strong> · {{ record.outcome }}<span class="cf-idea-run-meta">{{ record.snapshotLabel }} · <time :datetime="record.startedAt">{{ record.startedLabel }}</time></span></summary>
       <p v-if="record.status === 'unknown'" class="cf-idea-help">The command outcome is unknown. Restore the Docker runtime and reload CoForge to reconcile retained execution before retrying. Missing evidence never authorizes duplicate work.</p>

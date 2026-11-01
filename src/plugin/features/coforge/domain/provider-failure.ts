@@ -1,6 +1,6 @@
 import { CheckError, oneOf, shape, text, type Check } from './check';
 
-export const PROVIDER_FAILURE_CODES = ['installation', 'authentication', 'model_access', 'access_denied', 'rate_limit', 'turn_limit', 'budget_limit', 'tool_limit', 'capability', 'configuration', 'output_validation', 'incomplete_output', 'transport', 'cancelled', 'timeout', 'ownership_unknown', 'provider_error', 'execution_failed', 'persistence', 'workspace_validation'] as const;
+export const PROVIDER_FAILURE_CODES = ['installation', 'authentication', 'model_access', 'access_denied', 'rate_limit', 'turn_limit', 'budget_limit', 'tool_limit', 'capability', 'configuration', 'output_validation', 'incomplete_output', 'transport', 'cancelled', 'timeout', 'ownership_unknown', 'provider_error', 'execution_failed', 'persistence', 'workspace_validation', 'native_platform', 'native_elevation', 'native_controller'] as const;
 export type ProviderFailureCode = typeof PROVIDER_FAILURE_CODES[number];
 export interface ProviderFailureInfo { readonly code: ProviderFailureCode; readonly summary: string; readonly nextStep: string }
 export const providerFailureCodeCheck = oneOf(PROVIDER_FAILURE_CODES);
@@ -26,6 +26,9 @@ const catalogue: Record<ProviderFailureCode, readonly [string, string]> = {
   execution_failed: ['The attempt did not complete; its specific cause was not established.', 'Inspect the retained conversation, original execution and any partial worktree changes before explicitly starting another attempt.'],
   persistence: ['The attempt’s execution evidence could not be saved.', 'Check execution-data storage, available disk space and write permissions. Review this attempt’s original execution and retained changes before starting another attempt.'],
   workspace_validation: ['The original workspace could not be validated for this attempt.', 'Inspect this attempt’s original workspace and retained changes. Restore its verified ownership before explicitly starting another attempt.'],
+  native_platform: ['Owned native coding is not qualified on this platform.', 'Use a supported Windows desktop. No unowned or alternate-platform fallback was started.'],
+  native_elevation: ['Native coding was blocked because the host is elevated.', 'Restart the host without elevation under your normal desktop account, then explicitly retry. No command was started.'],
+  native_controller: ['The Windows native process controller could not be prepared.', 'Check local runtime and file permissions, then restart the host before explicitly retrying. No unowned fallback was started.'],
 };
 const ownershipNextStep = 'First check the original execution and confirm it has stopped. ';
 export function providerFailureFor(code: ProviderFailureCode, ownershipUnknown = false): ProviderFailureInfo {

@@ -26,7 +26,7 @@ const execution = useWorkflowExecutionOverview();
       </div>
     </dl>
     <p v-if="!execution.builds.length" class="cf-settings-help">
-      Add a code-change step with isolated worktree access to configure
+      Add a code-change step with dedicated Git worktree access to configure
       background execution.
     </p>
     <p class="cf-settings-help">

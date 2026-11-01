@@ -31,6 +31,15 @@ explains the dedicated workflow editor, AI/manual steps and JSON import/export.
    Edit automatic steps in **Workflow settings** and resume automation in the monitor
    for automatic progression (automation always starts paused).
 
+For real coding, select a supported native provider or use an authorized MCP
+coding task with project implementation enabled. New coding admissions use an
+owned Git worktree and normal coding tools, including project commands and tests;
+native providers can coordinate their own assistants. Docker setup is not required
+for this flow. A worktree separates Git changes, not the operating system. See
+[Coding worktrees and captured tool profiles](docs/coforge/NATIVE-WORKFLOW-TOOLS.md)
+and [Local MCP integration](docs/coforge/MCP.md) for permissions, evidence and
+retained legacy behavior. Final acceptance remains a human decision.
+
 For local development, `npm run build:local` builds and installs the plugin into this
 repository's `.obsidian/plugins/coforge/`. It does not use or create `.test-vault`.
 The `.obsidian` output is ignored by Git. Contained automated Obsidian tests continue
@@ -47,7 +56,7 @@ Commands: **Open CoForge**, **Run the next workflow step**, **Pause or resume au
 | Projects | Vault-backed project notes, separate backlogs and workspace paths (including outside the vault), metadata links and descriptions; requests require their parent project ID |
 | Ideas | One note per idea with properties for status, screening, RICE and plan; edits and deletions in the vault flow back into the studio |
 | Workflow | Per-project ordered AI/approval/checklist steps; replace/reorder core steps, typed outputs/access, JSON import/export, pinned runs, queue, pause/resume and recovery |
-| Agents | Simulation, native Claude Code or dedicated managed Herdr Claude agents; separate output/tool contracts, shared isolated run worktrees and retained per-step costs/tokens |
+| Agents | Simulation, native Claude Code/Codex, MCP-driven coding or managed Herdr agents; captured execution profiles, dedicated coding worktrees and retained per-step costs/tokens |
 | Review | Plan, diff and files, accept, request changes, archive, moderation override |
 | Recognition | Leaderboards, contributor profiles and seven badges computed from evidence |
 | Viewer website | Read-only, script-free board, leaderboards and badges in a vault folder, deployed to GitHub Pages from `main` by a workflow CoForge writes once |

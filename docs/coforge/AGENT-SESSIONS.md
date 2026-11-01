@@ -8,8 +8,9 @@ its provider, captured model, status, elapsed time and last observed activity.
 
 New native Claude and Codex attempts publish bounded, sanitized observations
 while they work. Peek shows public assistant messages, tool names/status and
-observed verification output. It also links to the current increment and the
-existing captured task/response history.
+observed output. It links to the exact original attempt's captured task,
+response, retained changes and recovery information when those resources exist.
+Failed attempts explicitly identify missing captures and unknown historical causes.
 
 Native assistants appear beneath their parent only when provider events establish
 an association. Claude can associate activity through an Agent tool ID without
@@ -21,12 +22,22 @@ observations increase the unread count. **Resume follow** returns to the latest
 entry. Closing Peek or switching projects leaves execution unchanged.
 
 This is a partial observation feed, not a complete provider transcript. Raw SDK
-events, hidden reasoning, tool arguments and SDK context records are excluded
+events, hidden reasoning, unrestricted tool-argument payloads and SDK context records are excluded
 from this feed. Recognizable credentials and private absolute paths are redacted.
 Individual observation text is limited to 2,048 characters, with a truncation
 notice. Older entries can be omitted by its 128-event / 32,000-content-character
 retention bounds, with truncation disclosed. Recorded activity is not proof of a
 successful increment; use the actual verification evidence and human review.
+Native SDK tool turns are provider observations, not automatic test verdicts.
+Captured Docker verification records keep their separate source fingerprints
+and isolated-execution labels.
+
+New MCP coding tasks marked `mcp-worktree-v1` can show bounded host-observed
+command events, sanitized command displays/digests and captured outcomes. These are not the external client's full
+conversation or CoForge-owned SDK assistants. Exit zero establishes process
+completion, not a test verdict or unchanged source. A task with no emitted event
+does not establish that no command is running; its client can inspect the
+original command through the MCP status tools.
 
 Background observations are persisted separately from execution-control writes.
 They do not advance result acknowledgement or keep a completed Build lane occupied.
@@ -34,13 +45,13 @@ An unavailable or invalid observation file can leave gaps in Peek without changi
 the provider result or cost. Execution-journal failures still require recovery.
 
 Older attempts and already-running workers may have no live capture. Demo,
-external MCP and Herdr sessions retain their existing history/status without
+legacy external MCP and Herdr sessions retain their existing history/status without
 claiming a native live feed. CoForge does not scan SDK databases or global
 rollouts to reconstruct missing observations.
 
 ## Read-only terminal follow
 
-On Windows desktop, choose **Read-only terminal** to open a separate console
+For supported native parent attempts on Windows desktop, choose **Read-only terminal** to open a separate console
 following the same parent attempt's sanitized observations. Child selection in
 Peek does not change the terminal's parent scope. Opening a follower neither
 resumes a saved session nor attaches to the provider's input. Close its window

@@ -28,6 +28,7 @@ import type { PolishingRun } from '../domain/polishing';
 import { assertPolishingMetadata, assertPolishingResolved } from './workflow-run-owner';
 import { polishingSaveOptions, workflowRunSaveOptions } from './polishing-save-options';
 import { captureWorkflowVerification, validateNativeWorkflowTools } from '../domain/native-workflow-tools';
+import { captureWorktreeCodingCapability } from '../domain/worktree-coding';
 import { recordWorkflowVerification, recordWorkflowVerificationRuntime } from './workflow-verification';
 import { recordWorkflowNativeProcess, recordWorkflowNativeRuntime } from './native-workflow-process';
 import { skipOwnerScreening } from './owner-screening';
@@ -112,15 +113,19 @@ export class ConfiguredWorkflowEngine {
       return null;
     }
     const provider = run.external ? 'mcp' : step.provider;
-    validateNativeWorkflowTools(step, provider, run.external === true);
-    const verificationProfile = captureWorkflowVerification(step.nativeTools, state.integration.workflowVerification, step.access);
-    if (step.execution && (run.external || !['claude', 'codex'].includes(provider) || !this.host.durableBuilds)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
-    if (step.execution && state.runtime.durableBuild?.ready === false) throw new Error(state.runtime.durableBuild.message || 'Check the background worker before admitting another Build.');
+    if (step.execution && !run.external && !['claude', 'codex'].includes(provider)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
     configuredRuntime(state, idea, step, run.external, !!polish && step.output !== 'codechange');
-    if (!step.execution && !this.host.runners[provider]) throw new Error('This step’s selected provider is unavailable.');
+    const worktreeCoding = captureWorktreeCodingCapability(step, provider, findProject(state, run.projectId).allowImplementation);
+    if (worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(step, provider, run.external === true, worktreeCoding?.profile === 'native-worktree-v1');
+    const verificationProfile = worktreeCoding ? undefined : captureWorkflowVerification(step.nativeTools, state.integration.workflowVerification, step.access);
+    const nativeBackground = step.execution && worktreeCoding?.profile !== 'mcp-worktree-v1';
+    if (nativeBackground && (run.external || !['claude', 'codex'].includes(provider) || !this.host.durableBuilds)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
+    if (nativeBackground && state.runtime.durableBuild?.ready === false) throw new Error(state.runtime.durableBuild.message || 'Check the background worker before admitting another Build.');
+    if (!nativeBackground && !this.host.runners[provider]) throw new Error('This step’s selected provider is unavailable.');
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
     const inputs = polish ? polish.sourceArtifacts : configuredInputs(run, step, idea.workflowHistory, idea);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
+      ...(worktreeCoding ? { worktreeCoding } : {}),
       ...(verificationProfile ? { verificationProfile } : {}),
       ...(retry ? { backgroundRetryId: retry.id } : {}),
       ...(polish ? { polishingId: polish.id, polishingSourceHash: polish.sourceHash, polishingFeedback: polish.feedback, polishingPayload: JSON.stringify(polish.target),
@@ -317,7 +322,7 @@ export class ConfiguredWorkflowEngine {
     return this.store.snapshot().jobs.find(job => job.ideaId === candidate.id && job.status === 'queued') ?? null;
   }
   async run(job: AgentJob, signal: AbortSignal): Promise<void> {
-    if (job.workflow?.step.execution) throw new Error('Background Builds require durable worker admission.');
+    if (job.workflow?.step.execution && job.workflow.worktreeCoding?.profile !== 'mcp-worktree-v1') throw new Error('Background Builds require durable worker admission.');
     if (job.workflow?.coworker) await assertWorkflowCoworkerAvailable(job.workflow.coworker, job.projectId ?? '', this.host.agentTasks);
     const input = await this.store.transaction(state => configuredJobInput(state, job, signal), polishingSaveOptions(job, () => this.store.internalSnapshot()));
     if (!input) return;

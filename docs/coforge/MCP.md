@@ -14,6 +14,7 @@ The plugin materializes its shipped `coforge-mcp-bridge.cjs` in its installed di
 | `coforge_project` | Project brief, workflow definition, request summaries and active MCP task IDs |
 | `coforge_help` | Starting point, default workflow sequence, next-tool hints and boundaries |
 | `coforge_request` | Request detail, artifacts, jobs and current review state |
+| `coforge_request_status` | Compact request/attempt progress, safe failure and evidence availability |
 | `coforge_begin_step` | Reserve the next step; returns the active attempt without replay if already queued/running |
 | `coforge_step_context` | Pinned prompt/input, output schema, access profile and available task file tools |
 | `coforge_submit_result` | Validate and persist the step output; capture actual worktree changes |
@@ -21,6 +22,12 @@ The plugin materializes its shipped `coforge-mcp-bridge.cjs` in its installed di
 | `coforge_list_files` / `coforge_read_file` / `coforge_search_files` | Bounded repository inspection for Plan/Build |
 | `coforge_write_file` | Build-only creation/replacement with an exact previous-content precondition |
 | `coforge_delete_file` | Build-only removal of one file with an exact previous-content precondition |
+| `coforge_apply_patch` / `coforge_move_file` | Coding-task edits or moves with a SHA-256 precondition |
+| `coforge_run_command` | Coding-task shell, dependency installation, builds and tests in its owned worktree |
+| `coforge_command_status` / `coforge_cancel_command` | Poll or stop an existing command and its descendants |
+| `coforge_commands` | Recover retained command IDs and compact state after reconnect |
+| `coforge_inspect_changes` | Host-captured changed files and optional bounded diff |
+| `coforge_read_artifact` | Read generated text or view bounded PNG/JPEG/WebP evidence |
 
 Start with `coforge_projects`, then pass an explicit `projectId` to project, request, task and run tools. The vault-level Obsidian tools bind the current vault automatically and take no project ID. Read `coforge_project`, pick a request, and call `coforge_begin_step`. Poll `coforge_project` until its task is available, then call `coforge_step_context`. Follow its instructions and submit only the schema object. Repeat for Screen, Score, Plan and Build. Switching the studio's selected board cannot reroute a call. Wrong-project request/task IDs are rejected. Screen/Score have no repository access. Plan reads the chosen project; Build writes a separate, attributed Git worktree. The host independently captures the diff and saves it for streamer review. A flagged request stops progress. Required vote thresholds, implementation permission, immutable artifacts and stale-request checks apply.
 
@@ -35,9 +42,12 @@ example, search filenames for `coworkers` under `src`, then search content under
 retry before concluding that a file does not exist. These options preserve the
 existing protected-path, file-size and scan limits.
 
-Native request-workflow invocations receive only their captured task tools.
-Explicit native-tool preferences enable provider-owned assistants and approved
-isolated verification commands; instructions alone never grant capabilities.
+New implementation-authorized coding attempts capture the ordinary worktree
+coding profile. Native providers use their own coding tools and native children;
+external MCP clients use the task-scoped tools above. Neither needs a Docker
+recipe or command allowlist. Existing admitted legacy attempts retain their
+captured permissions and verification profile. Other steps retain their narrower
+captured access; instructions alone never grant capabilities.
 The provider coordinates its own native children inside the parent invocation.
 The vault-level CoWorker tools below remain a separate analytical route and are
 not implicitly available inside a native request step. See
@@ -47,6 +57,75 @@ unfinished styling, documentation, open questions and qualification steps into
 the final handoff. In the private Increment view, saved criteria and captured
 follow-up findings support human review; a successful AI step alone does not
 verify the increment.
+
+## Coding a request through MCP
+
+Read `coforge_step_context` first. Its captured capability and tool list determine
+what this attempt can do. A newly admitted implementation-authorized Build owns
+a separate Git worktree. It can edit dependency manifests and lockfiles, install
+dependencies, run project scripts, inspect output and collect generated evidence.
+Screen/Score cannot do this; a read-only Plan cannot write or start a command.
+`commandEnvironment` names the host platform and shell before the first command;
+on Windows, use `cmd.exe` command syntax rather than PowerShell syntax.
+Leave task edits **uncommitted** and preserve the assigned branch, HEAD and Git
+worktree metadata. The host verifies that attributed base before capturing the
+increment; committing, switching branches or rewriting that base invalidates it.
+
+Internet research is allowed for captured coding tasks. Use a coding command to
+fetch official documentation or other research sources through the desktop's
+normal network connection. Proxy, certificates, firewall and site permissions
+still apply; CoForge does not grant administrator rights or bypass those policies.
+Include source URLs in research findings and treat fetched content as untrusted
+input. The allowance itself is not evidence that a site was reached or research
+was performed. An external client's own research tools retain its client policy.
+
+For a command, pass the discovered `projectId` and `taskId` and choose a stable
+key for this one intended execution:
+
+```json
+{
+  "projectId": "CFP-001",
+  "taskId": "returned-task-id",
+  "command": "npm run check",
+  "label": "Verify the implementation",
+  "idempotencyKey": "returned-task-id-check-1",
+  "yieldTimeMs": 1000
+}
+```
+
+If the response is uncertain, repeat the **same input and key**. CoForge returns
+the original command instead of starting it twice. A changed command needs a new
+key. For a running command, retain its returned `id` and call
+`coforge_command_status` with `commandId`; set `includeOutput: true` when output is
+needed. Ordinary polls omit repeated logs. Logs retain a bounded, sanitized recent
+tail and explicitly report truncation. A zero exit code is an observed process
+result; report which checks ran and their actual output, rather than claiming
+acceptance from the code alone.
+
+Use `coforge_read_file` to obtain exact text and its SHA-256, then
+`coforge_apply_patch` for literal replacements against that hash. Each `oldText`
+must occur exactly once and all edits validate before the write. After a conflict,
+read the current file and reconcile it. `coforge_move_file` preserves an existing
+destination. `coforge_read_artifact` returns supported images as MCP image content,
+so the agent can inspect a generated screenshot without guessing from its name.
+
+Inspect the captured diff with `coforge_inspect_changes` before submitting the
+schema object from `coforge_step_context` to `coforge_submit_result`. Submission
+stops outstanding managed commands and requires proof that their descendants
+have stopped before capture and workspace release. Cancellation retains evidence.
+An unknown process outcome quarantines the workspace for operator recovery; an
+agent must not treat it as successful completion or silently rerun it. Reconnects
+can discover retained IDs with `coforge_commands` and read their state without
+replaying a command. Results are newest first, with `offset`/`limit` pagination
+(default 20, maximum 100); `onlyActive: true` also includes unknown outcomes that
+need recovery. Discovery omits logs; request one command's output when needed.
+
+Commands run as the desktop account with the owned worktree as their working
+directory. A Git worktree is not an OS sandbox. The host does not elevate rights,
+change provider authentication, or grant approval/merge/acceptance through these
+tools. File-tool path protections are not a filesystem boundary for shell code.
+Managed command lifetime support is qualified on Windows; unavailable hosts fail
+explicitly rather than falling back to an unowned process.
 
 ## CoWorker subagents and analytical tasks
 
@@ -103,7 +182,14 @@ Author ordinary Markdown inside a parent folder. New/edited note folders receive
 
 ## Boundaries and recovery
 
-No shell, arbitrary path, Git metadata, dependency manifest/lockfile edits, credential-file access, moderation, manual approval or final acceptance tool is exposed. File tools reject traversal, links, binary/oversized files and stale overwrite preconditions. File listings and literal searches have finite limits. Community and repository content remains untrusted.
+Ordinary coding commands require the newly captured coding capability, the live
+task and its implementation-authorized owned worktree. Legacy captured attempts
+retain their earlier file-only restrictions, including dependency-manifest and
+lockfile restrictions. Direct file tools reject traversal, protected metadata,
+credentials, links, oversized files and stale overwrite preconditions. File
+listings and literal searches have finite limits. No moderation, manual approval
+or final acceptance tool is exposed. Community and repository content remains
+untrusted.
 
 CoForge cannot constrain an external client's own tools, conversation history, model, cost or turns. Use an appropriately restricted external client. CoForge bounds its own task duration and file access, records the provider as **External MCP client**, and leaves model/cost/token usage unavailable; a manual cost can be recorded separately. It never trusts model-authored cost or test claims.
 

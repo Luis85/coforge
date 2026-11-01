@@ -5,6 +5,7 @@ import { useIncrementReview } from "../../composables/coforge/use-increment-revi
 import CfIcon from "./CfIcon.vue";
 import MarkdownBody from "./MarkdownBody.vue";
 import WorkflowVerificationEvidence from './WorkflowVerificationEvidence.vue';
+import IncrementCodingObservations from './IncrementCodingObservations.vue';
 
 const props = defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
@@ -87,6 +88,7 @@ const review = useIncrementReview(props);
         </li>
       </ul>
     </section>
+    <IncrementCodingObservations :idea="idea" :source="review.evidence.producingAttempt" />
     <section class="cf-idea-section">
       <h3><CfIcon name="flask-conical" /> Verification notes</h3>
       <p class="cf-idea-help">Read the recorded outcomes and limitations below. Written tests and successful agent runs are not executed checks.</p>

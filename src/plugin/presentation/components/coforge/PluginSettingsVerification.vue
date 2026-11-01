@@ -5,10 +5,13 @@ const fields = useVerificationIntegrationFields();
 </script>
 <template>
   <section v-if="fields.profile" aria-label="Isolated workflow verification">
-    <h3 class="cf-setting-heading">Isolated workflow verification</h3>
-    <p class="cf-plugin-settings-section-intro">Allow selected workflow steps to run the commands you define here in a private Docker source copy. The container has no network, credentials or Git metadata. Its image must already contain the required tools and dependencies; CoForge never pulls an image or runs tests on the host.</p>
+    <h3 class="cf-setting-heading">Advanced isolated verification</h3>
+    <p class="cf-plugin-settings-section-intro">Retained legacy and explicitly configured restricted checks can use this separate profile. New native and MCP coding attempts use their coding worktree tools and project commands.</p>
+    <details class="cf-workflow-options">
+      <summary>Configure isolated Docker verification</summary>
+      <p class="cf-settings-help">These isolated commands use a private Docker source copy with no network, credentials or Git metadata. The image must already contain its tools and dependencies. This profile never pulls an image or falls back to host execution.</p>
     <PluginSettingsRow name="Verification permission">
-      <template #description>Disabled by default. Saving grants these commands to future explicitly configured native Claude Code and Codex steps. Existing attempts retain their captured profile.</template>
+      <template #description>Disabled by default. Saving authorizes explicitly configured isolated checks for restricted steps. Ordinary coding uses its worktree profile; existing attempts retain their captured verification profile.</template>
       <label class="cf-workflow-check"><input v-model="fields.profile.enabled" type="checkbox" aria-label="Enable isolated workflow verification" />Enable isolated verification</label>
     </PluginSettingsRow>
     <PluginSettingsRow name="Docker executable" control-id="cf-ps-verification-docker">
@@ -39,5 +42,6 @@ const fields = useVerificationIntegrationFields();
     </div>
     <p v-if="!fields.profile.commands.length" class="cf-settings-help">No commands configured. Add a command before enabling verification, then select its ID in a workflow step.</p>
     <button type="button" class="cf-btn cf-btn-secondary" :disabled="fields.profile.commands.length >= 16" @click="fields.add()">Add verification command</button>
+    </details>
   </section>
 </template>

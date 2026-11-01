@@ -1,4 +1,4 @@
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { StudioService } from '../../../features/coforge/application/studio';
 import { McpStepRunner } from '../../../features/coforge/application/mcp-step-runner';
 import { McpWorkflowTools } from '../../../infrastructure/coforge/mcp-workflow-tools';
@@ -10,21 +10,22 @@ import { parsePersistedStudio } from '../../../features/coforge/domain/persisted
 import { workflowRunCheck } from '../../../features/coforge/domain/configured-workflow-run';
 import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
 import { appendAgentSessionEvent } from '../../../features/coforge/domain/agent-session';
+import type { McpCodingCommands, McpCommandOutcome } from '../../../features/coforge/application/mcp-coding-ports';
 
 const stops: Array<() => Promise<void>> = [];
 afterEach(async () => { for (const stop of stops.splice(0)) await stop(); });
-async function fixture() {
+async function fixture(commands?: McpCodingCommands, workspaceReady: Promise<void> = Promise.resolve()) {
   const state = createSeed();
   state.settings = { ...state.settings, provider: 'claude', paused: true, minVotes: 0 };
   const captures: string[] = [];
   const workspaces: WorkflowWorkspaces = {
     start: async () => {}, acknowledge: async () => {}, assertReviewable: async () => {},
-    acquire: async () => ({ id: 'workspace-one', cwd: '/bounded', capture: async summary => {
+    acquire: async () => { await workspaceReady; return { id: 'workspace-one', cwd: '/bounded', capture: async summary => {
       captures.push(summary);
       return { summary, files: [{ path: 'game.ts', additions: 1, deletions: 0 }], diff: '+lantern', tests: ['Not run'], createdAt: new Date().toISOString(), simulated: false };
-    }, release: async () => {} }),
+    }, release: async () => {} }; },
   };
-  const runner = new McpStepRunner(workspaces, nodeTimers());
+  const runner = new McpStepRunner(workspaces, nodeTimers(), commands);
   const studio = new StudioService(new MemoryStorage(state), { runners: { demo: async () => { throw new Error('Native runner must not run'); }, claude: async () => { throw new Error('Native runner must not run'); }, mcp: input => runner.run(input) }, timers: nodeTimers(),
     probeRuntime: async () => ({ cliAvailable: false, projectPath: '/game', allowImplementation: true }) });
   await studio.start();
@@ -51,6 +52,51 @@ it('does not expose operator Restart or allow an external agent to release a sto
   expect(f.studio.state().workflowStopHolds).toContain(f.idea.id);
   expect(f.studio.state().ideas.find(idea => idea.id === f.idea.id)?.status).toBe('inbox');
   expect(f.studio.state().jobs).toHaveLength(count);
+});
+it('returns a typed retry while a running external task is still acquiring its workspace', async () => {
+  let release = () => {};
+  const ready = new Promise<void>(resolve => { release = resolve; }); const f = await fixture(undefined, ready);
+  try {
+    const admitted = record(await f.tools.call(f.projectId, 'coforge_begin_step', { ideaId: f.idea.id })); const taskId = String(admitted.taskId);
+    await expect.poll(() => f.studio.state().jobs.find(job => job.id === taskId)?.status).toBe('running');
+    await expect(f.tools.call(f.projectId, 'coforge_step_context', { taskId })).rejects.toMatchObject({ code: 'TASK_NOT_READY', nextTool: 'coforge_step_context', retryAfterMs: 1000 });
+    release(); await expect.poll(() => f.runner.tasks(f.projectId).some(task => task.taskId === taskId)).toBe(true);
+    expect(await f.tools.call(f.projectId, 'coforge_step_context', { taskId })).toMatchObject({ taskId, ideaId: f.idea.id });
+  } finally { release(); }
+});
+it('routes captured coding commands through the live task, provides compact status and preserves final human review', async () => {
+  let outcome: McpCommandOutcome = { id: 'command', projectId: '', taskId: '', runId: '', attemptId: '', label: 'Checks', status: 'completed',
+    startedAt: new Date().toISOString(), finishedAt: new Date().toISOString(), exitCode: 0, output: 'Actual observed check output', truncated: false, source: 'host-worktree-command' };
+  const commands: McpCodingCommands = {
+    start: vi.fn(async (input, lease, request, validate) => {
+      validate(); expect(lease.id).toBe('workspace-one'); expect(request.idempotencyKey).toBe('check-1');
+      outcome = { ...outcome, projectId: input.idea.projectId!, taskId: input.jobId!, runId: input.workflow!.runId, attemptId: input.workflow!.attemptId }; return outcome;
+    }), status: vi.fn(async () => outcome), cancel: vi.fn(async () => outcome), list: vi.fn(async () => ({ commands: [outcome], total: 1 })),
+    settle: vi.fn(async () => ({ quiescent: true, commands: [outcome] })), recover: vi.fn(async () => ({ quiescent: true, commands: [outcome] })),
+  };
+  const f = await fixture(commands);
+  for (const output of [{ verdict: 'clear', reason: 'Scoped', signals: [] }, { reach: 10, impact: 1, confidence: 1, effort: 1, rationale: 'Small' },
+    { summary: 'Plan', steps: ['Build'], acceptanceCriteria: ['Works'], risks: [] }, { markdown: '# Design' }]) {
+    const context = await f.next(); await f.tools.call(f.projectId, 'coforge_submit_result', { taskId: context.taskId, output });
+  }
+  const context = await f.next(); const taskId = String(context.taskId);
+  expect(context.tools).toContain('coforge_run_command');
+  await expect(f.tools.call(f.projectId, 'coforge_run_command', { taskId, command: 'npm test' })).rejects.toThrow();
+  expect(await f.tools.call(f.projectId, 'coforge_run_command', { taskId, command: 'npm test', idempotencyKey: 'check-1' })).toMatchObject({ exitCode: 0 });
+  expect(await f.tools.call(f.projectId, 'coforge_command_status', { taskId, commandId: 'command' })).toMatchObject({ outputCharacters: 28 });
+  expect(await f.tools.call(f.projectId, 'coforge_command_status', { taskId, commandId: 'command', includeOutput: true })).toMatchObject({ output: outcome.output });
+  const discovered = record(await f.tools.call(f.projectId, 'coforge_commands', { taskId }));
+  expect(discovered).toMatchObject({ total: 1, commands: [{ id: 'command', status: 'completed', exitCode: 0 }] });
+  expect(JSON.stringify(discovered)).not.toContain(outcome.output);
+  await expect(f.tools.call(f.projectId, 'coforge_cancel_command', { taskId, commandId: 'command', includeOutput: true })).rejects.toThrow();
+  const status = record(await f.tools.call(f.projectId, 'coforge_request_status', { ideaId: f.idea.id }));
+  expect(status).toMatchObject({ attempt: { taskId, status: 'running', nextTool: 'coforge_step_context' }, humanReviewRequired: false });
+  expect(JSON.stringify(status)).not.toContain('prompt'); expect(JSON.stringify(status)).not.toContain('workspace-one');
+  await f.tools.call(f.projectId, 'coforge_submit_result', { taskId, output: { summary: 'Implemented and checked' } });
+  expect(commands.start).toHaveBeenCalledOnce(); expect(commands.settle).toHaveBeenCalledOnce();
+  expect(await f.tools.call(f.projectId, 'coforge_request_status', { ideaId: f.idea.id })).toMatchObject({ humanReviewRequired: true, attempt: { status: 'succeeded' } });
+  await expect(f.tools.call(f.projectId, 'coforge_run_command', { taskId, command: 'npm test', idempotencyKey: 'late' })).rejects.toThrow();
+  expect(commands.start).toHaveBeenCalledOnce();
 });
 
 it('keeps verification container ownership and private source directories out of model-facing request jobs', async () => {
@@ -146,7 +192,7 @@ it('returns the same active attempt without replay and fails an interrupted atte
 });
 it('retains rejected and corrected external submissions without blocking the existing correction flow', async () => {
   const f = await fixture(); const context = await f.next();
-  await expect(f.tools.call(f.projectId, 'coforge_submit_result', { taskId: context.taskId, output: { verdict: 'invalid' } })).rejects.toThrow();
+  await expect(f.tools.call(f.projectId, 'coforge_submit_result', { taskId: context.taskId, output: { verdict: 'invalid' } })).rejects.toMatchObject({ code: 'INVALID_RESULT', nextTool: 'coforge_step_context' });
   await f.tools.call(f.projectId, 'coforge_submit_result', { taskId: context.taskId, output: { verdict: 'clear', reason: 'Corrected response', signals: [] } });
   const job = f.studio.state().jobs.find(job => job.id === context.taskId);
   expect(job?.status).toBe('succeeded');

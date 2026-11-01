@@ -47,7 +47,7 @@ export async function captureBrokeredClaudeRead(input: StageInput, lease: Workfl
     await bridge.dispose();
     try { bridge.assertBudget(); }
     catch (error) {
-      if (error instanceof ProcessOwnershipUnknown) throw new ProcessOwnershipUnknown(raw, error.diagnostic, providerFailureInfo(error));
+      if (error instanceof ProcessOwnershipUnknown) throw new ProcessOwnershipUnknown(raw, error.diagnostic, providerFailureInfo(error), error.ownership);
       const info = providerFailureFor('tool_limit'); throw assignProviderFailure(new ProcessFailure(providerFailureMessage(info), raw), info);
     }
     try { input.signal?.throwIfAborted(); await validateProviderWorkspace(() => lease.validate!()); }

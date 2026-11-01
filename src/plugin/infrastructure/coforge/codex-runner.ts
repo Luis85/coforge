@@ -14,11 +14,17 @@ import { createCodexPrivateRuntime, purgeCodexPrivateRuntime } from './codex-pri
 import { captureProviderFailure, diagnoseProviderFailure, preserveProviderFailure } from './provider-failure';
 import { CheckError } from '../../features/coforge/domain/check';
 import { persistProviderEvidence } from './provider-evidence';
+import { runNativeWorktreeStage } from './native-worktree-stage';
+import { ProviderFailureError, providerFailureFor } from '../../features/coforge/domain/provider-failure';
 
 export async function runCodexStage(input: StageInput, workspaces: WorkflowWorkspaces, capture?: typeof captureProcess, protectedPaths?: readonly string[], onActivity?: () => Promise<void>): Promise<StageResult> {
   if (!input.workflow) throw new Error('Codex requires a captured workflow. Save and start the project workflow before dispatching.');
   input.signal?.throwIfAborted();
   const snapshot = input.workflow;
+  if (snapshot.worktreeCoding) {
+    if (snapshot.worktreeCoding.profile !== 'native-worktree-v1') throw new ProviderFailureError(providerFailureFor('configuration'));
+    return runNativeWorktreeStage(input, workspaces, { provider: 'codex', capture });
+  }
   validateNativeWorkflowTools(snapshot.step, 'codex');
   if (snapshot.step.nativeTools && !input.onNativeRuntime) throw new Error('Native Codex requires retained private runtime preparation before native state can be created.');
   if (snapshot.step.nativeTools && !capture && !input.onNativeProcess) throw new Error('Native Codex tools require durable foreground process ownership before provider start. Open the contained desktop host or use the admitted background worker.');

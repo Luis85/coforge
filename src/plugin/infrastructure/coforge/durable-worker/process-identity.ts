@@ -11,7 +11,8 @@ export interface ProcessIdentityDriver { read(pid: number): Promise<NativeProces
 const unavailable = () => new Error('The original native process identity could not be verified. No unrelated process was signalled.');
 class ProcessIdentityIssue extends Error { constructor(readonly reason: string) { super('Native process proof is incomplete.'); } }
 const pidCheck = number({ integer: true, min: 1, max: 2147483647 });
-const imageHash = (path: string) => createHash('sha256').update(process.platform === 'win32' ? path.normalize().toLowerCase() : path).digest('hex');
+export const nativeProcessImageHash = (path: string, platform = process.platform) => createHash('sha256').update(platform === 'win32' ? path.normalize().toLowerCase() : path).digest('hex');
+const imageHash = nativeProcessImageHash;
 const systemEnvironment = () => Object.fromEntries(Object.entries(process.env).filter(([key]) => ['PATH', 'Path', 'PATHEXT', 'SystemRoot', 'SYSTEMROOT', 'WINDIR', 'windir', 'TEMP', 'TMP', 'HOME', 'USERPROFILE'].includes(key)));
 function command(executable: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => execFile(executable, args, { windowsHide: true, timeout: 10000, maxBuffer: 64000,

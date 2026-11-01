@@ -5,6 +5,7 @@ import { nativeWorkflowToolsCheck, type NativeWorkflowTools } from '../domain/na
 import { codexReconnectNotice, rootCodexEvents } from './codex-events';
 import { ProviderFailureError, providerFailureFor } from '../domain/provider-failure';
 import { classifyProviderFailure } from './provider-failure-classification';
+import { codexConfigArgs } from './codex-config-args';
 
 const DISABLED = ['shell_tool', 'unified_exec', 'shell_snapshot', 'apps', 'plugins', 'hooks', 'memories', 'multi_agent', 'multi_agent_v2', 'browser_use', 'browser_use_external', 'browser_use_full_cdp_access', 'computer_use', 'image_generation', 'in_app_browser', 'code_mode', 'code_mode_host', 'workspace_dependencies', 'goals', 'skill_search', 'skill_mcp_dependency_install', 'tool_suggest'];
 export interface CodexInvocation { model: string; effort?: ReasoningEffort; schemaPath: string; modelProfilePath: string; mcpUrl?: string; mcpToolTimeoutSeconds?: number; nativeTools?: NativeWorkflowTools; nativeState?: { sqliteHome: string; logDir: string } }
@@ -30,11 +31,7 @@ export function buildCodexArgs(input: CodexInvocation): string[] {
   // TOML inline tables are constructed below; strings use TOML-compatible JSON quoting.
   // V2 requires a registered root rollout. The SDK retains rollouts in its canonical home; its thread index is private.
   return ['exec', '--strict-config', '--ignore-user-config', '--ignore-rules', ...(!delegation ? ['--ephemeral'] : []), '--skip-git-repo-check', '--sandbox', 'read-only', '--json', '--color', 'never', '--model', input.model, '--output-schema', input.schemaPath,
-    ...Object.entries(config).flatMap(([key, value]) => ['--config', `${key}=${toml(value)}`]), '-'];
-}
-function toml(value: unknown): string {
-  if (value && typeof value === 'object' && !Array.isArray(value)) return `{ ${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)} = ${toml(item)}`).join(', ')} }`;
-  return JSON.stringify(value);
+    ...codexConfigArgs(config), '-'];
 }
 export function codexResult(raw: string, options: { delegated?: boolean } = {}): { output: unknown; usage?: StageUsage } {
   const { events, hasRootIdentity } = rootCodexEvents(raw);

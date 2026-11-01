@@ -57,3 +57,14 @@ fixtures to distinguish the original owner exemption from an uncommitted demo
 screening write. The 10-case integrity file passed in full; no failed-write or
 external-edit assertion was removed. Combined-source typecheck passed. Complete
 GitHub check/browser/native jobs must pass before merge.
+
+PR #67 passed all five GitHub checks on cd2b1f78: canonical product/build/install
+gate (544 files, 2,180 tests passed, zero failures/skips), browser journeys and UI
+quality (246 passed), real Obsidian (59 files, 68 passed plus clean smoke), actual
+workflow isolation and GitGuardian. All 40 CI gallery captures were generated.
+
+Before merge, main advanced again through PR #66 (d1cda4d8). Its native worktree
+coding/MCP contracts and Windows lifetime verification are retained. The worker
+merge checks the new provider lifetime identity before loading optional session
+observations; both contracts remain separate. The combined source is being
+requalified, including the newly added Windows lifetime CI job, before merge.

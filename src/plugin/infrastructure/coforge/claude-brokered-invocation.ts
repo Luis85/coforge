@@ -65,7 +65,7 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
       await scoped.dispose();
       try { scoped.assertBudget(); input.signal?.throwIfAborted(); await validateProviderWorkspace(() => lease.validate?.()); }
       catch (error) {
-        if (error instanceof ProcessOwnershipUnknown) throw new ProcessOwnershipUnknown(raw, error.diagnostic, providerFailureInfo(error));
+        if (error instanceof ProcessOwnershipUnknown) throw new ProcessOwnershipUnknown(raw, error.diagnostic, providerFailureInfo(error), error.ownership);
         const info = providerFailureInfo(error) ?? providerFailureFor('execution_failed');
         throw assignProviderFailure(new ProcessFailure(providerFailureMessage(info), raw), info);
       }

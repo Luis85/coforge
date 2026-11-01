@@ -1,14 +1,15 @@
 import { afterEach, expect, it } from 'vitest';
 import { request } from 'node:http';
 import { LocalMcpServer } from '../../../infrastructure/coforge/mcp-server';
+import { ProviderFailureError, providerFailureFor } from '../../../features/coforge/domain/provider-failure';
 
 const servers: LocalMcpServer[] = [];
 afterEach(async () => { await Promise.all(servers.splice(0).map(server => server.close())); });
-async function fixture() {
+async function fixture(result: unknown = { ok: true }) {
   const calls: unknown[] = [];
   const server = new LocalMcpServer({
     tools: () => [{ name: 'inspect', description: 'Inspect project', inputSchema: { type: 'object', properties: {} } }],
-    call: async (name, args) => { calls.push({ name, args }); return { ok: true }; },
+    call: async (name, args) => { calls.push({ name, args }); if (result instanceof Error) throw result; return result; },
   });
   servers.push(server);
   const endpoint = await server.listen();
@@ -28,6 +29,20 @@ it('negotiates one vault MCP endpoint, discovers tools and forwards explicit pro
   const call = await f.send({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'inspect', arguments: { projectId: 'CFP-001' } } });
   expect(await call.json()).toMatchObject({ result: { content: [{ type: 'text', text: '{"ok":true}' }] } });
   expect(f.calls).toEqual([{ name: 'inspect', args: { projectId: 'CFP-001' } }]);
+});
+it('exposes a safe typed execution failure with an actionable next tool instead of discarding its cause', async () => {
+  const f = await fixture(new ProviderFailureError(providerFailureFor('ownership_unknown')));
+  const response = await f.send({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'coforge_submit_result', arguments: { projectId: 'CFP-001', taskId: 'task', output: {} } } });
+  expect(await response.json()).toMatchObject({ result: { isError: true, structuredContent: { error: { code: 'HOST_UNAVAILABLE', nextTool: 'coforge_request_status' } } } });
+});
+it('returns a generated artifact as MCP image content without duplicating its base64 in structured text', async () => {
+  const f = await fixture({ kind: 'image', path: 'proof.png', mimeType: 'image/png', data: 'aW1hZ2U=', width: 1, height: 1, sha256: 'a'.repeat(64) });
+  const response = await f.send({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'coforge_read_artifact', arguments: { projectId: 'CFP-001', taskId: 'task', path: 'proof.png' } } });
+  const body = await response.json();
+  expect(body.result.content[1]).toEqual({ type: 'image', data: 'aW1hZ2U=', mimeType: 'image/png' });
+  expect(body.result.structuredContent).toMatchObject({ path: 'proof.png', width: 1, height: 1 });
+  expect(body.result.structuredContent).not.toHaveProperty('data');
+  expect(body.result.content[0].text).not.toContain('aW1hZ2U=');
 });
 it('rejects unauthorized, obsolete project endpoints, hostile origins/hosts and revoked access before dispatch', async () => {
   const f = await fixture();

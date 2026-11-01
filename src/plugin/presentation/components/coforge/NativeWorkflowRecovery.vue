@@ -11,7 +11,8 @@ const recovery = useNativeWorkflowRecovery(props);
     <p v-else-if="recovery.settled" class="cf-idea-help">Original owned execution is confirmed stopped. No provider or verification command was replayed. Existing Stop and review gates remain.</p>
     <template v-else>
       <p v-if="recovery.job.nativeRuntime && !recovery.job.nativeProcess" class="cf-idea-help">Native runtime preparation was interrupted before a provider process was recorded. Recovery cleans the attributable invocation state; it never starts a provider.</p>
-      <p v-else class="cf-idea-help">Check the captured provider process and original Docker engine. Recovery stops owned original processes and containers; it never starts a provider or replays a command. Restore the original Docker runtime if it is unavailable.</p>
+      <p v-else-if="recovery.hasContainers" class="cf-idea-help">Check the captured provider process and original Docker engine. Recovery stops owned original processes and containers; it never starts a provider or replays a command. Restore the original Docker runtime if it is unavailable.</p>
+      <p v-else class="cf-idea-help">Check the captured provider process and its owned assistants. Recovery stops the original owned execution; it never starts a provider or replays work.</p>
       <button type="button" class="cf-btn cf-btn-secondary" :disabled="recovery.busy" @click="recovery.check()">{{ recovery.busy ? 'Checking original execution…' : 'Check original execution' }}</button>
       <p v-if="recovery.review.reason" class="cf-idea-help">{{ recovery.review.reason }}</p>
       <label v-if="recovery.review.identity" class="cf-workflow-check"><input v-model="recovery.confirmed" type="checkbox" :disabled="recovery.busy" aria-label="I inspected the original provider and its native assistants and they have stopped" />I inspected the original provider and its native assistants and they have stopped.</label>

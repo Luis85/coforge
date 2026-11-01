@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useMcpSettings } from '../../composables/coforge/use-mcp-settings';
+import { MCP_RESEARCH_HELP, WORKTREE_PERMISSION_HELP } from '../../composables/coforge/coding-profile-display';
 import PluginSettingsRow from './PluginSettingsRow.vue';
 import CfIcon from './CfIcon.vue';
 const model = useMcpSettings();
@@ -14,6 +15,9 @@ const model = useMcpSettings();
     Node.js 22 or newer must be on your PATH. Keep this vault and CoForge open while using the tools.
     Activated clients can read requests and use the exposed workflow tools across all projects, including private ones. Viewer visibility still controls viewer-facing surfaces.
   </p>
+  <p class="cf-settings-help">New authorized coding tasks expose project file operations, patches, moves, artifacts, diff inspection and shell/test commands in their owned worktree. Already admitted legacy tasks keep their original tool set.</p>
+  <p class="cf-settings-help">{{ MCP_RESEARCH_HELP }}</p>
+  <p class="cf-settings-help">{{ WORKTREE_PERMISSION_HELP }}</p>
   <PluginSettingsRow name="Vault MCP connection" class="cf-mcp-setting-row">
     <template #description>
       <p>Activate once to write this vault’s <code>.mcp.json</code> and your user <code>~/.claude.json</code> MCP registration. New projects become available automatically. Existing entries are preserved. Claude may ask you to approve the vault server.</p>
@@ -26,11 +30,11 @@ const model = useMcpSettings();
     <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.busy || model.unavailable" @click="model.deactivate()">Deactivate MCP</button>
   </PluginSettingsRow>
   <PluginSettingsRow v-if="model.status?.recovery?.length" name="Interrupted workspace" control-id="cf-ps-mcp-recovery" class="cf-mcp-recovery-row">
-    <template #description>Open this request in the studio and inspect its saved attempt, diff and worktree. Acknowledge only after verifying the original external client has stopped. This does not rerun or accept code.</template>
+    <template #description>Open this request in the studio and inspect its saved attempt, diff and worktree. Inspect or cancel original command IDs in the MCP client, then acknowledge only after the client and owned commands have stopped. Unknown command ownership keeps the workspace held. This does not rerun or accept code.</template>
     <select id="cf-ps-mcp-recovery" v-model="model.recoveryTaskId" :disabled="model.busy" aria-describedby="cf-ps-mcp-recovery-desc">
       <option v-for="task in model.status.recovery" :key="task.taskId" :value="task.taskId">{{ task.projectId }} · {{ task.ideaId }} · {{ task.step }} · {{ task.taskId }}</option>
     </select>
-    <label><input v-model="model.reviewed" type="checkbox" :disabled="model.busy"> I inspected the workspace and stopped the client.</label>
+    <label><input v-model="model.reviewed" type="checkbox" :disabled="model.busy"> I inspected the workspace and stopped the client and its commands.</label>
     <button type="button" class="cf-btn cf-btn-secondary" :disabled="model.busy || !model.reviewed" @click="model.recover()">Acknowledge recovery</button>
   </PluginSettingsRow>
   <p v-if="model.error" class="cf-plugin-settings-message is-error" role="alert">{{ model.error }}</p>

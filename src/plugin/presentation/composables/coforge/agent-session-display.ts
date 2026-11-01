@@ -6,6 +6,7 @@ import { STAGE_LABELS } from '../../../features/coforge/domain/types';
 import { formatTime } from './format';
 
 export const nativeSessionProvider = (job: AgentJob) => ['claude', 'codex'].includes(job.provider) && job.conversation?.simulated !== true;
+export const mcpCodingSession = (job: AgentJob) => job.provider === 'mcp' && job.conversation?.simulated !== true && job.workflow?.worktreeCoding?.profile === 'mcp-worktree-v1';
 export function ideaSessionJobs(state: AppState | null, idea: Idea): AgentJob[] {
   const projectId = ideaProjectId(idea);
   if (!state || state.activeProjectId !== projectId) return [];
@@ -16,7 +17,7 @@ export function sessionObservation(state: AppState | null, job: AgentJob) {
   const hot = state?.runtime.durableBuildSnapshots?.[job.id];
   const matching = job.durable && hot && sameDurableBuildRef(job.durable.ref, hot.ref) && hot.sequence >= (job.durable.snapshot?.sequence ?? 0) ? hot : undefined;
   return {
-    trace: nativeSessionProvider(job) ? matching?.sessionTrace ?? job.sessionTrace : undefined,
+    trace: nativeSessionProvider(job) || mcpCodingSession(job) ? matching?.sessionTrace ?? job.sessionTrace : undefined,
     verification: matching?.verification ?? matching?.result?.verification ?? job.verification ?? [],
   };
 }
@@ -24,6 +25,7 @@ export const sessionTitle = (job: AgentJob) => job.workflow?.step.name ?? STAGE_
 export const sessionProviderLabel = (job: AgentJob) => ({ claude: 'Claude Code', codex: 'Codex', demo: 'Simulation', mcp: 'External MCP client', herdr: 'Herdr' })[job.provider];
 export function sessionCaptureHint(job: AgentJob, trace?: AgentSessionTrace): string {
   if (job.provider === 'demo' || job.conversation?.simulated) return 'Simulation · No native provider session or live capture.';
+  if (mcpCodingSession(job)) return trace ? 'Host-observed MCP command events for this captured task. This bounded record is not the external client’s full conversation.' : 'No host-observed MCP command events were captured for this task. The external client’s conversation is unavailable here.';
   if (job.provider === 'mcp' || job.provider === 'herdr') return 'External execution · Detailed session visibility is unavailable here.';
   if (!trace && ['failed', 'cancelled'].includes(job.status)) return 'No detailed session capture was recorded. The failure panel identifies the evidence retained for this attempt.';
   return trace ? 'Observed public messages, tool names and session status. This is a bounded capture, not the complete provider conversation.' : ['queued', 'running'].includes(job.status) ? 'No observations captured yet. Detailed provider output is not available for this attempt.' : 'No detailed session capture was recorded for this attempt. Activity retains any captured task and final response.';

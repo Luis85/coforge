@@ -11,6 +11,7 @@ import { postBuildVerification, type PostBuildVerification } from './increment-r
 import { useStudioStore } from '../../stores/coforge-studio';
 
 interface IncrementReviewEvidence {
+  producingAttempt?: { runId: string; attemptId: string; historical: boolean };
   postBuildChecks: PostBuildVerification[];
   verification?: WorkflowVerificationRecord[];
   historicalVerification?: boolean;
@@ -104,6 +105,7 @@ function approvedPolishingEvidence(idea: Idea): IncrementReviewEvidence | undefi
     if (!attempt) continue;
     const criteria = capturedPlanCriteria(idea, pass, attempt.inputs);
     return { criteria, followups: [], postBuildChecks: [], hostCaptured: true, verification: build.increment?.verification ?? [], historicalVerification: true,
+      producingAttempt: { runId: pass.workflow.id, attemptId: build.attemptId, historical: true },
       polishing: { runId: pass.id, artifactId: build.id, ownerRunId: binding.ownerRunId, workspaceId: binding.workspaceId } };
   }
 }
@@ -147,6 +149,7 @@ export function incrementReviewEvidence(idea: Idea, jobs: readonly AgentJob[] = 
     return [{ id: artifact.id, name: attempt.stepName, markdown: artifact.markdown, createdAt: artifact.createdAt, savedLabel: formatTime(artifact.createdAt), assessmentLabel }];
   }).reverse();
   return { criteria: plan?.plan?.acceptanceCriteria ?? [], followups, hostCaptured: aliases.some(item => item.hostSnapshot),
+    producingAttempt: { runId: run.id, attemptId: build.attemptId, historical: false },
     postBuildChecks: postBuildVerification(idea, jobs, run, build, buildIndex, artifacts) };
 }
 

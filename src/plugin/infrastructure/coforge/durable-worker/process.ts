@@ -8,10 +8,12 @@ import { OutputSpool, ProviderOutput } from './output';
 import type { WorkerFiles } from './files';
 import { readNativeProcessIdentity, stopOwnedProcessTree } from './process-identity';
 import { providerFailureFor } from '../../../features/coforge/domain/provider-failure';
+import { captureWorkerNativeCoding } from './native-coding-process';
 
 /** Node owns the child, pipes and cancellation. No renderer/window object participates. */
 export function workerCapture(files: WorkerFiles, hooks: WorkerHooks, provider: 'claude' | 'codex') {
   return async (executable: string, args: readonly string[], options: ProcessOptions): Promise<string> => {
+    if (options.nativeCoding) return captureWorkerNativeCoding(files, hooks, provider, executable, args, options);
     options.signal?.throwIfAborted();
     return new Promise<string>((resolve, reject) => {
       const child = spawn(executable, [...args], { cwd: options.cwd, env: options.env ?? childEnvironment(), shell: false, windowsHide: true,

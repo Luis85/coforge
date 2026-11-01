@@ -12,6 +12,7 @@ import type { PolishingAmendment } from './polishing';
 import { polishingAmendmentsCheck } from './polishing-reference-check';
 import { validateNativeWorkflowTools, workflowVerificationProfileCheck, type WorkflowVerificationProfile } from './native-workflow-tools';
 import { workflowSourceHashCheck, workflowVerificationRecordsCheck } from './workflow-verification';
+import { isWorktreeCodingStep, worktreeCodingCapabilityCheck, type WorktreeCodingCapability } from './worktree-coding';
 export const WORKFLOW_RUN_LIMIT_BYTES = 2 * 1024 * 1024;
 export const WORKFLOW_HISTORY_LIMIT_BYTES = 8 * 1024 * 1024;
 export const WORKFLOW_MARKDOWN_LIMIT = 16000;
@@ -56,6 +57,7 @@ export interface WorkflowRun {
   projectContext?: { name: string; brief: string; agentPrompt: string; projectPath: string; worktreeFolder: string };
 }
 export interface ConfiguredStepExecution {
+  worktreeCoding?: WorktreeCodingCapability;
   verificationProfile?: WorkflowVerificationProfile;
   polishingId?: string; polishingSourceHash?: string; polishingFeedback?: string; polishingPayload?: string; approvedPolishingInputs?: PolishingAmendment[];
   continuationId?: string; sourceRunId?: string; sourceRunHash?: string;
@@ -159,11 +161,13 @@ export function configuredStepExecutionCheck(value: unknown): ConfiguredStepExec
     outputTemplate: optional(workflowOutputTemplateCheck),
     automationEvent: optional(automationContextCheck),
     verificationProfile: optional(workflowVerificationProfileCheck),
+    worktreeCoding: optional(worktreeCodingCapabilityCheck),
     step: workflowStepCheck, inputArtifacts: list(workflowArtifactCheck, { max: 200 }), workspaceId: optional(workflowIdCheck) }, { strict: true })(value);
   if (checked.step.kind !== 'ai') throw new Error('Only an AI step can be dispatched to a provider.');
-  validateNativeWorkflowTools(checked.step, checked.step.provider);
+  if (checked.worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(checked.step, checked.step.provider, false, checked.worktreeCoding?.profile === 'native-worktree-v1');
+  if (checked.worktreeCoding && !isWorktreeCodingStep(checked.step, checked.worktreeCoding.profile === 'mcp-worktree-v1' ? 'mcp' : checked.step.provider)) throw new Error('Worktree coding requires an admitted code-change step with worktree editing.');
   const requested = checked.step.nativeTools?.verification?.commandIds;
-  if (!!requested !== !!checked.verificationProfile || checked.verificationProfile && (!checked.verificationProfile.enabled || checked.verificationProfile.commands.length !== requested?.length || checked.verificationProfile.commands.some(command => !requested?.includes(command.id)))) throw new Error('The captured verification profile does not match this step.');
+  if (checked.worktreeCoding ? !!checked.verificationProfile : !!requested !== !!checked.verificationProfile || checked.verificationProfile && (!checked.verificationProfile.enabled || checked.verificationProfile.commands.length !== requested?.length || checked.verificationProfile.commands.some(command => !requested?.includes(command.id)))) throw new Error('The captured verification profile does not match this step.');
   if (checked.step.coworkerId !== checked.coworker?.id || checked.coworker && (checked.coworker.provider !== checked.step.provider || checked.coworker.model !== checked.step.model || checked.coworker.effort !== checked.step.effort)) throw new Error('The captured CoWorker does not match this AI step.');
   if (checked.step.outputTemplateId !== checked.outputTemplate?.id) throw new Error('The captured output template does not match this step.');
   if (!!checked.polishingId !== !!checked.polishingSourceHash) throw new Error('The polishing source provenance is incomplete.');

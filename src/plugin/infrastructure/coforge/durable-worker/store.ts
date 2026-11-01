@@ -9,13 +9,14 @@ import { recoverWorkerVerification } from './verification-recovery';
 import { nativeWorkflowPrivateRuntimeCheck } from '../../../features/coforge/domain/native-workflow-process';
 import { appendAgentSessionEvent, type AgentSessionEvent } from '../../../features/coforge/domain/agent-session';
 import { readWorkerSession, writeWorkerSession } from './session-journal';
+import { nativeWorkflowLifetimeRefCheck } from '../../../features/coforge/domain/native-workflow-lifetime';
 
 const idsCheck = list(text({ pattern: /^build-[a-f0-9]{40}$/u }), { max: 1000 });
 export const nativeIdentityCheck = shape({ pid: number({ integer: true, min: 1 }), platform: text({ min: 1, max: 40 }), birth: text({ min: 1, max: 320 }),
   image: text({ pattern: /^[a-f0-9]{64}$/u }), groupId: optional(number({ integer: true, min: 1 })) }, { strict: true });
 const workerRecordShape = shape({ snapshot: durableBuildSnapshotCheck, acknowledgedSequence: optional(number({ integer: true, min: 0 })),
   provider: optional(shape({ pid: number({ integer: true, min: 1 }), launchId: text({ min: 1, max: 160 }), startedAt: text({ min: 1, max: 100 }), identity: optional(nativeIdentityCheck),
-    contractCompletedAt: optional(timestamp), treeTerminatedAt: optional(timestamp) }, { strict: true })),
+    contractCompletedAt: optional(timestamp), treeTerminatedAt: optional(timestamp), lifetime: optional(nativeWorkflowLifetimeRefCheck) }, { strict: true })),
   terminationUnknown: optional(boolean),
   verificationRuntime: optional(workflowVerificationRuntimeRecordsCheck),
   nativeRuntime: optional(nativeWorkflowPrivateRuntimeCheck),
@@ -26,6 +27,7 @@ const workerRecordShape = shape({ snapshot: durableBuildSnapshotCheck, acknowled
 export const workerRecordCheck = (value: unknown) => {
   const record = workerRecordShape(value);
   if ((record.provider?.contractCompletedAt || record.provider?.treeTerminatedAt) && !record.provider.identity) throw new Error('Original provider identity is required for a quiescence receipt.');
+  if (record.provider?.lifetime && !record.provider.identity) throw new Error('Original controller identity is required for native lifetime authority.');
   return record;
 };
 const recordCheck = workerRecordCheck;
@@ -51,6 +53,7 @@ export class WorkerStore {
       const record = recordCheck(await files.read('record.json'));
       if (record.snapshot.ref.executionId !== id || record.snapshot.ref.inputHash !== inputHash(request)) throw new Error('Build authorization identity changed.');
       if (record.nativeRuntime && (record.nativeRuntime.runId !== request.runId || record.nativeRuntime.attemptId !== request.attemptId || record.nativeRuntime.projectId !== request.projectId)) throw new Error('Private native authorization identity changed.');
+      if (record.provider?.lifetime && (record.provider.lifetime.runId !== request.runId || record.provider.lifetime.attemptId !== request.attemptId || record.provider.lifetime.projectId !== request.projectId)) throw new Error('Private native lifetime authorization changed.');
       record.snapshot.sessionTrace = await readWorkerSession(files, record.snapshot.ref, record.snapshot.sessionTrace);
       this.jobs.set(id, { request, record, files });
     }

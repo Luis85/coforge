@@ -18,7 +18,7 @@ export const WORKFLOW_OUTPUT_LABELS = {
 export const WORKFLOW_ACCESS_LABELS = {
   none: "No project access",
   readproject: "Read project",
-  editworktree: "Edit isolated worktree",
+  editworktree: "Edit dedicated Git worktree",
 } as const;
 export const WORKFLOW_KIND_LABELS = {
   council: "Ask Council",
