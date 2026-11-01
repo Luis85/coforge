@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useDurableBuildMonitor } from "../../composables/coforge/use-durable-build-monitor";
 import DurableBuildRecovery from "./DurableBuildRecovery.vue";
-const props = defineProps<{ ideaId: string; runId?: string }>();
+const props = defineProps<{ ideaId: string; runId?: string; jobId?: string }>();
 const build = useDurableBuildMonitor(
   () => props.ideaId,
   () => props.runId,
+  () => props.jobId,
 );
 </script>
 <template>

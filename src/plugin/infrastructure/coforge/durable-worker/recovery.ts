@@ -1,4 +1,5 @@
-import { list, oneOf, shape, text } from '../../../features/coforge/domain/check';
+import { list, oneOf, optional, shape, text } from '../../../features/coforge/domain/check';
+import { providerFailureFor, providerFailureInfoCheck, providerFailureMessage } from '../../../features/coforge/domain/provider-failure';
 import { durableBuildRefCheck, durableBuildResultCheck, durableBuildTerminal, sameDurableBuildRef, type DurableBuildInspection, type DurableBuildRef, type DurableBuildSnapshot } from '../../../features/coforge/domain/durable-build';
 import { WorkerFiles } from './files';
 import { workerRecordCheck, workerSnapshot, nativeIdentityCheck, type WorkerRecord, type WorkerStore } from './store';
@@ -93,9 +94,9 @@ export class WorkerRecovery {
     } else {
       const failed = await original.files.read('failure.json');
       if (failed !== undefined) {
-        const prepared = shape({ version: oneOf([1] as const), ref: durableBuildRefCheck, providerTerminated: confirmed, phase: oneOf(['failed', 'cancelled'] as const), increment: (value: unknown) => value === undefined ? undefined : durableBuildResultCheck({ increment: value }).increment }, { strict: true })(failed);
+        const prepared = shape({ version: oneOf([1] as const), ref: durableBuildRefCheck, providerTerminated: confirmed, phase: oneOf(['failed', 'cancelled'] as const), failure: optional(providerFailureInfoCheck), increment: (value: unknown) => value === undefined ? undefined : durableBuildResultCheck({ increment: value }).increment }, { strict: true })(failed);
         if (!sameDurableBuildRef(prepared.ref, ref)) throw new Error('The prepared interruption identity changed.');
-        next.snapshot.phase = prepared.phase; proven = true;
+        next.snapshot.phase = prepared.phase; if (prepared.failure) next.snapshot.failure = prepared.failure; proven = true;
       } else if (!next.startIntent && !next.provider && next.snapshot.phase === 'prepared') {
         next.snapshot.phase = 'cancelled'; next.reservationReleased = true; proven = true;
       } else if (!next.provider && next.nativeRuntime) {
@@ -132,10 +133,12 @@ export class WorkerRecovery {
         await workspaces.acknowledge(actual.record.id, original.request.attemptId, true);
       }
       next.terminationUnknown = false; next.recovery = { version: 1, evidenceHash, observedAt, quiescent: true, workspaceCaptured: Boolean(actual.record), increment: next.snapshot.increment };
-      next.snapshot.error = next.snapshot.phase === 'completed' ? undefined : 'Original execution termination and retained workspace were verified. No provider was resumed; explicit Restart is required.';
+      if (next.snapshot.failure) next.snapshot.failure = providerFailureFor(next.snapshot.failure.code);
+      next.snapshot.error = next.snapshot.phase === 'completed' ? undefined : `${next.snapshot.failure ? providerFailureMessage(next.snapshot.failure) + ' ' : ''}Original execution termination and retained workspace were verified. No provider was resumed; explicit Restart is required.`;
     } else {
       next.snapshot.phase = 'attention'; next.terminationUnknown = true;
-      next.snapshot.error = 'Original process-tree termination remains unverified. Retained work stays quarantined; no unrelated process was signalled.';
+      if (next.snapshot.failure) next.snapshot.failure = providerFailureFor(next.snapshot.failure.code, true);
+      next.snapshot.error = `${next.snapshot.failure ? providerFailureMessage(next.snapshot.failure, true) + ' ' : ''}Original process-tree termination remains unverified. Retained work stays quarantined; no unrelated process was signalled.`;
     }
     return this.commit(ref, next);
   }

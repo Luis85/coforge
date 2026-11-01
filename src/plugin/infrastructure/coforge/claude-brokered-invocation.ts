@@ -6,12 +6,14 @@ import type { WorkflowWorkspaceLease } from '../../features/coforge/application/
 import { executionAccess, executionTaskPrompt } from '../../features/coforge/application/workflow-execution';
 import { brokeredClaudeArgs, prepareNativeClaude } from './claude-native-tools';
 import { codexWorkflowTools } from './codex-workflow-tools';
-import { captureProcess, ProcessFailure } from './process';
+import { captureProcess, ProcessFailure, ProcessOwnershipUnknown } from './process';
+import { assignProviderFailure, providerFailureFor, providerFailureInfo, providerFailureMessage } from '../../features/coforge/domain/provider-failure';
 import type { NativeWorkflowProcessRecord } from '../../features/coforge/domain/native-workflow-process';
 import { usesNativeClaudeTools } from './claude-native-tools';
 import { ideaProjectId } from '../../features/coforge/domain/projects';
 import type { NativeProcessIdentity } from './durable-worker/process-identity';
 import { captureObservedClaude } from './claude-observed-capture';
+import { persistProviderEvidence, validateProviderWorkspace } from './provider-evidence';
 
 /** Native Agent children share this invocation's broker, lease and cumulative tool/test limits. */
 export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorkspaceLease, command: string, capture: typeof captureProcess) {
@@ -21,8 +23,8 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
   if ((lease.readOnly || lease.protectedProjectPaths !== undefined) && executionAccess(input) === 'readproject'
     && (!lease.readOnly || !lease.validate || lease.protectedProjectPaths === undefined))
     throw new Error('Inherited Build access requires a qualified read-only lease with protected paths and validation.');
-  input.signal?.throwIfAborted(); await lease.validate?.();
-  if (lease.id) await input.onWorkspace?.(lease.id);
+  input.signal?.throwIfAborted(); await validateProviderWorkspace(() => lease.validate?.());
+  if (lease.id) await persistProviderEvidence(() => input.onWorkspace?.(lease.id!));
   const directory = await mkdtemp(join(tmpdir(), 'coforge-claude-native-'));
   let bridge: Awaited<ReturnType<typeof codexWorkflowTools>> | undefined;
   let disposed = false;
@@ -30,7 +32,7 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
   const observe = async (identity: NativeProcessIdentity, phase: NativeWorkflowProcessRecord['phase']) => {
     if (!usesNativeClaudeTools(input)) return;
     const record: NativeWorkflowProcessRecord = { runId: input.workflow!.runId, attemptId: input.workflow!.attemptId, projectId: ideaProjectId(input.idea), identity, phase, observedAt: new Date().toISOString() };
-    await input.onNativeProcess!(record); processRecord = record;
+    await persistProviderEvidence(() => input.onNativeProcess!(record)); processRecord = record;
   };
   const dispose = async () => {
     if (disposed) return; disposed = true;
@@ -56,13 +58,17 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
         await observe(processRecord.identity, 'terminated');
       }, run: async () => {
       const args = brokeredClaudeArgs(input, config); const prompt = executionTaskPrompt(input);
-      await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt });
-      input.signal?.throwIfAborted(); await lease.validate?.();
+      await persistProviderEvidence(() => input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt }));
+      input.signal?.throwIfAborted(); await validateProviderWorkspace(() => lease.validate?.());
       const raw = await captureObservedClaude(input, command, args, { cwd: directory, input: prompt, signal: input.signal,
         timeoutMs: input.settings.timeoutSeconds * 1000, ownedTree: true, onOwnedProcess: observe }, capture, { COFORGE_SESSION_TOKEN: scoped.token });
       await scoped.dispose();
-      try { scoped.assertBudget(); input.signal?.throwIfAborted(); await lease.validate?.(); }
-      catch (error) { throw new ProcessFailure(error instanceof Error ? error.message : 'Scoped Claude verification failed.', raw); }
+      try { scoped.assertBudget(); input.signal?.throwIfAborted(); await validateProviderWorkspace(() => lease.validate?.()); }
+      catch (error) {
+        if (error instanceof ProcessOwnershipUnknown) throw new ProcessOwnershipUnknown(raw, error.diagnostic, providerFailureInfo(error));
+        const info = providerFailureInfo(error) ?? providerFailureFor('execution_failed');
+        throw assignProviderFailure(new ProcessFailure(providerFailureMessage(info), raw), info);
+      }
       return raw;
     } };
   } catch (error) { await dispose(); throw error; }

@@ -100,7 +100,7 @@ it('retains the provider response before semantic output validation rejects it',
   const input: StageInput = { stage: 'plan', idea: createSeed().ideas[0]!, settings: { ...defaultSettings(), provider: 'codex', model: 'gpt-6.1-sol' }, integration: { ...defaultIntegration(), codexBin: 'synthetic-codex' }, onConversation,
     workflow: { runId: 'run', definitionRevision: 'definition', proposalRevision: 'proposal', attemptId: 'attempt', inputArtifacts: [], step: { id: 'review', name: 'Review', kind: 'ai', provider: 'codex', model: 'gpt-6.1-sol', instructions: 'Review', output: 'markdown', access: 'none', automatic: false } } };
   transport.run.mockResolvedValue(envelope({ markdown: 42 }));
-  await expect(runCodexStage(input, { acquire: async () => lease, assertReviewable: async () => {}, start: async () => {}, acknowledge: async () => {} })).rejects.toThrow('expected text');
+  await expect(runCodexStage(input, { acquire: async () => lease, assertReviewable: async () => {}, start: async () => {}, acknowledge: async () => {} })).rejects.toMatchObject({ failure: { code: 'output_validation' } });
   expect(onConversation).toHaveBeenCalledWith({ kind: 'response', text: '{"markdown":42}' });
   expect(lease.release).toHaveBeenCalledOnce();
 });

@@ -1,9 +1,10 @@
 import type { StageInput } from '../../features/coforge/application/ports';
 import { redact } from './process';
+import { persistProviderEvidence } from './provider-evidence';
 
 /** The CLI exposes a final result, not its hidden reasoning or complete internal tool conversation. */
 export async function captureClaudeResponse(input: StageInput, raw: string): Promise<void> {
-  const capture = (text: string) => input.onConversation?.({ kind: 'response', text: redact(text) });
+  const capture = (text: string) => persistProviderEvidence(() => input.onConversation?.({ kind: 'response', text: redact(text) }));
   let value: unknown;
   try { value = JSON.parse(raw); }
   catch { if (raw.trim()) await capture(raw); return; }

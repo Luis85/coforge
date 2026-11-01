@@ -51,7 +51,7 @@ it('captures the exact guarded Codex input before dispatch and the original mess
 
 it('retains malformed final text before rejecting structured JSON', async () => {
   const f = await fixture(stream(message('The provider returned text instead of JSON.'), completed));
-  await expect(runCodexTransport(f.input)).rejects.toThrow('invalid structured output');
+  await expect(runCodexTransport(f.input)).rejects.toMatchObject({ failure: { code: 'output_validation' } });
   expect(f.events[1]).toEqual({ kind: 'response', text: 'The provider returned text instead of JSON.' });
   expect(f.telemetry).toHaveBeenCalledWith({ inputTokens: 30, cacheReadInputTokens: 10, outputTokens: 8 });
 });
@@ -65,7 +65,7 @@ it('retains available assistant text from a failed process without exposing tool
   );
   const f = await fixture();
   f.capture.mockRejectedValue(new ProcessFailure('Process exited with code 1.', raw));
-  await expect(runCodexTransport(f.input)).rejects.toThrow('Codex did not complete');
+  await expect(runCodexTransport(f.input)).rejects.toMatchObject({ failure: { code: 'execution_failed' } });
   expect(f.events[1]).toEqual({ kind: 'response', text: 'Partial answer before failure.' });
   expect(JSON.stringify(f.events)).not.toContain('PRIVATE_');
   expect(f.telemetry).toHaveBeenCalledWith({ inputTokens: 30, cacheReadInputTokens: 10, outputTokens: 8 });
@@ -86,14 +86,14 @@ it('redacts known credentials and the temporary scoped-tool token from retained 
 it('does not dispatch when saving captured input fails', async () => {
   const f = await fixture();
   f.input.onConversation = async () => { throw new Error('Conversation write failed'); };
-  await expect(runCodexTransport(f.input)).rejects.toThrow('Conversation write failed');
+  await expect(runCodexTransport(f.input)).rejects.toMatchObject({ failure: { code: 'persistence' } });
   expect(f.capture).not.toHaveBeenCalled();
 });
 
 it('preserves token telemetry and rejects completion when saving returned evidence fails', async () => {
   const f = await fixture();
   f.input.onConversation = async event => { if (event.kind === 'response') throw new Error('Response write failed'); };
-  await expect(runCodexTransport(f.input)).rejects.toThrow('Response write failed');
+  await expect(runCodexTransport(f.input)).rejects.toMatchObject({ failure: { code: 'persistence' } });
   expect(f.telemetry).toHaveBeenCalledWith({ inputTokens: 30, cacheReadInputTokens: 10, outputTokens: 8 });
   expect(f.capture).toHaveBeenCalledOnce();
 });

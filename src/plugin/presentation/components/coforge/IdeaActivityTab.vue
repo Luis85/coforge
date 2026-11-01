@@ -3,10 +3,15 @@ import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer'
 import CfIcon from './CfIcon.vue';
 import IdeaRunHistory from './IdeaRunHistory.vue';
 import NativeWorkflowRecovery from './NativeWorkflowRecovery.vue';
+import DurableBuildStatus from './DurableBuildStatus.vue';
+import RecordedAttemptFailure from './RecordedAttemptFailure.vue';
+import { useAttemptInspection } from '../../composables/coforge/use-attempt-inspection';
 
 const drawer = useIdeaDrawerContext();
+const inspection = useAttemptInspection();
 </script>
 <template>
+  <RecordedAttemptFailure v-if="!drawer.store.inspectedJob && drawer.failureJobId" :job-id="drawer.failureJobId" />
   <section class="cf-idea-section">
     <h3><CfIcon name="history" /> Idea timeline</h3>
     <ol v-if="drawer.activity.length > 0" class="cf-idea-timeline">
@@ -23,7 +28,7 @@ const drawer = useIdeaDrawerContext();
   <section class="cf-idea-section">
     <h3><CfIcon name="bot" /> Agent runs</h3>
     <p v-if="drawer.jobs.length" class="cf-idea-help">Expand a run to inspect its chat history and execution log.</p>
-    <details v-for="job in drawer.jobs" :key="job.id" class="cf-idea-run" :data-job-id="job.id">
+    <details v-for="job in drawer.jobs" :key="job.id" :ref="inspection.bind" class="cf-idea-run" :data-job-id="job.id" :open="drawer.store.inspectedJob?.id === job.id">
       <summary>
         <CfIcon name="chevron-right" class="cf-idea-run-chevron" size="sm" />
         <span class="cf-idea-run-heading">
@@ -39,7 +44,10 @@ const drawer = useIdeaDrawerContext();
         <span class="cf-muted cf-idea-run-status">{{ job.status }}</span>
       </summary>
       <IdeaRunHistory :job="job" />
-      <NativeWorkflowRecovery :job-id="job.id" />
+      <div data-attempt-section="recovery">
+        <NativeWorkflowRecovery :job-id="job.id" />
+        <DurableBuildStatus v-if="job.durable" :idea-id="drawer.idea?.id ?? ''" :run-id="job.runId" :job-id="job.id" />
+      </div>
     </details>
     <p v-if="drawer.jobs.length === 0" class="cf-idea-help">No agent runs yet.</p>
   </section>

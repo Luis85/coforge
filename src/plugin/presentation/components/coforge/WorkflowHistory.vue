@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { WorkflowModel } from "../../composables/coforge/use-workflow";
 import CfIcon from "./CfIcon.vue";
+import RecordedAttemptFailure from './RecordedAttemptFailure.vue';
 
 defineProps<{ model: WorkflowModel }>();
 </script>
@@ -45,6 +46,7 @@ defineProps<{ model: WorkflowModel }>();
           </span>
         </summary>
         <div class="cf-workflow-history-body">
+          <RecordedAttemptFailure v-if="job.jobId" :job-id="job.jobId" />
           <p class="cf-workflow-help">Started {{ job.time }}</p>
           <div class="cf-workflow-inline">
             <button v-if="job.councilRunId" type="button" class="cf-btn cf-btn-secondary cf-workflow-small-button" :aria-label="`Read Council discussion ${job.councilName} for ${job.stageLabel}`" @click="model.inspectCouncil(job.councilRunId, job.councilProjectId)">Read Council discussion</button>

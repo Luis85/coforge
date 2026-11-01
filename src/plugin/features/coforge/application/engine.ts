@@ -19,6 +19,7 @@ import type { AutomationContext } from '../domain/automation-context';
 import type { AgentTaskPort } from './agent-task';
 import { recordAgentConversation } from './agent-conversation';
 import { recordAgentSessionEvent } from './agent-session';
+import { providerFailureFor, providerFailureInfo, providerFailureMessage } from '../domain/provider-failure';
 import { DurableBuildCoordinator } from './durable-build-coordinator';
 import { DurableBuildCapacityError, type DurableBuildPort } from './durable-build-ports';
 import { WorkflowJobLanes, workerBackedJob } from './workflow-job-lanes';
@@ -382,10 +383,11 @@ export class WorkflowEngine {
   }
 
   private async fail(next: AgentJob, cancelled: boolean, error: unknown): Promise<void> {
-    const message = cancelled ? 'Run cancelled. Inspect any partial worktree before retrying.' : errorMessage(error);
+    const failure = providerFailureInfo(error) ?? (cancelled ? providerFailureFor('cancelled') : undefined);
+    const message = failure ? providerFailureMessage(failure) : errorMessage(error);
     await this.store.transaction(state => {
       const job = state.jobs.find(j => j.id === next.id);
-      if (job) { job.status = cancelled ? 'cancelled' : 'failed'; job.error = message; job.finishedAt = new Date().toISOString(); job.logs.push(message); }
+      if (job) { job.status = cancelled ? 'cancelled' : 'failed'; job.error = message; job.failure = failure; job.finishedAt = new Date().toISOString(); job.logs.push(message); }
       if (job) recordOperation(state, cancelled ? 'job-cancelled' : 'job-failed', cancelled ? 'committed' : 'none');
       const idea = state.ideas.find(i => i.id === next.ideaId);
       if (idea) { idea.lastError = message; idea.updatedAt = new Date().toISOString(); if (idea.status === 'building') idea.status = 'planned'; }

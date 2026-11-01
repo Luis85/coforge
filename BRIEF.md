@@ -591,6 +591,26 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-11-01: simplify coding dispatch. Future native Build and polishing
+  admissions use a dedicated owned worktree and the provider's normal coding
+  tools, shell, tests and native assistants. Docker images and approved-command
+  lists are not prerequisites for this ordinary flow. Preserve already captured
+  attempts and their existing execution contracts. A worktree separates Git
+  changes, not the operating system: use explicit supported provider workspace
+  permissions under the current desktop account, without administrator rights
+  or a silent bypass-permissions fallback. Keep original-process/descendant
+  lifetime, cancellation, retained changes, cost provenance and human acceptance
+  boundaries. Classifiers and read-only steps retain their intended access.
+- 2026-11-01: CF-133 follow-up: fix plugin-origin edits being reported as
+  outside changes and make failed Builds explain the available cause and next
+  action. Preserve genuine external-edit protection, captured-input invalidation,
+  original execution ownership, retained changes and explicit recovery. Missing
+  historical diagnostics must remain unknown rather than inventing a cause.
+  Add a dedicated read-only AI costs tab in request details, scoped to the
+  request and project, with attempt breakdown, known USD subtotal, provenance,
+  token coverage and explicit unavailable/simulated values. Include failed and
+  retried attempts without double-counting native assistants. Reuse canonical
+  cost history; viewing costs never dispatches or changes a provider or charge.
 - 2026-11-01: add Sessions on private Idea cards to inspect active and previous
   AI attempts. Reuse the card drawer for a session list and read-only live Peek:
   observed assistant messages, tool activity, verification output, elapsed time,

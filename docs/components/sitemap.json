@@ -2335,6 +2335,43 @@
       "file": "idea-activity.md"
     },
     {
+      "id": "idea-ai-costs",
+      "title": "Request AI costs",
+      "goal": "Understand the recorded AI cost and usage of one request.",
+      "audience": "streamer",
+      "kind": "subpage",
+      "route": "studio.drawerTab = ai-costs",
+      "parent": "idea-detail",
+      "component": "src/plugin/presentation/components/coforge/IdeaAICostsTab.vue",
+      "entry": [
+        "Open request details and choose AI costs."
+      ],
+      "actions": [
+        "Read known USD subtotal and cost coverage",
+        "Inspect attempt status, captured provider/model and cost provenance",
+        "Read available token usage and historical failed or retried charges",
+        "Refresh retained cost history without dispatching a provider"
+      ],
+      "states": [
+        "No recorded attempts",
+        "Loading or unavailable cost history",
+        "Known provider-reported or manual cost",
+        "Unknown cost or token coverage",
+        "Simulation or not-started attempt"
+      ],
+      "journeys": [
+        "request-to-recognition"
+      ],
+      "privacy": "Private project/request cost history; excluded from public projections.",
+      "coverage": {
+        "group": "idea",
+        "key": "ai-costs"
+      },
+      "order": 26900,
+      "type": "Task",
+      "file": "idea-ai-costs.md"
+    },
+    {
       "id": "idea-create",
       "title": "New request",
       "goal": "Record a request in the selected project.",

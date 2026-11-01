@@ -7,6 +7,8 @@ import {
   executionSystemPrompt,
 } from "./workflow-execution";
 import type { ConfiguredStepExecution } from "../domain/configured-workflow-run";
+import { assignProviderFailure, ProviderFailureError, providerFailureFor } from '../domain/provider-failure';
+import { classifyProviderFailure } from './provider-failure-classification';
 import { reasoningEffortCheck, validateModelEffort, type ReasoningEffort } from '../domain/provider-models';
 import {
   hasTokenUsage,
@@ -130,7 +132,7 @@ export function parseClaudeEnvelope(raw: string): {
   try {
     parsed = JSON.parse(raw.trim());
   } catch {
-    throw new Error("Claude returned invalid JSON. The idea was not advanced.");
+    throw assignProviderFailure(new Error("Claude returned invalid JSON. The idea was not advanced."), providerFailureFor('output_validation'));
   }
   let envelope: Record<string, unknown>;
   try {
@@ -140,18 +142,17 @@ export function parseClaudeEnvelope(raw: string): {
     boolean(envelope.is_error);
     optional(number({ min: 0 }))(envelope.total_cost_usd);
   } catch {
-    throw new Error(
+    throw assignProviderFailure(new Error(
       "Claude returned an unexpected result envelope. The idea was not advanced.",
-    );
+    ), providerFailureFor('output_validation'));
   }
   if (envelope.is_error || envelope.subtype !== "success")
-    throw new Error(
-      `Claude did not complete successfully (${String(envelope.subtype)}). Check authentication, budget and turn limits.`,
-    );
+    { const failure = new ProviderFailureError(classifyProviderFailure('claude', { subtype: envelope.subtype, failureCode: envelope.coforge_failure_code, errors: envelope.errors }) ?? providerFailureFor('provider_error'));
+      failure.message = `Claude did not complete successfully. ${failure.message}`; throw failure; }
   if (envelope.structured_output === undefined)
-    throw new Error(
+    throw assignProviderFailure(new Error(
       "Claude did not return structured_output. Update Claude Code or inspect the configured model; the idea was not advanced.",
-    );
+    ), providerFailureFor('output_validation'));
   const cost = envelope.total_cost_usd;
   return {
     output: envelope.structured_output,

@@ -28,6 +28,7 @@ const phaseLabels = {
 export function useDurableBuildMonitor(
   ideaId: () => string,
   runId: () => string | undefined,
+  jobId: () => string | undefined = () => undefined,
 ) {
   const store = useStudioStore();
   const actions = useStudioActions();
@@ -55,6 +56,7 @@ export function useDurableBuildMonitor(
         (runId() ? item.workflow?.runId === runId() : !item.workflow),
     );
     const active = run.value?.activeAttemptId;
+    if (jobId()) return jobs.find(job => job.id === jobId());
     return (
       (active
         ? jobs.find((item) => item.workflow?.attemptId === active)

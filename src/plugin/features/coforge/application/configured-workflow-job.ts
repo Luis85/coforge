@@ -10,6 +10,7 @@ import { DurableBuildCapacityError } from './durable-build-ports';
 import { workflowAttemptWorkspace } from '../domain/workflow-execution-step';
 import { workflowRunOwner } from './workflow-run-owner';
 import { effectivePolishingIdea } from './polishing-amendments';
+import { providerFailureFor, providerFailureInfo, providerFailureMessage } from '../domain/provider-failure';
 
 const now = () => new Date().toISOString();
 export function configuredJobInput(state: InternalState, job: AgentJob, signal?: AbortSignal, start = true): StageInput | null {
@@ -49,9 +50,10 @@ export function completeConfiguredJob(state: InternalState, job: AgentJob, resul
 }
 
 export function failConfiguredJob(state: InternalState, job: AgentJob, cancelled: boolean, error: unknown): void {
-  const message = cleanText(`${cancelled ? 'Cancelled. ' : ''}${errorMessage(error)}`, 3900) || 'The step did not complete. Inspect its resources before explicitly retrying.';
+  const failure = providerFailureInfo(error) ?? (cancelled ? providerFailureFor('cancelled') : undefined);
+  const message = cleanText(`${cancelled ? 'Cancelled. ' : ''}${failure ? providerFailureMessage(failure) : errorMessage(error)}`, 3900) || 'The step did not complete. Inspect its resources before explicitly retrying.';
   const current = state.jobs.find(item => item.id === job.id);
-  if (current) { current.status = cancelled ? 'cancelled' : 'failed'; current.finishedAt = now(); current.error = message; }
+  if (current) { current.status = cancelled ? 'cancelled' : 'failed'; current.finishedAt = now(); current.error = message; current.failure = failure; }
   const idea = state.ideas.find(item => item.id === job.ideaId); const run = idea && job.workflow ? workflowRunOwner(idea, job.workflow.runId) : undefined;
   if (idea && run && run.id === job.workflow?.runId) {
     const attempt = run.attempts.find(item => item.id === job.workflow?.attemptId);

@@ -5,6 +5,8 @@ import { executionAccess, executionSystemPrompt } from '../../features/coforge/a
 import { buildRestrictedClaudeArgs } from '../../features/coforge/application/claude-protocol';
 import { executionSchema } from '../../features/coforge/application/workflow-execution';
 import type { captureProcess } from './process';
+import { assignProviderFailure, providerFailureFor } from '../../features/coforge/domain/provider-failure';
+import { diagnoseProviderFailure } from './provider-failure';
 
 const READ_TOOLS = ['coforge_list_files', 'coforge_read_file', 'coforge_search_files'];
 const WRITE_TOOLS = ['coforge_write_file', 'coforge_delete_file'];
@@ -61,13 +63,15 @@ export function brokeredClaudeArgs(input: StageInput, configPath: string): strin
 export async function prepareNativeClaude(input: StageInput, configPath: string, command: string, capture: typeof captureProcess): Promise<void> {
   if (!usesNativeClaudeTools(input)) return;
   const options = { cwd: dirname(configPath), timeoutMs: 5000, maxBytes: 64000 };
-  const version = await capture(command, ['--version'], options);
+  let version: string;
+  try { version = await capture(command, ['--version'], options); } catch (error) { throw diagnoseProviderFailure('claude', error); }
   const match = version.match(/\b(\d+)\.(\d+)\.(\d+)\b/u);
   if (!match || Number(match[1]) < 2 || Number(match[1]) === 2 && (Number(match[2]) < 1 || Number(match[2]) === 1 && Number(match[3]) < 281))
-    throw new Error('Native workflow tools require Claude Code 2.1.281 or later. No permissive fallback is available.');
-  const help = await capture(command, ['--help'], options);
+    throw assignProviderFailure(new Error('Native workflow tools require Claude Code 2.1.281 or later. No permissive fallback is available.'), providerFailureFor('capability'));
+  let help: string;
+  try { help = await capture(command, ['--help'], options); } catch (error) { throw diagnoseProviderFailure('claude', error); }
   for (const flag of ['--agents', '--agent', '--restricted', '--strict-mcp-config', '--permission-prompts', '--max-budget-usd'])
-    if (!help.includes(flag)) throw new Error('The installed Claude CLI does not expose the required native workflow controls. No provider was dispatched.');
+    if (!help.includes(flag)) throw assignProviderFailure(new Error('The installed Claude CLI does not expose the required native workflow controls. No provider was dispatched.'), providerFailureFor('capability'));
   input.signal?.throwIfAborted();
   if (nativeClaudeDelegation(input)) await writeFile(join(dirname(configPath), 'agents.json'), JSON.stringify(claudeNativeDefinitions(input)), { flag: 'wx', mode: 0o600 });
 }

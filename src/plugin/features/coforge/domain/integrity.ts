@@ -1,5 +1,6 @@
 import type { Idea, IdeaStatus } from './types';
 import { requestObjectIdentity } from './request-object';
+import { cleanDeep } from './sanitize';
 
 /**
  * Idea notes can be edited, synced or added outside CoForge. Everything a later stage relies on (the screened
@@ -13,14 +14,15 @@ import { hash } from './integrity-hash';
 export { contextEventId } from './integrity-hash';
 
 export function ideaFingerprint(idea: Pick<Idea, 'title' | 'description' | 'category' | 'status' | 'screening' | 'rice' | 'plan' | 'reviewNote' | 'projectId' | 'requestKind' | 'contexts' | 'requestObject'>): string {
-  return hash(JSON.stringify([
+  // Compare the same normalized managed input that parseIdeaNote reads; workflow/artifact anchors stay byte-sensitive.
+  return hash(JSON.stringify(cleanDeep([
     idea.title, idea.description, idea.category, idea.status, idea.screening?.verdict ?? null,
     idea.rice ? [idea.rice.reach, idea.rice.impact, idea.rice.confidence, idea.rice.effort] : null,
     idea.plan ? [idea.plan.summary, idea.plan.steps, idea.plan.acceptanceCriteria, idea.plan.risks] : null,
     idea.reviewNote ?? null, ...(idea.projectId ? [idea.projectId] : []), ...(idea.requestKind === 'bug' ? ['bug'] : []),
     ...(idea.contexts?.length ? [idea.contexts] : []),
     ...(idea.requestObject ? [requestObjectIdentity(idea.requestObject)] : []),
-  ]));
+  ])));
 }
 
 export const needsVerification = (idea: Pick<Idea, 'status'>): boolean => VERIFIED_STATUSES.includes(idea.status);

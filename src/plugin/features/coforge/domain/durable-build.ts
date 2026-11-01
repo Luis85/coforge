@@ -4,6 +4,7 @@ import { stageUsageCheck, type StageUsage } from './ai-usage';
 import { agentConversationCheck, type AgentConversation } from './agent-conversation';
 import { workflowVerificationRecordsCheck, workflowSourceHashCheck, type WorkflowVerificationRecord } from './workflow-verification';
 import { agentSessionTraceCheck, type AgentSessionTrace } from './agent-session';
+import { providerFailureInfoCheck, type ProviderFailureInfo } from './provider-failure';
 
 /** Missing execution policy preserves foreground behavior. Missing deadline permits long quiet work. */
 export interface DurableBuildPolicy { mode: 'background'; maxRuntimeSeconds?: number; idleWarningSeconds?: number; maxTurns?: number; maxBudgetUsd?: number }
@@ -23,6 +24,7 @@ const increment = shape({ summary: text({ min: 1, max: 6000 }), files: list(shap
 const money = number({ min: 0 });
 export const durableBuildResultCheck = shape({ summary: optional(text({ max: 6000 })), increment: optional(increment), costUsd: optional(money), usage: optional(stageUsageCheck), verification: optional(workflowVerificationRecordsCheck) }, { strict: true });
 export interface DurableBuildSnapshot {
+  failure?: ProviderFailureInfo;
   version: 1; ref: DurableBuildRef; sequence: number; phase: DurableBuildPhase;
   createdAt: string; startedAt?: string; lastContactAt: string; lastActivityAt?: string; elapsedSeconds: number;
   logs: string[]; workspaceId?: string; workspaceCaptured?: boolean; cancellationRequested?: boolean; result?: DurableBuildResult;
@@ -31,6 +33,7 @@ export interface DurableBuildSnapshot {
   sessionTrace?: AgentSessionTrace;
 }
 export const durableBuildSnapshotCheck = shape({ version: oneOf([1] as const), ref: durableBuildRefCheck, sequence: number({ integer: true, min: 0, max: Number.MAX_SAFE_INTEGER }), phase: oneOf(DURABLE_BUILD_PHASES),
+  failure: optional(providerFailureInfoCheck),
   createdAt: timestamp, startedAt: optional(timestamp), lastContactAt: timestamp, lastActivityAt: optional(timestamp), elapsedSeconds: number({ min: 0 }), logs: list(text({ max: 1000 }), { max: 50 }),
   workspaceId: optional(identity), workspaceCaptured: optional(boolean), cancellationRequested: optional(boolean), result: optional(durableBuildResultCheck), increment: optional(increment), conversation: optional(agentConversationCheck), costUsd: optional(money), usage: optional(stageUsageCheck), error: optional(text({ max: 3900 })),
   verification: optional(workflowVerificationRecordsCheck),

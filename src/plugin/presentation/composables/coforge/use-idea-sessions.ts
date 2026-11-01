@@ -46,17 +46,18 @@ export function useIdeaSessions(props: { idea: Idea }) {
     lastObserved: computed(() => observation.value?.trace ? formatTime(observation.value.trace.lastObservedAt) : 'Not captured'),
     truncated: computed(() => observation.value?.trace?.truncated === true),
     captureAvailable: computed(() => !!observation.value?.trace),
+    failed: computed(() => ['failed', 'cancelled'].includes(job.value?.status ?? '')),
     childCaptureUnavailable: computed(() => !!job.value?.workflow?.step.nativeTools?.delegation && !children.value.length),
     entries: computed(() => (observation.value?.trace?.events ?? []).filter(event => !childId.value || event.sessionId === childId.value).map(event => sessionEventView(event, children.value))),
     selectionKey: computed(() => `${props.idea.id}:${job.value?.id ?? ''}:${childId.value}`),
     verification: computed(() => observation.value?.verification ?? []),
     terminalAvailable: computed(() => !!host.sessionFollow && !!job.value && nativeSessionProvider(job.value) && !!observation.value?.trace),
-    incrementAvailable: computed(() => !!props.idea.increment),
+    incrementAvailable: computed(() => !!props.idea.increment && !['failed', 'cancelled'].includes(job.value?.status ?? '')),
     select: (id: string, nativeId = '') => { void select(id, nativeId); },
     bindHeading: (value: Element | ComponentPublicInstance | null) => { heading = value instanceof HTMLElement ? value : null; },
     terminal: () => { void terminal(); },
     increment: () => { if (store.state?.activeProjectId === ideaProjectId(props.idea)) store.select(props.idea.id, 'increment'); },
-    activity: () => { if (store.state?.activeProjectId === ideaProjectId(props.idea)) store.select(props.idea.id, 'activity'); },
+    activity: () => { if (job.value) store.inspectJob(props.idea.id, job.value.id); },
   });
 }
 export type IdeaSessionsModel = ReturnType<typeof useIdeaSessions>;

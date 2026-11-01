@@ -47,6 +47,7 @@ export class StudioStore {
     let loaded: LoadedStudio;
     try { loaded = await this.storage.load(); }
     catch (error) { throw new Error(`CoForge could not load its data. The stored files were preserved. ${errorMessage(error)}`); }
+    const noteWriteInputs = Object.fromEntries(loaded.notes.map(note => [note.id, structuredClone(note)]));
     const loadedWorkflowFingerprints = new Map(loaded.notes.map(note => [note.id, workflowMetadataFingerprint(note)]));
     const state = assemble(loaded);
     // Verify the notes exactly as loaded; the recovery below is CoForge's own change and is trusted afterwards.
@@ -70,7 +71,7 @@ export class StudioStore {
     synchronizeProject(state);
     const release = await this.beforeCommit?.(state, null);
     try {
-      await this.storage.save(state, null, { fromNotes: state.ideas.filter(idea => {
+      await this.storage.save(state, null, { noteWriteInputs, fromNotes: state.ideas.filter(idea => {
         const original = loaded.notes.find(note => note.id === idea.id);
         return !idea.lastError && original?.projectId && workflowMetadataFingerprint(idea) === loadedWorkflowFingerprints.get(idea.id);
       }).map(idea => idea.id) });
@@ -122,6 +123,8 @@ export class StudioStore {
       const previous = this.current();
       const next = structuredClone(previous);
       const result = await mutate(next);
+      const noteWriteInputs = options.fromNotes?.length ? Object.fromEntries(next.ideas.filter(idea => options.fromNotes?.includes(idea.id))
+        .map(idea => [idea.id, structuredClone(omit(idea, 'voters', 'increment'))])) : undefined;
       enforceWorkflowStopHolds(next);
       const { events, fromNotes } = prepareStudioCommit(previous, next, options);
       const revoked = previous.projects.filter(project => projectIsPublic({ projects: previous.projects }, project.id) && !projectIsPublic({ projects: next.projects }, project.id)).map(project => project.id);
@@ -133,7 +136,7 @@ export class StudioStore {
       mergeDenials();
       const release = await this.beforeCommit?.(next, previous);
       try {
-        await this.storage.save(next, previous, { ...options, ...(fromNotes ? { fromNotes } : {}) });
+        await this.storage.save(next, previous, { ...options, noteWriteInputs, ...(fromNotes ? { fromNotes } : {}) });
         mergeDenials();
         this.state = next;
         this.events.publish(events, ++this.revision);

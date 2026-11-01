@@ -9,6 +9,7 @@ import { workerCapture } from './process';
 import type { WorkerStore } from './store';
 import { inputHash } from './protocol';
 import { reviewedBuildSeed, importReviewedBuildSeed } from '../background-build-seed/import';
+import { providerFailureInfo, providerFailureMessage } from '../../../features/coforge/domain/provider-failure';
 
 /** Reuse restricted transports and host-owned file policy; never serialize renderer callbacks. */
 export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWorkspaces, captureFactory: typeof workerCapture = workerCapture): BuildExecutor {
@@ -31,7 +32,7 @@ export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWork
       }
       try { return await capture(executable, restricted, { ...options, timeoutMs: undefined }); }
       catch (error) {
-        if (error instanceof WorkerOwnershipUnknown) { uncertain = true; throw new ProcessOwnershipUnknown(''); }
+        if (error instanceof WorkerOwnershipUnknown) { uncertain = true; throw new ProcessOwnershipUnknown(error.output ?? '', undefined, providerFailureInfo(error)); }
         throw error;
       }
     };
@@ -54,6 +55,9 @@ export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWork
       onLog: message => { void hooks.log(message).catch(() => undefined); },
     };
     try { return provider === 'claude' ? await runBackgroundClaude(input, scoped, files, restrictedCapture, protectedPaths, hooks.activity) : await runCodexStage(input, scoped, restrictedCapture, protectedPaths, hooks.activity); }
-    catch (error) { if (uncertain || error instanceof ProcessOwnershipUnknown) throw new WorkerOwnershipUnknown('Provider termination remains unverified.'); throw error; }
+    catch (error) { if (uncertain || error instanceof ProcessOwnershipUnknown) {
+      const failure = providerFailureInfo(error);
+      throw new WorkerOwnershipUnknown(failure ? providerFailureMessage(failure, true) : 'Provider termination remains unverified.', failure, error instanceof ProcessOwnershipUnknown ? error.output : undefined);
+    } throw error; }
   };
 }
