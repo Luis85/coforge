@@ -10,7 +10,10 @@ const tools = useWorkflowNativeTools(props);
       <h4>Normal native coding</h4>
       <p class="cf-settings-help">{{ tools.codingHelp }} New Build and code-polishing admissions capture this profile, including when they use an older saved workflow.</p>
       <p class="cf-settings-help">{{ tools.boundaryHelp }}</p>
-      <label class="cf-field"><span>Maximum concurrent assistants</span><input v-model.number="tools.codingConcurrency" type="number" min="1" max="8" step="1" :aria-label="tools.label('Maximum concurrent native assistants')" /><small>The default is 2. This limits permitted concurrency, not the total number of assistants over the attempt. Existing deadlines and final review still apply.</small></label>
+      <details class="cf-workflow-options">
+        <summary>Optional assistant settings</summary>
+      <label class="cf-field"><span>Maximum concurrent assistants</span><input v-model.number="tools.codingConcurrency" type="number" min="1" max="8" step="1" :aria-label="tools.label('Maximum concurrent native assistants')" /><small>The default is 2. This limits permitted concurrency, not the total number of assistants over the attempt. You can stop the task at any time. Final review still applies.</small></label>
+      </details>
       <p v-if="subject" class="cf-settings-help">Code polishing uses these coding tools. Text-only polishing retains restricted analysis access; a saved assistant limit also permits assistants for those text-only passes.</p>
       <p v-if="tools.selected.length" class="cf-settings-help">Earlier isolated command selections are retained in the saved definition. This coding profile uses normal project commands instead.</p>
     </section>
@@ -18,7 +21,7 @@ const tools = useWorkflowNativeTools(props);
       <p class="cf-settings-help">Classification and read-only analysis retain restricted tools. Native assistants, when permitted, share that captured scope and the attempt’s cancellation and limits.</p>
       <p v-if="!tools.supported" class="cf-settings-help">Select native Claude Code, Codex or a resolved supported CoWorker to configure native assistants. Simulation, Herdr and external MCP clients retain their own capabilities.</p>
       <label class="cf-workflow-check"><input v-model="tools.delegation" type="checkbox" :disabled="!tools.supported && !tools.delegation" :aria-label="tools.label('Allow provider-native assistants')" />Allow provider-native assistants</label>
-      <label v-if="tools.delegation" class="cf-field"><span>Maximum concurrent assistants</span><input v-model.number="tools.concurrency" type="number" min="1" max="8" step="1" :aria-label="tools.label('Maximum concurrent native assistants')" /><small>These assistants inherit the restricted tool broker. Explicit background Codex delegation requires its captured elapsed deadline.</small></label>
+      <label v-if="tools.delegation" class="cf-field"><span>Maximum concurrent assistants</span><input v-model.number="tools.concurrency" type="number" min="1" max="8" step="1" :aria-label="tools.label('Maximum concurrent native assistants')" /><small>These assistants inherit the restricted tool broker. CoForge follows the native parent session and its children until they finish or are stopped.</small></label>
       <details class="cf-workflow-options">
         <summary>Advanced isolated verification</summary>
         <p class="cf-settings-help">Retained legacy and explicitly configured read-only checks can use the separate Docker verification profile. This is not the ordinary coding-worktree execution profile.</p>

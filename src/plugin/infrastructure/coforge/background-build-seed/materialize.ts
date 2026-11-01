@@ -18,10 +18,16 @@ import { verifyRetrySourceIdentity } from './source';
 import { copyReviewedSnapshot } from './import';
 import { checkSnapshotPaths, invalidSnapshot } from './tree';
 import { operatorRecordCheck, operatorRecordName, operatorResourceFiles, polishingApplyRequestCheck, type OperatorResourceRecord } from './operator-record';
+import { completedForegroundPolishing } from './foreground-record';
 
 async function originalPolishSeed(privateDirectory: string, request: PolishingCodeApplyRequest) {
   const source = request.source;
-  if (!source.sourceJobId || !source.sourceAttemptId || !source.runId || !source.sourceWorkspaceId?.startsWith('bg-')) throw invalidSnapshot();
+  if (!source.sourceJobId || !source.sourceAttemptId || !source.runId || !source.sourceWorkspaceId) throw invalidSnapshot();
+  if (!source.sourceWorkspaceId.startsWith('bg-')) {
+    const record = await completedForegroundPolishing(privateDirectory, source);
+    if (inputHash(record.baseline) !== inputHash(request.baseline)) throw invalidSnapshot();
+    return { jobId: record.jobId, runId: record.runId, attemptId: record.attemptId, polishingId: record.polishingId, sourceHash: record.sourceHash };
+  }
   for (const files of await retainedDatasets(new WorkerFiles(privateDirectory))) {
     const ids = await files.read('index.json'); if (ids === undefined) continue; if (!Array.isArray(ids)) throw invalidSnapshot();
     for (const id of ids) {
@@ -33,7 +39,8 @@ async function originalPolishSeed(privateDirectory: string, request: PolishingCo
       if (job.request.attemptId !== source.sourceAttemptId || job.request.runId !== source.runId || job.request.ideaId !== request.ideaId || job.request.projectId !== request.projectId ||
         record.snapshot.phase !== 'completed' || record.terminationUnknown || record.snapshot.workspaceId !== source.sourceWorkspaceId || !job.request.input.workflow.polishingId ||
         inputHash(job.request.reviewedSnapshot) !== inputHash(request.baseline)) throw invalidSnapshot();
-      return job.request;
+      return { jobId: job.request.jobId, runId: job.request.runId, attemptId: job.request.attemptId,
+        polishingId: job.request.input.workflow.polishingId, sourceHash: job.request.input.workflow.polishingSourceHash };
     }
   }
   throw new Error('The original code polishing admission and baseline are unavailable. Restore their private evidence.');
@@ -56,8 +63,8 @@ export class ReviewedResourceMaterializer {
       source.manifest.identity.baseCommit !== baseline.manifest.identity.baseCommit || source.manifest.identity.projectRoot !== baseline.manifest.identity.projectRoot ||
       baseline.manifest.source.projectId !== request.projectId || baseline.manifest.source.ideaId !== request.ideaId ||
       baseline.manifest.source.runId && baseline.manifest.source.runId !== request.target.runId ||
-      !baseline.manifest.source.sourceIdentity || original.input.workflow.polishingSourceHash !== baseline.manifest.source.sourceIdentity) throw invalidSnapshot();
-    const authorization = await seeds.authorization(request.baseline, original.input.workflow.polishingId!);
+      !baseline.manifest.source.sourceIdentity || original.sourceHash !== baseline.manifest.source.sourceIdentity) throw invalidSnapshot();
+    const authorization = await seeds.authorization(request.baseline, original.polishingId!);
     if (authorization.target.kind !== 'improvement' || authorization.target.jobId !== original.jobId || authorization.target.runId !== original.runId || authorization.target.attemptId !== original.attemptId) throw invalidSnapshot();
     const targetRoot = await realpath((await agentGit(request.target.projectPath, ['rev-parse', '--show-toplevel'])).trim());
     if (targetRoot !== source.manifest.identity.projectRoot) throw invalidSnapshot();
@@ -93,6 +100,7 @@ export class ReviewedResourceMaterializer {
       await copyReviewedSnapshot({ ...source, store: seeds }, lease, protection); await checkSources();
       const branch = (await agentGit(lease.cwd, ['symbolic-ref', '--short', 'HEAD'])).trim();
       const increment = await captureWorkflowIncrement(lease.cwd, branch, 'Reviewed code polishing applied to a fresh primary-owned resource', undefined, { allowEmpty: true, baseCommit: source.manifest.identity.baseCommit });
+      increment.tests = ['Not run on this copied snapshot. Review the original session evidence for earlier checks.'];
       await lease.release(); await this.workspaces.assertReviewable(lease.id!, increment);
       const binding: PolishingCodeBinding = { id: request.id, workspaceId: lease.id!, ownerRunId: request.target.runId, mode: request.target.mode, workspaceEpoch: request.target.workspaceEpoch, increment,
         evidenceHash: inputHash({ id: request.id, source: request.reviewedSnapshot, baseline: request.baseline, workspaceId: lease.id, treeHash: source.manifest.treeHash }) };

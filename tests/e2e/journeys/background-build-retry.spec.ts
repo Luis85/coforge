@@ -13,6 +13,8 @@ for (const [theme, width] of [['light', 360], ['dark', 1280]] as const) {
     // Trusted automation loads this test-only composition without changing the page's CSP.
     await page.evaluate(script);
     const dialog = page.getByRole('dialog', { name: 'Retry presentation proof', exact: true });
+    const recoveryOptions = dialog.locator('summary').filter({ hasText: /^Earlier build recovery options$/ });
+    await recoveryOptions.focus(); await recoveryOptions.press('Enter');
     const entry = dialog.getByRole('button', { name: 'Retry Build in background', exact: true });
     await entry.focus(); await entry.press('Enter');
     const panel = dialog.getByRole('region', { name: 'Review background Build retry', exact: true });

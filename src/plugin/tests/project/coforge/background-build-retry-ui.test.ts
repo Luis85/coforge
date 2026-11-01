@@ -52,9 +52,9 @@ it('keeps later retries behind reviewed background admission and displays its se
   f.store.state!.projects!.find(item => item.id === f.project.id)!.allowImplementation = true;
   const wrapper = mount(IdeaWorkflowTab, { props: { idea: f.idea }, global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
   try {
-    expect(wrapper.findAll('button').some(item => item.text() === 'Retry · Captured Build')).toBe(true);
+    expect(wrapper.findAll('button').some(item => item.text() === 'Continue · Captured Build')).toBe(true);
     f.run.backgroundRetries = [retryUiApproval(f.preview)]; await flushPromises();
-    expect(wrapper.findAll('button').some(item => item.text() === 'Retry · Captured Build')).toBe(false);
+    expect(wrapper.findAll('button').some(item => item.text() === 'Continue · Captured Build')).toBe(false);
     expect(button(wrapper, 'Retry Build in background').exists()).toBe(true);
     const history = wrapper.get('[aria-label="Approved background Build retries"]');
     expect(history.text()).toContain(f.preview.inspection.snapshot.contentHash);

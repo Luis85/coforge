@@ -17,6 +17,8 @@ export interface OwnedWorktreeOptions {
   cwd: string; env?: NodeJS.ProcessEnv; input?: string; signal?: AbortSignal;
   /** Trusted shell adapter only, equivalent to Node windowsVerbatimArguments; native SDK argv stays encoded. */
   windowsVerbatimArguments?: boolean;
+  /** New native SDK sessions only: a closed root output channel initiates bounded settlement. */
+  watchRootOutputClosure?: boolean;
   owner: { runId: string; attemptId: string; projectId: string };
   onStarted(identity: NativeProcessIdentity, lifetime: NativeWorkflowLifetimeRef): Promise<void>;
   onStdout?(chunk: Uint8Array): void | Promise<void>;
@@ -66,7 +68,8 @@ export async function startOwnedWorktreeProcess(executable: string, args: readon
     identity = child.pid ? (await readWindowsNativeIdentity(prepared.executable, child.pid))?.identity : undefined;
     if (!identity) throw new Error('Original native lifetime controller identity is unavailable.');
     await options.onStarted(identity, prepared.lifetime);
-    const frame = { executable: command, args, cwd, input: Buffer.from(options.input ?? '').toString('base64'), parentPid: parent.pid, parentBirth: parent.birth, windowsVerbatimArguments: options.windowsVerbatimArguments === true };
+    const frame = { executable: command, args, cwd, input: Buffer.from(options.input ?? '').toString('base64'), parentPid: parent.pid, parentBirth: parent.birth,
+      windowsVerbatimArguments: options.windowsVerbatimArguments === true, watchRootOutputClosure: options.watchRootOutputClosure === true };
     if (!options.signal?.aborted && !requested) { bootstrapped = true; child.stdin.write(JSON.stringify(frame) + '\n'); }
     const deadline = Date.now() + 10000;
     while (!finished && Date.now() < deadline) {

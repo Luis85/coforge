@@ -6,7 +6,7 @@ import { nativeWorkflowLifetimeRefCheck, type NativeWorkflowLifetimeRef } from '
 import type { NativeProcessIdentity } from '../durable-worker/process-identity';
 import { WorkerFiles } from '../durable-worker/files';
 
-export const OWNED_PROCESS_REASONS = ['completed', 'cancelled', 'timeout', 'owner-lost', 'start-failed', 'unknown'] as const;
+export const OWNED_PROCESS_REASONS = ['completed', 'cancelled', 'timeout', 'owner-lost', 'start-failed', 'transport-closed', 'unknown'] as const;
 export type OwnedProcessReason = typeof OWNED_PROCESS_REASONS[number];
 const receiptCheck = shape({ authority: nativeWorkflowLifetimeRefCheck, controllerPid: number({ integer: true, min: 1 }), controllerBirth: text({ min: 1, max: 160 }),
   rootPid: number({ integer: true, min: 0 }), rootExitCode: number({ integer: true }), startupError: number({ integer: true, min: 0 }), activeProcesses: number({ integer: true, min: -1 }),

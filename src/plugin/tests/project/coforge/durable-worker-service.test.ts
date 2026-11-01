@@ -102,3 +102,17 @@ it('uses an explicitly captured wall deadline while a quiet job without one rema
   now += 360001 * 1000; await service.tick(); await service.settle();
   expect(hooks?.signal.aborted).toBe(true); expect(service.inspect(ref)).toMatchObject({ phase: 'failed', error: expect.stringContaining('deadline elapsed') });
 });
+it('follows completion for a newly managed session even when its saved legacy definition contains task limits', async () => {
+  let now = Date.now(); const journal = await store(() => now); let hooks: WorkerHooks | undefined; let finish: (() => void) | undefined;
+  const execute = vi.fn(async (_request, context: WorkerHooks) => { hooks = context; await new Promise<void>(resolve => { finish = resolve; }); return { summary: 'Agent completed' }; });
+  const service = new WorkerService(journal, execute); const request = durableRequest();
+  request.input.workflow.lifecycle = { version: 1, mode: 'managed-session' };
+  request.policy = { mode: 'background', maxRuntimeSeconds: 1, idleWarningSeconds: 1, maxTurns: 1, maxBudgetUsd: 0.1 }; request.input.workflow.step.execution = request.policy;
+  const ref = await service.prepare(request); await service.start(ref); await vi.waitFor(() => expect(hooks).toBeDefined());
+  try {
+    now += 101 * 3600 * 1000; await service.tick();
+    expect(hooks!.signal.aborted).toBe(false); expect(service.inspect(ref).logs.join(' ')).not.toContain('no recent provider output');
+    expect(execute).toHaveBeenCalledOnce();
+  } finally { finish?.(); await service.settle(); }
+  expect(service.inspect(ref).phase).toBe('completed');
+});

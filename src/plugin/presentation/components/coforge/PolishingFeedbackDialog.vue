@@ -23,9 +23,7 @@ const model = usePolishingFeedback();
         <dl class="cf-background-build-facts">
           <div><dt>Captured pass provider / model / effort</dt><dd>{{ model.preview.step.provider }} · {{ model.preview.step.model }} · {{ model.preview.step.effort ?? 'Provider default' }}</dd></div>
           <div v-if="model.preview.coworker"><dt>Captured CoWorker</dt><dd>{{ model.preview.coworker.name }} · {{ model.preview.coworker.revision }}</dd></div>
-          <div><dt>Configured bounds</dt><dd>{{ model.preview.inheritedLimits.maxTurns }} turns/tool calls · USD{{ model.preview.inheritedLimits.maxBudgetUsd }}</dd></div>
-          <div><dt>Effective bounds</dt><dd>{{ model.preview.effectiveLimits.maxTurns }} turns/tool calls · USD{{ model.preview.effectiveLimits.maxBudgetUsd }} configured cap</dd></div>
-          <div><dt>Execution policy</dt><dd>{{ model.preview.step.execution ? `${model.deadline} · ${model.idle}` : `Foreground timeout · ${model.foregroundTimeout} seconds` }}</dd></div>
+          <div v-if="model.managedPreview"><dt>Agent session</dt><dd>{{ model.sessionHelp }}</dd></div>
           <div v-if="model.preview.primaryCheckpoint"><dt>Retained main workflow checkpoint</dt><dd>{{ model.preview.primaryCheckpoint.runId }} · cursor {{ model.preview.primaryCheckpoint.cursor }} · {{ model.preview.primaryCheckpoint.state }}</dd></div>
         </dl>
         <details class="cf-workflow-options"><summary>Captured instructions and persona</summary><pre class="cf-workflow-code-block" tabindex="0">{{ model.preview.step.instructions }}</pre><template v-if="model.preview.coworker"><p>{{ model.preview.coworker.role }}</p><pre class="cf-workflow-code-block" tabindex="0">{{ model.preview.coworker.instructions }}</pre></template></details>
@@ -40,8 +38,8 @@ const model = usePolishingFeedback();
             <div><dt>Observed at</dt><dd>{{ model.preview.inspection.observedAt }}</dd></div>
           </dl>
           <ReviewedSnapshotScope :inspection="model.preview.inspection" />
-          <p v-if="model.preview.inspection.sourceKind === 'repository'">Earlier result context is retained for the task; it does not establish that those historical changes exist in this clean repository base. The worker starts from the actual reviewed repository snapshot.</p>
-          <p v-else>A fresh worker-owned workspace continues the actual reviewed changes below. The original attributed workspace stays retained and untouched.</p>
+          <p v-if="model.preview.inspection.sourceKind === 'repository'">Earlier result context is retained for the task; it does not establish that those historical changes exist in this clean repository base. The agent starts from the actual reviewed repository snapshot.</p>
+          <p v-else>A separate owned worktree continues the actual reviewed changes below. The original attributed workspace stays retained and untouched.</p>
           <PolishingResultBody v-if="model.preview.inspection.increment" :value="{ increment: model.preview.inspection.increment }" />
           <p v-else>No pending changes in this verified snapshot. Review this base before confirming.</p>
         </section>

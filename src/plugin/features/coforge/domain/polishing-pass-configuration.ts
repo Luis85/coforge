@@ -10,7 +10,7 @@ export interface ImprovementPassConfiguration {
   nativeTools?: NativeWorkflowTools;
   provider: Exclude<Provider, 'mcp'>; model: string; effort?: ReasoningEffort; coworkerId?: string; instructions: string;
   limits: { timeoutSeconds: number; maxTurns: number; maxBudgetUsd: number };
-  /** Applied only for code changes. Text polishing uses the foreground short-task timeout. */
+  /** Historical code execution preferences. New managed attached polishing does not require a worker. */
   execution?: DurableBuildPolicy;
 }
 const check = shape({ provider: oneOf(['demo', 'claude', 'codex', 'herdr'] as const), model: agentModelCheck,
@@ -26,6 +26,5 @@ export function defaultImprovementPass(settings: Settings): ImprovementPassConfi
   const agent = stageAgent(settings, 'implement');
   return { provider: agent.provider, model: agent.model,
     instructions: 'Improve and polish the current result using the operator feedback. Preserve the request constraints and completed work. Explain the changes and remaining risks. Do not claim tests, acceptance or deployment that the host has not verified.',
-    limits: { timeoutSeconds: settings.timeoutSeconds, maxTurns: settings.maxTurns, maxBudgetUsd: settings.maxBudgetUsd },
-    execution: { mode: 'background', idleWarningSeconds: 1800 } };
+    limits: { timeoutSeconds: settings.timeoutSeconds, maxTurns: settings.maxTurns, maxBudgetUsd: settings.maxBudgetUsd } };
 }

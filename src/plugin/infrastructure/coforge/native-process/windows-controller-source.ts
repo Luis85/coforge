@@ -1,7 +1,7 @@
 /** Fixed current-user lifetime supervisor. A Job is resource ownership, not filesystem isolation. */
 export const windowsControllerSource = String.raw`
 internal static class Controller {
- static int requested=0; static IntPtr job=IntPtr.Zero,owner=IntPtr.Zero;
+ static int requested=0,stdoutClosed=0; static IntPtr job=IntPtr.Zero,owner=IntPtr.Zero;
  static string directory; static Authority authority; static Receipt receipt;
  static int originalPid=0;static string originalBirth=null;
  static bool recovering=false;
@@ -13,8 +13,8 @@ internal static class Controller {
   foreach(char c in value){if(c=='\\'){slash++;continue;}if(c=='"'){text.Append('\\',slash*2+1);text.Append(c);slash=0;continue;}text.Append('\\',slash);slash=0;text.Append(c);}
   text.Append('\\',slash*2);return text.Append('"').ToString();
  }
- static Thread Forward(IntPtr handle,Stream output) {
-  var thread=new Thread(()=>{try{using(var input=new FileStream(new SafeFileHandle(handle,true),FileAccess.Read,8192,false)){input.CopyTo(output);output.Flush();}}catch{Interlocked.CompareExchange(ref requested,3,0);}});
+ static Thread Forward(IntPtr handle,Stream output,bool rootOutput=false) {
+  var thread=new Thread(()=>{try{using(var input=new FileStream(new SafeFileHandle(handle,true),FileAccess.Read,8192,false)){input.CopyTo(output);output.Flush();}if(rootOutput)Interlocked.Exchange(ref stdoutClosed,1);}catch{Interlocked.CompareExchange(ref requested,3,0);}});
   thread.IsBackground=true;thread.Start();return thread;
  }
  static uint Active() {Native.Accounting value;Native.Check(Native.QueryInformationJobObject(job,1,out value,Marshal.SizeOf(typeof(Native.Accounting)),IntPtr.Zero));return value.active;}
@@ -74,13 +74,19 @@ internal static class Controller {
    Native.Check(Native.CreateProcess(input.executable,argv,IntPtr.Zero,IntPtr.Zero,true,0x08080000,IntPtr.Zero,input.cwd,ref startup,out process));
    receipt.rootPid=process.pid;Native.Close(ref process.thread);Native.Close(ref inRead);Native.Close(ref outWrite);Native.Close(ref errWrite);
    File.WriteAllText(Path.Combine(directory,"started.json"),"{\"ownerToken\":\""+authority.ownerToken+"\",\"pid\":"+process.pid+"}",new UTF8Encoding(false));
-   stdout=Forward(outRead,Console.OpenStandardOutput());outRead=IntPtr.Zero;stderr=Forward(errRead,Console.OpenStandardError());errRead=IntPtr.Zero;
+   stdout=Forward(outRead,Console.OpenStandardOutput(),true);outRead=IntPtr.Zero;stderr=Forward(errRead,Console.OpenStandardError());errRead=IntPtr.Zero;
    var writing=inWrite;inWrite=IntPtr.Zero;var prompt=Convert.FromBase64String(input.input??"");
    var writer=new Thread(()=>{try{using(var stream=new FileStream(new SafeFileHandle(writing,true),FileAccess.Write)){stream.Write(prompt,0,prompt.Length);stream.Flush();}}catch{}});writer.IsBackground=true;writer.Start();
-   while(Native.WaitForSingleObject(process.process,50)==258){if(Native.WaitForSingleObject(owner,0)!=258)Interlocked.CompareExchange(ref requested,2,0);if(requested!=0)break;}
+   // Once the root output channel ends, only bounded connection settlement remains: this is not a task deadline.
+   System.Diagnostics.Stopwatch settling=null;
+   while(Native.WaitForSingleObject(process.process,50)==258){
+    if(Native.WaitForSingleObject(owner,0)!=258)Interlocked.CompareExchange(ref requested,2,0);
+    if(input.watchRootOutputClosure&&Interlocked.CompareExchange(ref stdoutClosed,0,0)!=0){if(settling==null)settling=System.Diagnostics.Stopwatch.StartNew();if(settling.ElapsedMilliseconds>=2000)Interlocked.CompareExchange(ref requested,5,0);}
+    if(requested!=0)break;
+   }
    if(Native.WaitForSingleObject(owner,0)!=258)Interlocked.Exchange(ref requested,2);
    uint exitCode;if(Native.GetExitCodeProcess(process.process,out exitCode)&&exitCode!=259)receipt.rootExitCode=unchecked((int)exitCode);
-   receipt.reason=requested==1?"cancelled":requested==4?"timeout":requested==2?"owner-lost":requested==3?"unknown":"completed";
+   receipt.reason=requested==1?"cancelled":requested==4?"timeout":requested==2?"owner-lost":requested==3?"unknown":requested==5?"transport-closed":"completed";
   } finally {
    Native.Check(Native.TerminateJobObject(job,130));
    var until=DateTime.UtcNow.AddSeconds(8);while(Active()!=0&&DateTime.UtcNow<until)Thread.Sleep(20);

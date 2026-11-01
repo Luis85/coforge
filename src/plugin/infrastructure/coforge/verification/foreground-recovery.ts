@@ -4,6 +4,9 @@ import { stopOwnedProcessTree } from '../durable-worker/process-identity';
 import type { NativeWorkflowProcessRecord } from '../../../features/coforge/domain/native-workflow-process';
 import { purgeCodexPrivateRuntime } from '../codex-private-runtime';
 import { recoverOwnedWorktreeLifetime } from '../native-process/owned-worktree-process';
+import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
+import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
+import { recoverManagedSessionWorkspace } from './managed-session-recovery';
 
 const recoverNativeProvider = async (record: NativeWorkflowProcessRecord): Promise<'terminal' | 'unknown'> => {
   if (record.lifetime) return await recoverOwnedWorktreeLifetime(record.identity, record.lifetime) ? 'terminal' : 'unknown';
@@ -12,7 +15,7 @@ const recoverNativeProvider = async (record: NativeWorkflowProcessRecord): Promi
 };
 
 /** Reopening never replays a test. Only the original private container identity may be stopped. */
-export async function recoverForegroundVerification(store: StudioStore, recover = recoverVerificationRuntime, recoverNative = recoverNativeProvider, jobId?: string, purgePrivate = purgeCodexPrivateRuntime): Promise<void> {
+export async function recoverForegroundVerification(store: StudioStore, recover = recoverVerificationRuntime, recoverNative = recoverNativeProvider, jobId?: string, purgePrivate = purgeCodexPrivateRuntime, workspaces?: WorkflowWorkspaces): Promise<void> {
   for (const retained of store.internalSnapshot().jobs) {
     if (retained.durable || jobId !== undefined && retained.id !== jobId || !['failed', 'cancelled'].includes(retained.status)) continue;
     if (retained.nativeProcess && retained.nativeProcess.phase !== 'terminated' && (!retained.nativeProcess.operatorAcknowledgedAt || jobId !== undefined)) {
@@ -25,8 +28,10 @@ export async function recoverForegroundVerification(store: StudioStore, recover 
         job.nativeProcess.phase = proven ? 'terminated' : 'unknown'; job.nativeProcess.observedAt = new Date().toISOString();
         if (!proven) {
           job.error = 'Original native provider process-tree termination remains unverified. No paid invocation was replayed.';
-          state.workflowStopHolds ??= [];
-          if (!state.workflowStopHolds.includes(job.ideaId)) state.workflowStopHolds.push(job.ideaId);
+          if (!isManagedWorkflowSession(job.workflow)) {
+            state.workflowStopHolds ??= [];
+            if (!state.workflowStopHolds.includes(job.ideaId)) state.workflowStopHolds.push(job.ideaId);
+          }
           const run = state.ideas.find(idea => idea.id === job.ideaId)?.workflowRun;
           if (run && run.id === original.runId) { run.state = 'attention'; run.error = job.error; run.revision++; run.updatedAt = job.nativeProcess.observedAt; }
         }
@@ -61,8 +66,10 @@ export async function recoverForegroundVerification(store: StudioStore, recover 
         }
         if (outcome === 'unknown') {
           job.error = 'Original verification-container termination is unverified. Inspect its private ownership before starting another attempt.';
-          state.workflowStopHolds ??= [];
-          if (!state.workflowStopHolds.includes(job.ideaId)) state.workflowStopHolds.push(job.ideaId);
+          if (!isManagedWorkflowSession(job.workflow)) {
+            state.workflowStopHolds ??= [];
+            if (!state.workflowStopHolds.includes(job.ideaId)) state.workflowStopHolds.push(job.ideaId);
+          }
           const run = state.ideas.find(idea => idea.id === job.ideaId)?.workflowRun;
           if (run && run.id === runtime.runId) { run.state = 'attention'; run.error = job.error; run.revision++; run.updatedAt = at; }
         }
@@ -82,10 +89,13 @@ export async function recoverForegroundVerification(store: StudioStore, recover 
         if (purged) { if (prepared) delete job.nativeRuntime; else if (job.nativeProcess) delete job.nativeProcess.privateRuntime; }
         else {
           job.error = 'Private native runtime state remains quarantined. Check original execution and retry verified cleanup before starting another attempt.';
-          state.workflowStopHolds ??= [];
-          if (!state.workflowStopHolds.includes(job.ideaId)) state.workflowStopHolds.push(job.ideaId);
+          if (!isManagedWorkflowSession(job.workflow)) {
+            state.workflowStopHolds ??= [];
+            if (!state.workflowStopHolds.includes(job.ideaId)) state.workflowStopHolds.push(job.ideaId);
+          }
         }
       });
     }
+    if (workspaces) await recoverManagedSessionWorkspace(store, retained.id, workspaces);
   }
 }

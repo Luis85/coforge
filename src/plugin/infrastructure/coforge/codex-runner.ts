@@ -16,6 +16,8 @@ import { CheckError } from '../../features/coforge/domain/check';
 import { persistProviderEvidence } from './provider-evidence';
 import { runNativeWorktreeStage } from './native-worktree-stage';
 import { ProviderFailureError, providerFailureFor } from '../../features/coforge/domain/provider-failure';
+import { managedSessionCapture } from './managed-session-capture';
+import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
 
 export async function runCodexStage(input: StageInput, workspaces: WorkflowWorkspaces, capture?: typeof captureProcess, protectedPaths?: readonly string[], onActivity?: () => Promise<void>): Promise<StageResult> {
   if (!input.workflow) throw new Error('Codex requires a captured workflow. Save and start the project workflow before dispatching.');
@@ -25,8 +27,9 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     if (snapshot.worktreeCoding.profile !== 'native-worktree-v1') throw new ProviderFailureError(providerFailureFor('configuration'));
     return runNativeWorktreeStage(input, workspaces, { provider: 'codex', capture });
   }
-  validateNativeWorkflowTools(snapshot.step, 'codex');
-  if (snapshot.step.nativeTools && !input.onNativeRuntime) throw new Error('Native Codex requires retained private runtime preparation before native state can be created.');
+  const sessionCapture = isManagedWorkflowSession(snapshot) ? managedSessionCapture(input, 'codex', capture) : capture;
+  validateNativeWorkflowTools(snapshot.step, 'codex', false, false, isManagedWorkflowSession(snapshot));
+  if ((snapshot.step.nativeTools || isManagedWorkflowSession(snapshot)) && !input.onNativeRuntime) throw new Error('Native Codex requires retained private runtime preparation before native state can be created.');
   if (snapshot.step.nativeTools && !capture && !input.onNativeProcess) throw new Error('Native Codex tools require durable foreground process ownership before provider start. Open the contained desktop host or use the admitted background worker.');
   const lease = await workspaces.acquire({ runId: snapshot.runId, projectId: ideaProjectId(input.idea), attemptId: snapshot.attemptId, access: executionAccess(input), integration: input.integration, workspaceId: snapshot.workspaceId, signal: input.signal });
   let directory: string | undefined;
@@ -55,6 +58,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     catch (error) { await markUnknown(); throw error; }
   };
   const changes = async (summary: string) => {
+    if (isManagedWorkflowSession(snapshot) && executionAccess(input) !== 'editworktree') return;
     if (captured || lease.readOnly) return;
     const raw = await lease.capture(summary); captured = true;
     const increment = raw && bridge ? await bridge.captureVerification(raw) : raw;
@@ -64,7 +68,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
   try {
     if (lease.id) await persistProviderEvidence(() => input.onWorkspace?.(lease.id!));
     directory = await mkdtemp(join(tmpdir(), 'coforge-codex-'));
-    if (snapshot.step.nativeTools) {
+    if (snapshot.step.nativeTools || isManagedWorkflowSession(snapshot)) {
       privateRuntime = await createCodexPrivateRuntime(directory, { runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea) });
       directory = privateRuntime.directory;
       await persistProviderEvidence(() => input.onNativeRuntime!(privateRuntime));
@@ -72,9 +76,9 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     bridge = await codexWorkflowTools(input, lease, protectedPaths ?? lease.protectedProjectPaths ?? [], onActivity);
     input.onLog?.(`Codex ${snapshot.step.name}: scoped CoForge tools; native project access is disabled. Claude USD/turn caps are not Codex spending limits.`);
     const response = await runCodexTransport({ directory, executable: input.integration.codexBin, model: snapshot.step.model, effort: snapshot.step.effort,
-      schema: executionSchema(input), instructions: executionSystemPrompt(input), prompt: executionTaskPrompt(input), timeoutMs: input.settings.timeoutSeconds * 1000,
-      signal: input.signal, mcp: bridge, nativeTools: snapshot.step.nativeTools, privateRuntime, capture, onConversation: input.onConversation, onSessionEvent: input.onSessionEvent, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); },
-      onOwnedProcess: async (identity, phase) => observeNative({ runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea), identity, phase, observedAt: new Date().toISOString(), ...(privateRuntime ? { privateRuntime } : {}) }) });
+      schema: executionSchema(input), instructions: executionSystemPrompt(input), prompt: executionTaskPrompt(input), timeoutMs: isManagedWorkflowSession(snapshot) ? undefined : input.settings.timeoutSeconds * 1000,
+      signal: input.signal, mcp: bridge, nativeTools: snapshot.step.nativeTools, privateRuntime, capture: sessionCapture, managedSession: isManagedWorkflowSession(snapshot), onConversation: input.onConversation, onSessionEvent: input.onSessionEvent, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); },
+      onOwnedProcess: async (identity, phase, lifetime) => observeNative({ runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea), identity, phase, observedAt: new Date().toISOString(), ...(lifetime ? { lifetime } : {}), ...(privateRuntime ? { privateRuntime } : {}) }) });
     await drain();
     bridge.assertBudget();
     const result = executionResult(input, response.output);
@@ -88,7 +92,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     if (error instanceof CheckError) await captureProviderFailure(input.onSessionEvent, diagnosed);
     try { await drain(); } catch (cleanupError) { fail(cleanupError, true); }
     if (nativeProcess && nativeProcess.phase !== 'terminated') await markUnknown();
-    try { await changes(`Cumulative changes after failed ${snapshot.step.name}`); } catch (captureError) { fail(captureError); }
+    if (!uncertain || !isManagedWorkflowSession(snapshot)) { try { await changes(`Cumulative changes after failed ${snapshot.step.name}`); } catch (captureError) { fail(captureError); } }
   }
   try { await drain(); } catch (cleanupError) { fail(cleanupError, true); }
   if (privateRuntime && !uncertain) {

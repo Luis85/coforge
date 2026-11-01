@@ -5,6 +5,7 @@ import type { StageInput, StageResult } from '../../features/coforge/application
 import type { WorkflowWorkspaces } from '../../features/coforge/application/workflow-workspace-ports';
 import type { NativeWorkflowProcessRecord, NativeWorkflowPrivateRuntime } from '../../features/coforge/domain/native-workflow-process';
 import { nativeCodingProfileCheck } from '../../features/coforge/domain/worktree-coding';
+import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
 import { ideaProjectId } from '../../features/coforge/domain/projects';
 import { executionResult, executionSchema, executionSystemPrompt, executionTaskPrompt } from '../../features/coforge/application/workflow-execution';
 import { buildNativeClaudeArgs } from '../../features/coforge/application/native-coding-protocol';
@@ -20,13 +21,13 @@ import { captureProviderFailure, diagnoseProviderFailure, preserveProviderFailur
 import { persistProviderEvidence, validateProviderWorkspace } from './provider-evidence';
 
 interface NativeStageOptions { provider: 'claude' | 'codex'; capture?: typeof captureProcess; probe?: typeof captureProcess }
-async function qualifyClaude(command: string, cwd: string, probe: typeof captureProcess, signal?: AbortSignal): Promise<{ forwardSubagentText: boolean }> {
+async function qualifyClaude(command: string, cwd: string, probe: typeof captureProcess, signal?: AbortSignal, managedSession = false): Promise<{ forwardSubagentText: boolean }> {
   const options = { cwd, signal, timeoutMs: 5000, maxBytes: 64000 };
   try {
     const version = /\b(\d+)\.(\d+)\.(\d+)\b/u.exec(await probe(command, ['--version'], options));
     if (!version || Number(version[1]) < 2 || Number(version[1]) === 2 && (Number(version[2]) < 1 || Number(version[2]) === 1 && Number(version[3]) < 281)) throw new ProviderFailureError(providerFailureFor('capability'));
     const help = await probe(command, ['--help'], options);
-    if (['--agents', '--restricted', '--permission-prompts', '--append-system-prompt', '--tools', '--max-budget-usd'].some(flag => !help.includes(flag))) throw new ProviderFailureError(providerFailureFor('capability'));
+    if (['--agents', '--restricted', '--permission-prompts', '--append-system-prompt', '--tools', ...(managedSession ? [] : ['--max-budget-usd'])].some(flag => !help.includes(flag))) throw new ProviderFailureError(providerFailureFor('capability'));
     return { forwardSubagentText: help.includes('--forward-subagent-text') };
   } catch (error) { throw diagnoseProviderFailure('claude', error, signal); }
 }
@@ -37,6 +38,7 @@ export async function runNativeWorktreeStage(input: StageInput, workspaces: Work
     || !input.integration.allowImplementation || !input.onWorkspace || !input.onNativeProcess || options.provider === 'codex' && !input.onNativeRuntime)
     throw new ProviderFailureError(providerFailureFor('configuration'));
   const profile = nativeCodingProfileCheck(snapshot.worktreeCoding);
+  const managedSession = isManagedWorkflowSession(snapshot);
   input.signal?.throwIfAborted();
   const lease = await workspaces.acquire({ runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea), access: 'editworktree', integration: input.integration, workspaceId: snapshot.workspaceId, signal: input.signal });
   let processRecord: NativeWorkflowProcessRecord | undefined, privateRuntime: NativeWorkflowPrivateRuntime | undefined, directory: string | undefined;
@@ -69,17 +71,18 @@ export async function runNativeWorktreeStage(input: StageInput, workspaces: Work
       privateRuntime = await createCodexPrivateRuntime(directory, { runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea) }); directory = privateRuntime.directory;
       await persistProviderEvidence(() => input.onNativeRuntime!(privateRuntime));
       const response = await runCodexTransport({ directory, cwd: lease.cwd, nativeCoding: profile, privateRuntime, executable: input.integration.codexBin, model: snapshot.step.model, effort: snapshot.step.effort,
-        schema: executionSchema(input), instructions, prompt, timeoutMs: snapshot.step.execution ? undefined : input.settings.timeoutSeconds * 1000, signal: input.signal, capture: options.capture,
+        schema: executionSchema(input), instructions, prompt, managedSession, timeoutMs: managedSession || snapshot.step.execution ? undefined : input.settings.timeoutSeconds * 1000, signal: input.signal, capture: options.capture,
         onOwnedProcess: observe, onConversation: input.onConversation, onSessionEvent: input.onSessionEvent, telemetry: usage => persistProviderEvidence(() => usage ? input.onTokenUsage?.(usage) : undefined) });
       if (processRecord?.phase !== 'terminated' || uncertain) throw new ProcessOwnershipUnknown('');
       result = { ...executionResult(input, response.output), ...(response.usage ? { usage: response.usage } : {}) };
     } else {
       const command = input.integration.claudeBin.trim() || 'claude';
       if (/\.(?:cmd|bat|ps1)$/iu.test(command)) throw new ProviderFailureError(providerFailureFor('installation'));
-      const capabilities = await qualifyClaude(command, lease.cwd, options.probe ?? captureProcess, input.signal);
-      const args = buildNativeClaudeArgs(input.settings, { model: snapshot.step.model, effort: snapshot.step.effort, schema: executionSchema(input), instructions, nativeCoding: profile, observeChildren: Boolean(input.onSessionEvent && capabilities.forwardSubagentText) });
+      const capabilities = await qualifyClaude(command, lease.cwd, options.probe ?? captureProcess, input.signal, managedSession);
+      const args = buildNativeClaudeArgs(input.settings, { model: snapshot.step.model, effort: snapshot.step.effort, schema: executionSchema(input), instructions, nativeCoding: profile, managedSession, observeChildren: Boolean(input.onSessionEvent && capabilities.forwardSubagentText) });
       await persistProviderEvidence(() => input.onConversation?.({ kind: 'request', instructions, prompt }));
-      raw = await captureObservedClaude(input, command, args, { cwd: lease.cwd, input: prompt, signal: input.signal, timeoutMs: snapshot.step.execution ? undefined : input.settings.timeoutSeconds * 1000,
+      raw = await captureObservedClaude(input, command, args, { cwd: lease.cwd, input: prompt, signal: input.signal, timeoutMs: managedSession || snapshot.step.execution ? undefined : input.settings.timeoutSeconds * 1000,
+        ...(managedSession ? { managedSession: true as const } : {}),
         ownedTree: true, nativeCoding: { runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea) }, onOwnedProcess: observe }, options.capture);
       const cost = reportedClaudeCost(raw); if (cost !== undefined) await persistProviderEvidence(() => input.onUsage?.(cost));
       const usage = reportedClaudeUsage(raw, { delegated: true }); if (usage) await persistProviderEvidence(() => input.onTokenUsage?.(usage));

@@ -7,7 +7,7 @@ import { workflowUiFixture } from "./workflow-ui-fixture";
 import { defaultWorkflowDefinition } from "../../../features/coforge/domain/configured-workflow";
 import { workflowProposalRevision } from "../../../features/coforge/domain/configured-workflow-run";
 
-it("opts future native Builds into background execution without rewriting captured runs or raising resource bounds", async () => {
+it("presents managed Build sessions without editing earlier captured execution or exposing a background switch", async () => {
   const f = await workflowUiFixture();
   await f.studio.createIdea({
     title: "Existing captured Build",
@@ -50,18 +50,10 @@ it("opts future native Builds into background execution without rewriting captur
     const writes = f.storage.saves;
     const saved = JSON.stringify(f.studio.state().settings.workflow);
     const limits = { ...editor.draft.limits };
-    const policy = wrapper.get('[aria-label="Build execution policy"]');
-    expect(policy.element).toHaveProperty("value", "foreground");
-    await policy.setValue("background");
-    expect(build.execution).toEqual({
-      mode: "background",
-      idleWarningSeconds: 1800,
-    });
+    expect(wrapper.find('[aria-label="Build execution policy"]').exists()).toBe(false);
+    expect(wrapper.get('[aria-label="Agent session behavior"]').text()).toContain('Quiet periods do not end the task');
+    expect(build.execution).toBeUndefined();
     expect(editor.draft.limits).toEqual(limits);
-    expect(wrapper.text()).toContain(
-      "Existing attempts keep their captured policy",
-    );
-    expect(wrapper.text()).toContain("No elapsed deadline");
     expect(f.storage.saves).toBe(writes);
     expect(JSON.stringify(f.studio.state().settings.workflow)).toBe(saved);
     expect(JSON.stringify(f.studio.state().ideas[0]!.workflowRun)).toBe(
@@ -74,7 +66,7 @@ it("opts future native Builds into background execution without rewriting captur
   }
 });
 
-it("configures an optional 100-hour deadline, advisory idle warning and explicit resource overrides only in the draft", async () => {
+it("preserves saved legacy overrides without presenting them as controls for new managed tasks", async () => {
   const f = await workflowUiFixture();
   const wrapper = mount(WorkflowEditorView, {
     global: {
@@ -90,30 +82,13 @@ it("configures an optional 100-hour deadline, advisory idle warning and explicit
     build.provider = "codex";
     build.model = "gpt-5.4";
     await flushPromises();
-    await wrapper
-      .get('[aria-label="Build execution policy"]')
-      .setValue("background");
-    await wrapper.get('[aria-label="Set an elapsed deadline"]').setValue(true);
-    await wrapper.get('[aria-label="Build deadline hours"]').setValue("120");
-    await wrapper.get('[aria-label="Warn about inactivity"]').setValue(false);
-    await wrapper
-      .get('[aria-label="Override Build tool or turn cap"]')
-      .setValue(true);
-    await wrapper.get('[aria-label="Build tool or turn cap"]').setValue("200");
-    await wrapper.get('[aria-label="Override Build USD cap"]').setValue(true);
-    await wrapper.get('[aria-label="Build USD cap"]').setValue("35");
-    expect(build.execution).toMatchObject({
-      mode: "background",
-      maxRuntimeSeconds: 432000,
-      idleWarningSeconds: 0,
-      maxTurns: 200,
-      maxBudgetUsd: 35,
-    });
-    expect(wrapper.text()).toContain(
-      "Codex does not enforce the USD spending cap",
-    );
-    await wrapper.get('[aria-label="Set an elapsed deadline"]').setValue(false);
-    expect(build.execution?.maxRuntimeSeconds).toBeUndefined();
+    const original = { mode: 'background' as const, maxRuntimeSeconds: 432000, idleWarningSeconds: 0, maxTurns: 200, maxBudgetUsd: 35 };
+    build.execution = { ...original }; await flushPromises();
+    for (const name of ['Set an elapsed deadline', 'Warn about inactivity', 'Override Build tool or turn cap', 'Override Build USD cap']) {
+      expect(wrapper.find(`[aria-label="${name}"]`).exists()).toBe(false);
+    }
+    await wrapper.get('[aria-label="Step instructions"]').setValue('Keep the requested implementation focused.');
+    expect(build.execution).toEqual(original);
     expect(f.runner).not.toHaveBeenCalled();
   } finally {
     wrapper.unmount();

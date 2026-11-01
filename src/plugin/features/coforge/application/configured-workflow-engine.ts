@@ -1,4 +1,5 @@
 import { workflowDefinition } from '../domain/configured-workflow';
+import { captureWorkflowLifecycle } from '../domain/workflow-lifecycle';
 import { automationContextCheck, type AutomationContext } from '../domain/automation-context';
 import { WORKFLOW_ATTEMPT_RESERVE_BYTES, WORKFLOW_HISTORY_LIMIT_BYTES, WORKFLOW_RUN_LIMIT_BYTES, workflowSerializedSize, workflowProposalRevision, type ConfiguredStepExecution, type WorkflowRun } from '../domain/configured-workflow-run';
 import { findProject, ideaProjectId, projectSettings } from '../domain/projects';
@@ -115,8 +116,9 @@ export class ConfiguredWorkflowEngine {
     const provider = run.external ? 'mcp' : step.provider;
     if (step.execution && !run.external && !['claude', 'codex'].includes(provider)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
     configuredRuntime(state, idea, step, run.external, !!polish && step.output !== 'codechange');
+    const lifecycle = captureWorkflowLifecycle(provider);
     const worktreeCoding = captureWorktreeCodingCapability(step, provider, findProject(state, run.projectId).allowImplementation);
-    if (worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(step, provider, run.external === true, worktreeCoding?.profile === 'native-worktree-v1');
+    if (worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(step, provider, run.external === true, worktreeCoding?.profile === 'native-worktree-v1', !!lifecycle);
     const verificationProfile = worktreeCoding ? undefined : captureWorkflowVerification(step.nativeTools, state.integration.workflowVerification, step.access);
     const nativeBackground = step.execution && worktreeCoding?.profile !== 'mcp-worktree-v1';
     if (nativeBackground && (run.external || !['claude', 'codex'].includes(provider) || !this.host.durableBuilds)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
@@ -125,6 +127,7 @@ export class ConfiguredWorkflowEngine {
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
     const inputs = polish ? polish.sourceArtifacts : configuredInputs(run, step, idea.workflowHistory, idea);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
+      ...(lifecycle ? { lifecycle } : {}),
       ...(worktreeCoding ? { worktreeCoding } : {}),
       ...(verificationProfile ? { verificationProfile } : {}),
       ...(retry ? { backgroundRetryId: retry.id } : {}),

@@ -11,6 +11,8 @@ import { retryUiFixture } from './background-build-retry-ui-fixture';
 import { completedPolish } from './polishing-amendment-fixture';
 import { toRaw } from 'vue';
 import { polishingTargetForView } from '../../../presentation/composables/coforge/polishing-target-for-view';
+import PolishingRunHistory from '../../../presentation/components/coforge/PolishingRunHistory.vue';
+import { usePolishingUiStore } from '../../../presentation/stores/coforge-polishing-ui';
 
 it('reviews genuine auxiliary output separately, applies by its exact revision and exposes the approved current result without mutating the main run', async () => {
   const f = await retryUiFixture(); delete f.idea.increment;
@@ -56,6 +58,36 @@ it('reviews genuine auxiliary output separately, applies by its exact revision a
     expect(JSON.stringify(f.run)).toBe(earlier); expect(f.runner).not.toHaveBeenCalled();
     expect(workflowAttemptRows([f.idea], []).some(row => row.id === 'aux-attempt' && row.stageLabel === 'Improve & polish')).toBe(true);
   } finally { wrapper.unmount(); await f.dispose(); }
+});
+it('opens a fresh prefilled improvement only after the exact stopped pass is successfully dismissed, without retargeting its authorization', async () => {
+  const f = await retryUiFixture();
+  f.run.artifacts[0]!.contentHash = workflowArtifactHash(f.run.artifacts[0]!);
+  const pass = completedPolish(toRaw(f.idea), { markdown: 'An incomplete historical result' });
+  pass.review = 'pending'; pass.feedback = 'Keep this feedback for the new improvement.';
+  pass.workflow.state = 'attention'; pass.workflow.cursor = 0; pass.workflow.artifacts = [];
+  pass.workflow.attempts.forEach(attempt => { attempt.status = 'failed'; });
+  f.idea.polishingRuns = [pass];
+  const dismiss = vi.spyOn(f.studio, 'rejectPolishingResult').mockRejectedValueOnce(new Error('Original execution still needs confirmation')).mockResolvedValue();
+  const ui = usePolishingUiStore(f.pinia); const original = JSON.stringify(pass.workflow);
+  const wrapper = mount(PolishingRunHistory, { props: { ideaId: f.idea.id }, global: { plugins: [f.pinia, f.provider] } });
+  try {
+    const start = () => wrapper.findAll('button').find(button => button.text() === 'Start new improvement')!;
+    expect(start()).toBeDefined();
+    await start().trigger('click'); await flushPromises();
+    expect(dismiss).toHaveBeenCalledExactlyOnceWith(f.idea.id, pass.id, pass.workflow.revision);
+    expect(ui.isOpen).toBe(false); expect(wrapper.text()).toContain('Original execution still needs confirmation');
+    await start().trigger('click'); await flushPromises();
+    expect(ui.isOpen).toBe(true); expect(ui.ideaId).toBe(f.idea.id); expect(ui.feedback).toBe(pass.feedback);
+    expect(JSON.stringify(pass.workflow)).toBe(original); expect(f.runner).not.toHaveBeenCalled();
+    ui.close();
+    const step = pass.workflow.definition.steps[0]!; if (step.kind !== 'ai') throw new Error('Missing auxiliary AI step');
+    const attemptId = pass.workflow.attempts[0]!.id;
+    f.store.state!.jobs.push({ id: 'unknown-auxiliary-owner', ideaId: f.idea.id, projectId: f.project.id, stage: 'plan', provider: 'claude', status: 'failed', startedAt: pass.createdAt, logs: [],
+      workflow: { runId: pass.workflow.id, attemptId, definitionRevision: pass.workflow.definition.revision, proposalRevision: pass.workflow.proposalRevision, step, inputArtifacts: [], polishingId: pass.id },
+      nativeProcess: { runId: pass.workflow.id, projectId: f.project.id, attemptId, identity: { pid: 123, platform: 'win32', birth: 'unknown', image: 'a'.repeat(64) }, phase: 'unknown', observedAt: pass.createdAt } });
+    await flushPromises();
+    expect(start()).toBeUndefined(); expect(ui.isOpen).toBe(false); expect(dismiss).toHaveBeenCalledTimes(2);
+  } finally { ui.close(); wrapper.unmount(); await f.dispose(); }
 });
 
 it('keeps accepted code polishing visible with genuine producer provenance and a separate retained workspace owner', async () => {

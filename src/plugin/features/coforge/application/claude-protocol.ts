@@ -10,6 +10,7 @@ import type { ConfiguredStepExecution } from "../domain/configured-workflow-run"
 import { assignProviderFailure, ProviderFailureError, providerFailureFor } from '../domain/provider-failure';
 import { classifyProviderFailure } from './provider-failure-classification';
 import { reasoningEffortCheck, validateModelEffort, type ReasoningEffort } from '../domain/provider-models';
+import { isManagedWorkflowSession } from '../domain/workflow-lifecycle';
 import {
   hasTokenUsage,
   stageUsageCheck,
@@ -65,6 +66,7 @@ export function buildClaudeArgs(
   const input = { stage, settings, ...(workflow ? { workflow } : {}) };
   const access = executionAccess(input);
   return buildRestrictedClaudeArgs(settings, {
+    managedSession: isManagedWorkflowSession(workflow),
     access, model: workflow?.step.model ?? settings.model,
     effort: workflow?.step.effort,
     schema: workflow ? executionSchema(input) : STAGE_JSON_SCHEMAS[stage],
@@ -75,7 +77,7 @@ export function buildClaudeArgs(
 /** Shared native transport policy; typed note invocations do not need a fabricated Idea. */
 export function buildRestrictedClaudeArgs(
   settings: Pick<Settings, 'maxTurns' | 'maxBudgetUsd'>,
-  invocation: { access: 'none' | 'readproject' | 'editworktree'; model: string; effort?: ReasoningEffort; schema: object; systemPrompt: string },
+  invocation: { access: 'none' | 'readproject' | 'editworktree'; model: string; effort?: ReasoningEffort; schema: object; systemPrompt: string; managedSession?: boolean },
 ): string[] {
   const { access } = invocation;
   validateModelEffort({ provider: 'claude', model: invocation.model, effort: invocation.effort });
@@ -111,10 +113,7 @@ export function buildRestrictedClaudeArgs(
     "--permission-prompts",
     "none",
     ...(tools ? ["--allowedTools", tools] : []),
-    "--max-turns",
-    String(settings.maxTurns),
-    "--max-budget-usd",
-    String(settings.maxBudgetUsd),
+    ...(invocation.managedSession ? [] : ['--max-turns', String(settings.maxTurns), '--max-budget-usd', String(settings.maxBudgetUsd)]),
     "--model",
     invocation.model,
     ...(invocation.effort === undefined ? [] : ['--effort', reasoningEffortCheck(invocation.effort)]),

@@ -55,7 +55,7 @@ const model = useWorkflow();
           : model.page === "herdr"
             ? "Connect Herdr, choose a workspace and verify the target before sending work. Open a request's Workflow runs tab to follow validated results."
           : model.page === 'runs' ? "Inspect this project's step handoffs. Open an idea's details for its captured workflow runs."
-          : model.page === 'limits' ? 'Set the timing and bounded execution allowances shared by this workflow draft.'
+          : model.page === 'limits' ? 'Agent sessions follow completion and connection state. Existing attempts retain their captured behavior.'
           : 'Author reusable answer templates. Template saves remain independent of the workflow draft.'
       }}
     </p>

@@ -4,6 +4,24 @@ Open **Sessions** on a private Idea card, or choose the Sessions tab in its
 drawer. The running count refers to parent attempts. Select an attempt to read
 its provider, captured model, status, elapsed time and last observed activity.
 
+## Working, completed, or interrupted
+
+New managed native sessions stay working through quiet periods. CoForge follows
+the CLI's result and original process state; elapsed time is observation rather
+than a work deadline. **Stop** ends the user's task. A validated final result is
+saved for review. A connection closing without a usable final result is shown as
+interrupted, with the available evidence and changes retained.
+
+When original processes are confirmed stopped, **Continue** starts another main-workflow
+attempt on the retained task without requiring timeout, budget or retry-epoch
+configuration. It does not silently replay work or release a user Stop. An
+unknown original execution remains held for recovery. Earlier captured attempts
+keep their original limits and lifecycle in secondary execution details.
+
+External MCP sessions retain a separate boundary: CoForge waits for submitted
+results or task cancellation, and cannot infer the external client's model state
+from one HTTP connection closing.
+
 ## Peek
 
 New native Claude and Codex attempts publish bounded, sanitized observations

@@ -6,6 +6,8 @@ import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import { cleanText } from '../../../features/coforge/domain/sanitize';
 import { sameDurableBuildRef } from '../../../features/coforge/domain/durable-build';
 import { ideaWorkflowRun } from './idea-workflow-run';
+import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
+import { managedFailurePresentation } from './workflow-session-display';
 
 export function failedWorkflowJobId(run: WorkflowRun | undefined, jobs: AgentJob[], ideaId: string | undefined): string {
   const attempt = run?.attempts.at(-1);
@@ -38,11 +40,13 @@ export function attemptFailureEvidence(state: AppState | null, jobId: string) {
   try { failure = providerFailureInfoCheck(snapshot?.failure ?? job.failure); } catch { /* Legacy records have no established classification. */ }
   const unresolved = !!(job.nativeRuntime || job.nativeProcess && job.nativeProcess.phase !== 'terminated' && !job.nativeProcess.operatorAcknowledgedAt
     || job.verificationRuntime?.some(record => record.phase !== 'terminal') || job.durable && !job.durable.acknowledged);
-  return { jobId: job.id, ideaId: idea.id, status: job.status, runId: job.workflow?.runId, attemptId: job.workflow?.attemptId ?? job.id,
+  const managed = isManagedWorkflowSession(execution);
+  const presentation = managedFailurePresentation(failure, managed);
+  return { managed, jobId: job.id, ideaId: idea.id, status: job.status, runId: job.workflow?.runId, attemptId: job.workflow?.attemptId ?? job.id,
     step: job.workflow?.step.name ?? STAGE_LABELS[job.stage], startedAt: job.startedAt, failure,
-    summary: failure?.summary ?? 'Specific cause was not recorded',
+    summary: presentation.summary ?? 'Specific cause was not recorded',
     legacyError: failure ? '' : cleanText(job.error ?? '', 4000),
-    nextStep: failure?.nextStep ?? 'Read the original attempt details and the resources actually captured below before deciding what to do next.',
+    nextStep: presentation.nextStep ?? 'Read the original attempt details and the resources actually captured below before deciding what to do next.',
     unresolved, recoveryAvailable: !!(job.durable || job.nativeRuntime || job.nativeProcess || job.verificationRuntime?.some(record => record.phase !== 'terminal')),
     taskAvailable: !!conversation?.prompt.text, responseAvailable: !!conversation?.response?.text,
     workspaceId: snapshot?.workspaceId ?? job.workflow?.workspaceId, increment,

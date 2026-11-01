@@ -8,9 +8,12 @@ import type {
   WorkflowWorkspaceStorage,
   WorkflowWorkspaces,
   ReviewedWorkspaceMaterializationRequest,
+  StoppedWorkflowWorkspaceRequest,
+  ReviewedWorkflowWorkspaceRequest,
 } from "../../features/coforge/application/workflow-workspace-ports";
 import { agentGit, projectRoot } from "./agent-worktree";
 import { captureWorkflowIncrement } from './workflow-workspace-capture';
+import { recoverStoppedWorkspace } from './workflow-workspace-recovery';
 
 const attention = () =>
   new Error(
@@ -147,7 +150,13 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
       return Promise.reject(attention());
     return this.acquireScoped(request, request.operatorMaterializationId);
   }
-  private acquireScoped(request: WorkflowWorkspaceRequest, operatorMaterializationId?: string): Promise<WorkflowWorkspaceLease> {
+  /** Only a private, exact paid-admission snapshot authorization can call this adapter API. */
+  acquireReviewedWorkflow(request: ReviewedWorkflowWorkspaceRequest): Promise<WorkflowWorkspaceLease> {
+    if (request.access !== 'editworktree' || request.workspaceId || !request.baseCommit || request.reviewedImportId !== request.workspaceEpoch)
+      return Promise.reject(attention());
+    return this.acquireScoped(request, undefined, request.reviewedImportId);
+  }
+  private acquireScoped(request: WorkflowWorkspaceRequest, operatorMaterializationId?: string, reviewedImportId?: string): Promise<WorkflowWorkspaceLease> {
     return this.command(async () => {
       if (
         !this.ready ||
@@ -157,9 +166,9 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         !request.attemptId
       )
         throw attention();
-      if (request.baseCommit !== undefined && (this.idPrefix !== 'bg-' && !operatorMaterializationId || request.access !== 'editworktree' || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(request.baseCommit)))
+      if (request.baseCommit !== undefined && (this.idPrefix !== 'bg-' && !operatorMaterializationId && !reviewedImportId || request.access !== 'editworktree' || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(request.baseCommit)))
         throw new Error('A reviewed base pin requires a worker-owned editing workspace and an exact commit identity.');
-      if (request.workspaceEpoch !== undefined && (this.idPrefix !== 'bg-' && !operatorMaterializationId || request.access !== 'editworktree' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/u.test(request.workspaceEpoch)))
+      if (request.workspaceEpoch !== undefined && (this.idPrefix !== 'bg-' && !operatorMaterializationId && !reviewedImportId || request.access !== 'editworktree' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/u.test(request.workspaceEpoch)))
         throw new Error('A workspace epoch requires a worker-owned editing scope and a valid approval identity.');
       if (request.access === "none") {
         const cwd = await realpath(
@@ -183,6 +192,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         throw attention();
       if (before) {
         if (operatorMaterializationId && before.operatorMaterializationId !== operatorMaterializationId) throw attention();
+        if (reviewedImportId && before.reviewedImportId !== reviewedImportId) throw attention();
         if (request.baseCommit !== undefined && request.baseCommit !== before.baseCommit) throw attention();
         if (before.runId !== request.runId || request.workspaceEpoch !== undefined && before.workspaceEpoch !== request.workspaceEpoch) throw attention();
         if (before.phase === "retired")
@@ -248,6 +258,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         runId: request.runId,
         ...(request.workspaceEpoch ? { workspaceEpoch: request.workspaceEpoch } : {}),
         ...(operatorMaterializationId ? { operatorMaterializationId } : {}),
+        ...(reviewedImportId ? { reviewedImportId } : {}),
         projectId: request.projectId,
         projectPath: root,
         cwd: join(await realpath(folder), id),
@@ -348,6 +359,17 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
       await this.save(
         this.records.map((record) => (record.id === id ? next : record)),
       );
+    });
+  }
+  recoverStopped(request: StoppedWorkflowWorkspaceRequest) {
+    return this.command(async () => {
+      if (!this.ready) throw attention();
+      const current = this.records.find(record => record.id === request.workspaceId);
+      if (request.capture === false && current?.runId === request.runId && current.projectId === request.projectId
+        && current.phase === 'ready' && !current.activeAttemptId && current.lastAttemptId === request.attemptId && current.reviewedAttemptId === request.attemptId) return undefined;
+      const { next, increment } = await recoverStoppedWorkspace(current, request, record => this.verify(record));
+      await this.save(this.records.map(record => record.id === next.id ? next : record));
+      return increment;
     });
   }
   assertReviewable(

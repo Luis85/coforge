@@ -12,6 +12,7 @@ export async function captureNativeCoding(executable: string, args: readonly str
   let bytes = 0, errorBytes = 0, overflow = false; const owned: { current?: OwnedWorktreeProcess } = {};
   const output = () => options.stdoutResult?.result() ?? Buffer.concat(chunks).toString('utf8');
   const process = await startOwnedWorktreeProcess(executable, args, { cwd: options.cwd, env: options.env ?? childEnvironment(), input: options.input,
+    watchRootOutputClosure: options.managedSession === true,
     owner: options.nativeCoding, signal: options.signal,
     onStarted: async (identity, lifetime) => {
       try { await observeProcess(identity, 'launched', lifetime); }
@@ -41,7 +42,7 @@ export async function captureNativeCoding(executable: string, args: readonly str
   try { await observeProcess(process.identity, 'terminated', process.lifetime); }
   catch (error) { throw new ProcessOwnershipUnknown(raw, undefined, providerFailureInfo(error) ?? providerFailureFor('persistence', true), { identity: process.identity, lifetime: process.lifetime }); }
   if (result.reason !== 'completed' || result.exitCode !== 0 || overflow || Buffer.byteLength(raw) > limit) {
-    const cause = result.reason === 'cancelled' ? 'cancelled' : result.reason === 'timeout' ? 'timeout' : result.reason === 'start-failed' ? 'installation' : 'execution_failed';
+    const cause = result.reason === 'cancelled' ? 'cancelled' : result.reason === 'timeout' ? 'timeout' : result.reason === 'transport-closed' ? 'incomplete_output' : result.reason === 'start-failed' ? 'installation' : 'execution_failed';
     const error = new ProcessFailure(result.reason === 'cancelled' ? 'Run cancelled.' : result.reason === 'timeout' ? 'Run timed out. Review retained changes.' : 'Native command did not complete successfully.', raw,
       redact(Buffer.concat(errors).toString('utf8'), options.env));
     assignProviderFailure(error, providerFailureFor(cause)); throw error;

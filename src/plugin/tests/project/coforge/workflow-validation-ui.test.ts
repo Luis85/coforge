@@ -99,7 +99,7 @@ it("repairs an empty checklist at its add action and focuses the exact invalid l
   }
 });
 
-it("takes a dependency problem to previous results and a timing problem to the exact workflow field", async () => {
+it("takes a dependency problem to previous results and a workflow-name problem to its exact field", async () => {
   const fixture = await workflowUiFixture();
   const wrapper = mount(WorkflowEditorView, {
     attachTo: document.body,
@@ -129,20 +129,18 @@ it("takes a dependency problem to previous results and a timing problem to the e
       wrapper.get('[data-workflow-field="inputs"]').element,
     );
     first.inputs = [];
-    editor.draft.limits.timeoutSeconds = 14;
+    editor.draft.name = '';
     await flushPromises();
-    const fixTiming = wrapper
+    const fixName = wrapper
       .get('[aria-label="Workflow validation"]')
       .findAll("button")
-      .find((button) => button.text().includes("Step timeout"));
-    await fixTiming!.trigger("click");
+      .find((button) => button.text().includes("Workflow name"));
+    await fixName!.trigger("click");
     await flushPromises();
-    const timeout = wrapper.get(
-      '[data-workflow-field="limits.timeoutSeconds"]',
-    );
-    expect(fixture.store.workflowTool).toBe("limits");
-    expect(timeout.isVisible()).toBe(true);
-    expect(document.activeElement).toBe(timeout.element);
+    const name = wrapper.get('[data-workflow-field="name"]');
+    expect(fixture.store.workflowTool).toBe("settings");
+    expect(name.isVisible()).toBe(true);
+    expect(document.activeElement).toBe(name.element);
     expect(fixture.runner).not.toHaveBeenCalled();
     expect(fixture.studio.state().settings.workflow).toBeUndefined();
   } finally {

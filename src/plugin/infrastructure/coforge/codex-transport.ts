@@ -26,7 +26,7 @@ import { CodexOutput } from './codex-output';
 export interface CodexTransportInput {
   directory: string; executable?: string; model: string; effort?: ReasoningEffort;
   schema: object; instructions: string; prompt: string; timeoutMs?: number; signal?: AbortSignal;
-  nativeCoding?: NativeCodingProfile; cwd?: string;
+  nativeCoding?: NativeCodingProfile; cwd?: string; managedSession?: boolean;
   mcp?: { url: string; token: string; toolTimeoutSeconds?: number };
   nativeTools?: NativeWorkflowTools;
   privateRuntime?: NativeWorkflowPrivateRuntime;
@@ -46,7 +46,7 @@ export async function runCodexTransport(input: CodexTransportInput): Promise<{ o
   catch (error) { const failure = diagnoseProviderFailure('codex', error, input.signal); await captureProviderFailure(input.onSessionEvent, failure); throw failure; }
 }
 async function runScopedCodexTransport(input: CodexTransportInput): Promise<{ output: unknown; usage?: StageUsage }> {
-  if (input.nativeTools?.delegation && !input.nativeCoding && (!Number.isFinite(input.timeoutMs) || !input.timeoutMs || input.timeoutMs <= 0)) throw assignProviderFailure(new Error('Codex native delegation requires a finite invocation deadline.'), providerFailureFor('configuration'));
+  if (input.nativeTools?.delegation && !input.nativeCoding && !input.managedSession && (!Number.isFinite(input.timeoutMs) || !input.timeoutMs || input.timeoutMs <= 0)) throw assignProviderFailure(new Error('Codex native delegation requires a finite invocation deadline.'), providerFailureFor('configuration'));
   if (input.nativeCoding && (!input.cwd || input.mcp)) throw assignProviderFailure(new Error('Native coding requires its host-bound worktree, without the legacy broker transport.'), providerFailureFor('configuration'));
   const schemaPath = join(input.directory, 'result-schema.json');
   await writeFile(schemaPath, JSON.stringify(codexOutputSchema(input.schema)), { flag: 'wx', mode: 0o600 });
@@ -63,7 +63,7 @@ async function runScopedCodexTransport(input: CodexTransportInput): Promise<{ ou
   const proposedArgs = argsFor(join(input.directory, 'model-profile.json'));
   if (delegated) await assertCodexNativeCapabilities(executable, input.directory, proposedArgs, input.signal);
   const environment = { ...codexEnvironment(), ...(input.mcp ? { COFORGE_CODEX_MCP_TOKEN: input.mcp.token } : {}) };
-  const catalogue = nativeTools ? await nativeCodexCatalogue(executable, input.directory, input.model, nativeTools, environment, proposedArgs, input.signal) : undefined;
+  const catalogue = nativeTools || input.managedSession ? await nativeCodexCatalogue(executable, input.directory, input.model, nativeTools ?? {}, environment, proposedArgs, input.signal) : undefined;
   const modelProfilePath = input.nativeCoding ? await writeCodexModelProfile(input.directory, input.model, nativeTools, catalogue, input.nativeCoding) : await writeCodexModelProfile(input.directory, input.model, input.nativeTools, catalogue);
   const args = argsFor(modelProfilePath);
   if (nativeTools?.delegation) await assertCodexNativeContext(executable, input.directory, input.model, nativeTools.delegation.maxConcurrent, args, environment, input.signal);
@@ -78,6 +78,7 @@ async function runScopedCodexTransport(input: CodexTransportInput): Promise<{ ou
       cwd: input.nativeCoding ? input.cwd! : input.directory, timeoutMs: input.timeoutMs, signal: input.signal,
       input: `${instructions}\n\n${input.prompt}`,
       env: environment,
+      ...(input.managedSession ? { managedSession: true as const } : {}),
       ...(input.onSessionEvent ? { onStdout: observer.push } : {}),
       ...(nativeTools ? { ownedTree: true as const } : {}),
       ...(input.nativeCoding && input.privateRuntime ? { nativeCoding: { runId: input.privateRuntime.runId, attemptId: input.privateRuntime.attemptId, projectId: input.privateRuntime.projectId }, stdoutResult: new CodexOutput() } : {}),

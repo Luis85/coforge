@@ -22,23 +22,7 @@ const fields = usePolishingPassSettings();
         <ProviderModelFields :choice="fields.pass" model-label="Improvement model" effort-label="Improvement reasoning effort" custom-model-label="Custom improvement model ID" field-prefix="improvementPass" />
       </template>
       <label class="cf-field"><span>Pass instructions</span><textarea v-model="fields.pass.instructions" aria-label="Improvement instructions" data-workflow-field="improvementPass.instructions" rows="5" maxlength="8000" required /><small>Trusted saved task instructions. Feedback is requested separately each time and is captured as untrusted input.</small></label>
-      <div class="cf-workflow-field-grid">
-        <label class="cf-field"><span>Foreground timeout · seconds</span><input v-model.number="fields.pass.limits.timeoutSeconds" aria-label="Improvement timeout seconds" data-workflow-field="improvementPass.limits.timeoutSeconds" type="number" min="15" max="1800" required /></label>
-        <label class="cf-field"><span>Turns / tool calls</span><input v-model.number="fields.pass.limits.maxTurns" aria-label="Improvement turns/tool calls" data-workflow-field="improvementPass.limits.maxTurns" type="number" min="1" max="50" required /></label>
-        <label class="cf-field"><span>Budget cap · USD</span><input v-model.number="fields.pass.limits.maxBudgetUsd" aria-label="Improvement budget USD" data-workflow-field="improvementPass.limits.maxBudgetUsd" type="number" min="0.1" max="20" step="0.01" required /></label>
-      </div>
-      <p class="cf-settings-help">Text results use the foreground timeout. The reviewed result determines the output contract and project access. Code uses the background policy below and still requires final human review; provider-specific spending enforcement applies.</p>
-      <details class="cf-workflow-options"><summary>Code result execution policy</summary>
-        <p class="cf-settings-help">No elapsed deadline unless enabled. Inherits {{ fields.pass.limits.maxTurns }} turns/tool calls and USD{{ fields.pass.limits.maxBudgetUsd }} unless explicitly overridden here. These code options are ignored for text results.</p>
-        <label class="cf-workflow-check"><input v-model="fields.deadlineEnabled" type="checkbox" aria-label="Set improvement code deadline" />Set an elapsed code deadline</label>
-        <label v-if="fields.deadlineEnabled" class="cf-field"><span>Code deadline · hours</span><input v-model.number="fields.deadlineHours" aria-label="Improvement code deadline hours" data-workflow-field="improvementPass.execution.maxRuntimeSeconds" type="number" min="0" step="any" required /><small>Includes elapsed wall time, sleep and disconnected periods.</small></label>
-        <label class="cf-workflow-check"><input v-model="fields.idleEnabled" type="checkbox" aria-label="Warn about improvement code inactivity" />Warn about code inactivity</label>
-        <label v-if="fields.idleEnabled" class="cf-field"><span>Advisory inactivity warning · minutes</span><input v-model.number="fields.idleMinutes" aria-label="Improvement code inactivity minutes" data-workflow-field="improvementPass.execution.idleWarningSeconds" type="number" min="1" required /><small>Contact does not prove progress, and silence does not terminate a Build.</small></label>
-        <label class="cf-workflow-check"><input v-model="fields.turnsEnabled" type="checkbox" aria-label="Override improvement code turn limit" />Override code turns / tool calls</label>
-        <label v-if="fields.turnsEnabled" class="cf-field"><span>Code turns / tool calls</span><input v-model.number="fields.turns" aria-label="Improvement code turn limit" data-workflow-field="improvementPass.execution.maxTurns" type="number" min="1" max="100000" required /></label>
-        <label class="cf-workflow-check"><input v-model="fields.budgetEnabled" type="checkbox" aria-label="Override improvement code budget" />Override code budget</label>
-        <label v-if="fields.budgetEnabled" class="cf-field"><span>Code budget · USD</span><input v-model.number="fields.budget" aria-label="Improvement code budget USD" data-workflow-field="improvementPass.execution.maxBudgetUsd" type="number" min="0.1" max="10000" step="0.01" required /></label>
-      </details>
+      <p class="cf-settings-help" aria-label="Improvement session behavior">{{ fields.sessionHelp }}</p>
       <WorkflowNativeTools :subject="fields.pass" prefix="Improvement" :effective-provider="fields.coworker.effective?.provider" :provider-resolved="fields.coworker.mode === 'manual' || !!fields.coworker.selected" />
     </template>
   </section>

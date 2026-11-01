@@ -7,7 +7,7 @@ import {
 } from "../support/workflow-navigation";
 import { parseWorkflowDefinition } from "../../../src/plugin/features/coforge/domain/configured-workflow";
 
-test("explicitly saves future background Build policy without raising inherited caps or running a provider", async ({
+test("saves managed Build configuration without task-limit setup or running a provider", async ({
   page,
 }) => {
   await page.goto("/#surface=node-1");
@@ -21,11 +21,9 @@ test("explicitly saves future background Build policy without raising inherited 
     .click();
   await openWorkflowDisclosure(page, "Agent and project access");
   await page.getByLabel("AI provider", { exact: true }).selectOption("claude");
-  await page
-    .getByLabel("Build execution policy", { exact: true })
-    .selectOption("background");
-  await page.getByLabel("Set an elapsed deadline", { exact: true }).check();
-  await page.getByLabel("Build deadline hours", { exact: true }).fill("120");
+  await expect(page.getByLabel('Build execution policy', { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Set an elapsed deadline', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Agent session behavior', exact: true })).toContainText('Quiet periods do not end the task');
   await page
     .getByRole("button", { name: "Save workflow", exact: true })
     .click();
@@ -42,11 +40,8 @@ test("explicitly saves future background Build policy without raising inherited 
       .textContent()) ?? "",
   );
   const build = definition.steps.find((step) => step.id === "implement");
-  expect(build?.kind === "ai" ? build.execution : undefined).toEqual({
-    mode: "background",
-    idleWarningSeconds: 1800,
-    maxRuntimeSeconds: 432000,
-  });
+  expect(build?.kind === 'ai' && build.provider).toBe('claude');
+  expect(build?.kind === 'ai' && build.execution).toBeUndefined();
   expect(definition.limits.maxTurns).toBe(12);
   expect(definition.limits.maxBudgetUsd).toBe(1);
   await page
@@ -60,12 +55,8 @@ test("explicitly saves future background Build policy without raising inherited 
   await page
     .locator('[data-step-id="implement"] .cf-workflow-step-select')
     .click();
-  await expect(
-    page.getByLabel("Build execution policy", { exact: true }),
-  ).toHaveValue("background");
-  await expect(
-    page.getByLabel("Build deadline hours", { exact: true }),
-  ).toHaveValue("120");
+  await expect(page.getByLabel('AI provider', { exact: true })).toHaveValue('claude');
+  await expect(page.getByLabel('Build deadline hours', { exact: true })).toHaveCount(0);
   await mkdir("reports/durable-build-ui", { recursive: true });
   for (const [width, theme] of [
     [1280, "dark"],
@@ -77,7 +68,7 @@ test("explicitly saves future background Build policy without raising inherited 
       document.body.classList.toggle("theme-light", theme === "light");
     }, theme);
     const policy = page.getByRole("region", {
-      name: "Build execution settings",
+      name: "Agent session behavior",
       exact: true,
     });
     expect(
@@ -88,7 +79,7 @@ test("explicitly saves future background Build policy without raising inherited 
     expect(
       (
         await new AxeBuilder({ page })
-          .include('[aria-label="Build execution settings"]')
+          .include('[aria-label="Agent session behavior"]')
           .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
           .analyze()
       ).violations,

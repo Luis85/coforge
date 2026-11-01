@@ -7,6 +7,7 @@ import { executionAccess } from '../../features/coforge/application/workflow-exe
 import type { Increment } from '../../features/coforge/domain/types';
 import type { WorkflowVerificationRecord } from '../../features/coforge/domain/workflow-verification';
 import { createWorkflowVerification } from './verification/session';
+import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
 
 const path = { type: 'string', maxLength: 1000, description: 'Repository-relative path with forward slashes. Use an empty path to list the repository root. The native CLI working directory contains private transport files, not repository files; never pass its absolute paths.' };
 const content = { type: 'string', maxLength: 200000 };
@@ -39,7 +40,7 @@ export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorks
     const next = pending.then(async () => {
       if (closed) throw new Error('This captured Codex invocation is closed.');
       verification?.assertHealthy();
-      if (++calls > input.settings.maxTurns) { exceeded = true; throw new Error('The captured Codex tool-call limit was reached.'); }
+      if (!isManagedWorkflowSession(input.workflow) && ++calls > input.settings.maxTurns) { exceeded = true; throw new Error('The captured Codex tool-call limit was reached.'); }
       if (!tools.some(item => item.name === name)) throw new Error('This operation is not permitted for this invocation.');
       input.signal?.throwIfAborted();
       const result = name === 'coforge_run_tests' && verification ? await verification.run(args) : await files.call(name, { input, lease: scopedLease }, args);

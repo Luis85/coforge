@@ -3,11 +3,12 @@ import { contextEventId } from '../domain/integrity';
 import type { StudioStore } from './studio-store';
 import { addEvent } from './studio-store';
 import type { NativeWorkflowPrivateRuntime } from '../domain/native-workflow-process';
+import { isManagedWorkflowSession } from '../domain/workflow-lifecycle';
 
 /** A reviewed operator statement can release an orphan hold, never fabricate OS termination. */
 export function nativeWorkflowAcknowledgementReview(state: Pick<AppState, 'jobs'>, jobId: string): string {
   const job = state.jobs.find(job => job.id === jobId);
-  if (!job?.workflow?.step.nativeTools || job.durable || !['claude', 'codex'].includes(job.provider) || !['failed', 'cancelled'].includes(job.status) || job.nativeProcess?.phase !== 'unknown' || job.nativeProcess.operatorAcknowledgedAt) throw new Error('Only an unresolved failed or cancelled native provider can be acknowledged. Check the original execution first.');
+  if (!job?.workflow || !job.workflow.step.nativeTools && !isManagedWorkflowSession(job.workflow) || job.durable || !['claude', 'codex'].includes(job.provider) || !['failed', 'cancelled'].includes(job.status) || job.nativeProcess?.phase !== 'unknown' || job.nativeProcess.operatorAcknowledgedAt) throw new Error('Only an unresolved failed or cancelled native provider can be acknowledged. Check the original execution first.');
   if (job.nativeProcess.runId !== job.workflow.runId || job.nativeProcess.attemptId !== job.workflow.attemptId || job.nativeProcess.projectId !== job.projectId) throw new Error('Restore the original provider ownership metadata before acknowledging this attempt.');
   if (job.verificationRuntime?.some(record => record.phase !== 'terminal')) throw new Error('Check the original Docker engine until every owned verification container is proven stopped. Provider acknowledgement cannot bypass container recovery.');
   const concurrent = state.jobs.filter(item => item.ideaId === job.ideaId && ['queued', 'running'].includes(item.status));

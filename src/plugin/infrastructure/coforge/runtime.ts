@@ -106,6 +106,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const localWorkspaces = new LocalWorkflowWorkspaces(workspaceStorage);
   const durableBuilds = durableBuildRuntime(plugin, durableWorkerSource, () => studio.integration().workerNodeBin,
     () => ['CoForge', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders(), ...serviceDesignFolders()]);
+  const foregroundPolishing = durableBuilds?.foregroundPolishing(localWorkspaces, workspaceStorage);
   const workspaces = protectedWorkflowWorkspaces(durableBuilds ? durableBuildWorkspaces(durableBuilds, localWorkspaces) : localWorkspaces, () => {
     const adapter = plugin.app.vault.adapter;
     if (!('getBasePath' in adapter) || typeof adapter.getBasePath !== 'function') throw new Error('Native workflow access requires a local desktop vault.');
@@ -137,16 +138,17 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   });
   const studio: StudioService = new StudioService(storage, {
     ...(durableBuilds ? { durableBuilds, backgroundBuildRetries: durableBuilds.retryResources(workspaceStorage), polishingCode: durableBuilds.polishingResources(localWorkspaces, workspaceStorage) } : {}),
+    ...(foregroundPolishing ? { polishingSources: foregroundPolishing.sources } : {}),
     outputTemplates,
-    nativeWorkflowRecovery: { check: jobId => recoverForegroundVerification(studio.store, undefined, undefined, jobId), purgePrivateRuntime: purgeCodexPrivateRuntime },
+    nativeWorkflowRecovery: { check: jobId => recoverForegroundVerification(studio.store, undefined, undefined, jobId, undefined, localWorkspaces), purgePrivateRuntime: purgeCodexPrivateRuntime },
     agentTasks: { prepareCoworker: (projectId, coworkerId) => workflowAgentTasks(plugin, studio, council.actions).prepareCoworker!(projectId, coworkerId), prepareCouncil: (projectId, councilId) => workflowAgentTasks(plugin, studio, council.actions).prepareCouncil!(projectId, councilId), create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => workflowAgentTasks(plugin, studio, council.actions).cancel!(id), result: id => workflowAgentTasks(plugin, studio, council.actions).result!(id) },
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
     economyReservations: storage.economyReservations,
     privateFolders: () => councilPrivateFolders(),
     noteFolders,
     runners: { demo: input => invocations.run(() => demo(input), input.signal),
-      claude: input => invocations.run(() => runClaudeStage(input, workspaces), input.signal),
-      codex: input => invocations.run(() => runCodexStage(input, workspaces), input.signal),
+      claude: input => invocations.run(() => foregroundPolishing ? foregroundPolishing.run(input, workspaces, runClaudeStage) : runClaudeStage(input, workspaces), input.signal),
+      codex: input => invocations.run(() => foregroundPolishing ? foregroundPolishing.run(input, workspaces, runCodexStage) : runCodexStage(input, workspaces), input.signal),
       herdr: input => invocations.run(() => herdrWorkflows.run(input), input.signal),
       mcp: input => invocations.run(() => {
         if (!mcp.status().active) throw new Error('Activate CoForge MCP before reserving an external step.');
@@ -306,7 +308,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       await alerts.start().catch(() => notify('Alerts could not start. Open Alerts to inspect the error; restore its saved configuration or free its local port, then reload CoForge.', true));
       if (disposed) return;
       await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));
-      await recoverForegroundVerification(studio.store).catch(() => notify('Verification recovery is incomplete. Inspect the original private container records before dispatching.', true));
+      await recoverForegroundVerification(studio.store, undefined, undefined, undefined, undefined, localWorkspaces).catch(() => notify('Agent recovery is incomplete. Open its saved session to see what still needs attention.', true));
       if (disposed) return;
       await council.start();
       if (disposed) return;

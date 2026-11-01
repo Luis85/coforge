@@ -12,6 +12,7 @@ import { persistProviderEvidence, validateProviderWorkspace } from './provider-e
 import { assignProviderFailure, providerFailureFor, providerFailureInfo, providerFailureMessage } from '../../features/coforge/domain/provider-failure';
 import { ProcessOwnershipUnknown } from './process';
 import { diagnoseProviderFailure } from './provider-failure';
+import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
 
 const READ_TOOLS = ['coforge_list_files', 'coforge_read_file', 'coforge_search_files'];
 
@@ -31,6 +32,7 @@ export async function captureBrokeredClaudeRead(input: StageInput, lease: Workfl
   if (lease.id) await persistProviderEvidence(() => input.onWorkspace?.(lease.id!));
   const directory = await mkdtemp(join(tmpdir(), 'coforge-claude-reader-'));
   let bridge: Awaited<ReturnType<typeof codexWorkflowTools>> | undefined;
+  let uncertain = false;
   try {
     bridge = await codexWorkflowTools(input, lease, lease.protectedProjectPaths);
     const config = join(directory, 'broker.json');
@@ -42,7 +44,7 @@ export async function captureBrokeredClaudeRead(input: StageInput, lease: Workfl
     input.onLog?.(`Claude ${input.workflow.step.name}: validated read-only Build broker; native filesystem, shell and agent tools are unavailable.`);
     await persistProviderEvidence(() => input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt }));
     input.signal?.throwIfAborted(); await validateProviderWorkspace(() => lease.validate!());
-    const raw = await captureObservedClaude(input, command, args, { cwd: directory, input: prompt, timeoutMs: input.settings.timeoutSeconds * 1000,
+    const raw = await captureObservedClaude(input, command, args, { cwd: directory, input: prompt, timeoutMs: isManagedWorkflowSession(input.workflow) ? undefined : input.settings.timeoutSeconds * 1000,
       ...(input.signal ? { signal: input.signal } : {}) }, capture, { COFORGE_SESSION_TOKEN: bridge.token });
     await bridge.dispose();
     try { bridge.assertBudget(); }
@@ -56,8 +58,11 @@ export async function captureBrokeredClaudeRead(input: StageInput, lease: Workfl
       throw assignProviderFailure(new ProcessFailure(providerFailureMessage(info), raw), info);
     }
     return raw;
+  } catch (error) {
+    uncertain = isManagedWorkflowSession(input.workflow) && error instanceof ProcessOwnershipUnknown;
+    throw error;
   } finally {
     try { await bridge?.dispose(); }
-    finally { await rm(directory, { recursive: true, force: true }); }
+    finally { if (!uncertain) await rm(directory, { recursive: true, force: true }); }
   }
 }

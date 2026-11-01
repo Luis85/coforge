@@ -591,6 +591,26 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-11-01: ordinary workflow agents and refinement/polishing sessions should
+  be completion-driven. The owner rejects task timeouts, turn/tool-call caps,
+  spending caps and timing/retry configuration as part of ordinary setup. New
+  Claude/Codex and external MCP admissions capture a managed-session lifecycle
+  independently of repository/tool permissions. Native sessions wait for the
+  CLI's actual final result and process/connection termination, or explicit Stop;
+  quiet elapsed time alone is not failure. External MCP tasks wait for a submitted
+  result or cancellation; individual HTTP request closure is not agent completion.
+  Preserve finite internal setup, IPC, ownership-query and shutdown proof bounds.
+  Keep result validation, cost reporting, original worktree attribution, and human
+  code acceptance. Automatically reconcile/clean up an exactly attributed original
+  attempt when cessation is proven; offer one clear Continue action without timing
+  or retry-epoch choices. Never replay an uncertain execution or clear explicit
+  user Stop consent. Unknown ownership stays held with an understandable status.
+  Existing admitted snapshots retain their captured policy; these new defaults
+  supersede earlier finite-limit requirements for future ordinary workflow
+  attempts, not Council/v2 analytical protocols or legacy verification recipes.
+  The normal path should need the plugin, a supported CLI and OBS, rather than
+  extra execution tuning, Docker services or recovery administration.
+
 - 2026-11-01: the owner can delete feature requests from the private board,
   including card menus, request details and table rows. Use a confirmation that
   identifies the request. The recoverable default moves the original note to

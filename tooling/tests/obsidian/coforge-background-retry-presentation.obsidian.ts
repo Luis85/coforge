@@ -5,6 +5,33 @@ import { test } from './support/obsidian-fixture';
 import { backgroundRetryProofBundle } from '../../../tests/e2e/support/background-retry-proof-bundle';
 
 describe('Reviewed background retry presentation in the contained native host', () => {
+  test('reviews attached native code improvements without background readiness, task limits or dispatch before confirmation', async ({ obsidian }) => {
+    await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    const script = await backgroundRetryProofBundle();
+    for (const [theme, width] of [['light', 1360], ['dark', 760]] as const) {
+      await obsidian.page.setViewportSize({ width, height: 900 });
+      await obsidian.eval((_context, selected) => { document.body.classList.toggle('theme-dark', selected === 'dark'); document.body.classList.toggle('theme-light', selected === 'light'); }, theme);
+      await obsidian.page.evaluate(script);
+      await obsidian.page.evaluate(() => window.coforgeRetryProof?.showCleanCodeSource(true));
+      await obsidian.page.getByRole('dialog', { name: 'Retry presentation proof', exact: true }).getByRole('button', { name: 'Improve & polish', exact: true }).click();
+      const modal = obsidian.page.getByRole('dialog', { name: 'Improve & polish current result', exact: true });
+      await modal.getByRole('textbox', { name: 'Feedback for this polishing pass', exact: true }).fill('Polish from the reviewed clean repository.');
+      await modal.getByRole('button', { name: 'Review improvement pass', exact: true }).click();
+      await browserExpect(modal.getByRole('region', { name: 'Reviewed code snapshot', exact: true })).toContainText('Current clean repository');
+      await browserExpect(modal).toContainText('completion');
+      await browserExpect(modal).not.toContainText('Foreground timeout');
+      await browserExpect(modal).not.toContainText('Configured bounds');
+      const confirm = modal.getByRole('button', { name: 'Confirm Improve & polish', exact: true });
+      await browserExpect(confirm).toBeDisabled();
+      await modal.getByRole('checkbox', { name: 'I reviewed the current result and feedback', exact: true }).check();
+      await browserExpect(confirm).toBeEnabled();
+      expect(await modal.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+      await obsidian.screenshot(`native-attached-code-polishing-${theme}-${width}`);
+      expect((await new AxeBuilder({ page: obsidian.page }).setLegacyMode(true).include('[data-retry-proof]').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
+      expect(await obsidian.page.evaluate(() => ({ confirmations: window.coforgeRetryProof?.polishingConfirmations, providerCalls: window.coforgeRetryProof?.providerCalls }))).toEqual({ confirmations: 0, providerCalls: 0 });
+      await obsidian.page.evaluate(() => window.coforgeRetryProof?.destroy());
+    }
+  });
   test('opens polishing feedback as the only active modal and preserves the current detail without a paid provider', async ({ obsidian }) => {
     await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
     const script = await backgroundRetryProofBundle();
@@ -40,6 +67,8 @@ describe('Reviewed background retry presentation in the contained native host', 
       await obsidian.eval((_context, theme) => { document.body.classList.toggle('theme-dark', theme === 'dark'); document.body.classList.toggle('theme-light', theme === 'light'); }, theme);
       await obsidian.page.evaluate(script);
       const dialog = obsidian.page.getByRole('dialog', { name: 'Retry presentation proof', exact: true });
+      const recoveryOptions = dialog.locator('summary').filter({ hasText: /^Earlier build recovery options$/ });
+      await recoveryOptions.focus(); await recoveryOptions.press('Enter');
       const entry = dialog.getByRole('button', { name: 'Retry Build in background', exact: true });
       await entry.focus(); await entry.press('Enter');
       const panel = dialog.getByRole('region', { name: 'Review background Build retry', exact: true });

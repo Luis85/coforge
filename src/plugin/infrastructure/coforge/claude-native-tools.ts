@@ -7,6 +7,7 @@ import { executionSchema } from '../../features/coforge/application/workflow-exe
 import type { captureProcess } from './process';
 import { assignProviderFailure, providerFailureFor } from '../../features/coforge/domain/provider-failure';
 import { diagnoseProviderFailure } from './provider-failure';
+import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
 
 const READ_TOOLS = ['coforge_list_files', 'coforge_read_file', 'coforge_search_files'];
 const WRITE_TOOLS = ['coforge_write_file', 'coforge_delete_file'];
@@ -33,7 +34,7 @@ export function claudeNativeDefinitions(input: StageInput) {
         + 'Do not spawn further agents. Preserve exact-content preconditions, report conflicts and keep unrelated work intact. '
         + 'Return inspected evidence, files changed, actual verification results with their recorded source identity, unresolved questions and unfinished work to the coordinator. '
         + 'Written tests and source inspection do not establish executed verification. Final human review remains mandatory.' + PATH_GUIDANCE,
-      tools, disallowedTools: ['Agent', 'Task', ...NATIVE_DENY], model: 'inherit', maxTurns: input.settings.maxTurns,
+      tools, disallowedTools: ['Agent', 'Task', ...NATIVE_DENY], model: 'inherit', ...(isManagedWorkflowSession(input.workflow) ? {} : { maxTurns: input.settings.maxTurns }),
       permissionMode: 'dontAsk', omitClaudeMd: true },
   };
 }
@@ -42,6 +43,7 @@ export function brokeredClaudeArgs(input: StageInput, configPath: string): strin
   const delegation = input.workflow.step.nativeTools?.delegation;
   const tools = claudeBrokerToolNames(input).map(name => 'mcp__coforge__' + name);
   const args = buildRestrictedClaudeArgs(input.settings, { access: 'none', model: input.workflow.step.model, effort: input.workflow.step.effort,
+    managedSession: isManagedWorkflowSession(input.workflow),
     schema: executionSchema(input), systemPrompt: executionSystemPrompt(input) + (delegation ? ' Native filesystem, shell and browser tools are unavailable. ' : ' Native file, shell, browser and agent tools are unavailable. ')
       + (delegation ? 'Use the native Agent tool only for coforge-worker tasks and wait for every delegated result before completing. ' : 'Native delegation is unavailable. ')
       + 'The scoped CoForge MCP tools own repository and verification access.' + PATH_GUIDANCE });

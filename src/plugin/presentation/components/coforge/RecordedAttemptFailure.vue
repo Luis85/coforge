@@ -11,6 +11,10 @@ const model = useAttemptFailure(props);
     <p v-if="!model.evidence.failure" class="cf-idea-help">This historical record has no structured failure cause. An empty execution log does not establish why the attempt stopped.</p>
     <p v-if="model.evidence.unresolved" class="cf-inline-error">Original execution is not confirmed stopped. Inspect its recovery details before starting further work.</p>
     <p class="cf-idea-help">{{ model.evidence.nextStep }}</p>
+    <button v-if="model.evidence.managed" type="button" class="cf-btn cf-btn-secondary" @click="model.openSessions()">Open Sessions</button>
+    <component :is="model.detailsTag" :class="{ 'cf-workflow-options': model.evidence.managed }">
+      <summary v-if="model.evidence.managed">Recorded attempt details</summary>
+      <p v-if="model.evidence.managed && model.evidence.failure" class="cf-idea-help">Original recorded classification: {{ model.evidence.failure.summary }} {{ model.evidence.failure.nextStep }}</p>
     <p class="cf-idea-help">Original attempt <code>{{ model.evidence.attemptId }}</code><template v-if="model.evidence.runId"> · run <code>{{ model.evidence.runId }}</code></template>.</p>
     <ul class="cf-attempt-resources">
       <li>{{ model.evidence.taskAvailable ? 'Captured task available' : 'No task prompt captured' }} · {{ model.evidence.responseAvailable ? 'Captured response available' : 'No response captured' }}.</li>
@@ -25,5 +29,6 @@ const model = useAttemptFailure(props);
       <button v-if="model.evidence.recoveryAvailable" type="button" class="cf-btn cf-btn-secondary cf-idea-small-button" @click="model.inspect('recovery')">Inspect original execution</button>
       <button v-if="!withinDetails" type="button" class="cf-btn cf-btn-ghost cf-idea-small-button" @click="model.inspect('details')">Read original attempt details</button>
     </div>
+    </component>
   </section>
 </template>

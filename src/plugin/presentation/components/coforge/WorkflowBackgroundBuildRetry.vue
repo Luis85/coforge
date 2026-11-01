@@ -6,6 +6,8 @@ const retry = useBackgroundBuildRetry(() => props.ideaId, () => props.runId);
 </script>
 <template>
   <section v-if="retry.available" class="cf-background-build-retry" aria-label="Background Build retry">
+    <details class="cf-workflow-options">
+      <summary>Earlier build recovery options</summary>
     <template v-if="!retry.receipt">
       <p class="cf-settings-help">Keep completed steps and attempt history. Review the actual files before continuing this Build in a background worker.</p>
       <button :ref="retry.bindTrigger" type="button" class="cf-btn cf-btn-secondary" :disabled="Boolean(retry.working)" @click="retry.preview()">{{ retry.working === 'preview' ? 'Inspecting Build files…' : 'Retry Build in background' }}</button>
@@ -44,5 +46,6 @@ const retry = useBackgroundBuildRetry(() => props.ideaId, () => props.runId);
       <div class="cf-settings-actions"><button type="button" class="cf-btn cf-btn-primary" :disabled="!retry.canConfirm" @click="retry.confirm()">{{ retry.working === 'confirm' ? 'Queuing reviewed background Build…' : retry.receipt.stopHold ? 'Release Stop hold and confirm background retry' : 'Confirm background retry' }}</button><button type="button" class="cf-btn cf-btn-secondary" :disabled="Boolean(retry.working)" @click="retry.cancel()">Cancel background retry</button></div>
     </section>
     <p v-if="retry.error" role="alert" class="cf-inline-error">{{ retry.error }}</p>
+    </details>
   </section>
 </template>

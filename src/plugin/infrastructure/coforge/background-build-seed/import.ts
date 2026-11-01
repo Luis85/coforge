@@ -9,6 +9,9 @@ import { RetrySeedStore, retrySeedDirectory } from './store';
 import { verifyRetrySourceIdentity } from './source';
 import { checkSnapshotPaths, invalidSnapshot, snapshotTree } from './tree';
 import { inputHash } from '../durable-worker/protocol';
+import type { StageInput } from '../../../features/coforge/application/ports';
+import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
+import { ideaProjectId } from '../../../features/coforge/domain/projects';
 
 export async function reviewedBuildSeed(privateDirectory: string, request: DurableBuildRequest) {
   if (!request.reviewedSnapshot) return undefined;
@@ -27,6 +30,25 @@ export async function reviewedBuildSeed(privateDirectory: string, request: Durab
   checkSnapshotPaths(changes, [...value.manifest.protectedProjectPaths, ...(request.protectedProjectPaths ?? [])]);
   const actual = await verifyRetrySourceIdentity(source, identity); if (actual.evidenceHash !== value.manifest.evidenceHash) throw invalidSnapshot();
   return { store, ...value };
+}
+/** Foreground AI imports bind the same private immutable authorization without impersonating a worker admission. */
+export async function reviewedForegroundPolishingSeed(privateDirectory: string, input: StageInput) {
+  const workflow = input.workflow;
+  const pass = input.idea.polishingRuns?.find(pass => pass.id === workflow?.polishingId && pass.workflow.id === workflow.runId);
+  if (!workflow || !isManagedWorkflowSession(workflow) || workflow.step.execution || workflow.backgroundRetryId || !workflow.polishingId
+    || workflow.step.output !== 'codechange' || workflow.step.access !== 'editworktree' || !input.jobId || workflow.workspaceId || !pass?.reviewedSnapshot
+    || pass.review !== 'pending' || pass.sourceHash !== workflow.polishingSourceHash) throw invalidSnapshot();
+  const store = new RetrySeedStore(retrySeedDirectory(privateDirectory));
+  const seed = await store.authorization(pass.reviewedSnapshot, workflow.polishingId), { target, manifest } = seed;
+  const root = await realpath((await agentGit(await realpath(input.integration.projectPath), ['rev-parse', '--show-toplevel'])).trim());
+  if (target.kind !== 'improvement' || target.runId !== workflow.runId || target.retryId !== workflow.polishingId || target.jobId !== input.jobId || target.attemptId !== workflow.attemptId
+    || manifest.source.projectId !== ideaProjectId(input.idea) || manifest.source.ideaId !== input.idea.id || manifest.source.proposalRevision !== workflow.proposalRevision
+    || manifest.source.sourceIdentity !== workflow.polishingSourceHash || manifest.source.runId !== workflow.sourceRunId || manifest.identity.projectRoot !== root
+    || inputHash(pass.reviewedSource) !== inputHash(manifest.source) || target.runId === manifest.source.runId || target.jobId === manifest.source.sourceJobId || target.attemptId === manifest.source.sourceAttemptId)
+    throw invalidSnapshot();
+  if ((await verifyRetrySourceIdentity(manifest.source, manifest.identity)).evidenceHash !== manifest.evidenceHash) throw invalidSnapshot();
+  checkSnapshotPaths(manifest.changes, manifest.protectedProjectPaths);
+  return { ...seed, store };
 }
 async function targetPath(root: string, path: string) {
   const absolute = resolve(root, path); const within = relative(root, absolute);

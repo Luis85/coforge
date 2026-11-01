@@ -45,7 +45,7 @@ export function codexResult(raw: string, options: { delegated?: boolean } = {}):
   }
   const messages = events.filter(event => event.type === 'item.completed' && record(event.item).type === 'agent_message');
   const message = messages.at(-1);
-  if (!message) throw new Error('Codex did not return a structured final message.');
+  if (!message) throw new ProviderFailureError(providerFailureFor('incomplete_output'));
   return { output: JSON.parse(text({ min: 1 })(record(message.item).text)), usage: codexUsage(raw, options) };
 }
 /** Codex input includes cached tokens. Store the uncached remainder plus its separate cache counter. */

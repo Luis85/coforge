@@ -121,20 +121,22 @@ test("focused chat and workflow pages are keyboard reachable", async ({ page }) 
   for (const name of ["Chat", "Twitch settings", "Bot messages"])
     await capture(page, ".cf-stream-page", "Stream tools", name);
   await openAgentWorkflow(page);
-  for (const name of ["Idea Board Workflow", "Step attempts", "Timing & limits", "Answer / output templates", "Herdr"])
+  for (const name of ["Idea Board Workflow", "Step attempts", "Answer / output templates", "Herdr"])
     await capture(page, ".cf-workflow-page", "Agent workflow pages", name);
   const pages = page.getByRole('navigation', { name: 'Agent workflow pages', exact: true });
-  await pages.getByRole('button', { name: 'Timing & limits', exact: true }).click();
-  const configure = page.getByRole('button', { name: 'Configure Build execution', exact: true });
-  await configure.focus(); await configure.press('Enter');
+  await pages.getByRole('button', { name: 'Idea Board Workflow', exact: true }).click();
+  await page.locator('[data-step-id="implement"] .cf-workflow-step-select').click();
   const longName = `Build ${'W'.repeat(90)}`;
   await page.getByLabel('Step name', { exact: true }).fill(longName);
-  await capture(page, '.cf-workflow-page', 'Agent workflow pages', 'Timing & limits');
   await page.setViewportSize({ width: 360, height: 900 });
-  const namedAction = page.getByRole('button', { name: `Configure ${longName} execution`, exact: true });
-  await expect(namedAction).toBeVisible(); await namedAction.focus(); await namedAction.press('Enter');
-  await expect(pages.getByRole('button', { name: 'Idea Board Workflow', exact: true })).toHaveAttribute('aria-current', 'page');
+  const behavior = page.getByRole('region', { name: 'Agent session behavior', exact: true });
+  await expect(behavior).toContainText('Quiet periods do not end the task');
+  await expect(page.getByLabel('Build execution policy', { exact: true })).toHaveCount(0);
   await expect(page.getByLabel('Step name', { exact: true })).toHaveValue(longName);
+  expect(await behavior.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+  await page.getByLabel('Step instructions', { exact: true }).focus();
+  await expect(page.getByLabel('Step instructions', { exact: true })).toBeFocused();
+  await capture(page, '.cf-workflow-page', 'Agent workflow pages', 'Idea Board Workflow');
 });
 
 test("Council authoring, folders, intake and execution are distinct accessible pages", async ({

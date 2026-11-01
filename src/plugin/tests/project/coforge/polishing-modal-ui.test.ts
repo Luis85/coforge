@@ -66,6 +66,32 @@ it('separates a legacy accepted code result from the actual reviewed clean repos
     expect(wrapper.find('[aria-label="I inspected earlier polishing source executors"]').exists()).toBe(false); expect(f.runner).not.toHaveBeenCalled();
   } finally { wrapper.unmount(); await f.dispose(); }
 });
+it('permits a reviewed attached code-polishing pass without a worker grant and keeps an explicit unavailable grant blocked', async () => {
+  const f = await retryUiFixture(); f.idea.increment = f.preview.inspection.increment!;
+  f.store.state!.projects!.find(item => item.id === f.project.id)!.settings.workflow!.improvementPass = { ...defaultImprovementPass(f.project.settings), provider: 'claude', model: 'sonnet' };
+  const ui = usePolishingUiStore(f.pinia); ui.open(f.idea.id);
+  const preview: PolishingPreview = { id: 'attached-code-review', ideaId: f.idea.id, sourceHash: 'source', feedback: '', target: polishingTargetForView(f.idea),
+    step: { ...f.preview.step, execution: undefined }, sourceArtifacts: [], policySourceRevision: 'current-saved-policy', inheritedLimits: f.preview.inheritedLimits,
+    effectiveLimits: f.preview.effectiveLimits, inspection: { ...f.preview.inspection, humanCessationRequired: false }, stopHold: false,
+    oldExecutorAcknowledgementRequired: false, createdAt: f.preview.createdAt };
+  vi.spyOn(f.studio, 'previewPolishingPass').mockImplementation(async (_id, feedback) => ({ ...preview, feedback }));
+  const wrapper = mount(PolishingFeedbackDialog, { global: { plugins: [f.pinia, f.provider] } });
+  try {
+    await wrapper.get('[aria-label="Feedback for this polishing pass"]').setValue('Polish this code using the attached CLI.');
+    await wrapper.get('form').trigger('submit'); await flushPromises();
+    const confirm = () => wrapper.findAll('button').find(button => button.text() === 'Confirm Improve & polish')!;
+    expect(confirm().attributes('disabled')).toBeDefined();
+    await wrapper.get('[aria-label="I reviewed the current result and feedback"]').setValue(true);
+    expect(confirm().attributes('disabled')).toBeUndefined();
+    expect(wrapper.text()).not.toContain('Foreground timeout');
+    expect(wrapper.text()).not.toContain('Configured bounds');
+    preview.readiness = { ready: false, message: 'The explicitly selected worker is unavailable' };
+    await wrapper.get('[aria-label="Feedback for this polishing pass"]').setValue('Recheck the unavailable worker.');
+    await wrapper.get('form').trigger('submit'); await flushPromises();
+    await wrapper.get('[aria-label="I reviewed the current result and feedback"]').setValue(true);
+    expect(confirm().attributes('disabled')).toBeDefined(); expect(f.runner).not.toHaveBeenCalled();
+  } finally { wrapper.unmount(); await f.dispose(); }
+});
 
 it('clears a reviewed receipt when only the primary checkpoint changes and retains the feedback', async () => {
   const f = await workflowUiFixture(); const settings = f.studio.state().settings;

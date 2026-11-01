@@ -15,14 +15,16 @@ import type { StudioStore } from './studio-store';
 import type { WorkflowCoworkerBinding } from '../domain/workflow-coworker-binding';
 import { recordOperation } from './population';
 import { workflowSourceExecutors, resolvedWorkflowSource } from './workflow-source-executors';
+import { managedPolishingSourceStopped } from './managed-polishing-source';
 
 type Context = ReturnType<typeof polishingContext>;
-interface Receipt { preview: PolishingPreview; identity: string; definition: WorkflowDefinition; bindings: WorkflowCoworkerBinding[]; source?: BackgroundBuildRetrySource }
+interface Receipt { preview: PolishingPreview; identity: string; definition: WorkflowDefinition; bindings: WorkflowCoworkerBinding[]; source?: BackgroundBuildRetrySource; attached?: true }
 export class PolishingPasses {
   private readonly receipts = new Map<string, Receipt>();
   constructor(private readonly store: StudioStore, private readonly resources: BackgroundBuildRetryPort | undefined, private readonly worker: DurableBuildPort | undefined,
     private readonly agentTasks: AgentTaskPort | undefined, private readonly busy: (id: string) => boolean,
-    private readonly queue: (state: InternalState, ideaId: string, run: PolishingRun, ids: { jobId: string; attemptId: string }) => void) {}
+    private readonly queue: (state: InternalState, ideaId: string, run: PolishingRun, ids: { jobId: string; attemptId: string }) => void,
+    private readonly foregroundSources?: BackgroundBuildRetryPort) {}
   private context(id: string, feedback: string) { return polishingContext(this.store.internalSnapshot(), id, feedback, this.busy(id)); }
   private source(context: Context): BackgroundBuildRetrySource {
     const { target, idea, project } = context; const ownerId = target.workspaceOwnerRunId ?? target.sourceRunId;
@@ -38,13 +40,13 @@ export class PolishingPasses {
   }
   async preview(ideaId: string, feedback: string): Promise<PolishingPreview> {
     this.receipts.delete(ideaId); const context = this.context(ideaId, feedback); const configuration = context.configuration;
-    const code = context.target.kind === 'codechange';
+    const code = context.target.kind === 'codechange'; const attached = code && !!this.foregroundSources;
     const step: AiWorkflowStep = { id: 'polish-result', kind: 'ai', name: 'Improve & polish', instructions: configuration.instructions,
       provider: configuration.provider, model: configuration.model, ...(configuration.effort ? { effort: configuration.effort } : {}),
       ...(configuration.nativeTools?.delegation || code && configuration.nativeTools?.verification ? { nativeTools: { ...(configuration.nativeTools.delegation ? { delegation: structuredClone(configuration.nativeTools.delegation) } : {}), ...(code && configuration.nativeTools.verification ? { verification: structuredClone(configuration.nativeTools.verification) } : {}) } } : {}),
       ...(configuration.coworkerId ? { coworkerId: configuration.coworkerId } : {}), output: context.target.kind === 'request' ? 'markdown' : context.target.kind,
       access: code ? 'editworktree' : 'none', automatic: false,
-      ...(code ? { execution: durableBuildPolicyCheck({ ...(configuration.execution ?? { mode: 'background' }), idleWarningSeconds: configuration.execution?.idleWarningSeconds ?? 1800 }) } : {}) };
+      ...(code && !attached ? { execution: durableBuildPolicyCheck({ ...(configuration.execution ?? { mode: 'background' }), idleWarningSeconds: configuration.execution?.idleWarningSeconds ?? 1800 }) } : {}) };
     const draft: WorkflowDefinition = { format: 'coforge-workflow/v1', revision: `polish-${crypto.randomUUID()}`, name: 'Improve & polish',
       limits: { ...configuration.limits, intervalSeconds: context.project.settings.intervalSeconds }, steps: [step] };
     const bindings = await prepareWorkflowCoworkers(draft, context.project.id, this.agentTasks);
@@ -53,9 +55,10 @@ export class PolishingPasses {
     configuredRuntime(this.store.internalSnapshot(), context.idea, effective, false, !code);
     let source: BackgroundBuildRetrySource | undefined; let inspection: PolishingPreview['inspection']; let readiness: PolishingPreview['readiness'];
     if (code) {
-      if (!['claude', 'codex'].includes(effective.provider) || !this.resources || !this.worker) throw new Error('Code polishing requires the native Claude or Codex background worker. No fallback was started.');
-      readiness = await this.worker.readiness(); if (!readiness.ready || readiness.reviewedSnapshots !== true) throw new Error(readiness.message || 'Check reviewed snapshot support before code polishing.');
-      source = this.source(context); inspection = backgroundBuildRetryInspectionCheck(await this.resources.inspect(source));
+      const resources = attached ? this.foregroundSources : this.resources;
+      if (!['claude', 'codex'].includes(effective.provider) || !resources || !attached && !this.worker) throw new Error('Code polishing requires a native Claude or Codex coding session and its local source authority.');
+      if (!attached) { readiness = await this.worker!.readiness(); if (!readiness.ready || readiness.reviewedSnapshots !== true) throw new Error(readiness.message || 'Check reviewed snapshot support before code polishing.'); }
+      source = this.source(context); inspection = backgroundBuildRetryInspectionCheck(await resources.inspect(source));
       source = resolvedWorkflowSource(source, inspection);
     }
     if (this.context(ideaId, context.feedback).identity !== context.identity) throw new Error('The polishing source changed during preview. Open the feedback modal again.');
@@ -65,8 +68,9 @@ export class PolishingPasses {
       sourceArtifacts: context.sourceArtifacts, policySourceRevision: context.policySourceRevision, inheritedLimits,
       effectiveLimits: { maxTurns: effective.execution?.maxTurns ?? inheritedLimits.maxTurns, maxBudgetUsd: effective.execution?.maxBudgetUsd ?? inheritedLimits.maxBudgetUsd },
       ...(inspection ? { inspection } : {}), ...(readiness ? { readiness } : {}), stopHold: context.stopHold,
-      oldExecutorAcknowledgementRequired: context.oldExecutorAcknowledgementRequired || !!inspection?.humanCessationRequired, createdAt: new Date().toISOString() };
-    this.receipts.set(ideaId, { preview: structuredClone(preview), identity: context.identity, definition, bindings, ...(source ? { source } : {}) }); return structuredClone(preview);
+      oldExecutorAcknowledgementRequired: (context.oldExecutorAcknowledgementRequired || !!inspection?.humanCessationRequired)
+        && !(attached && managedPolishingSourceStopped(this.store.internalSnapshot(), source, inspection)), createdAt: new Date().toISOString() };
+    this.receipts.set(ideaId, { preview: structuredClone(preview), identity: context.identity, definition, bindings, ...(source ? { source } : {}), ...(attached ? { attached: true } : {}) }); return structuredClone(preview);
   }
   async confirm(ideaId: string, previewId: string, consent: PolishingConsent): Promise<void> {
     const receipt = this.receipts.get(ideaId); const preview = receipt?.preview;
@@ -76,8 +80,9 @@ export class PolishingPasses {
     if (JSON.stringify(bindings) !== JSON.stringify(receipt.bindings)) throw new Error('The polishing CoWorker changed. Review a fresh preview.');
     const id = crypto.randomUUID(); const ids = { jobId: crypto.randomUUID(), attemptId: crypto.randomUUID() };
     if (preview.inspection && receipt.source) {
-      const ready = await this.worker!.readiness(); if (!ready.ready || ready.reviewedSnapshots !== true) throw new Error('The background worker is no longer ready.');
-      await this.resources!.verify(receipt.source, preview.inspection.snapshot, { kind: 'improvement', runId: id, retryId: id, ...ids });
+      if (!receipt.attached) { const ready = await this.worker!.readiness(); if (!ready.ready || ready.reviewedSnapshots !== true) throw new Error('The background worker is no longer ready.'); }
+      const resources = receipt.attached ? this.foregroundSources : this.resources;
+      await resources!.verify(receipt.source, preview.inspection.snapshot, { kind: 'improvement', runId: id, retryId: id, ...ids });
     }
     await this.store.transaction(state => {
       const context = polishingContext(state, ideaId, preview.feedback, this.busy(ideaId));

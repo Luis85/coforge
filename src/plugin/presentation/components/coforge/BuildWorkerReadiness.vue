@@ -8,7 +8,12 @@ const worker = useDurableWorkerReadiness();
     class="cf-idea-section"
     aria-label="Background Build worker readiness"
   >
-    <h3>Background Build worker</h3>
+    <h3>Advanced background worker (optional)</h3>
+    <p class="cf-settings-help">
+      Ordinary native agent sessions, including refinement and code improvements,
+      do not require this worker. Keep CoForge open while those sessions run.
+      This check supports earlier or explicitly configured background Builds.
+    </p>
     <p role="status">
       {{ worker.ready ? "Worker verified" : "Worker not verified" }} ·
       {{ worker.message }}

@@ -15,6 +15,8 @@ import { workflowProviderSummary } from "./agent-labels";
 import { reviewedBackgroundRetryRequired } from './background-build-retry-display';
 import { nextWorkflowStep, onlyOwnerScreeningRemains, exemptScreeningStep } from '../../../features/coforge/domain/owner-screening';
 import { failedWorkflowJobId } from './attempt-failure-evidence';
+import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
+import { managedWorkflowContinuation } from '../../../features/coforge/application/managed-workflow-continuation';
 import {
   configuredAgentLabel,
   configuredStepProblem,
@@ -53,6 +55,11 @@ export function useWorkflow(ideaId?: () => string | undefined) {
   const currentStep = computed(
     () => nextWorkflowStep(definition.value, selected.value, run.value),
   );
+  const sessionJob = computed(() => (store.state?.jobs ?? []).filter(job => job.ideaId === selected.value?.id && job.projectId === project.value?.id
+    && job.workflow !== undefined && job.workflow.runId === run.value?.id && job.workflow.step.id === currentStep.value?.id).at(-1));
+  const managedSession = computed(() => isManagedWorkflowSession(sessionJob.value?.workflow));
+  const ordinaryNativeTask = computed(() => currentStep.value?.kind === 'ai' && !run.value?.external && ['claude', 'codex'].includes(currentStep.value.provider));
+  const continuation = computed(() => run.value?.state === 'attention' ? managedWorkflowContinuation(run.value, store.state?.jobs ?? []) : undefined);
   const rows = computed(() =>
     workflowAttemptRows(store.projectIdeas, store.projectJobs),
   );
@@ -69,7 +76,9 @@ export function useWorkflow(ideaId?: () => string | undefined) {
     if (!idea) return "Select a request to run its workflow.";
     if (operatorHeld.value) return 'Right-click this card and choose Restart workflow';
     if (pendingPolishing.value) return 'Review or dismiss the pending Improve & polish pass below before continuing the main workflow.';
-    if ((store.state?.jobs ?? []).some(job => job.ideaId === idea.id && job.durable && job.durable.acknowledged !== true)) return 'The original background Build is not acknowledged. Inspect or recover that execution before starting more work for this request.';
+    if (continuation.value === 'unverified') return 'The original agent’s state must be confirmed before this task can continue. Open Sessions or its execution details.';
+    if ((store.state?.jobs ?? []).some(job => job.ideaId === idea.id && job.durable && job.durable.acknowledged !== true
+      && !(continuation.value === 'settling' && job.id === sessionJob.value?.id))) return 'The original background Build is not acknowledged. Inspect or recover that execution before starting more work for this request.';
     if (uncertainNudges.value.length) return 'Inspect and acknowledge the uncertain task or cancellation before starting more work.';
     if (["shipped", "rejected", "flagged"].includes(idea.status))
       return "This request is closed or held for moderation.";
@@ -187,6 +196,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
         !uncertainNudges.value.length &&
         !(store.state?.jobs ?? []).some(job => job.ideaId === selected.value?.id && job.durable && job.durable.acknowledged !== true) &&
         !run.value?.attempts.some(attempt => attempt.councilCancellation === 'requested') &&
+        (!managedSession.value || run.value?.state === 'finished') &&
         Boolean(terminal(run.value)) &&
         !selected.value?.increment?.files.length &&
         !["shipped", "rejected", "flagged"].includes(
@@ -207,7 +217,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
     runNextLabel: computed(() =>
       !run.value && selected.value?.lastError
         ? "Retry starting workflow"
-        : `${run.value?.state === "attention" ? "Retry" : run.value ? "Run" : "Start"} · ${currentStep.value?.name ?? "workflow"}`,
+        : `${run.value?.state === "attention" ? ordinaryNativeTask.value || managedSession.value ? "Continue" : "Retry" : run.value ? "Run" : "Start"} · ${currentStep.value?.name ?? "workflow"}`,
     ),
     nextActionHeading: computed(() => {
       if (pendingPolishing.value) return 'Review Improve & polish pass';
@@ -218,21 +228,26 @@ export function useWorkflow(ideaId?: () => string | undefined) {
       if (run.value?.state === "waiting-human") return "Your decision is next";
       if (run.value?.state === "awaiting-review")
         return "Review the code changes";
-      if (run.value?.state === "running") return "An attempt is in progress";
+      if (run.value?.state === 'attention' && managedSession.value) return sessionJob.value?.failure?.code === 'transport' || sessionJob.value?.failure?.code === 'incomplete_output' ? 'The agent connection closed' : 'The agent needs attention';
+      if (run.value?.state === "running") return managedSession.value ? 'The agent is working' : "An attempt is in progress";
       if (run.value?.state === "finished")
         return selected.value?.status === "shipped"
           ? "Code changes accepted"
           : "This workflow is complete";
       if (run.value?.state === "stopped") return "This workflow is stopped";
-      return `${run.value?.state === "attention" ? "Review before retrying" : run.value ? "Next step" : "Start with"} · ${currentStep.value?.name ?? "workflow"}`;
+      return `${run.value?.state === "attention" ? ordinaryNativeTask.value ? "Continue this task" : "Review before retrying" : run.value ? "Next step" : "Start with"} · ${currentStep.value?.name ?? "workflow"}`;
     }),
     nextActionHelp: computed(() => {
       if (pendingPolishing.value) return 'The main workflow checkpoint is retained. Inspect the independent pass above; stop or recover its execution if needed, then apply or dismiss its result before continuing the main workflow.';
       if (operatorHeld.value) return `${preservedReview.value ? 'Review the preserved changes before deciding what to keep. ' : 'The captured history is retained. '}Right-click this card and choose Restart workflow to start from the first step. Eligible native Builds can instead review a background retry below and explicitly release the hold.`;
       if (!run.value && selected.value?.lastError)
         return selected.value.lastError;
+      if (run.value?.state === 'attention' && managedSession.value && blocked.value) return blocked.value;
+      if (run.value?.state === 'attention' && managedSession.value) return sessionJob.value?.failure?.code === 'ownership_unknown'
+        ? 'The original agent’s state is not confirmed. Check its session before starting more work.'
+        : 'The session ended before a complete result was saved. Your available work and records are retained. Continue when you are ready for the agent to work on this task again.';
       if (run.value?.state === "running")
-        return "Wait for a validated result. A delivered prompt alone does not complete a step.";
+        return managedSession.value ? 'Quiet periods do not end this task. Open Sessions to follow reported activity, or use Stop to end it.' : "Wait for a validated result. A delivered prompt alone does not complete a step.";
       if (run.value?.state === "waiting-human")
         return "Read the instructions and complete the required decision below. Completing a checkpoint does not approve code changes.";
       if (run.value?.state === "awaiting-review")

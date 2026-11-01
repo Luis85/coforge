@@ -9,7 +9,7 @@ import { workflowUiFixture } from './workflow-ui-fixture';
 import { councilAskFixture } from './council-ask-fixture';
 import { coforgeKey } from '../../../presentation/context/coforge-context';
 
-it('keeps the optional improvement pass in the shared explicit-save workflow draft with real agent choices and inherited bounds', async () => {
+it('keeps the optional improvement pass in the shared explicit-save workflow draft with real agent choices and managed session defaults', async () => {
   const f = await workflowUiFixture(); f.store.openWorkflowTool('settings');
   const wrapper = mount(WorkflowView, { global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
   try {
@@ -20,18 +20,19 @@ it('keeps the optional improvement pass in the shared explicit-save workflow dra
     await panel.get('[aria-label="Improvement model"]').setValue('sonnet');
     await panel.get('[aria-label="Improvement reasoning effort"]').setValue('high');
     await panel.get('[aria-label="Improvement instructions"]').setValue('Preserve the source result and follow the separately captured feedback.');
-    await panel.get('[aria-label="Improvement timeout seconds"]').setValue(1200);
-    await panel.get('[aria-label="Improvement turns/tool calls"]').setValue(30);
-    await panel.get('[aria-label="Improvement budget USD"]').setValue(4);
+    const legacyLimits = { ...useWorkflowEditorStore(f.pinia).draft.improvementPass!.limits };
+    expect(panel.find('[aria-label="Improvement timeout seconds"]').exists()).toBe(false);
+    expect(panel.find('[aria-label="Improvement turns/tool calls"]').exists()).toBe(false);
+    expect(panel.find('[aria-label="Improvement budget USD"]').exists()).toBe(false);
     expect(f.storage.saves).toBe(saves); expect(f.studio.state().settings.workflow).toBeUndefined();
     const editor = useWorkflowEditorStore(f.pinia); const session = editor.session;
     const nav = wrapper.get('nav[aria-label="Agent workflow pages"]');
-    await nav.findAll('button').find(item => item.text() === 'Timing & limits')!.trigger('click');
+    await nav.findAll('button').find(item => item.text() === 'Answer / output templates')!.trigger('click');
     await nav.findAll('button').find(item => item.text() === 'Idea Board Workflow')!.trigger('click');
     expect(editor.session).toBe(session); expect(panel.get('[aria-label="Improvement instructions"]').element).toHaveProperty('value', 'Preserve the source result and follow the separately captured feedback.');
     await wrapper.get('form.cf-workflow-editor').trigger('submit'); await flushPromises();
     expect(f.studio.state().settings.workflow?.improvementPass).toMatchObject({ provider: 'claude', model: 'sonnet', effort: 'high',
-      limits: { timeoutSeconds: 1200, maxTurns: 30, maxBudgetUsd: 4 }, execution: { mode: 'background', idleWarningSeconds: 1800 } });
+      limits: legacyLimits });
     expect(f.runner).not.toHaveBeenCalled();
   } finally { wrapper.unmount(); await f.dispose(); }
 });
@@ -60,7 +61,7 @@ it('assigns a saved CoWorker to the pass and allows explicit manual customizatio
   } finally { wrapper.unmount(); await f.dispose(false); }
 });
 
-it('requires explicit code-policy overrides and disables the pass by removing only its draft configuration', async () => {
+it('keeps task-limit plumbing out of polishing and disables the pass by removing only its draft configuration', async () => {
   const f = await workflowUiFixture(); f.store.openWorkflowTool('settings');
   const wrapper = mount(WorkflowView, { global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
   try {
@@ -68,11 +69,11 @@ it('requires explicit code-policy overrides and disables the pass by removing on
     const editor = useWorkflowEditorStore(f.pinia);
     expect(editor.draft.improvementPass?.limits.maxTurns).toBe(editor.draft.limits.maxTurns);
     expect(editor.draft.improvementPass?.limits.maxBudgetUsd).toBe(editor.draft.limits.maxBudgetUsd);
-    expect(editor.draft.improvementPass?.execution).not.toHaveProperty('maxRuntimeSeconds');
-    await wrapper.get('[aria-label="Set improvement code deadline"]').setValue(true);
-    await wrapper.get('[aria-label="Improvement code deadline hours"]').setValue(120);
-    expect(editor.draft.improvementPass?.execution?.maxRuntimeSeconds).toBe(432000);
-    expect(wrapper.text()).toContain('Text results use the foreground timeout');
+    expect(editor.draft.improvementPass?.execution).toBeUndefined();
+    expect(wrapper.find('[aria-label="Set improvement code deadline"]').exists()).toBe(false);
+    expect(wrapper.find('[aria-label="Override improvement code turn limit"]').exists()).toBe(false);
+    expect(wrapper.find('[aria-label="Override improvement code budget"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain('Quiet periods do not end the task');
     await wrapper.get('[aria-label="Enable Improve & polish"]').setValue(false);
     expect(editor.draft.improvementPass).toBeUndefined(); expect(editor.draft.steps.length).toBeGreaterThan(0);
     expect(f.runner).not.toHaveBeenCalled();

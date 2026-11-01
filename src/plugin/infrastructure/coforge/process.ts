@@ -11,6 +11,8 @@ export interface ProcessOptions {
   /** Delegated invocations retain ownership until their original process tree is proven stopped. */
   ownedTree?: true;
   nativeCoding?: { runId: string; attemptId: string; projectId: string };
+  /** New CLI workflow sessions react to root output closure; never set on arbitrary shell commands. */
+  managedSession?: true;
   onOwnedProcess?(identity: NativeProcessIdentity, phase: 'launched' | 'terminated' | 'unknown', lifetime?: NativeWorkflowLifetimeRef): Promise<void>;
   /** Internal observation only. Raw bytes must be decoded/sanitized before publication; failures never affect execution. */
   onStdout?(chunk: Uint8Array): void | Promise<void>;

@@ -30,6 +30,7 @@ import { NativePolishingResources } from '../background-build-seed/client';
 import { operatorResourceFiles, operatorWorkspaceRecord, polishingBindingCheck } from '../background-build-seed/operator-record';
 import { LocalWorkflowWorkspaces } from '../workflow-workspaces';
 import { PolishingCopyRetainedError } from '../../../features/coforge/application/polishing-ports';
+import { ForegroundPolishingResources } from '../background-build-seed/foreground';
 
 export interface DurableBuildClientOptions { workerSource: string; privateDirectory: string; nodeExecutable?: string | (() => string | undefined);
   vaultDirectory?: string; protectedVaultFolders?: () => readonly string[]; validatePrivateDirectory?: () => string }
@@ -258,6 +259,12 @@ export class DurableBuildClient implements DurableBuildPort {
         if (status.operatorMaterializations !== true) throw new Error('The current worker cannot create reviewed operator resources. Settle and upgrade its local runtime; no source was changed.');
         return polishingBindingCheck(await rpc(descriptor, { op: 'materializeReviewedResource', request, protectedPaths }, 120000));
       } });
+  }
+  foregroundPolishing(workspaces: LocalWorkflowWorkspaces, storage: WorkflowWorkspaceStorage) {
+    if (!this.options.vaultDirectory || !this.options.protectedVaultFolders) throw new Error('The attached polishing source authority is unavailable.');
+    return new ForegroundPolishingResources({ privateDirectory: this.options.privateDirectory, vaultDirectory: this.options.vaultDirectory,
+      protectedVaultFolders: this.options.protectedVaultFolders, workspaces, storage, validate: () => this.validateDirectory(),
+      sourceStorage: source => this.retrySourceStorage(source, storage) });
   }
   private async retrySourceStorage(source: BackgroundBuildRetrySource, fallback: WorkflowWorkspaceStorage): Promise<WorkflowWorkspaceStorage> {
     if (source.sourceKind === 'repository' && !source.sourceIdentity) for (const dataset of await retainedDatasets(this.files)) {

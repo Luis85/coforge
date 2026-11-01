@@ -34,6 +34,7 @@ import { assertPolishingMetadata, assertPolishingResolved } from './workflow-run
 import { polishingSaveOptions, workflowRunSaveOptions } from './polishing-save-options';
 import { effectivePolishingIdea } from './polishing-amendments';
 import { HostOperationLifetime } from './host-operation-lifetime';
+import { managedWorkflowContinuation } from './managed-workflow-continuation';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
@@ -89,7 +90,7 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { polishingCode?: PolishingCodePort; backgroundBuildRetries?: BackgroundBuildRetryPort; durableBuilds?: DurableBuildPort; outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
+export interface EngineOptions { polishingSources?: BackgroundBuildRetryPort; polishingCode?: PolishingCodePort; backgroundBuildRetries?: BackgroundBuildRetryPort; durableBuilds?: DurableBuildPort; outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
 
 /** Vault-wide Build and short-task pools with bounded FIFO queues and explicit cancellation. */
 export class WorkflowEngine {
@@ -110,7 +111,7 @@ export class WorkflowEngine {
     this.durable = new DurableBuildCoordinator(store, options.durableBuilds, (state, job, result) => this.configured.complete(state, job, result), ideaId => this.configured.flushDelegated(ideaId).catch(error => this.report(error)));
     this.lanes = new WorkflowJobLanes(store, (job, controller) => this.dispatch(job, controller), error => this.report(error));
     this.buildRetries = new BackgroundBuildRetries(store, options.backgroundBuildRetries, options.durableBuilds, ideaId => this.lanes.hasActiveIdea(ideaId), (state, ideaId, approval) => this.configured.queueBackgroundRetry(state, ideaId, approval));
-    this.polishing = new PolishingPasses(store, options.backgroundBuildRetries, options.durableBuilds, options.agentTasks, ideaId => this.lanes.hasActiveIdea(ideaId), (state, ideaId, pass, ids) => this.configured.queuePolishing(state, ideaId, pass, ids));
+    this.polishing = new PolishingPasses(store, options.backgroundBuildRetries, options.durableBuilds, options.agentTasks, ideaId => this.lanes.hasActiveIdea(ideaId), (state, ideaId, pass, ids) => this.configured.queuePolishing(state, ideaId, pass, ids), options.polishingSources);
   }
   acknowledgeWorkflowNudge(ideaId: string, revision: number, consent: boolean) { return this.configured.acknowledgeNudge(ideaId, revision, consent); }
   async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }
@@ -119,7 +120,7 @@ export class WorkflowEngine {
   async confirmBackgroundBuildRetry(ideaId: string, previewId: string, consent: BackgroundBuildRetryConsent): Promise<void> { await this.buildRetries.confirm(ideaId, previewId, consent); this.kick(); }
   previewPolishingPass(ideaId: string, feedback: string) { return this.polishing.preview(ideaId, feedback); }
   async confirmPolishingPass(ideaId: string, previewId: string, consent: BackgroundBuildRetryConsent): Promise<void> { await this.polishing.confirm(ideaId, previewId, consent); this.kick(); }
-  async applyPolishingResult(ideaId: string, runId: string, revision: number): Promise<void> { return applyPolishingResult(this.store, this.options.backgroundBuildRetries, this.options.polishingCode, ideaId, runId, revision, this.hostLifetime.capture()); }
+  async applyPolishingResult(ideaId: string, runId: string, revision: number): Promise<void> { return applyPolishingResult(this.store, this.options.polishingSources ?? this.options.backgroundBuildRetries, this.options.polishingCode, ideaId, runId, revision, this.hostLifetime.capture()); }
   rejectPolishingResult(ideaId: string, runId: string, revision: number): Promise<void> { return rejectPolishingResult(this.store, ideaId, runId, revision); }
   async stopPolishingPass(ideaId: string, runId: string): Promise<void> {
     await this.store.transaction(state => holdPolishingRun(state, ideaId, runId), { atomicCommand: true });
@@ -130,7 +131,12 @@ export class WorkflowEngine {
   async startTriggeredWorkflow(ideaId: string, event: AutomationContext, expectedDefinitionJson: string) { const run = await this.configured.start(ideaId, true, undefined, false, event, expectedDefinitionJson); this.kick(); return run; }
   async startMcpWorkflow(ideaId: string) { const run = await this.configured.start(ideaId, true, undefined, true); this.kick(); return run; }
   async startWorkflowFromPlan(ideaId: string, handoff: WorkflowPlanHandoff) { const run = await this.configured.start(ideaId, true, handoff); this.kick(); return run; }
-  async runWorkflowStep(ideaId: string) { const run = await this.configured.next(ideaId); this.kick(); return run; }
+  async runWorkflowStep(ideaId: string) {
+    const continuation = () => { const state = this.store.snapshot(); return managedWorkflowContinuation(state.ideas.find(idea => idea.id === ideaId)?.workflowRun, state.jobs); };
+    if (continuation() === 'settling') await this.durable.reconcile(ideaId);
+    if (['settling', 'unverified'].includes(continuation() ?? '')) throw new Error('The original agent session is still being settled. Check its session status before continuing; no agent was restarted.');
+    const run = await this.configured.next(ideaId); this.kick(); return run;
+  }
   async completeWorkflowManual(ideaId: string, revision: number, checkedIds: string[], note = '') { const run = await this.configured.manual(ideaId, revision, checkedIds, note); this.kick(); return run; }
   async stopWorkflow(ideaId: string) {
     const auxiliary = this.store.snapshot().ideas.find(item => item.id === ideaId)?.polishingRuns?.find(item => item.review === 'pending' && ['ready', 'running', 'awaiting-review'].includes(item.workflow.state));

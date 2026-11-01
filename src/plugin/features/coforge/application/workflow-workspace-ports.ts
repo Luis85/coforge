@@ -21,6 +21,8 @@ export interface WorkflowWorkspaceRecord {
   workspaceEpoch?: string;
   /** Private proof lookup for a paid-free operator copy; never a fabricated provider job. */
   operatorMaterializationId?: string;
+  /** Privately authorized foreground AI seed, distinct from an unpaid operator copy. */
+  reviewedImportId?: string;
   projectId: string;
   projectPath: string;
   cwd: string;
@@ -37,6 +39,9 @@ export interface WorkflowWorkspaceRecord {
 export interface ReviewedWorkspaceMaterializationRequest extends WorkflowWorkspaceRequest {
   baseCommit: string; workspaceEpoch: string; operatorMaterializationId: string;
 }
+export interface ReviewedWorkflowWorkspaceRequest extends WorkflowWorkspaceRequest {
+  baseCommit: string; workspaceEpoch: string; reviewedImportId: string;
+}
 export interface WorkflowWorkspaceStorage {
   load(): Promise<WorkflowWorkspaceRecord[]>;
   save(records: WorkflowWorkspaceRecord[]): Promise<void>;
@@ -50,10 +55,17 @@ export interface WorkflowWorkspaceLease {
   capture(summary: string): Promise<Increment | undefined>;
   release(uncertain?: boolean): Promise<void>;
 }
+export interface StoppedWorkflowWorkspaceRequest {
+  workspaceId: string; runId: string; projectId: string; attemptId: string;
+  /** Existing durable host evidence need not be republished on every reopen. */
+  capture?: boolean;
+}
 export interface WorkflowWorkspaces {
   start(): Promise<void>;
   acquire(request: WorkflowWorkspaceRequest): Promise<WorkflowWorkspaceLease>;
   assertReviewable(id: string, expected?: Increment): Promise<void>;
   /** Only after the external attempt has been explicitly inspected/recovered. */
   acknowledge(id: string, attemptId: string, reusable?: boolean): Promise<void>;
+  /** Trusted host recovery only, after the original provider and descendants are proven stopped. */
+  recoverStopped?(request: StoppedWorkflowWorkspaceRequest): Promise<Increment | undefined>;
 }

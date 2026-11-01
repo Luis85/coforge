@@ -3,10 +3,6 @@ import { openProjectSettings } from './settings-navigation';
 
 /** Follow progressive disclosure through its visible summary before using advanced controls. */
 export async function openWorkflowDisclosure(surface: Page | Locator, name: string) {
-  if (name === 'Workflow timing and native CLI limits') {
-    await openWorkflowTiming(surface);
-    return;
-  }
   const control = surface.locator('summary').filter({ hasText: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) });
   if (!(await control.isVisible()) && await surface.locator('.cf-workflow-page').isVisible()) await openWorkflowSettings(surface);
   const details = control.locator('xpath=..');
@@ -37,12 +33,6 @@ export async function openWorkflowAttempts(surface: Page | Locator) {
   await pages.getByRole('button', { name: 'Step attempts', exact: true }).click();
   await expect(pages.getByRole('button', { name: 'Step attempts', exact: true })).toHaveAttribute('aria-current', 'page');
   await expect(surface.getByRole('region', { name: 'Workflow step attempts', exact: true })).toBeVisible();
-}
-
-export async function openWorkflowTiming(surface: Page | Locator) {
-  await openAgentWorkflow(surface);
-  await surface.getByRole('navigation', { name: 'Agent workflow pages', exact: true }).getByRole('button', { name: 'Timing & limits', exact: true }).click();
-  await expect(surface.getByRole('heading', { name: 'Timing & limits', exact: true })).toBeVisible();
 }
 
 export async function openWorkflowTemplates(surface: Page | Locator) {

@@ -8,6 +8,7 @@ import type { McpCodingCommands, McpCommandOutcome, McpCommandRequest } from '..
 import { ideaProjectId } from '../../features/coforge/domain/projects';
 import { boolean, number, optional, shape, text } from '../../features/coforge/domain/check';
 import { providerFailureFor, providerFailureInfo } from '../../features/coforge/domain/provider-failure';
+import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
 import { McpToolError } from './mcp-errors';
 import { McpCommandJournal, type StoredMcpCommand } from './mcp-command-journal';
 import { McpCommandOutput, mcpCommandEnvironment } from './mcp-command-output';
@@ -135,7 +136,8 @@ export class McpWorktreeCommands implements McpCodingCommands {
           sink.emit({ kind: 'tool', tool: 'coforge_run_command', label: record.outcome.label, status: 'running', text: display(`Host command admitted · ${record.outcome.id}\n${record.outcome.commandDisplay ?? 'Command display unavailable'}`) });
         }, onStdout: bytes => observe(bytes, 'stdout'), onStderr: bytes => observe(bytes, 'stderr') });
       if (active.controller.signal.aborted) await active.process.stop('cancelled');
-      const seconds = request.timeoutSeconds ?? (input.workflow?.step.execution?.mode === 'background' ? input.workflow.step.execution.maxRuntimeSeconds : input.settings.timeoutSeconds);
+      const seconds = request.timeoutSeconds ?? (isManagedWorkflowSession(input.workflow) ? undefined
+        : input.workflow?.step.execution?.mode === 'background' ? input.workflow.step.execution.maxRuntimeSeconds : input.settings.timeoutSeconds);
       if (seconds !== undefined) timer = deadline(() => { void active.process?.stop('timeout'); }, seconds * 1000);
       const result = await active.process.result;
       output.finish();
