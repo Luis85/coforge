@@ -29,7 +29,9 @@ export function settleContributionRewards(
     const old = prior.get(idea.id);
     if (!old) continue;
     const screened = idea.screening?.verdict === "clear" && old.screening?.verdict !== "clear";
-    const accepted = idea.status === "shipped" && old.status !== "shipped";
+    const polishingSettlement = old.status === 'review' && idea.polishingRuns?.some(pass => pass.previousStatus === 'shipped' && ['applied', 'rejected'].includes(pass.review) &&
+      old.polishingRuns?.some(before => before.id === pass.id && before.workflow.id === pass.workflow.id && before.review === 'pending'));
+    const accepted = idea.status === "shipped" && old.status !== "shipped" && !polishingSettlement;
     if (!screened && !accepted) continue;
     players ??= new Map(next.population.players.map((player) => [player.id, player]));
     const player = players.get(idea.authorId);

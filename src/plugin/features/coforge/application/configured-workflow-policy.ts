@@ -4,32 +4,48 @@ import { findProject, ideaProjectId } from '../domain/projects';
 import { riceValue, type AgentJob, type AgentStage, type Idea } from '../domain/types';
 import { heuristicSignals } from '../domain/workflow';
 import type { InternalState, StageResult } from './ports';
+import { currentWorkspaceAttempt, effectiveWorkflowStep, workflowAttemptWorkspace, workflowInputWorkspaceBoundary } from '../domain/workflow-execution-step';
+import { workflowRunOwner } from './workflow-run-owner';
+import { assertPolishingSource } from './polishing-policy';
+import { effectivePolishingInputs } from './polishing-amendments';
+import { polishingResultArtifact } from '../domain/polishing-target';
 
 export const compatibilityStage = (output: WorkflowOutput): AgentStage => output === 'screening' ? 'screen' : output === 'rice' ? 'score' : output === 'codechange' ? 'implement' : 'plan';
-export function configuredIdea(state: InternalState, id: string): Idea {
+export function configuredIdea(state: InternalState, id: string, allowClosed = false): Idea {
   const idea = state.ideas.find(item => item.id === id);
   if (!idea) throw new Error('Request not found.');
-  if (['shipped', 'rejected'].includes(idea.status)) throw new Error('This request is closed.');
+  if (!allowClosed && ['shipped', 'rejected'].includes(idea.status)) throw new Error('This request is closed.');
   if (findProject(state, ideaProjectId(idea)).unavailable) throw new Error('Restore this project note before continuing.');
   return idea;
 }
-export function configuredInputs(run: WorkflowRun, step: Pick<AiWorkflowStep, 'inputs' | 'includePreviousResults'>): WorkflowArtifact[] {
+export function configuredInputs(run: WorkflowRun, step: Pick<AiWorkflowStep, 'inputs' | 'includePreviousResults'>, history?: readonly WorkflowRun[], idea?: Idea): WorkflowArtifact[] {
   const invalid = new Set(run.invalidatedArtifactIds);
   const preceding = run.artifacts.filter(artifact => !invalid.has(artifact.id) && artifact.proposalRevision === run.proposalRevision &&
     run.definition.steps.findIndex(item => item.id === artifact.stepId) < run.cursor);
+  void history;
   const latest = new Map<WorkflowOutput, WorkflowArtifact>();
+  const boundary = workflowInputWorkspaceBoundary(run);
   for (const artifact of preceding) {
+    if (artifact.output === 'codechange' && artifact.runId === run.id && run.attempts.findIndex(attempt => attempt.id === artifact.attemptId) < boundary) continue;
     if (artifact.output === 'codechange' && run.workspaceId && artifact.increment?.simulated) continue;
     if (artifact.output !== 'codechange' || artifact.hostSnapshot || !latest.get('codechange')?.hostSnapshot) latest.set(artifact.output, artifact);
+  }
+  if (idea) {
+    const effective = effectivePolishingInputs(idea, run, [...latest.values()]); latest.clear(); for (const artifact of effective) latest.set(artifact.output, artifact);
+    if (!latest.has('codechange')) {
+      const approved = [...(idea.polishingAmendments ?? [])].reverse().find(ref => ref.resourceBinding?.ownerRunId === run.id && ref.resourceBinding.workspaceId === run.workspaceId);
+      const pass = approved && idea.polishingRuns?.find(item => item.id === approved.polishingRunId && item.review === 'applied');
+      if (pass) { const artifact = polishingResultArtifact(pass); if (artifact.id !== approved.artifactId || artifact.contentHash !== approved.artifactHash) throw new Error('The approved code resource input changed.'); latest.set('codechange', artifact); }
+    }
   }
   const inputs = step.includePreviousResults || !step.inputs?.length ? [...latest.values()]
     : step.inputs.flatMap(role => { const artifact = latest.get(role); return artifact ? [artifact] : []; });
   for (const role of step.inputs ?? []) if (!inputs.some(artifact => artifact.output === role)) throw new Error(`The step requires a valid preceding ${role} artifact.`);
   return inputs.map(workflowArtifactCheck);
 }
-export function configuredRuntime(state: InternalState, idea: Idea, step: AiWorkflowStep, external = false): void {
+export function configuredRuntime(state: InternalState, idea: Idea, step: AiWorkflowStep, external = false, moderationRepair = false): void {
   if (idea.voters.length < (step.minVotes ?? 0)) throw new Error(`This step requires ${step.minVotes} votes.`);
-  if (idea.screening?.verdict === 'flagged') throw new Error('Resolve this request’s moderation flag before continuing.');
+  if (!moderationRepair && idea.screening?.verdict === 'flagged') throw new Error('Resolve this request’s moderation flag before continuing.');
   const project = findProject(state, ideaProjectId(idea));
   if (!external && step.provider === 'demo') return;
   if (!external && step.provider === 'claude' && !state.runtime.cliAvailable) throw new Error('The native Claude runtime is unavailable.');
@@ -42,16 +58,25 @@ export function configuredAttempt(state: InternalState, job: AgentJob, allowStop
   const snapshot = job.workflow;
   if (!snapshot) throw new Error('The configured attempt snapshot is missing.');
   const idea = state.ideas.find(item => item.id === job.ideaId);
-  const run = idea?.workflowRun;
+  const run = idea && workflowRunOwner(idea, snapshot.runId);
   const attempt = run?.attempts.find(item => item.id === snapshot.attemptId);
   if (!idea || !run || !attempt || ideaProjectId(idea) !== job.projectId || run.ideaId !== idea.id || run.projectId !== ideaProjectId(idea) ||
       run.id !== snapshot.runId || run.definition.revision !== snapshot.definitionRevision || run.activeAttemptId !== attempt.id ||
       workflowProposalRevision(idea) !== snapshot.proposalRevision || run.proposalRevision !== snapshot.proposalRevision ||
-      JSON.stringify(run.definition.steps[run.cursor]) !== JSON.stringify(snapshot.step) || (!allowStopped && run.state !== 'running'))
+      JSON.stringify(effectiveWorkflowStep(run, run.cursor, snapshot.backgroundRetryId)) !== JSON.stringify(snapshot.step) || (!allowStopped && run.state !== 'running'))
     throw new Error('The request, workflow or active step changed. Its result cannot advance this run.');
+  if (snapshot.backgroundRetryId && !run.backgroundRetries?.some(retry => retry.id === snapshot.backgroundRetryId && retry.attemptId === attempt.id && retry.jobId === job.id)) throw new Error('The background retry does not authorize this attempt.');
+  const auxiliary = idea.polishingRuns?.find(item => item.id === snapshot.polishingId);
+  if (snapshot.polishingId && (auxiliary?.workflow.id !== run.id || auxiliary.sourceHash !== snapshot.polishingSourceHash || auxiliary.review !== 'pending' ||
+    snapshot.polishingFeedback !== auxiliary.feedback || snapshot.polishingPayload !== JSON.stringify(auxiliary.target))) throw new Error('The captured polishing source changed.');
+  if (auxiliary) assertPolishingSource(idea, auxiliary);
+  if (JSON.stringify(snapshot.approvedPolishingInputs ?? []) !== JSON.stringify(idea.polishingAmendments ?? [])) throw new Error('The approved current-result input version changed.');
   for (const input of snapshot.inputArtifacts) {
-    const current = run.artifacts.find(item => item.id === input.id);
-    if (!current || run.invalidatedArtifactIds?.includes(input.id) || workflowArtifactHash(current) !== input.contentHash || current.contentHash !== input.contentHash)
+    const owner = input.runId === run.id ? run : undefined;
+    const approved = snapshot.approvedPolishingInputs?.find(ref => ref.polishingRunId === input.runId && ref.artifactId === input.id && ref.artifactHash === input.contentHash);
+    const current = owner?.artifacts.find(item => item.id === input.id) ?? auxiliary?.sourceArtifacts.find(item => item.id === input.id && item.runId === input.runId) ??
+      (approved ? idea.polishingRuns?.find(pass => pass.id === approved.polishingRunId && pass.review === 'applied')?.workflow.artifacts.find(item => item.id === approved.artifactId) : undefined);
+    if (!current || owner?.invalidatedArtifactIds?.includes(input.id) || workflowArtifactHash(current) !== input.contentHash || current.contentHash !== input.contentHash)
       throw new Error('A bound workflow input changed. Its result cannot advance this run.');
   }
   const template = run.outputTemplates?.find(item => item.id === snapshot.step.outputTemplateId);
@@ -65,11 +90,11 @@ export function configuredChanges(state: InternalState, job: AgentJob) {
   const trusted = state.jobs.find(item => item.id === job.id);
   const snapshot = trusted?.workflow;
   const idea = state.ideas.find(item => item.id === job.ideaId);
-  const run = idea && snapshot && idea.workflowRun?.id === snapshot.runId ? idea.workflowRun : idea?.workflowHistory?.find(item => item.id === snapshot?.runId);
+  const run = idea && snapshot ? workflowRunOwner(idea, snapshot.runId) : undefined;
   const attempt = run?.attempts.find(item => item.id === snapshot?.attemptId);
   if (!trusted || !snapshot || !idea || !run || !attempt || trusted.projectId !== run.projectId || run.ideaId !== job.ideaId ||
       attempt.jobId !== job.id || attempt.stepId !== snapshot.step.id || run.definition.revision !== snapshot.definitionRevision ||
-      run.proposalRevision !== snapshot.proposalRevision || (snapshot.workspaceId && snapshot.workspaceId !== run.workspaceId))
+      run.proposalRevision !== snapshot.proposalRevision || (snapshot.workspaceId && snapshot.workspaceId !== workflowAttemptWorkspace(run, snapshot.attemptId)))
     throw new Error('The original workflow resource identity changed; inspect its private workspace journal.');
   return { idea, run, snapshot };
 }
@@ -84,6 +109,7 @@ export function appendWorkflowArtifact(run: WorkflowRun, snapshot: ConfiguredSte
 }
 export function projectWorkflowChanges(idea: Idea, run: WorkflowRun): void {
   const latest = [...run.artifacts].reverse().find(item => item.output === 'codechange' && item.hostSnapshot &&
+    currentWorkspaceAttempt(run, item.attemptId) &&
     (!run.workspaceId || !item.increment?.simulated) && !run.invalidatedArtifactIds?.includes(item.id));
   if (latest?.increment?.files.length) { idea.increment = latest.increment; idea.status = 'review'; }
   else if (latest || (run.workspaceId && idea.increment?.simulated)) {

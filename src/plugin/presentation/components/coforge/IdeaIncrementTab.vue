@@ -27,6 +27,7 @@ const review = useIncrementReview(props);
         <span v-if="idea.increment.simulated" class="cf-badge">Demo</span>
       </h3>
       <p class="cf-idea-help">Agent-reported summary · review against the captured changes and criteria.</p>
+      <p v-if="review.evidence.polishing" class="cf-idea-help">Reviewed polishing output · producing run <code>{{ review.evidence.polishing.runId }}</code> · artifact <code>{{ review.evidence.polishing.artifactId }}</code>. The current workspace belongs to <code>{{ review.evidence.polishing.ownerRunId }}</code>; earlier primary assessments are retained in Workflow runs and do not assess these new bytes.</p>
       <MarkdownBody class="cf-idea-body" :source="idea.increment.summary" />
     </section>
     <section v-if="review.evidence.followups.length" class="cf-idea-section" aria-label="Post-build findings">
@@ -39,7 +40,8 @@ const review = useIncrementReview(props);
     </section>
     <section class="cf-idea-section" aria-label="Planned acceptance criteria">
       <h3><CfIcon name="list-checks" /> Acceptance criteria</h3>
-      <p class="cf-idea-help">Saved plan · not verified. Check each criterion against the increment and verification evidence.</p>
+      <p v-if="review.evidence.polishing" class="cf-idea-help">Captured plan input · not verified. Only intact criteria bound to the producing polishing attempt are shown; current project plans and earlier assessments are not substituted.</p>
+      <p v-else class="cf-idea-help">Saved plan · not verified. Check each criterion against the increment and verification evidence.</p>
       <ul v-if="review.evidence.criteria.length" class="cf-idea-check-list">
         <li v-for="(criterion, index) in review.evidence.criteria" :key="index">
           <span class="cf-idea-check-box" aria-hidden="true" />

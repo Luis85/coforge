@@ -59,12 +59,15 @@ it('does not expose excluded files or escape the lease when narrowing discovery'
   const f = await fixture('readproject');
   await mkdir(join(f.cwd, 'managed'));
   await writeFile(join(f.cwd, 'managed/private.md'), 'PRIVATE');
+  await mkdir(join(f.cwd, '.coforge-run-output'));
+  await writeFile(join(f.cwd, '.coforge-run-output/private.md'), 'PRIVATE');
   const task = { ...f.task, lease: { ...f.task.lease, readOnly: true as const, protectedProjectPaths: ['managed'], validate: async () => {} } };
   expect(await f.files.call('coforge_list_files', task, { query: 'private' })).toEqual({ files: [], truncated: false });
-  for (const path of ['../outside', '.git', 'managed']) {
+  for (const path of ['../outside', '.git', 'managed', '.coforge-run-output']) {
     await expect(f.files.call('coforge_search_files', task, { path, query: 'PRIVATE' })).rejects.toThrow();
     await expect(f.files.call('coforge_list_files', task, { path, query: 'private' })).rejects.toThrow();
   }
+  await expect(f.files.call('coforge_read_file', task, { path: '.coforge-run-output/private.md' })).rejects.toThrow('not permitted');
 });
 it('reports content-byte and match limits as incomplete and lets the agent narrow the path', async () => {
   const f = await fixture('readproject');

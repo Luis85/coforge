@@ -253,6 +253,40 @@ without horizontal overflow or clipped event content.
   execution path; external MCP, Herdr and Council keep their explicitly separate
   lifecycles until qualified, with no provider fallback.
 
+Background Build retry (owner request, 2026-10-31): provide an explicit
+**Retry Build in background** action for existing requests. Keep their completed
+workflow steps, retained results and complete attempt history, and create a fresh
+background Build attempt instead of restarting the workflow from its beginning.
+Earlier attempt snapshots and partial-work evidence remain attributable. The
+operator reviews the transition before dispatch; active/unknown original work,
+changed request inputs and missing managed progress cannot silently bypass
+recovery, screening or final human review. Deliver through subagents, then
+commit/push/open a PR and merge only after local and GitHub checks are green.
+The owner chose continuing from reviewed partial work: capture the actual
+retained cumulative changes and continue them in a fresh worker-owned workspace,
+keeping the original workspace and evidence. Do not silently substitute a clean
+tree for existing partial code. If no workspace or real changes ever existed,
+review an explicitly identified clean repository snapshot instead. Legacy
+foreground execution has no trustworthy persisted process birth identity;
+cessation is operator-confirmed and must not be presented as OS-verified.
+
+Improve & polish (owner request, 2026-10-31): make an explicit action available
+from the Kanban card context menu and feature detail in every bucket, including
+accepted/shipped requests. Every invocation opens a feedback modal. Capture this
+feedback with the current result and improve its actual type: request text,
+screening/RICE/Plan/Design or code. Preserve the primary workflow checkpoint,
+completed steps, historical attempts and original artifacts. Configure one
+manual AI pass in workflow settings using either a CoWorker or explicit
+provider/model/effort, instructions and limits. The pass is never automatic.
+Keep its generated result separate until human Apply or Discard. Approved text
+versions reference genuine auxiliary results without rewriting the original
+request body; future steps explicitly consume the approved version. Code passes
+continue a reviewed immutable source in the persistent background worker and
+Apply copies reviewed files to a fresh resource owned by the primary workflow.
+Original workspaces and journals stay untouched. Reopen accepted cards for
+review; applying or discarding that reviewed result closes that review without
+awarding the feature's original completion credit again.
+
 - Save the independent left-navigation and right-chat collapse choices in localStorage
   and restore them after reopening. Responsive chat defaults apply only when the
   owner has no explicit saved choice. Storage failures must leave controls usable.

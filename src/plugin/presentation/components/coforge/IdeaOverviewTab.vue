@@ -6,11 +6,15 @@ import IdeaRiceEditor from "./IdeaRiceEditor.vue";
 import MarkdownBody from "./MarkdownBody.vue";
 import { screeningProviderLabel } from '../../composables/coforge/agent-labels';
 import RequestValuesPanel from './RequestValuesPanel.vue';
+import CurrentPolishedResult from './CurrentPolishedResult.vue';
+import PolishingActionButton from './PolishingActionButton.vue';
 
 defineProps<{ idea: Idea }>();
 const model = useIdeaDrawerContext();
 </script>
 <template>
+  <PolishingActionButton :idea-id="idea.id" />
+  <CurrentPolishedResult :idea="idea" />
   <section class="cf-idea-section">
     <h3><CfIcon name="message-square" /> The community request</h3>
     <MarkdownBody class="cf-idea-request" :source="idea.description" />

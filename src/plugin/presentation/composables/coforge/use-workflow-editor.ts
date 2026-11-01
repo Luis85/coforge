@@ -11,6 +11,7 @@ import {
 import { storeToRefs } from "pinia";
 import { useWorkflowEditorStore } from "../../stores/coforge-workflow-editor";
 import { useCoforge } from "../../context/coforge-context";
+import { projectHasPendingWorkflow } from '../../../features/coforge/api';
 import { useStudioStore } from "../../stores/coforge-studio";
 import { defaultSettings } from "../../../features/coforge/domain/seed";
 import {
@@ -206,6 +207,8 @@ function createWorkflowEditor() {
     notice,
     stale,
     validation,
+    pendingProjectChanges: computed(() => Boolean(project.value && store.state && (projectHasPendingWorkflow(store.state, project.value.id)
+      || store.state.jobs.some(job => job.projectId === project.value?.id && ['running', 'queued'].includes(job.status))))),
     nudgeStepCount: computed(
       () => draft.value.steps.filter((step) => step.kind === "nudge").length,
     ),

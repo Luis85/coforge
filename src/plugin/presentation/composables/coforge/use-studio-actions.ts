@@ -1,4 +1,6 @@
 import type { ChatResult } from "../../../features/coforge/application/chat";
+import type { BackgroundBuildRetryConsent } from '../../../features/coforge/api';
+import type { PolishingConsent } from '../../../features/coforge/domain/polishing';
 import type {
   AgentJob,
   Category,
@@ -119,15 +121,23 @@ export function useStudioActions() {
       ),
     runWorkflowStep: (id: string) =>
       attempt(() => studio.runWorkflowStep(id), "Workflow step requested."),
+    previewBackgroundBuildRetry: (ideaId: string) => store.mutate(() => studio.previewBackgroundBuildRetry(ideaId)),
+    previewPolishingPass: (ideaId: string, feedback: string) => store.mutate(() => studio.previewPolishingPass(ideaId, feedback)),
+    confirmPolishingPass: (ideaId: string, previewId: string, consent: PolishingConsent) => store.mutate(() => studio.confirmPolishingPass(ideaId, previewId, consent), 'Polishing pass queued. Its result requires your review; the main workflow checkpoint is retained.'),
+    applyPolishingResult: (ideaId: string, runId: string, revision: number) => store.mutate(() => studio.applyPolishingResult(ideaId, runId, revision), 'Polished result applied after your review. Original proposal and workflow history are retained.'),
+    rejectPolishingResult: (ideaId: string, runId: string, revision: number) => store.mutate(() => studio.rejectPolishingResult(ideaId, runId, revision), 'Polishing result rejected. Its evidence and the original result are retained.'),
+    stopPolishingPass: (ideaId: string, runId: string) => store.mutate(() => studio.stopPolishingPass(ideaId, runId), 'Polishing stop requested. Confirm the original worker state before starting another writer.'),
+    confirmBackgroundBuildRetry: (ideaId: string, previewId: string, consent: BackgroundBuildRetryConsent) =>
+      store.mutate(() => studio.confirmBackgroundBuildRetry(ideaId, previewId, consent), 'Reviewed background Build retry queued. Earlier workflow steps and attempt history are retained.'),
     checkDurableBuildWorker: () => attempt(() => studio.refreshDurableBuildRuntime()),
     repairDurableBuildWorker: (consent: boolean) => attempt(async () => {
       const readiness = await studio.repairDurableBuildRuntime(consent);
       if (!readiness.ready) throw new Error(readiness.message);
       return readiness;
     }),
-    checkDurableBuild: (ideaId: string) => attempt(() => studio.reconcileDurableBuild(ideaId), 'Existing Build state checked.'),
-    inspectDurableBuildEvidence: (ideaId: string, revision: number) => attempt(() => studio.inspectDurableBuildEvidence(ideaId, revision), 'Retained Build evidence inspected.'),
-    recoverDurableBuild: (ideaId: string, revision: number, consent: boolean) => attempt(() => studio.recoverDurableBuild(ideaId, revision, consent), 'Original Build recovery checked. Its Stop hold remains in Inbox.'),
+    checkDurableBuild: (ideaId: string, runId?: string) => attempt(() => studio.reconcileDurableBuild(ideaId, runId), 'Existing Build state checked.'),
+    inspectDurableBuildEvidence: (ideaId: string, revision: number, runId?: string) => attempt(() => studio.inspectDurableBuildEvidence(ideaId, revision, runId), 'Retained Build evidence inspected.'),
+    recoverDurableBuild: (ideaId: string, revision: number, consent: boolean, runId?: string) => attempt(() => studio.recoverDurableBuild(ideaId, revision, consent, runId), 'Original Build recovery checked. Its Stop hold remains in Inbox.'),
     restartWorkflow: (id: string) => attempt(() => studio.restartWorkflowFromOperator(id), 'Workflow restarted from its first step. Previous run evidence was preserved.'),
     stopWorkflow: (id: string) =>
       attempt(

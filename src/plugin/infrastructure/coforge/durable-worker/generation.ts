@@ -7,6 +7,7 @@ import { inputHash, workerRequestCheck } from './protocol';
 import { nativeIdentityCheck, workerRecordCheck, type WorkerRecord } from './store';
 import { readNativeProcessIdentity } from './process-identity';
 import { workflowWorkspaceRecordsCheck } from '../workflow-workspace-check';
+import { operatorWorkspaceRecord, retainedOperatorCopy } from '../background-build-seed/operator-record';
 
 const segment = text({ min: 1, max: 160, pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/u });
 export const generationLaunchCheck = shape({ version: oneOf([1] as const), workerId: segment, epoch: number({ integer: true, min: 1 }), nonce: segment,
@@ -76,7 +77,11 @@ async function retirement(files: WorkerFiles, workerId: string): Promise<void> {
   }
   const workspaces = workflowWorkspaceRecordsCheck(await files.read('workspaces.json') ?? []);
   for (const workspace of workspaces) {
-    if (workspace.activeAttemptId || workspace.phase === 'reserved' || !generation.jobs.some(job => job.request.runId === workspace.runId && job.request.attemptId === workspace.lastAttemptId && job.record.snapshot.workspaceId === workspace.id)) throw invalid();
+    if (workspace.activeAttemptId || workspace.phase === 'reserved') throw invalid();
+    if (!generation.jobs.some(job => job.request.runId === workspace.runId && job.request.attemptId === workspace.lastAttemptId && job.record.snapshot.workspaceId === workspace.id)) {
+      if (!workspace.operatorMaterializationId || workspace.lastAttemptId !== workspace.operatorMaterializationId) throw invalid();
+      if (!await retainedOperatorCopy(files, workspace)) await operatorWorkspaceRecord(files, workspace);
+    }
     await unmoved(workspace.cwd);
   }
   await verifyStoppedGeneration(files, generation.launch);

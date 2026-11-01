@@ -6,7 +6,7 @@ import type { WorkflowRun } from '../domain/configured-workflow-run';
 
 export const workflowStopMessage = 'This workflow was stopped. Right-click its card and choose Restart workflow to start again.';
 export function assertDurableWorkflowMetadata(state: InternalState, ideaId: string): void {
-  if (!state.ideas.find(idea => idea.id === ideaId)?.workflowRun && state.jobs.some(job => job.ideaId === ideaId && job.durable)) throw new Error('Restore the original managed workflow metadata before starting another run. Its retained worker evidence must remain attributable.');
+  if (!state.ideas.find(idea => idea.id === ideaId)?.workflowRun && state.jobs.some(job => job.ideaId === ideaId && job.durable && !job.workflow?.polishingId)) throw new Error('Restore the original managed workflow metadata before starting another run. Its retained worker evidence must remain attributable.');
 }
 
 export function assertWorkflowNotStopped(state: Pick<AppState, 'workflowStopHolds'>, ideaId: string): void {

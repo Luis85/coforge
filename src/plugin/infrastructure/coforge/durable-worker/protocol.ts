@@ -9,6 +9,7 @@ import { requestCategoriesCheck } from '../../../features/coforge/domain/request
 import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import type { DurableBuildRequest } from '../../../features/coforge/application/durable-build-ports';
 import { protectedPrefix } from './protection';
+import { backgroundBuildSnapshotRefCheck } from '../../../features/coforge/domain/background-build-retry';
 
 const id = text({ min: 1, max: 160 });
 const bounded = text({ max: 64000 });
@@ -24,7 +25,7 @@ const idea = shape({ id, number: number({ integer: true, min: 1 }), projectId: o
   rice: optional(shape({ reach: number({ min: 0 }), impact: number({ min: 0 }), confidence: number({ min: 0 }), effort: number({ min: 0 }), score: number({ min: 0 }), rationale: bounded }, { strict: true })),
   plan: optional(shape({ summary: bounded, steps: list(bounded), acceptanceCriteria: list(bounded), risks: list(bounded), markdown: bounded, createdAt: timestamp }, { strict: true })),
 }, { strict: true });
-const request = shape({ protectedProjectPaths: list((value: unknown) => protectedPrefix(text({ max: 4096 })(value)), { max: 500 }), version: oneOf([1] as const), jobId: id, projectId: id, ideaId: id, runId: id, attemptId: id, policy: durableBuildPolicyCheck,
+const request = shape({ protectedProjectPaths: list((value: unknown) => protectedPrefix(text({ max: 4096 })(value)), { max: 500 }), reviewedSnapshot: optional(backgroundBuildSnapshotRefCheck), version: oneOf([1] as const), jobId: id, projectId: id, ideaId: id, runId: id, attemptId: id, policy: durableBuildPolicyCheck,
   input: shape({ jobId: id, stage: oneOf(['implement'] as const), idea, settings: settingsCheck,
     integration: shape({ projectPath: text({ min: 1, max: 4096 }), worktreeFolder: text({ max: 4096 }), allowImplementation: boolean, claudeBin: text({ min: 1, max: 4096 }), codexBin: optional(text({ min: 1, max: 4096 })), ideasFolder: text({ min: 1, max: 4096 }), publicFolder: text({ min: 1, max: 4096 }) }, { strict: true }),
     workflow: configuredStepExecutionCheck,
@@ -32,7 +33,8 @@ const request = shape({ protectedProjectPaths: list((value: unknown) => protecte
 }, { strict: true });
 export function workerRequestCheck(value: unknown): DurableBuildRequest {
   const checked = request(value); const input = checked.input;
-  if (input.jobId !== checked.jobId || input.idea.id !== checked.ideaId || ideaProjectId(input.idea) !== checked.projectId ||
+  if (input.workflow.backgroundRetryId && input.workflow.polishingId || Boolean(checked.reviewedSnapshot) !== Boolean(input.workflow.backgroundRetryId || input.workflow.polishingId) ||
+      input.jobId !== checked.jobId || input.idea.id !== checked.ideaId || ideaProjectId(input.idea) !== checked.projectId ||
       input.workflow.runId !== checked.runId || input.workflow.attemptId !== checked.attemptId || input.workflow.step.output !== 'codechange' ||
       input.workflow.step.access !== 'editworktree' || !input.integration.allowImplementation ||
       !['claude', 'codex'].includes(input.workflow.step.provider) || input.workflow.step.provider !== input.settings.provider ||

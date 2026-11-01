@@ -43,12 +43,17 @@ it('consumes an explicit event-trigger entry on actual mount and returns ordinar
 it('does not leave an entry intent or change Council state when dirty workflow navigation is blocked', async () => {
   const f = await fixture();
   try {
-    await f.shell.get('.cf-workflow-editor input').setValue('Unsaved workflow'); await flushPromises();
+    const workflowName = () => {
+      const label = f.shell.findAll('label').find(item => item.text().trim() === 'Workflow name');
+      if (!label) throw new Error('Missing accessible Workflow name field');
+      return label.get('input');
+    };
+    await workflowName().setValue('Unsaved workflow'); await flushPromises();
     expect(f.studioUi.dirtyWorkflow).toBe(true);
     await askButton(f.shell, 'Attach an event trigger').trigger('click'); await flushPromises();
     expect(f.studioUi.view).toBe('workflow-settings'); expect(f.ui.entryIntent).toBeNull(); expect(f.ui.tab).toBe('ask');
     expect(f.shell.find('[aria-label="Workflow event triggers"]').exists()).toBe(false);
-    expect(f.shell.get('.cf-workflow-editor input').element).toHaveProperty('value', 'Unsaved workflow');
+    expect(workflowName().element).toHaveProperty('value', 'Unsaved workflow');
     await askButton(f.shell, 'Discard workflow changes').trigger('click'); await flushPromises();
     await askButton(f.shell, 'Open Council').trigger('click'); await flushPromises();
     expect(f.ui.tab).toBe('ask');

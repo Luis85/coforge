@@ -22,6 +22,7 @@ const menu = useIdeaCardMenu(props, model);
     ><article
       :ref="menu.bindCard"
       class="cf-idea-card"
+      :data-idea-id="model.idea.id"
       tabindex="-1"
       :class="{ 'is-flagged': model.flagged, 'is-review': model.review }"
       @keydown="menu.keydown"

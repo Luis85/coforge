@@ -17,6 +17,7 @@ import type { HerdrCostTarget } from '../domain/ai-cost-attribution';
 import { recoverConfiguredRuns } from '../domain/configured-workflow-run';
 import { projectIsPublic } from '../domain/project-publicity';
 import { publicReplyBlocked } from './public-reply-policy';
+import { workflowMetadataFingerprint } from './workflow-note-integrity';
 export { addEvent, assemble, enforceIntegrity, mergeNote } from './studio-state';
 type Listener = (state: AppState) => void | Promise<void>;
 
@@ -46,6 +47,7 @@ export class StudioStore {
     let loaded: LoadedStudio;
     try { loaded = await this.storage.load(); }
     catch (error) { throw new Error(`CoForge could not load its data. The stored files were preserved. ${errorMessage(error)}`); }
+    const loadedWorkflowFingerprints = new Map(loaded.notes.map(note => [note.id, workflowMetadataFingerprint(note)]));
     const state = assemble(loaded);
     // Verify the notes exactly as loaded; the recovery below is CoForge's own change and is trusted afterwards.
     enforceIntegrity(state, 'all');
@@ -57,7 +59,7 @@ export class StudioStore {
       job.error = 'Obsidian closed or the plugin reloaded during this run. Inspect any partial worktree before retrying.';
       job.logs.push(job.error);
       const idea = state.ideas.find(i => i.id === job.ideaId);
-      if (idea) { idea.lastError = job.error; if (idea.status === 'building') idea.status = 'planned'; }
+      if (idea && !job.workflow?.polishingId) { idea.lastError = job.error; if (idea.status === 'building') idea.status = 'planned'; }
     }
     delete state.runtime.activeJobId;
     recoverConfiguredRuns(state);
@@ -68,7 +70,10 @@ export class StudioStore {
     synchronizeProject(state);
     const release = await this.beforeCommit?.(state, null);
     try {
-      await this.storage.save(state, null, { fromNotes: state.ideas.filter(idea => !idea.lastError && loaded.notes.find(note => note.id === idea.id)?.projectId).map(idea => idea.id) });
+      await this.storage.save(state, null, { fromNotes: state.ideas.filter(idea => {
+        const original = loaded.notes.find(note => note.id === idea.id);
+        return !idea.lastError && original?.projectId && workflowMetadataFingerprint(idea) === loadedWorkflowFingerprints.get(idea.id);
+      }).map(idea => idea.id) });
       this.state = state;
       this.emit();
     }
@@ -174,7 +179,8 @@ export class StudioStore {
     await this.pending;
     const state = this.current(); const job = state.jobs.find(item => item.id === jobId);
     if (!job?.durable || !sameDurableBuildRef(job.durable.ref, receipt.ref)) throw new Error('The original worker identity changed during inspection.');
-    const run = state.ideas.find(idea => idea.id === receipt.ideaId)?.workflowRun;
+    const idea = state.ideas.find(item => item.id === receipt.ideaId);
+    const run = idea?.workflowRun?.id === receipt.runId ? idea.workflowRun : idea?.polishingRuns?.find(item => item.id === receipt.runId)?.workflow;
     if (run?.id !== receipt.runId || run.revision !== receipt.runRevision) throw new Error('The workflow changed during inspection. Inspect its current retained evidence again.');
     this.state = { ...state, runtime: { ...state.runtime, durableBuildInspections: { ...state.runtime.durableBuildInspections, [jobId]: receipt } } };
     this.emit();

@@ -29,6 +29,7 @@ import type { ExampleCleanupPreview } from './example-cleanup-plan';
 import { updateRequestValues } from './request-values';
 import { economySnapshot, saveEconomyConfiguration, fulfillEconomyPerk } from './economy-configuration';
 import type { EconomyConfigurationInput } from '../domain/command-economy';
+import type { BackgroundBuildRetryConsent } from '../domain/background-build-retry';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -39,7 +40,7 @@ export class StudioService {
   private readonly integrationListeners = new Set<(integration: IntegrationSettings) => void>();
   constructor(storage: StudioStorage, private readonly host: StudioHost) {
     this.store = new StudioStore(storage, host.events, host.observerFailed, host.beforeCommit);
-    this.engine = new WorkflowEngine(this.store, { durableBuilds: host.durableBuilds, outputTemplates: host.outputTemplates, agentTasks: host.agentTasks, runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}), ...(host.assertWorkflowReviewable ? { assertWorkflowReviewable: host.assertWorkflowReviewable } : {}) });
+    this.engine = new WorkflowEngine(this.store, { polishingCode: host.polishingCode, backgroundBuildRetries: host.backgroundBuildRetries, durableBuilds: host.durableBuilds, outputTemplates: host.outputTemplates, agentTasks: host.agentTasks, runners: host.runners, timers: host.timers, ...(host.report ? { onError: host.report } : {}), ...(host.assertWorkflowReviewable ? { assertWorkflowReviewable: host.assertWorkflowReviewable } : {}) });
   }
 
   async start(options: { deferAutomation?: boolean } = {}): Promise<{ invalidNotes: string[] }> {
@@ -109,6 +110,13 @@ export class StudioService {
   }
   startWorkflow(ideaId: string) { return this.engine.startWorkflow(ideaId); }
   restartWorkflowFromOperator(ideaId: string) { return this.engine.restartWorkflowFromOperator(ideaId); }
+  previewBackgroundBuildRetry(ideaId: string) { return this.engine.previewBackgroundBuildRetry(ideaId); }
+  confirmBackgroundBuildRetry(ideaId: string, previewId: string, consent: BackgroundBuildRetryConsent) { return this.engine.confirmBackgroundBuildRetry(ideaId, previewId, consent); }
+  previewPolishingPass(ideaId: string, feedback: string) { return this.engine.previewPolishingPass(ideaId, feedback); }
+  confirmPolishingPass(ideaId: string, previewId: string, consent: BackgroundBuildRetryConsent) { return this.engine.confirmPolishingPass(ideaId, previewId, consent); }
+  applyPolishingResult(ideaId: string, runId: string, revision: number) { return this.engine.applyPolishingResult(ideaId, runId, revision); }
+  rejectPolishingResult(ideaId: string, runId: string, revision: number) { return this.engine.rejectPolishingResult(ideaId, runId, revision); }
+  stopPolishingPass(ideaId: string, runId: string) { return this.engine.stopPolishingPass(ideaId, runId); }
   runWorkflowStep(ideaId: string) { return this.engine.runWorkflowStep(ideaId); }
   completeWorkflowManual(ideaId: string, expectedRevision: number, checkedIds: string[], note = '') { return this.engine.completeWorkflowManual(ideaId, expectedRevision, checkedIds, note); }
   stopWorkflow(ideaId: string) { return this.engine.stopWorkflow(ideaId); }
@@ -235,9 +243,9 @@ export class StudioService {
     await this.store.updateRuntime({ durableBuild: readiness });
     return readiness;
   }
-  reconcileDurableBuild(ideaId: string): Promise<void> { return this.engine.reconcileDurableBuild(ideaId); }
-  inspectDurableBuildEvidence(ideaId: string, revision: number) { return this.engine.inspectDurableBuildEvidence(ideaId, revision); }
-  recoverDurableBuild(ideaId: string, revision: number, consent: boolean): Promise<void> { return this.engine.recoverDurableBuild(ideaId, revision, consent); }
+  reconcileDurableBuild(ideaId: string, runId?: string): Promise<void> { return this.engine.reconcileDurableBuild(ideaId, runId); }
+  inspectDurableBuildEvidence(ideaId: string, revision: number, runId?: string) { return this.engine.inspectDurableBuildEvidence(ideaId, revision, runId); }
+  recoverDurableBuild(ideaId: string, revision: number, consent: boolean, runId?: string): Promise<void> { return this.engine.recoverDurableBuild(ideaId, revision, consent, runId); }
 
   /** Replaces the project with the illustrative sample workspace. Existing idea notes go to the vault trash. */
   async loadSample(): Promise<void> {

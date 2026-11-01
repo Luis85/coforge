@@ -4,7 +4,8 @@ import type { Increment } from '../../../features/coforge/domain/types';
 import type { WorkflowWorkspaceLease, WorkflowWorkspaceRequest } from '../../../features/coforge/application/workflow-workspace-ports';
 import { durableBuildTerminal } from '../../../features/coforge/domain/durable-build';
 import { list, text } from '../../../features/coforge/domain/check';
-import { agentGit, captureIncrement } from '../agent-worktree';
+import { agentGit } from '../agent-worktree';
+import { captureWorkflowIncrement as captureIncrement } from '../workflow-workspace-capture';
 import { workflowWorkspaceRecordsCheck } from '../workflow-workspace-check';
 import { WorkerFiles } from './files';
 import { retainedJob } from './recovery';
@@ -12,6 +13,7 @@ import { workerRecordCheck, workerSnapshot } from './store';
 import { inputHash } from './protocol';
 import { protectedPrefix } from './protection';
 import { verifyRetainedWorkspace } from './workspace-proof';
+import { operatorWorkspaceRecord } from '../background-build-seed/operator-record';
 
 const denied = () => new Error('The original background workspace must be terminal, attributable and unchanged before a read-only follow-up. Inspect its retained execution; no foreground editing authority was granted.');
 const idsCheck = list(text({ pattern: /^build-[a-f0-9]{40}$/u }), { max: 1000 });
@@ -34,10 +36,19 @@ async function originalAuthority(files: WorkerFiles, request: WorkflowWorkspaceR
     const record = workerRecordCheck(await child.read('record.json'));
     if (record.snapshot.ref.executionId !== id) throw denied();
     const job = await retainedJob(files, record.snapshot.ref);
-    if (job.request.runId === workspace.runId || job.record.snapshot.workspaceId === workspace.id) jobs.push(job);
+    const pendingEpoch = job.request.input.workflow.backgroundRetryId ?? job.request.input.workflow.polishingId;
+    if (job.record.snapshot.workspaceId === workspace.id || job.request.runId === workspace.runId && !job.record.snapshot.workspaceId &&
+      (job.request.input.workflow.workspaceId === workspace.id || !job.request.input.workflow.workspaceId && pendingEpoch === workspace.workspaceEpoch)) jobs.push(job);
   }
-  if (!jobs.length) throw denied();
+  const operator = workspace.operatorMaterializationId ? await operatorWorkspaceRecord(files, workspace) : undefined;
+  if (!jobs.length) {
+    if (!operator || operator.binding?.mode !== 'background' || workspace.lastAttemptId !== workspace.operatorMaterializationId) throw denied();
+    if (!equalPath(await gitRoot(operator.request.target.projectPath), source)) throw denied();
+    return { workspace, expected: operator.binding.increment, identity: inputHash({ workspace, operator: operator.requestHash, binding: operator.binding.evidenceHash }),
+      protectedProjectPaths: Object.freeze([...operator.protectedProjectPaths]) };
+  }
   const protection = new Set<string>();
+  for (const path of operator?.protectedProjectPaths ?? []) protection.add(protectedPrefix(path));
   const sources = new Map([[request.integration.projectPath, source]]);
   for (const job of jobs) {
     if (job.request.runId !== workspace.runId || job.request.projectId !== workspace.projectId || job.record.snapshot.workspaceId && job.record.snapshot.workspaceId !== workspace.id ||
@@ -59,7 +70,8 @@ async function originalAuthority(files: WorkerFiles, request: WorkflowWorkspaceR
 }
 
 function sameChanges(actual: Increment, expected: Increment | undefined): boolean {
-  return expected ? actual.diff === expected.diff && inputHash(actual.files) === inputHash(expected.files) && actual.branch === expected.branch && actual.worktree === expected.worktree : actual.files.length === 0 && actual.diff === '';
+  return expected ? actual.diff === expected.diff && inputHash(actual.files) === inputHash(expected.files) && actual.branch === expected.branch && actual.worktree === expected.worktree &&
+    (!expected.snapshotHash || actual.snapshotHash === expected.snapshotHash) : actual.files.length === 0 && actual.diff === '';
 }
 
 /** This read lease never adopts a worker writer or updates its private lease journal. */
@@ -74,7 +86,8 @@ export async function durableReadWorkspace(files: WorkerFiles, request: Workflow
     if (current.identity !== captured.identity) throw denied();
     const observed = await captureIncrement(current.workspace.cwd, current.workspace.branch, actual.summary, undefined, { allowEmpty: true, baseCommit: current.workspace.baseCommit });
     if (!sameChanges(observed, actual)) throw denied();
-    await assertReviewable(current.workspace.id, actual.files.length ? actual : undefined);
+    // Full scoped bytes were just compared above; the host callback rechecks live ownership and Git identity.
+    await assertReviewable(current.workspace.id);
     request.signal?.throwIfAborted();
   };
   await validate();

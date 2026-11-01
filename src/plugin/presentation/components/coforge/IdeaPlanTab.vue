@@ -5,6 +5,7 @@ import { useIdeaPlan } from '../../composables/coforge/use-idea-plan';
 import { useIdeaDesign } from '../../composables/coforge/use-idea-design';
 import CfIcon from './CfIcon.vue';
 import MarkdownBody from './MarkdownBody.vue';
+import CurrentPolishedResult from './CurrentPolishedResult.vue';
 
 const props = defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
@@ -12,6 +13,7 @@ const plan = useIdeaPlan(props);
 const design = useIdeaDesign(props);
 </script>
 <template>
+  <CurrentPolishedResult :idea="idea" />
   <template v-if="idea.plan">
     <section class="cf-idea-section">
       <div class="cf-idea-section-heading">

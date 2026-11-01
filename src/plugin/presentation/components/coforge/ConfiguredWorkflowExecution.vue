@@ -4,6 +4,7 @@ import ConfiguredManualStep from "./ConfiguredManualStep.vue";
 import ConfiguredWorkflowResults from "./ConfiguredWorkflowResults.vue";
 import WorkflowCapturedConfiguration from "./WorkflowCapturedConfiguration.vue";
 import DurableBuildStatus from './DurableBuildStatus.vue';
+import WorkflowBackgroundBuildRetry from './WorkflowBackgroundBuildRetry.vue';
 defineProps<{ model: WorkflowModel }>();
 </script>
 <template>
@@ -27,6 +28,7 @@ defineProps<{ model: WorkflowModel }>();
         <h3>{{ model.nextActionHeading }}</h3>
         <p>{{ model.nextActionHelp }}</p>
       </section>
+      <WorkflowBackgroundBuildRetry v-if="model.run" :idea-id="model.selected.id" :run-id="model.run.id" />
       <section v-if="model.councilAttempt" aria-label="Workflow Council activity">
         <h3>{{ model.councilName }}</h3>
         <p v-if="model.canCheckCouncil">Later steps wait for the published answer. Inspect this discussion for progress, paused execution or recovery.</p>
@@ -47,7 +49,7 @@ defineProps<{ model: WorkflowModel }>();
       </section>
       <ConfiguredManualStep
         v-if="
-          !model.operatorHeld && model.run?.state === 'waiting-human' &&
+          !model.operatorHeld && !model.pendingPolishing && model.run?.state === 'waiting-human' &&
           model.currentStep &&
           (model.currentStep.kind === 'approval' ||
             model.currentStep.kind === 'checklist')

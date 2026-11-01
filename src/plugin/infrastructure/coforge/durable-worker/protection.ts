@@ -3,7 +3,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { agentGit } from '../agent-worktree';
 const invalid = () => new Error('The repository and managed vault-folder boundary could not be resolved. No background provider was started.');
 function inside(parent: string, child: string): boolean { const path = relative(parent, child); return path === '' || path !== '..' && !path.startsWith('..' + sep) && !isAbsolute(path); }
-async function potential(path: string): Promise<string> {
+export async function canonicalPotentialPath(path: string): Promise<string> {
   const tail: string[] = []; let current = resolve(path);
   while (true) {
     try { const actual = await realpath(current); return join(actual, ...tail); }
@@ -28,7 +28,7 @@ export async function captureProjectProtection(vaultDirectory: string, projectDi
   const prefixes = new Set<string>();
   for (const folder of managedFolders) {
     if (!folder || (!isAbsolute(folder) && folder.split(/[\\/]/u).some(segment => segment === '..'))) throw invalid();
-    const protectedDirectory = await potential(isAbsolute(folder) ? folder : resolve(vault, folder));
+    const protectedDirectory = await canonicalPotentialPath(isAbsolute(folder) ? folder : resolve(vault, folder));
     if (inside(protectedDirectory, projectRoot)) throw invalid();
     if (inside(projectRoot, protectedDirectory)) prefixes.add(protectedPrefix(relative(projectRoot, protectedDirectory).split(sep).join('/')));
   }

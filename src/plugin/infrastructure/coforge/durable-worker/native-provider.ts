@@ -8,18 +8,20 @@ import { WorkerOwnershipUnknown, type BuildExecutor } from './service';
 import { workerCapture } from './process';
 import type { WorkerStore } from './store';
 import { inputHash } from './protocol';
+import { reviewedBuildSeed, importReviewedBuildSeed } from '../background-build-seed/import';
 
 /** Reuse restricted transports and host-owned file policy; never serialize renderer callbacks. */
-export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWorkspaces): BuildExecutor {
+export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWorkspaces, captureFactory: typeof workerCapture = workerCapture): BuildExecutor {
   return async (request, hooks) => {
     const job = store.all().find(row => row.snapshot.ref.inputHash === inputHash(request));
     if (!job) throw new Error('The native worker job identity disappeared.');
     const files = store.get(job.snapshot.ref).files;
+    const seed = await reviewedBuildSeed(store.files.directory, request);
     const provider = request.input.workflow.step.provider;
     const protectedPaths = request.protectedProjectPaths; if (!protectedPaths) throw new Error('The captured managed-folder authority is unavailable.');
     if (provider !== 'claude' && provider !== 'codex') throw new Error('Background Build supports only captured native Claude or Codex providers.');
     let uncertain = false;
-    const capture = workerCapture(files, hooks, provider);
+    const capture = captureFactory(files, hooks, provider);
     const restrictedCapture = async (executable: string, args: readonly string[], options: ProcessOptions) => {
       const restricted = [...args];
       if (provider === 'claude') {
@@ -32,7 +34,11 @@ export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWork
     };
     const scoped: WorkflowWorkspaces = { start: () => workspaces.start(), assertReviewable: (id, expected) => workspaces.assertReviewable(id, expected),
       acknowledge: (id, attemptId, reusable) => workspaces.acknowledge(id, attemptId, reusable), acquire: async input => {
-        const lease = await workspaces.acquire(input);
+        const lease = await workspaces.acquire({ ...input, ...(seed ? { workspaceId: undefined, workspaceEpoch: request.input.workflow.backgroundRetryId ?? request.input.workflow.polishingId, baseCommit: seed.manifest.identity.baseCommit } : {}) });
+        if (seed) {
+          try { await importReviewedBuildSeed(seed, lease, request, hooks.signal); }
+          catch (error) { await lease.release(true); throw error; }
+        }
         return { ...lease, release: unknown => lease.release(unknown || uncertain) };
       } };
     const input: StageInput = { ...request.input, settings: { ...request.input.settings,

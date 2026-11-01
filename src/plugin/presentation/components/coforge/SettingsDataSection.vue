@@ -25,7 +25,7 @@ const model = useSettingsForm();
       </button>
     </div>
     <p v-if="model.pending" class="cf-settings-help cf-settings-data-note">
-      Cancel or finish active and queued runs before loading the sample workspace.
+      Cancel, finish or resolve active workflows and Improve &amp; polish passes before loading the sample workspace.
     </p>
     <p v-if="model.dirty" class="cf-settings-help cf-settings-data-note">Save or discard project changes before loading sample content.</p>
     <div v-if="model.resetConfirm" id="cf-settings-reset-confirm" class="cf-settings-reset-confirm" role="group" aria-labelledby="cf-settings-reset-title">

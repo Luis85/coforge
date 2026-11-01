@@ -13,6 +13,7 @@ import {
   sameDurableBuildRef,
 } from "../../../features/coforge/domain/durable-build";
 import { buildDuration } from "./durable-build-display";
+import { ideaWorkflowRun } from './idea-workflow-run';
 
 const phaseLabels = {
   prepared: "Reserved — not started",
@@ -45,10 +46,7 @@ export function useDurableBuildMonitor(
   const idea = computed(() =>
     store.state?.ideas.find((item) => item.id === ideaId()),
   );
-  const run = computed(() => {
-    const current = idea.value?.workflowRun;
-    return current && current.id === runId() ? current : undefined;
-  });
+  const run = computed(() => ideaWorkflowRun(idea.value, runId()));
   const job = computed(() => {
     const jobs = (store.state?.jobs ?? []).filter(
       (item) =>
@@ -185,7 +183,7 @@ export function useDurableBuildMonitor(
     checking.value = true;
     error.value = "";
     try {
-      const ok = await actions.checkDurableBuild(id);
+      const ok = await actions.checkDurableBuild(id, runId());
       if (
         !ok &&
         ideaId() === id &&

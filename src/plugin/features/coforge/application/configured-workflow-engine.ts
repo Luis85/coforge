@@ -21,6 +21,11 @@ import { captureWorkflowOutputTemplates, WorkflowOutputTemplateUnavailableError,
 import { attachWorkflowPlan, type WorkflowPlanHandoff } from './workflow-plan-handoff';
 import { assertWorkflowCoworkerAvailable, bindWorkflowCoworkers, coworkerAdmissionReady, prepareWorkflowCoworkers, WorkflowCoworkerUnavailableError } from './configured-workflow-coworkers';
 import { appendWorkflowArtifact, compatibilityStage, configuredAttempt, configuredChanges, configuredIdea, configuredInputs, configuredRuntime, projectWorkflowChanges } from './configured-workflow-policy';
+import { effectiveWorkflowStep, workflowAttemptWorkspace } from '../domain/workflow-execution-step';
+import type { BackgroundBuildRetryApproval } from '../domain/background-build-retry';
+import type { PolishingRun } from '../domain/polishing';
+import { assertPolishingMetadata, assertPolishingResolved } from './workflow-run-owner';
+import { polishingSaveOptions, workflowRunSaveOptions } from './polishing-save-options';
 
 interface ConfiguredHost {
   dispatchAllowed?(): boolean;
@@ -47,6 +52,7 @@ function finish(state: InternalState, ideaId: string): WorkflowRun {
 export class ConfiguredWorkflowEngine {
   private readonly nudges: ConfiguredWorkflowNudges;
   private readonly council: ConfiguredWorkflowCouncil;
+  private saveOptions(ideaId: string) { const idea = this.store.internalSnapshot().ideas.find(item => item.id === ideaId); return workflowRunSaveOptions(idea?.workflowRun, idea); }
   constructor(private readonly store: StudioStore, private readonly host: ConfiguredHost) {
     this.council = new ConfiguredWorkflowCouncil(store, host.agentTasks, (state, ideaId) => {
       const run = configuredIdea(state, ideaId).workflowRun!;
@@ -63,14 +69,19 @@ export class ConfiguredWorkflowEngine {
     try { this.queue(state, ideaId, false); }
     catch { const run = state.ideas.find(idea => idea.id === ideaId)?.workflowRun; if (run) run.error = 'The next step is not ready. Review its requirements before continuing.'; }
   }
-  private queue(state: InternalState, ideaId: string, explicit: boolean): AgentJob | null {
+  queueBackgroundRetry(state: InternalState, ideaId: string, approval: BackgroundBuildRetryApproval): void { this.queue(state, ideaId, true, approval); }
+  queueContinuation(state: InternalState, ideaId: string): void { this.queue(state, ideaId, true); }
+  queuePolishing(state: InternalState, ideaId: string, pass: PolishingRun, ids: { jobId: string; attemptId: string }): void { this.queue(state, ideaId, true, undefined, pass, ids); }
+  private queue(state: InternalState, ideaId: string, explicit: boolean, retry?: BackgroundBuildRetryApproval, polish?: PolishingRun, ids?: { jobId: string; attemptId: string }): AgentJob | null {
     assertWorkflowNotStopped(state, ideaId);
-    const idea = configuredIdea(state, ideaId);
-    const run = idea.workflowRun;
+    const idea = configuredIdea(state, ideaId, !!polish);
+    if (!polish) assertPolishingResolved(idea);
+    const run = polish?.workflow ?? idea.workflowRun;
     if (!run || run.state !== 'ready' || workflowProposalRevision(idea) !== run.proposalRevision) throw new Error('Start a fresh workflow for this request revision.');
     if (run.external && !explicit) return null;
     if (state.jobs.some(job => job.ideaId === ideaId && isActiveJob(job))) throw new Error('This request already has an active attempt.');
-    const step = run.definition.steps[run.cursor];
+    const step = effectiveWorkflowStep(run, run.cursor, retry?.id);
+    if (!retry && run.backgroundRetries?.some(item => item.stepId === step?.id)) throw new Error('This Build was retried in background. Review its current files and choose Retry Build in background again; foreground fallback is disabled.');
     if (!step) { finish(state, ideaId); return null; }
     if (run.attempts.length >= 100) throw new Error('The run reached its attempt limit. Preserve it and start a new run.');
     if (workflowSerializedSize(run) > WORKFLOW_RUN_LIMIT_BYTES - WORKFLOW_ATTEMPT_RESERVE_BYTES) throw new Error('This run has no reserved evidence capacity for another attempt. Preserve/export its history and start a fresh run; no agent was started.');
@@ -84,7 +95,7 @@ export class ConfiguredWorkflowEngine {
       this.nudges.reserve(state, ideaId, step); return null;
     }
     if (step.kind === 'ai' && !explicit && (settings.paused || !step.automatic || idea.voters.length < (step.minVotes ?? 0))) return null;
-    const id = crypto.randomUUID();
+    const id = ids?.attemptId ?? retry?.attemptId ?? crypto.randomUUID();
     const at = time();
     if (explicit) state.manualHolds = state.manualHolds.filter(id => id !== ideaId);
     if (step.kind !== 'ai') {
@@ -96,16 +107,20 @@ export class ConfiguredWorkflowEngine {
     const provider = run.external ? 'mcp' : step.provider;
     if (step.execution && (run.external || !['claude', 'codex'].includes(provider) || !this.host.durableBuilds)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
     if (step.execution && state.runtime.durableBuild?.ready === false) throw new Error(state.runtime.durableBuild.message || 'Check the background worker before admitting another Build.');
-    configuredRuntime(state, idea, step, run.external);
+    configuredRuntime(state, idea, step, run.external, !!polish && step.output !== 'codechange');
     if (!step.execution && !this.host.runners[provider]) throw new Error('This step’s selected provider is unavailable.');
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
-    const inputs = configuredInputs(run, step);
+    const inputs = polish ? polish.sourceArtifacts : configuredInputs(run, step, idea.workflowHistory, idea);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
+      ...(retry ? { backgroundRetryId: retry.id } : {}),
+      ...(polish ? { polishingId: polish.id, polishingSourceHash: polish.sourceHash, polishingFeedback: polish.feedback, polishingPayload: JSON.stringify(polish.target),
+        ...((polish.reviewedSource?.runId ?? polish.target.sourceRunId) ? { sourceRunId: polish.reviewedSource?.runId ?? polish.target.sourceRunId } : {}) } : {}),
+      ...(idea.polishingAmendments?.length ? { approvedPolishingInputs: structuredClone(idea.polishingAmendments) } : {}),
       ...(step.coworkerId ? { coworker: structuredClone(run.coworkerBindings?.find(item => item.stepId === step.id)?.profile) } : {}),
       ...(step.outputTemplateId ? { outputTemplate: structuredClone(run.outputTemplates?.find(template => template.id === step.outputTemplateId)) } : {}),
       ...(run.automationEvent ? { automationEvent: structuredClone(run.automationEvent) } : {}),
-      attemptId: id, step: structuredClone(step), inputArtifacts: structuredClone(inputs), ...(run.workspaceId ? { workspaceId: run.workspaceId } : {}) };
-    const job: AgentJob = { id: crypto.randomUUID(), ideaId, projectId: run.projectId, stage: compatibilityStage(step.output), provider,
+      attemptId: id, step: structuredClone(step), inputArtifacts: structuredClone(inputs), ...(!retry && run.workspaceId ? { workspaceId: run.workspaceId } : {}) };
+    const job: AgentJob = { id: ids?.jobId ?? retry?.jobId ?? crypto.randomUUID(), ideaId, projectId: run.projectId, stage: compatibilityStage(step.output), provider,
       ...(!run.external ? { model: step.model, ...(step.provider === 'herdr' ? { herdrAgent: step.herdrAgent ?? 'claude' } : {}) } : {}), workflow: snapshot,
       status: 'queued', startedAt: at, logs: [`${step.name} queued.`] };
     run.attempts.push({ id, stepId: step.id, stepName: step.name, kind: 'ai', status: 'queued', jobId: job.id, inputs: inputs.map(item => item.id), startedAt: at });
@@ -119,6 +134,7 @@ export class ConfiguredWorkflowEngine {
   async restart(ideaId: string): Promise<WorkflowRun> { return this.admit(ideaId, true, undefined, false, undefined, undefined, true); }
   private async admit(ideaId: string, explicit = true, handoff?: WorkflowPlanHandoff, external = false, automationEvent?: AutomationContext, expectedDefinitionJson?: string, operatorRestart = false): Promise<WorkflowRun> {
     const starting = this.store.internalSnapshot();
+    assertPolishingMetadata(starting, ideaId);
     assertDurableWorkflowMetadata(starting, ideaId);
     if (!operatorRestart) assertWorkflowNotStopped(starting, ideaId);
     const startingIdea = starting.ideas.find(idea => idea.id === ideaId);
@@ -171,11 +187,12 @@ export class ConfiguredWorkflowEngine {
       delete idea.lastError;
       recordOperation(state, 'workflow-run-started', 'committed', undefined, 1, idea.workflowRun.id);
       this.queue(state, ideaId, explicit);
-    });
+    }, this.saveOptions(ideaId));
     await this.flushDelegated(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
   async next(ideaId: string): Promise<WorkflowRun> {
+    const checking = this.store.snapshot().ideas.find(idea => idea.id === ideaId); if (checking) assertPolishingResolved(checking);
     assertWorkflowNotStopped(this.store.snapshot(), ideaId);
     const current = this.store.snapshot().ideas.find(idea => idea.id === ideaId)?.workflowRun;
     const councilAttempt = current?.attempts.find(item => item.id === current.activeAttemptId);
@@ -196,7 +213,7 @@ export class ConfiguredWorkflowEngine {
         run.state = 'ready'; delete run.error;
       }
       this.queue(state, ideaId, true);
-    });
+    }, this.saveOptions(ideaId));
     await this.flushDelegated(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
@@ -204,6 +221,7 @@ export class ConfiguredWorkflowEngine {
     await this.store.transaction(state => {
       assertWorkflowNotStopped(state, ideaId);
       const idea = configuredIdea(state, ideaId);
+      assertPolishingResolved(idea);
       const run = idea.workflowRun;
       const step = run?.definition.steps[run.cursor];
       const attempt = run?.attempts.find(item => item.id === run.activeAttemptId);
@@ -216,7 +234,7 @@ export class ConfiguredWorkflowEngine {
       run.cursor++; run.state = 'ready'; delete run.activeAttemptId; touch(run);
       recordOperation(state, 'workflow-manual-completed', 'committed', undefined, 1, attempt.id);
       if (run.cursor === run.definition.steps.length) finish(state, ideaId); else this.automatic(state, ideaId);
-    });
+    }, this.saveOptions(ideaId));
     await this.flushDelegated(ideaId);
     return structuredClone(this.store.snapshot().ideas.find(idea => idea.id === ideaId)!.workflowRun!);
   }
@@ -229,7 +247,7 @@ export class ConfiguredWorkflowEngine {
       recordOperation(state, 'workflow-run-stopped', 'committed', undefined, 1, run.id);
       if (run.state === 'awaiting-review') recordOperation(state, 'workflow-run-awaiting-review', 'committed', undefined, 1, run.id);
       return councilStop;
-    });
+    }, this.saveOptions(ideaId));
     this.nudges.abort(ideaId);
     this.council.abort(ideaId);
     if (councilStop) await this.council.cancel(councilStop);
@@ -245,7 +263,7 @@ export class ConfiguredWorkflowEngine {
     if (waiting.length) state = this.store.internalSnapshot();
     const settings = projectSettings(state, projectId);
     if (!manual && settings.paused) return null;
-    const ideas = state.ideas.filter(idea => ideaProjectId(idea) === projectId && ((settings.workflow && allowNew) || idea.workflowRun) && !['shipped', 'rejected', 'flagged'].includes(idea.status) && !idea.lastError && !state.manualHolds.includes(idea.id) && !state.workflowStopHolds?.includes(idea.id));
+    const ideas = state.ideas.filter(idea => ideaProjectId(idea) === projectId && !idea.polishingRuns?.some(run => run.review === 'pending') && ((settings.workflow && allowNew) || idea.workflowRun) && !['shipped', 'rejected', 'flagged'].includes(idea.status) && !idea.lastError && !state.manualHolds.includes(idea.id) && !state.workflowStopHolds?.includes(idea.id));
     const candidate = [...ideas.filter(idea => idea.workflowRun), ...ideas.filter(idea => !idea.workflowRun)].find(idea => {
       const run = idea.workflowRun;
       if (run?.external && !manual) return false;
@@ -258,7 +276,7 @@ export class ConfiguredWorkflowEngine {
         try {
           if (!run && step.coworkerId) { if (idea.voters.length < (step.minVotes ?? 0)) return false; }
           else configuredRuntime(state, idea, step, run?.external);
-          if (run) configuredInputs(run, step);
+          if (run) configuredInputs(run, step, idea.workflowHistory, idea);
         }
         catch { return false; }
       }
@@ -267,7 +285,7 @@ export class ConfiguredWorkflowEngine {
     if (!candidate) return null;
     try {
       if (!candidate.workflowRun && settings.workflow && !await coworkerAdmissionReady(settings.workflow, projectId, candidate, state, this.host.agentTasks)) return null;
-      if (candidate.workflowRun) { await this.store.transaction(next => { this.queue(next, candidate.id, manual); }); await this.flushDelegated(candidate.id); }
+      if (candidate.workflowRun) { await this.store.transaction(next => { this.queue(next, candidate.id, manual); }, this.saveOptions(candidate.id)); await this.flushDelegated(candidate.id); }
       else await this.start(candidate.id, manual);
     } catch (cause) {
       if ((cause instanceof WorkflowOutputTemplateUnavailableError || cause instanceof WorkflowCoworkerUnavailableError) && !candidate.workflowRun) await this.store.transaction(next => {
@@ -284,7 +302,7 @@ export class ConfiguredWorkflowEngine {
   async run(job: AgentJob, signal: AbortSignal): Promise<void> {
     if (job.workflow?.step.execution) throw new Error('Background Builds require durable worker admission.');
     if (job.workflow?.coworker) await assertWorkflowCoworkerAvailable(job.workflow.coworker, job.projectId ?? '', this.host.agentTasks);
-    const input = await this.store.transaction(state => configuredJobInput(state, job, signal));
+    const input = await this.store.transaction(state => configuredJobInput(state, job, signal), polishingSaveOptions(job, () => this.store.internalSnapshot()));
     if (!input) return;
     const execution = input.workflow;
     if (!execution) throw new Error('The configured execution snapshot is missing.');
@@ -300,30 +318,31 @@ export class ConfiguredWorkflowEngine {
         const current = state.jobs.find(item => item.id === job.id);
         if (current?.workflow) current.workflow.workspaceId = workspaceId;
         touch(run);
-      }); execution.workspaceId = workspaceId; },
+      }, polishingSaveOptions(job, () => this.store.internalSnapshot())); execution.workspaceId = workspaceId; },
       onChanges: async increment => { await this.store.transaction(state => {
         const { idea, run, snapshot } = configuredChanges(state, job);
-        if (increment && !increment.simulated && !run.workspaceId) throw new Error('Real code changes require a verified attributed run workspace.');
+        if (increment && !increment.simulated && !workflowAttemptWorkspace(run, snapshot.attemptId)) throw new Error('Real code changes require a verified attributed run workspace.');
         appendWorkflowArtifact(run, snapshot, { output: 'codechange', hostSnapshot: true, summary: increment?.summary ?? 'No pending code changes.', ...(increment ? { increment } : {}) }, time());
         if (idea.workflowRun?.id === run.id && ideaProjectId(idea) === run.projectId && !['shipped', 'rejected'].includes(idea.status)) projectWorkflowChanges(idea, run);
         touch(run);
-      }); },
+      }, polishingSaveOptions(job, () => this.store.internalSnapshot())); },
       onLog: message => { void this.store.transaction(state => {
         const current = state.jobs.find(item => item.id === job.id); if (current) current.logs = [...current.logs, message.slice(0, 8000)].slice(-200);
-      }).catch(() => undefined); },
+      }, polishingSaveOptions(job, () => this.store.internalSnapshot())).catch(() => undefined); },
     };
     const result = await runner(payload);
     if (result.costUsd !== undefined) await this.host.cost(job.id, result.costUsd);
     if (result.usage) await this.host.usage(job.id, result.usage);
     signal.throwIfAborted();
-    await this.store.transaction(state => this.complete(state, job, result));
+    await this.store.transaction(state => this.complete(state, job, result), polishingSaveOptions(job, () => this.store.internalSnapshot()));
     await this.flushDelegated(job.ideaId);
   }
   async fail(job: AgentJob, cancelled: boolean, error: unknown): Promise<void> {
-    await this.store.transaction(state => failConfiguredJob(state, job, cancelled, error));
+    await this.store.transaction(state => failConfiguredJob(state, job, cancelled, error), polishingSaveOptions(job, () => this.store.internalSnapshot()));
   }
   complete(state: InternalState, job: AgentJob, result: StageResult): void {
     const { idea, run } = completeConfiguredJob(state, job, result);
+    if (job.workflow?.polishingId) return;
     if (run.cursor === run.definition.steps.length && run.state === 'ready') finish(state, idea.id);
     else if (run.state === 'ready') this.automatic(state, idea.id);
   }

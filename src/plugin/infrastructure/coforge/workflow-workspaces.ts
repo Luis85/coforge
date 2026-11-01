@@ -7,8 +7,10 @@ import type {
   WorkflowWorkspaceRequest,
   WorkflowWorkspaceStorage,
   WorkflowWorkspaces,
+  ReviewedWorkspaceMaterializationRequest,
 } from "../../features/coforge/application/workflow-workspace-ports";
-import { agentGit, captureIncrement, projectRoot } from "./agent-worktree";
+import { agentGit, projectRoot } from "./agent-worktree";
+import { captureWorkflowIncrement } from './workflow-workspace-capture';
 
 const attention = () =>
   new Error(
@@ -44,7 +46,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
       const records = await this.storage.load();
       if (
         new Set(records.map((record) => record.id)).size !== records.length ||
-        new Set(records.map((record) => record.runId)).size !== records.length
+        new Set(records.map((record) => JSON.stringify([record.runId, record.workspaceEpoch ?? '']))).size !== records.length
       )
         throw attention();
       const recovered = records.map((record) =>
@@ -108,7 +110,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
       capture: async (summary) => {
         if (released || record.activeAttemptId !== attemptId) throw attention();
         await this.verify(record);
-        const increment = await captureIncrement(
+        const increment = await captureWorkflowIncrement(
           record.cwd,
           record.branch,
           summary,
@@ -137,6 +139,15 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
     };
   }
   acquire(request: WorkflowWorkspaceRequest): Promise<WorkflowWorkspaceLease> {
+    return this.acquireScoped(request);
+  }
+  /** A trusted native operator receipt, not authored workflow data, grants this creation path. */
+  materializeReviewed(request: ReviewedWorkspaceMaterializationRequest): Promise<WorkflowWorkspaceLease> {
+    if (request.access !== 'editworktree' || request.workspaceId || !request.baseCommit || request.operatorMaterializationId !== request.workspaceEpoch || request.attemptId !== request.operatorMaterializationId)
+      return Promise.reject(attention());
+    return this.acquireScoped(request, request.operatorMaterializationId);
+  }
+  private acquireScoped(request: WorkflowWorkspaceRequest, operatorMaterializationId?: string): Promise<WorkflowWorkspaceLease> {
     return this.command(async () => {
       if (
         !this.ready ||
@@ -146,6 +157,10 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         !request.attemptId
       )
         throw attention();
+      if (request.baseCommit !== undefined && (this.idPrefix !== 'bg-' && !operatorMaterializationId || request.access !== 'editworktree' || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u.test(request.baseCommit)))
+        throw new Error('A reviewed base pin requires a worker-owned editing workspace and an exact commit identity.');
+      if (request.workspaceEpoch !== undefined && (this.idPrefix !== 'bg-' && !operatorMaterializationId || request.access !== 'editworktree' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$/u.test(request.workspaceEpoch)))
+        throw new Error('A workspace epoch requires a worker-owned editing scope and a valid approval identity.');
       if (request.access === "none") {
         const cwd = await realpath(
           await mkdtemp(
@@ -162,12 +177,14 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         };
       }
       const root = await projectRoot(request.integration);
-      const before = this.records.find(
-        (record) => record.runId === request.runId,
-      );
+      const before = request.workspaceId ? this.records.find(record => record.id === request.workspaceId)
+        : this.records.find(record => record.runId === request.runId && record.workspaceEpoch === request.workspaceEpoch);
       if (request.workspaceId && before?.id !== request.workspaceId)
         throw attention();
       if (before) {
+        if (operatorMaterializationId && before.operatorMaterializationId !== operatorMaterializationId) throw attention();
+        if (request.baseCommit !== undefined && request.baseCommit !== before.baseCommit) throw attention();
+        if (before.runId !== request.runId || request.workspaceEpoch !== undefined && before.workspaceEpoch !== request.workspaceEpoch) throw attention();
         if (before.phase === "retired")
           throw new Error(
             "This workflow workspace was retired because its external agent could not be verified idle. Stop this run and start a fresh workflow after inspection; its files were preserved.",
@@ -217,9 +234,10 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         throw new Error(
           "The game repository has uncommitted changes. Commit or stash them before creating a workflow workspace.",
         );
-      const baseCommit = (
-        await agentGit(top, ["rev-parse", "--verify", "HEAD"], request.signal)
-      ).trim();
+      let baseCommit: string;
+      try { baseCommit = (await agentGit(top, ["rev-parse", "--verify", request.baseCommit ? `${request.baseCommit}^{commit}` : "HEAD"], request.signal)).trim(); }
+      catch (error) { if (request.baseCommit) throw new Error('The reviewed source base commit is unavailable. Inspect the original workspace again before retrying.'); throw error; }
+      if (request.baseCommit && baseCommit !== request.baseCommit) throw new Error('The reviewed base commit identity changed. Inspect again before retrying.');
       const folder = request.integration.worktreeFolder.trim()
         ? resolve(request.integration.worktreeFolder.trim())
         : join(dirname(top), `${basename(top)}-coforge-worktrees`);
@@ -228,6 +246,8 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
       const reservation: WorkflowWorkspaceRecord = {
         id,
         runId: request.runId,
+        ...(request.workspaceEpoch ? { workspaceEpoch: request.workspaceEpoch } : {}),
+        ...(operatorMaterializationId ? { operatorMaterializationId } : {}),
         projectId: request.projectId,
         projectPath: root,
         cwd: join(await realpath(folder), id),
@@ -343,7 +363,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         );
       await this.verify(record);
       if (expected) {
-        const actual = await captureIncrement(
+        const actual = await captureWorkflowIncrement(
           record.cwd,
           record.branch,
           expected.summary,
@@ -352,6 +372,7 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
         );
         if (
           actual.diff !== expected.diff ||
+          expected.snapshotHash !== undefined && actual.snapshotHash !== expected.snapshotHash ||
           JSON.stringify(actual.files) !== JSON.stringify(expected.files) ||
           actual.branch !== expected.branch ||
           actual.worktree !== expected.worktree

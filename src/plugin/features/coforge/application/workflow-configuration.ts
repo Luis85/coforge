@@ -8,7 +8,8 @@ import type { AppState } from '../domain/types';
 import { ideaProjectId } from '../domain/projects';
 
 export function projectHasPendingWorkflow(state: Pick<AppState, 'ideas'>, projectId: string): boolean {
-  return state.ideas.some(idea => ideaProjectId(idea) === projectId && idea.workflowRun && !['finished', 'stopped'].includes(idea.workflowRun.state));
+  return state.ideas.some(idea => ideaProjectId(idea) === projectId && (idea.workflowRun && !['finished', 'stopped'].includes(idea.workflowRun.state) ||
+    idea.polishingRuns?.some(pass => pass.review === 'pending' && !['finished', 'stopped'].includes(pass.workflow.state))));
 }
 
 /** A definition revision affects future runs only; pinned execution snapshots remain untouched. */

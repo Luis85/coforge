@@ -6,6 +6,7 @@ import { categoryNameCheck } from './request-categories';
 import { ideaContextsCheck, contextProperties } from './idea-context';
 import { workflowHistoryCheck, workflowRunCheck } from './configured-workflow-run';
 import { restoreWorkflowNoteData, workflowNoteData } from './workflow-note-data';
+import { polishingRunsCheck, polishingAmendmentsCheck } from './polishing-run-check';
 
 /**
  * An idea note is canonical for the idea itself: identity, text, category, status and the saved
@@ -26,6 +27,8 @@ export function ideaProperties(idea: Idea, authorName: string): Record<string, u
   if (idea.contexts?.length) p.contexts = contextProperties(idea.contexts);
   if (idea.workflowRun) p['workflow-run'] = workflowNoteData(workflowRunCheck(idea.workflowRun));
   if (idea.workflowHistory) p['workflow-history'] = workflowNoteData(workflowHistoryCheck(idea.workflowHistory));
+  if (idea.polishingRuns) p['polishing-runs'] = workflowNoteData(polishingRunsCheck(idea.polishingRuns));
+  if (idea.polishingAmendments) p['polishing-amendments'] = workflowNoteData(polishingAmendmentsCheck(idea.polishingAmendments));
   if (idea.screening) Object.assign(p, {
     screening: idea.screening.verdict, 'screening-reason': idea.screening.reason, 'screening-signals': idea.screening.signals,
     'screening-checked': idea.screening.checkedAt, 'screening-provider': idea.screening.provider,
@@ -130,6 +133,9 @@ export function parseIdeaNote(frontmatter: unknown, body: string): Omit<Idea, 'v
   if (p['last-error']) idea.lastError = p['last-error'];
   if (properties['workflow-run'] !== undefined) idea.workflowRun = workflowRunCheck(restoreWorkflowNoteData(properties['workflow-run']));
   if (properties['workflow-history'] !== undefined) idea.workflowHistory = workflowHistoryCheck(restoreWorkflowNoteData(properties['workflow-history']));
+  if (properties['polishing-runs'] !== undefined) idea.polishingRuns = polishingRunsCheck(restoreWorkflowNoteData(properties['polishing-runs']));
+  if (properties['polishing-amendments'] !== undefined) idea.polishingAmendments = polishingAmendmentsCheck(restoreWorkflowNoteData(properties['polishing-amendments']));
+  if (idea.polishingRuns?.some(run => run.workflow.ideaId !== idea.id || run.workflow.projectId !== (idea.projectId ?? 'CFP-001'))) throw new Error('The polishing history belongs to a different request or project.');
   if (idea.workflowRun && (idea.workflowRun.ideaId !== idea.id || idea.workflowRun.projectId !== (idea.projectId ?? 'CFP-001')))
     throw new Error('The managed workflow run belongs to a different request or project.');
   if (idea.workflowHistory?.some(run => run.ideaId !== idea.id)) throw new Error('The managed workflow history belongs to a different request.');

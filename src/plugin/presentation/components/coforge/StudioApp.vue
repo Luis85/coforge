@@ -32,8 +32,11 @@ import CouncilView from "./CouncilView.vue";
 import ServiceDesignView from './ServiceDesignView.vue';
 import CoWorkersView from "./CoWorkersView.vue";
 import ObsLiveDock from "./ObsLiveDock.vue";
+import PolishingFeedbackDialog from './PolishingFeedbackDialog.vue';
+import { usePolishingUiStore } from '../../stores/coforge-polishing-ui';
 
 const model = useStudioApp();
+const polishing = usePolishingUiStore();
 </script>
 <template>
   <div
@@ -123,7 +126,8 @@ const model = useStudioApp();
         v-if="model.shell.workflowVisible && model.shell.store.activeJob && model.shell.store.view === 'board'"
       />
       <ActivityPopover v-if="model.shell.store.activityOpen" />
-      <IdeaDrawer v-if="model.shell.store.selectedIdea" />
+      <IdeaDrawer v-if="model.shell.store.selectedIdea" v-show="!polishing.isOpen" :inert="polishing.isOpen || undefined" :aria-hidden="polishing.isOpen || undefined" />
+      <PolishingFeedbackDialog v-if="polishing.isOpen" />
       <NewIdeaDrawer v-if="model.shell.store.creating" />
       <HelpDialog v-if="model.shell.store.help" />
     </template>

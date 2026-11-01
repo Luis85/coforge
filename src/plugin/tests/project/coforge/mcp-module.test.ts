@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { execFile } from 'node:child_process';
+import { request } from 'node:http';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -8,6 +9,7 @@ vi.mock('obsidian', () => import('@test/obsidian'));
 import { App, Plugin } from 'obsidian';
 import { createTestApp } from '@test/obsidian';
 import { McpModule } from '../../../infrastructure/coforge/mcp-module';
+import { McpConnectionFile } from '../../../infrastructure/coforge/mcp-connection-file';
 import { CouncilModule } from '../../../infrastructure/coforge/council-module';
 import { InvocationGate } from '../../../features/coforge/application/invocation-gate';
 import { McpStepRunner } from '../../../features/coforge/application/mcp-step-runner';
@@ -31,15 +33,77 @@ async function fixture() {
   await studio.start(); await studio.updateProject({ projectPath: project });
   const council = new CouncilModule(plugin, studio, timers, new InvocationGate());
   await council.start();
+  const runners: McpStepRunner[] = [];
   const make = () => {
     const runner = new McpStepRunner({ start: async () => {}, acknowledge: async (workspaceId, attemptId) => { acknowledged.push(`${workspaceId}:${attemptId}`); }, assertReviewable: async () => {}, acquire: async () => { throw new Error('Not used'); } }, timers);
+    runners.push(runner);
     return new McpModule(plugin, studio, runner, { directory, vaultPath: root, userSettings, checkNode: async () => {} }, council.actions);
   };
   const acknowledged: string[] = [];
   const module = make(); await module.start();
   stops.push(async () => { await module.dispose(); await council.dispose(); await studio.stop(); await rm(root, { recursive: true, force: true }); });
-  return { root, directory, project, userSettings, studio, module, make, acknowledged, projectId: studio.state().activeProjectId! };
+  return { root, directory, project, userSettings, studio, module, make, acknowledged, runners, projectId: studio.state().activeProjectId! };
 }
+it('keeps the replacement connection active when the previous instance finishes closing later', async () => {
+  const f = await fixture(); await f.module.activate();
+  let release = () => {}; let entered = () => {};
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const closingEntered = new Promise<void>(resolve => { entered = resolve; });
+  vi.spyOn(f.runners[0]!, 'dispose').mockImplementation(async () => { entered(); await held; });
+  const closing = f.module.dispose(); await closingEntered;
+  const next = f.make();
+  const path = join(f.directory, 'coforge-mcp-connection.json');
+  try {
+    await next.start(); expect(next.status().active).toBe(true);
+    const activeToken = record(JSON.parse(await readFile(path, 'utf8'))).token;
+    expect(typeof activeToken === 'string' ? activeToken.length : -1).toBe(64);
+    release(); await closing;
+    const descriptor = record(JSON.parse(await readFile(path, 'utf8')));
+    // Assert only token length: credentials must never appear in a failure report.
+    expect(typeof descriptor.token === 'string' ? descriptor.token.length : -1).toBe(64);
+    expect(next.status().active).toBe(true);
+    if (typeof descriptor.endpoint !== 'string' || typeof descriptor.token !== 'string') throw new Error('Missing replacement connection');
+    const { endpoint, token } = descriptor;
+    const status = await new Promise<number | undefined>((resolve, reject) => {
+      const call = request(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } }, response => {
+        response.resume(); response.on('end', () => resolve(response.statusCode));
+      });
+      call.on('error', reject); call.end(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }));
+    });
+    expect(status).toBe(200);
+  } finally { release(); await closing; await next.dispose(); }
+});
+it('persists the restored journal before exposing its connection descriptor', async () => {
+  const f = await fixture(); await f.module.dispose();
+  const journal = join(f.directory, 'coforge-mcp-settings.json'); await rm(journal);
+  const publish = McpConnectionFile.prototype.publish; let journalReady = false;
+  const observed = vi.spyOn(McpConnectionFile.prototype, 'publish').mockImplementation(async function (this: McpConnectionFile, endpoint, token, current) {
+    journalReady = await readFile(journal).then(() => true, () => false);
+    await publish.call(this, endpoint, token, current);
+  });
+  const next = f.make();
+  try { await next.start(); expect(journalReady).toBe(true); }
+  finally { observed.mockRestore(); await next.dispose(); }
+});
+it('discards an older startup publication when disposal occurs during its awaited work', async () => {
+  const f = await fixture(); await f.module.activate(); await f.module.dispose();
+  let release = () => {}; let entered = () => {};
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const publicationEntered = new Promise<void>(resolve => { entered = resolve; });
+  const publish = McpConnectionFile.prototype.publish; let first = true;
+  const observed = vi.spyOn(McpConnectionFile.prototype, 'publish').mockImplementation(async function (this: McpConnectionFile, endpoint, token, current) {
+    if (first) { first = false; entered(); await held; }
+    await publish.call(this, endpoint, token, current);
+  });
+  const previous = f.make(); const starting = previous.start(); await publicationEntered;
+  const closing = previous.dispose(); const next = f.make();
+  try {
+    await next.start(); release(); await starting; await closing;
+    const token = record(JSON.parse(await readFile(join(f.directory, 'coforge-mcp-connection.json'), 'utf8'))).token;
+    expect(typeof token === 'string' ? token.length : -1).toBe(64);
+    expect(next.status().active).toBe(true);
+  } finally { release(); observed.mockRestore(); await starting; await closing; await previous.dispose(); await next.dispose(); }
+});
 it('activates both config scopes, serves the shipped stdio bridge, reloads safely and removes owned registrations', async () => {
   const f = await fixture();
   await writeFile(f.userSettings, JSON.stringify({ keep: true }));

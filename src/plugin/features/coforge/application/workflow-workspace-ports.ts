@@ -9,11 +9,18 @@ export interface WorkflowWorkspaceRequest {
   integration: IntegrationSettings;
   workspaceId?: string;
   signal?: AbortSignal;
+  /** Worker adapter only: an authorized reviewed snapshot pins a fresh editing tree to this exact commit. */
+  baseCommit?: string;
+  /** Trusted worker retry approval identity; a new epoch creates a distinct physical tree within the same run. */
+  workspaceEpoch?: string;
 }
 /** Private journal; never part of workflow definition exports or public views. */
 export interface WorkflowWorkspaceRecord {
   id: string;
   runId: string;
+  workspaceEpoch?: string;
+  /** Private proof lookup for a paid-free operator copy; never a fabricated provider job. */
+  operatorMaterializationId?: string;
   projectId: string;
   projectPath: string;
   cwd: string;
@@ -26,6 +33,9 @@ export interface WorkflowWorkspaceRecord {
   activeAttemptId?: string;
   reviewedAttemptId?: string;
   lastAttemptId?: string;
+}
+export interface ReviewedWorkspaceMaterializationRequest extends WorkflowWorkspaceRequest {
+  baseCommit: string; workspaceEpoch: string; operatorMaterializationId: string;
 }
 export interface WorkflowWorkspaceStorage {
   load(): Promise<WorkflowWorkspaceRecord[]>;

@@ -21,6 +21,7 @@ import { ideaWorkflowAction } from "./idea-workflow-action";
 import { projectFeatureEnabled } from '../../../features/coforge/domain/project-features';
 import { currentDesignSpecification } from "./use-idea-design";
 import { ideaRunHistory } from './idea-run-history';
+import { backgroundRetryCandidate } from './background-build-retry-display';
 
 export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow';
 const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
@@ -59,7 +60,7 @@ function createIdeaDrawer() {
   const state = computed(() => store.state);
   const operatorHeld = computed(() => Boolean(idea.value && state.value?.workflowStopHolds?.includes(idea.value.id)));
   const preservedReview = computed(() => operatorHeld.value && idea.value?.status === 'inbox' && Boolean(idea.value.increment) && idea.value.workflowRun?.state === 'awaiting-review');
-  const reviewable = computed(() => idea.value?.status === 'review' || preservedReview.value);
+  const reviewable = computed(() => (idea.value?.status === 'review' || preservedReview.value) && !idea.value?.polishingRuns?.some(pass => pass.review === 'pending'));
   const author = computed(() =>
     state.value?.contributors.find(
       (person) => person.id === idea.value?.authorId,
@@ -88,7 +89,7 @@ function createIdeaDrawer() {
   const blockedBuild = computed(() => Boolean(nextAction.value?.blocked));
   const openWorkflow = () => {
     const id = idea.value?.id;
-    if (!id || !projectFeatureEnabled(project.value, 'workflow')) return;
+    if (!id || !(projectFeatureEnabled(project.value, 'workflow') || idea.value?.workflowRun || idea.value?.polishingRuns?.length)) return;
     store.select(id, 'workflow');
   };
   async function runConfigured() {
@@ -170,14 +171,15 @@ function createIdeaDrawer() {
     pending,
     isBusy,
     operatorHeld,
+    backgroundRetryAvailable: computed(() => backgroundRetryCandidate(idea.value)),
     preservedReview,
     reviewable,
     nextAction,
-    workflowVisible: computed(() => projectFeatureEnabled(project.value, 'workflow')),
+    workflowVisible: computed(() => projectFeatureEnabled(project.value, 'workflow') || Boolean(idea.value?.workflowRun) || Boolean(idea.value?.polishingRuns?.length)),
     blockedBuild,
     activeJob,
     tabs: computed(() =>
-      TABS.filter(item => item.value !== 'workflow' || projectFeatureEnabled(project.value, 'workflow') || Boolean(idea.value?.workflowRun)).map((item) => ({
+      TABS.filter(item => item.value !== 'workflow' || projectFeatureEnabled(project.value, 'workflow') || Boolean(idea.value?.workflowRun) || Boolean(idea.value?.polishingRuns?.length)).map((item) => ({
         ...item,
         active: tab.value === item.value,
         dot:
@@ -237,8 +239,8 @@ function createIdeaDrawer() {
     ),
     canFinalReview: computed(
       () =>
-        !idea.value?.workflowRun ||
-        idea.value.workflowRun.state === "awaiting-review",
+        !idea.value?.polishingRuns?.some(pass => pass.review === 'pending') &&
+        (!idea.value?.workflowRun || idea.value.workflowRun.state === "awaiting-review"),
     ),
     runConfigured: () => {
       void runConfigured();

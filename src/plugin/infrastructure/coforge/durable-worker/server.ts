@@ -1,12 +1,17 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
-import { number, record, shape, text } from '../../../features/coforge/domain/check';
-import { durableBuildResultCheck } from '../../../features/coforge/domain/durable-build';
-import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
+import { list, number, record, shape, text } from '../../../features/coforge/domain/check';
+import { durableBuildResultCheck, durableBuildTerminal } from '../../../features/coforge/domain/durable-build';
+import type { LocalWorkflowWorkspaces } from '../workflow-workspaces';
 import { workerDescriptorCheck, workerRef, workerRequestCheck, type WorkerDescriptor } from './protocol';
 import type { WorkerService } from './service';
 import { DurableBuildCapacityError } from '../../../features/coforge/application/durable-build-ports';
 import { WorkerRecovery } from './recovery';
+import { ReviewedResourceMaterializer } from '../background-build-seed/materialize';
+import { operatorWorkspaceRecord, polishingApplyRequestCheck } from '../background-build-seed/operator-record';
+import { workflowWorkspaceRecordsCheck } from '../workflow-workspace-check';
+import { protectedPrefix } from './protection';
+import { PolishingCopyRetainedError } from '../../../features/coforge/application/polishing-ports';
 
 const reply = (response: ServerResponse, status: number, value: unknown) => { response.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' }); response.end(JSON.stringify(value)); };
 async function body(request: IncomingMessage): Promise<Record<string, unknown>> {
@@ -14,9 +19,10 @@ async function body(request: IncomingMessage): Promise<Record<string, unknown>> 
   for await (const chunk of request) { const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)); size += buffer.length; if (size > 16 * 1024 * 1024) throw new Error('The captured Build request exceeds its private transport limit.'); chunks.push(buffer); }
   return record(JSON.parse(Buffer.concat(chunks).toString('utf8')));
 }
-export async function startWorkerServer(service: WorkerService, workspaces: WorkflowWorkspaces, identity: Omit<WorkerDescriptor, 'endpoint' | 'pid' | 'startedAt'>) {
+export async function startWorkerServer(service: WorkerService, workspaces: LocalWorkflowWorkspaces, identity: Omit<WorkerDescriptor, 'endpoint' | 'pid' | 'startedAt'>) {
   const state: { descriptor?: WorkerDescriptor } = {};
   const recovery = new WorkerRecovery(service.store.files, { store: service.store, workspaces, active: ref => service.ownsActive(ref) });
+  const materializer = new ReviewedResourceMaterializer(service.store.files.directory, workspaces, service.store.files);
   const authorize = (request: IncomingMessage) => {
     const provided = Buffer.from(request.headers.authorization ?? ''); const expected = Buffer.from('Bearer ' + identity.token);
     return provided.length === expected.length && timingSafeEqual(provided, expected);
@@ -32,6 +38,17 @@ export async function startWorkerServer(service: WorkerService, workspaces: Work
       else if (op === 'configureConcurrency') { const parsed = shape({ op: text(), builds: number({ integer: true, min: 1, max: 16 }) }, { strict: true })(input); await service.configureConcurrency(parsed.builds); }
       else if (op === 'cancelUnstarted') { const parsed = shape({ op: text(), jobId: text({ min: 1, max: 160 }) }, { strict: true })(input); await service.cancelUnstarted(parsed.jobId); }
       else if (op === 'prepare') { const parsed = shape({ op: text(), request: workerRequestCheck }, { strict: true })(input); value = await service.prepare(parsed.request); }
+      else if (op === 'materializeReviewedResource') {
+        const parsed = shape({ op: text(), request: polishingApplyRequestCheck, protectedPaths: list((value: unknown) => protectedPrefix(text()(value)), { max: 500 }) }, { strict: true })(input);
+        if (parsed.request.target.mode !== 'background') throw new Error('This supervisor creates only its own background resources.');
+        value = await service.exclusive(() => {
+          if (service.store.all().some(record => {
+            const job = service.store.get(record.snapshot.ref).request;
+            return job.projectId === parsed.request.projectId && job.ideaId === parsed.request.ideaId && (!durableBuildTerminal(record.snapshot.phase) || record.terminationUnknown);
+          })) throw new Error('The original request still has active or unknown worker ownership. Inspect it before copying reviewed code.');
+          return materializer.materialize(parsed.request, parsed.protectedPaths);
+        });
+      }
       else if (op === 'inspectRetained' || op === 'recover') {
         const parsed = shape({ op: text(), ref: (raw: unknown) => workerRef(raw, identity.workerId, identity.epoch),
           inspected: (raw: unknown) => raw === undefined ? undefined : raw === true,
@@ -63,14 +80,22 @@ export async function startWorkerServer(service: WorkerService, workspaces: Work
         if (matches.some(item => !['completed', 'failed', 'cancelled'].includes(item.snapshot.phase) || item.terminationUnknown)) throw new Error('This workspace still has active or unverified worker ownership.');
         const job = parsed.attemptId ? matches.find(item => service.store.get(item.snapshot.ref).request.attemptId === parsed.attemptId)
           : matches.sort((a, b) => b.snapshot.createdAt.localeCompare(a.snapshot.createdAt))[0];
-        if (!job || !['completed', 'failed', 'cancelled'].includes(job.snapshot.phase) || job.terminationUnknown) throw new Error('This workspace still has active or unverified worker ownership.');
+        if (!job) {
+          const workspace = workflowWorkspaceRecordsCheck(await service.store.files.read('workspaces.json') ?? []).find(item => item.id === parsed.workspaceId);
+          if (!workspace) throw new Error('The original operator workspace is unavailable.');
+          await operatorWorkspaceRecord(service.store.files, workspace);
+          if (op === 'workspaceReview') await workspaces.assertReviewable(parsed.workspaceId, parsed.increment);
+          else { if (!parsed.attemptId || parsed.attemptId !== workspace.lastAttemptId) throw new Error('The operator resource identity changed.'); await workspaces.acknowledge(parsed.workspaceId, parsed.attemptId, parsed.reusable); }
+          reply(response, 200, { ok: true, value: null }); return;
+        }
+        if (!['completed', 'failed', 'cancelled'].includes(job.snapshot.phase) || job.terminationUnknown) throw new Error('This workspace still has active or unverified worker ownership.');
         if (op === 'workspaceReview') await workspaces.assertReviewable(parsed.workspaceId, parsed.increment);
         else { if (parsed.attemptId !== service.store.get(job.snapshot.ref).request.attemptId) throw new Error('The workspace attempt identity changed.'); await workspaces.acknowledge(parsed.workspaceId, parsed.attemptId, parsed.reusable); }
       } else throw new Error('Unsupported background worker operation.');
       reply(response, 200, { ok: true, value: value ?? null });
     })().catch(error => {
       const message = error instanceof Error && !/[/\\]/u.test(error.message) ? error.message.slice(0, 3900) : 'The background worker operation could not commit. Inspect its original private evidence.';
-      if (!response.headersSent) reply(response, 400, { ok: false, error: message, ...(error instanceof DurableBuildCapacityError ? { code: 'CAPACITY' } : {}) }); else response.end();
+      if (!response.headersSent) reply(response, 400, { ok: false, error: message, ...(error instanceof DurableBuildCapacityError ? { code: 'CAPACITY' } : error instanceof PolishingCopyRetainedError ? { code: 'POLISHING_COPY_RETAINED' } : {}) }); else response.end();
     });
   });
   server.requestTimeout = 15000; server.headersTimeout = 10000; server.maxConnections = 16;

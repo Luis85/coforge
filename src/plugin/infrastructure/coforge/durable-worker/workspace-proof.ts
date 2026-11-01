@@ -58,13 +58,15 @@ export async function inspectWorkerWorkspace(files: WorkerFiles, request: Durabl
     return { increment: undefined, record: undefined, evidenceHash: inputHash({ ref: snapshot.ref, inputHash: snapshot.ref.inputHash, workspace: null }) };
   }
   if (!record.id.startsWith('bg-') || record.projectId !== request.projectId || snapshot.workspaceId && snapshot.workspaceId !== record.id) throw changed();
+  const epoch = request.input.workflow.backgroundRetryId ?? request.input.workflow.polishingId;
+  if (epoch && record.workspaceEpoch !== epoch) throw changed();
   if (record.activeAttemptId && record.activeAttemptId !== request.attemptId) throw changed();
   await verifyRetainedWorkspace(record);
   const diffHash = await trackedDiffHash(record); const newHash = await untrackedHash(record);
   const increment = await captureIncrement(record.cwd, record.branch, 'Inspected retained background Build changes', undefined, { allowEmpty: true, baseCommit: record.baseCommit });
   await verifyRetainedWorkspace(record);
   const evidenceHash = inputHash({ ref: snapshot.ref, inputHash: snapshot.ref.inputHash,
-    workspace: { id: record.id, projectId: record.projectId, runId: record.runId, cwd: record.cwd, branch: record.branch, baseCommit: record.baseCommit,
+    workspace: { id: record.id, projectId: record.projectId, runId: record.runId, workspaceEpoch: record.workspaceEpoch, cwd: record.cwd, branch: record.branch, baseCommit: record.baseCommit,
       pointer: record.pointer, device: record.directoryDevice, inode: record.directoryInode }, diffHash, newHash, previewDiff: increment.diff, files: increment.files });
   return { record, increment, evidenceHash };
 }

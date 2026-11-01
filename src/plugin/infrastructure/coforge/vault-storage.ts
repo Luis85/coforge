@@ -5,7 +5,7 @@ import { VaultCommandCommit } from "./vault-command-commit";
 import { planAtomicCommand, needsAtomicCommand } from "./atomic-command-plan";
 import { normalizePath, parseYaml, stringifyYaml, TFile, type Plugin } from 'obsidian';
 import type { ExternalNoteChange, InternalState, LoadedStudio, NoteIdea, SaveOptions, StudioStorage } from '../../features/coforge/application/ports';
-import { applyIdeaProperties, descriptionFromBody, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, OWNED_PROPERTIES, parseIdeaNote } from '../../features/coforge/domain/idea-note';
+import { descriptionFromBody, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, OWNED_PROPERTIES, parseIdeaNote } from '../../features/coforge/domain/idea-note';
 import { omit } from '../../features/coforge/domain/objects';
 import { cleanText } from '../../features/coforge/domain/sanitize';
 import { record } from '../../features/coforge/domain/check';
@@ -19,7 +19,7 @@ import { validateFolderLayout } from '../../features/coforge/domain/vault-folder
 import { protectPrivateData } from './private-data-guard';
 import { VaultExampleCleanup } from './vault-example-cleanup';
 import { requestObjectFromProperties, requestObjectNoteProperties, requestObjectPropertyKeys } from '../../features/coforge/domain/request-object-note';
-import { writeRequestValuesNote } from './request-values-note';
+import { writeManagedIdeaProperties, writeRequestValuesNote } from './request-values-note';
 export { splitNote } from './markdown';
 
 /** Reads an idea from note text, or returns null for notes that are not CoForge ideas. Throws for invalid idea notes. */
@@ -232,14 +232,14 @@ export class VaultStudioStorage implements StudioStorage {
       if (!file) throw new Error('The canonical request note is missing. Refresh before saving its fields.');
       return writeRequestValuesNote(this.plugin, file, idea, author, expectedInputIdentity, readIdeaNote);
     }
-    if (file && idea.contexts?.length) {
+    if (file) {
       await this.plugin.app.vault.process(file, current => {
-        const { yaml, body } = splitNote(current); const frontmatter = record(parseYaml(yaml ?? ''));
-        applyIdeaProperties(frontmatter, idea, author);
-        return `---\n${stringifyYaml(frontmatter)}---\n${appendContextBody(body, idea.contexts ?? [])}`;
+        const managed = writeManagedIdeaProperties(current, idea, author);
+        if (!idea.contexts?.length) return managed;
+        const { body } = splitNote(managed);
+        return managed.slice(0, managed.length - body.length) + appendContextBody(body, idea.contexts);
       }); return;
     }
-    if (file) { await this.plugin.app.fileManager.processFrontMatter(file, frontmatter => { applyIdeaProperties(frontmatter as Record<string, unknown>, idea, author); }); return; }
     await this.ensureFolder(this.folder);
     let path = normalizePath(`${this.folder}/${ideaFileName(idea)}`);
     for (let n = 2; this.plugin.app.vault.getAbstractFileByPath(path); n++) path = normalizePath(`${this.folder}/${ideaFileName(idea).replace(/\.md$/, ` ${n}.md`)}`);

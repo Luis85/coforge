@@ -3,7 +3,7 @@ import { modelEfforts, providerModels, type ReasoningEffort } from '../../../fea
 import type { Provider } from '../../../features/coforge/domain/types';
 
 export interface ProviderModelChoice { provider: Provider; model: string; effort?: ReasoningEffort }
-export function useProviderModelFields(props: { choice: ProviderModelChoice }) {
+export function useProviderModelFields(props: { choice: ProviderModelChoice; fieldPrefix?: string }) {
   const models = computed(() => providerModels(props.choice.provider));
   const custom = computed(() => !models.value.some(item => item.value === props.choice.model));
   const efforts = computed(() => modelEfforts(props.choice.provider, props.choice.model));
@@ -17,6 +17,7 @@ export function useProviderModelFields(props: { choice: ProviderModelChoice }) {
   });
   return reactive({
     models, custom, efforts,
+    field: (name: string) => props.fieldPrefix ? `${props.fieldPrefix}.${name}` : name,
     model: computed({ get: () => props.choice.provider === 'demo' ? props.choice.model : custom.value ? '__custom' : props.choice.model, set: value => {
       if (value !== '__custom') props.choice.model = value;
       else props.choice.model = '';

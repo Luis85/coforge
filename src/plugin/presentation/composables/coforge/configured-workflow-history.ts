@@ -14,6 +14,7 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
     [
       ...(idea.workflowHistory ?? []),
       ...(idea.workflowRun ? [idea.workflowRun] : []),
+      ...(idea.polishingRuns ?? []).map(pass => pass.workflow),
     ].flatMap((run) =>
       run.attempts.map((attempt) => {
         const linked = attempt.jobId ? byId.get(attempt.jobId) : undefined;

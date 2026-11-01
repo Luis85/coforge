@@ -5,6 +5,8 @@ import type { CouncilWorkflowStep, WorkflowDefinition } from '../domain/configur
 import { workflowArtifactCheck, workflowArtifactHash, workflowProposalRevision, type WorkflowAttempt, type WorkflowRun } from '../domain/configured-workflow-run';
 import { councilTaskBindingCheck, type WorkflowCouncilBinding } from '../domain/workflow-council-binding';
 import { configuredIdea } from './configured-workflow-policy';
+import { effectivePolishingIdea } from './polishing-amendments';
+import { workflowRunSaveOptions } from './polishing-save-options';
 import { councilWorkflowInputs, workflowCouncilBinding } from './workflow-council-context';
 
 const now = () => new Date().toISOString();
@@ -14,6 +16,7 @@ interface PendingReceipt { workflowRunId: string; attemptId: string; receipt: Ag
 
 /** Admission and completion are separate durable boundaries; polling never resubmits a child. */
 export class ConfiguredWorkflowCouncil {
+  private transaction<T>(ideaId: string, mutate: (state: InternalState) => T | Promise<T>): Promise<T> { const idea = this.store.internalSnapshot().ideas.find(item => item.id === ideaId); return this.store.transaction(mutate, workflowRunSaveOptions(idea?.workflowRun, idea)); }
   private disposed = false;
   private readonly active = new Map<string, { controller: AbortController; promise: Promise<void> }>();
   private readonly receipts = new Map<string, PendingReceipt>();
@@ -38,7 +41,7 @@ export class ConfiguredWorkflowCouncil {
     const idea = configuredIdea(state, ideaId); const run = idea.workflowRun!;
     workflowCouncilBinding(run, step);
     if (idea.screening?.verdict === 'flagged') throw new AgentTaskNotStartedError('Resolve this request’s moderation flag before asking the Council.');
-    const inputs = councilWorkflowInputs(run, step); const id = crypto.randomUUID();
+    const inputs = councilWorkflowInputs(run, step, idea); const id = crypto.randomUUID();
     run.attempts.push({ id, stepId: step.id, stepName: step.name, kind: 'council', status: 'queued', inputs: inputs.map(item => item.id), startedAt: now() });
     run.activeAttemptId = id; run.state = 'running'; touch(run);
   }
@@ -54,7 +57,7 @@ export class ConfiguredWorkflowCouncil {
         if (stop) await this.cancel(stop);
         return;
       }
-      await this.store.transaction(state => {
+      await this.transaction(ideaId, state => {
         const run = state.ideas.find(item => item.id === ideaId)?.workflowRun;
         const attempt = run?.attempts.find(item => item.id === run.activeAttemptId);
         if (!run || attempt?.kind !== 'council' || attempt.nudgeRunId) return;
@@ -70,19 +73,20 @@ export class ConfiguredWorkflowCouncil {
     this.active.set(ideaId, { controller, promise }); return promise;
   }
   private async dispatch(ideaId: string, controller: AbortController): Promise<void> {
-    const input = await this.store.transaction(state => {
+    const input = await this.transaction(ideaId, state => {
       const idea = state.ideas.find(item => item.id === ideaId); const run = idea?.workflowRun;
       const attempt = run?.attempts.find(item => item.id === run.activeAttemptId); const step = run?.definition.steps[run.cursor];
       if (!idea || !run || run.state !== 'running' || attempt?.kind !== 'council' || attempt.status !== 'queued' || step?.kind !== 'council') return null;
       if (workflowProposalRevision(idea) !== run.proposalRevision) throw new AgentTaskNotStartedError('The request changed before Council admission.');
+      const effective = effectivePolishingIdea(idea);
       const context = JSON.stringify({
         untrustedRequest: {
-          id: idea.id, projectId: run.projectId, title: idea.title, description: idea.description,
+          id: idea.id, projectId: run.projectId, title: effective.title, description: effective.description,
           category: idea.category, requestKind: idea.requestKind ?? 'feature',
           ...(idea.requestObject ? { requestObject: idea.requestObject } : {}),
           contexts: idea.contexts?.map(({ authorName, text, createdAt }) => ({ authorName, text, createdAt })) ?? [],
         },
-        boundArtifacts: councilWorkflowInputs(run, step),
+        boundArtifacts: councilWorkflowInputs(run, step, idea),
       });
       if (context.length > 60000) throw new AgentTaskNotStartedError('Council context exceeds 60000 characters. Reduce the selected inputs.');
       attempt.status = 'running'; attempt.nudgeState = 'reserved'; attempt.nudgeSourcePath = `CoForge/Automations/nudge-${attempt.id}.md`; touch(run);
@@ -104,7 +108,7 @@ export class ConfiguredWorkflowCouncil {
         if (stop && !this.store.snapshot().ideas.find(item => item.id === ideaId)?.workflowRun?.attempts.some(item => item.id === input.attemptId && item.councilCancellation === 'unknown')) await this.cancel(stop);
         return;
       }
-      await this.store.transaction(state => {
+      await this.transaction(ideaId, state => {
         const run = state.ideas.find(item => item.id === ideaId)?.workflowRun;
         if (run?.id !== input.workflowRunId) return;
         const attempt = run.attempts.find(item => item.id === input.attemptId)!;
@@ -121,7 +125,7 @@ export class ConfiguredWorkflowCouncil {
     }
   }
   private async recordReceipt(ideaId: string, workflowRunId: string, attemptId: string, receipt: AgentTaskReceipt, recovering: boolean): Promise<CouncilStop | undefined> {
-    const stop = await this.store.transaction(state => {
+    const stop = await this.transaction(ideaId, state => {
       const run = state.ideas.find(item => item.id === ideaId)?.workflowRun;
       if (run?.id !== workflowRunId) throw new Error('The original workflow is unavailable. Inspect its retained Council source.');
       const attempt = run.attempts.find(item => item.id === attemptId)!;
@@ -142,7 +146,7 @@ export class ConfiguredWorkflowCouncil {
     let result: AgentTaskResult;
     try { result = await this.port.result(attempt.nudgeRunId); } catch { result = { state: 'missing' }; }
     if (result.state === 'pending' || (original.state === 'attention' && result.state !== 'completed')) return;
-    await this.store.transaction(state => {
+    await this.transaction(ideaId, state => {
       const idea = state.ideas.find(item => item.id === ideaId); const run = idea?.workflowRun;
       if (!idea || run?.id !== original.id || run.activeAttemptId !== attempt.id || !['running', 'attention'].includes(run.state)) return;
       const current = run.attempts.find(item => item.id === attempt.id)!;
@@ -154,7 +158,7 @@ export class ConfiguredWorkflowCouncil {
         if (result.projectId !== run.projectId || (current.councilSourceId ? result.sourceId !== current.councilSourceId : result.sourcePath !== current.nudgeSourcePath) || workflowProposalRevision(idea) !== run.proposalRevision) throw new Error('The request or Council result identity changed. Inspect the original discussion and start a fresh workflow for changed inputs.');
         const step = run.definition.steps[run.cursor];
         if (step?.kind !== 'council' || step.id !== current.stepId) throw new Error('The Council step changed.');
-        const inputs = councilWorkflowInputs(run, step);
+        const inputs = councilWorkflowInputs(run, step, idea);
         if (JSON.stringify(inputs.map(item => item.id)) !== JSON.stringify(current.inputs)) throw new Error('The bound Council inputs changed.');
         const artifact = { id: crypto.randomUUID(), runId: run.id, stepId: step.id, attemptId: attempt.id, proposalRevision: run.proposalRevision, output: 'markdown' as const, markdown: result.markdown, createdAt: now() };
         run.artifacts.push(workflowArtifactCheck({ ...artifact, contentHash: workflowArtifactHash(artifact) }));
@@ -190,13 +194,14 @@ export class ConfiguredWorkflowCouncil {
     const work = this.cancelOnce(target, key); this.cancellations.set(key, work); return work;
   }
   private async cancelOnce(target: CouncilStop, key: string): Promise<void> {
+    const ideaId = target.ideaId;
     const pending = this.receipts.get(target.ideaId);
     if (pending?.workflowRunId === target.workflowRunId && pending.attemptId === target.attemptId) this.receipts.delete(target.ideaId);
     let failed = false;
     try { if (!this.port?.cancel) throw new Error('Cancellation unavailable'); await this.port.cancel(target.childRunId); } catch { failed = true; }
     this.cancellationOutcomes.set(key, failed ? 'unknown' : 'confirmed');
     if (this.disposed) return;
-    await this.store.transaction(state => {
+    await this.transaction(ideaId, state => {
       const idea = state.ideas.find(item => item.id === target.ideaId);
       const run = [idea?.workflowRun, ...(idea?.workflowHistory ?? [])].find(item => item?.id === target.workflowRunId);
       const attempt = run?.attempts.find(item => item.id === target.attemptId);

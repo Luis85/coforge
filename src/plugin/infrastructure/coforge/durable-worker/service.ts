@@ -192,9 +192,9 @@ export class WorkerService {
   }
   activeCount(): number { return this.active.size; }
   ownsActive(ref: DurableBuildRef): boolean { return this.active.has(ref.executionId); }
-  status(): { ready: boolean; message: string } {
-    try { this.store.all(); return { ready: !this.closed, message: this.closed ? 'The background supervisor is closing.' : 'The original worker journal is available; capacity and per-run ownership remain enforced.' }; }
-    catch { return { ready: false, message: 'The original worker journal is unavailable. Preserve its retained evidence before retrying.' }; }
+  status(): { ready: boolean; reviewedSnapshots: true; operatorMaterializations: true; message: string } {
+    try { this.store.all(); return { ready: !this.closed, reviewedSnapshots: true, operatorMaterializations: true, message: this.closed ? 'The background supervisor is closing.' : 'The original worker journal is available; capacity and per-run ownership remain enforced.' }; }
+    catch { return { ready: false, reviewedSnapshots: true, operatorMaterializations: true, message: 'The original worker journal is unavailable. Preserve its retained evidence before retrying.' }; }
   }
   async settle(): Promise<void> { await Promise.all([...this.active.values()].map(active => active.task)); }
   async close(): Promise<void> { this.closed = true; for (const active of this.active.values()) active.controller.abort('worker-stopped'); await this.settle(); }

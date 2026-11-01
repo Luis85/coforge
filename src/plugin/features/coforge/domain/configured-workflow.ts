@@ -6,6 +6,7 @@ import { durableBuildPolicyCheck, type DurableBuildPolicy } from './durable-buil
 import { resolvedStagePrompts } from './stage-prompts';
 import { STAGES, STAGE_LABELS, type Provider, type Settings } from './types';
 import { validateWorkflowBuckets, workflowBucketCheck, type WorkflowBucket } from './workflow-buckets';
+import { improvementPassConfigurationCheck, type ImprovementPassConfiguration } from './polishing-pass-configuration';
 
 export const WORKFLOW_OUTPUTS = ['markdown', 'screening', 'rice', 'plan', 'design', 'codechange'] as const;
 export const WORKFLOW_ACCESS = ['none', 'readproject', 'editworktree'] as const;
@@ -28,6 +29,7 @@ export interface NudgeWorkflowStep extends StepBase { kind: 'nudge'; teamId: str
 export interface CouncilWorkflowStep extends StepBase { kind: 'council'; councilId: string; inputs?: WorkflowOutput[]; contextMode?: 'all' | 'selected' | 'none'; automatic: boolean }
 export type WorkflowStep = AiWorkflowStep | ApprovalWorkflowStep | ChecklistWorkflowStep | NudgeWorkflowStep | CouncilWorkflowStep;
 export interface WorkflowDefinition {
+  improvementPass?: ImprovementPassConfiguration;
   format: 'coforge-workflow/v1'; revision: string; name: string;
   startupMode?: 'paused' | 'play';
   buckets?: WorkflowBucket[];
@@ -63,6 +65,7 @@ export function workflowStepCheck(value: unknown): WorkflowStep {
   return step;
 }
 const definition = shape({ format: oneOf(['coforge-workflow/v1'] as const), revision: workflowIdCheck, name: text({ trim: true, min: 1, max: 100 }),
+  improvementPass: optional(improvementPassConfigurationCheck),
   startupMode: optional(oneOf(['paused', 'play'] as const)),
   buckets: optional(list(workflowBucketCheck, { min: 2, max: 12 })),
   limits: shape({ timeoutSeconds: number({ integer: true, min: 15, max: 1800 }), maxTurns: number({ integer: true, min: 1, max: 50 }),

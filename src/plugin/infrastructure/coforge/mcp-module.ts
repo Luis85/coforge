@@ -10,6 +10,7 @@ import type { McpActions, McpStatus } from '../../features/coforge/application/m
 import { list, oneOf, optional, shape, text } from '../../features/coforge/domain/check';
 import { LocalMcpServer } from './mcp-server';
 import { McpRegistration } from './mcp-registration';
+import { McpConnectionFile } from './mcp-connection-file';
 import { MCP_BRIDGE_SOURCE } from './mcp-bridge-source';
 import { McpStepFiles } from './mcp-step-files';
 import { McpWorkflowTools } from './mcp-workflow-tools';
@@ -58,6 +59,7 @@ export class McpModule implements McpActions {
   private closing: Promise<void> | undefined;
   private ready = false;
   private pending: Promise<unknown> = Promise.resolve();
+  private connection: McpConnectionFile | undefined;
   constructor(private readonly plugin: Plugin, private readonly studio: StudioService, private readonly runner: McpStepRunner, private readonly environment?: McpEnvironment, council?: CouncilActions, privateFolders: () => readonly string[] = () => []) {
     const authorize = () => { if (!this.status().active) throw new Error('CoForge MCP is inactive.'); };
     const workflow = new McpWorkflowTools(studio, runner, new McpStepFiles(), authorize);
@@ -84,7 +86,10 @@ export class McpModule implements McpActions {
   private get journal() { return join(this.directory, 'coforge-mcp-settings.json'); }
   private get descriptor() { return join(this.directory, 'coforge-mcp-connection.json'); }
   private async persist(): Promise<void> { await save(this.journal, settingsCheck({ format: 'coforge-mcp/v1', registration: this.saved, acknowledgedTasks: this.acknowledgedTasks })); }
-  private async publish(): Promise<void> { await save(this.descriptor, { endpoint: this.endpoint, token: this.token }); }
+  private async publish(): Promise<void> {
+    this.connection ??= new McpConnectionFile(this.descriptor);
+    await this.connection.publish(this.endpoint, this.token, () => !this.disposed);
+  }
   private async listen(): Promise<void> { if (!this.endpoint) this.endpoint = await this.server.listen(); this.token = this.server.allow(); }
   start(): Promise<void> {
     return this.command(async () => {
@@ -106,7 +111,7 @@ export class McpModule implements McpActions {
           await this.listen();
         }
         if (this.disposed) { await this.server.close(); return; }
-        await this.publish(); await this.persist(); this.ready = true;
+        await this.persist(); await this.publish(); this.ready = true;
       } catch {
         await this.server.close(); this.endpoint = ''; this.token = '';
         this.failure = 'MCP settings could not be loaded. Restore the private coforge-mcp-settings.json journal before activating; incompatible or malformed configuration was preserved.';
@@ -177,6 +182,6 @@ export class McpModule implements McpActions {
   dispose(): Promise<void> { return this.closing ??= this.close(); }
   private async close(): Promise<void> {
     this.disposed = true; this.obsidian.revoke(); await this.pending; await this.server.close(); await this.runner.dispose(); this.token = ''; this.endpoint = '';
-    if (this.directory) await this.publish().catch(() => undefined);
+    await this.connection?.clear().catch(() => undefined);
   }
 }

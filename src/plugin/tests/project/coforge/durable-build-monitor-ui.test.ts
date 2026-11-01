@@ -221,7 +221,7 @@ it("requires matching retained-evidence inspection and revision-bound consent be
     ).toBeDefined();
     await button("Inspect retained Build evidence").trigger("click");
     await flushPromises();
-    expect(inspect).toHaveBeenCalledWith(f.job.ideaId, 1);
+    expect(inspect).toHaveBeenCalledWith(f.job.ideaId, 1, 'original-run');
     expect(f.wrapper.text()).toContain('Workspace capture verified: no pending changes.');
     const receipt = f.store.state!.runtime.durableBuildInspections![f.job.id]!;
     delete receipt.snapshot.workspaceCaptured; receipt.evidenceHash = 'c'.repeat(64);
@@ -248,7 +248,7 @@ it("requires matching retained-evidence inspection and revision-bound consent be
       .setValue(true);
     await button("Verify and recover interrupted Build").trigger("click");
     await flushPromises();
-    expect(recover).toHaveBeenCalledWith(f.job.ideaId, 2, true);
+    expect(recover).toHaveBeenCalledWith(f.job.ideaId, 2, true, 'original-run');
     expect(f.store.state!.ideas[0]!.workflowRun!.id).toBe("original-run");
     expect(f.runner).not.toHaveBeenCalled();
   } finally {

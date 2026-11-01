@@ -35,6 +35,7 @@ function dictionary<T>(item: Check<T>): Check<Record<string, T>> {
 }
 
 const increment = shape({
+  snapshotHash: optional(text({ pattern: /^[a-f0-9]{64}$/u })),
   summary: str, files: list(shape({ path: str, additions: number({ min: 0 }), deletions: number({ min: 0 }) })), tests: list(str), diff: str,
   branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
 });
