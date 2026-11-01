@@ -8,6 +8,7 @@ import { workflowVerificationRuntimeRecordsCheck } from '../../../features/cofor
 import { recoverWorkerVerification } from './verification-recovery';
 import { nativeWorkflowPrivateRuntimeCheck } from '../../../features/coforge/domain/native-workflow-process';
 import { appendAgentSessionEvent, type AgentSessionEvent } from '../../../features/coforge/domain/agent-session';
+import { readWorkerSession, writeWorkerSession } from './session-journal';
 
 const idsCheck = list(text({ pattern: /^build-[a-f0-9]{40}$/u }), { max: 1000 });
 export const nativeIdentityCheck = shape({ pid: number({ integer: true, min: 1 }), platform: text({ min: 1, max: 40 }), birth: text({ min: 1, max: 320 }),
@@ -50,6 +51,7 @@ export class WorkerStore {
       const record = recordCheck(await files.read('record.json'));
       if (record.snapshot.ref.executionId !== id || record.snapshot.ref.inputHash !== inputHash(request)) throw new Error('Build authorization identity changed.');
       if (record.nativeRuntime && (record.nativeRuntime.runId !== request.runId || record.nativeRuntime.attemptId !== request.attemptId || record.nativeRuntime.projectId !== request.projectId)) throw new Error('Private native authorization identity changed.');
+      record.snapshot.sessionTrace = await readWorkerSession(files, record.snapshot.ref, record.snapshot.sessionTrace);
       this.jobs.set(id, { request, record, files });
     }
     this.available = true;
@@ -115,11 +117,9 @@ export class WorkerStore {
   observeSession(ref: DurableBuildRef, event: AgentSessionEvent): Promise<void> {
     return this.command(async () => {
       try {
-        const current = this.get(ref); const next = structuredClone(current.record);
-        next.snapshot.sessionTrace = appendAgentSessionEvent(next.snapshot.sessionTrace, event, new Date(this.now()).toISOString());
-        next.snapshot.sequence++;
-        const checked = recordCheck(next);
-        await current.files.write('record.json', checked); current.record = checked;
+        const current = this.get(ref);
+        const trace = appendAgentSessionEvent(current.record.snapshot.sessionTrace, event, new Date(this.now()).toISOString());
+        current.record.snapshot.sessionTrace = await writeWorkerSession(current.files, current.record.snapshot.ref, trace);
       } catch { /* Lost display evidence cannot stop or replay the original provider. */ }
     });
   }

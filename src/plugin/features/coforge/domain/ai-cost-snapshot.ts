@@ -3,7 +3,7 @@ import type { HerdrRecord } from "./herdr";
 import type { AICostTask } from "./ai-costs";
 import { herdrCostAttribution, type HerdrCostTarget } from './ai-cost-attribution';
 export function collectCostTasks(
-  state: Pick<AppState, "jobs" | "ideas" | "projects">,
+  state: Pick<AppState, "jobs" | "ideas" | "projects" | 'deletedRequests'>,
   herdr: readonly HerdrRecord[],
   managed: readonly HerdrCostTarget[] = [],
 ): AICostTask[] {
@@ -11,8 +11,12 @@ export function collectCostTasks(
   const projects = new Map(
     state.projects?.map((project) => [project.id, project]) ?? [],
   );
+  const archivedRequests = [...(state.deletedRequests ?? [])].reverse();
+  const archivedAt = (id: string | undefined, at: string, projectId?: string) => archivedRequests.find(item => item.id === id
+    && (!projectId || item.projectId === projectId) && Date.parse(at) >= Date.parse(item.createdAt) && Date.parse(at) <= Date.parse(item.deletedAt));
   const jobs: AICostTask[] = state.jobs.map((job) => {
-    const idea = ideas.get(job.ideaId);
+    const archived = archivedAt(job.ideaId, job.startedAt, job.projectId);
+    const idea = archived ?? ideas.get(job.ideaId);
     const projectId = job.projectId ?? idea?.projectId ?? "";
     const project = projects.get(projectId);
     const captured = managed.find(record => record.jobId === job.id);
@@ -28,7 +32,7 @@ export function collectCostTasks(
       featureId: job.ideaId,
       featureTitle: idea?.title ?? "",
       projectId,
-      projectName: project?.settings.projectName ?? "",
+      projectName: archived?.projectName ?? project?.settings.projectName ?? "",
       provider: job.provider,
       stage: job.stage,
       status: job.status,
@@ -60,9 +64,9 @@ export function collectCostTasks(
       .map((record) => ({
         id: `herdr:${record.id}`,
         featureId: record.ideaId ?? "",
-        featureTitle: ideas.get(record.ideaId ?? "")?.title ?? "",
+        featureTitle: archivedAt(record.ideaId, record.at, record.projectId)?.title ?? ideas.get(record.ideaId ?? "")?.title ?? "",
         projectId: record.projectId,
-        projectName: projects.get(record.projectId)?.settings.projectName ?? "",
+        projectName: archivedAt(record.ideaId, record.at, record.projectId)?.projectName ?? projects.get(record.projectId)?.settings.projectName ?? "",
         provider: "herdr" as const,
         stage: "dispatch",
         status: record.status,

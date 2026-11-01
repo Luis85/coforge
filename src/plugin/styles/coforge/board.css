@@ -142,6 +142,7 @@
 .cf-idea-table th { font-size: 10px; color: var(--cf-muted); font-weight: 600; padding: 13px 11px; border-bottom: 1px solid var(--cf-border-strong); }
 .cf-idea-table td { padding: 13px 11px; border-bottom: 1px solid var(--cf-border); color: var(--cf-muted); }
 .cf-idea-table tr:hover { background: var(--cf-hover); }
+.cf-table-request-actions { display: flex; justify-content: flex-end; gap: var(--cf-space-xs); }
 .cf-studio .cf-table-idea {
   display: flex; flex-direction: column; align-items: flex-start; gap: 6px; border: 0; background: transparent; padding: 0; height: auto; text-align: left; max-width: 300px; white-space: normal;
 }

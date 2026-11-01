@@ -92,7 +92,7 @@ const model = useNewIdeaDrawer();
         <div class="cf-submission-note">
           <span class="cf-status-dot is-active" />
           <p>
-            Gets an idea ID, enters screening, and stays linked to its
+            Gets an idea ID, skips screening as an owner request, and stays linked to its
             contributor.
           </p>
         </div>

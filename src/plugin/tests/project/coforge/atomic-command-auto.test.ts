@@ -1,13 +1,16 @@
 import { expect, it, vi } from "vitest";
 vi.mock("obsidian", () => import("@test/obsidian"));
 import { registerPlayer } from "../../../features/coforge/application/population";
-import { atomicExistingFixture } from "./atomic-command-fixture";
+import { atomicCommandFixture, atomicExistingFixture } from "./atomic-command-fixture";
 import { defaultEconomyDefinition } from "../../../features/coforge/domain/command-economy";
 import { needsAtomicCommand } from "../../../infrastructure/coforge/atomic-command-plan";
 
 it.each(["screened", "shipped"] as const)("automatically rolls back the %s note and its contribution award on failed data commit", async status => {
-  const f = await atomicExistingFixture();
-  await f.studio.store.transaction(state => { registerPlayer(state, f.idea.authorId); });
+  const base = await atomicCommandFixture();
+  await base.studio.ingest({ username: 'Viewer', text: '!register' });
+  const created = await base.studio.ingest({ username: 'Viewer', text: `!request ${base.studio.state().activeProjectId} A pending viewer request` });
+  const idea = base.studio.state().ideas.find(item => item.id === created.ideaId)!;
+  const f = { ...base, idea, file: base.storage.file(idea.id)! };
   const note = f.kit.read(f.file.path); const before = JSON.stringify(f.studio.state().population);
   const write = f.app.vault.adapter.write.bind(f.app.vault.adapter);
   vi.spyOn(f.app.vault.adapter, "write").mockImplementation(async (path, bytes) => {

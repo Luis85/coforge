@@ -31,6 +31,8 @@ import { economySnapshot, saveEconomyConfiguration, fulfillEconomyPerk } from '.
 import type { EconomyConfigurationInput } from '../domain/command-economy';
 import type { BackgroundBuildRetryConsent } from '../domain/background-build-retry';
 import { acknowledgeNativeWorkflowProcess } from './native-workflow-acknowledgement';
+import { previewRequestDeletion, deleteRequest } from './request-deletion';
+import type { RequestDeletionPreview } from '../domain/request-deletion';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -156,8 +158,11 @@ export class StudioService {
   async createIdea(input: unknown): Promise<ActionOutcome> {
     const values = newIdeaInput(input);
     const idea = await this.store.transaction(state => createIdea(state, { ...values, source: 'simulator' }, 'manual'));
-    return { message: `Added ${idea.id} to the inbox.`, result: idea };
+    return { message: `Added ${idea.id}. Owner requests skip screening.`, result: idea };
   }
+  previewRequestDeletion(ideaId: string) { return previewRequestDeletion(this.store, ideaId); }
+  deleteRequest(preview: RequestDeletionPreview) { return deleteRequest(this.store, preview, this.host.assertExampleCleanup); }
+  requestDeletionWarning() { return this.store.requestDeletionWarning(); }
   updateRequestValues(ideaId: string, values: unknown, expectedRequestFingerprint: string): Promise<void> {
     return updateRequestValues(this.store, ideaId, values, expectedRequestFingerprint);
   }

@@ -50,7 +50,7 @@ describe('Increment review handoff in the contained host', () => {
     await browserExpect(view.locator('.cf-idea-card').filter({ hasText: TITLE })).toBeVisible();
     await openWorkflowRuns(view, view.locator('.cf-idea-card').filter({ hasText: TITLE }));
     const execution = view.getByRole('region', { name: 'Request workflow execution', exact: true });
-    for (const [index, name] of ['Screen', 'Score', 'Plan', 'Design', 'Build', 'Product assessment'].entries()) {
+    for (const [index, name] of ['Score', 'Plan', 'Design', 'Build', 'Product assessment'].entries()) {
       const run = execution.getByRole('button', { name: `${index === 0 ? 'Start' : 'Run'} · ${name}`, exact: true });
       await browserExpect(run).toBeEnabled();
       await run.click();

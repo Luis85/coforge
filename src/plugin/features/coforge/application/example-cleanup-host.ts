@@ -9,7 +9,7 @@ export function assertExampleHostSettled(
 ): void {
   const selected = new Set(ids);
   if (manual.busy || managed.busy || !managed.ready)
-    throw new Error('Wait for Herdr recovery journals and active actions before cleaning example content.');
+    throw new Error('Wait for Herdr recovery journals and active actions before removing requests.');
   if (managed.records.some(record => selected.has(record.ideaId) && !['completed', 'reviewed'].includes(record.phase)))
     throw new Error('Inspect and acknowledge the selected request’s Herdr workflow recovery before cleanup.');
   for (const record of manual.records) {

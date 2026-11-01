@@ -34,13 +34,14 @@ export interface WorkflowArtifact {
 }
 export interface WorkflowAttempt {
   id: string; stepId: string; stepName: string; kind: 'ai' | 'approval' | 'checklist' | 'nudge' | 'council';
-  status: 'queued' | 'running' | 'waiting-human' | 'succeeded' | 'failed' | 'cancelled';
+  status: 'queued' | 'running' | 'waiting-human' | 'succeeded' | 'failed' | 'cancelled' | 'skipped';
   inputs: string[]; startedAt: string; finishedAt?: string; jobId?: string; checkedIds?: string[]; note?: string; error?: string;
   nudgeState?: 'reserved' | 'submitted' | 'unknown' | 'cancelled'; nudgeRunId?: string; nudgeSourcePath?: string; nudgeAcknowledgedAt?: string;
   councilSourceId?: string;
   councilCancellation?: 'requested' | 'confirmed' | 'unknown';
 }
 export interface WorkflowRun {
+  ownerScreeningExempt?: boolean;
   polishingResources?: Array<{ id: string; priorWorkspaceId?: string; priorAttemptCount: number; workspaceId: string; fromRunRevision: number }>;
   backgroundRetries?: BackgroundBuildRetryApproval[];
   coworkerBindings?: WorkflowCoworkerBinding[];
@@ -68,7 +69,7 @@ export interface ConfiguredStepExecution {
 const string = text({ max: 4096 });
 const stringList = list(text({ max: 2000 }), { max: 100 });
 const screening = shape({ verdict: oneOf(['clear', 'flagged'] as const), reason: text({ min: 1, max: 3000 }), signals: list(text({ max: 500 }), { max: 20 }),
-  checkedAt: timestamp, provider: oneOf(['demo', 'claude', 'herdr', 'codex', 'mcp'] as const) }, { strict: true });
+  checkedAt: timestamp, provider: oneOf(['demo', 'claude', 'herdr', 'codex', 'mcp', 'owner'] as const) }, { strict: true });
 const rice = shape({ reach: number({ integer: true, min: 1, max: 1000000 }), impact: oneOf([0.25, 0.5, 1, 2, 3] as const), confidence: number({ min: 0.05, max: 1 }),
   effort: number({ min: 0.25, max: 365 }), rationale: text({ min: 1, max: 6000 }), score: number({ min: 0, max: 1000000000000 }) }, { strict: true });
 const plan = shape({ summary: text({ min: 1, max: 4000 }), steps: list(text({ min: 1, max: 2000 }), { min: 1, max: 24 }),
@@ -100,9 +101,10 @@ const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: 
   councilSourceId: optional(workflowIdCheck),
   councilCancellation: optional(oneOf(['requested', 'confirmed', 'unknown'] as const)),
   nudgeState: optional(oneOf(['reserved', 'submitted', 'unknown', 'cancelled'] as const)), nudgeRunId: optional(workflowIdCheck), nudgeSourcePath: optional(text({ max: 1000 })), nudgeAcknowledgedAt: optional(timestamp),
-  status: oneOf(['queued', 'running', 'waiting-human', 'succeeded', 'failed', 'cancelled'] as const), inputs: list(workflowIdCheck, { max: 200 }), startedAt: timestamp,
+  status: oneOf(['queued', 'running', 'waiting-human', 'succeeded', 'failed', 'cancelled', 'skipped'] as const), inputs: list(workflowIdCheck, { max: 200 }), startedAt: timestamp,
   finishedAt: optional(timestamp), jobId: optional(workflowIdCheck), checkedIds: optional(list(workflowIdCheck, { max: 40 })), note: optional(text({ max: 3000 })), error: optional(text({ max: 4000 })) }, { strict: true });
 const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: workflowIdCheck, definition: workflowDefinitionCheck, proposalRevision: workflowIdCheck,
+  ownerScreeningExempt: optional(boolean),
   polishingResources: optional(list(shape({ id: workflowIdCheck, priorWorkspaceId: optional(workflowIdCheck), priorAttemptCount: number({ integer: true, min: 0, max: 100 }), workspaceId: workflowIdCheck, fromRunRevision: number({ integer: true, min: 0 }) }, { strict: true }), { max: 25 })),
   backgroundRetries: optional(backgroundBuildRetryApprovalsCheck),
   coworkerBindings: optional(workflowCoworkerBindingsCheck),
@@ -131,10 +133,13 @@ export function workflowRunCheck(value: unknown): WorkflowRun {
       (!!retry.previousAttemptId !== !!retry.previousJobId) || (retry.previousAttemptId !== undefined && (previous?.jobId !== retry.previousJobId || previous?.stepId !== retry.stepId)) ||
       (retry.sourceKind === 'workspace' ? !retry.priorWorkspaceId : retry.priorWorkspaceId !== undefined);
   })) throw new Error('The background retry audit does not match its original run and new attempt.');
-  const assigned = checked.definition.steps.filter(step => step.kind === 'ai' && step.coworkerId);
+  const requiredSteps = checked.definition.steps.filter(step => !checked.ownerScreeningExempt || step.kind !== 'ai' || step.output !== 'screening');
+  if (checked.attempts.some(attempt => attempt.status === 'skipped' && (!checked.ownerScreeningExempt || attempt.jobId || !attempt.finishedAt ||
+    !checked.definition.steps.some(step => step.id === attempt.stepId && step.kind === 'ai' && step.output === 'screening')))) throw new Error('Only an exempt owner screening step may be skipped without an agent job.');
+  const assigned = requiredSteps.filter(step => step.kind === 'ai' && step.coworkerId);
   if (assigned.length !== (checked.coworkerBindings?.length ?? 0) || assigned.some(step => step.kind !== 'ai' || checked.coworkerBindings?.filter(item => item.stepId === step.id && item.profile.id === step.coworkerId && item.profile.provider === step.provider && item.profile.model === step.model && item.profile.effort === step.effort).length !== 1)) throw new Error('The captured CoWorkers do not match this workflow definition.');
   if (new Set(checked.councilBindings?.map(item => item.stepId)).size !== (checked.councilBindings?.length ?? 0) || checked.councilBindings?.some(item => item.binding.projectId !== checked.projectId || !checked.definition.steps.some(step => step.id === item.stepId && step.kind === 'council' && step.councilId === item.binding.councilId))) throw new Error('The workflow Council captures do not match its definition.');
-  const selectedTemplates = [...new Set(checked.definition.steps.flatMap(step => step.kind === 'ai' && step.outputTemplateId ? [step.outputTemplateId] : []))];
+  const selectedTemplates = [...new Set(requiredSteps.flatMap(step => step.kind === 'ai' && step.outputTemplateId ? [step.outputTemplateId] : []))];
   if (selectedTemplates.length !== (checked.outputTemplates?.length ?? 0) || selectedTemplates.some(id => checked.outputTemplates?.filter(template => template.id === id && template.projectId === checked.projectId).length !== 1)) throw new Error('The captured output templates do not match this workflow project and definition.');
   if (checked.cursor > checked.definition.steps.length || new Set(checked.attempts.map(item => item.id)).size !== checked.attempts.length ||
       new Set(checked.artifacts.map(item => item.id)).size !== checked.artifacts.length || checked.artifacts.some(item => item.runId !== checked.id || item.proposalRevision !== checked.proposalRevision) ||

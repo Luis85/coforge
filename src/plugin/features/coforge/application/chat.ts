@@ -23,7 +23,7 @@ import { publicProgressVisible, publicReplyProjects, publicTargetAvailable } fro
 
 export interface ChatInput { username: string; userId?: string; text: string; source?: ChatSource; messageId?: string; channelId?: string; sentAt?: string }
 export interface ChatResult { ok: boolean; message: string; ideaId?: string; duplicate?: boolean }
-type Person = Pick<ChatInput, 'username' | 'userId' | 'source'>;
+type Person = Pick<ChatInput, 'username' | 'userId' | 'source' | 'channelId'>;
 
 function ensureContributor(state: InternalState, raw: Person): string {
   const input = { ...raw, username: cleanLine(raw.username, 50), ...(raw.userId === undefined ? {} : { userId: cleanLine(raw.userId, 100) }) };
@@ -63,6 +63,14 @@ export function createIdea(state: InternalState, input: Person & { title: string
     category,
     status: 'inbox', voters: [], createdAt: now, updatedAt: now,
   };
+  const owner = origin === 'manual' && (!input.source || input.source === 'simulator') ||
+    input.source === 'twitch' && !!state.integration.twitchBroadcasterId &&
+    input.channelId === state.integration.twitchBroadcasterId && input.userId?.replace(/^twitch:/u, '') === state.integration.twitchBroadcasterId;
+  if (owner) {
+    idea.status = 'screened';
+    idea.screening = { verdict: 'clear', provider: 'owner', signals: [], checkedAt: now,
+      reason: 'Screening is not required for a request submitted by the streamer/owner.' };
+  }
   state.ideas.push(idea);
   (state.requestOrigins ??= {})[idea.id] = origin;
   addEvent(state, 'idea', `${input.username} suggested “${idea.title}”.`, idea.id);
@@ -108,7 +116,7 @@ function request(state: InternalState, input: ChatInput, userId: string, project
   if (recent >= INTAKE_LIMITS.perMinute) return { ok: false, message: 'Lots of ideas are arriving right now. Please send yours again in a minute.' };
   const title = text.length <= 100 ? text : `${text.slice(0, 97).trimEnd()}…`;
   const source = input.source ?? 'simulator';
-  const idea = createIdea(state, { title, description: text, projectId, requestKind, username: input.username, ...(input.userId ? { userId: input.userId } : {}), source }, source === 'simulator' ? 'local-test' : source);
+  const idea = createIdea(state, { title, description: text, projectId, requestKind, username: input.username, ...(input.userId ? { userId: input.userId } : {}), ...(input.channelId ? { channelId: input.channelId } : {}), source }, source === 'simulator' ? 'local-test' : source);
   if (requestKind === 'feature' && player) player.lastFeatureAt = now;
   else state.ingestMeta.lastRequests[`bug:${userId}`] = now;
   recordOperation(state, requestKind === 'feature' ? 'request-created' : 'bug-created', 'committed', userId, 1, idea.id);

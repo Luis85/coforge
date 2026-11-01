@@ -3,6 +3,7 @@ import type { Idea } from '../../../features/coforge/domain/types';
 import { STATUS_LABELS } from '../../../features/coforge/domain/types';
 import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
 import CfIcon from './CfIcon.vue';
+import RequestDeleteButton from './RequestDeleteButton.vue';
 
 defineProps<{ idea: Idea }>();
 const model = useIdeaDrawerContext();
@@ -14,7 +15,8 @@ const model = useIdeaDrawerContext();
       <CfIcon name="chevron-right" size="sm" />
       <span>Idea details</span>
     </div>
-    <div class="cf-idea-inline">
+    <div class="cf-idea-inline cf-idea-wrap">
+      <RequestDeleteButton :idea-id="idea.id" />
       <button type="button" class="cf-btn cf-btn-ghost cf-idea-small-button" :title="`Open ${idea.id} as a note in the vault`" @click="model.openNote()">
         <CfIcon name="file-text" size="sm" /> Open note
       </button>
@@ -25,7 +27,7 @@ const model = useIdeaDrawerContext();
   </header>
   <div class="cf-idea-heading">
     <div class="cf-idea-inline cf-idea-wrap">
-      <span class="cf-badge" :class="`cf-status-${idea.status}`">{{ STATUS_LABELS[idea.status] }}</span>
+      <span class="cf-badge" :class="`cf-status-${idea.status}`">{{ idea.status === 'screened' && idea.screening?.provider === 'owner' ? 'Ready for scoring' : STATUS_LABELS[idea.status] }}</span>
       <span class="cf-idea-category">{{ idea.category }}</span>
       <span v-if="idea.requestKind === 'bug'" class="cf-badge">Bug</span>
       <span v-if="idea.projectId" class="cf-badge">Project {{ idea.projectId }}</span>

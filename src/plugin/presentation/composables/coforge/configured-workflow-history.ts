@@ -32,7 +32,7 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
           councilName,
           status: attempt.status,
           stageLabel: attempt.stepName,
-          providerLabel: councilName ? `Council · ${councilName}` : run.external && step?.kind === 'ai' ? 'External MCP client · model not reported' : step
+          providerLabel: attempt.status === 'skipped' ? 'Owner request · no agent invoked' : councilName ? `Council · ${councilName}` : run.external && step?.kind === 'ai' ? 'External MCP client · model not reported' : step
             ? configuredAgentLabel(step, true)
             : "Runner not recorded",
           time: clock(attempt.startedAt),

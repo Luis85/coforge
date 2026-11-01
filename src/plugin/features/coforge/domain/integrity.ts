@@ -20,10 +20,12 @@ export function ideaFingerprint(idea: Pick<Idea, 'title' | 'description' | 'cate
     idea.reviewNote ?? null, ...(idea.projectId ? [idea.projectId] : []), ...(idea.requestKind === 'bug' ? ['bug'] : []),
     ...(idea.contexts?.length ? [idea.contexts] : []),
     ...(idea.requestObject ? [requestObjectIdentity(idea.requestObject)] : []),
+    ...(idea.screening?.provider === 'owner' ? ['owner-screening-exempt'] : []),
   ]));
 }
 
-export const needsVerification = (idea: Pick<Idea, 'status'>): boolean => VERIFIED_STATUSES.includes(idea.status);
+export const needsVerification = (idea: Pick<Idea, 'status' | 'screening'>): boolean =>
+  VERIFIED_STATUSES.includes(idea.status) || idea.screening?.provider === 'owner';
 
 /** Returns the idea to the inbox without its screening, score and plan. The text is kept; votes stay in plugin data. */
 export function quarantine(idea: Idea): void {

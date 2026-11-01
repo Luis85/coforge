@@ -14,7 +14,7 @@
 
 /* Header, title and section tabs. */
 .cf-idea-top {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; flex: 0 0 auto;
   padding: 14px 25px; border-bottom: 1px solid var(--cf-border); color: var(--cf-muted); font-size: 11px;
 }
 .cf-idea-id { font-size: 11px; color: var(--cf-muted); }

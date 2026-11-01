@@ -214,12 +214,13 @@ it("invalidates both proposal revisions and in-flight screening when captured va
   const pending = new Promise<StageResult>((resolve) => {
     finish = resolve;
   });
-  const { studio } = await fixture(async () => {
+  const { studio, project } = await fixture(async () => {
     started();
     return pending;
   });
   try {
-    await studio.createIdea(input);
+    await studio.ingest({ username: 'Viewer', text: '!register' });
+    await studio.ingest({ username: 'Viewer', text: `!request ${project.id} A useful onboarding flow` });
     const before = studio.state().ideas[0]!;
     const fingerprint = ideaFingerprint(before);
     const revision = workflowProposalRevision(before);

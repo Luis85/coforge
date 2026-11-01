@@ -3,11 +3,12 @@ import {
   STAGE_LABELS,
   type AgentStage,
   type Settings,
-  type ExecutionProvider,
+  type Screening,
 } from "../../../features/coforge/domain/types";
 import { stageAgent } from "../../../features/coforge/domain/stage-agents";
 
-export function screeningProviderLabel(provider: ExecutionProvider): string {
+export function screeningProviderLabel(provider: Screening['provider']): string {
+  if (provider === 'owner') return 'Owner request · screening not required';
   if (provider === 'codex') return 'Codex screening';
   if (provider === 'mcp') return 'External MCP client screening';
   if (provider === 'demo') return 'Simulated screening';

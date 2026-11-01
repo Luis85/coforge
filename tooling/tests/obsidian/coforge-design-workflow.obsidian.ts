@@ -66,15 +66,16 @@ describe('Design specification handoff in the contained host', () => {
 
     await openWorkflowRuns(view, view.locator('.cf-idea-card').filter({ hasText: 'Native Design specification' }));
     const execution = () => view.getByRole('region', { name: 'Request workflow execution', exact: true });
-    for (const [index, name] of ['Screen', 'Score', 'Plan', 'Design'].entries()) {
+    for (const [index, name] of ['Score', 'Plan', 'Design'].entries()) {
       await execution().getByRole('button', { name: `${index === 0 ? 'Start' : 'Run'} · ${name}`, exact: true }).click();
-      const next = ['Score', 'Plan', 'Design', 'Build'][index];
+      const next = ['Plan', 'Design', 'Build'][index];
       await browserExpect(execution().getByRole('button', { name: `Run · ${next}`, exact: true })).toBeEnabled();
     }
     const saved = retainedRun(await requestNote(obsidian));
     const design = saved.artifacts.find(artifact => artifact.output === 'design');
     expect(design?.markdown).toContain('Native Design specification');
     expect(saved.cursor).toBe(4);
+    expect(saved.attempts[0]).toMatchObject({ stepId: 'screen', status: 'skipped' });
     expect(saved.attempts.some(attempt => attempt.stepId === 'implement')).toBe(false);
     await view.getByRole('button', { name: 'Close idea details', exact: true }).click();
     await view.getByRole('button', { name: /^Idea board/ }).first().click();

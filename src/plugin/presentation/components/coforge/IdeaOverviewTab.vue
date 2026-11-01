@@ -71,7 +71,7 @@ const model = useIdeaDrawerContext();
           "
         >
           {{
-            idea.screening.verdict === "clear"
+            idea.screening.provider === 'owner' ? 'Screening not required' : idea.screening.verdict === "clear"
               ? "Cleared for review"
               : "Needs moderation"
           }}

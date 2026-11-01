@@ -2,9 +2,12 @@ import { constants } from 'node:fs';
 import { lstat, mkdir, open, readFile, realpath, rename, unlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 
 const invalid = () => new Error('The private Build worker files changed or are unavailable. Inspect the original worker before retrying.');
 const missing = (error: unknown) => error instanceof Error && 'code' in error && error.code === 'ENOENT';
+const replacementDelays = [5, 15, 40, 100];
+const replacementLocked = (error: unknown) => error instanceof Error && 'code' in error && typeof error.code === 'string' && ['EPERM', 'EACCES', 'EBUSY'].includes(error.code);
 export class WorkerFiles {
   constructor(private root: string) {}
   get directory(): string { return this.root; }
@@ -55,10 +58,19 @@ export class WorkerFiles {
     if (before && (!before.isFile() || before.isSymbolicLink() || before.nlink !== 1)) throw invalid();
     const temporary = this.path(`pending-${randomUUID()}.json`); const file = await open(temporary, 'wx', 0o600);
     try {
-      await file.writeFile(JSON.stringify(value)); await file.sync(); await file.close(); await this.verify();
-      const current = await lstat(path).catch(error => { if (missing(error)) return undefined; throw invalid(); });
-      if (current && (current.isSymbolicLink() || current.nlink !== 1 || current.dev !== before?.dev || current.ino !== before?.ino)) throw invalid();
-      await rename(temporary, path);
+      await file.writeFile(JSON.stringify(value)); await file.sync(); const staged = await file.stat(); await file.close();
+      for (let attempt = 0; ; attempt++) {
+        await this.verify();
+        const current = await lstat(path).catch(error => { if (missing(error)) return undefined; throw invalid(); });
+        if ((before && !current) || (current && (!current.isFile() || current.isSymbolicLink() || current.nlink !== 1 || current.dev !== before?.dev || current.ino !== before?.ino))) throw invalid();
+        const pending = await lstat(temporary);
+        if (!pending.isFile() || pending.isSymbolicLink() || pending.nlink !== 1 || pending.dev !== staged.dev || pending.ino !== staged.ino || pending.size !== staged.size) throw invalid();
+        try { await rename(temporary, path); break; }
+        catch (error) {
+          const wait = replacementDelays[attempt]; if (wait === undefined || !replacementLocked(error)) throw error;
+          await delay(wait);
+        }
+      }
     } finally { await file.close().catch(() => undefined); await unlink(temporary).catch(() => undefined); }
   }
   async source(name: string): Promise<string> { await this.verify(); const path = this.path(name); const info = await lstat(path); if (!info.isFile() || info.isSymbolicLink() || info.nlink !== 1) throw invalid(); return readFile(path, 'utf8'); }

@@ -28,6 +28,11 @@ notice. Older entries can be omitted by its 128-event / 32,000-content-character
 retention bounds, with truncation disclosed. Recorded activity is not proof of a
 successful increment; use the actual verification evidence and human review.
 
+Background observations are persisted separately from execution-control writes.
+They do not advance result acknowledgement or keep a completed Build lane occupied.
+An unavailable or invalid observation file can leave gaps in Peek without changing
+the provider result or cost. Execution-journal failures still require recovery.
+
 Older attempts and already-running workers may have no live capture. Demo,
 external MCP and Herdr sessions retain their existing history/status without
 claiming a native live feed. CoForge does not scan SDK databases or global
