@@ -1,4 +1,4 @@
-import { access, chmod, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, chmod, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
 import { retrySourceFixture } from './background-build-retry-native-fixture';
@@ -40,13 +40,21 @@ it('imports the exact approved aggregate before invoking a provider, using a sep
     expect(await readFile(join(workspace.cwd, 'new.txt'), 'utf8')).toBe('new untracked');
     expect(await readFile(join(workspace.cwd, 'binary.dat'))).toEqual(Buffer.from([0, 9, 8, 7])); await expect(access(join(workspace.cwd, 'removed.txt'))).rejects.toThrow();
     await expect(access(join(workspace.cwd, 'later.txt'))).rejects.toThrow();
-    expect(await agentGit(workspace.cwd, ['ls-files', '--stage', '--', 'game.ts'])).toMatch(/^100755 /u);
+    if (process.platform === 'win32') {
+      expect(await agentGit(workspace.cwd, ['ls-files', '--stage', '--', 'game.ts'])).toMatch(/^100755 /u);
+    } else {
+      expect((await stat(join(workspace.cwd, 'game.ts'))).mode & 0o111).toBe(0o111);
+      expect(await agentGit(workspace.cwd, ['diff', '--summary', 'HEAD', '--', 'game.ts'])).toContain('mode change 100644 => 100755 game.ts');
+    }
     return JSON.stringify({ type: 'result', subtype: 'success', is_error: false, structured_output: { summary: 'Continued from the approved files' } });
   });
   const factory: typeof workerCapture = () => capture; const workspaces = workerWorkspaces(f.files); await workspaces.start();
   const service = new WorkerService(f.store, nativeBuildExecutor(f.store, workspaces, factory));
   const ref = await service.prepare(f.request); await service.start(ref); await service.settle();
-  expect(service.inspect(ref).phase).toBe('completed'); expect(capture).toHaveBeenCalledOnce();
+  // Surface a fake provider's own assertions instead of hiding them behind the worker's safe failure message.
+  const invocation = capture.mock.results[0]; if (invocation?.type === 'return') await invocation.value;
+  const snapshot = service.inspect(ref);
+  expect(snapshot.phase, snapshot.error).toBe('completed'); expect(capture).toHaveBeenCalledOnce();
   expect(JSON.stringify(await f.storage.load())).toBe(prior); expect(await readFile(join(f.lease.cwd, 'game.ts'), 'utf8')).toBe('reviewed partial\n');
 }, 90000);
 it.each(['unbound', 'corrupt', 'source-drift', 'wrong-target'] as const)('never invokes a provider for %s reviewed snapshot data', async kind => {
