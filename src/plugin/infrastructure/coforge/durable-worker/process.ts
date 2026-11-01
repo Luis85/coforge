@@ -15,7 +15,7 @@ export function workerCapture(files: WorkerFiles, hooks: WorkerHooks, provider: 
     return new Promise<string>((resolve, reject) => {
       const child = spawn(executable, [...args], { cwd: options.cwd, env: options.env ?? childEnvironment(), shell: false, windowsHide: true,
         detached: process.platform !== 'win32', stdio: ['pipe', 'pipe', 'pipe'] });
-      const output = new ProviderOutput(provider === 'codex');
+      const output = options.stdoutResult ?? new ProviderOutput(provider === 'codex');
       const stdout = new OutputSpool(files, 'stdout'); const stderr = new OutputSpool(files, 'stderr');
       let pendingOut: Promise<void> = Promise.resolve(); let pendingError: Promise<void> = Promise.resolve();
       let failure: Error | undefined; let finished = false; let stopping = false; let uncertain = false;
@@ -37,6 +37,7 @@ export function workerCapture(files: WorkerFiles, hooks: WorkerHooks, provider: 
       options.signal?.addEventListener('abort', abort, { once: true });
       child.stdout.on('data', (chunk: Buffer) => {
         child.stdout.pause(); output.append(chunk);
+        try { void Promise.resolve(options.onStdout?.(new Uint8Array(chunk))).catch(() => undefined); } catch { /* Observation cannot change provider execution. */ }
         pendingOut = pendingOut.then(async () => { await stdout.append(Buffer.from('Observed stdout bytes: ' + chunk.length + '\n')); await hooks.activity(); }).then(() => { if (!finished) child.stdout.resume(); })
           .catch(() => { stop('Private output could not be persisted.'); });
       });

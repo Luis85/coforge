@@ -72,6 +72,8 @@ describe("view catalogue", () => {
     expect(views.length).toBeGreaterThan(40);
     expect(() => sourceCoverage(views, root)).not.toThrow();
     const board = views.find((view) => view.id === "board");
+    expect(views.find(view => view.id === 'idea-sessions')).toMatchObject({ parent: 'idea-detail', component: 'src/plugin/presentation/components/coforge/IdeaSessionsTab.vue', coverage: { group: 'idea', key: 'sessions' } });
+    expect(() => sourceCoverage(views.filter(view => view.id !== 'idea-sessions'), root)).toThrow(/sessions/);
     expect(() => sourceCoverage(views.filter((view) => view !== board), root)).toThrow(/board/);
     expect(() => sourceCoverage([...views, { ...board, id: "board-copy" }], root)).toThrow(/coverage/);
     expect(() => sourceCoverage(views.map((view) => view.id === "broadcast-show" ? { ...view, coverage: undefined } : view), root)).toThrow(/show/);

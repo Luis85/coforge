@@ -1,0 +1,38 @@
+.cf-studio .cf-card-sessions { padding: 0 var(--cf-space-sm) var(--cf-space-sm); }
+.cf-studio .cf-card-sessions .cf-btn { width: 100%; justify-content: flex-start; font-size: var(--font-ui-smaller); min-width: 0; flex-wrap: wrap; }
+.cf-card-session-count { color: var(--cf-muted); margin-left: auto; }
+.cf-idea-drawer.is-sessions { width: min(960px, 100%); }
+.cf-session-layout { display: grid; grid-template-columns: minmax(170px, 220px) minmax(0, 1fr); gap: var(--cf-space-lg); margin-top: var(--cf-space-lg); }
+.cf-session-list { max-height: 520px; overflow: auto; min-width: 0; }
+.cf-session-list ol { list-style: none; margin: 0; padding: 0; }
+.cf-session-list > ol > li { margin-bottom: var(--cf-space-sm); }
+.cf-studio button.cf-session-select { width: 100%; height: auto; display: flex; flex-direction: column; align-items: stretch; gap: var(--cf-space-xs); padding: var(--cf-space-sm); text-align: left; white-space: normal; overflow-wrap: anywhere; background: transparent; border: 1px solid transparent; border-radius: var(--radius-s); color: var(--cf-text); }
+.cf-studio button.cf-session-select:hover { background: var(--cf-surface); }
+.cf-studio button.cf-session-select.is-selected { background: var(--cf-accent-soft); border-color: var(--cf-accent); }
+.cf-session-select span, .cf-session-select small { color: var(--cf-muted); font-size: var(--font-ui-smaller); line-height: 1.6; }
+.cf-session-list ol.cf-session-children { margin-left: var(--cf-space-md); border-left: 1px solid var(--cf-border); padding-left: var(--cf-space-xs); }
+.cf-session-peek { min-width: 0; }
+.cf-session-peek-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cf-space-sm); }
+.cf-session-peek-heading h3 { margin: 0; overflow-wrap: anywhere; }
+.cf-session-peek-heading h3:focus { outline: 2px solid var(--cf-accent); outline-offset: 4px; }
+.cf-session-metadata { display: flex; flex-wrap: wrap; gap: var(--cf-space-md); margin: var(--cf-space-md) 0; font-size: var(--font-ui-smaller); }
+.cf-session-metadata div { min-width: 0; }
+.cf-session-metadata dt { color: var(--cf-muted); margin-bottom: var(--cf-space-xs); }
+.cf-session-metadata dd { margin: 0; color: var(--cf-text); overflow-wrap: anywhere; }
+.cf-session-follow { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--cf-space-sm); align-items: center; margin-top: var(--cf-space-md); color: var(--cf-muted); font-size: var(--font-ui-smaller); }
+.cf-session-stream { max-height: 340px; min-height: 140px; overflow: auto; overscroll-behavior: contain; scroll-behavior: auto; border-top: 1px solid var(--cf-border); border-bottom: 1px solid var(--cf-border); margin: var(--cf-space-sm) 0 var(--cf-space-lg); padding: 0 var(--cf-space-xs); }
+.cf-session-stream:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: 3px; }
+.cf-session-events { margin: 0; padding: 0; list-style: none; }
+.cf-session-events li { padding: var(--cf-space-md) 0; border-bottom: 1px solid var(--cf-border); min-width: 0; }
+.cf-session-events li:last-child { border-bottom: 0; }
+.cf-session-event-meta { display: flex; flex-wrap: wrap; gap: var(--cf-space-xs) var(--cf-space-sm); font-size: var(--font-ui-smaller); color: var(--cf-muted); overflow-wrap: anywhere; }
+.cf-session-event-meta strong { color: var(--cf-text); font-weight: var(--font-semibold); }
+.cf-session-event-meta time { margin-left: auto; }
+.cf-studio pre.cf-session-message { margin: var(--cf-space-sm) 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: var(--font-ui-smaller)/1.8 var(--font-interface); color: var(--cf-text); background: none; padding: 0; user-select: text; }
+.cf-session-notice { color: var(--cf-text); font-size: var(--font-ui-smaller); line-height: 1.7; padding: var(--cf-space-sm); background: var(--cf-surface); border-radius: var(--radius-s); }
+.cf-session-links { display: flex; flex-wrap: wrap; gap: var(--cf-space-sm); }
+@container plugin-shell-leaf (max-width: 800px) {
+  .cf-session-layout { grid-template-columns: minmax(0, 1fr); }
+  .cf-session-list { max-height: 180px; border-bottom: 1px solid var(--cf-border); }
+  .cf-session-stream { max-height: 280px; }
+}

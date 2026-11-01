@@ -18,6 +18,7 @@ import { captureClaudeResponse } from './claude-conversation';
 import { captureBrokeredClaudeRead, hasBrokeredReadScope } from './claude-brokered-reader';
 import { nativeClaudeDelegation, usesNativeClaudeTools } from './claude-native-tools';
 import { openBrokeredClaude } from './claude-brokered-invocation';
+import { captureObservedClaude } from './claude-observed-capture';
 
 function executable(integration: IntegrationSettings): string {
   const command = integration.claudeBin.trim() || 'claude';
@@ -109,9 +110,9 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
       const prompt = input.workflow ? executionTaskPrompt(input) : stageInput(stage, idea, settings);
       await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt });
       signal?.throwIfAborted();
-      raw = await capture(executable(integration), args, {
+      raw = await captureObservedClaude(input, executable(integration), args, {
         cwd, input: prompt, timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
-      });
+      }, capture);
     }
     const usage = reportedClaudeCost(raw); if (usage !== undefined) await input.onUsage?.(usage);
     const tokens = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (tokens) await input.onTokenUsage?.(tokens);

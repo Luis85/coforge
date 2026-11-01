@@ -50,6 +50,7 @@ export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWork
       onConversation: hooks.conversation, onWorkspace: hooks.workspace, onChanges: hooks.changes, onUsage: hooks.cost, onTokenUsage: hooks.usage,
       onVerification: hooks.verification, onVerificationRuntime: hooks.verificationRuntime,
       onNativeRuntime: hooks.nativeRuntime, onNativeProcess: hooks.nativeProcess,
+      onSessionEvent: hooks.sessionEvent,
       onLog: message => { void hooks.log(message).catch(() => undefined); },
     };
     try { return provider === 'claude' ? await runBackgroundClaude(input, scoped, files, restrictedCapture, protectedPaths, hooks.activity) : await runCodexStage(input, scoped, restrictedCapture, protectedPaths, hooks.activity); }

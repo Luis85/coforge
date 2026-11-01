@@ -4,6 +4,7 @@ import { useStudioStore } from '../../stores/coforge-studio';
 import { avatarStyle, categoryClass, contributorName, initials } from './format';
 import { useStudioActions } from './use-studio-actions';
 import { currentDesignSpecification } from './use-idea-design';
+import { ideaSessionJobs } from './agent-session-display';
 import { polishingCardState } from './polishing-card-state';
 
 /** Voter ids the studio uses for the streamer across chat sources. */
@@ -43,12 +44,18 @@ export function useIdeaCard(props: { idea: Idea }) {
   const voted = computed(() => props.idea.voters.some(voter => STREAMER_VOTERS.includes(voter)));
   const flagged = computed(() => props.idea.status === 'flagged');
   const score = computed(() => props.idea.rice?.score);
+  const sessions = computed(() => ideaSessionJobs(store.state, props.idea));
+  const runningSessions = computed(() => sessions.value.filter(job => job.status === 'running').length);
   return reactive({
     idea: computed(() => props.idea),
     flagged,
     review: computed(() => props.idea.status === 'review'),
     categoryClass: computed(() => categoryClass(props.idea.category)),
     openLabel: computed(() => `Open ${props.idea.id}: ${props.idea.title}`),
+    sessionCount: computed(() => sessions.value.length),
+    runningSessionCount: runningSessions,
+    sessionSummary: computed(() => runningSessions.value ? `${runningSessions.value} parent running` : `${sessions.value.length} parent ${sessions.value.length === 1 ? 'attempt' : 'attempts'}`),
+    sessions: () => { store.select(props.idea.id, 'sessions'); },
     state: computed(() => cardState(props.idea, job.value)),
     polishingState: computed(() => polishingCardState(props.idea, store.state?.jobs ?? [], store.state?.runtime)),
     authorName,

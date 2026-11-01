@@ -42,9 +42,11 @@ iteration: ""
 
 Decide the next valid action for one request.
 
-Overview, Plan & Design, Increment, Activity and Workflow runs support exactly one
-request. Workflow runs contains its captured process and retained run history.
-The footer preserves mandatory review and services reject invalid transitions.
+Overview, Sessions, Plan & Design, Increment, Workflow runs and Activity support
+exactly one request. Sessions provides read-only observation of captured attempts;
+Workflow runs contains its captured process and retained run history. Execution
+controls and mandatory review remain in their owning tabs; Sessions exposes no
+execution mutations. Services reject invalid transitions.
 
 ## Entry and next action
 

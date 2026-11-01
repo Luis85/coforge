@@ -1,29 +1,35 @@
 ## Summary
 
-Kanban cards now show a separate saved Improve & polish state alongside their main workflow hint. Queued, running, finalizing, stopping, disconnected, attention and human-review states survive reload; Apply/Discard clears the settled indicator. Auxiliary jobs no longer replace the primary card status. Native ownership recovery uses the shared settlement policy before a card can claim stopped or ready for review.
+Add Sessions to private Idea cards so an operator can inspect current and previous parent attempts, select observed native assistants, and read a live Peek of sanitized messages, tool activity and verification output. Opening or closing an inspector never dispatches, resumes, sends input to or takes over an agent.
 
-Inbox's Add control and wrapped column text previously offset its first card. Shared content-sized rows align every column, and bounded inner tracks keep cards and footer controls within their own columns. Native board button and avatar contrast defects found during qualification are also corrected with existing theme tokens.
-
-Engine-backed tests verify that polishing uses the existing scheduler, runners, background coordinator and AI Costs service. Concurrent confirmations and repeated reconciliation produce one admission/result/cost row. Genuine failure charges and usage remain recorded; unavailable provider USD stays unavailable.
+Windows desktop adds an explicit read-only terminal follower of the same parent feed. It uses a fixed observer, no SDK credentials/provider input, bounded private files, verified cleanup and conservative uncertain-launch handling. Other platforms use Peek. Captured native execution permissions, authentication, model selection, result validation and final human review remain unchanged.
 
 ## Requirements and traceability
 
-Owner requests are recorded in BRIEF.md and docs/project-tasks/2026-11-01-polishing-card-feedback.md. The accepted scaffold has no req-* or vi-* entries for this increment; no identifiers were invented. Three subagents implemented, exercised and independently reviewed the change. Main PR62 (077c1a4) was integrated before final compatibility qualification.
+Owner approval recorded in BRIEF.md. The scaffold declares no req-* or vi-* obligations. Dedicated provider, engineering and UX agents implemented and cross-reviewed the flow. Plan: docs/project-tasks/2026-11-01-card-agent-sessions.md. Operator guide: docs/coforge/AGENT-SESSIONS.md.
 
 ## Validation
 
-- Full local verify:project on the implementation source before PR62 integration: five gates passed in 1848.1s; 1898 product tests passed, six existing Windows skips, zero failures. Production build and prototype embedding passed.
-- Focused card/Design product tests: three files / 16 passed. Shared execution/cost lifecycle: four files / 14 passed.
-- After main integration: 14 compatibility files / 44 passed. Native ownership regression red: two failed / five passed; guard green: seven files / 28 passed; final helper: seven passed. Merged typecheck and scoped ESLint pass with zero warnings.
-- Final browser presentation: two passed (1.1m), light 360px / dark 1440px. Checks cover all states, full-board Axe, reduced motion, 150% zoom, wrapped text, <=1px column alignment, card/column bounds, footer control containment, unchanged main checkpoint/bucket and zero provider calls.
-- test:ui-quality: eight passed (49.4s). ui:gallery: 40 captures, zero failures; representative gallery and targeted browser/native board captures reviewed. Evidence: reports/polishing-card-feedback/, reports/ui-gallery/ and reports/obsidian/cases/.
-- Pinned contained Obsidian 1.14.4 smoke: passed, errors: [], pluginConsole: []. Final card native spec passed; after main integration it passed again (one file / one test, 21.01s). Native checks include both themes, every state, zoom, geometry and Axe.
-- Source lint: 2094 files passed. Mechanical design detector: []. No dependencies, audit thresholds, platform skips, assertions or image baselines were weakened or changed.
+- Behavioral red/green tests cover bounded trace ordering/retention, capture before parent completion, persistence/reload, observer failure isolation, child provenance, redaction before clipping, explicit message truncation, parent-only terminal payloads, follow/pause/unread/focus, project isolation, private feed exclusion and lifecycle cleanup.
+- Provider integration: 55 focused tests passed; final privacy/truncation follow-up 36 passed. Installed Claude 2.1.281 and Codex 0.145.0 were exercised against local fixture APIs, with live observations before CLI close and unchanged structured results. Recorded Claude child-stream replay also passed. No paid inference or real credentials were used for these canaries.
+- Terminal/worker focused batch: 24 passed; final terminal suite: 9 passed. Genuine Windows visible-terminal fixture proved live updates, observer exit and feed removal. Only the owned synthetic window was captured.
+- Final UI-focused batch: 7 passed. Contained Sessions spec: 1 passed (16.25s), eight parent/child captures reviewed at 1440/760 in light/dark; strict 1px Resume, keyboard focus, literal HTML, no host errors and exact note bytes. Fixture is explicitly synthetic historical evidence; live provider/terminal behavior is qualified separately.
+- npm run test:ui-quality: 8 passed. npm run ui:gallery: 40 captures reviewed, zero capture failures. Impeccable detector: no findings.
+- npm run -s dev:obsidian -- --json --port 9334: passed, pinned Obsidian 1.14.4 / launcher 3.2.1, loaded/enabled, errors: [], hostErrorCount: 0, pluginConsole: []. Screenshot and debug report inspected; contained host stopped.
+- Typecheck, explicit-config changed-source ESLint (67 files), whole-source lint (2,192 files) and diff checks passed. Final full local aggregate and final-head GitHub qualification are still running and will be recorded here before merge.
 
-First PR CI qualification passed full verify:project, all 244 browser tests, 40 gallery captures and workflow isolation. Native CI passed 61 cases and exposed a Linux default-palette contrast failure in the new card case (red 3.27:1, purple 3.62:1). Card-only semantic foregrounds now mix with theme text, preserving semantic backgrounds. Host and portable native light/dark palette coverage retains all Axe checks and adds renderer-composited WCAG assertions for every badge, including accepted green, plus assertions proving the original colors failed. Final local browser: four passed (1.6m); contained native: two passed (47.97s); scoped ESLint and source lint (2163 files) passed. Fresh exact-head CI qualification is required for this correction.
+## Review findings resolved
 
-The exact PR head must pass full verify:project, browser/native E2E and isolated workflow verification before merge. Final CI results are recorded in this PR's checks and description.
+Actual native keyboard scrolling competed with Resume; a stable focusable toggle and bounded frame settling fixed the behavior without weakening the end-position assertion. New user scrolling still pauses immediately.
+
+Private terminal roots are excluded from file tools and verification snapshots even under a broad project root. Normalization and credential/path redaction precede display clipping, including command labels and line-wrapped bearer tokens. Requested foreign delegation targets are not presented as observed children. Verbose Claude framing retains a bounded root result without persisting raw transcripts or changing the legacy result/cost parsers. Observation and observer-launch failures never quarantine an AgentJob or replay work.
 
 ## Evidence and limits
 
-The initial native run exposed contrast defects, and visual review exposed a 48.7px card overflow; both received production fixes and stronger assertions. No paid vendor call, live user workflow mutation, worker restart or live plugin reload was performed. Cost telemetry was supplied through controlled provider ports. Multi-day paid execution and manual screen-reader use were not exercised. Local Node/npm are 24.20.0/11.21.1; CI uses repository pins 24.21.0/11.19.1.
+Ignored evidence: reports/card-agent-sessions/, reports/card-sessions-dev-loop/, reports/obsidian/, reports/ui-gallery/ and contained .nq/ CLI fixtures. No generated reports, credentials, private feeds, dist or native caches are committed. No dependencies were added.
+
+Terminal follow currently supports Windows desktop; it is an observer console, not interactive CLI attachment. Child details depend on provider-emitted evidence; Claude tool-linked identities and unavailable Codex details are disclosed. Existing workers/historical attempts without capture are not reconstructed from SDK databases or global rollouts. Live Peek is a partial bounded feed; authoritative verification evidence and human review remain required.
+
+Local Node is 24.20.0; GitHub uses pinned 24.21.0. Local Docker execution was not run. The mandatory real Linux Docker suite adds a test that checks the container is still running when sanitized output arrives. No actual CF-133/CF-135 execution, personal vault, agent input, release or automatic code acceptance occurred.
+
+Integration: the branch incorporates main PR #63, preserving its polishing indicators and Kanban alignment alongside Sessions. Combined UI and final-head CI qualification are recorded in this PR before merge.

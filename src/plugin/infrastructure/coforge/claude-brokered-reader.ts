@@ -7,6 +7,7 @@ import { executionAccess, executionTaskPrompt } from '../../features/coforge/app
 import { codexWorkflowTools } from './codex-workflow-tools';
 import { backgroundClaudeArgs } from './durable-worker/claude';
 import { captureProcess, ProcessFailure } from './process';
+import { captureObservedClaude } from './claude-observed-capture';
 
 const READ_TOOLS = ['coforge_list_files', 'coforge_read_file', 'coforge_search_files'];
 
@@ -37,8 +38,8 @@ export async function captureBrokeredClaudeRead(input: StageInput, lease: Workfl
     input.onLog?.(`Claude ${input.workflow.step.name}: validated read-only Build broker; native filesystem, shell and agent tools are unavailable.`);
     await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt });
     input.signal?.throwIfAborted(); await lease.validate();
-    const raw = await capture(command, args, { cwd: directory, input: prompt, timeoutMs: input.settings.timeoutSeconds * 1000,
-      ...(input.signal ? { signal: input.signal } : {}) });
+    const raw = await captureObservedClaude(input, command, args, { cwd: directory, input: prompt, timeoutMs: input.settings.timeoutSeconds * 1000,
+      ...(input.signal ? { signal: input.signal } : {}) }, capture, { COFORGE_SESSION_TOKEN: bridge.token });
     await bridge.dispose();
     try { bridge.assertBudget(); }
     catch { throw new ProcessFailure('Claude reached its captured CoForge read-tool call limit. Retry explicitly after reviewing the run.', raw); }

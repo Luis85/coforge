@@ -9,6 +9,7 @@ import { MemoryStorage, nodeTimers, toLoaded } from './memory-storage';
 import { parsePersistedStudio } from '../../../features/coforge/domain/persisted';
 import { workflowRunCheck } from '../../../features/coforge/domain/configured-workflow-run';
 import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
+import { appendAgentSessionEvent } from '../../../features/coforge/domain/agent-session';
 
 const stops: Array<() => Promise<void>> = [];
 afterEach(async () => { for (const stop of stops.splice(0)) await stop(); });
@@ -58,6 +59,12 @@ it('keeps verification container ownership and private source directories out of
     state.jobs.at(-1)!.verificationRuntime = [{ verificationId: 'private-check', containerName: 'private-container', ownerToken: 'DO-NOT-DISCLOSE', dockerBin: 'docker', endpoint: 'npipe:////./pipe/private-engine', imageId: `sha256:${'a'.repeat(64)}`, runId: 'run', attemptId: 'attempt', projectId: f.projectId, sourceDirectory: '/private/source-copy', sourceHash: 'b'.repeat(64), commandId: 'test', phase: 'prepared', startedAt: new Date().toISOString() }];
     state.jobs.at(-1)!.nativeProcess = { runId: 'run', attemptId: 'attempt', projectId: f.projectId, identity: { pid: 123, platform: 'win32', birth: 'DO-NOT-DISCLOSE-NATIVE', image: 'd'.repeat(64) }, phase: 'unknown', observedAt: new Date().toISOString() };
     state.jobs.at(-1)!.nativeRuntime = { runId: 'run', attemptId: 'attempt', projectId: f.projectId, directory: '/private/native-home', ownerToken: 'e'.repeat(64) };
+    const trace = appendAgentSessionEvent(undefined, { kind: 'message', text: 'PRIVATE_OPERATOR_SESSION_OBSERVATION' }, new Date().toISOString());
+    const job = state.jobs.at(-1)!;
+    job.sessionTrace = trace;
+    const ref = { version: 1 as const, executionId: 'execution', workerId: 'worker', epoch: 1, inputHash: 'a'.repeat(64) };
+    job.durable = { intent: 'start', ref, policy: { mode: 'background' }, snapshot: { version: 1, ref, sequence: 1, phase: 'running', createdAt: job.startedAt,
+      lastContactAt: job.startedAt, elapsedSeconds: 0, logs: [], sessionTrace: trace } };
   });
   const visible = await f.tools.call(f.projectId, 'coforge_request', { ideaId: f.idea.id });
   expect(JSON.stringify(visible)).not.toContain('verificationRuntime');
@@ -66,6 +73,9 @@ it('keeps verification container ownership and private source directories out of
   expect(JSON.stringify(visible)).not.toContain('/private/native-home');
   expect(JSON.stringify(visible)).not.toContain('DO-NOT-DISCLOSE');
   expect(JSON.stringify(visible)).not.toContain('/private/source-copy');
+  expect(JSON.stringify(visible)).not.toContain('sessionTrace');
+  expect(JSON.stringify(visible)).not.toContain('PRIVATE_OPERATOR_SESSION_OBSERVATION');
+  expect(f.studio.state().jobs.at(-1)?.sessionTrace?.events[0]?.text).toBe('PRIVATE_OPERATOR_SESSION_OBSERVATION');
   expect(f.studio.state().jobs.at(-1)?.verificationRuntime?.[0]?.ownerToken).toBe('DO-NOT-DISCLOSE');
 });
 

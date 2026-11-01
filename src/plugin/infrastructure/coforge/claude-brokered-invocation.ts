@@ -11,6 +11,7 @@ import type { NativeWorkflowProcessRecord } from '../../features/coforge/domain/
 import { usesNativeClaudeTools } from './claude-native-tools';
 import { ideaProjectId } from '../../features/coforge/domain/projects';
 import type { NativeProcessIdentity } from './durable-worker/process-identity';
+import { captureObservedClaude } from './claude-observed-capture';
 
 /** Native Agent children share this invocation's broker, lease and cumulative tool/test limits. */
 export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorkspaceLease, command: string, capture: typeof captureProcess) {
@@ -57,8 +58,8 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
       const args = brokeredClaudeArgs(input, config); const prompt = executionTaskPrompt(input);
       await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt });
       input.signal?.throwIfAborted(); await lease.validate?.();
-      const raw = await capture(command, args, { cwd: directory, input: prompt, signal: input.signal,
-        timeoutMs: input.settings.timeoutSeconds * 1000, ownedTree: true, onOwnedProcess: observe });
+      const raw = await captureObservedClaude(input, command, args, { cwd: directory, input: prompt, signal: input.signal,
+        timeoutMs: input.settings.timeoutSeconds * 1000, ownedTree: true, onOwnedProcess: observe }, capture, { COFORGE_SESSION_TOKEN: scoped.token });
       await scoped.dispose();
       try { scoped.assertBudget(); input.signal?.throwIfAborted(); await lease.validate?.(); }
       catch (error) { throw new ProcessFailure(error instanceof Error ? error.message : 'Scoped Claude verification failed.', raw); }

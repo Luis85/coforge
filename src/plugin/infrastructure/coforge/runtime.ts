@@ -74,6 +74,8 @@ import { executionConcurrency } from '../../features/coforge/domain/execution-co
 import { protectedWorkflowWorkspaces } from './workflow-workspace-protection';
 import { recoverForegroundVerification } from './verification/foreground-recovery';
 import { purgeCodexPrivateRuntime } from './codex-private-runtime';
+import { AgentSessionTerminal } from './agent-session-terminal';
+import { agentSessionFollowView } from './agent-session-follow-view';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -229,7 +231,9 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     const path = `${storage.dataPath.replace(/coforge-state\.json$/, '')}coforge-${kind}-${stamp}-${crypto.randomUUID()}.json`;
     await plugin.app.vault.adapter.write(path, json); return path;
   };
+  const sessionTerminal = new AgentSessionTerminal({ read: jobId => agentSessionFollowView(studio.state(), jobId), nodeExecutable: () => studio.integration().workerNodeBin });
   const host: StudioHostActions = {
+    sessionFollow: { open: jobId => sessionTerminal.open(jobId) },
     outputTemplates,
     serviceDesign,
     workflowTriggers,
@@ -353,6 +357,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     async dispose() {
       disposed = true;
       const closingEngine = studio.engine.stop();
+      const closingSessionTerminal = sessionTerminal.dispose();
       obsStudio.dispose();
       const closingAlerts = alerts.dispose();
       const closingTasks = taskScheduler.dispose();
@@ -361,7 +366,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       stopCouncilCosts();
       if (councilCostTimer !== undefined) timers.clearTimeout(councilCostTimer);
       invocations.dispose();
-      await Promise.all([closingEngine, closingAlerts, closingTasks, closingMcp, closingTriggers]);
+      await Promise.all([closingEngine, closingSessionTerminal, closingAlerts, closingTasks, closingMcp, closingTriggers]);
       await council.dispose();
       stopHerdrRuntime();
       stopStatusbar();

@@ -21,6 +21,13 @@ it('reactively shows polishing independently of the old Build attention state an
     expect(JSON.stringify(idea)).toBe(before);
     await wrapper.get('.cf-idea-open').trigger('click');
     expect(f.store.selected).toBe(idea.id);
+    const sessions = wrapper.get('.cf-card-sessions button');
+    expect(sessions.attributes('aria-label')).toBe(`Sessions 1 parent running for ${idea.id}`);
+    expect(sessions.text()).toContain('1 parent running');
+    await sessions.trigger('click');
+    expect(f.store.drawerTab).toBe('sessions');
+    expect(wrapper.get('[data-polishing-status="running"]').text()).toBe('Polishing in progress');
+    expect(JSON.stringify(idea)).toBe(before);
     pass.workflow.state = 'attention'; await flushPromises();
     expect(wrapper.get('[data-polishing-status="attention"]').text()).toBe('Polishing needs attention');
     pass.review = 'rejected'; await flushPromises();

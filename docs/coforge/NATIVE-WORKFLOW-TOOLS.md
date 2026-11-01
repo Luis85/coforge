@@ -96,6 +96,10 @@ within the captured allowance.
 
 ## Read outcomes and recover
 
+Use **Sessions** on a private Idea card for live read-only Peek and terminal
+follow. See [Inspect workflow sessions](AGENT-SESSIONS.md) for capture limits,
+native child attribution and supported terminal hosts.
+
 Activity and Increment distinguish observed completion, failure, interruption,
 unavailability and unknown outcomes. Exit zero records command completion, not
 proof of every acceptance criterion. Each record retains its actual command,

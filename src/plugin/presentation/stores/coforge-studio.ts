@@ -30,7 +30,7 @@ export type StudioView =
   | "ai-costs"
   | "schedule"
   | "workflow-settings";
-export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow';
+export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow' | 'sessions';
 export interface Toast {
   id: number;
   message: string;

@@ -18,6 +18,7 @@ import type { WorkflowPlanHandoff } from './workflow-plan-handoff';
 import type { AutomationContext } from '../domain/automation-context';
 import type { AgentTaskPort } from './agent-task';
 import { recordAgentConversation } from './agent-conversation';
+import { recordAgentSessionEvent } from './agent-session';
 import { DurableBuildCoordinator } from './durable-build-coordinator';
 import { DurableBuildCapacityError, type DurableBuildPort } from './durable-build-ports';
 import { WorkflowJobLanes, workerBackedJob } from './workflow-job-lanes';
@@ -358,6 +359,7 @@ export class WorkflowEngine {
     const result = await runner({
       jobId: next.id, stage: next.stage, ...snapshot, idea: effectivePolishingIdea(snapshot.idea), signal: controller.signal,
       onConversation: event => recordAgentConversation(this.store, next.id, event),
+      onSessionEvent: event => recordAgentSessionEvent(this.store, next.id, event),
       onUsage: cost => this.recordCost(next.id, cost),
       onTokenUsage: usage => this.recordTokens(next.id, usage),
       onLog: message => {

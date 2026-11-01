@@ -23,9 +23,10 @@ import { currentDesignSpecification } from "./use-idea-design";
 import { ideaRunHistory } from './idea-run-history';
 import { backgroundRetryCandidate } from './background-build-retry-display';
 
-export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow';
+export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow' | 'sessions';
 const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
   { value: "overview", label: "Overview" },
+  { value: 'sessions', label: 'Sessions' },
   { value: "plan", label: "Plan & Design" },
   { value: "increment", label: "Increment" },
   { value: 'workflow', label: 'Workflow runs' },

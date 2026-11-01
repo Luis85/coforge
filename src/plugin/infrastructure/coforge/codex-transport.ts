@@ -14,6 +14,8 @@ import { assertCodexNativeCapabilities, assertCodexNativeContext, nativeCodexCat
 import { prepareNativeCodexState } from './codex-private-state';
 import { assertCodexPrivateRuntime } from './codex-private-runtime';
 import type { NativeWorkflowPrivateRuntime } from '../../features/coforge/domain/native-workflow-process';
+import type { AgentSessionEvent } from '../../features/coforge/domain/agent-session';
+import { providerSessionObserver } from './provider-session-stream';
 
 export interface CodexTransportInput {
   directory: string; executable?: string; model: string; effort?: ReasoningEffort;
@@ -25,6 +27,7 @@ export interface CodexTransportInput {
   telemetry?(usage: StageUsage | undefined): Promise<void>;
   onConversation?(event: AgentConversationEvent): Promise<void>;
   onOwnedProcess?: ProcessOptions['onOwnedProcess'];
+  onSessionEvent?(event: AgentSessionEvent): Promise<void>;
 }
 export function codexEnvironment(source: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
   return { ...childEnvironment(source), ...Object.fromEntries(Object.entries(source).filter(([key, value]) =>
@@ -53,6 +56,7 @@ export async function runCodexTransport(input: CodexTransportInput): Promise<{ o
   const instructions = `${input.instructions}\n\nUse only the scoped CoForge MCP tools. ${delegated
     ? 'You may coordinate provider-native subagents within the captured concurrency limit; descendants inherit the same scoped CoForge tools, selected model and restricted sandbox. This limits concurrent children, not total lifetime children or nesting depth. Finish child work before returning the root structured result. Native project files, shell, browser and other MCP servers are unavailable.'
     : 'Native project files, shell, browser, other MCP servers and delegation are unavailable.'} Return the required structured result.`;
+  const observer = providerSessionObserver({ provider: 'codex', capture: input.onSessionEvent, environment, privatePaths: [input.directory] });
   try {
     await input.onConversation?.({ kind: 'request', instructions, prompt: input.prompt });
     input.signal?.throwIfAborted();
@@ -60,6 +64,7 @@ export async function runCodexTransport(input: CodexTransportInput): Promise<{ o
       cwd: input.directory, timeoutMs: input.timeoutMs, signal: input.signal,
       input: `${instructions}\n\n${input.prompt}`,
       env: environment,
+      ...(input.onSessionEvent ? { onStdout: observer.push } : {}),
       ...(input.nativeTools ? { ownedTree: true as const } : {}),
       ...(input.onOwnedProcess ? { onOwnedProcess: input.onOwnedProcess } : {}),
     });
@@ -78,5 +83,5 @@ export async function runCodexTransport(input: CodexTransportInput): Promise<{ o
     }
     if (error instanceof SyntaxError) throw new Error('Codex returned invalid structured output. The request was not advanced.');
     throw error;
-  }
+  } finally { await observer.finish().catch(() => {}); }
 }

@@ -13,6 +13,7 @@ import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import { ProcessOwnershipUnknown, redact } from '../process';
 import { prepareVerificationDirectory, removeVerificationDirectory } from './runtime';
 import { captureVerificationSource, verificationSourceIdentity } from './source';
+import { verificationProgress } from './progress';
 
 function clippedOutput(value: string, limit: number): { output: string; truncated: boolean } {
   const bytes = Buffer.from(value);
@@ -64,10 +65,12 @@ export async function createWorkflowVerification(input: StageInput, lease: Workf
         label: command.label, executable: command.executable, args: [...command.args], runtime: 'docker', imageId: profile.imageId, sourceHash, startedAt: new Date().toISOString(), status: 'running', output: '', truncated: false };
       reservation = record; evidence.push(record); await input.onVerification!(record);
       let ownerToken = '';
+      const progress = verificationProgress(input, command, directory, () => ownerToken);
       const observed = await backend.execute(profile, command, { verificationId: id, endpoint, dockerBin: profile.dockerBin, imageId: profile.imageId, runId: workflow.runId, attemptId: workflow.attemptId,
         projectId: record.projectId, sourceDirectory: directory, sourceHash, commandId }, async runtime => {
         ownerToken = runtime.ownerToken; await input.onVerificationRuntime!(runtime); if (runtime.phase !== 'terminal') retained = true; else retained = false;
-      }, controller.signal, Math.max(0, Math.min(8192, 65536 - outputBytes)));
+      }, controller.signal, Math.max(0, Math.min(8192, 65536 - outputBytes)), undefined, progress.observe);
+      await progress.finish(observed);
       let output = redact(observed.output).split(directory).join('[private snapshot]');
       if (ownerToken) output = output.split(ownerToken).join('[private ownership]');
       const clipped = clippedOutput(cleanText(output, 200000), Math.max(0, Math.min(8192, 65536 - outputBytes)));

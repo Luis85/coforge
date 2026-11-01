@@ -11,6 +11,7 @@ import { captureClaudeResponse } from '../claude-conversation';
 import { captureProcess, ProcessFailure, ProcessOwnershipUnknown } from '../process';
 import type { WorkerFiles } from './files';
 import { brokeredClaudeArgs, nativeClaudeDelegation, prepareNativeClaude, usesNativeClaudeTools } from '../claude-native-tools';
+import { captureObservedClaude } from '../claude-observed-capture';
 
 /** A private-CWD Claude process receives only five broker tools, never native filesystem/delegation authority. */
 export function backgroundClaudeArgs(input: StageInput, configPath: string): string[] {
@@ -44,7 +45,7 @@ export async function runBackgroundClaude(input: StageInput, workspaces: Workflo
     await prepareNativeClaude(input, config, input.integration.claudeBin, probe);
     const args = backgroundClaudeArgs(input, config); const prompt = executionTaskPrompt(input);
     await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt }); input.signal?.throwIfAborted();
-    raw = await capture(input.integration.claudeBin, args, { cwd, input: prompt, signal: input.signal, ...(usesNativeClaudeTools(input) ? { ownedTree: true as const } : {}) });
+    raw = await captureObservedClaude(input, input.integration.claudeBin, args, { cwd, input: prompt, signal: input.signal, ...(usesNativeClaudeTools(input) ? { ownedTree: true as const } : {}) }, capture, { COFORGE_SESSION_TOKEN: bridge.token });
     providerReturned = true;
     await bridge.dispose(); bridge.assertBudget();
     const cost = reportedClaudeCost(raw); if (cost !== undefined) await input.onUsage?.(cost);

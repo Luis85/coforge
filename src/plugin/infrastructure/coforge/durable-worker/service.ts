@@ -11,6 +11,7 @@ import type { WorkflowVerificationRecord, WorkflowVerificationRuntimeRecord } fr
 import { workerVerificationHooks } from './verification';
 import { workerNativeRuntimeHooks } from './native-runtime';
 import type { NativeWorkflowPrivateRuntime, NativeWorkflowProcessRecord } from '../../../features/coforge/domain/native-workflow-process';
+import type { AgentSessionEvent } from '../../../features/coforge/domain/agent-session';
 
 export class WorkerOwnershipUnknown extends Error {}
 export interface WorkerHooks {
@@ -28,6 +29,7 @@ export interface WorkerHooks {
   verificationRuntime?(record: WorkflowVerificationRuntimeRecord): Promise<void>;
   nativeRuntime?(record: NativeWorkflowPrivateRuntime | undefined): Promise<void>;
   nativeProcess?(record: NativeWorkflowProcessRecord): Promise<void>;
+  sessionEvent?(event: AgentSessionEvent): Promise<void>;
 }
 export type BuildExecutor = (request: DurableBuildRequest, hooks: WorkerHooks) => Promise<DurableBuildResult>;
 interface HotState { lastActivityAt?: string; lastContactAt: string; elapsedSeconds: number; logs: string[]; checkpointAt: number }
@@ -128,6 +130,7 @@ export class WorkerService {
     const hooks: WorkerHooks = {
       ...workerVerificationHooks(this.store, ref),
       ...workerNativeRuntimeHooks(this.store, ref),
+      sessionEvent: event => this.store.observeSession(ref, event),
       signal: controller.signal,
       phase: async () => { await update(snapshot => { snapshot.phase = 'finalizing'; }); },
       activity: async () => { const hot = this.hot.get(ref.executionId); if (hot) hot.lastActivityAt = new Date(this.store.now()).toISOString(); },
