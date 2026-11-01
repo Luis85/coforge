@@ -14,17 +14,17 @@ Owner decisions: BRIEF.md. Task: docs/project-tasks/2026-11-01-native-worktree-c
 
 ## Validation
 
-- npm run verify:project: running locally; final output and immutable-head CI results will be recorded before merge.
+- Initial local npm run verify:project: typecheck/source/maker gates passed; one fixture ESLint error and a 30-minute product-test timeout failed. The missing await and stale disclosure assertion are corrected with focused rechecks passing; a frozen full product rerun is in progress. Pinned CI initially passed 2,223/2,224 tests; its sole stale-label failure is corrected. Final immutable-head results are tracked on PR #66 before merge.
 - Real Windows production-controller suite: 11 passed, zero skipped, 27.21s. Covers owner loss, startup capture failure, descendants, quoted paths/arguments, exit 7, MCP replay/settlement and a durable Claude continuation.
 - Installed Claude 2.1.281 and Codex 0.145: actual native child/files/passing shell/root result/captured diff/known job quiescence passed. Claude: 8 local fake API requests, 18.205s. Final live-search Codex: 5 requests, 13.859s; global/project instructions, skills and network marker observed. Zero real model calls.
 - Production MCP external HTTPS probe: official TypeScript documentation, HTTP 200, complete response, actual exit 0 and confirmed quiescence. Public internet is not a deterministic CI dependency.
 - Focused MCP command/runner/workflow: 21 passed. Image/server/path boundary: 32 passed, including real VP8/VP8L/VP8X and malformed/oversized artifacts. Journal byte-budget regressions: 7 passed. Native integration: 11 suites, 40 passed; research flags/guidance: 5 passed.
-- UI quality: 8 passed; gallery: 40 captures, zero failures, reviewed. Research-copy refresh pending. Contained pinned Obsidian authoring/captured evidence: 3 passed, 51.40s; 12 targeted captures reviewed. Final load/reload/integration results pending.
+- Final research-copy UI quality: 8 passed; refreshed gallery: 40 captures, zero failures, all reviewed. Final contained pinned Obsidian authoring/evidence: 2 passed, 35.79s; 12 captures reviewed. Fresh load/reload: status passed, errors [], pluginConsole [], hostErrorCount 0 on Obsidian 1.14.4 / launcher 3.2.1; hosts stopped. The prior full browser and real-Obsidian CI runs also passed.
 - Whole TypeScript and scoped zero-warning ESLint/source checks passed. Independent release review identified unknown-lifetime moving capture; stronger regressions failed before its fix and now pass.
 
 ## Boundaries and untested scope
 
-Windows lifetime is locally qualified under a normal nonadmin account. The hosted elevated-runner same-user restricted-token path still requires CI proof. Unsupported platforms fail explicitly without an unowned fallback. A worktree is not an OS sandbox; desktop/provider permissions, proxy, certificates and site policies apply. Research allowance is not evidence that a site was reached. SDK observations/exit codes are not independent coverage, source-freshness proof or human acceptance.
+Windows lifetime is locally qualified under a normal nonadmin account. Hosted diagnostics identified compiler DLL initialization failure 0xC0000142: the test launcher lacked an explicit desktop. Its test-only winsta0\default fix preserves token checks and passes 11/11 with a fresh compiler cache locally; final hosted CI proof remains required. Unsupported platforms fail explicitly without an unowned fallback. A worktree is not an OS sandbox; desktop/provider permissions, proxy, certificates and site policies apply. Research allowance is not evidence that a site was reached. SDK observations/exit codes are not independent coverage, source-freshness proof or human acceptance.
 
 Existing CLI authentication/global context stays in place; no OAuth copy, global provider install, administrative setup or permissive fallback. External MCP model cost remains unavailable. No live CF-133 attempt or personal vault was inspected, retried or changed; the historical empty-log failure cannot be reconstructed.
 

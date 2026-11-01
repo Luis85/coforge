@@ -63,8 +63,16 @@ an agent. Platform support requires independent lifetime qualification.
 
 ## Evidence
 
-Work in progress. Targeted regressions and real Windows process fixtures are
-being recorded; full final project, UI, Obsidian and CI qualification is pending.
+Implementation is committed and under final qualification in PR #66. Dedicated
+product, UX, engineering and independent release reviews are complete. Both
+installed native SDK coding/delegation canaries passed with zero real model calls.
+Windows ownership: 11 real tests passed; final UI quality: 8 passed; gallery:
+40 reviewed captures with zero failures; final contained authoring/evidence:
+2 passed; fresh pinned Obsidian load/reload passed with errors [] and no console
+messages. A production MCP HTTPS probe fetched complete official documentation
+with HTTP 200, exit 0 and known quiescence. Final immutable-head CI is pending;
+the first hosted compiler failure is diagnosed and addressed in the test-only
+restricted-token launcher without changing production permissions.
 
 ## Untested scope
 

@@ -30,7 +30,8 @@ internal static class RestrictedAcceptance {
    var integrity=new SecurityIdentifier("S-1-16-8192");medium=SidBytes(integrity);var level=new Sid{value=medium,flags=0x20};
    Check(SetTokenInformation(token,25,ref level,Marshal.SizeOf(typeof(Sid))+integrity.BinaryLength));
    int elevated,returned;Check(GetTokenInformation(token,20,out elevated,4,out returned));if(elevated!=0)throw new Exception("Acceptance child remained elevated");
-   var startup=new Startup{cb=Marshal.SizeOf(typeof(Startup)),flags=0x100,stdin=GetStdHandle(-10),stdout=GetStdHandle(-11),stderr=GetStdHandle(-12)};
+   // A restricted-token child needs an explicit desktop; a null desktop can make CLR tools exit STATUS_DLL_INIT_FAILED.
+   var startup=new Startup{cb=Marshal.SizeOf(typeof(Startup)),desktop="winsta0\\default",flags=0x100,stdin=GetStdHandle(-10),stdout=GetStdHandle(-11),stderr=GetStdHandle(-12)};
    var argv=new StringBuilder(Quote(args[0])+" "+Quote(args[1])+" run --config configs/testing/vitest.native-process.config.mjs");
    Check(CreateProcessAsUser(token,args[0],argv,IntPtr.Zero,IntPtr.Zero,true,0,IntPtr.Zero,args[2],ref startup,out child));
    Console.WriteLine("Native acceptance: same-user non-admin restricted token; no accounts or UAC settings changed.");
