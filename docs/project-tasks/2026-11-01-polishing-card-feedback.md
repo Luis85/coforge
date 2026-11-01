@@ -1,6 +1,6 @@
 # Task: Show polishing progress on request cards
 
-- Status: in progress
+- Status: implemented; exact-head CI and merge evidence are recorded in the PR
 - Journey: Improve & polish a card's current result, with explicit human review.
 
 ## Why
@@ -81,7 +81,19 @@ during the user's test pass. Preserve existing authorization and review gates.
 - Impeccable mechanical scan returned []; no dependency changes or image baseline
   updates. Its context loader reported legacy product metadata and no selected
   visual-build path; repairing design metadata is separate from this refinement.
-- Full verify:project is running; record its final output before PR closeout.
+- Full verify:project passed before integrating main PR62: five check gates
+  passed in 1,848.1s; 1,898 product tests passed, six existing Windows platform
+  skips, zero failures. Production build and prototype embedding passed.
+- Integrated main 077c1a4 (native workflow delegation and verification) cleanly.
+  Merged compatibility tests passed: 14 files / 44 tests. A newly introduced
+  retained-native-ownership state required a presentation guard: two regression
+  assertions failed before the fix. The card now reuses the shared verification
+  settlement policy before claiming stopped or review-ready. Seven compatibility
+  files / 28 tests and the final seven helper tests passed after that fix.
+- Merged-source typecheck and contained smoke passed; merged native card test
+  passed (one file / one test, 21.01s). Full combined-source verification,
+  browser/native suites and isolated verification are required on the PR's exact
+  head before merge. Their final results belong to the PR checks and description.
 
 ## Untested scope
 

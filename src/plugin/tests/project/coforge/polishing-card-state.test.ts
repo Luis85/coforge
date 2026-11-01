@@ -63,4 +63,40 @@ describe('polishing state on request cards', () => {
     delete f.idea.polishingRuns;
     expect(polishingCardState(f.idea, [f.job])).toBeNull();
   });
+
+  it('keeps uncertain native provider ownership visible after Stop until the shared admission policy accepts recovery', () => {
+    const f = polishingCardFixture();
+    f.job.provider = 'codex'; f.job.projectId = f.pass.workflow.projectId = 'CFP-001';
+    f.job.workflow!.step = { ...f.job.workflow!.step, provider: 'codex', nativeTools: { delegation: { maxConcurrent: 2 } } };
+    f.pass.workflow.definition.steps = [f.job.workflow!.step];
+    f.job.nativeProcess = { runId: f.pass.workflow.id, attemptId: f.job.workflow!.attemptId, projectId: f.job.projectId!,
+      identity: { pid: 42, platform: 'win32', birth: 'original', image: 'a'.repeat(64) }, phase: 'launched', observedAt: f.job.startedAt };
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'running' });
+    f.pass.workflow.state = 'stopped'; f.job.status = 'cancelled'; f.job.nativeProcess.phase = 'unknown';
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'attention', spin: false });
+    f.job.nativeProcess.operatorAcknowledgedAt = f.job.startedAt;
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'stopped', spin: false });
+    const privateRuntime = { directory: '/private/retained-runtime', ownerToken: 'b'.repeat(64),
+      runId: f.pass.workflow.id, attemptId: f.job.workflow!.attemptId, projectId: f.job.projectId! };
+    f.job.nativeProcess.privateRuntime = privateRuntime;
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'attention', spin: false });
+    delete f.job.nativeProcess; f.job.nativeRuntime = privateRuntime;
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'attention', spin: false });
+    delete f.job.nativeRuntime;
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'stopped', spin: false });
+  });
+
+  it('does not claim a result is ready while its verification container still has unconfirmed ownership', () => {
+    const f = polishingCardFixture();
+    f.job.provider = 'claude'; f.job.projectId = f.pass.workflow.projectId = 'CFP-001';
+    f.job.verificationRuntime = [{ verificationId: 'verification', runId: f.pass.workflow.id,
+      attemptId: f.job.workflow!.attemptId, projectId: f.job.projectId!, commandId: 'tests', imageId: 'sha256:' + 'a'.repeat(64),
+      dockerBin: 'docker', endpoint: 'npipe:////./pipe/docker_engine', containerName: 'coforge-test', ownerToken: 'private',
+      sourceDirectory: '/private/source', sourceHash: 'b'.repeat(64), phase: 'started', startedAt: f.job.startedAt }];
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'running' });
+    f.complete();
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'attention', spin: false });
+    f.job.verificationRuntime[0]!.phase = 'terminal'; f.job.verificationRuntime[0]!.terminalAt = f.job.startedAt;
+    expect(polishingCardState(f.idea, [f.job])).toMatchObject({ status: 'review', spin: false });
+  });
 });

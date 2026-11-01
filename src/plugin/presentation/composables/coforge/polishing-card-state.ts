@@ -1,6 +1,7 @@
 import type { AgentJob, Idea, RuntimeInfo } from '../../../features/coforge/domain/types';
 import { durableBuildTerminal, sameDurableBuildRef } from '../../../features/coforge/domain/durable-build';
 import { polishingResultValue } from '../../../features/coforge/domain/polishing-target';
+import { assertVerificationSettled } from '../../../features/coforge/application/verification-admission';
 import type { CardState } from './use-board-card';
 
 export interface PolishingCardState extends CardState {
@@ -33,6 +34,10 @@ export function polishingCardState(idea: Idea, jobs: readonly AgentJob[], runtim
   const phase = snapshot?.phase;
   if (run.state === 'attention' || job?.status === 'failed' || phase === 'failed' || phase === 'attention' || saved && !snapshot || run.activeAttemptId && !attempt)
     return state('attention', 'Open this request to inspect the polishing pass and its recovery options.');
+  if (['stopped', 'finished', 'awaiting-review'].includes(run.state) || related.some(item => ['succeeded', 'failed', 'cancelled'].includes(item.status))) {
+    try { assertVerificationSettled({ ideas: [idea], jobs: related }, idea.id); }
+    catch { return state('attention', 'The original native provider or verification runtime still needs recovery. Open this request to inspect its retained ownership.'); }
+  }
   if (job && (runtime?.durableBuildErrors?.[job.id] || !matchingHot && durable?.reconcileError))
     return state('disconnected', 'Worker contact is unavailable. The saved state does not confirm that polishing stopped. Open the request to inspect it.');
   if ((durable?.intent === 'cancel' || snapshot?.cancellationRequested || durable && (run.state === 'stopped' || job?.status === 'cancelled')) && (!phase || !durableBuildTerminal(phase)))
