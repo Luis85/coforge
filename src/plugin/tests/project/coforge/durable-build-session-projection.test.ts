@@ -9,7 +9,7 @@ it('follows live background observations from the exact original snapshot, exclu
     await fixture.engine.startWorkflow(fixture.id); await fixture.engine.waitUntilIdle();
     const job = fixture.store.snapshot().jobs[0]!; const snapshot = fixture.worker.snapshots.get(job.id)!;
     const trace = appendAgentSessionEvent(undefined, { kind: 'message', sessionId: 'root', text: 'Native background progress' }, new Date().toISOString());
-    snapshot.sequence++; snapshot.sessionTrace = trace;
+    snapshot.sessionTrace = trace;
     await fixture.engine.reconcileDurableBuild(fixture.id);
     const state = fixture.store.snapshot(); expect(state.jobs[0]?.sessionTrace).toBeUndefined();
     expect(agentSessionFollowView(state, job.id)?.trace).toEqual(trace);

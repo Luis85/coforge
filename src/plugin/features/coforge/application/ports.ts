@@ -17,6 +17,7 @@ export type NoteIdea = Omit<Idea, 'voters' | 'increment'>;
 
 export interface LoadedStudio { data: PersistedStudio | null; notes: NoteIdea[]; invalidNotes: string[]; projects?: StudioProject[] }
 export interface SaveOptions {
+  requestDeletion?: { notes: Record<string, string> };
   /** Host-only optimistic input for a quarantine write; it never grants integrity trust. */
   noteWriteInputs?: Record<string, NoteIdea>;
   /** Atomically commit command note effects with wallet, receipts and frozen rewards. */
@@ -40,6 +41,8 @@ export interface StudioStorage {
   load(): Promise<LoadedStudio>;
   save(next: InternalState, previous: InternalState | null, options?: SaveOptions): Promise<void>;
   previewExampleNotes?(ids: readonly string[]): Promise<Record<string, string>>;
+  previewRequestNotes?(ids: readonly string[]): Promise<Record<string, string>>;
+  requestDeletionWarning?(): string | undefined;
   exampleCleanupWarning?(): string | undefined;
 }
 

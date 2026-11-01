@@ -31,6 +31,8 @@ import { captureWorkflowVerification, validateNativeWorkflowTools } from '../dom
 import { captureWorktreeCodingCapability } from '../domain/worktree-coding';
 import { recordWorkflowVerification, recordWorkflowVerificationRuntime } from './workflow-verification';
 import { recordWorkflowNativeProcess, recordWorkflowNativeRuntime } from './native-workflow-process';
+import { skipOwnerScreening } from './owner-screening';
+import { nextWorkflowStep, ownerScreeningExempt, screeningStep, onlyOwnerScreeningRemains } from '../domain/owner-screening';
 
 interface ConfiguredHost {
   dispatchAllowed?(): boolean;
@@ -85,6 +87,7 @@ export class ConfiguredWorkflowEngine {
     if (!run || run.state !== 'ready' || workflowProposalRevision(idea) !== run.proposalRevision) throw new Error('Start a fresh workflow for this request revision.');
     if (run.external && !explicit) return null;
     if (state.jobs.some(job => job.ideaId === ideaId && isActiveJob(job))) throw new Error('This request already has an active attempt.');
+    if (!polish && !retry) skipOwnerScreening(idea, run);
     const step = effectiveWorkflowStep(run, run.cursor, retry?.id);
     if (!retry && run.backgroundRetries?.some(item => item.stepId === step?.id)) throw new Error('This Build was retried in background. Review its current files and choose Retry Build in background again; foreground fallback is disabled.');
     if (!step) { finish(state, ideaId); return null; }
@@ -152,8 +155,10 @@ export class ConfiguredWorkflowEngine {
     const startingIdea = starting.ideas.find(idea => idea.id === ideaId);
     const startingProject = startingIdea ? starting.projects.find(project => project.id === ideaProjectId(startingIdea)) : undefined;
     const startingDefinition = startingProject ? workflowDefinition(startingProject.settings) : undefined;
-    const coworkerBindings = startingDefinition && startingIdea && startingDefinition.steps.some(step => step.kind === 'ai' && step.coworkerId !== undefined)
-      ? await prepareWorkflowCoworkers(startingDefinition, ideaProjectId(startingIdea), this.host.agentTasks) : [];
+    const exempt = !!startingIdea && ownerScreeningExempt(startingIdea);
+    const requiredDefinition = startingDefinition && exempt ? { ...startingDefinition, steps: startingDefinition.steps.filter(step => !screeningStep(step)) } : startingDefinition;
+    const coworkerBindings = requiredDefinition && startingIdea && requiredDefinition.steps.some(step => step.kind === 'ai' && step.coworkerId !== undefined)
+      ? await prepareWorkflowCoworkers(requiredDefinition, ideaProjectId(startingIdea), this.host.agentTasks) : [];
     let councilBindings: WorkflowCouncilBinding[] = [];
     // Legacy starts enqueue their transaction immediately, preserving existing serialized ordering.
     if (startingDefinition?.steps.some(step => step.kind === 'council') && startingIdea) councilBindings = await this.council.prepare(startingDefinition, ideaProjectId(startingIdea));
@@ -167,9 +172,10 @@ export class ConfiguredWorkflowEngine {
       const sourceDefinition = workflowDefinition(settings);
       if (coworkerBindings.length && (!startingIdea || JSON.stringify(sourceDefinition) !== JSON.stringify(startingDefinition) || workflowProposalRevision(idea) !== workflowProposalRevision(startingIdea))) throw new Error('The request or workflow changed while capturing CoWorkers. Review before starting.');
       if (coworkerBindings.length && (!startingProject || JSON.stringify(workflowCouncilProjectContext(startingProject)) !== JSON.stringify(workflowCouncilProjectContext(findProject(state, projectId))))) throw new Error('The project context changed while capturing CoWorkers. Review before starting.');
-      if (sourceDefinition.steps.some(step => step.kind === 'ai' && step.coworkerId !== undefined && !coworkerBindings.some(binding => binding.stepId === step.id && binding.profile.id === step.coworkerId))) throw new Error('The CoWorker workflow changed while starting. Review its saved setup and start again.');
+      if (exempt !== ownerScreeningExempt(idea)) throw new Error('The request screening policy changed while starting. Review before continuing.');
+      if (sourceDefinition.steps.some(step => (!exempt || !screeningStep(step)) && step.kind === 'ai' && step.coworkerId !== undefined && !coworkerBindings.some(binding => binding.stepId === step.id && binding.profile.id === step.coworkerId))) throw new Error('The CoWorker workflow changed while starting. Review its saved setup and start again.');
       const definition = bindWorkflowCoworkers(sourceDefinition, coworkerBindings);
-      const outputTemplates = await captureWorkflowOutputTemplates(projectId, definition.steps.filter(step => step.kind === 'ai'), this.host.outputTemplates);
+      const outputTemplates = await captureWorkflowOutputTemplates(projectId, definition.steps.flatMap(step => step.kind === 'ai' && (!exempt || !screeningStep(step)) ? [step] : []), this.host.outputTemplates);
       if (councilBindings.length && (!startingIdea || JSON.stringify(workflowDefinition(settings)) !== JSON.stringify(startingDefinition) || workflowProposalRevision(idea) !== workflowProposalRevision(startingIdea))) throw new Error('The request or workflow changed while capturing Council setup. Review it before starting.');
       if (councilBindings.length && (!startingProject || JSON.stringify(workflowCouncilProjectContext(startingProject)) !== JSON.stringify(workflowCouncilProjectContext(findProject(state, projectId))))) throw new Error('The project context changed while capturing Council setup. Review it before starting.');
       if (!councilBindings.length && workflowDefinition(settings).steps.some(step => step.kind === 'council')) throw new Error('The Council workflow changed while starting. Review its saved setup and start again.');
@@ -188,6 +194,7 @@ export class ConfiguredWorkflowEngine {
       const project = findProject(state, projectId);
       const at = time();
       idea.workflowRun = { id: crypto.randomUUID(), ideaId, projectId, definition,
+        ...(ownerScreeningExempt(idea) ? { ownerScreeningExempt: true } : {}),
         ...(coworkerBindings.length ? { coworkerBindings } : {}),
         ...(councilBindings.length ? { councilBindings } : {}),
         ...(outputTemplates.length ? { outputTemplates } : {}),
@@ -282,7 +289,9 @@ export class ConfiguredWorkflowEngine {
       if (run && run.state !== 'ready') return false;
       if (!run && idea.increment?.files.length && idea.status === 'review') return false;
       if (run && workflowSerializedSize(run) > WORKFLOW_RUN_LIMIT_BYTES - WORKFLOW_ATTEMPT_RESERVE_BYTES) return false;
-      const step = (run?.definition ?? settings.workflow)?.steps[run?.cursor ?? 0];
+      const definition = run?.definition ?? settings.workflow;
+      const step = definition && nextWorkflowStep(definition, idea, run);
+      if (!step && definition && onlyOwnerScreeningRemains(definition, idea, run)) return true;
       if (!step || ((step.kind === 'ai' || step.kind === 'nudge' || step.kind === 'council') && !manual && !step.automatic)) return false;
       if (step.kind === 'ai') {
         try {
@@ -296,7 +305,8 @@ export class ConfiguredWorkflowEngine {
     });
     if (!candidate) return null;
     try {
-      if (!candidate.workflowRun && settings.workflow && !await coworkerAdmissionReady(settings.workflow, projectId, candidate, state, this.host.agentTasks)) return null;
+      const admissionDefinition = settings.workflow && ownerScreeningExempt(candidate) ? { ...settings.workflow, steps: settings.workflow.steps.filter(step => !screeningStep(step)) } : settings.workflow;
+      if (!candidate.workflowRun && admissionDefinition && !await coworkerAdmissionReady(admissionDefinition, projectId, candidate, state, this.host.agentTasks)) return null;
       if (candidate.workflowRun) { await this.store.transaction(next => { this.queue(next, candidate.id, manual); }, this.saveOptions(candidate.id)); await this.flushDelegated(candidate.id); }
       else await this.start(candidate.id, manual);
     } catch (cause) {

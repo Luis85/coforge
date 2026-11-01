@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { Plugin, TFile } from 'obsidian';
 
-const ROOT = 'CoForge/Recovery/ExampleCleanup';
+const ROOTS = { examples: 'CoForge/Recovery/ExampleCleanup', request: 'CoForge/Recovery/RequestDeletion' };
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
 interface ArchivedNote { id: string; original: string; staged: string; fingerprint: string }
 interface CleanupJournal { schema: 1; directory: string; beforeData: string | null; afterHash: string; notes: ArchivedNote[]; committed?: boolean }
@@ -12,9 +12,18 @@ export class VaultExampleCleanup {
   readonly writing = new Set<string>();
   warning: string | undefined;
   private reloadRequired = false;
-  constructor(private readonly plugin: Plugin, private readonly dataPath: string, private readonly readId: (content: string) => string | undefined, private readonly candidates: () => readonly TFile[]) {}
-  private get journalPath() { return this.dataPath.replace(/coforge-state\.json$/u, 'coforge-example-cleanup.json'); }
+  constructor(private readonly plugin: Plugin, private readonly dataPath: string, private readonly readId: (content: string) => string | undefined, private readonly candidates: () => readonly TFile[], private readonly intent: 'examples' | 'request' = 'examples') {}
+  private get root() { return ROOTS[this.intent]; }
+  private get journalPath() { return this.dataPath.replace(/coforge-state\.json$/u, this.intent === 'request' ? 'coforge-request-deletion.json' : 'coforge-example-cleanup.json'); }
+  private stagedPath(directory: string, index: number, original: string) { return this.intent === 'request' ? `${directory}/${index}/${original.slice(original.lastIndexOf('/') + 1)}` : `${directory}/${index}.coforge-archive`; }
   private get vault() { return this.plugin.app.vault; }
+  private recoveryCopy(note: ArchivedNote) { return `${note.staged.slice(0, note.staged.lastIndexOf('/'))}/request.coforge-recovery`; }
+  private async retainRequestCopy(note: ArchivedNote, content: string): Promise<void> {
+    if (this.intent !== 'request') return;
+    const path = this.recoveryCopy(note);
+    if (!await this.vault.adapter.exists(path)) await this.vault.adapter.write(path, content);
+    if (hash(await this.vault.adapter.read(path)) !== note.fingerprint) throw failure();
+  }
 
   async preview(ids: readonly string[], file: (id: string) => TFile | null): Promise<Record<string, string>> {
     const fingerprints: Record<string, string> = {};
@@ -39,9 +48,11 @@ export class VaultExampleCleanup {
   async remove(notes: Record<string, string>, file: (id: string) => TFile | null, afterData: string): Promise<void> {
     this.warning = undefined;
     await this.recover();
+    if (this.intent === 'request' && await this.vault.adapter.exists(this.journalPath))
+      throw new Error('A previously deleted note still needs trash recovery. Restore trash access or inspect CoForge/Recovery/RequestDeletion, then reload before deleting another request.');
     const current = await this.preview(Object.keys(notes), file);
     if (Object.keys(notes).some(id => current[id] !== notes[id])) throw failure();
-    const directory = `${ROOT}/${randomUUID()}`;
+    const directory = `${this.root}/${randomUUID()}`;
     const journal: CleanupJournal = {
       schema: 1, directory,
       beforeData: await this.vault.adapter.exists(this.dataPath) ? await this.vault.adapter.read(this.dataPath) : null,
@@ -50,10 +61,11 @@ export class VaultExampleCleanup {
     for (const [id, fingerprint] of Object.entries(notes)) {
       const target = file(id);
       if (!target || hash(await this.vault.read(target)) !== fingerprint) throw failure();
-      journal.notes.push({ id, original: target.path, staged: `${directory}/${journal.notes.length}.coforge-archive`, fingerprint });
+      journal.notes.push({ id, original: target.path, staged: this.stagedPath(directory, journal.notes.length, target.path), fingerprint });
     }
     this.parse(JSON.stringify(journal));
     await this.ensureDirectory(directory);
+    for (const note of journal.notes) await this.ensureDirectory(note.staged.slice(0, note.staged.lastIndexOf('/')));
     await this.vault.adapter.write(this.journalPath, JSON.stringify(journal));
     for (const note of journal.notes) { this.writing.add(note.original); this.writing.add(note.staged); }
     try {
@@ -124,6 +136,7 @@ export class VaultExampleCleanup {
   }
 
   private async finish(journal: CleanupJournal): Promise<void> {
+    this.warning = undefined;
     let retained = false;
     journal.committed = true;
     try { await this.vault.adapter.write(this.journalPath, JSON.stringify(journal)); } catch { retained = true; }
@@ -131,6 +144,10 @@ export class VaultExampleCleanup {
       try {
         const file = this.vault.getFileByPath(note.staged);
         if (!file) continue;
+        const content = await this.vault.read(file);
+        if (hash(content) !== note.fingerprint) { retained = true; continue; }
+        // Preserve exact bytes even when the user's Obsidian preference is permanent deletion.
+        await this.retainRequestCopy(note, content);
         if (hash(await this.vault.read(file)) !== note.fingerprint) { retained = true; continue; }
         await this.plugin.app.fileManager.trashFile(file);
       } catch { retained = true; }
@@ -138,13 +155,17 @@ export class VaultExampleCleanup {
     let receipt = false;
     try {
       // Keep a private receipt so retained archive bytes can be matched to their original note paths.
-      await this.vault.adapter.write(`${journal.directory}/receipt.json`, JSON.stringify({ schema: 1, notes: journal.notes, retained }, null, 2));
+      const notes = this.intent === 'request' ? journal.notes.map(note => ({ ...note, recoveryCopy: this.recoveryCopy(note) })) : journal.notes;
+      await this.vault.adapter.write(`${journal.directory}/receipt.json`, JSON.stringify({ schema: 1, notes, retained }, null, 2));
       receipt = true;
     } catch { retained = true; }
-    if (receipt || !journal.notes.some(note => this.vault.getFileByPath(note.staged))) {
+    const pending = journal.notes.some(note => this.vault.getFileByPath(note.staged));
+    if (!pending || receipt && !(this.intent === 'request' && retained)) {
       try { await this.vault.adapter.remove(this.journalPath); } catch { retained = true; }
     }
-    if (retained) this.warning = 'Cleanup committed. Some notes remain in CoForge/Recovery/ExampleCleanup for manual recovery because the vault trash was unavailable or an archived note changed.';
+    if (retained) this.warning = this.intent === 'request'
+      ? 'Deletion committed. The note remains in CoForge/Recovery/RequestDeletion for recovery because trash was unavailable or the archived note changed.'
+      : 'Cleanup committed. Some notes remain in CoForge/Recovery/ExampleCleanup for manual recovery because the vault trash was unavailable or an archived note changed.';
   }
 
   private async ensureDirectory(path: string): Promise<void> {
@@ -158,7 +179,7 @@ export class VaultExampleCleanup {
   private parse(content: string): CleanupJournal {
     const value: unknown = JSON.parse(content);
     if (!value || typeof value !== 'object' || !('schema' in value) || value.schema !== 1 || !('directory' in value) || typeof value.directory !== 'string'
-      || !new RegExp(`^${ROOT}/[a-f0-9-]{36}$`, 'u').test(value.directory)
+      || !new RegExp(`^${this.root}/[a-f0-9-]{36}$`, 'u').test(value.directory)
       || !('beforeData' in value) || (value.beforeData !== null && typeof value.beforeData !== 'string')
       || !('afterHash' in value) || typeof value.afterHash !== 'string' || !/^[a-f0-9]{64}$/u.test(value.afterHash)
       || !('notes' in value) || !Array.isArray(value.notes) || value.notes.length > 10000) throw failure();
@@ -169,7 +190,7 @@ export class VaultExampleCleanup {
         || !('original' in note) || typeof note.original !== 'string' || !/^[^/:\\]+(?:\/[^/:\\]+)*\.md$/iu.test(note.original)
         || note.original.split('/').some(segment => segment === '..' || segment === '.' || /[\p{Cc}*?"<>|]/u.test(segment))
         || note.original.toLowerCase().startsWith(`${this.plugin.app.vault.configDir.toLowerCase()}/`) || note.original.toLowerCase().startsWith('.git/')
-        || !('staged' in note) || note.staged !== `${directory}/${index}.coforge-archive`
+        || !('staged' in note) || note.staged !== this.stagedPath(directory, index, note.original)
         || !('fingerprint' in note) || typeof note.fingerprint !== 'string' || !/^[a-f0-9]{64}$/u.test(note.fingerprint)) throw failure();
       return { id: note.id, original: note.original, staged: note.staged, fingerprint: note.fingerprint };
     });

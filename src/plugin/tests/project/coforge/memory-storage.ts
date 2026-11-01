@@ -1,6 +1,6 @@
 import type { InternalState, LoadedStudio, NoteIdea, StudioStorage, Timers } from '../../../features/coforge/application/ports';
 import { StudioStore } from '../../../features/coforge/application/studio-store';
-import { ideaFingerprint } from '../../../features/coforge/domain/integrity';
+import { contextEventId, ideaFingerprint } from '../../../features/coforge/domain/integrity';
 import { noteOnly } from '../../../features/coforge/domain/objects';
 import type { PersistedStudio } from '../../../features/coforge/domain/persisted';
 import { createEmptyState, createSeed, defaultIntegration } from '../../../features/coforge/domain/seed';
@@ -13,6 +13,7 @@ export function toLoaded(state: AppState | InternalState): LoadedStudio {
   const notes: NoteIdea[] = state.ideas.map(noteOnly);
   const internal = state as Partial<InternalState>;
   const data: PersistedStudio = {
+    deletedRequests: state.deletedRequests,
     workflowStopHolds: state.workflowStopHolds,
     twitchOperations: state.twitchOperations,
     requestOrigins: state.requestOrigins,
@@ -46,6 +47,12 @@ export class MemoryStorage implements StudioStorage {
   private loaded: LoadedStudio;
   constructor(initial: AppState | null = null) { this.loaded = initial ? toLoaded(initial) : { data: null, notes: [], invalidNotes: [] }; }
   async load(): Promise<LoadedStudio> { return structuredClone(this.loaded); }
+  async previewRequestNotes(ids: readonly string[]): Promise<Record<string, string>> {
+    return Object.fromEntries(ids.map(id => {
+      const note = this.loaded.notes.find(note => note.id === id); if (!note) throw new Error('Request note missing.');
+      return [id, contextEventId(JSON.stringify(note))];
+    }));
+  }
   async previewExampleNotes(ids: readonly string[]): Promise<Record<string, string>> {
     return Object.fromEntries(ids.map(id => {
       const note = this.loaded.notes.find(note => note.id === id);

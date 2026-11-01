@@ -13,6 +13,7 @@ import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
 import { workflowProviderSummary } from "./agent-labels";
 import { reviewedBackgroundRetryRequired } from './background-build-retry-display';
+import { nextWorkflowStep, onlyOwnerScreeningRemains, exemptScreeningStep } from '../../../features/coforge/domain/owner-screening';
 import { failedWorkflowJobId } from './attempt-failure-evidence';
 import {
   configuredAgentLabel,
@@ -50,7 +51,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
     () => run.value?.definition ?? savedDefinition.value,
   );
   const currentStep = computed(
-    () => definition.value.steps[run.value?.cursor ?? 0],
+    () => nextWorkflowStep(definition.value, selected.value, run.value),
   );
   const rows = computed(() =>
     workflowAttemptRows(store.projectIdeas, store.projectJobs),
@@ -175,7 +176,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
       ),
     ),
     canRunNext: computed(
-      () => !store.busy && !blocked.value && !reviewedBackgroundRetryRequired(run.value) && Boolean(currentStep.value),
+      () => !store.busy && !blocked.value && !reviewedBackgroundRetryRequired(run.value) && (Boolean(currentStep.value) || onlyOwnerScreeningRemains(definition.value, selected.value, run.value)),
     ),
     pendingPolishing,
     canRestart: computed(
@@ -258,18 +259,18 @@ export function useWorkflow(ideaId?: () => string | undefined) {
         id: step.id,
         name: step.name,
         index: index + 1,
-        agent:
+        agent: exemptScreeningStep(step, selected.value, run.value) ? 'Owner request · no agent invoked' :
           run.value?.external && step.kind === "ai"
             ? "External MCP client"
             : configuredAgentLabel(step, Boolean(run.value)),
         current:
-          index === (run.value?.cursor ?? 0) &&
+          step.id === currentStep.value?.id &&
           !run.value?.state?.match(/^(finished|stopped|awaiting-review)$/u),
         completed: Boolean(run.value && index < run.value.cursor),
         state:
           run.value?.attempts
             .filter((attempt) => attempt.stepId === step.id)
-            .at(-1)?.status ?? "Not started",
+            .at(-1)?.status ?? (exemptScreeningStep(step, selected.value, run.value) ? 'Screening not required' : "Not started"),
       })),
     ),
     runCount: computed(() => rows.value.length),

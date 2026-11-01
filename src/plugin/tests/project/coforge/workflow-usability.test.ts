@@ -145,7 +145,7 @@ it("explains the next workflow action and marks the current step without startin
   try {
     await flushPromises();
     expect(wrapper.get('[aria-label="Next workflow action"]').text()).toContain(
-      "Screen",
+      "Score",
     );
     expect(wrapper.get('[aria-label="Next workflow action"]').text()).toContain(
       "Start",
@@ -155,7 +155,8 @@ it("explains the next workflow action and marks the current step without startin
         .get('[aria-label="Captured workflow steps"]')
         .find('[aria-current="step"]')
         .text(),
-    ).toContain("Screen");
+    ).toContain("Score");
+    expect(wrapper.get('[aria-label="Captured workflow steps"]').text()).toContain('Screening not required');
     expect(fixture.studio.state().jobs).toEqual([]);
     expect(fixture.runner).not.toHaveBeenCalled();
   } finally {

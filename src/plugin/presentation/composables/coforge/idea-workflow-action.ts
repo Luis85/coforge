@@ -10,6 +10,7 @@ import {
 } from "./configured-workflow-display";
 import { ideaFingerprint } from "../../../features/coforge/domain/integrity";
 import { reviewedBackgroundRetryRequired } from './background-build-retry-display';
+import { nextWorkflowStep, onlyOwnerScreeningRemains, ownerScreeningExempt } from '../../../features/coforge/domain/owner-screening';
 export interface IdeaWorkflowAction {
   kind: "run" | "open";
   label: string;
@@ -51,14 +52,16 @@ export function ideaWorkflowAction(
       blocked: "",
       demo: false,
     };
-  const step = (run?.definition ?? workflowDefinition(project.settings)).steps[
-    run?.cursor ?? 0
-  ];
+  const definition = run?.definition ?? workflowDefinition(project.settings);
+  const step = nextWorkflowStep(definition, idea, run);
+  if (!step && onlyOwnerScreeningRemains(definition, idea, run)) return {
+    kind: 'run', label: 'Complete workflow', description: 'Owner request · screening is not required. No agent will be invoked.', blocked: project.unavailable ? 'Restore this project note first.' : '', demo: false,
+  };
   if (!step) return;
   return {
     kind: "run",
     label: `${run?.state === "attention" ? "Retry" : run ? "Run" : "Start"} · ${step.name}`,
-    description: `${run?.external && step.kind === 'ai' ? 'External MCP client' : configuredAgentLabel(step, Boolean(run))}. ${!run ? "Starts the saved workflow from its first step; prior legacy stages are not inferred." : "Uses this run’s captured definition."}`,
+    description: `${run?.external && step.kind === 'ai' ? 'External MCP client' : configuredAgentLabel(step, Boolean(run))}. ${!run ? ownerScreeningExempt(idea) ? 'Starts the saved workflow with owner screening skipped.' : "Starts the saved workflow from its first step; prior legacy stages are not inferred." : "Uses this run’s captured definition."}`,
     blocked:
       step.kind === "ai"
         ? configuredStepProblem(step, project, runtime, idea, run, !run && step.coworkerId !== undefined)

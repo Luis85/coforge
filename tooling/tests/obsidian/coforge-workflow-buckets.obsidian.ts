@@ -81,13 +81,14 @@ describe('Bucket-first Idea board workflow in the contained host', () => {
     const body = splitNote(await note(obsidian, 'CoForge/Ideas/')).body;
     await openWorkflowRuns(view, card());
     const execution = () => view.getByRole('region', { name: 'Request workflow execution', exact: true });
-    for (const [index, name] of ['Screen', 'Score', 'Plan', 'Design'].entries()) {
+    for (const [index, name] of ['Score', 'Plan', 'Design'].entries()) {
       await execution().getByRole('button', { name: `${index === 0 ? 'Start' : 'Run'} · ${name}`, exact: true }).click();
-      await browserExpect(execution().getByRole('button', { name: `Run · ${['Score', 'Plan', 'Design', 'Build'][index]}`, exact: true })).toBeEnabled();
+      await browserExpect(execution().getByRole('button', { name: `Run · ${['Plan', 'Design', 'Build'][index]}`, exact: true })).toBeEnabled();
     }
     const captured = workflowRunCheck(property(await note(obsidian, 'CoForge/Ideas/'), 'workflow-run'));
     expect(captured.definition).toEqual(project);
     expect(captured.cursor).toBe(4);
+    expect(captured.attempts[0]).toMatchObject({ stepId: 'screen', status: 'skipped' });
     await view.getByRole('button', { name: 'Close idea details', exact: true }).click();
     await browserExpect(card()).toContainText('Design complete · Ready to build');
     await browserExpect(view.locator('.cf-column-design .cf-idea-card').filter({ hasText: 'Bucket workflow lantern' })).toBeVisible();

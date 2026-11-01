@@ -62,12 +62,18 @@ describe('Idea activity conversation history in the contained host', () => {
     await browserExpect(view.locator('.cf-workflow-editor-notice')).toContainText('Workflow saved.');
 
     await view.getByRole('button', { name: /^Idea board/ }).first().click();
-    await view.locator('.cf-board-page > .cf-page-heading').getByRole('button', { name: 'New request', exact: true }).click();
-    const dialog = view.getByRole('dialog');
-    await dialog.getByLabel('The idea', { exact: true }).fill(TITLE);
-    await dialog.getByLabel('A little more context', { exact: true }).fill('Keep this authored request intact while inspecting its history.');
-    await dialog.getByLabel('Contributor name', { exact: true }).fill('Contained owner');
-    await dialog.getByRole('button', { name: 'Add to the board', exact: true }).click();
+    // Screening history belongs to viewer intake; studio owner requests are exempt.
+    const projectId = (await privateState(obsidian)).activeProjectId;
+    if (!projectId) throw new Error('The conversation project is missing.');
+    await view.getByRole('button', { name: 'Stream chat', exact: true }).click();
+    await view.getByRole('button', { name: 'Test commands locally', exact: true }).click();
+    await view.getByLabel('Simulated viewer name', { exact: true }).fill('Contained viewer');
+    for (const text of ['!register', `!request ${projectId} ${TITLE}`]) {
+      await view.getByLabel('Chat message', { exact: true }).fill(text);
+      await view.getByRole('button', { name: 'Send chat message', exact: true }).click();
+      await browserExpect(view.getByLabel('Chat message', { exact: true })).toHaveValue('');
+    }
+    await view.getByRole('button', { name: /^Idea board/ }).first().click();
     await browserExpect(view.locator('.cf-idea-card').filter({ hasText: TITLE })).toBeVisible();
     const authoredBody = splitNote(await requestNote(obsidian)).body;
 

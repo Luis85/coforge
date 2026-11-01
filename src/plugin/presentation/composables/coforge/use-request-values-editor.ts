@@ -38,7 +38,9 @@ export function useRequestValuesEditor(props: { idea: Idea }) {
       const canonical = studio.state().ideas.find(idea => idea.id === ideaId);
       if (canonical) {
         load(canonical);
-        state.drafts[ideaId]!.notice = 'Request fields saved. Fresh screening is required before further processing.';
+        state.drafts[ideaId]!.notice = canonical.screening?.provider === 'owner'
+          ? 'Request fields saved. Owner request screening exemption retained; earlier scoring and planning were cleared.'
+          : 'Request fields saved. Fresh screening is required before further processing.';
       }
     } catch (problem) { current.error = problem instanceof Error ? problem.message : 'The fields could not be saved. Your draft is kept.'; }
     finally { current.working = false; }

@@ -42,6 +42,11 @@ export class StudioStore {
     return this.storage.previewExampleNotes(ids);
   }
   exampleCleanupWarning(): string | undefined { return this.storage.exampleCleanupWarning?.(); }
+  previewRequestNotes(ids: readonly string[]): Promise<Record<string, string>> {
+    if (!this.storage.previewRequestNotes) throw new Error('Request deletion is unavailable in this host.');
+    return this.storage.previewRequestNotes(ids);
+  }
+  requestDeletionWarning(): string | undefined { return this.storage.requestDeletionWarning?.(); }
 
   async init(): Promise<{ invalidNotes: string[] }> {
     let loaded: LoadedStudio;

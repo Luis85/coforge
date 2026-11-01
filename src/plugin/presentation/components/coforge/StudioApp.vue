@@ -34,9 +34,12 @@ import CoWorkersView from "./CoWorkersView.vue";
 import ObsLiveDock from "./ObsLiveDock.vue";
 import PolishingFeedbackDialog from './PolishingFeedbackDialog.vue';
 import { usePolishingUiStore } from '../../stores/coforge-polishing-ui';
+import RequestDeletionDialog from './RequestDeletionDialog.vue';
+import { useRequestDeletionUiStore } from '../../stores/coforge-request-deletion';
 
 const model = useStudioApp();
 const polishing = usePolishingUiStore();
+const deletion = useRequestDeletionUiStore();
 </script>
 <template>
   <div
@@ -126,7 +129,8 @@ const polishing = usePolishingUiStore();
         v-if="model.shell.workflowVisible && model.shell.store.activeJob && model.shell.store.view === 'board'"
       />
       <ActivityPopover v-if="model.shell.store.activityOpen" />
-      <IdeaDrawer v-if="model.shell.store.selectedIdea" v-show="!polishing.isOpen" :inert="polishing.isOpen || undefined" :aria-hidden="polishing.isOpen || undefined" />
+      <IdeaDrawer v-if="model.shell.store.selectedIdea" v-show="!polishing.isOpen && !deletion.isOpen" :inert="polishing.isOpen || deletion.isOpen || undefined" :aria-hidden="polishing.isOpen || deletion.isOpen || undefined" />
+      <RequestDeletionDialog v-if="deletion.isOpen" />
       <PolishingFeedbackDialog v-if="polishing.isOpen" />
       <NewIdeaDrawer v-if="model.shell.store.creating" />
       <HelpDialog v-if="model.shell.store.help" />

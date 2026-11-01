@@ -4,6 +4,7 @@ export type CoforgeApplication = Pick<StudioService,
   'checkNativeWorkflowRecovery' | 'acknowledgeNativeWorkflowProcess' |
   'getEconomy' | 'saveEconomyConfiguration' | 'fulfillEconomyPerk' |
   'previewExampleCleanup' | 'removeExampleContent' | 'exampleCleanupWarning' |
+  'previewRequestDeletion' | 'deleteRequest' | 'requestDeletionWarning' |
   'previewBackgroundBuildRetry' | 'confirmBackgroundBuildRetry' |
   'previewPolishingPass' | 'confirmPolishingPass' | 'applyPolishingResult' | 'rejectPolishingResult' | 'stopPolishingPass' |
   'saveWorkflow' | 'startWorkflow' | 'restartWorkflowFromOperator' | 'runWorkflowStep' | 'completeWorkflowManual' | 'stopWorkflow' | 'acknowledgeWorkflowNudge' | 'refreshDurableBuildRuntime' | 'repairDurableBuildRuntime' | 'reconcileDurableBuild' | 'inspectDurableBuildEvidence' | 'recoverDurableBuild' |
@@ -12,6 +13,8 @@ export type CoforgeApplication = Pick<StudioService,
   'createProject' | 'updateProject' | 'selectProject' | 'createIdea' | 'updateRequestValues' | 'vote' | 'act' | 'adjustRice' |
   'runNext' | 'cancel' | 'updateSettings' | 'updateIntegration' | 'refreshRuntime' | 'loadSample' | 'exportJson'>;
 export type { StudioEvent, StudioEventListener, StudioEventSink } from './application/studio-events';
+export type { RequestDeletionPreview, DeletedRequest } from './domain/request-deletion';
+export { requestDeletionProblem } from './application/request-deletion';
 export type { BackgroundBuildRetryPreview, BackgroundBuildRetryConsent } from './domain/background-build-retry';
 export type { PolishingTarget, PolishingRun, PolishingPreview, PolishingConsent } from './domain/polishing';
 export { projectHasPendingWorkflow } from './application/workflow-configuration';

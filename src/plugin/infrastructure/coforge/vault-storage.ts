@@ -43,6 +43,7 @@ export class VaultStudioStorage implements StudioStorage {
   private folder = defaultIntegration().ideasFolder;
   private readonly projects: VaultProjects;
   private readonly cleanup: VaultExampleCleanup;
+  private readonly deletion: VaultExampleCleanup;
   private readonly commands: VaultCommandCommit;
   readonly economyReservations: VaultEconomyReservations<EconomyUsageReservation>;
   constructor(private readonly plugin: Plugin, private readonly privateFolders: () => readonly string[] = () => [],
@@ -51,9 +52,13 @@ export class VaultStudioStorage implements StudioStorage {
     this.economyReservations = new VaultEconomyReservations(plugin, economyUsageReservationCheck);
     this.commands = new VaultCommandCommit(plugin, this.dataPath, bytes => readIdeaNote(bytes)?.id);
     this.cleanup = new VaultExampleCleanup(plugin, this.dataPath, content => readIdeaNote(content)?.id, () => plugin.app.vault.getMarkdownFiles().filter(file => inFolder(file.path, this.folder)));
+    this.deletion = new VaultExampleCleanup(plugin, this.dataPath, content => readIdeaNote(content)?.id, () => plugin.app.vault.getMarkdownFiles().filter(file => inFolder(file.path, this.folder)), 'request');
   }
   previewExampleNotes(ids: readonly string[]): Promise<Record<string, string>> { return this.cleanup.preview(ids, id => this.file(id)); }
   exampleCleanupWarning(): string | undefined { return this.cleanup.warning; }
+  previewRequestNotes(ids: readonly string[]): Promise<Record<string, string>> { return this.deletion.preview(ids, id => this.file(id)); }
+  requestDeletionWarning(): string | undefined { return this.deletion.warning; }
+  private writing(path: string): boolean { return this.cleanup.writing.has(path) || this.deletion.writing.has(path) || this.commands.writing.has(path); }
 
   projectFile(id: string): TFile | null { return this.projects.file(id); }
   watchProjects(onChange: (change: ProjectNoteChange) => void, onInvalid: (path: string) => void): void { this.projects.watch(onChange, onInvalid); }
@@ -68,6 +73,7 @@ export class VaultStudioStorage implements StudioStorage {
     const adapter = this.plugin.app.vault.adapter;
     await protectPrivateData(this.plugin);
     await this.cleanup.recover();
+    await this.deletion.recover();
     await this.commands.recover();
     await this.economyReservations.validate();
     const data: PersistedStudio | null = await adapter.exists(this.dataPath) ? parsePersistedStudio(JSON.parse(await adapter.read(this.dataPath))) : null;
@@ -99,13 +105,14 @@ export class VaultStudioStorage implements StudioStorage {
   private async saveCanonical(next: InternalState, previous: InternalState | null, options: SaveOptions, writes: NoteWriteCommit): Promise<void> {
     this.economyReservations.assertReady();
     await this.cleanup.settleBeforeSave();
+    await this.deletion.settleBeforeSave();
     await this.commands.settleBeforeSave();
     const layout = validateFolderLayout(next.integration, [this.plugin.app.vault.configDir, ...this.privateFolders()]);
     this.assertNoteFoldersAvailable([layout.ideasFolder]);
     next.integration = { ...next.integration, ...layout };
     await protectPrivateData(this.plugin, layout);
     if (needsAtomicCommand(next, previous, options)) {
-      if (!previous || options.exampleCleanup || options.replaceAll || options.fromNotes?.length || options.fromProjects?.length || options.requestValuesEdit)
+      if (!previous || options.exampleCleanup || options.requestDeletion || options.replaceAll || options.fromNotes?.length || options.fromProjects?.length || options.requestValuesEdit)
         throw new Error("Atomic commands require a current canonical session without unrelated note or cleanup effects.");
       const plan = await planAtomicCommand({ plugin: this.plugin, next, previous, dataPath: this.dataPath,
         beforeData: JSON.stringify(this.persisted(previous), null, 2), afterData: JSON.stringify(this.persisted(next), null, 2),
@@ -115,16 +122,18 @@ export class VaultStudioStorage implements StudioStorage {
       for (const note of plan.notes) { this.paths.set(note.id, note.path); writes.record(note.path, note.after); }
       return;
     }
-    if (options.exampleCleanup) {
+    if (options.exampleCleanup || options.requestDeletion) {
       if (!previous || next.integration.ideasFolder !== this.folder || JSON.stringify(previous.projects) !== JSON.stringify(next.projects))
         throw new Error('Cleanup cannot change project notes or vault folders. Refresh the preview.');
       const removed = previous.ideas.filter(idea => !next.ideas.some(item => item.id === idea.id)).map(idea => idea.id);
-      const reviewed = Object.keys(options.exampleCleanup.notes);
+      const notes = (options.requestDeletion ?? options.exampleCleanup)!.notes;
+      const reviewed = Object.keys(notes);
       if (removed.length !== reviewed.length || removed.some(id => !reviewed.includes(id)) || next.ideas.some(idea => {
         const before = previous.ideas.find(item => item.id === idea.id);
         return !before || noteValues(before, before.authorId) !== noteValues(idea, idea.authorId);
       })) throw new Error('Cleanup targets changed. Refresh the preview before removing notes.');
-      await this.cleanup.remove(options.exampleCleanup.notes, id => this.file(id), JSON.stringify(this.persisted(next), null, 2));
+      if (options.requestDeletion && (removed.length !== 1 || options.exampleCleanup || options.replaceAll || options.fromNotes?.length || options.fromProjects?.length || options.requestValuesEdit)) throw new Error('Request deletion requires one reviewed target without unrelated note effects.');
+      await (options.requestDeletion ? this.deletion : this.cleanup).remove(notes, id => this.file(id), JSON.stringify(this.persisted(next), null, 2));
       for (const id of removed) this.paths.delete(id);
       return;
     }
@@ -162,7 +171,7 @@ export class VaultStudioStorage implements StudioStorage {
   watch(onChange: (change: ExternalNoteChange) => void, onInvalid: (path: string) => void): void {
     const { vault, metadataCache } = this.plugin.app;
     this.plugin.registerEvent(metadataCache.on('changed', file => {
-      if (this.cleanup.writing.has(file.path) || !vault.getFileByPath(file.path)) return;
+      if (this.writing(file.path) || !vault.getFileByPath(file.path)) return;
       if (!inFolder(file.path, this.folder)) return;
       const path = file.path;
       this.noteWrites.observe(path, async () => { const current = vault.getFileByPath(path); return current ? vault.read(current) : undefined; }, data => {
@@ -176,12 +185,12 @@ export class VaultStudioStorage implements StudioStorage {
       }, () => onInvalid(path));
     }));
     this.plugin.registerEvent(vault.on('delete', file => {
-      if (this.cleanup.writing.has(file.path) || this.commands.writing.has(file.path)) return;
+      if (this.writing(file.path)) return;
       this.noteWrites.forget(file.path);
       for (const [id, path] of this.paths) if (path === file.path) { this.paths.delete(id); onChange({ kind: 'remove', id }); }
     }));
     this.plugin.registerEvent(vault.on('rename', (file, oldPath) => {
-      if (this.cleanup.writing.has(file.path) || this.cleanup.writing.has(oldPath) || this.commands.writing.has(file.path) || this.commands.writing.has(oldPath)) return;
+      if (this.writing(file.path) || this.writing(oldPath)) return;
       this.noteWrites.forget(oldPath);
       for (const [id, path] of this.paths) {
         if (path !== oldPath) continue;

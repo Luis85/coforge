@@ -46,7 +46,7 @@ it("exposes the canonical project template library to the runtime UI and capture
       count: 1,
     });
     const source = workflowDefinition(project.settings);
-    const step = source.steps.find((item) => item.kind === "ai");
+    const step = source.steps.find((item) => item.kind === "ai" && item.output === 'rice');
     if (!step || step.kind !== "ai") throw new Error("AI step missing");
     await runtime.studio.saveWorkflow(
       project.id,

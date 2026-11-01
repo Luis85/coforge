@@ -21,8 +21,10 @@ import { agentConversationCheck } from './agent-conversation';
 import { agentSessionTraceCheck } from './agent-session';
 import { providerFailureInfoCheck } from './provider-failure';
 import { workflowVerificationProfileCheck } from './native-workflow-tools';
-import { workflowSourceHashCheck, workflowVerificationRecordsCheck, workflowVerificationRuntimeRecordsCheck } from './workflow-verification';
+import { workflowVerificationRecordsCheck, workflowVerificationRuntimeRecordsCheck } from './workflow-verification';
+import { incrementStateCheck as increment } from './increment-state';
 import { nativeWorkflowPrivateRuntimeCheck, nativeWorkflowProcessRecordCheck } from './native-workflow-process';
+import { deletedRequestsCheck } from './request-deletion';
 
 export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: string }>; lastRequests: Record<string, string>; chatRemovals?: import('./chat-removal').ChatRemovalHistory }
 /** Everything except the idea notes. Stored as one JSON file in the plugin folder. */
@@ -39,12 +41,6 @@ function dictionary<T>(item: Check<T>): Check<Record<string, T>> {
   return (value, path = '') => Object.fromEntries(Object.entries(record(value, path)).map(([key, entry]) => [key, item(entry, `${path}.${key}`)]));
 }
 
-const increment = shape({
-  verification: optional(workflowVerificationRecordsCheck), verificationSourceHash: optional(workflowSourceHashCheck),
-  snapshotHash: optional(text({ pattern: /^[a-f0-9]{64}$/u })),
-  summary: str, files: list(shape({ path: str, additions: number({ min: 0 }), deletions: number({ min: 0 }) })), tests: list(str), diff: str,
-  branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
-});
 const job: Check<AgentJob> = shape({
   failure: optional(providerFailureInfoCheck),
   sessionTrace: optional(agentSessionTraceCheck),
@@ -83,6 +79,7 @@ const integration: Check<IntegrationSettings> = shape({
   publicFolder: text({ min: 1 }), publicBoardEnabled: boolean,
 });
 const persisted: Check<PersistedStudio> = shape({
+  deletedRequests: optional(deletedRequestsCheck),
   workflowStopHolds: optional(list(text({ pattern: /^CF-\d{3,7}$/ }))),
   obsShow: optional(obsShowStateCheck),
   obsSetup: optional(obsSetupStateCheck),

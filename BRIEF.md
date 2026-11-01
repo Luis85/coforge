@@ -591,6 +591,26 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-11-01: the owner can delete feature requests from the private board,
+  including card menus, request details and table rows. Use a confirmation that
+  identifies the request. The recoverable default moves the original note to
+  trash according to Obsidian's configured deletion preference, with an exact
+  private recovery copy even if that preference deletes permanently. Retain private
+  execution/cost evidence and preserved code changes; deletion never stops an
+  agent or removes a worktree. Active work and unresolved recovery must settle
+  first. A changed request/note invalidates confirmation, and failed persistence
+  preserves or durably recovers the exact note. Restoring a note and reloading
+  CoForge restores retained votes/changes but requires review before execution resumes.
+
+- 2026-11-01: requests submitted by the streamer/owner do not require the
+  screening step. Studio-authored requests and requests from the verified
+  connected Twitch broadcaster proceed to scoring; viewer requests still need
+  screening. Record the owner exemption explicitly rather than claiming an AI
+  check ran. Owner edits to request fields retain the exemption while clearing
+  earlier scoring and planning. Viewer-added context or external note edits
+  invalidate the exemption.
+  Preserve scoring, planning, implementation permissions and final human review.
+
 - 2026-11-01: improve CoForge MCP as a practical task-execution interface, including
   coding. Authorized coding tasks should expose worktree context, bounded file
   discovery/reading/patching, command/test/build execution, managed background

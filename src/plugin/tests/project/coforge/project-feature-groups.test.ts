@@ -42,12 +42,12 @@ it('allows workspace changes during an active run without stopping or reconfigur
   const pending = new Promise<void>(resolve => { finish = resolve; });
   fixture.runner.mockImplementationOnce(async () => {
     await pending;
-    return { screening: { verdict: 'clear', reason: 'Reviewed fixture', signals: [], checkedAt: new Date().toISOString(), provider: 'demo' } };
+    return { rice: { reach: 10, impact: 1, confidence: 1, effort: 1, score: 10, rationale: 'Estimated fixture' } };
   });
   try {
     await fixture.studio.createIdea({ title: 'Keep processing this request', description: 'Visibility does not change background work.', category: 'Gameplay', username: 'Owner' });
     const idea = fixture.studio.state().ideas[0]!;
-    await fixture.studio.act(idea.id, 'screen');
+    await fixture.studio.act(idea.id, 'score');
     await expect.poll(() => fixture.runner.mock.calls.length).toBe(1);
     const before = fixture.studio.state();
     await fixture.studio.updateProject({ featureGroups: [] });
@@ -56,7 +56,7 @@ it('allows workspace changes during an active run without stopping or reconfigur
     expect(fixture.studio.state().runtime).toEqual(before.runtime);
     await expect(fixture.studio.updateProject({ featureGroups: [], agentPrompt: 'Change running configuration' })).rejects.toThrow();
     finish?.(); await fixture.studio.engine.waitUntilIdle();
-    expect(fixture.studio.state().ideas.find(item => item.id === idea.id)?.status).toBe('screened');
+    expect(fixture.studio.state().ideas.find(item => item.id === idea.id)?.status).toBe('ranked');
     expect(fixture.runner).toHaveBeenCalledTimes(1);
   } finally { finish?.(); await fixture.dispose(); }
 });

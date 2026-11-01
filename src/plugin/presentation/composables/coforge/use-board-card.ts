@@ -29,7 +29,7 @@ export function cardState(idea: Idea, job: AgentJob | undefined): CardState | nu
   }
   if (idea.status === 'review') return { tone: 'review', icon: 'circle-dot', label: 'Your review', spin: false };
   if (idea.status === 'shipped') return { tone: 'done', icon: 'check', label: 'Increment accepted', spin: false };
-  if (idea.status === 'screened') return { tone: 'done', icon: 'check', label: 'Screened', spin: false };
+  if (idea.status === 'screened') return { tone: 'done', icon: 'check', label: idea.screening?.provider === 'owner' ? 'Owner request' : 'Screened', spin: false };
   return null;
 }
 

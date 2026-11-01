@@ -43,11 +43,12 @@ export function assemble(loaded: LoadedStudio): InternalState {
     .map((note) => {
       if (ids.has(note.id)) throw new Error(`Two notes use the idea ID ${note.id}. Rename or remove one of them.`);
       ids.add(note.id);
-      const increment = data.increments[note.id];
+      const archived = [...(data.deletedRequests ?? [])].reverse().find(item => item.id === note.id && item.createdAt === note.createdAt && item.projectId === (note.projectId ?? INITIAL_PROJECT_ID));
+      const increment = data.increments[note.id] ?? (archived?.increment ? structuredClone(archived.increment) : undefined);
       const idea = {
         ...note,
         projectId: note.projectId ?? INITIAL_PROJECT_ID,
-        voters: [...new Set(data.votes[note.id] ?? [])],
+        voters: [...new Set(data.votes[note.id] ?? archived?.voters ?? [])],
         ...(increment ? { increment } : {}),
       };
       if (!note.projectId && integrity[note.id] === ideaFingerprint(note)) integrity[note.id] = ideaFingerprint(idea);

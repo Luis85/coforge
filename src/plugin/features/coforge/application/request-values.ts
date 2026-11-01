@@ -7,6 +7,7 @@ import {
   requestObjectValuesCheck,
 } from "../domain/request-object";
 import { requestObjectEditIdentity } from "../domain/request-object-integrity";
+import { ownerScreeningExempt } from '../domain/owner-screening';
 
 export async function updateRequestValues(
   store: StudioStore,
@@ -50,13 +51,17 @@ export async function updateRequestValues(
       )
         return;
       idea.requestObject = next;
+      const ownerScreening = ownerScreeningExempt(idea) ? idea.screening : undefined;
       quarantine(idea);
-      idea.lastError =
-        "Request fields changed. Screen the complete request again before further agent work.";
+      if (ownerScreening) {
+        idea.status = 'screened';
+        idea.screening = { ...ownerScreening, checkedAt: idea.updatedAt };
+        delete idea.lastError;
+      } else idea.lastError = "Request fields changed. Screen the complete request again before further agent work.";
       addEvent(
         state,
         "idea",
-        `${idea.id} request fields changed; screening is required again.`,
+        `${idea.id} request fields changed; ${ownerScreening ? 'owner screening exemption retained' : 'screening is required again'}.`,
         idea.id,
       );
     },

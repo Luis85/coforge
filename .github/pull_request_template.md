@@ -1,33 +1,70 @@
 ## Summary
 
-New implementation-authorized workflow attempts can code and run project checks in their dedicated Git worktree using normal native tools and provider-owned subagents, without a Docker recipe. Existing admitted attempts retain their captured permissions and legacy verification.
+Owner submissions from the studio or verified connected Twitch broadcaster skip screening. Viewer intake still screens. Configured runs record an honest skip without a provider job or charge, retain explicit screening input evidence, and show the first step that will actually execute. Captured runs keep their saved policy; viewer context and external edits revoke the exemption.
 
-MCP coding tasks gain dependency-file edits, optimistic patches/moves, managed commands, stable replay-safe keys, command discovery/polling/cancellation, generated image inspection, captured diffs and compact request status. Internet research is explicitly allowed: Codex live search/workspace networking, Claude native web research tools, and MCP commands through normal desktop connectivity.
+Add Delete request to private card menus, detail headers and table rows. Confirmation identifies the request and project, initially focuses Keep request, and moves the original using Obsidian's deletion preference. An exact private recovery copy, proposal/results, votes, execution and cost evidence remain available. Active work and unresolved recovery block deletion; worktrees and code are retained.
 
-Windows process jobs own SDK/command descendants before input is released. Completion, cancellation, owner loss and recovery require original lifetime proof before release. Unknown ownership retains quarantine and skips moving-workspace capture. Safe failure details and known cumulative usage survive interrupted native continuations. Private ownership references and credentials stay out of model-facing replies.
+## Requirements and traceability
 
-The UI distinguishes ordinary native/MCP coding from legacy Docker evidence. Instructions preserve branch/HEAD and leave edits uncommitted for host capture. Human acceptance remains in Obsidian.
+Owner decisions recorded in BRIEF.md on 2026-11-01. The design scaffold declares no req-* entries; no generated vi-* obligations changed. Plans: docs/project-tasks/2026-11-01-board-request-deletion.md and docs/project-tasks/2026-11-01-worker-session-journal.md.
 
-## Traceability
+## Validation: actual results
 
-Owner decisions: BRIEF.md. Task: docs/project-tasks/2026-11-01-native-worktree-coding-and-mcp.md. No requirement or vi-* entries exist for this increment; none are invented or marked implemented. CF-133 guard/failure/cost changes shipped separately in PR #65.
+- Final focused product batch: 12 files passed, 64 tests passed. Separate atomic-command batch: 4 files passed, 20 tests passed.
+- Owner red/green coverage: trusted entrypoints, real Twitch adapter ID prefix, display-name impersonation, explicit screening inputs, skipped/unavailable providers/CoWorkers/templates, empty screening-only runs, viewer context, forged Inbox/Flagged owner metadata, field edits, canonical persistence and final-review gating.
+- Deletion red/green coverage: exact target and stale previews, active work, failed data commits, exact note bytes/name, retained history/native and Herdr cost attribution, interrupted preparation/committed recovery, trash failure, immutable restored evidence, private projection exclusion, recovery-journal exclusion and valid legacy increments.
+- npm run typecheck:project: exit 0 on current source. The canonical increment validator was extracted unchanged for use by both active and retired evidence; strict provider-output contracts remain unchanged.
+- Changed-source lint: status passed, 51 owned files; explicit-config ESLint including changed native specs: exit 0, zero warnings. The full gate also passed whole-source lint and ESLint.
+- npm run test:ui-quality: 8 passed (57.6s). npm run ui:gallery: 40 screenshots captured and reviewed on current source, including both themes and widths. No baselines were accepted or changed. Fresh native deletion captures were reviewed in light and narrow dark layouts.
+- npm run test:obsidian: final complete rerun passed all 57 files and 66 tests (858.85s), with 0 failures and 0 skips. Includes owner screening, recoverable deletion, Sessions/Peek, original-worker survival across real host quit/reconnect and plugin lifecycle. Earlier owner fixtures were updated to execute Score and verify the skip; the screening-conversation fixture uses actual viewer intake.
+- The preceding native run had 65 passes and one launcher failure before plugin launch (Database is not open). Teardown verified the process stopped and scratch cleaned; the entire suite was then rerun in a fresh process, producing the complete green result above. No retries were added to tests and no assertion was relaxed.
+- Native deletion proves cancellation leaves exact bytes unchanged, Keep receives focus, only the selected card disappears, local trash retains the original note and reload does not resurrect it. Card-menu closure now releases its focus scope before opening the confirmation.
+- npm run -s dev:obsidian -- --json --port 9335: final source rerun passed with errors [], hostErrorCount 0 and pluginConsole []; pinned Obsidian 1.14.4 / launcher 3.2.1, build 25,722ms and reload 666ms. The screenshot, latest dev.log session and debug report were reviewed; the contained session ended complete.
+- npm run verify:project: passed, including all 5 check steps, complete production build (2,142 modules) and 1 prototype-embedding test. UI-effect checks are explicitly skipped by the repository script because no visual definitions are declared.
+- Code-line limits and locale parity: passed, 3,861 inputs and 226 translated keys. git diff --check passed.
 
-## Validation
+## Worker-session fix and current full verification
 
-- Initial local npm run verify:project: typecheck/source/maker gates passed; one fixture ESLint error and a 30-minute product-test timeout failed. The missing await and stale disclosure assertion are corrected with focused rechecks passing; a frozen full product rerun is in progress. Pinned CI on 17563e91 passes all 2,227 product tests and the complete canonical project gate. A frozen local full product rerun also passes 2,221 tests with six existing platform skips and zero JUnit errors (553 files, 1,842.76s); this exceeds the original local 30-minute gate deadline. Final immutable-head results are tracked on PR #66 before merge.
-- Real Windows production-controller suite: 14 passed, zero skipped, 23.19s. Native identity uses fixed Win32 queries in the owned backend; stored PID/birth/image semantics and Unicode fingerprints are unchanged, and legacy callers retain their behavior. Covers owner loss, startup capture failure, descendants, quoted paths/arguments, exit 7, MCP replay/settlement and a durable Claude continuation.
-- Installed Claude 2.1.281 and Codex 0.145: actual native child/files/passing shell/root result/captured diff/known job quiescence passed. Final native-identity requalification: Claude 8 local fake API requests/16.586s; live-search Codex 5 requests/9.616s; global/project instructions, skills and network marker observed. Zero real model calls.
-- Production MCP external HTTPS probe: official TypeScript documentation, HTTP 200, complete response, actual exit 0 and confirmed quiescence. Public internet is not a deterministic CI dependency.
-- Focused MCP readiness/module/runner: 26 passed, including a delayed-workspace TASK_NOT_READY regression. A full authenticated five-step HTTP MCP qualification also passes real npm checks, physical replay prevention, patches, artifact/diff inspection and submission to human review with zero model calls. Focused command/runner/workflow discovery: 21 passed. Image/server/path boundary: 32 passed, including real VP8/VP8L/VP8X and malformed/oversized artifacts. Journal byte-budget regressions: 7 passed. Native integration: 11 suites, 40 passed; research flags/guidance: 5 passed.
-- Final research-copy UI quality: 8 passed; refreshed gallery: 40 captures, zero failures, all reviewed. Final contained pinned Obsidian authoring/evidence: 2 passed, 35.79s; 12 captures reviewed. Fresh load/reload: status passed, errors [], pluginConsole [], hostErrorCount 0 on Obsidian 1.14.4 / launcher 3.2.1; hosts stopped. The prior full browser and real-Obsidian CI runs also passed.
-- Whole TypeScript and scoped zero-warning ESLint/source checks passed. Independent release review identified unknown-lifetime moving capture; stronger regressions failed before its fix and now pass.
+Diagnostics reproduced EPERM during an authoritative record.json write. Atomic replacement now retries EPERM/EACCES/EBUSY at most five times with 160ms total backoff. Every attempt revalidates the directory, destination and staged-file identity; replaced/removed targets, linked staging and permanent denial still fail closed. No test retry or timeout relaxation was added.
 
-## Boundaries and untested scope
+Session observations now persist to a bounded, identity-bound session-trace.json sidecar. They no longer rewrite the control file or increment its acknowledgement sequence. Corrupt/foreign observation files are ignored, valid legacy embedded observations remain readable, and live projection works at an unchanged control sequence. Late observations cannot reclaim acknowledged Build capacity. Authoritative storage failures still quarantine execution.
 
-Windows lifetime is locally qualified under a normal nonadmin account. The owned backend now obtains its original process identity using the controller's native Win32 primitives, avoiding the hosted PowerShell startup dependency without changing permissions, timeouts or quiescence requirements. Hosted diagnostics identified compiler DLL initialization failure 0xC0000142 under the restricted CI process. A local causal probe reproduces this with an admin-only default object DACL on a NEW restricted token, then restores Node/CLR startup using same-user/SYSTEM access. The simplified test-only launcher normalizes only that NEW token's DefaultDACL, uses the normal desktop, and retains medium-integrity/admin-disabled readbacks. It changes no original token or global object permissions. Unnecessary owner changes and private desktop resources were removed after the hosted causal probe. Normal-user fresh-cache qualification passes 11/11 locally; the hosted administrator-parent launcher branch still requires actual CI proof. Unsupported platforms fail explicitly without an unowned fallback. A worktree is not an OS sandbox; desktop/provider permissions, proxy, certificates and site policies apply. Research allowance is not evidence that a site was reached. SDK observations/exit codes are not independent coverage, source-freshness proof or human acceptance.
+The previously failing case passed 1,000 stress repetitions after the fix. Focused worker/recovery/client/protection checks passed 35 tests across 8 files. New regressions were observed failing before implementation.
 
-Existing CLI authentication/global context stays in place; no OAuth copy, global provider install, administrative setup or permissive fallback. External MCP model cost remains unavailable. No live CF-133 attempt or personal vault was inspected, retried or changed; the historical empty-log failure cannot be reconstructed.
+The latest npm run verify:project passed: all 5 check steps passed, 0 failed, 0 skipped in 1,979.1s. The complete product suite passed all 536 files: 2,137 passed, 0 failed and 6 existing skips (2,143 cases). Production build and prototype embedding then passed. Complete host, UI quality, gallery and smoke qualification also passed sequentially on the same source. Exact current evidence is saved in reports/worker-session-final/.
 
-Local Node is 24.20.0; CI uses repository pins. The inherited broad compiler-test module lacks a baseline feature-showcase fixture; the standalone disclosure-emitter regression passes and generated/emitted keyboard specs are synchronized. No skipped test is claimed as acceptance.
+## Self-review
 
-Ignored evidence: reports/native-worktree-coding/, reports/native-process/, reports/ui-gallery/ and contained .nq/ fixtures. No reports, screenshots, dist, native caches, private data or compiled controller binaries are committed.
+The exemption comes from trusted studio intake or connected broadcaster/channel IDs, never a display name. Owner metadata participates in integrity checks even on Inbox/Flagged notes. Editable workflow definitions cannot grant the exemption or implementation rights. Normal output validation, worktree permissions, uncertainty recovery and final human acceptance remain enforced.
+
+Deletion binds state plus whole-note fingerprints, rechecks readiness, preserves command receipts and archives only the confirmed request. Its separate private removal journal rolls back pre-commit interruption and finishes committed removal. Recovery evidence cannot be overwritten by a second deletion. A verified raw recovery copy precedes Obsidian's configured deletion operation. Retired metadata is excluded from public/model projections; restoring a note and reloading joins retained votes/changes and holds execution for review. No dependencies, lint rules, thresholds or screenshots were weakened.
+
+## Evidence and untested scope
+
+Ignored evidence: reports/ui-gallery/, reports/obsidian/ and .obsidian-sandbox/logs/. Original note-path mappings and recovery copies live under CoForge/Recovery/RequestDeletion in the user's vault when this action is used. Qualification used no personal vault, live Twitch mutation, paid provider inference, actual game build or release.
+
+Local Node is 24.20.0; .nvmrc pins 24.21.0. The full product suite reports 6 existing skips; no new skipped or TODO tests were added. All required current-source gates passed. No dependencies, test thresholds, host guards or screenshot baselines were changed to obtain these results.
+
+## Integration with current main
+
+After local qualification, main advanced through PR #65 (3c757207). Its committed
+note-write trust, typed failure evidence and request AI costs are retained. Merge
+resolutions preserve both owner integrity metadata and normalized note inputs,
+both save-option contracts, and deletion-event suppression around the new committed
+write observer. The local full results above precede this integration; combined
+source focused checks passed 67 cases across 13 files after updating two integrity
+fixtures to distinguish the original owner exemption from an uncommitted demo
+screening write. The 10-case integrity file passed in full; no failed-write or
+external-edit assertion was removed. Combined-source typecheck passed. Complete
+GitHub check/browser/native jobs must pass before merge.
+
+PR #67 passed all five GitHub checks on cd2b1f78: canonical product/build/install
+gate (544 files, 2,180 tests passed, zero failures/skips), browser journeys and UI
+quality (246 passed), real Obsidian (59 files, 68 passed plus clean smoke), actual
+workflow isolation and GitGuardian. All 40 CI gallery captures were generated.
+
+Before merge, main advanced again through PR #66 (d1cda4d8). Its native worktree
+coding/MCP contracts and Windows lifetime verification are retained. The worker
+merge checks the new provider lifetime identity before loading optional session
+observations; both contracts remain separate. The combined source is being
+requalified, including the newly added Windows lifetime CI job, before merge.

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBoardView } from '../../composables/coforge/use-board';
 import CfIcon from './CfIcon.vue';
+import RequestDeleteButton from './RequestDeleteButton.vue';
 
 const model = useBoardView();
 </script>
@@ -14,7 +15,7 @@ const model = useBoardView();
           <th>Status</th>
           <th>Votes</th>
           <th>RICE</th>
-          <th><span class="cf-sr-only">Open</span></th>
+          <th><span class="cf-sr-only">Request actions</span></th>
         </tr>
       </thead>
       <tbody>
@@ -30,9 +31,12 @@ const model = useBoardView();
           <td class="cf-mono">{{ row.votes }}</td>
           <td class="cf-mono">{{ row.rice }}</td>
           <td>
+            <div class="cf-table-request-actions">
+            <RequestDeleteButton :idea-id="row.id" icon-only />
             <button type="button" class="cf-icon-button" :aria-label="`Open ${row.id}`" @click="model.open(row.id)">
               <CfIcon name="arrow-up-right" />
             </button>
+            </div>
           </td>
         </tr>
       </tbody>

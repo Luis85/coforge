@@ -3,7 +3,7 @@ import {
   councilIdeaAssessmentIssue,
   councilIdeaRevision,
 } from "../../../features/coforge/application/council-linked-idea";
-import { computed, reactive, ref, shallowRef } from "vue";
+import { computed, nextTick, reactive, ref, shallowRef } from "vue";
 import type { ContextMenuItem } from "@nuxt/ui";
 import {
   STATUS_LABELS,
@@ -20,6 +20,8 @@ import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
 import { useWorkflowStopControls } from './use-workflow-stop-controls';
 import { usePolishingUiStore } from '../../stores/coforge-polishing-ui';
+import { useRequestDeletionUiStore } from '../../stores/coforge-request-deletion';
+import { requestDeletionProblem } from '../../../features/coforge/application/request-deletion';
 const elementNode = (value: unknown): value is HTMLElement =>
   Boolean(
     value &&
@@ -35,6 +37,14 @@ export function useIdeaCardMenu(
   const store = useStudioStore();
   const actions = useStudioActions();
   const polishing = usePolishingUiStore();
+  const deletion = useRequestDeletionUiStore();
+  const pendingDeletion = shallowRef<{ id: string; trigger: HTMLElement | null } | null>(null);
+  const afterMenuClose = (event: Event) => {
+    const target = pendingDeletion.value;
+    if (!target) { if (deletion.isOpen || polishing.isOpen) event.preventDefault(); return; }
+    event.preventDefault(); pendingDeletion.value = null;
+    void nextTick(() => deletion.open(target.id, target.trigger));
+  };
   const councilDraft = useCouncilIdeaDraft();
   const reviewedCouncil = ref("");
   const reviewed = ref("");
@@ -244,6 +254,10 @@ export function useIdeaCardMenu(
           onSelect: openWorkflow,
         },
       ]);
+    const deleteProblem = store.state ? requestDeletionProblem(store.state, idea) : 'Request unavailable.';
+    groups.push([{ label: 'Delete request…', icon: 'i-lucide-trash-2', color: 'error', disabled: store.busy || !!deleteProblem,
+      description: deleteProblem || 'Remove from the board; keep a private recovery copy and history.',
+      onSelect: () => { if (!store.busy && !deleteProblem) { pendingDeletion.value = { id: idea.id, trigger: cardElement.value }; contextOpen.value = false; dropdownOpen.value = false; } } }]);
     return groups;
   });
   return reactive({
@@ -252,12 +266,14 @@ export function useIdeaCardMenu(
     contextOpen,
     dropdownOpen,
     contextContent: computed(() => ({
+      onCloseAutoFocus: afterMenuClose,
       collisionBoundary: portal.value || undefined,
       collisionPadding: 12,
       avoidCollisions: true,
       "aria-label": `Actions for ${props.idea.id}`,
     })),
     dropdownContent: computed(() => ({
+      onCloseAutoFocus: afterMenuClose,
       collisionBoundary: portal.value || undefined,
       align: "end" as const,
       collisionPadding: 12,

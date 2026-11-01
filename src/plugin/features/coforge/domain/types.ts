@@ -10,7 +10,7 @@ export type ContributorColor = 'purple' | 'orange' | 'green' | 'yellow' | 'blue'
 export const CONTRIBUTOR_COLORS: readonly ContributorColor[] = ['purple', 'orange', 'green', 'yellow', 'blue', 'pink', 'cyan', 'red'];
 
 export interface RiceScore { reach: number; impact: number; confidence: number; effort: number; score: number; rationale: string }
-export interface Screening { verdict: 'clear' | 'flagged'; reason: string; signals: string[]; checkedAt: string; provider: ExecutionProvider }
+export interface Screening { verdict: 'clear' | 'flagged'; reason: string; signals: string[]; checkedAt: string; provider: ExecutionProvider | 'owner' }
 export interface ImplementationPlan { summary: string; steps: string[]; acceptanceCriteria: string[]; risks: string[]; markdown: string; createdAt: string }
 export interface FileChange { path: string; additions: number; deletions: number }
 export interface Increment {
@@ -104,6 +104,8 @@ export interface StudioProject {
   unavailable?: boolean;
 }
 export interface AppState {
+  /** Private historical evidence for explicitly deleted board requests; never public/model context. */
+  deletedRequests?: import('./request-deletion').DeletedRequest[];
   /** Durable operator stop policy; only the host's explicit Restart control releases an ID. */
   workflowStopHolds?: string[];
   obsShow?: import('./obs-show').ObsShowState;

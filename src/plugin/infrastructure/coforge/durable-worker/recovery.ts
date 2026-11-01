@@ -11,6 +11,7 @@ import { workerWorkspaces } from './workspaces';
 import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
 import { recoverWorkerVerification } from './verification-recovery';
 import { recoverWorkerNativeRuntime } from './native-runtime';
+import { readWorkerSession } from './session-journal';
 
 export interface RecoveryProofDriver {
   read(pid: number): Promise<NativeProcessIdentity | undefined>;
@@ -26,6 +27,7 @@ export async function retainedJob(files: WorkerFiles, ref: DurableBuildRef) {
   const request = workerRequestCheck(await jobFiles.read('input.json')); const record = workerRecordCheck(await jobFiles.read('record.json'));
   if (!sameDurableBuildRef(record.snapshot.ref, checked) || checked.inputHash !== inputHash(request)) throw new Error('The retained original Build identity changed.');
   if (record.nativeRuntime && (record.nativeRuntime.runId !== request.runId || record.nativeRuntime.attemptId !== request.attemptId || record.nativeRuntime.projectId !== request.projectId)) throw new Error('Retained private native authorization identity changed.');
+  record.snapshot.sessionTrace = await readWorkerSession(jobFiles, record.snapshot.ref, record.snapshot.sessionTrace);
   return { request, record, files: jobFiles };
 }
 export async function supervisorGone(files: WorkerFiles, ref: DurableBuildRef, driver = nativeProof): Promise<boolean> {
