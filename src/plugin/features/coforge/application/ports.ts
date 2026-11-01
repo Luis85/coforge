@@ -61,6 +61,8 @@ export interface ManagedNoteFolderPolicy {
   reserve(folders: readonly string[]): () => void;
 }
 export interface StudioHost {
+  polishingCode?: import('./polishing-ports').PolishingCodePort;
+  backgroundBuildRetries?: import('./background-build-retry-ports').BackgroundBuildRetryPort;
   durableBuilds?: import('./durable-build-ports').DurableBuildPort;
   outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
   agentTasks?: import('./agent-task').AgentTaskPort;

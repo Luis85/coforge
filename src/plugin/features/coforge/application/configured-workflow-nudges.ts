@@ -6,11 +6,14 @@ import type { WorkflowRun } from '../domain/configured-workflow-run';
 import { workflowProposalRevision } from '../domain/configured-workflow-run';
 import { configuredInputs, configuredIdea } from './configured-workflow-policy';
 import { recordOperation } from './population';
+import { effectivePolishingIdea } from './polishing-amendments';
+import { workflowRunSaveOptions } from './polishing-save-options';
 const time = () => new Date().toISOString();
 function touch(run: WorkflowRun) { run.revision++; run.updatedAt = time(); }
 
 /** A nudge admits an independent agent task; it never invents an AI output or waits for child completion. */
 export class ConfiguredWorkflowNudges {
+  private transaction<T>(ideaId: string, mutate: (state: InternalState) => T | Promise<T>): Promise<T> { const idea = this.store.internalSnapshot().ideas.find(item => item.id === ideaId); return this.store.transaction(mutate, workflowRunSaveOptions(idea?.workflowRun, idea)); }
   private readonly active = new Map<string, { controller: AbortController; promise: Promise<void> }>();
   constructor(private readonly store: StudioStore, private readonly port: AgentTaskPort | undefined, private readonly advance: (state: InternalState, ideaId: string) => void) {}
   busy(ideaId: string): boolean { return this.active.has(ideaId); }
@@ -18,7 +21,7 @@ export class ConfiguredWorkflowNudges {
     if (!this.port) throw new Error('Agent-task nudges are unavailable in this host.');
     const idea = configuredIdea(state, ideaId); const run = idea.workflowRun!;
     if (run.attempts.some(uncertainTaskAttempt)) throw new Error('Inspect and acknowledge the uncertain task outcome before starting a fresh attempt.');
-    const inputs = configuredInputs(run, step);
+    const inputs = configuredInputs(run, step, idea.workflowHistory, idea);
     const id = crypto.randomUUID();
     run.attempts.push({ id, stepId: step.id, stepName: step.name, kind: 'nudge', status: 'queued', inputs: inputs.map(input => input.id), startedAt: time() });
     run.activeAttemptId = id; run.state = 'running'; touch(run);
@@ -30,7 +33,7 @@ export class ConfiguredWorkflowNudges {
     if (!run?.attempts.some(attempt => attempt.id === run.activeAttemptId && attempt.kind === 'nudge' && attempt.status === 'queued')) return Promise.resolve();
     const controller = new AbortController();
     const promise = this.dispatch(ideaId, controller).catch(async () => {
-      await this.store.transaction(state => {
+      await this.transaction(ideaId, state => {
         const idea = state.ideas.find(idea => idea.id === ideaId); const current = idea?.workflowRun;
         const attempt = current?.attempts.find(attempt => attempt.id === current.activeAttemptId);
         if (!idea || !current || attempt?.kind !== 'nudge') return;
@@ -41,14 +44,15 @@ export class ConfiguredWorkflowNudges {
     this.active.set(ideaId, { controller, promise }); return promise;
   }
   private async dispatch(ideaId: string, controller: AbortController): Promise<void> {
-    const input = await this.store.transaction(state => {
+    const input = await this.transaction(ideaId, state => {
       const idea = state.ideas.find(idea => idea.id === ideaId); const run = idea?.workflowRun;
       const attempt = run?.attempts.find(attempt => attempt.id === run.activeAttemptId); const step = run?.definition.steps[run.cursor];
       if (!idea || !run || run.state !== 'running' || !attempt || attempt.kind !== 'nudge' || attempt.status !== 'queued' || step?.kind !== 'nudge') return null;
       if (workflowProposalRevision(idea) !== run.proposalRevision) throw new Error('The request changed before the nudge could start.');
       controller.signal.throwIfAborted();
       attempt.status = 'running'; attempt.nudgeState = 'reserved'; attempt.nudgeSourcePath = `CoForge/Automations/nudge-${attempt.id}.md`; touch(run);
-      const context = JSON.stringify({ untrustedRequest: { id: idea.id, projectId: run.projectId, title: idea.title, description: idea.description }, boundArtifacts: configuredInputs(run, step) });
+      const effective = effectivePolishingIdea(idea);
+      const context = JSON.stringify({ untrustedRequest: { id: idea.id, projectId: run.projectId, title: effective.title, description: effective.description }, boundArtifacts: configuredInputs(run, step, idea.workflowHistory, idea) });
       if (context.length > 60000) throw new Error('The complete nudge context exceeds 60000 characters. Reduce its selected input roles.');
       return { projectId: run.projectId, ideaId, workflowRunId: run.id, attemptId: attempt.id, stepId: step.id, teamId: step.teamId, agentId: step.agentId,
         prompt: step.instructions, context, sourcePath: attempt.nudgeSourcePath, limits: { timeoutSeconds: run.definition.limits.timeoutSeconds, maxTurns: run.definition.limits.maxTurns, maxBudgetUsd: run.definition.limits.maxBudgetUsd },
@@ -61,7 +65,7 @@ export class ConfiguredWorkflowNudges {
       receipt = await this.port.create(input);
       if (controller.signal.aborted) await this.port.cancel?.(receipt.runId);
     } catch {
-      await this.store.transaction(state => {
+      await this.transaction(ideaId, state => {
         const idea = state.ideas.find(idea => idea.id === ideaId); const run = idea?.workflowRun;
         if (!idea || run?.id !== input.workflowRunId) return;
         const attempt = run.attempts.find(attempt => attempt.id === input.attemptId)!;
@@ -73,7 +77,7 @@ export class ConfiguredWorkflowNudges {
       }); return;
     }
     const confirmed = receipt;
-    await this.store.transaction(state => {
+    await this.transaction(ideaId, state => {
       const idea = state.ideas.find(idea => idea.id === ideaId); const run = idea?.workflowRun;
       if (!idea || run?.id !== input.workflowRunId || !confirmed) return;
       const attempt = run.attempts.find(attempt => attempt.id === input.attemptId)!;
@@ -90,7 +94,7 @@ export class ConfiguredWorkflowNudges {
     if (nextAttempt?.kind === 'nudge' && nextAttempt.status === 'queued') await this.dispatch(ideaId, controller);
   }
   acknowledge(ideaId: string, revision: number, consent: boolean): Promise<void> {
-    return this.store.transaction(state => {
+    return this.transaction(ideaId, state => {
       if (!consent) throw new Error('Explicit recovery acknowledgement is required.');
       const idea = state.ideas.find(item => item.id === ideaId); const run = idea?.workflowRun;
       if (!idea || !run || run.revision !== revision || !['attention', 'stopped', 'awaiting-review', 'finished'].includes(run.state) || this.busy(ideaId)) throw new Error('The workflow changed. Refresh before acknowledging recovery.');

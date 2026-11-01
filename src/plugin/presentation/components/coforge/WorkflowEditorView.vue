@@ -9,6 +9,7 @@ import WorkflowOutputTemplates from "./WorkflowOutputTemplates.vue";
 import WorkflowValidationSummary from "./WorkflowValidationSummary.vue";
 import WorkflowLibraryPicker from './WorkflowLibraryPicker.vue';
 import WorkflowStartupMode from './WorkflowStartupMode.vue';
+import WorkflowPolishingPassSettings from './WorkflowPolishingPassSettings.vue';
 import type { WorkflowPage } from '../../stores/studio-pages';
 import { useWorkflowEditorPane } from '../../composables/coforge/use-workflow-editor-pane';
 const props = withDefaults(defineProps<{ embedded?: boolean; pane?: WorkflowPage }>(), { embedded: false });
@@ -105,6 +106,7 @@ const openEventTriggers = useEventTriggerLink();
         </div>
         <WorkflowLibraryPicker />
         <WorkflowStartupMode />
+        <WorkflowPolishingPassSettings />
         <label class="cf-field"
           ><span>Workflow name</span
           ><input
@@ -148,6 +150,7 @@ const openEventTriggers = useEventTriggerLink();
               Existing runs retain their captured definition. New runs use your
               saved steps.
             </p>
+            <p v-if="model.pendingProjectChanges" class="cf-settings-help">Active main workflows and Improve &amp; polish passes keep their captured settings. This save changes future invocations; project-wide repository changes remain blocked until that work is settled.</p>
           </div>
           <div class="cf-settings-actions">
             <button

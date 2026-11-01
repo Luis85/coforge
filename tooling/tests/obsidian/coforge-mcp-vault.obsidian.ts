@@ -8,9 +8,15 @@ describe('CoForge vault MCP in contained Obsidian', () => {
     const configDir = await obsidian.eval(({ app }) => app.vault.configDir);
     const directory = join(obsidian.vaultPath, configDir, 'plugins', obsidian.pluginId);
     const descriptor = join(directory, 'coforge-mcp-connection.json');
+    const connectionCheck = (raw: unknown): { endpoint: string; token: string } => {
+      if (!raw || typeof raw !== 'object' || !('endpoint' in raw) || !('token' in raw) || typeof raw.endpoint !== 'string' || typeof raw.token !== 'string') throw new Error('Missing contained MCP connection');
+      return { endpoint: raw.endpoint, token: raw.token };
+    };
     await expect.poll(async () => {
       try { await readFile(descriptor, 'utf8'); return true; } catch { return false; }
     }).toBe(true);
+    await obsidian.disablePlugin();
+    await expect.poll(async () => connectionCheck(JSON.parse(await readFile(descriptor, 'utf8'))).token.length).toBe(0);
     // Restore only a scratch-vault registration journal. Never activate MCP against
     // the operator's user settings or invoke the globally installed Obsidian CLI.
     const clientPath = join(obsidian.vaultPath, 'contained-client.json');
@@ -20,13 +26,16 @@ describe('CoForge vault MCP in contained Obsidian', () => {
         entry: { command: 'node', args: [join(directory, 'coforge-mcp-bridge.cjs'), descriptor] },
       },
     }));
-    await obsidian.reloadPlugin();
-    const connectionCheck = (raw: unknown): { endpoint: string; token: string } => {
-      if (!raw || typeof raw !== 'object' || !('endpoint' in raw) || !('token' in raw) || typeof raw.endpoint !== 'string' || typeof raw.token !== 'string') throw new Error('Missing contained MCP connection');
-      return { endpoint: raw.endpoint, token: raw.token };
-    };
+    await obsidian.enablePlugin();
     await expect.poll(async () => connectionCheck(JSON.parse(await readFile(descriptor, 'utf8'))).token.length).toBeGreaterThan(0);
-    const connection = connectionCheck(JSON.parse(await readFile(descriptor, 'utf8')));
+    let connection = connectionCheck(JSON.parse(await readFile(descriptor, 'utf8')));
+    const initialToken = connection.token;
+    await obsidian.reloadPlugin();
+    await expect.poll(async () => {
+      const next = connectionCheck(JSON.parse(await readFile(descriptor, 'utf8')));
+      return next.token.length > 0 && next.token !== initialToken;
+    }).toBe(true);
+    connection = connectionCheck(JSON.parse(await readFile(descriptor, 'utf8')));
     const rpc = async (method: string, params: object = {}) => {
       const response = await fetch(connection.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${connection.token}` },
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }) });
@@ -45,6 +54,8 @@ describe('CoForge vault MCP in contained Obsidian', () => {
     expect(await readFile(join(obsidian.vaultPath, 'Assistant Notes', '.gitignore'), 'utf8')).toContain('CoForge Council private data');
     await expect(readFile(clientPath, 'utf8')).rejects.toThrow();
     await expect(readFile(join(obsidian.vaultPath, '.mcp.json'), 'utf8')).rejects.toThrow();
+    await obsidian.disablePlugin();
+    await expect.poll(async () => connectionCheck(JSON.parse(await readFile(descriptor, 'utf8'))).token.length).toBe(0);
     expect(obsidian.errors()).toEqual([]);
   });
 });

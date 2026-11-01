@@ -22,6 +22,16 @@ import { DurableBuildCoordinator } from './durable-build-coordinator';
 import { DurableBuildCapacityError, type DurableBuildPort } from './durable-build-ports';
 import { WorkflowJobLanes, workerBackedJob } from './workflow-job-lanes';
 import { inspectDurableBuildEvidence, recoverDurableBuild } from './durable-build-recovery';
+import { BackgroundBuildRetries } from './background-build-retry';
+import type { BackgroundBuildRetryPort } from './background-build-retry-ports';
+import type { BackgroundBuildRetryConsent } from '../domain/background-build-retry';
+import { PolishingPasses } from './polishing-passes';
+import type { PolishingCodePort } from './polishing-ports';
+import { applyPolishingResult, rejectPolishingResult, holdPolishingRun } from './polishing-review';
+import { assertPolishingMetadata, assertPolishingResolved } from './workflow-run-owner';
+import { polishingSaveOptions, workflowRunSaveOptions } from './polishing-save-options';
+import { effectivePolishingIdea } from './polishing-amendments';
+import { HostOperationLifetime } from './host-operation-lifetime';
 
 function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
   const project = findProject(state, projectId);
@@ -77,13 +87,16 @@ function applyResult(state: InternalState, job: AgentJob, result: StageResult): 
   addEvent(state, 'agent', `${STAGE_LABELS[job.stage]} finished for ${idea.id}${job.provider === 'demo' ? ' (demo)' : ''}. ${idea.status === 'review' ? 'Streamer review required.' : ''}`.trim(), idea.id);
 }
 
-export interface EngineOptions { durableBuilds?: DurableBuildPort; outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
+export interface EngineOptions { polishingCode?: PolishingCodePort; backgroundBuildRetries?: BackgroundBuildRetryPort; durableBuilds?: DurableBuildPort; outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions; agentTasks?: AgentTaskPort; runners: { demo: StageRunner; claude: StageRunner; codex?: StageRunner; herdr?: StageRunner; mcp?: StageRunner }; timers: Timers; onError?: (error: Error) => void; assertWorkflowReviewable?: (workspaceId: string, expectedIncrement: Increment) => Promise<void> }
 
 /** Vault-wide Build and short-task pools with bounded FIFO queues and explicit cancellation. */
 export class WorkflowEngine {
   private readonly configured: ConfiguredWorkflowEngine;
   private readonly lanes: WorkflowJobLanes;
   private readonly durable: DurableBuildCoordinator;
+  private readonly buildRetries: BackgroundBuildRetries;
+  private readonly polishing: PolishingPasses;
+  private readonly hostLifetime = new HostOperationLifetime();
   private timer: number | null = null;
   private readonly lastAutomaticTick = new Map<string, number>();
   private lastProjectId: string | null = null;
@@ -94,16 +107,32 @@ export class WorkflowEngine {
     this.configured = new ConfiguredWorkflowEngine(store, { dispatchAllowed: () => !this.stopped && !this.dispatchDeferred, durableBuilds: options.durableBuilds, outputTemplates: options.outputTemplates, agentTasks: options.agentTasks, runners: options.runners, cost: (id, value) => this.recordCost(id, value), usage: (id, value) => this.recordTokens(id, value) });
     this.durable = new DurableBuildCoordinator(store, options.durableBuilds, (state, job, result) => this.configured.complete(state, job, result), ideaId => this.configured.flushDelegated(ideaId).catch(error => this.report(error)));
     this.lanes = new WorkflowJobLanes(store, (job, controller) => this.dispatch(job, controller), error => this.report(error));
+    this.buildRetries = new BackgroundBuildRetries(store, options.backgroundBuildRetries, options.durableBuilds, ideaId => this.lanes.hasActiveIdea(ideaId), (state, ideaId, approval) => this.configured.queueBackgroundRetry(state, ideaId, approval));
+    this.polishing = new PolishingPasses(store, options.backgroundBuildRetries, options.durableBuilds, options.agentTasks, ideaId => this.lanes.hasActiveIdea(ideaId), (state, ideaId, pass, ids) => this.configured.queuePolishing(state, ideaId, pass, ids));
   }
   acknowledgeWorkflowNudge(ideaId: string, revision: number, consent: boolean) { return this.configured.acknowledgeNudge(ideaId, revision, consent); }
   async startWorkflow(ideaId: string) { const run = await this.configured.start(ideaId); this.kick(); return run; }
   async restartWorkflowFromOperator(ideaId: string) { const run = await this.configured.restart(ideaId); this.kick(); return run; }
+  previewBackgroundBuildRetry(ideaId: string) { return this.buildRetries.preview(ideaId); }
+  async confirmBackgroundBuildRetry(ideaId: string, previewId: string, consent: BackgroundBuildRetryConsent): Promise<void> { await this.buildRetries.confirm(ideaId, previewId, consent); this.kick(); }
+  previewPolishingPass(ideaId: string, feedback: string) { return this.polishing.preview(ideaId, feedback); }
+  async confirmPolishingPass(ideaId: string, previewId: string, consent: BackgroundBuildRetryConsent): Promise<void> { await this.polishing.confirm(ideaId, previewId, consent); this.kick(); }
+  async applyPolishingResult(ideaId: string, runId: string, revision: number): Promise<void> { return applyPolishingResult(this.store, this.options.backgroundBuildRetries, this.options.polishingCode, ideaId, runId, revision, this.hostLifetime.capture()); }
+  rejectPolishingResult(ideaId: string, runId: string, revision: number): Promise<void> { return rejectPolishingResult(this.store, ideaId, runId, revision); }
+  async stopPolishingPass(ideaId: string, runId: string): Promise<void> {
+    await this.store.transaction(state => holdPolishingRun(state, ideaId, runId), { atomicCommand: true });
+    for (const job of this.store.snapshot().jobs.filter(item => item.ideaId === ideaId && item.workflow?.runId === runId && isActiveJob(item))) {
+      if (job.durable) await this.durable.reconcile(ideaId); else this.lanes.abort(job.id);
+    }
+  }
   async startTriggeredWorkflow(ideaId: string, event: AutomationContext, expectedDefinitionJson: string) { const run = await this.configured.start(ideaId, true, undefined, false, event, expectedDefinitionJson); this.kick(); return run; }
   async startMcpWorkflow(ideaId: string) { const run = await this.configured.start(ideaId, true, undefined, true); this.kick(); return run; }
   async startWorkflowFromPlan(ideaId: string, handoff: WorkflowPlanHandoff) { const run = await this.configured.start(ideaId, true, handoff); this.kick(); return run; }
   async runWorkflowStep(ideaId: string) { const run = await this.configured.next(ideaId); this.kick(); return run; }
   async completeWorkflowManual(ideaId: string, revision: number, checkedIds: string[], note = '') { const run = await this.configured.manual(ideaId, revision, checkedIds, note); this.kick(); return run; }
   async stopWorkflow(ideaId: string) {
+    const auxiliary = this.store.snapshot().ideas.find(item => item.id === ideaId)?.polishingRuns?.find(item => item.review === 'pending' && ['ready', 'running', 'awaiting-review'].includes(item.workflow.state));
+    if (auxiliary) { await this.stopPolishingPass(ideaId, auxiliary.id); const updated = this.store.snapshot().ideas.find(item => item.id === ideaId); return updated?.workflowRun ?? updated?.polishingRuns?.find(item => item.id === auxiliary.id)?.workflow ?? auxiliary.workflow; }
     const job = this.store.snapshot().jobs.find(item => item.ideaId === ideaId && isActiveJob(item));
     const run = await this.configured.stop(ideaId);
     if (job?.durable) await this.durable.reconcile(ideaId);
@@ -112,6 +141,7 @@ export class WorkflowEngine {
   }
 
   start(): void {
+    this.hostLifetime.open();
     this.stopped = false;
     this.dispatchDeferred = false;
     this.lanes.open(); this.durable.attach();
@@ -126,6 +156,9 @@ export class WorkflowEngine {
   preventDispatchUntilStart(): void { this.dispatchDeferred = true; this.lanes.pause(); }
 
   async stop(): Promise<void> {
+    this.hostLifetime.close();
+    this.buildRetries.clear();
+    this.polishing.clear();
     this.stopped = true;
     if (this.timer !== null) this.options.timers.clearInterval(this.timer);
     this.timer = null;
@@ -139,6 +172,8 @@ export class WorkflowEngine {
     const job = await this.store.transaction(state => {
       const idea = state.ideas.find(i => i.id === ideaId);
       if (!idea) throw new StudioError('Idea not found.', 404);
+      assertPolishingMetadata(state, ideaId);
+      assertPolishingResolved(idea);
       const projectId = ideaProjectId(idea);
       const settings = projectSettings(state, projectId);
       assertWorkflowNotStopped(state, ideaId);
@@ -160,7 +195,7 @@ export class WorkflowEngine {
       recordOperation(state, 'job-queued', 'none', undefined, 1, queued.id);
       addEvent(state, 'agent', `${STAGE_LABELS[stage]} queued for ${ideaId}.`, ideaId);
       return queued;
-    });
+    }, workflowRunSaveOptions(undefined, this.store.internalSnapshot().ideas.find(idea => idea.id === ideaId)));
     this.kick();
     return job;
   }
@@ -185,7 +220,7 @@ export class WorkflowEngine {
         if (settings.workflow) continue;
       }
       if (project.unavailable || (!manual && (settings.paused || Date.now() - (this.lastAutomaticTick.get(project.id) ?? 0) < settings.intervalSeconds * 1000))) continue;
-      const next = nextEligible({ ...state, ideas: projectIdeas(state, project.id).filter(idea => !idea.workflowRun), settings, jobs: state.jobs.filter(job => job.projectId === project.id) });
+      const next = nextEligible({ ...state, ideas: projectIdeas(state, project.id).filter(idea => !idea.workflowRun && !idea.polishingRuns?.some(run => run.review === 'pending')), settings, jobs: state.jobs.filter(job => job.projectId === project.id) });
       if (!next) continue;
       this.lastAutomaticTick.set(project.id, Date.now());
       this.lastProjectId = project.id;
@@ -195,6 +230,7 @@ export class WorkflowEngine {
   }
 
   async action(ideaId: string, action: IdeaAction, note = ''): Promise<unknown> {
+    const currentIdea = this.store.snapshot().ideas.find(item => item.id === ideaId); if (currentIdea && ['approve', 'changes', 'reject'].includes(action)) { assertPolishingMetadata(this.store.internalSnapshot(), ideaId); assertPolishingResolved(currentIdea); }
     if ((STAGES as readonly string[]).includes(action)) return this.submit(ideaId, action as AgentStage);
     let expectedReview: { runId: string; revision: number; increment: string } | undefined;
     if (action === 'approve') {
@@ -216,10 +252,17 @@ export class WorkflowEngine {
       const result = applyReview(state, ideaId, action as Exclude<IdeaAction, AgentStage>, note);
       this.configured.review(state, ideaId, action);
       return result;
-    });
+    }, workflowRunSaveOptions(currentIdea?.workflowRun, currentIdea));
   }
 
   async cancel(jobId: string): Promise<void> {
+    const auxiliaryJob = this.store.snapshot().jobs.find(job => job.id === jobId && job.workflow?.polishingId);
+    if (auxiliaryJob) {
+      if (!isActiveJob(auxiliaryJob)) throw new Error('Only queued or running jobs can be cancelled.');
+      const pass = this.store.snapshot().ideas.find(idea => idea.id === auxiliaryJob.ideaId)?.polishingRuns?.find(item => item.id === auxiliaryJob.workflow!.polishingId);
+      if (pass) { await this.stopPolishingPass(auxiliaryJob.ideaId, pass.id); return; }
+      if (auxiliaryJob.durable) { await this.durable.cancel(auxiliaryJob.id); return; }
+    }
     const workerJob = this.store.snapshot().jobs.find(job => job.id === jobId && (job.durable || workerBackedJob(job)));
     if (workerJob) {
       if (!isActiveJob(workerJob)) throw new Error('Only queued or running jobs can be cancelled.');
@@ -258,9 +301,9 @@ export class WorkflowEngine {
   private kick(): void {
     if (!this.stopped && !this.dispatchDeferred) this.lanes.kick();
   }
-  async reconcileDurableBuild(ideaId?: string): Promise<void> {
-    await this.durable.reconcile(ideaId); if (!this.stopped && !this.dispatchDeferred) this.lanes.poke();
-    const failed = ideaId && this.store.durableBuildJobIds(ideaId).map(id => this.store.durableBuildError(id)).find(Boolean);
+  async reconcileDurableBuild(ideaId?: string, runId?: string): Promise<void> {
+    await this.durable.reconcile(ideaId, runId); if (!this.stopped && !this.dispatchDeferred) this.lanes.poke();
+    const failed = ideaId && this.store.durableBuildJobIds(ideaId).filter(id => !runId || this.store.durableBuildJob(id)?.workflow?.runId === runId).map(id => this.store.durableBuildError(id)).find(Boolean);
     if (failed) throw new Error(failed);
   }
   async configureConcurrency(): Promise<void> { try { await this.durable.configure(); } finally { if (!this.stopped && !this.dispatchDeferred) this.lanes.poke(); } }
@@ -270,8 +313,8 @@ export class WorkflowEngine {
     const jobs = this.store.snapshot().jobs.filter(job => workerBackedJob(job) && !job.durable && ['failed', 'cancelled'].includes(job.status));
     await Promise.allSettled(jobs.map(job => port.cancelUnstarted(job.id)));
   }
-  inspectDurableBuildEvidence(ideaId: string, revision: number) { return inspectDurableBuildEvidence(this.store, this.options.durableBuilds, ideaId, revision); }
-  async recoverDurableBuild(ideaId: string, revision: number, consent: boolean): Promise<void> { await recoverDurableBuild(this.store, this.options.durableBuilds, ideaId, revision, consent, (id, snapshot) => this.durable.applyRecovered(id, snapshot)); this.kick(); }
+  inspectDurableBuildEvidence(ideaId: string, revision: number, runId?: string) { return inspectDurableBuildEvidence(this.store, this.options.durableBuilds, ideaId, revision, runId); }
+  async recoverDurableBuild(ideaId: string, revision: number, consent: boolean, runId?: string): Promise<void> { await recoverDurableBuild(this.store, this.options.durableBuilds, ideaId, revision, consent, (id, snapshot) => this.durable.applyRecovered(id, snapshot), runId); this.kick(); }
   private async dispatch(job: AgentJob, controller: AbortController): Promise<void> {
     if (this.dispatchDeferred || this.stopped) return;
     try {
@@ -281,7 +324,7 @@ export class WorkflowEngine {
     } catch (error) {
       if (this.stopped) return;
       if (this.store.snapshot().jobs.find(item => item.id === job.id)?.durable) return;
-      if (error instanceof DurableBuildCapacityError) { await this.store.transaction(state => { const current = state.jobs.find(item => item.id === job.id); if (current) current.error = 'Waiting for background worker capacity. No provider request was started.'; }); throw error; }
+      if (error instanceof DurableBuildCapacityError) { await this.store.transaction(state => { const current = state.jobs.find(item => item.id === job.id); if (current) current.error = 'Waiting for background worker capacity. No provider request was started.'; }, polishingSaveOptions(job, () => this.store.internalSnapshot())); throw error; }
       if (job.workflow) await this.configured.fail(job, controller.signal.aborted, error); else await this.fail(job, controller.signal.aborted, error);
     }
   }
@@ -307,13 +350,13 @@ export class WorkflowEngine {
       idea.updatedAt = job.startedAt;
       return { idea: structuredClone(idea), settings: { ...copySettings(projectSettings(state, projectId)), provider: job.provider, model: job.model ?? agent.model, ...(job.herdrAgent ? { herdrAgent: job.herdrAgent } : {}) },
         integration: { ...state.integration, ...projectPaths(findProject(state, projectId)) } };
-    });
+    }, polishingSaveOptions(next, () => this.store.internalSnapshot()));
     if (!snapshot) return;
     const fingerprint = ideaFingerprint(snapshot.idea);
     const runner = this.options.runners[next.provider];
     if (!runner) throw new Error('The selected workflow runner is unavailable.');
     const result = await runner({
-      jobId: next.id, stage: next.stage, ...snapshot, signal: controller.signal,
+      jobId: next.id, stage: next.stage, ...snapshot, idea: effectivePolishingIdea(snapshot.idea), signal: controller.signal,
       onConversation: event => recordAgentConversation(this.store, next.id, event),
       onUsage: cost => this.recordCost(next.id, cost),
       onTokenUsage: usage => this.recordTokens(next.id, usage),
@@ -321,7 +364,7 @@ export class WorkflowEngine {
         void this.store.transaction(state => {
           const job = state.jobs.find(j => j.id === next.id);
           if (job) job.logs = [...job.logs, message.slice(0, 8000)].slice(-200);
-        }).catch(error => this.report(error));
+        }, polishingSaveOptions(next, () => this.store.internalSnapshot())).catch(error => this.report(error));
       },
     });
     if (result.costUsd !== undefined) await this.recordCost(next.id, result.costUsd);
@@ -333,7 +376,7 @@ export class WorkflowEngine {
       const idea = state.ideas.find(item => item.id === job.ideaId);
       if (!idea || ideaFingerprint(idea) !== fingerprint) throw new Error('The request or its project changed while the run was active. Its result was discarded.');
       applyResult(state, job, result);
-    });
+    }, polishingSaveOptions(next, () => this.store.internalSnapshot()));
   }
 
   private async fail(next: AgentJob, cancelled: boolean, error: unknown): Promise<void> {
@@ -346,11 +389,11 @@ export class WorkflowEngine {
       if (idea) { idea.lastError = message; idea.updatedAt = new Date().toISOString(); if (idea.status === 'building') idea.status = 'planned'; }
       if (state.runtime.activeJobId === next.id) delete state.runtime.activeJobId;
       addEvent(state, 'agent', `${STAGE_LABELS[next.stage]} ${cancelled ? 'cancelled' : 'failed'} for ${next.ideaId}. Manual retry required.`, next.ideaId);
-    });
+    }, polishingSaveOptions(next, () => this.store.internalSnapshot()));
   }
   private async recordCost(id: string, cost: number): Promise<void> {
     if (!Number.isFinite(cost) || cost < 0 || cost > 1000000000) throw new Error('The provider returned invalid usage cost. No amount was inferred.');
-    await this.store.transaction(state => { const job = state.jobs.find(job => job.id === id); if (!job) throw new Error('The task disappeared before its usage cost was saved.'); if (job.costUsd !== cost) { job.costUsd = cost; recordOperation(state, 'ai-cost-reported', 'committed', undefined, 1, id); } });
+    await this.store.transaction(state => { const job = state.jobs.find(job => job.id === id); if (!job) throw new Error('The task disappeared before its usage cost was saved.'); if (job.costUsd !== cost) { job.costUsd = cost; recordOperation(state, 'ai-cost-reported', 'committed', undefined, 1, id); } }, polishingSaveOptions(this.store.durableBuildJob(id), () => this.store.internalSnapshot()));
   }
 
   private report(error: unknown): void {
@@ -362,6 +405,6 @@ export class WorkflowEngine {
       const job = state.jobs.find(job => job.id === id); if (!job) throw new Error('The task disappeared before its token usage was saved.');
       const next = { ...job.usage, ...usage };
       if (JSON.stringify(next) !== JSON.stringify(job.usage)) { job.usage = next; recordOperation(state, 'ai-usage-reported', 'committed', undefined, 1, id); }
-    });
+    }, polishingSaveOptions(this.store.durableBuildJob(id), () => this.store.internalSnapshot()));
   }
 }

@@ -3,6 +3,7 @@ import type { AgentJob } from "../../../features/coforge/domain/types";
 import { sameDurableBuildRef } from "../../../features/coforge/domain/durable-build";
 import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
+import { ideaWorkflowRun } from './idea-workflow-run';
 
 export function useDurableBuildRecovery(
   ideaId: () => string,
@@ -15,7 +16,7 @@ export function useDurableBuildRecovery(
   const working = ref("");
   const error = ref("");
   const run = computed(
-    () => store.state?.ideas.find((item) => item.id === ideaId())?.workflowRun,
+    () => ideaWorkflowRun(store.state?.ideas.find((item) => item.id === ideaId()), runId()),
   );
   const receipt = computed(() => {
     const current = job();
@@ -59,11 +60,12 @@ export function useDurableBuildRecovery(
     try {
       const ok =
         kind === "inspect"
-          ? await actions.inspectDurableBuildEvidence(ideaId(), active.revision)
+          ? await actions.inspectDurableBuildEvidence(ideaId(), active.revision, active.id)
           : await actions.recoverDurableBuild(
               ideaId(),
               active.revision,
               consent.value,
+              active.id,
             );
       if (!ok && context.value === key)
         error.value =

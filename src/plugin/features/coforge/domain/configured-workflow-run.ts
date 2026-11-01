@@ -7,6 +7,9 @@ import { workflowCoworkerBindingsCheck, workflowCoworkerProfileCheck, type Workf
 import { WORKFLOW_OUTPUTS, workflowDefinitionCheck, workflowIdCheck, workflowStepCheck, type AiWorkflowStep, type WorkflowDefinition, type WorkflowOutput } from './configured-workflow';
 import type { AppState, Idea, ImplementationPlan, Increment, RiceScore, Screening } from './types';
 import { workflowOutputTemplateCheck, workflowOutputTemplateListCheck, type WorkflowOutputTemplate } from './workflow-output-templates';
+import { backgroundBuildRetryApprovalsCheck, type BackgroundBuildRetryApproval } from './background-build-retry';
+import type { PolishingAmendment } from './polishing';
+import { polishingAmendmentsCheck } from './polishing-reference-check';
 export const WORKFLOW_RUN_LIMIT_BYTES = 2 * 1024 * 1024;
 export const WORKFLOW_HISTORY_LIMIT_BYTES = 8 * 1024 * 1024;
 export const WORKFLOW_MARKDOWN_LIMIT = 16000;
@@ -36,6 +39,8 @@ export interface WorkflowAttempt {
   councilCancellation?: 'requested' | 'confirmed' | 'unknown';
 }
 export interface WorkflowRun {
+  polishingResources?: Array<{ id: string; priorWorkspaceId?: string; priorAttemptCount: number; workspaceId: string; fromRunRevision: number }>;
+  backgroundRetries?: BackgroundBuildRetryApproval[];
   coworkerBindings?: WorkflowCoworkerBinding[];
   outputTemplates?: WorkflowOutputTemplate[];
   automationEvent?: AutomationContext;
@@ -48,6 +53,9 @@ export interface WorkflowRun {
   projectContext?: { name: string; brief: string; agentPrompt: string; projectPath: string; worktreeFolder: string };
 }
 export interface ConfiguredStepExecution {
+  polishingId?: string; polishingSourceHash?: string; polishingFeedback?: string; polishingPayload?: string; approvedPolishingInputs?: PolishingAmendment[];
+  continuationId?: string; sourceRunId?: string; sourceRunHash?: string;
+  backgroundRetryId?: string;
   coworker?: WorkflowCoworkerProfile;
   outputTemplate?: WorkflowOutputTemplate;
   automationEvent?: AutomationContext;
@@ -63,8 +71,12 @@ const rice = shape({ reach: number({ integer: true, min: 1, max: 1000000 }), imp
 const plan = shape({ summary: text({ min: 1, max: 4000 }), steps: list(text({ min: 1, max: 2000 }), { min: 1, max: 24 }),
   acceptanceCriteria: list(text({ min: 1, max: 2000 }), { min: 1, max: 20 }), risks: list(text({ min: 1, max: 2000 }), { max: 16 }), markdown: text({ max: 100000 }), createdAt: timestamp }, { strict: true });
 export const workflowPlanCheck = plan;
+export const workflowScreeningCheck = screening;
+export const workflowRiceCheck = rice;
 const increment = shape({ summary: text({ min: 1, max: 6000 }), files: list(shape({ path: string, additions: number({ integer: true, min: 0 }), deletions: number({ integer: true, min: 0 }) }, { strict: true }), { max: 10000 }),
+  snapshotHash: optional(text({ pattern: /^[a-f0-9]{64}$/u })),
   tests: stringList, diff: text({ max: 200000 }), branch: optional(string), worktree: optional(string), commit: optional(string), createdAt: timestamp, simulated: boolean }, { strict: true });
+export const workflowIncrementCheck = increment;
 const artifact = shape({ id: workflowIdCheck, runId: workflowIdCheck, stepId: workflowIdCheck, attemptId: workflowIdCheck, proposalRevision: workflowIdCheck,
   output: oneOf(WORKFLOW_OUTPUTS), createdAt: timestamp, contentHash: workflowIdCheck, markdown: optional(text({ min: 1, max: WORKFLOW_MARKDOWN_LIMIT })), screening: optional(screening), rice: optional(rice), plan: optional(plan),
   increment: optional(increment), summary: optional(text({ min: 1, max: 6000 })), hostSnapshot: optional(boolean) }, { strict: true });
@@ -87,6 +99,8 @@ const attempt = shape({ id: workflowIdCheck, stepId: workflowIdCheck, stepName: 
   status: oneOf(['queued', 'running', 'waiting-human', 'succeeded', 'failed', 'cancelled'] as const), inputs: list(workflowIdCheck, { max: 200 }), startedAt: timestamp,
   finishedAt: optional(timestamp), jobId: optional(workflowIdCheck), checkedIds: optional(list(workflowIdCheck, { max: 40 })), note: optional(text({ max: 3000 })), error: optional(text({ max: 4000 })) }, { strict: true });
 const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: workflowIdCheck, definition: workflowDefinitionCheck, proposalRevision: workflowIdCheck,
+  polishingResources: optional(list(shape({ id: workflowIdCheck, priorWorkspaceId: optional(workflowIdCheck), priorAttemptCount: number({ integer: true, min: 0, max: 100 }), workspaceId: workflowIdCheck, fromRunRevision: number({ integer: true, min: 0 }) }, { strict: true }), { max: 25 })),
+  backgroundRetries: optional(backgroundBuildRetryApprovalsCheck),
   coworkerBindings: optional(workflowCoworkerBindingsCheck),
   councilBindings: optional(workflowCouncilBindingsCheck),
   outputTemplates: optional(workflowOutputTemplateListCheck),
@@ -99,6 +113,20 @@ const run = shape({ id: workflowIdCheck, ideaId: workflowIdCheck, projectId: wor
 export function workflowRunCheck(value: unknown): WorkflowRun {
   if (workflowSerializedSize(value) > WORKFLOW_RUN_LIMIT_BYTES) throw new Error('This workflow run exceeds 2 MiB. Preserve/export its evidence and start a fresh run; nothing was truncated.');
   const checked = run(value);
+  const retries = checked.backgroundRetries ?? [];
+  if (new Set(retries.map(item => item.id)).size !== retries.length || retries.some((retry, index) => {
+    const target = checked.attempts[retry.priorAttemptCount];
+    const original = checked.definition.steps.find(step => step.id === retry.stepId);
+    const source = checked.attempts.slice(0, retry.priorAttemptCount).find(attempt => attempt.id === retry.sourceAttemptId);
+    const previous = checked.attempts.slice(0, retry.priorAttemptCount).find(attempt => attempt.id === retry.previousAttemptId);
+    return !target || target.id !== retry.attemptId || target.jobId !== retry.jobId || target.stepId !== retry.stepId ||
+      original?.kind !== 'ai' || original.output !== 'codechange' || original.access !== 'editworktree' || !['claude', 'codex'].includes(original.provider) ||
+      retry.proposalRevision !== checked.proposalRevision || retry.fromRunRevision >= checked.revision ||
+      (index > 0 && retry.priorAttemptCount <= retries[index - 1]!.priorAttemptCount) ||
+      (!!retry.sourceAttemptId !== !!retry.sourceJobId) || (retry.sourceAttemptId !== undefined && source?.jobId !== retry.sourceJobId) ||
+      (!!retry.previousAttemptId !== !!retry.previousJobId) || (retry.previousAttemptId !== undefined && (previous?.jobId !== retry.previousJobId || previous?.stepId !== retry.stepId)) ||
+      (retry.sourceKind === 'workspace' ? !retry.priorWorkspaceId : retry.priorWorkspaceId !== undefined);
+  })) throw new Error('The background retry audit does not match its original run and new attempt.');
   const assigned = checked.definition.steps.filter(step => step.kind === 'ai' && step.coworkerId);
   if (assigned.length !== (checked.coworkerBindings?.length ?? 0) || assigned.some(step => step.kind !== 'ai' || checked.coworkerBindings?.filter(item => item.stepId === step.id && item.profile.id === step.coworkerId && item.profile.provider === step.provider && item.profile.model === step.model && item.profile.effort === step.effort).length !== 1)) throw new Error('The captured CoWorkers do not match this workflow definition.');
   if (new Set(checked.councilBindings?.map(item => item.stepId)).size !== (checked.councilBindings?.length ?? 0) || checked.councilBindings?.some(item => item.binding.projectId !== checked.projectId || !checked.definition.steps.some(step => step.id === item.stepId && step.kind === 'council' && step.councilId === item.binding.councilId))) throw new Error('The workflow Council captures do not match its definition.');
@@ -113,6 +141,11 @@ export function workflowRunCheck(value: unknown): WorkflowRun {
 }
 export function configuredStepExecutionCheck(value: unknown): ConfiguredStepExecution {
   const checked = shape({ runId: workflowIdCheck, definitionRevision: workflowIdCheck, proposalRevision: workflowIdCheck, attemptId: workflowIdCheck,
+    polishingId: optional(workflowIdCheck), polishingSourceHash: optional(workflowIdCheck),
+    polishingFeedback: optional(text({ min: 1, max: 8000 })), polishingPayload: optional(text({ min: 1, max: 400000 })),
+    approvedPolishingInputs: optional(polishingAmendmentsCheck),
+    continuationId: optional(workflowIdCheck), sourceRunId: optional(workflowIdCheck), sourceRunHash: optional(workflowIdCheck),
+    backgroundRetryId: optional(workflowIdCheck),
     coworker: optional(workflowCoworkerProfileCheck),
     outputTemplate: optional(workflowOutputTemplateCheck),
     automationEvent: optional(automationContextCheck),
@@ -120,7 +153,8 @@ export function configuredStepExecutionCheck(value: unknown): ConfiguredStepExec
   if (checked.step.kind !== 'ai') throw new Error('Only an AI step can be dispatched to a provider.');
   if (checked.step.coworkerId !== checked.coworker?.id || checked.coworker && (checked.coworker.provider !== checked.step.provider || checked.coworker.model !== checked.step.model || checked.coworker.effort !== checked.step.effort)) throw new Error('The captured CoWorker does not match this AI step.');
   if (checked.step.outputTemplateId !== checked.outputTemplate?.id) throw new Error('The captured output template does not match this step.');
-  if (checked.inputArtifacts.some(item => item.runId !== checked.runId || item.proposalRevision !== checked.proposalRevision)) throw new Error('The workflow inputs belong to a different run or proposal.');
+  if (!!checked.polishingId !== !!checked.polishingSourceHash) throw new Error('The polishing source provenance is incomplete.');
+  if (checked.inputArtifacts.some(item => !checked.polishingId && item.runId !== checked.runId && !checked.approvedPolishingInputs?.some(ref => ref.polishingRunId === item.runId && ref.artifactId === item.id && ref.artifactHash === item.contentHash) || item.proposalRevision !== checked.proposalRevision)) throw new Error('The workflow inputs belong to a different run or proposal.');
   return { ...checked, step: checked.step };
 }
 export function workflowHistoryCheck(value: unknown): WorkflowRun[] {
@@ -138,8 +172,7 @@ function ordered(value: unknown): unknown {
 /** Stable corruption fingerprint, not a signature or proof of trusted production. */
 export const workflowArtifactHash = (value: Omit<WorkflowArtifact, 'contentHash'> | WorkflowArtifact): string => contextEventId(JSON.stringify(ordered(value)));
 export function recoverConfiguredRuns(state: Pick<AppState, 'ideas' | 'jobs'>): void {
-  for (const idea of state.ideas) {
-    const run = idea.workflowRun;
+  for (const idea of state.ideas) for (const run of [idea.workflowRun, ...(idea.polishingRuns ?? []).map(item => item.workflow)]) {
     for (const attempt of run?.attempts ?? []) if (attempt.councilCancellation === 'requested') { attempt.councilCancellation = 'unknown'; if (run) { run.error = 'CoForge closed before Council cancellation was confirmed. Inspect the original discussion and acknowledge recovery.'; run.revision++; run.updatedAt = new Date().toISOString(); } }
     if (!run || run.state !== 'running') continue;
     const attempt = run.attempts.find(item => item.id === run.activeAttemptId);

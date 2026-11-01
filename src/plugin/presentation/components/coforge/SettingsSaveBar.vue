@@ -13,7 +13,7 @@ const model = useSettingsForm();
         <strong v-else-if="model.status === 'saved'">Settings saved</strong>
         <strong v-else-if="model.dirty">Unsaved project changes</strong>
         <strong v-else>Project settings are up to date</strong>
-        <small v-if="model.pending && !model.metadataOnlyDirty">Finish, stop or review active workflows before saving project changes.</small>
+        <small v-if="model.pending && !model.metadataOnlyDirty">Finish, stop or review active workflows and Improve &amp; polish passes before saving project changes.</small>
         <small v-else-if="model.dirty">General, Requests and Repository share this save. Workflow settings save separately.</small>
         <small v-else>Saved in this vault. Workflow settings have their own save action.</small>
       </span>

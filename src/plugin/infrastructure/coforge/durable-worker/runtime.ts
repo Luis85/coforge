@@ -13,7 +13,7 @@ import { readNativeProcessIdentity } from './process-identity';
 const launchCheck = shape({ version: oneOf([1] as const), workerId: text({ min: 1, max: 160 }), epoch: number({ integer: true, min: 1 }), nonce: text({ min: 1, max: 160 }),
   token: text({ pattern: /^[a-f0-9]{64}$/u }), sourceHash: text({ pattern: /^[a-f0-9]{64}$/u }) }, { strict: true });
 /** Bundled CJS entry. The test seam injects a provider in its own bundle, never through task input or environment flags. */
-export async function main(privateDirectory = process.argv[3], execute?: BuildExecutor) {
+export async function main(privateDirectory = process.argv[3], execute?: BuildExecutor, executorFactory?: (store: WorkerStore, workspaces: ReturnType<typeof workerWorkspaces>) => BuildExecutor) {
   if (!privateDirectory) throw new Error('An authorized private worker directory is required.');
   const files = new WorkerFiles(privateDirectory); await files.initialize();
   const launch = launchCheck(await files.read('launch.json'));
@@ -22,7 +22,7 @@ export async function main(privateDirectory = process.argv[3], execute?: BuildEx
   await files.create('daemon.json', { pid: process.pid, workerId: launch.workerId, nonce: launch.nonce, instance: randomUUID(), identity });
   const store = new WorkerStore(files, launch.workerId, launch.epoch); await store.initialize();
   const workspaces = workerWorkspaces(files); await workspaces.start();
-  const service = new WorkerService(store, execute ?? nativeBuildExecutor(store, workspaces));
+  const service = new WorkerService(store, execute ?? executorFactory?.(store, workspaces) ?? nativeBuildExecutor(store, workspaces));
   await service.initializeCapacity();
   const server = await startWorkerServer(service, workspaces, launch);
   await files.write('descriptor.json', server.descriptor);

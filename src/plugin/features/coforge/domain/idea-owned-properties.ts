@@ -1,4 +1,6 @@
 export const OWNED_PROPERTIES = [
+  "polishing-runs",
+  "polishing-amendments",
   "workflow-run",
   "workflow-history",
   "contexts",

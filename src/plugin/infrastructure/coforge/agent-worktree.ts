@@ -16,6 +16,7 @@ export async function agentGit(
   args: string[],
   signal?: AbortSignal,
   maxBytes = OUTPUT_LIMIT,
+  input?: string,
 ): Promise<string> {
   const hooks = join(tmpdir(), "coforge-disabled-git-hooks");
   await mkdir(hooks, { recursive: true });
@@ -30,7 +31,7 @@ export async function agentGit(
       "diff.external=",
       ...args,
     ],
-    { cwd, timeoutMs: 30_000, maxBytes, ...(signal ? { signal } : {}) },
+    { cwd, timeoutMs: 30_000, maxBytes, ...(input === undefined ? {} : { input }), ...(signal ? { signal } : {}) },
   );
 }
 

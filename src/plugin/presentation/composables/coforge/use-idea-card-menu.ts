@@ -19,6 +19,7 @@ import {
 import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
 import { useWorkflowStopControls } from './use-workflow-stop-controls';
+import { usePolishingUiStore } from '../../stores/coforge-polishing-ui';
 const elementNode = (value: unknown): value is HTMLElement =>
   Boolean(
     value &&
@@ -33,10 +34,12 @@ export function useIdeaCardMenu(
 ) {
   const store = useStudioStore();
   const actions = useStudioActions();
+  const polishing = usePolishingUiStore();
   const councilDraft = useCouncilIdeaDraft();
   const reviewedCouncil = ref("");
   const reviewed = ref("");
   const portal = shallowRef<HTMLElement | false>(false);
+  const cardElement = shallowRef<HTMLElement | null>(null);
   const contextOpen = ref(false);
   const dropdownOpen = ref(false);
   const changed = (kind: "context" | "dropdown", open: boolean) => {
@@ -123,6 +126,10 @@ export function useIdeaCardMenu(
     const groups: ContextMenuItem[][] = [
       [
         { type: "label", label: `${idea.id} · ${STATUS_LABELS[idea.status]}` },
+        { label: 'Improve & polish', icon: 'i-lucide-sparkles', onSelect: () => {
+          const active = portal.value && portal.value.ownerDocument.activeElement;
+          polishing.open(idea.id, cardElement.value ?? (elementNode(active) ? active : portal.value || null));
+        } },
         {
           label: `Open ${idea.id}`,
           icon: "i-lucide-panel-right",
@@ -260,6 +267,7 @@ export function useIdeaCardMenu(
     })),
     bindCard: (value: unknown) => {
       if (!elementNode(value)) return;
+      cardElement.value = value;
       const scope = value.closest(".ps--coforge");
       portal.value = elementNode(scope) ? scope : false;
     },

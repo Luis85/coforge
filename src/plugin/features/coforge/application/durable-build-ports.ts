@@ -1,15 +1,18 @@
 import type { DurableBuildPolicy, DurableBuildReadiness, DurableBuildRef, DurableBuildSnapshot, DurableBuildInspection } from '../domain/durable-build';
 import type { ConfiguredStepExecution } from '../domain/configured-workflow-run';
 import type { Idea, IntegrationSettings, Settings } from '../domain/types';
+import type { BackgroundBuildSnapshotRef } from '../domain/background-build-retry';
 
 export class DurableBuildCapacityError extends Error { constructor(message = 'The background Build capacity is occupied. Waiting for its original owners to settle.') { super(message); this.name = 'DurableBuildCapacityError'; } }
 
 /** Serializable captured input. Credentials, callbacks, AbortSignals and renderer objects never cross IPC. */
 export interface DurableBuildRequest {
+  /** Private reviewed import, separately authorized for this exact new retry/job/attempt. */
+  reviewedSnapshot?: BackgroundBuildSnapshotRef;
   /** Native infrastructure seals actual overlapping managed-folder boundaries before hashing/dispatch. */
   protectedProjectPaths?: string[];
   version: 1; jobId: string; projectId: string; ideaId: string; runId: string; attemptId: string; policy: DurableBuildPolicy;
-  input: { jobId: string; stage: 'implement'; idea: Omit<Idea, 'workflowRun' | 'workflowHistory' | 'increment'>; settings: Settings;
+  input: { jobId: string; stage: 'implement'; idea: Omit<Idea, 'workflowRun' | 'workflowHistory' | 'increment' | 'polishingRuns' | 'polishingAmendments'>; settings: Settings;
     integration: Pick<IntegrationSettings, 'projectPath' | 'worktreeFolder' | 'allowImplementation' | 'claudeBin' | 'codexBin' | 'ideasFolder' | 'publicFolder'>;
     workflow: ConfiguredStepExecution };
 }

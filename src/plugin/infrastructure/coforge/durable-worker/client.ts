@@ -12,17 +12,24 @@ import type { WorkflowWorkspaces, WorkflowWorkspaceRequest } from '../../../feat
 import { WorkerFiles } from './files';
 import { inputHash, workerDescriptorCheck, workerRequestCheck, type WorkerDescriptor } from './protocol';
 import { nativeWorkerNode, workerEnvironment } from './node-runtime';
-import { WorkerRecovery, retainedJob, supervisorGone } from './recovery';
+import { WorkerRecovery, retainedJob, supervisorGone, supervisorWorkerGone } from './recovery';
 import { archivedFiles, archiveGeneration, generationRetirable, generationLaunchCheck, sameGeneration } from './generation';
 import { bootstrapReadiness, recordBootstrapExit, recordBootstrapSpawnFailure, repairBootstrap as repairUnusedBootstrap } from './bootstrap-repair';
 import { workflowWorkspaceRecordsCheck } from '../workflow-workspace-check';
 import { workerWorkspaces } from './workspaces';
-import { captureIncrement } from '../agent-worktree';
+import { captureWorkflowIncrement as captureIncrement } from '../workflow-workspace-capture';
 import { verifyRetainedWorkspace } from './workspace-proof';
 import { workerRecordCheck, workerSnapshot } from './store';
 import { captureProjectProtection } from './protection';
-import { retainedAuthorization } from './authorization';
+import { retainedAuthorization, retainedDatasets } from './authorization';
 import { durableReadWorkspace } from './read-workspace';
+import { BackgroundBuildRetryResources } from '../background-build-retry-resources';
+import type { WorkflowWorkspaceStorage } from '../../../features/coforge/application/workflow-workspace-ports';
+import type { BackgroundBuildRetrySource } from '../../../features/coforge/domain/background-build-retry';
+import { NativePolishingResources } from '../background-build-seed/client';
+import { operatorResourceFiles, operatorWorkspaceRecord, polishingBindingCheck } from '../background-build-seed/operator-record';
+import { LocalWorkflowWorkspaces } from '../workflow-workspaces';
+import { PolishingCopyRetainedError } from '../../../features/coforge/application/polishing-ports';
 
 export interface DurableBuildClientOptions { workerSource: string; privateDirectory: string; nodeExecutable?: string | (() => string | undefined);
   vaultDirectory?: string; protectedVaultFolders?: () => readonly string[]; validatePrivateDirectory?: () => string }
@@ -36,7 +43,7 @@ async function rpc(descriptor: WorkerDescriptor, input: unknown, timeoutMs = 100
       response.on('error', () => reject(unreachable())); response.on('aborted', () => reject(unreachable()));
       response.on('data', (chunk: Buffer) => { size += chunk.length; if (size > 16 * 1024 * 1024) request.destroy(); else chunks.push(chunk); });
       response.on('end', () => {
-        try { const value = record(JSON.parse(Buffer.concat(chunks).toString('utf8'))); if (value.ok !== true) { const message = text({ max: 3900 })(value.error ?? 'The worker operation failed.'); throw value.code === 'CAPACITY' ? new DurableBuildCapacityError(message) : new Error(message); } resolve(value.value); }
+        try { const value = record(JSON.parse(Buffer.concat(chunks).toString('utf8'))); if (value.ok !== true) { const message = text({ max: 3900 })(value.error ?? 'The worker operation failed.'); throw value.code === 'CAPACITY' ? new DurableBuildCapacityError(message) : value.code === 'POLISHING_COPY_RETAINED' ? new PolishingCopyRetainedError() : new Error(message); } resolve(value.value); }
         catch (error) { reject(error instanceof Error ? error : unreachable()); }
       });
     });
@@ -78,18 +85,19 @@ export class DurableBuildClient implements DurableBuildPort {
       this.validateDirectory();
       const node = await this.node(); let existing;
       try { existing = await this.existing(); }
-      catch (error) { if (await this.settledGeneration()) return { ready: true, message: 'Verified previous work is settled. A fresh preparation may archive its evidence and create a new supervisor.' }; throw error; }
+      catch (error) { if (await this.settledGeneration()) return { ready: true, reviewedSnapshots: true, message: 'Verified previous work is settled. A fresh preparation may archive its evidence and create a new supervisor.' }; throw error; }
       if (existing) {
-        try { await this.connected(existing); const status = record(await rpc(existing, { op: 'workerStatus' })); return { ready: status.ready === true, message: text({ max: 3900 })(status.message) + ' Native Node.js ' + node.version + ' validated.' }; }
-        catch { if (await this.settledGeneration()) return { ready: true, message: 'Verified previous work is settled. Preparing a fresh Build may create a new supervisor; no old execution will resume.' }; return { ready: false, ...await bootstrapReadiness(this.files) }; }
+        try { await this.connected(existing); const status = record(await rpc(existing, { op: 'workerStatus' })); return { ready: status.ready === true, reviewedSnapshots: status.reviewedSnapshots === true,
+          message: text({ max: 3900 })(status.message) + ' Native Node.js ' + node.version + ' validated.' + (status.reviewedSnapshots === true ? '' : ' This earlier worker cannot import reviewed snapshots. Settle its original Builds and restart the local execution runtime before retrying in background.') }; }
+        catch { if (await this.settledGeneration()) return { ready: true, reviewedSnapshots: true, message: 'Verified previous work is settled. Preparing a fresh Build may create a new supervisor; no old execution will resume.' }; return { ready: false, ...await bootstrapReadiness(this.files) }; }
       }
       try {
         if (await this.files.read('launch.json')) {
-          if (await this.settledGeneration()) return { ready: true, message: 'Verified previous work is settled. A fresh preparation may archive its evidence and create a new supervisor.' };
+          if (await this.settledGeneration()) return { ready: true, reviewedSnapshots: true, message: 'Verified previous work is settled. A fresh preparation may archive its evidence and create a new supervisor.' };
           return { ready: false, ...await bootstrapReadiness(this.files) };
         }
       } catch (error) { if (!missing(error)) throw error; }
-      return { ready: true, message: 'Native Node.js ' + node.version + ' is ready. Preparing a Build will start its private supervisor; no model request was made.' };
+      return { ready: true, reviewedSnapshots: true, message: 'Native Node.js ' + node.version + ' is ready. Preparing a Build will start its private supervisor; no model request was made.' };
     } catch (error) { return { ready: false, message: error instanceof Error && !/[/\\]/u.test(error.message) ? error.message : 'The native Node runtime or original worker needs inspection before starting Builds.' }; }
   }
   private async launch(): Promise<WorkerDescriptor> {
@@ -156,6 +164,7 @@ export class DurableBuildClient implements DurableBuildPort {
   }
   async prepare(request: DurableBuildRequest): Promise<DurableBuildRef> {
     this.validateDirectory();
+    if (request.reviewedSnapshot) await this.assertReviewedSnapshots();
     if (!this.options.vaultDirectory || !this.options.protectedVaultFolders) throw new Error('The managed vault-folder authority is unavailable. No background provider was started.');
     const protection = await captureProjectProtection(this.options.vaultDirectory, request.input.integration.projectPath,
       [...this.options.protectedVaultFolders(), request.input.integration.ideasFolder, request.input.integration.publicFolder]);
@@ -163,6 +172,7 @@ export class DurableBuildClient implements DurableBuildPort {
       input: { ...request.input, integration: { ...request.input.integration, projectPath: protection.projectRoot } } });
     const retained = await retainedAuthorization(this.files, checked); if (retained) return retained;
     const descriptor = await this.ensure();
+    if (request.reviewedSnapshot && record(await rpc(descriptor, { op: 'workerStatus' })).reviewedSnapshots !== true) throw new Error('The original worker does not support reviewed snapshots. No provider was started; settle and upgrade its local runtime.');
     const raced = await retainedAuthorization(this.files, checked); if (raced) return raced;
     await rpc(descriptor, { op: 'configureConcurrency', builds: this.maxBuilds });
     for (const jobId of this.unstarted) { await rpc(descriptor, { op: 'cancelUnstarted', jobId }); this.unstarted.delete(jobId); }
@@ -229,6 +239,58 @@ export class DurableBuildClient implements DurableBuildPort {
     catch { await new WorkerRecovery(this.files).releaseUnstarted(jobId); this.unstarted.delete(jobId); }
   }
   ownsWorkspace(id: string): boolean { return id.startsWith('bg-'); }
+  private async assertReviewedSnapshots(): Promise<void> {
+    const readiness = await this.readiness();
+    if (!readiness.ready || readiness.reviewedSnapshots !== true) throw new Error(readiness.message);
+  }
+  retryResources(storage: WorkflowWorkspaceStorage) {
+    if (!this.options.vaultDirectory || !this.options.protectedVaultFolders) throw new Error('The local snapshot authority is unavailable.');
+    return new BackgroundBuildRetryResources({ storage, privateDirectory: this.options.privateDirectory, vaultDirectory: this.options.vaultDirectory,
+      protectedVaultFolders: this.options.protectedVaultFolders, assertReady: () => this.assertReviewedSnapshots(), validatePrivateDirectory: this.options.validatePrivateDirectory,
+      sourceStorage: source => this.retrySourceStorage(source, storage) });
+  }
+  polishingResources(workspaces: LocalWorkflowWorkspaces, storage: WorkflowWorkspaceStorage) {
+    if (!this.options.vaultDirectory || !this.options.protectedVaultFolders) throw new Error('The local code resource authority is unavailable.');
+    return new NativePolishingResources({ privateDirectory: this.options.privateDirectory, vaultDirectory: this.options.vaultDirectory, protectedVaultFolders: this.options.protectedVaultFolders,
+      workspaces, validate: () => this.validateDirectory(), assertSource: source => this.retrySourceStorage(source, storage),
+      background: async (request, protectedPaths) => {
+        const descriptor = await this.ensure(); const status = record(await rpc(descriptor, { op: 'workerStatus' }));
+        if (status.operatorMaterializations !== true) throw new Error('The current worker cannot create reviewed operator resources. Settle and upgrade its local runtime; no source was changed.');
+        return polishingBindingCheck(await rpc(descriptor, { op: 'materializeReviewedResource', request, protectedPaths }, 120000));
+      } });
+  }
+  private async retrySourceStorage(source: BackgroundBuildRetrySource, fallback: WorkflowWorkspaceStorage): Promise<WorkflowWorkspaceStorage> {
+    if (source.sourceKind === 'repository' && !source.sourceIdentity) for (const dataset of await retainedDatasets(this.files)) {
+      if (workflowWorkspaceRecordsCheck(await dataset.read('workspaces.json') ?? []).some(record => record.runId === source.runId))
+        throw new Error('An attributed workspace is retained for this run. Restore its original evidence instead of guessing a clean repository.');
+    }
+    if (!source.sourceWorkspaceId || !this.ownsWorkspace(source.sourceWorkspaceId)) {
+      if (source.sourceMaterializationId) {
+        const row = (await fallback.load()).find(item => item.id === source.sourceWorkspaceId); if (!row) throw unreachable();
+        const ledger = operatorResourceFiles(this.options.privateDirectory); await ledger.attach(); const receipt = await operatorWorkspaceRecord(ledger, row);
+        if (receipt.request.ideaId !== source.ideaId || receipt.request.projectId !== source.projectId || receipt.binding?.ownerRunId !== source.runId) throw unreachable();
+      }
+      return fallback;
+    }
+    const files = await this.workspaceDataset(source.sourceWorkspaceId); const rows = workflowWorkspaceRecordsCheck(await files.read('workspaces.json') ?? []);
+    const ownerRow = rows.find(row => row.id === source.sourceWorkspaceId);
+    if (!ownerRow || ownerRow.runId !== source.runId || ownerRow.projectId !== source.projectId) throw unreachable();
+    const actualAttempt = ownerRow.activeAttemptId ?? ownerRow.lastAttemptId;
+    const ids = await files.read('index.json'); if (!Array.isArray(ids)) throw unreachable(); let owned = false;
+    for (const id of ids) {
+      if (typeof id !== 'string') throw unreachable(); const child = new WorkerFiles(files.path(id)); await child.attach(); const record = workerRecordCheck(await child.read('record.json'));
+      const job = await retainedJob(files, record.snapshot.ref);
+      if (job.request.attemptId === actualAttempt && job.request.runId === source.runId &&
+        job.request.projectId === source.projectId && job.request.ideaId === source.ideaId && record.snapshot.workspaceId === source.sourceWorkspaceId) owned = true;
+    }
+    if (!owned && source.sourceMaterializationId) {
+      const row = rows.find(item => item.id === source.sourceWorkspaceId); if (!row) throw unreachable(); const receipt = await operatorWorkspaceRecord(files, row);
+      owned = receipt.request.ideaId === source.ideaId && receipt.request.projectId === source.projectId && receipt.binding?.ownerRunId === source.runId;
+    }
+    if (!owned) throw new Error('The original worker workspace attribution changed. Restore its retained execution.');
+    await this.assertReviewable(source.sourceWorkspaceId);
+    return { load: async () => structuredClone(rows), save: async () => { throw new Error('Retry inspection never changes an original workspace journal.'); } };
+  }
   async readWorkspace(request: WorkflowWorkspaceRequest) {
     if (!request.workspaceId || !this.ownsWorkspace(request.workspaceId)) throw new Error('The original background workspace identity is required.');
     return durableReadWorkspace(await this.workspaceDataset(request.workspaceId), request, (id, expected) => this.assertReviewable(id, expected));
@@ -263,7 +325,11 @@ export class DurableBuildClient implements DurableBuildPort {
       if (job.request.runId !== workspace.runId || job.request.projectId !== workspace.projectId) throw unreachable();
       matched = row.snapshot.ref;
     }
-    if (!matched || !await supervisorGone(files, matched)) throw new Error('Restore the original worker connection before reviewing its workspace.');
+    if (!matched && workspace.operatorMaterializationId) {
+      await operatorWorkspaceRecord(files, workspace);
+      const launch = generationLaunchCheck(await files.read('launch.json'));
+      if (!await supervisorWorkerGone(files, launch.workerId)) throw new Error('Restore the original operator worker connection before reviewing its workspace.');
+    } else if (!matched || !await supervisorGone(files, matched)) throw new Error('Restore the original worker connection before reviewing its workspace.');
     await verifyRetainedWorkspace(workspace); return workspace;
   }
   async assertReviewable(workspaceId: string, increment?: Increment): Promise<void> {
@@ -273,7 +339,8 @@ export class DurableBuildClient implements DurableBuildPort {
       const workspace = await this.offlineWorkspace(files, workspaceId);
       if (workspace.activeAttemptId || workspace.phase !== 'ready') throw new Error('Recover the original workspace lease before code review.');
       if (increment) { const actual = await captureIncrement(workspace.cwd, workspace.branch, increment.summary, undefined, { allowEmpty: true, baseCommit: workspace.baseCommit });
-        if (actual.diff !== increment.diff || inputHash(actual.files) !== inputHash(increment.files) || actual.branch !== increment.branch || actual.worktree !== increment.worktree) throw new Error('The background workspace changed after its review snapshot. Inspect the current changes.'); }
+        if (actual.diff !== increment.diff || inputHash(actual.files) !== inputHash(increment.files) || actual.branch !== increment.branch || actual.worktree !== increment.worktree ||
+          increment.snapshotHash && actual.snapshotHash !== increment.snapshotHash) throw new Error('The background workspace changed after its review snapshot. Inspect the current changes.'); }
     }
   }
   async acknowledgeWorkspace(workspaceId: string, attemptId: string, reusable = false): Promise<void> {

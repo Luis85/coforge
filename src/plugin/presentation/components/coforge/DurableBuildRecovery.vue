@@ -67,8 +67,9 @@ const recovery = useDurableBuildRecovery(
     <p class="cf-settings-help">
       Recovery records a Stop hold before verification. Unknown process
       ownership or workspace changes remain held for attention. It does not
-      resume a provider or create a fresh run. Only the operator's normal
-      Restart action may start again after confirmed recovery and review.
+      resume a provider or create a fresh run. After confirmed recovery, eligible
+      native Builds can review a background retry in Workflow runs to keep earlier
+      steps. The operator's Restart workflow action starts again from the first step.
     </p>
     <button
       type="button"

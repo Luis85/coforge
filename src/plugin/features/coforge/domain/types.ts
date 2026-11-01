@@ -14,10 +14,14 @@ export interface Screening { verdict: 'clear' | 'flagged'; reason: string; signa
 export interface ImplementationPlan { summary: string; steps: string[]; acceptanceCriteria: string[]; risks: string[]; markdown: string; createdAt: string }
 export interface FileChange { path: string; additions: number; deletions: number }
 export interface Increment {
+  /** Optional host-owned hash of the actual scoped file tree; legacy/model output cannot invent it. */
+  snapshotHash?: string;
   summary: string; files: FileChange[]; tests: string[]; diff: string;
   branch?: string; worktree?: string; commit?: string; createdAt: string; simulated: boolean;
 }
 export interface Idea {
+  polishingRuns?: import('./polishing').PolishingRun[];
+  polishingAmendments?: import('./polishing').PolishingAmendment[];
   requestObject?: import('./request-object').RequestObjectSnapshot;
   workflowRun?: import('./configured-workflow-run').WorkflowRun;
   workflowHistory?: import('./configured-workflow-run').WorkflowRun[];

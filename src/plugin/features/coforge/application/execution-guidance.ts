@@ -1,7 +1,7 @@
 import type { WorkflowAccess, WorkflowOutput } from '../domain/configured-workflow';
 
 /** Describe the existing tool boundary and evidence obligations; saved instructions never grant capabilities. */
-export function executionGuidance(access: WorkflowAccess, output: WorkflowOutput): string {
+export function executionGuidance(access: WorkflowAccess, output: WorkflowOutput, purpose?: 'request-replacement'): string {
   const repository = access === 'none'
     ? 'No repository tools are available. Base conclusions on supplied context and identify what you could not inspect.'
     : access === 'readproject'
@@ -9,9 +9,13 @@ export function executionGuidance(access: WorkflowAccess, output: WorkflowOutput
       : 'Repository access is file-only inside the designated isolated worktree. Use only supplied file tools to inspect and edit allowed files.';
   const capabilities = 'The supplied CoForge request-step tools do not provide subagent delegation, command execution, test runners, browser inspection or web research. These capabilities are unavailable to native workflow invocations. If the task requests them, disclose the tool limitation and remaining work. Never claim a delegation, execution or visual inspection without actual evidence; an external client must identify the source of any independently supplied evidence.';
   const discovery = access === 'none' ? '' : ' Before declaring a file missing, narrow listing and search to likely source, styles, tests and documentation directories. A truncated result is incomplete evidence: narrow the path and search again. Inspect existing UI patterns, styles, tests and documentation contracts relevant to a change.';
-  const verification = ' Do not claim tests passed, checks ran or visual quality was verified from source inspection or prior artifact claims. Distinguish tests written from checks actually executed; unavailable checks remain not run. Name discovered verification commands only as human follow-up, with expected outcomes and remaining unknowns.';
+  const verification = ' Do not claim tests passed, checks ran or visual quality was verified from source inspection or prior artifact claims.' + (purpose === 'request-replacement'
+    ? ' Preserve requested verification as future requirements, never as completed results. Do not append an execution-status report to the replacement request body.'
+    : ' Distinguish tests written from checks actually executed; unavailable checks remain not run. Name discovered verification commands only as human follow-up, with expected outcomes and remaining unknowns.');
   let handoff = '';
-  if (output === 'plan') {
+  if (purpose === 'request-replacement') {
+    handoff = ' Return only the polished replacement request text within the required markdown field. Honor the captured feedback and preserve the request constraints. Do not append an analytical assessment, verification handoff or reviewer report to that body. The replacement remains a proposal for explicit human review.';
+  } else if (output === 'plan') {
     handoff = ' Within the existing plan schema, include inspected implementation, styles, tests and documentation paths where relevant; label guessed paths. Write behavioral acceptance criteria, failure cases, verification follow-up and open questions in the existing fields. Carry unresolved decisions forward. Do not invent owner decisions or silently expand the selected scope.';
   } else if (output === 'codechange') {
     handoff = ' Present a concise factual handoff within the existing summary field: delivered behavior and relevant files; acceptance criteria covered or still unproven; tests written versus checks actually executed; unfinished work and blockers; concrete human review steps and unknowns. Include styling, accessibility and documentation gaps where relevant. A valid output or captured diff does not mean the increment is qualified for acceptance.';

@@ -64,7 +64,7 @@ export const OPERATION_CODES = [
   'workflow-definition-updated',
   'workflow-output-template-saved', 'workflow-output-template-deleted',
   'workflow-admission-blocked',
-  'workflow-run-started', 'workflow-run-stopped', 'workflow-run-finished', 'workflow-run-awaiting-review',
+  'workflow-run-started', 'workflow-run-stopped', 'workflow-run-finished', 'workflow-run-awaiting-review', 'workflow-background-retry-approved', 'polishing-pass-approved', 'polishing-pass-stopped', 'polishing-result-rejected',
   'workflow-manual-waiting', 'workflow-manual-completed',
   'job-queued', 'ai-cost-reported', 'ai-cost-manual-updated',
   'project-stage-prompts-updated',

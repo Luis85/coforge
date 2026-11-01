@@ -97,9 +97,10 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   let serviceDesignFolders: () => readonly string[] = () => [];
   const noteFolders = new ManagedNoteFolders(() => serviceDesignFolders());
   const storage = new VaultStudioStorage(plugin, () => councilPrivateFolders(), folders => noteFolders.assertAvailable(folders));
-  const localWorkspaces = new LocalWorkflowWorkspaces(new WorkflowWorkspaceStateStorage(plugin));
+  const workspaceStorage = new WorkflowWorkspaceStateStorage(plugin);
+  const localWorkspaces = new LocalWorkflowWorkspaces(workspaceStorage);
   const durableBuilds = durableBuildRuntime(plugin, durableWorkerSource, () => studio.integration().workerNodeBin,
-    () => ['CoForge', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders()]);
+    () => ['CoForge', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders(), ...serviceDesignFolders()]);
   const workspaces = durableBuilds ? durableBuildWorkspaces(durableBuilds, localWorkspaces) : localWorkspaces;
   const log = operationsLog(logger);
   const listeners = new Set<(notice: StudioNotice) => void>();
@@ -126,7 +127,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     catch { return { request: project.settings.workflow, unavailable: 'Proposal workflow references could not be read. Repair the project workflow note before relying on this list.' }; }
   });
   const studio: StudioService = new StudioService(storage, {
-    ...(durableBuilds ? { durableBuilds } : {}),
+    ...(durableBuilds ? { durableBuilds, backgroundBuildRetries: durableBuilds.retryResources(workspaceStorage), polishingCode: durableBuilds.polishingResources(localWorkspaces, workspaceStorage) } : {}),
     outputTemplates,
     agentTasks: { prepareCoworker: (projectId, coworkerId) => workflowAgentTasks(plugin, studio, council.actions).prepareCoworker!(projectId, coworkerId), prepareCouncil: (projectId, councilId) => workflowAgentTasks(plugin, studio, council.actions).prepareCouncil!(projectId, councilId), create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => workflowAgentTasks(plugin, studio, council.actions).cancel!(id), result: id => workflowAgentTasks(plugin, studio, council.actions).result!(id) },
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
@@ -342,6 +343,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     },
     async dispose() {
       disposed = true;
+      const closingEngine = studio.engine.stop();
       obsStudio.dispose();
       const closingAlerts = alerts.dispose();
       const closingTasks = taskScheduler.dispose();
@@ -350,12 +352,11 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       stopCouncilCosts();
       if (councilCostTimer !== undefined) timers.clearTimeout(councilCostTimer);
       invocations.dispose();
-      await Promise.all([closingAlerts, closingTasks, closingMcp, closingTriggers]);
+      await Promise.all([closingEngine, closingAlerts, closingTasks, closingMcp, closingTriggers]);
       await council.dispose();
       stopHerdrRuntime();
       stopStatusbar();
       streamViews.dispose(); streamSource.dispose();
-      await studio.engine.stop();
       await herdrWorkflows.dispose();
       await herdr.dispose();
       await liveMonitor.stop();

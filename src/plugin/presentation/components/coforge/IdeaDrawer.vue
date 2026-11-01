@@ -22,7 +22,7 @@ const model = useIdeaDrawer();
         <div class="cf-idea-scroll">
           <div v-if="model.operatorHeld" class="cf-idea-alert" role="status">
             <CfIcon name="circle-stop" />
-            <span class="cf-notice-body"><strong>{{ model.preservedReview ? 'Stopped — preserved changes need review' : 'This workflow is stopped' }}</strong><small>{{ model.preservedReview ? 'Open Increment to inspect the preserved changes, then accept them or request changes. After requesting changes, right-click the card and choose Restart workflow.' : 'Right-click this card and choose Restart workflow' }}</small></span>
+            <span class="cf-notice-body"><strong>{{ model.preservedReview ? 'Stopped — preserved changes need review' : 'This workflow is stopped' }}</strong><small>{{ model.preservedReview ? 'Open Increment to inspect the preserved changes, then accept them or request changes. After requesting changes, right-click the card and choose Restart workflow.' : 'Right-click this card and choose Restart workflow' }}</small><small v-if="model.backgroundRetryAvailable">Workflow runs also offers a reviewed background Build retry that keeps earlier steps. Releasing this Stop hold requires your explicit confirmation.</small></span>
           </div>
           <div v-if="model.error" class="cf-idea-alert is-error" role="alert">
             <CfIcon name="circle-alert" />

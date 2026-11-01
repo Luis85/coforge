@@ -12,6 +12,7 @@ import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import { useStudioStore } from "../../stores/coforge-studio";
 import { useStudioActions } from "./use-studio-actions";
 import { workflowProviderSummary } from "./agent-labels";
+import { reviewedBackgroundRetryRequired } from './background-build-retry-display';
 import {
   configuredAgentLabel,
   configuredStepProblem,
@@ -37,6 +38,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
   const settings = computed(() => project.value?.settings ?? defaultSettings());
   const savedDefinition = computed(() => workflowDefinition(settings.value));
   const run = computed(() => selected.value?.workflowRun);
+  const pendingPolishing = computed(() => Boolean(selected.value?.polishingRuns?.some(pass => pass.review === 'pending')));
   const operatorHeld = computed(() => Boolean(selected.value && store.state?.workflowStopHolds?.includes(selected.value.id)));
   const preservedReview = computed(() => operatorHeld.value && Boolean(selected.value?.increment) && run.value?.state === 'awaiting-review');
   watch(() => `${selected.value?.id}:${run.value?.id}:${run.value?.revision}`, key => { if (key !== nudgeRecoveryKey.value) { nudgeRecoveryKey.value = key; nudgeRecoveryConsent.value = false; } });
@@ -64,6 +66,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
     const idea = selected.value;
     if (!idea) return "Select a request to run its workflow.";
     if (operatorHeld.value) return 'Right-click this card and choose Restart workflow';
+    if (pendingPolishing.value) return 'Review or dismiss the pending Improve & polish pass below before continuing the main workflow.';
     if ((store.state?.jobs ?? []).some(job => job.ideaId === idea.id && job.durable && job.durable.acknowledged !== true)) return 'The original background Build is not acknowledged. Inspect or recover that execution before starting more work for this request.';
     if (uncertainNudges.value.length) return 'Inspect and acknowledge the uncertain task or cancellation before starting more work.';
     if (["shipped", "rejected", "flagged"].includes(idea.status))
@@ -85,6 +88,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
       ].includes(run.value.state)
     )
       return CONFIGURED_RUN_LABELS[run.value.state];
+    if (reviewedBackgroundRetryRequired(run.value)) return 'This Build requires a fresh reviewed background retry. Inspect its current snapshot before confirming another attempt.';
     return currentStep.value?.kind === "ai"
       ? configuredStepProblem(
           currentStep.value,
@@ -169,11 +173,13 @@ export function useWorkflow(ideaId?: () => string | undefined) {
       ),
     ),
     canRunNext: computed(
-      () => !store.busy && !blocked.value && Boolean(currentStep.value),
+      () => !store.busy && !blocked.value && !reviewedBackgroundRetryRequired(run.value) && Boolean(currentStep.value),
     ),
+    pendingPolishing,
     canRestart: computed(
       () =>
         !store.busy &&
+        !pendingPolishing.value &&
         !operatorHeld.value &&
         !uncertainNudges.value.length &&
         !(store.state?.jobs ?? []).some(job => job.ideaId === selected.value?.id && job.durable && job.durable.acknowledged !== true) &&
@@ -201,6 +207,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
         : `${run.value?.state === "attention" ? "Retry" : run.value ? "Run" : "Start"} · ${currentStep.value?.name ?? "workflow"}`,
     ),
     nextActionHeading: computed(() => {
+      if (pendingPolishing.value) return 'Review Improve & polish pass';
       if (preservedReview.value) return 'Stopped — preserved changes need review';
       if (operatorHeld.value) return 'This workflow is stopped';
       if (!run.value && selected.value?.lastError)
@@ -217,7 +224,8 @@ export function useWorkflow(ideaId?: () => string | undefined) {
       return `${run.value?.state === "attention" ? "Review before retrying" : run.value ? "Next step" : "Start with"} · ${currentStep.value?.name ?? "workflow"}`;
     }),
     nextActionHelp: computed(() => {
-      if (operatorHeld.value) return `${preservedReview.value ? 'Review the preserved changes before deciding what to keep. ' : 'The captured history is retained. '}Right-click this card and choose Restart workflow`;
+      if (pendingPolishing.value) return 'The main workflow checkpoint is retained. Inspect the independent pass above; stop or recover its execution if needed, then apply or dismiss its result before continuing the main workflow.';
+      if (operatorHeld.value) return `${preservedReview.value ? 'Review the preserved changes before deciding what to keep. ' : 'The captured history is retained. '}Right-click this card and choose Restart workflow to start from the first step. Eligible native Builds can instead review a background retry below and explicitly release the hold.`;
       if (!run.value && selected.value?.lastError)
         return selected.value.lastError;
       if (run.value?.state === "running")
@@ -274,11 +282,11 @@ export function useWorkflow(ideaId?: () => string | undefined) {
     ),
     runNext: () => {
       const id = selected.value?.id;
-      if (id && !operatorHeld.value) perform(() => actions.runWorkflowStep(id));
+      if (id && !operatorHeld.value && !pendingPolishing.value && !reviewedBackgroundRetryRequired(run.value)) perform(() => actions.runWorkflowStep(id));
     },
     restart: () => {
       const id = selected.value?.id;
-      if (id && !operatorHeld.value) perform(() => actions.startWorkflow(id));
+      if (id && !operatorHeld.value && !pendingPolishing.value) perform(() => actions.startWorkflow(id));
     },
     stop: () => {
       const id = selected.value?.id;

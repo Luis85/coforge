@@ -1,0 +1,13 @@
+.cf-polishing-dialog { width: min(760px, 100%); min-width: 0; overflow-wrap: anywhere; }
+.cf-polishing-dialog > header { flex-wrap: wrap; align-items: flex-start; gap: var(--cf-space-sm); margin-bottom: var(--cf-space-lg); }
+.cf-polishing-dialog > header h2 { margin: 0; }
+.cf-polishing-dialog .cf-btn, .cf-polishing-history .cf-btn { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.cf-polishing-dialog .cf-workflow-check { align-items: flex-start; white-space: normal; overflow-wrap: anywhere; }
+.cf-polishing-dialog .cf-workflow-check input { flex-shrink: 0; }
+.cf-polishing-result-body, .cf-polishing-history, .cf-polishing-history > details { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.cf-polishing-dialog .cf-workflow-code-block, .cf-polishing-result-body .cf-workflow-code-block, .cf-polishing-history .cf-workflow-code-block { max-width: 100%; max-height: 24rem; white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; }
+/* Keep the host accent hue while qualifying small confirmation text in both pinned native themes. */
+.ps--coforge .cf-studio:where(body.theme-light *) :is(.cf-background-build-retry, .cf-polishing-dialog, .cf-polishing-history) .cf-btn-primary { background: color-mix(in srgb, var(--cf-accent) 80%, var(--cf-text)); }
+.ps--coforge .cf-studio:where(body.theme-dark *) :is(.cf-background-build-retry, .cf-polishing-dialog, .cf-polishing-history) .cf-btn-primary { background: color-mix(in srgb, var(--cf-accent) 80%, var(--cf-bg)); }
+.ps--coforge .cf-studio:where(body.theme-light *) :is(.cf-background-build-retry, .cf-polishing-dialog, .cf-polishing-history) .cf-btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--cf-accent) 75%, var(--cf-text)); }
+.ps--coforge .cf-studio:where(body.theme-dark *) :is(.cf-background-build-retry, .cf-polishing-dialog, .cf-polishing-history) .cf-btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--cf-accent) 75%, var(--cf-bg)); }

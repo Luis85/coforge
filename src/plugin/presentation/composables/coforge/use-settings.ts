@@ -9,6 +9,7 @@ import {
   type InjectionKey,
 } from "vue";
 import { defaultSettings } from "../../../features/coforge/domain/seed";
+import { projectHasPendingWorkflow } from '../../../features/coforge/api';
 import { projectConfigurationIdentity } from "../../../features/coforge/domain/projects";
 import { useStudioShell } from "./use-studio-app";
 import { copyRequestObject } from './request-object-draft';
@@ -91,17 +92,7 @@ function createSettings() {
       store.projectJobs.some(
         (job) => job.status === "running" || job.status === "queued",
       ) ||
-      store.projectIdeas.some(
-        (idea) =>
-          idea.workflowRun &&
-          [
-            "ready",
-            "running",
-            "waiting-human",
-            "attention",
-            "awaiting-review",
-          ].includes(idea.workflowRun.state),
-      ),
+      Boolean(store.state && store.activeProject && projectHasPendingWorkflow(store.state, store.activeProject.id)),
   );
   const runtime = computed(() => store.state?.runtime);
   const lastError = (fallback: string): string => {

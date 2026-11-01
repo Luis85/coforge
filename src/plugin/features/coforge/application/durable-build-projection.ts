@@ -7,6 +7,7 @@ import type { DurableBuildSnapshot } from '../domain/durable-build';
 import type { InternalState, StageResult } from './ports';
 import { appendWorkflowArtifact, configuredChanges, projectWorkflowChanges } from './configured-workflow-policy';
 import { failConfiguredJob } from './configured-workflow-job';
+import { currentWorkspaceAttempt, workflowAttemptWorkspace } from '../domain/workflow-execution-step';
 
 /** Retain independently captured evidence even after Stop; advancement is a separate guarded operation. */
 export function projectDurableBuild(state: InternalState, job: AgentJob, snapshot: DurableBuildSnapshot, complete: (state: InternalState, job: AgentJob, result: StageResult) => void): void {
@@ -26,14 +27,16 @@ export function projectDurableBuild(state: InternalState, job: AgentJob, snapsho
   const { idea, run, snapshot: execution } = original;
   const before = `${run.workspaceId ?? ''}:${run.artifacts.length}:${run.state}:${run.error ?? ''}`;
   if (snapshot.workspaceId) {
-    if (run.workspaceId && run.workspaceId !== snapshot.workspaceId) throw new Error('The original background workspace identity changed.');
-    run.workspaceId = snapshot.workspaceId;
+    const expected = workflowAttemptWorkspace(run, execution.attemptId);
+    const approval = run.backgroundRetries?.find(item => item.id === execution.backgroundRetryId && item.attemptId === execution.attemptId && item.jobId === job.id);
+    if (expected && expected !== snapshot.workspaceId || approval?.priorWorkspaceId === snapshot.workspaceId) throw new Error('The original background workspace identity changed; retries require a fresh owned workspace.');
+    if (currentWorkspaceAttempt(run, execution.attemptId)) run.workspaceId = snapshot.workspaceId;
     if (job.workflow) job.workflow.workspaceId = snapshot.workspaceId;
   }
   const increment = snapshot.workspaceCaptured ? snapshot.increment : snapshot.result ? snapshot.result.increment : snapshot.increment;
   const capturedEmpty = durableBuildTerminal(snapshot.phase) && snapshot.workspaceCaptured === true && snapshot.workspaceId && !increment;
   if (increment || capturedEmpty) {
-    if (increment?.simulated || !run.workspaceId) throw new Error('Background code changes require a verified real worktree.');
+    if (increment?.simulated || !workflowAttemptWorkspace(run, execution.attemptId)) throw new Error('Background code changes require a verified real worktree owned by this attempt.');
     const existing = [...run.artifacts].reverse().find(artifact => artifact.attemptId === execution.attemptId && artifact.hostSnapshot);
     if (!existing || JSON.stringify(existing.increment) !== JSON.stringify(increment)) appendWorkflowArtifact(run, execution, { output: 'codechange', hostSnapshot: true, summary: increment?.summary ?? 'No pending code changes.', ...(increment ? { increment } : {}) }, new Date().toISOString());
     if (idea.workflowRun?.id === run.id && ideaProjectId(idea) === run.projectId && !['shipped', 'rejected'].includes(idea.status)) projectWorkflowChanges(idea, run);

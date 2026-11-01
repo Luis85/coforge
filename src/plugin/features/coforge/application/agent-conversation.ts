@@ -1,5 +1,6 @@
 import { conversationText, type AgentConversationEvent } from '../domain/agent-conversation';
 import type { StudioStore } from './studio-store';
+import { polishingSaveOptions } from './polishing-save-options';
 
 /** Await before transport/validation: evidence persistence failures cannot silently dispatch work. */
 export async function recordAgentConversation(store: StudioStore, jobId: string, event: AgentConversationEvent): Promise<void> {
@@ -18,5 +19,5 @@ export async function recordAgentConversation(store: StudioStore, jobId: string,
       job.conversation.response = { ...captured, truncated: captured.truncated || previous?.truncated === true };
       job.conversation.responseCapturedAt = capturedAt;
     }
-  });
+  }, polishingSaveOptions(store.durableBuildJob(jobId), () => store.internalSnapshot()));
 }

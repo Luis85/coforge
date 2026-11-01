@@ -11,6 +11,7 @@ import { configuredJobInput } from './configured-workflow-job';
 import { projectDurableBuild } from './durable-build-projection';
 import { executionConcurrency } from '../domain/execution-concurrency';
 import { recordOperation } from './population';
+import { polishingSaveOptions } from './polishing-save-options';
 
 const unavailable = 'The original background Build could not be contacted. Check its worker and retained execution; do not start another writer.';
 export class DurableBuildCoordinator {
@@ -34,8 +35,13 @@ export class DurableBuildCoordinator {
     const captured = configuredJobInput(this.store.internalSnapshot(), job, undefined, false);
     if (!captured?.workflow || captured.stage !== 'implement' || !captured.workflow.step.execution || !['claude', 'codex'].includes(captured.workflow.step.provider)) throw new Error('Only captured native Builds can enter the background lane.');
     const policy = durableBuildPolicyCheck({ ...captured.workflow.step.execution, idleWarningSeconds: captured.workflow.step.execution.idleWarningSeconds ?? DEFAULT_DURABLE_IDLE_WARNING_SECONDS });
+    const retry = captured.workflow.backgroundRetryId ? captured.idea.workflowRun?.backgroundRetries?.find(item => item.id === captured.workflow!.backgroundRetryId && item.jobId === job.id && item.attemptId === captured.workflow!.attemptId) : undefined;
+    const polishing = captured.workflow.polishingId ? captured.idea.polishingRuns?.find(item => item.id === captured.workflow!.polishingId && item.workflow.id === captured.workflow!.runId) : undefined;
+    if (captured.workflow.backgroundRetryId && !retry) throw new Error('The reviewed background retry authorization is missing.');
     const request: DurableBuildRequest = { version: 1, jobId: job.id, projectId: job.projectId!, ideaId: job.ideaId, runId: captured.workflow.runId, attemptId: captured.workflow.attemptId, policy,
-      input: { jobId: job.id, stage: 'implement', idea: omit(captured.idea, 'workflowRun', 'workflowHistory', 'increment'), settings: captured.settings,
+      ...(retry ? { reviewedSnapshot: retry.snapshot } : {}),
+      ...(polishing?.reviewedSnapshot ? { reviewedSnapshot: polishing.reviewedSnapshot } : {}),
+      input: { jobId: job.id, stage: 'implement', idea: omit(captured.idea, 'workflowRun', 'workflowHistory', 'increment', 'polishingRuns', 'polishingAmendments'), settings: captured.settings,
         integration: { projectPath: captured.integration.projectPath, worktreeFolder: captured.integration.worktreeFolder, allowImplementation: captured.integration.allowImplementation, ideasFolder: captured.integration.ideasFolder, publicFolder: captured.integration.publicFolder, claudeBin: captured.integration.claudeBin, ...(captured.integration.codexBin ? { codexBin: captured.integration.codexBin } : {}) }, workflow: captured.workflow } };
     const ref = durableBuildRefCheck(await this.port.prepare(request));
     try {
@@ -47,7 +53,7 @@ export class DurableBuildCoordinator {
         if (!configuredJobInput(state, current)) throw new Error('The queued Build was stopped before durable admission.');
         current.durable = { intent: 'start', ref, policy };
         if (foregroundId) state.runtime.activeJobId = foregroundId; else delete state.runtime.activeJobId;
-      });
+      }, polishingSaveOptions(job, () => this.store.internalSnapshot()));
     } catch (error) {
       const existing = this.store.durableBuildJob(job.id)?.durable;
       if (existing && sameDurableBuildRef(existing.ref, ref)) { await this.check(job.id); return; }
@@ -64,7 +70,7 @@ export class DurableBuildCoordinator {
       job.durable.intent = 'cancel';
       state.workflowStopHolds = [...new Set([...(state.workflowStopHolds ?? []), job.ideaId])];
       recordOperation(state, 'workflow-run-stopped', 'committed', undefined, 1, job.workflow?.runId ?? job.id);
-    });
+    }, polishingSaveOptions(this.store.durableBuildJob(jobId), () => this.store.internalSnapshot()));
     await this.check(jobId);
   }
   private async cancelPreparation(job: AgentJob, ref: DurableBuildRef, policy: DurableBuildPolicy): Promise<void> {
@@ -79,14 +85,14 @@ export class DurableBuildCoordinator {
         projectDurableBuild(state, current, snapshot, this.complete);
         if (durableBuildTerminal(snapshot.phase)) current.durable.appliedSequence = snapshot.sequence;
       } else current.status = 'running';
-    });
+    }, polishingSaveOptions(job, () => this.store.internalSnapshot()));
     try { await this.acknowledge(job.id); } catch { await this.noteError(job.id); }
   }
-  async reconcile(ideaId?: string): Promise<void> {
+  async reconcile(ideaId?: string, runId?: string): Promise<void> {
     if (this.detached) return;
     if (this.polling) return this.polling;
     const work = async () => {
-      const jobs = this.store.durableBuildJobIds(ideaId);
+      const jobs = this.store.durableBuildJobIds(ideaId).filter(id => !runId || this.store.durableBuildJob(id)?.workflow?.runId === runId);
       for (const jobId of jobs) { if (this.detached) return; await this.check(jobId); }
     };
     this.polling = work().finally(() => { this.polling = undefined; });
@@ -156,7 +162,7 @@ export class DurableBuildCoordinator {
       execution.snapshot = snapshot; delete execution.reconcileError;
       projectDurableBuild(state, job, snapshot, this.complete);
       if (durableBuildTerminal(snapshot.phase)) execution.appliedSequence = snapshot.sequence;
-    });
+    }, polishingSaveOptions(this.store.durableBuildJob(jobId), () => this.store.internalSnapshot()));
     await this.acknowledge(jobId);
   }
   private async acknowledge(jobId: string): Promise<void> {
@@ -164,7 +170,7 @@ export class DurableBuildCoordinator {
     if (!execution || execution.appliedSequence === undefined || execution.acknowledged || !this.port || this.detached) return;
     await this.port.acknowledge(execution.ref, execution.appliedSequence);
     if (this.detached) return;
-    await this.store.transaction(state => { const current = state.jobs.find(item => item.id === jobId)?.durable; if (current && sameDurableBuildRef(current.ref, execution.ref)) { current.acknowledged = true; delete current.reconcileError; } });
+    await this.store.transaction(state => { const current = state.jobs.find(item => item.id === jobId)?.durable; if (current && sameDurableBuildRef(current.ref, execution.ref)) { current.acknowledged = true; delete current.reconcileError; } }, polishingSaveOptions(job, () => this.store.internalSnapshot()));
     await this.store.observeDurableBuild(jobId, undefined, undefined, true);
     if (!this.detached && job.status === 'succeeded') await this.after?.(job.ideaId);
   }

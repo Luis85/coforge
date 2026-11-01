@@ -6,7 +6,7 @@ import { copySettings, initialProject, INITIAL_PROJECT_ID, projectPaths } from "
 import type { Activity, Idea } from "../domain/types";
 import type { InternalState, LoadedStudio, NoteIdea } from "./ports";
 import { emptyPopulation } from "../domain/population";
-import { stopUntrustedWorkflow, workflowIntegrityKey, workflowMetadataFingerprint } from './workflow-note-integrity';
+import { stopUntrustedWorkflow, workflowIntegrityKey, workflowMetadataFingerprint, polishingIntegrityKey, polishingMetadataFingerprint } from './workflow-note-integrity';
 
 export function addEvent(state: InternalState, type: Activity["type"], text: string, ideaId?: string): void {
   state.events.push({
@@ -131,6 +131,11 @@ export function enforceIntegrity(state: InternalState, external: ReadonlySet<str
   for (const idea of state.ideas) {
     if (external !== "all" && !external.has(idea.id)) continue;
     const workflowKey = workflowIntegrityKey(idea);
+    const polishKey = polishingIntegrityKey(idea);
+    if ((idea.polishingRuns?.length || idea.polishingAmendments?.length || state.integrity[polishKey]) && state.integrity[polishKey] !== polishingMetadataFingerprint(idea)) {
+      stopUntrustedWorkflow(idea); quarantined.push(idea.id);
+      addEvent(state, 'system', `${idea.id} has externally changed polishing progress. Inspect its retained results before continuing.`, idea.id);
+    }
     if ((idea.workflowRun || idea.workflowHistory?.length || state.integrity[workflowKey]) && state.integrity[workflowKey] !== workflowMetadataFingerprint(idea)) {
       stopUntrustedWorkflow(idea);
       quarantined.push(idea.id);
@@ -151,7 +156,8 @@ export function enforceIntegrity(state: InternalState, external: ReadonlySet<str
     const key = workflowIntegrityKey(idea);
     // Removing managed note fields must not turn configured code into unguarded legacy work.
     const fingerprint = idea.workflowRun || idea.workflowHistory?.length ? workflowMetadataFingerprint(idea) : previousIntegrity[key];
-    return [[idea.id, ideaFingerprint(idea)], ...(fingerprint !== undefined ? [[key, fingerprint]] : [])];
+    const polishKey = polishingIntegrityKey(idea); const polishFingerprint = idea.polishingRuns?.length || idea.polishingAmendments?.length ? polishingMetadataFingerprint(idea) : previousIntegrity[polishKey];
+    return [[idea.id, ideaFingerprint(idea)], ...(fingerprint !== undefined ? [[key, fingerprint]] : []), ...(polishFingerprint !== undefined ? [[polishKey, polishFingerprint]] : [])];
   }));
   return quarantined;
 }

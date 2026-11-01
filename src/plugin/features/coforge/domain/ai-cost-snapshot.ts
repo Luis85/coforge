@@ -17,7 +17,7 @@ export function collectCostTasks(
     const project = projects.get(projectId);
     const captured = managed.find(record => record.jobId === job.id);
     const coworker = job.workflow?.coworker;
-    const workflow = [idea?.workflowRun, ...(idea?.workflowHistory ?? [])].find(run => run?.id === job.workflow?.runId);
+    const workflow = [idea?.workflowRun, ...(idea?.workflowHistory ?? []), ...(idea?.polishingRuns ?? []).map(pass => pass.workflow)].find(run => run?.id === job.workflow?.runId);
     const attribution = coworker ? { kind: 'agent' as const, agentNamespace: 'reusable' as const,
       agentId: coworker.id, agentName: coworker.name, agentRevision: coworker.revision,
       runId: job.workflow?.runId, workflowRevision: job.workflow?.definitionRevision,

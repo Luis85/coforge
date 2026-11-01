@@ -24,8 +24,11 @@ export async function retainedJob(files: WorkerFiles, ref: DurableBuildRef) {
   return { request, record, files: jobFiles };
 }
 export async function supervisorGone(files: WorkerFiles, ref: DurableBuildRef, driver = nativeProof): Promise<boolean> {
+  return supervisorWorkerGone(files, ref.workerId, driver);
+}
+export async function supervisorWorkerGone(files: WorkerFiles, workerId: string, driver = nativeProof): Promise<boolean> {
   const raw = shape({ workerId: text(), identity: nativeIdentityCheck })(await files.read('daemon.json'));
-  if (raw.workerId !== ref.workerId || raw.identity.platform !== process.platform) return false;
+  if (raw.workerId !== workerId || raw.identity.platform !== process.platform) return false;
   const observed = await driver.read(raw.identity.pid);
   return observed === undefined || observed.platform === raw.identity.platform && observed.birth !== raw.identity.birth;
 }

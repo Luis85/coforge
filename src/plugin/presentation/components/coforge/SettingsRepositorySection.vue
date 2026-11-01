@@ -76,7 +76,7 @@ const model = useSettingsForm();
         the game.
       </p>
       <p v-if="model.pending" class="cf-settings-help">
-        Finish, stop or review this project’s current workflows before saving
+        Finish, stop or review this project’s current workflows and unresolved Improve &amp; polish passes before saving
         project-wide configuration. Workflow settings can still be saved for
         future runs.
       </p>

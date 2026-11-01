@@ -15,6 +15,7 @@ export const DURABLE_BUILD_PHASES = ['prepared', 'starting', 'running', 'finaliz
 export type DurableBuildPhase = typeof DURABLE_BUILD_PHASES[number];
 export interface DurableBuildResult { summary?: string; increment?: Increment; costUsd?: number; usage?: StageUsage }
 const increment = shape({ summary: text({ min: 1, max: 6000 }), files: list(shape({ path: text({ min: 1, max: 1000 }), additions: number({ integer: true, min: 0 }), deletions: number({ integer: true, min: 0 }) }, { strict: true }), { max: 10000 }),
+  snapshotHash: optional(text({ pattern: /^[a-f0-9]{64}$/u })),
   tests: list(text({ max: 2000 }), { max: 100 }), diff: text({ max: 200000 }), branch: optional(text({ max: 1000 })), worktree: optional(text({ max: 4096 })), commit: optional(text({ max: 160 })), createdAt: timestamp, simulated: boolean }, { strict: true });
 const money = number({ min: 0 });
 export const durableBuildResultCheck = shape({ summary: optional(text({ max: 6000 })), increment: optional(increment), costUsd: optional(money), usage: optional(stageUsageCheck) }, { strict: true });
@@ -35,7 +36,7 @@ export interface DurableBuildExecution {
 export const durableBuildExecutionCheck = shape({ intent: oneOf(['start', 'cancel'] as const), ref: durableBuildRefCheck, policy: durableBuildPolicyCheck, snapshot: optional(durableBuildSnapshotCheck),
   appliedSequence: optional(number({ integer: true, min: 0 })), acknowledged: optional(boolean), reconcileError: optional(text({ max: 3900 })),
 }, { strict: true });
-export interface DurableBuildReadiness { ready: boolean; message: string; repairable?: boolean }
+export interface DurableBuildReadiness { ready: boolean; message: string; repairable?: boolean; reviewedSnapshots?: boolean }
 export interface DurableBuildInspection { version: 1; ref: DurableBuildRef; snapshot: DurableBuildSnapshot; observedAt: string; evidenceHash: string }
 export const durableBuildInspectionCheck = shape({ version: oneOf([1] as const), ref: durableBuildRefCheck, snapshot: durableBuildSnapshotCheck, observedAt: timestamp, evidenceHash: text({ pattern: /^[a-f0-9]{64}$/u }) }, { strict: true });
 export interface DurableBuildInspectionReceipt extends DurableBuildInspection { ideaId: string; runId: string; runRevision: number }

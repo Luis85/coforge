@@ -1,0 +1,54 @@
+.cf-idea-workflow-tab {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cf-background-build-retry {
+  min-width: 0;
+  margin-block: var(--cf-space-lg);
+  padding-block: var(--cf-space-lg);
+  border-block: 1px solid var(--cf-border);
+}
+.cf-background-build-preview,
+.cf-background-build-preview > *,
+.cf-background-build-facts > div {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.cf-background-build-facts {
+  display: grid;
+  gap: var(--cf-space-md);
+  margin-block: var(--cf-space-lg);
+}
+.cf-background-build-facts dt {
+  color: var(--cf-muted);
+  font-size: 12px;
+}
+.cf-background-build-facts dd {
+  margin: var(--cf-space-xs) 0 0;
+  min-width: 0;
+}
+.cf-background-build-retry .cf-btn {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.cf-background-build-preview .cf-workflow-check {
+  align-items: flex-start;
+  margin-block: var(--cf-space-md);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.cf-background-build-preview .cf-workflow-check input {
+  flex-shrink: 0;
+}
+.cf-background-build-preview .cf-workflow-code-block {
+  max-width: 100%;
+  max-height: 24rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: auto;
+}
+.cf-reviewed-snapshot-scope { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.cf-reviewed-scope-list { max-height: 16rem; overflow: auto; overflow-wrap: anywhere; }

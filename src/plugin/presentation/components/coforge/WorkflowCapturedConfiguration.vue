@@ -2,6 +2,7 @@
 import type { WorkflowRun } from "../../../features/coforge/domain/configured-workflow-run";
 import { useCapturedWorkflowConfiguration } from "../../composables/coforge/use-captured-workflow-configuration";
 import MarkdownBody from "./MarkdownBody.vue";
+import WorkflowBackgroundRetryHistory from './WorkflowBackgroundRetryHistory.vue';
 const props = defineProps<{ run: WorkflowRun }>();
 const model = useCapturedWorkflowConfiguration(() => props.run);
 </script>
@@ -16,10 +17,11 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
       <code>{{ model.workflowRevision }}</code>
     </p>
     <p class="cf-settings-help">
-      This run uses these saved versions, including on retry. CoWorker and template edits and
-      deletions affect future runs. Current host permissions and review gates
-      still apply.
+      This run retains these captured task, provider, CoWorker and template versions.
+      Explicit background retry approvals are recorded separately below. Current
+      host permissions and review gates still apply.
     </p>
+    <WorkflowBackgroundRetryHistory :run="run" />
     <section v-if="model.coworkers.length" aria-label="Captured CoWorkers">
       <h3>Captured CoWorkers</h3>
       <details v-for="coworker in model.coworkers" :key="coworker.stepId" class="cf-workflow-template-preview">

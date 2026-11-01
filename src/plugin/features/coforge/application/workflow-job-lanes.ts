@@ -16,6 +16,7 @@ export class WorkflowJobLanes {
   constructor(private readonly store: StudioStore, private readonly run: (job: AgentJob, controller: AbortController) => Promise<void>, private readonly report: (error: unknown) => void = () => {}) {}
   open(): void { this.closed = false; }
   pause(): void { this.closed = true; }
+  hasActiveIdea(ideaId: string): boolean { return [...this.active.values()].some(item => item.job.ideaId === ideaId); }
   poke(): void { for (const id of this.capacityBlocked) this.blocked.delete(id); this.capacityBlocked.clear(); this.kick(); }
   kick(): void {
     if (this.closed) return;
