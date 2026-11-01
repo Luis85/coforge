@@ -52,5 +52,8 @@ note-write trust, typed failure evidence and request AI costs are retained. Merg
 resolutions preserve both owner integrity metadata and normalized note inputs,
 both save-option contracts, and deletion-event suppression around the new committed
 write observer. The local full results above precede this integration; combined
-source qualification and the complete GitHub check/browser/native jobs must pass
-before merge.
+source focused checks passed 67 cases across 13 files after updating two integrity
+fixtures to distinguish the original owner exemption from an uncommitted demo
+screening write. The 10-case integrity file passed in full; no failed-write or
+external-edit assertion was removed. Combined-source typecheck passed. Complete
+GitHub check/browser/native jobs must pass before merge.

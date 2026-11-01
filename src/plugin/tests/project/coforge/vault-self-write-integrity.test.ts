@@ -56,7 +56,7 @@ it('ignores duplicate and delayed self notifications only while the current note
   f.kit.metadataCache.trigger('changed', file, latest); f.kit.metadataCache.trigger('changed', file, latest); f.kit.metadataCache.trigger('changed', file, earlier);
   await flushObsidian(); expect(changes).toEqual([]);
   await f.app.vault.modify(file, earlier); await flushObsidian();
-  expect(changes).toHaveLength(1); expect(changes[0]).toMatchObject({ kind: 'upsert', idea: { status: 'inbox' } });
+  expect(changes).toHaveLength(1); expect(changes[0]).toMatchObject({ kind: 'upsert', idea: { status: 'screened', screening: { provider: 'owner' } } });
 });
 
 it('does not grant echo trust to a note candidate whose process write failed', async () => {
@@ -73,8 +73,8 @@ it('does not grant trust when the note succeeded but the authoritative data writ
   const failure = vi.spyOn(f.app.vault.adapter, 'write').mockImplementation(async (path, bytes) => { if (path === f.storage.dataPath) throw new Error('Synthetic data failure'); await write(path, bytes); });
   await expect(f.studio.store.transaction(state => { screened(state.ideas[0]!); })).rejects.toThrow('Synthetic data failure'); failure.mockRestore();
   await flushObsidian();
-  expect(f.studio.state().ideas[0]?.status).toBe('inbox');
-  expect(changes).toHaveLength(1); expect(changes[0]).toMatchObject({ kind: 'upsert', idea: { status: 'screened' } });
+  expect(f.studio.state().ideas[0]).toMatchObject({ status: 'screened', screening: { provider: 'owner' } });
+  expect(changes).toHaveLength(1); expect(changes[0]).toMatchObject({ kind: 'upsert', idea: { status: 'screened', screening: { provider: 'demo' } } });
   expect(f.kit.read(file.path)).toContain('status: screened');
 });
 
