@@ -7,42 +7,87 @@ import { executionAccess, executionResult, executionSchema, executionSystemPromp
 import { ideaProjectId } from '../../features/coforge/domain/projects';
 import { codexWorkflowTools } from './codex-workflow-tools';
 import { runCodexTransport } from './codex-transport';
-import type { captureProcess } from './process';
+import { ProcessOwnershipUnknown, type captureProcess } from './process';
+import { validateNativeWorkflowTools } from '../../features/coforge/domain/native-workflow-tools';
+import type { NativeWorkflowPrivateRuntime, NativeWorkflowProcessRecord } from '../../features/coforge/domain/native-workflow-process';
+import { createCodexPrivateRuntime, purgeCodexPrivateRuntime } from './codex-private-runtime';
 
 export async function runCodexStage(input: StageInput, workspaces: WorkflowWorkspaces, capture?: typeof captureProcess, protectedPaths?: readonly string[], onActivity?: () => Promise<void>): Promise<StageResult> {
   if (!input.workflow) throw new Error('Codex requires a captured workflow. Save and start the project workflow before dispatching.');
   input.signal?.throwIfAborted();
   const snapshot = input.workflow;
+  validateNativeWorkflowTools(snapshot.step, 'codex');
+  if (snapshot.step.nativeTools && !input.onNativeRuntime) throw new Error('Native Codex requires retained private runtime preparation before credentials can be copied.');
+  if (snapshot.step.nativeTools && !capture && !input.onNativeProcess) throw new Error('Native Codex tools require durable foreground process ownership before provider start. Open the contained desktop host or use the admitted background worker.');
   const lease = await workspaces.acquire({ runId: snapshot.runId, projectId: ideaProjectId(input.idea), attemptId: snapshot.attemptId, access: executionAccess(input), integration: input.integration, workspaceId: snapshot.workspaceId, signal: input.signal });
   let directory: string | undefined;
   let bridge: Awaited<ReturnType<typeof codexWorkflowTools>> | undefined;
   let captured = false;
+  let uncertain = false;
+  let nativeProcess: NativeWorkflowProcessRecord | undefined;
+  let privateRuntime: NativeWorkflowPrivateRuntime | undefined;
+  const observeNative: NonNullable<StageInput['onNativeProcess']> = async record => {
+    nativeProcess = record; await input.onNativeProcess?.(record);
+  };
+  const markUnknown = async () => {
+    uncertain = true;
+    if (nativeProcess && nativeProcess.phase !== 'terminated') {
+      try { await observeNative({ ...nativeProcess, phase: 'unknown', observedAt: new Date().toISOString() }); } catch { /* Retained launch evidence keeps admission blocked. */ }
+    }
+  };
+  const drain = async () => {
+    try { await bridge?.dispose(); }
+    catch (error) { await markUnknown(); throw error; }
+  };
   const changes = async (summary: string) => {
     if (captured || lease.readOnly) return;
-    const increment = await lease.capture(summary); captured = true;
+    const raw = await lease.capture(summary); captured = true;
+    const increment = raw && bridge ? await bridge.captureVerification(raw) : raw;
     if (lease.id) await input.onChanges?.(increment ?? null);
     return increment;
   };
   try {
     if (lease.id) await input.onWorkspace?.(lease.id);
     directory = await mkdtemp(join(tmpdir(), 'coforge-codex-'));
+    if (snapshot.step.nativeTools) {
+      privateRuntime = await createCodexPrivateRuntime(directory, { runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea) });
+      directory = privateRuntime.directory;
+      await input.onNativeRuntime!(privateRuntime);
+    }
     bridge = await codexWorkflowTools(input, lease, protectedPaths ?? lease.protectedProjectPaths ?? [], onActivity);
     input.onLog?.(`Codex ${snapshot.step.name}: scoped CoForge tools; native project access is disabled. Claude USD/turn caps are not Codex spending limits.`);
     const response = await runCodexTransport({ directory, executable: input.integration.codexBin, model: snapshot.step.model, effort: snapshot.step.effort,
       schema: executionSchema(input), instructions: executionSystemPrompt(input), prompt: executionTaskPrompt(input), timeoutMs: input.settings.timeoutSeconds * 1000,
-      signal: input.signal, mcp: bridge, capture, onConversation: input.onConversation, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); } });
-    await bridge.dispose();
+      signal: input.signal, mcp: bridge, nativeTools: snapshot.step.nativeTools, privateRuntime, capture, onConversation: input.onConversation, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); },
+      onOwnedProcess: async (identity, phase) => observeNative({ runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea), identity, phase, observedAt: new Date().toISOString(), ...(privateRuntime ? { privateRuntime } : {}) }) });
+    await drain();
     bridge.assertBudget();
     const result = executionResult(input, response.output);
+    if (nativeProcess) await observeNative({ ...nativeProcess, phase: 'terminated', observedAt: new Date().toISOString() });
     const increment = await changes(result.summary ?? `Cumulative changes after ${snapshot.step.name}`);
-    return { ...result, ...(increment ? { increment } : {}), ...(response.usage ? { usage: response.usage } : {}) };
+    const verification = bridge.verificationRecords();
+    return { ...result, ...(increment ? { increment } : {}), ...(verification.length ? { verification } : {}), ...(response.usage ? { usage: response.usage } : {}) };
   } catch (error) {
-    await bridge?.dispose();
+    uncertain = error instanceof ProcessOwnershipUnknown;
+    try { await drain(); } catch { /* Cleanup failure retains authority and private runtime for recovery. */ }
+    if (nativeProcess && nativeProcess.phase !== 'terminated') await markUnknown();
     await changes(`Cumulative changes after failed ${snapshot.step.name}`);
     throw error;
   } finally {
-    await bridge?.dispose();
-    await lease.release();
-    if (directory) await rm(directory, { recursive: true, force: true });
+    try { await drain(); }
+    finally {
+      try {
+        if (privateRuntime && !uncertain) {
+          try {
+            await purgeCodexPrivateRuntime(privateRuntime);
+            if (nativeProcess?.privateRuntime) await observeNative({ ...nativeProcess, privateRuntime: undefined, observedAt: new Date().toISOString() });
+            await input.onNativeRuntime!(undefined); privateRuntime = undefined;
+          } catch (error) { await markUnknown(); throw error; }
+        }
+      } finally {
+        try { await lease.release(uncertain || undefined); }
+        finally { if (directory && !uncertain) await rm(directory, { recursive: true, force: true }); }
+      }
+    }
   }
 }

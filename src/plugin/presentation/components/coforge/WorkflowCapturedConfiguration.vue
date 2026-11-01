@@ -22,6 +22,11 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
       host permissions and review gates still apply.
     </p>
     <WorkflowBackgroundRetryHistory :run="run" />
+    <section v-if="model.nativePolicies.length" aria-label="Captured native tool policies">
+      <h3>Captured native tools</h3>
+      <dl class="cf-settings-runtime-list"><div v-for="policy in model.nativePolicies" :key="policy.id"><dt>{{ policy.name }}</dt><dd><span v-if="policy.tools.delegation">Provider-native assistants · maximum {{ policy.tools.delegation.maxConcurrent }} concurrent. </span><span v-if="policy.tools.verification">Requested verification commands: {{ policy.tools.verification.commandIds.join(', ') }}.</span></dd></div></dl>
+      <p class="cf-settings-help">Each admitted attempt separately captures the host-granted command definitions. Activity retains its exact permissions and observed outcomes. This policy does not prove execution or acceptance.</p>
+    </section>
     <section v-if="model.coworkers.length" aria-label="Captured CoWorkers">
       <h3>Captured CoWorkers</h3>
       <details v-for="coworker in model.coworkers" :key="coworker.stepId" class="cf-workflow-template-preview">

@@ -6,6 +6,7 @@ import { workflowDefinitionCheck } from './configured-workflow';
 import { executionConcurrencyCheck } from './execution-concurrency';
 import { normalizeVaultFolder } from './vault-folder-policy';
 import { requestObjectDefinitionCheck, requestValuesInputCheck } from './request-object';
+import { workflowVerificationProfileCheck } from './native-workflow-tools';
 
 const username = text({ trim: true, min: 1, max: 50 });
 
@@ -50,6 +51,7 @@ const pathText = text({ trim: true, max: 1000 });
 const twitchId = text({ trim: true, max: 100, pattern: /^[\w-]*$/ });
 
 export const integrationPatch = shape({
+  workflowVerification: optional(workflowVerificationProfileCheck),
   executionConcurrency: optional(executionConcurrencyCheck),
   workerNodeBin: optional(text({ trim: true, min: 1, max: 1000 })),
   codexBin: optional(text({ trim: true, min: 1, max: 1000 })),

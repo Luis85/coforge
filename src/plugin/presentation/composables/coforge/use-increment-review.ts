@@ -1,13 +1,19 @@
 import { computed, reactive } from 'vue';
 import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import { workflowArtifactCheck, workflowArtifactHash, workflowProposalRevision, type WorkflowArtifact, type WorkflowRun } from '../../../features/coforge/domain/configured-workflow-run';
-import type { Idea, Increment } from '../../../features/coforge/domain/types';
+import type { AgentJob, Idea, Increment } from '../../../features/coforge/domain/types';
 import { formatTime } from './format';
 import { polishingResultArtifact } from '../../../features/coforge/domain/polishing-target';
 import type { PolishingCodeBinding, PolishingRun } from '../../../features/coforge/domain/polishing';
 import { ideaWorkflowRun } from './idea-workflow-run';
+import type { WorkflowVerificationRecord } from '../../../features/coforge/domain/workflow-verification';
+import { postBuildVerification, type PostBuildVerification } from './increment-review-verification';
+import { useStudioStore } from '../../stores/coforge-studio';
 
 interface IncrementReviewEvidence {
+  postBuildChecks: PostBuildVerification[];
+  verification?: WorkflowVerificationRecord[];
+  historicalVerification?: boolean;
   criteria: string[];
   followups: { id: string; name: string; markdown: string; createdAt: string; savedLabel: string; assessmentLabel: string }[];
   hostCaptured: boolean;
@@ -97,17 +103,17 @@ function approvedPolishingEvidence(idea: Idea): IncrementReviewEvidence | undefi
     const attempt = pass.workflow.attempts.find(item => item.id === build.attemptId && item.stepId === build.stepId && item.status === 'succeeded');
     if (!attempt) continue;
     const criteria = capturedPlanCriteria(idea, pass, attempt.inputs);
-    return { criteria, followups: [], hostCaptured: true,
+    return { criteria, followups: [], postBuildChecks: [], hostCaptured: true, verification: build.increment?.verification ?? [], historicalVerification: true,
       polishing: { runId: pass.id, artifactId: build.id, ownerRunId: binding.ownerRunId, workspaceId: binding.workspaceId } };
   }
 }
 
 /** Read-only projection of intact evidence bound to the displayed Build, never a quality verdict. */
-export function incrementReviewEvidence(idea: Idea): IncrementReviewEvidence {
+export function incrementReviewEvidence(idea: Idea, jobs: readonly AgentJob[] = []): IncrementReviewEvidence {
   const polished = approvedPolishingEvidence(idea);
   if (polished) return polished;
   const run = idea.workflowRun;
-  const empty: IncrementReviewEvidence = { criteria: [], followups: [], hostCaptured: false };
+  const empty: IncrementReviewEvidence = { criteria: [], followups: [], postBuildChecks: [], hostCaptured: false };
   if (!run || !idea.increment || run.ideaId !== idea.id || run.projectId !== ideaProjectId(idea) || run.proposalRevision !== workflowProposalRevision(idea)) return empty;
   const invalidated = new Set(run.invalidatedArtifactIds);
   const artifacts: WorkflowArtifact[] = [];
@@ -140,9 +146,12 @@ export function incrementReviewEvidence(idea: Idea): IncrementReviewEvidence {
     const assessmentLabel = step?.kind === 'council' ? 'Council assessment' : step?.kind === 'ai' && step.provider === 'demo' ? 'Simulated assessment' : 'Agent assessment';
     return [{ id: artifact.id, name: attempt.stepName, markdown: artifact.markdown, createdAt: artifact.createdAt, savedLabel: formatTime(artifact.createdAt), assessmentLabel }];
   }).reverse();
-  return { criteria: plan?.plan?.acceptanceCriteria ?? [], followups, hostCaptured: aliases.some(item => item.hostSnapshot) };
+  return { criteria: plan?.plan?.acceptanceCriteria ?? [], followups, hostCaptured: aliases.some(item => item.hostSnapshot),
+    postBuildChecks: postBuildVerification(idea, jobs, run, build, buildIndex, artifacts) };
 }
 
 export function useIncrementReview(props: { idea: Idea }) {
-  return reactive({ evidence: computed(() => incrementReviewEvidence(props.idea)) });
+  const store = useStudioStore();
+  const evidence = computed(() => incrementReviewEvidence(props.idea, store.state?.jobs ?? []));
+  return reactive({ evidence, verificationNotes: computed(() => (props.idea.increment?.tests ?? []).filter(note => !evidence.value.postBuildChecks.length || !note.startsWith('Not run: shell tools are disabled.'))) });
 }

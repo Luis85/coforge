@@ -4,6 +4,7 @@ import CfIcon from "./CfIcon.vue";
 import PluginSettingsClaude from "./PluginSettingsClaude.vue";
 import PluginSettingsCodex from './PluginSettingsCodex.vue';
 import PluginSettingsWorker from './PluginSettingsWorker.vue';
+import PluginSettingsVerification from './PluginSettingsVerification.vue';
 import PluginSettingsMcp from "./PluginSettingsMcp.vue";
 import PluginSettingsRow from "./PluginSettingsRow.vue";
 import PluginSettingsTwitch from "./PluginSettingsTwitch.vue";
@@ -78,6 +79,7 @@ const model = usePluginSettings();
       <PluginSettingsClaude />
       <PluginSettingsCodex />
       <PluginSettingsWorker />
+      <PluginSettingsVerification />
       <PluginSettingsMcp />
       <PluginSettingsTwitch />
       <PluginSettingsWebsite />

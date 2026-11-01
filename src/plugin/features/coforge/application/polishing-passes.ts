@@ -41,6 +41,7 @@ export class PolishingPasses {
     const code = context.target.kind === 'codechange';
     const step: AiWorkflowStep = { id: 'polish-result', kind: 'ai', name: 'Improve & polish', instructions: configuration.instructions,
       provider: configuration.provider, model: configuration.model, ...(configuration.effort ? { effort: configuration.effort } : {}),
+      ...(configuration.nativeTools?.delegation || code && configuration.nativeTools?.verification ? { nativeTools: { ...(configuration.nativeTools.delegation ? { delegation: structuredClone(configuration.nativeTools.delegation) } : {}), ...(code && configuration.nativeTools.verification ? { verification: structuredClone(configuration.nativeTools.verification) } : {}) } } : {}),
       ...(configuration.coworkerId ? { coworkerId: configuration.coworkerId } : {}), output: context.target.kind === 'request' ? 'markdown' : context.target.kind,
       access: code ? 'editworktree' : 'none', automatic: false,
       ...(code ? { execution: durableBuildPolicyCheck({ ...(configuration.execution ?? { mode: 'background' }), idleWarningSeconds: configuration.execution?.idleWarningSeconds ?? 1800 }) } : {}) };

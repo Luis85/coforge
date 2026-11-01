@@ -53,6 +53,9 @@ export function workerCapture(files: WorkerFiles, hooks: WorkerHooks, provider: 
           if (!await treeStopped) uncertain = true;
           await stdout.append(Buffer.from(redact(output.result(), options.env)));
           await stderr.append(Buffer.from(redact(errorTail, options.env)));
+          const original = await identity;
+          if (options.ownedTree && failure && !uncertain && original) await options.onOwnedProcess?.(original, 'terminated');
+          if (options.ownedTree && uncertain && original) await options.onOwnedProcess?.(original, 'unknown');
           if (uncertain) { reject(new WorkerOwnershipUnknown('The original provider process tree needs inspection.')); return; }
           if (failure) { reject(new ProcessFailure(failure.message, output.result())); return; }
           if (code !== 0) { reject(new ProcessFailure('Native provider exited without completing this Build.', output.result())); return; }
@@ -64,6 +67,7 @@ export function workerCapture(files: WorkerFiles, hooks: WorkerHooks, provider: 
         if (!child.pid) return;
         const verified = await identity; if (!verified) throw new WorkerOwnershipUnknown('The original provider OS identity is unavailable.');
         await hooks.launched(child.pid, randomUUID(), verified);
+        if (options.ownedTree) await options.onOwnedProcess?.(verified, 'launched');
         options.signal?.throwIfAborted();
         child.stdin.end(options.input ?? '');
       })().catch(() => stop('The provider launch identity could not be committed.'));

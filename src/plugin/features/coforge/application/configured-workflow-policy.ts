@@ -9,6 +9,7 @@ import { workflowRunOwner } from './workflow-run-owner';
 import { assertPolishingSource } from './polishing-policy';
 import { effectivePolishingInputs } from './polishing-amendments';
 import { polishingResultArtifact } from '../domain/polishing-target';
+import { assertVerificationSettled } from './verification-admission';
 
 export const compatibilityStage = (output: WorkflowOutput): AgentStage => output === 'screening' ? 'screen' : output === 'rice' ? 'score' : output === 'codechange' ? 'implement' : 'plan';
 export function configuredIdea(state: InternalState, id: string, allowClosed = false): Idea {
@@ -44,6 +45,7 @@ export function configuredInputs(run: WorkflowRun, step: Pick<AiWorkflowStep, 'i
   return inputs.map(workflowArtifactCheck);
 }
 export function configuredRuntime(state: InternalState, idea: Idea, step: AiWorkflowStep, external = false, moderationRepair = false): void {
+  assertVerificationSettled(state, idea.id);
   if (idea.voters.length < (step.minVotes ?? 0)) throw new Error(`This step requires ${step.minVotes} votes.`);
   if (!moderationRepair && idea.screening?.verdict === 'flagged') throw new Error('Resolve this request’s moderation flag before continuing.');
   const project = findProject(state, ideaProjectId(idea));

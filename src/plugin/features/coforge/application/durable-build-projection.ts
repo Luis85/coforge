@@ -13,6 +13,7 @@ import { currentWorkspaceAttempt, workflowAttemptWorkspace } from '../domain/wor
 export function projectDurableBuild(state: InternalState, job: AgentJob, snapshot: DurableBuildSnapshot, complete: (state: InternalState, job: AgentJob, result: StageResult) => void): void {
   job.logs = [...snapshot.logs];
   if (snapshot.conversation) job.conversation = structuredClone(snapshot.conversation);
+  if (snapshot.verification) job.verification = structuredClone(snapshot.verification);
   const cost = snapshot.costUsd ?? snapshot.result?.costUsd;
   if (cost !== undefined) job.costUsd = Math.max(job.costUsd ?? 0, cost);
   const usage = snapshot.usage ?? snapshot.result?.usage;

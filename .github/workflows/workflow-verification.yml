@@ -1,0 +1,54 @@
+name: Workflow verification isolation
+on:
+  push:
+    branches: [main, codex/native-workflow-agents]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: workflow-verification-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  workflow-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Select the pinned npm
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pinned-npm" --ignore-scripts --no-fund --package-lock=false npm@11.19.1
+          echo "PINNED_NPM=$RUNNER_TEMP/pinned-npm/node_modules/npm/bin/npm-cli.js" >> "$GITHUB_ENV"
+      - name: Install exact dependencies
+        run: node "$PINNED_NPM" ci --no-fund
+      - name: Typecheck the isolated acceptance harness
+        run: node node_modules/typescript/bin/tsc --noEmit --project configs/types/tsconfig.verification.json
+      - name: Explicitly provision the pinned official Linux Node image
+        env:
+          # Official library/node:24.21.0-bookworm-slim linux/amd64 manifest, verified against registry-1.docker.io.
+          VERIFICATION_IMAGE: docker.io/library/node@sha256:51b1100cc2a83d370c6a60952e3f2989c8a43159d0e38586e090f3b3326efefd
+        run: |
+          docker pull --platform linux/amd64 "$VERIFICATION_IMAGE"
+          image_id="$(docker image inspect "$VERIFICATION_IMAGE" --format '{{.Id}}')"
+          [[ "$image_id" =~ ^sha256:[a-f0-9]{64}$ ]]
+          docker build --pull=false --network=none --build-arg "BASE_IMAGE=$VERIFICATION_IMAGE" --tag coforge-verification-ci:${{ github.sha }} tooling/tests/workflow-verification/image
+          prepared_id="$(docker image inspect coforge-verification-ci:${{ github.sha }} --format '{{.Id}}')"
+          [[ "$prepared_id" =~ ^sha256:[a-f0-9]{64}$ ]]
+          echo "COFORGE_VERIFICATION_IMAGE=$prepared_id" >> "$GITHUB_ENV"
+      - name: Qualify the actual scoped broker and isolated command runtime
+        run: node "$PINNED_NPM" run test:workflow-verification
+      - name: Keep exact verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: workflow-verification-results
+          path: reports/workflow-verification/
+          if-no-files-found: error
+          retention-days: 14

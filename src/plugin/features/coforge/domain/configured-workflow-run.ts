@@ -10,6 +10,8 @@ import { workflowOutputTemplateCheck, workflowOutputTemplateListCheck, type Work
 import { backgroundBuildRetryApprovalsCheck, type BackgroundBuildRetryApproval } from './background-build-retry';
 import type { PolishingAmendment } from './polishing';
 import { polishingAmendmentsCheck } from './polishing-reference-check';
+import { validateNativeWorkflowTools, workflowVerificationProfileCheck, type WorkflowVerificationProfile } from './native-workflow-tools';
+import { workflowSourceHashCheck, workflowVerificationRecordsCheck } from './workflow-verification';
 export const WORKFLOW_RUN_LIMIT_BYTES = 2 * 1024 * 1024;
 export const WORKFLOW_HISTORY_LIMIT_BYTES = 8 * 1024 * 1024;
 export const WORKFLOW_MARKDOWN_LIMIT = 16000;
@@ -53,6 +55,7 @@ export interface WorkflowRun {
   projectContext?: { name: string; brief: string; agentPrompt: string; projectPath: string; worktreeFolder: string };
 }
 export interface ConfiguredStepExecution {
+  verificationProfile?: WorkflowVerificationProfile;
   polishingId?: string; polishingSourceHash?: string; polishingFeedback?: string; polishingPayload?: string; approvedPolishingInputs?: PolishingAmendment[];
   continuationId?: string; sourceRunId?: string; sourceRunHash?: string;
   backgroundRetryId?: string;
@@ -74,6 +77,7 @@ export const workflowPlanCheck = plan;
 export const workflowScreeningCheck = screening;
 export const workflowRiceCheck = rice;
 const increment = shape({ summary: text({ min: 1, max: 6000 }), files: list(shape({ path: string, additions: number({ integer: true, min: 0 }), deletions: number({ integer: true, min: 0 }) }, { strict: true }), { max: 10000 }),
+  verification: optional(workflowVerificationRecordsCheck), verificationSourceHash: optional(workflowSourceHashCheck),
   snapshotHash: optional(text({ pattern: /^[a-f0-9]{64}$/u })),
   tests: stringList, diff: text({ max: 200000 }), branch: optional(string), worktree: optional(string), commit: optional(string), createdAt: timestamp, simulated: boolean }, { strict: true });
 export const workflowIncrementCheck = increment;
@@ -149,8 +153,12 @@ export function configuredStepExecutionCheck(value: unknown): ConfiguredStepExec
     coworker: optional(workflowCoworkerProfileCheck),
     outputTemplate: optional(workflowOutputTemplateCheck),
     automationEvent: optional(automationContextCheck),
+    verificationProfile: optional(workflowVerificationProfileCheck),
     step: workflowStepCheck, inputArtifacts: list(workflowArtifactCheck, { max: 200 }), workspaceId: optional(workflowIdCheck) }, { strict: true })(value);
   if (checked.step.kind !== 'ai') throw new Error('Only an AI step can be dispatched to a provider.');
+  validateNativeWorkflowTools(checked.step, checked.step.provider);
+  const requested = checked.step.nativeTools?.verification?.commandIds;
+  if (!!requested !== !!checked.verificationProfile || checked.verificationProfile && (!checked.verificationProfile.enabled || checked.verificationProfile.commands.length !== requested?.length || checked.verificationProfile.commands.some(command => !requested?.includes(command.id)))) throw new Error('The captured verification profile does not match this step.');
   if (checked.step.coworkerId !== checked.coworker?.id || checked.coworker && (checked.coworker.provider !== checked.step.provider || checked.coworker.model !== checked.step.model || checked.coworker.effort !== checked.step.effort)) throw new Error('The captured CoWorker does not match this AI step.');
   if (checked.step.outputTemplateId !== checked.outputTemplate?.id) throw new Error('The captured output template does not match this step.');
   if (!!checked.polishingId !== !!checked.polishingSourceHash) throw new Error('The polishing source provenance is incomplete.');

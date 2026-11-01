@@ -12,6 +12,7 @@ import {
   hasTokenUsage,
   stageUsageCheck,
   type StageUsage,
+  USAGE_COUNTERS,
 } from "../domain/ai-usage";
 
 /** Claude Code 2.1.259 or later supports the restricted, structured-output flags CoForge requires. */
@@ -175,16 +176,29 @@ export function reportedClaudeCost(raw: string): number | undefined {
 }
 
 /** Result-envelope usage is cumulative for this attempt; never add modelUsage onto the same counters. */
-export function reportedClaudeUsage(raw: string): StageUsage | undefined {
+export function reportedClaudeUsage(raw: string, options: { delegated?: boolean } = {}): StageUsage | undefined {
   try {
     const envelope = record(JSON.parse(raw));
     if (
       envelope.type !== "result" ||
       typeof envelope.is_error !== "boolean" ||
-      typeof envelope.subtype !== "string" ||
-      envelope.usage === undefined
+      typeof envelope.subtype !== "string"
     )
       return undefined;
+    if (options.delegated) {
+      // The SDK modelUsage covers the whole query, including native children. usage is root-only.
+      // https://code.claude.com/docs/en/agent-sdk/cost-tracking#get-the-total-cost-of-a-query
+      const models = Object.values(record(envelope.modelUsage));
+      if (!models.length) return;
+      const totals = { inputTokens: 0, outputTokens: 0, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 };
+      const count = number({ integer: true, min: 0, max: Number.MAX_SAFE_INTEGER });
+      for (const model of models) {
+        const counters = record(model);
+        for (const key of USAGE_COUNTERS) totals[key] = count(totals[key] + count(counters[key]));
+      }
+      return totals;
+    }
+    if (envelope.usage === undefined) return;
     const usage = record(envelope.usage);
     const checked = stageUsageCheck({
       ...(usage.input_tokens == null

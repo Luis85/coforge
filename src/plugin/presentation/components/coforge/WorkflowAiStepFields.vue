@@ -7,6 +7,7 @@ import {
 import WorkflowOutputTemplatePicker from "./WorkflowOutputTemplatePicker.vue";
 import ProviderModelFields from './ProviderModelFields.vue';
 import WorkflowExecutionPolicy from './WorkflowExecutionPolicy.vue';
+import WorkflowNativeTools from './WorkflowNativeTools.vue';
 const fields = useWorkflowAiFields();
 </script>
 <template>
@@ -145,6 +146,7 @@ const fields = useWorkflowAiFields();
       {{ fields.readiness }} Configuration can still be saved.
     </p>
     <WorkflowExecutionPolicy />
+    <WorkflowNativeTools />
     <details class="cf-workflow-options">
       <summary>Automation and previous results</summary>
       <p class="cf-settings-help">

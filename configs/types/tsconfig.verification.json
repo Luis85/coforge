@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.base.json",
+  "exclude": [],
+  "include": ["../../tooling/tests/workflow-verification/**/*.ts"]
+}

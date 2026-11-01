@@ -2,6 +2,8 @@ import { constants } from 'node:fs';
 import { lstat, open } from 'node:fs/promises';
 import { StringDecoder } from 'node:string_decoder';
 import { WorkerFiles } from './files';
+import { CodexEventScope } from '../../../features/coforge/application/codex-events';
+import { record } from '../../../features/coforge/domain/check';
 
 /** Two bounded segments retain byte observations and final redacted semantics; verbosity never kills the task. */
 export class OutputSpool {
@@ -25,7 +27,8 @@ export class OutputSpool {
 /** Retains bounded final semantics in memory; raw reasoning and tool transcripts are not retained. */
 export class ProviderOutput {
   private readonly decoder = new StringDecoder('utf8');
-  private pending = ''; private dropping = false; private message = ''; private terminal = ''; private tail = '';
+  private pending = ''; private dropping = false; private message = ''; private terminal = ''; private tail = ''; private header = ''; private failure = '';
+  private readonly scope = new CodexEventScope();
   constructor(private readonly codex: boolean) {}
   append(chunk: Buffer): void {
     const text = this.decoder.write(chunk);
@@ -37,9 +40,11 @@ export class ProviderOutput {
   }
   private line(line: string) {
     let event: unknown; try { event = JSON.parse(line); } catch { return; }
-    if (!event || typeof event !== 'object' || !('type' in event)) return;
+    if (!event || typeof event !== 'object' || Array.isArray(event) || !this.scope.accepts(record(event)) || !('type' in event)) return;
+    if (event.type === 'thread.started') this.header = line;
     if (event.type === 'item.completed' && 'item' in event && event.item && typeof event.item === 'object' && 'type' in event.item && event.item.type === 'agent_message') this.message = line;
     if (['turn.completed', 'turn.failed', 'error'].includes(String(event.type))) this.terminal = line;
+    if (event.type === 'turn.failed' || event.type === 'error') this.failure = line;
   }
-  result(): string { if (!this.codex) return this.tail; if (!this.dropping && this.pending) this.line(this.pending); return this.message + '\n' + this.terminal; }
+  result(): string { if (!this.codex) return this.tail; if (!this.dropping && this.pending) this.line(this.pending); return [this.header, this.message, this.failure, this.terminal].filter(Boolean).join('\n'); }
 }

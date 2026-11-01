@@ -7,6 +7,10 @@ import { WorkerStore, workerSnapshot } from './store';
 import { list, number, shape, text } from '../../../features/coforge/domain/check';
 import { inputHash, workerRequestCheck } from './protocol';
 import type { NativeProcessIdentity } from './process-identity';
+import type { WorkflowVerificationRecord, WorkflowVerificationRuntimeRecord } from '../../../features/coforge/domain/workflow-verification';
+import { workerVerificationHooks } from './verification';
+import { workerNativeRuntimeHooks } from './native-runtime';
+import type { NativeWorkflowPrivateRuntime, NativeWorkflowProcessRecord } from '../../../features/coforge/domain/native-workflow-process';
 
 export class WorkerOwnershipUnknown extends Error {}
 export interface WorkerHooks {
@@ -20,6 +24,10 @@ export interface WorkerHooks {
   cost(value: number): Promise<void>;
   launched(pid: number, launchId: string, identity?: NativeProcessIdentity): Promise<void>;
   log(message: string): Promise<void>;
+  verification?(record: WorkflowVerificationRecord): Promise<void>;
+  verificationRuntime?(record: WorkflowVerificationRuntimeRecord): Promise<void>;
+  nativeRuntime?(record: NativeWorkflowPrivateRuntime | undefined): Promise<void>;
+  nativeProcess?(record: NativeWorkflowProcessRecord): Promise<void>;
 }
 export type BuildExecutor = (request: DurableBuildRequest, hooks: WorkerHooks) => Promise<DurableBuildResult>;
 interface HotState { lastActivityAt?: string; lastContactAt: string; elapsedSeconds: number; logs: string[]; checkpointAt: number }
@@ -118,6 +126,8 @@ export class WorkerService {
     const request = this.store.get(ref).request;
     const update = (mutate: (snapshot: DurableBuildSnapshot) => void) => this.store.update(ref, next => { mutate(next.snapshot); this.mergeHot(ref, next.snapshot); });
     const hooks: WorkerHooks = {
+      ...workerVerificationHooks(this.store, ref),
+      ...workerNativeRuntimeHooks(this.store, ref),
       signal: controller.signal,
       phase: async () => { await update(snapshot => { snapshot.phase = 'finalizing'; }); },
       activity: async () => { const hot = this.hot.get(ref.executionId); if (hot) hot.lastActivityAt = new Date(this.store.now()).toISOString(); },
@@ -146,10 +156,13 @@ export class WorkerService {
     try {
       await update(snapshot => { snapshot.phase = 'running'; });
       const result = durableBuildResultCheck(await this.execute(request, hooks));
+      if (this.store.get(ref).record.nativeRuntime || this.store.get(ref).record.verificationRuntime?.some(record => record.phase !== 'terminal')) throw new WorkerOwnershipUnknown('An original verification container or private native runtime still needs recovery.');
       if (controller.signal.aborted) throw new Error('Build stopped.');
       await this.store.get(ref).files.write('result.json', { version: 1, ref, result, providerTerminated: true });
       await update(snapshot => { snapshot.result = result; if (result.increment) snapshot.increment = result.increment; snapshot.phase = 'completed'; });
-    } catch (error) {
+    } catch (caught) {
+      const error = this.store.get(ref).record.nativeRuntime || this.store.get(ref).record.verificationRuntime?.some(record => record.phase !== 'terminal')
+        ? new WorkerOwnershipUnknown('Original verification container termination is unverified.') : caught;
       if (!(error instanceof WorkerOwnershipUnknown)) {
         const current = this.store.get(ref).record.snapshot;
         await this.store.get(ref).files.write('failure.json', { version: 1, ref, providerTerminated: true,

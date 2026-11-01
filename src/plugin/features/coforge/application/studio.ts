@@ -30,6 +30,7 @@ import { updateRequestValues } from './request-values';
 import { economySnapshot, saveEconomyConfiguration, fulfillEconomyPerk } from './economy-configuration';
 import type { EconomyConfigurationInput } from '../domain/command-economy';
 import type { BackgroundBuildRetryConsent } from '../domain/background-build-retry';
+import { acknowledgeNativeWorkflowProcess } from './native-workflow-acknowledgement';
 
 export interface ActionOutcome<T = unknown> { message: string; result?: T }
 
@@ -73,6 +74,13 @@ export class StudioService {
   subscribe(listener: (state: AppState) => void): () => void { return this.store.subscribe(listener); }
   onEvent(listener: import('./studio-events').StudioEventListener): () => void { return this.store.subscribeEvents(listener); }
   integration(): IntegrationSettings { return this.store.integrationSnapshot(); }
+  async checkNativeWorkflowRecovery(jobId: string): Promise<void> {
+    const job = this.state().jobs.find(job => job.id === jobId);
+    if (!job || job.durable || !['failed', 'cancelled'].includes(job.status)) throw new Error('Only a failed or cancelled foreground attempt can check its original execution.');
+    if (!this.host.nativeWorkflowRecovery) throw new Error('Native recovery is unavailable in this host. Reopen CoForge in desktop Obsidian.');
+    await this.host.nativeWorkflowRecovery.check(jobId);
+  }
+  acknowledgeNativeWorkflowProcess(jobId: string, expectedIdentity: string, confirmed: boolean): Promise<void> { return acknowledgeNativeWorkflowProcess(this.store, jobId, expectedIdentity, confirmed, this.host.nativeWorkflowRecovery?.purgePrivateRuntime); }
   onIntegrationChange(listener: (integration: IntegrationSettings) => void): () => void {
     this.integrationListeners.add(listener);
     return () => { this.integrationListeners.delete(listener); };

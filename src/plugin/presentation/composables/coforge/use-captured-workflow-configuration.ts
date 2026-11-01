@@ -8,6 +8,7 @@ export function useCapturedWorkflowConfiguration(run: () => WorkflowRun) {
   return reactive({
     workflowName: computed(() => run().definition.name),
     workflowRevision: computed(() => run().definition.revision),
+    nativePolicies: computed(() => run().definition.steps.flatMap(step => step.kind === 'ai' && step.nativeTools ? [{ id: step.id, name: step.name, tools: step.nativeTools }] : [])),
     executionPolicies: computed(() => run().definition.steps.flatMap(step => step.kind === 'ai' && step.output === 'codechange' ? [{
       id: step.id, name: step.name,
       execution: run().external ? 'External MCP client lifecycle' : step.provider === 'herdr' ? 'External Herdr lifecycle' : step.execution ? 'Background Build' : 'Foreground',
