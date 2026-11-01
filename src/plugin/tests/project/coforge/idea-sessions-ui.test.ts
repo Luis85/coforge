@@ -26,7 +26,8 @@ it('opens the private card Sessions view with parent running count, literal Peek
   const f = await fixture();
   const card = mount(IdeaCard, { props: { idea: f.idea }, global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true, UContextMenu: menuStub, UDropdownMenu: menuStub } } });
   try {
-    const sessions = card.get(`button[aria-label="Sessions for ${f.idea.id}"]`);
+    const sessions = card.get('.cf-card-sessions button');
+    expect(sessions.attributes('aria-label')).toBe(`Sessions 1 parent running for ${f.idea.id}`);
     expect(sessions.text()).toContain('1 parent running');
     await sessions.trigger('click');
     expect(f.store.drawerTab).toBe('sessions');
@@ -79,9 +80,9 @@ it('restores card focus on Escape and disposes the elapsed timer on closing Sess
   const card = mount(IdeaCard, { props: { idea: f.idea }, attachTo: document.body, global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true, UContextMenu: menuStub, UDropdownMenu: menuStub } } });
   let drawer: ReturnType<typeof mount> | undefined;
   try {
-    const button = card.get(`button[aria-label="Sessions for ${f.idea.id}"]`).element;
+    const button = card.get('.cf-card-sessions button').element;
     if (!(button instanceof HTMLElement)) throw new Error('Missing Sessions button');
-    button.focus(); await card.get(`button[aria-label="Sessions for ${f.idea.id}"]`).trigger('click');
+    button.focus(); await card.get('.cf-card-sessions button').trigger('click');
     drawer = mount(IdeaDrawer, { attachTo: document.body, global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
     await flushPromises();
     expect(set).toHaveBeenCalled(); const timer = set.mock.results.at(-1)?.value;

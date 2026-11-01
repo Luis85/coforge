@@ -54,7 +54,7 @@ describe('Private card Sessions and read-only Peek in the contained host', () =>
     }, { ideaId, at: AT, trace: syntheticTrace() });
     await obsidian.enablePlugin(); view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
     await view.getByRole('button', { name: /^Idea board/ }).first().click();
-    const sessions = view.getByRole('button', { name: `Sessions for ${ideaId}`, exact: true });
+    const sessions = view.getByRole('button', { name: `Sessions 1 parent attempt for ${ideaId}`, exact: true });
     await browserExpect(sessions).toContainText('1 parent attempt');
     await sessions.focus(); await obsidian.page.keyboard.press('Enter');
     const peek = view.getByRole('region', { name: 'Session Peek', exact: true });

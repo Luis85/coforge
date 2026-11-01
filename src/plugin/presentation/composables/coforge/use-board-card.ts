@@ -5,6 +5,7 @@ import { avatarStyle, categoryClass, contributorName, initials } from './format'
 import { useStudioActions } from './use-studio-actions';
 import { currentDesignSpecification } from './use-idea-design';
 import { ideaSessionJobs } from './agent-session-display';
+import { polishingCardState } from './polishing-card-state';
 
 /** Voter ids the studio uses for the streamer across chat sources. */
 const STREAMER_VOTERS = ['local:streamer', 'streamer', 'simulator:streamer'];
@@ -37,7 +38,9 @@ export function useIdeaCard(props: { idea: Idea }) {
   const actions = useStudioActions();
   const author = computed(() => store.state?.contributors.find(person => person.id === props.idea.authorId));
   const authorName = computed(() => author.value?.name ?? contributorName([], props.idea.authorId));
-  const job = computed(() => store.state?.jobs.find(item => item.ideaId === props.idea.id && (item.status === 'running' || item.status === 'queued')));
+  const job = computed(() => store.state?.jobs.find(item => item.ideaId === props.idea.id && !item.workflow?.polishingId
+    && !props.idea.polishingRuns?.some(pass => pass.workflow.id === item.workflow?.runId)
+    && (item.status === 'running' || item.status === 'queued')));
   const voted = computed(() => props.idea.voters.some(voter => STREAMER_VOTERS.includes(voter)));
   const flagged = computed(() => props.idea.status === 'flagged');
   const score = computed(() => props.idea.rice?.score);
@@ -54,6 +57,7 @@ export function useIdeaCard(props: { idea: Idea }) {
     sessionSummary: computed(() => runningSessions.value ? `${runningSessions.value} parent running` : `${sessions.value.length} parent ${sessions.value.length === 1 ? 'attempt' : 'attempts'}`),
     sessions: () => { store.select(props.idea.id, 'sessions'); },
     state: computed(() => cardState(props.idea, job.value)),
+    polishingState: computed(() => polishingCardState(props.idea, store.state?.jobs ?? [], store.state?.runtime)),
     authorName,
     authorInitials: computed(() => initials(authorName.value)),
     avatar: computed(() => avatarStyle(author.value?.color)),

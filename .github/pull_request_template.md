@@ -31,3 +31,5 @@ Ignored evidence: reports/card-agent-sessions/, reports/card-sessions-dev-loop/,
 Terminal follow currently supports Windows desktop; it is an observer console, not interactive CLI attachment. Child details depend on provider-emitted evidence; Claude tool-linked identities and unavailable Codex details are disclosed. Existing workers/historical attempts without capture are not reconstructed from SDK databases or global rollouts. Live Peek is a partial bounded feed; authoritative verification evidence and human review remain required.
 
 Local Node is 24.20.0; GitHub uses pinned 24.21.0. Local Docker execution was not run. The mandatory real Linux Docker suite adds a test that checks the container is still running when sanitized output arrives. No actual CF-133/CF-135 execution, personal vault, agent input, release or automatic code acceptance occurred.
+
+Integration: the branch incorporates main PR #63, preserving its polishing indicators and Kanban alignment alongside Sessions. Combined UI and final-head CI qualification are recorded in this PR before merge.

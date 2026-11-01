@@ -52,20 +52,28 @@ const menu = useIdeaCardMenu(props, model);
           compact
           :links="false"
         />
-        <span
-          v-if="model.state"
-          class="cf-card-state"
-          :class="`cf-state-${model.state.tone}`"
-        >
-          <CfIcon
-            :name="model.state.icon"
-            size="xs"
-            :class="{ 'cf-spin': model.state.spin }"
-          />
-          {{ model.state.label }}
-        </span>
+        <div v-if="model.state || model.polishingState" class="cf-card-states">
+          <span
+            v-if="model.state"
+            class="cf-card-state"
+            :class="`cf-state-${model.state.tone}`"
+          >
+            <CfIcon
+              :name="model.state.icon"
+              size="xs"
+              :class="{ 'cf-spin': model.state.spin }"
+            />
+            {{ model.state.label }}
+          </span>
+          <span v-if="model.polishingState" class="cf-card-state cf-card-polishing-state"
+            :class="`cf-state-${model.polishingState.tone}`" :data-polishing-status="model.polishingState.status"
+            :title="model.polishingState.description" role="status" aria-label="Polishing status" aria-live="polite" aria-atomic="true">
+            <CfIcon :name="model.polishingState.icon" size="xs" :class="{ 'cf-spin': model.polishingState.spin }" />
+            <span>{{ model.polishingState.label }}</span>
+          </span>
+        </div>
       </button>
-      <div class="cf-card-sessions"><button type="button" class="cf-btn cf-btn-ghost" :aria-label="`Sessions for ${model.idea.id}`" @click.stop="model.sessions()"><CfIcon name="messages-square" size="sm" />Sessions <span class="cf-card-session-count">{{ model.sessionSummary }}</span></button></div>
+      <div class="cf-card-sessions"><button type="button" class="cf-btn cf-btn-ghost" :aria-label="`Sessions ${model.sessionSummary} for ${model.idea.id}`" @click.stop="model.sessions()"><CfIcon name="messages-square" size="sm" />Sessions <span class="cf-card-session-count">{{ model.sessionSummary }}</span></button></div>
       <div class="cf-idea-card-footer">
         <div class="cf-idea-author" :title="model.authorName">
           <span class="cf-avatar cf-avatar-sm" :style="model.avatar">{{

@@ -287,6 +287,23 @@ Original workspaces and journals stay untouched. Reopen accepted cards for
 review; applying or discarding that reviewed result closes that review without
 awarding the feature's original completion credit again.
 
+Polishing card feedback (owner request, 2026-11-01): Kanban cards must visibly
+identify an in-flight Improve & polish pass on the current result. Project the
+saved auxiliary run and its execution state separately from the main workflow
+hint, so a reload retains the feedback and a polishing job does not appear to be
+the primary Build. Distinguish queued/running work, attention and a completed
+result awaiting Apply or Discard. Settled historical passes must not leave an
+active polishing indicator. Keep the card's bucket and primary workflow history.
+Polishing must use the shared execution, worker and result systems. Repeated
+confirmation, callbacks and reconciliation must not create duplicate runs,
+attempts, workspaces, results or cost records. Include genuine polishing-run
+costs and usage in AI Costs with the owning project's attribution; unavailable
+provider costs remain unavailable rather than being fabricated.
+Board alignment (owner report, 2026-11-01): Inbox's Add control and independently
+wrapping column text must not push its first card below neighboring cards or
+empty states. Align column headings, descriptions and content while keeping
+configurable labels readable and the Add control accessible.
+
 - Save the independent left-navigation and right-chat collapse choices in localStorage
   and restore them after reopening. Responsive chat defaults apply only when the
   owner has no explicit saved choice. Storage failures must leave controls usable.
