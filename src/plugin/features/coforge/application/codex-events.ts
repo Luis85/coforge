@@ -1,5 +1,11 @@
 import { record } from '../domain/check';
 
+/** Installed CLI reconnect progress is nonterminal only before a later valid root completion. */
+export function codexReconnectNotice(event: Record<string, unknown>): boolean {
+  return event.type === 'error' && typeof event.message === 'string'
+    && /^Reconnecting\.\.\. [1-5]\/5 \(stream disconnected before completion: [^\r\n]+\)$/u.test(event.message);
+}
+
 function agentName(value: unknown): string | undefined {
   if (typeof value === 'string') return value;
   if (value && typeof value === 'object' && !Array.isArray(value)) {

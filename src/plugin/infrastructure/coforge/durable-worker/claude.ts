@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import type { StageInput } from '../../../features/coforge/application/ports';
+import type { StageInput, StageResult } from '../../../features/coforge/application/ports';
 import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
 import { parseClaudeEnvelope, reportedClaudeCost, reportedClaudeUsage } from '../../../features/coforge/application/claude-protocol';
 import { executionResult, executionTaskPrompt } from '../../../features/coforge/application/workflow-execution';
@@ -22,6 +22,11 @@ export async function runBackgroundClaude(input: StageInput, workspaces: Workflo
     integration: input.integration, workspaceId: snapshot.workspaceId, signal: input.signal });
   let bridge: Awaited<ReturnType<typeof codexWorkflowTools>> | undefined;
   let raw = ''; let captured = false; let providerReturned = false; let resultValidated = false; let uncertain = false;
+  let outcome: StageResult | undefined; let failed = false; let failure: unknown;
+  const fail = (error: unknown) => {
+    if (!failed || !(failure instanceof ProcessOwnershipUnknown) || error instanceof ProcessOwnershipUnknown) failure = error;
+    failed = true;
+  };
   const changes = async (summary: string) => {
     if (captured) return undefined;
     const capturedIncrement = await lease.capture(summary);
@@ -48,22 +53,24 @@ export async function runBackgroundClaude(input: StageInput, workspaces: Workflo
     const result = executionResult(input, parseClaudeEnvelope(raw).output); resultValidated = true;
     const increment = await changes(result.summary ?? 'Background Claude Build changes');
     const verification = bridge.verificationRecords();
-    return { ...result, ...(increment ? { increment } : {}), ...(verification.length ? { verification } : {}), ...(cost === undefined ? {} : { costUsd: cost }), ...(usage ? { usage } : {}) };
+    outcome = { ...result, ...(increment ? { increment } : {}), ...(verification.length ? { verification } : {}), ...(cost === undefined ? {} : { costUsd: cost }), ...(usage ? { usage } : {}) };
   } catch (caught) {
-    let error = caught;
-    uncertain = error instanceof ProcessOwnershipUnknown || usesNativeClaudeTools(input) && providerReturned && !resultValidated;
-    if (error instanceof ProcessFailure) {
-      raw = error.output;
-      const cost = reportedClaudeCost(raw); if (cost !== undefined) await input.onUsage?.(cost);
-      const usage = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (usage) await input.onTokenUsage?.(usage);
-      await captureClaudeResponse(input, raw);
-    }
-    try { await bridge?.dispose(); } catch (cleanupError) { uncertain = true; error = cleanupError; }
-    await changes('Retained changes after interrupted background Claude Build');
-    if (uncertain && !(error instanceof ProcessOwnershipUnknown)) throw new ProcessOwnershipUnknown(raw);
-    throw error;
-  } finally {
-    try { await bridge?.dispose(); } catch (cleanupError) { uncertain = true; throw cleanupError; }
-    finally { await lease.release(uncertain || undefined); }
+    uncertain = caught instanceof ProcessOwnershipUnknown || usesNativeClaudeTools(input) && providerReturned && !resultValidated;
+    if (caught instanceof ProcessFailure) raw = caught.output;
+    fail(uncertain && !(caught instanceof ProcessOwnershipUnknown) ? new ProcessOwnershipUnknown(raw) : caught);
+    try {
+      if (caught instanceof ProcessFailure) {
+        const cost = reportedClaudeCost(raw); if (cost !== undefined) await input.onUsage?.(cost);
+        const usage = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (usage) await input.onTokenUsage?.(usage);
+        await captureClaudeResponse(input, raw);
+      }
+    } catch (evidenceError) { fail(evidenceError); }
+    try { await bridge?.dispose(); } catch (cleanupError) { uncertain = true; fail(cleanupError); }
+    try { await changes('Retained changes after interrupted background Claude Build'); } catch (captureError) { fail(captureError); }
   }
+  try { await bridge?.dispose(); } catch (cleanupError) { uncertain = true; fail(cleanupError); }
+  try { await lease.release(uncertain || undefined); } catch (releaseError) { fail(releaseError); }
+  if (failed) throw failure;
+  if (!outcome) throw new Error('Background Claude completed without a validated result.');
+  return outcome;
 }

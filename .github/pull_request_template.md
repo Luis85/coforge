@@ -16,7 +16,11 @@ Owner request recorded in BRIEF.md. The scaffold declares no req-* or vi-* oblig
 - npm run test:ui-quality: 8 passed. npm run ui:gallery: 40 captures reviewed. Impeccable detector: no findings.
 - Contained native capability authoring/save/reload/keyboard proof: 1 passed; both themes/pane sizes reviewed, zero jobs/Docker/model calls.
 - Contained native stored-evidence/recovery render proof: 1 passed, confirmed with --no-build; 20 screenshots reviewed, exact note bytes and fixture jobs retained. Records explicitly synthetic; execution is qualified separately.
-- Mandatory actual isolated-Docker suite: six no-skip acceptance cases implemented; branch-push CI qualification pending. No local positive Docker execution is claimed.
+- Mandatory actual isolated-Docker suite: **6 passed, 0 failed/skipped** in [branch qualification](https://github.com/Luis85/coforge/actions/runs/41267332339), on f7aac7a. No local positive Windows Docker execution is claimed.
+
+The first full local gate passed all 2,024 product tests (six existing Windows skips), typecheck, ESLint and maker types, but source lint rejected unsafe cleanup control flow. That control flow was corrected; whole-source lint (2,155 files), final standalone typecheck, strict verification-harness typecheck and targeted retention/recovery suites pass. Release build and prototype embedding also pass separately. A final full aggregate/CI run remains pending.
+
+Do not open/merge this PR until the native Codex authentication choice in BRIEF.md is resolved. Per-invocation OAuth copying must not ship: SDK refresh can race or discard canonical credentials. The existing native sign-in route also inherits global AGENTS/skills context; isolated alternatives need a separate account stream or API key. Owner decision and the corresponding authentication correction are pending.
 
 ## Evidence and limits
 

@@ -52,6 +52,15 @@ async function interpret(input: StageInput, output: unknown, costUsd: number | u
   return { increment, ...cost };
 }
 
+function stageFailure(error: unknown): unknown {
+  if (error instanceof ProcessOwnershipUnknown) return error;
+  if (error instanceof ProcessFailure) return new Error(/exited with code/u.test(error.message) ? claudeFailureMessage(error.output) ?? error.message : error.message);
+  if (error instanceof CheckError) return new Error('Claude output failed schema validation. The idea was not advanced.');
+  if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))
+    return new Error(`Update native Claude Code to the current release; required restricted/safe-mode/structured-output flags are not supported. No permissive fallback is used. ${error.message}`);
+  return error;
+}
+
 /** Runs one stage through the native Claude Code CLI with stage-specific tool restrictions. */
 export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWorkspaces, capture: typeof captureProcess = captureProcess): Promise<StageResult> {
   const { stage, idea, settings, integration, signal } = input;
@@ -62,6 +71,11 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
   let brokered: Awaited<ReturnType<typeof openBrokeredClaude>> | undefined;
   let uncertain = false;
   let captured = false;
+  let outcome: StageResult | undefined; let failed = false; let failure: unknown;
+  const fail = (error: unknown) => {
+    if (!failed || !(failure instanceof ProcessOwnershipUnknown) || error instanceof ProcessOwnershipUnknown) failure = error;
+    failed = true;
+  };
   const changes = async (summary: string) => {
     if (!lease || captured || (usesNativeClaudeTools(input) || brokered ? lease.readOnly : hasBrokeredReadScope(lease))) return undefined;
     const capturedIncrement = await lease.capture(summary);
@@ -110,30 +124,25 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     if (increment) result.increment = increment;
     if (envelope.costUsd !== undefined) result.costUsd = envelope.costUsd;
     const verification = brokered?.bridge.verificationRecords() ?? [];
-    return { ...result, ...(tokens ? { usage: tokens } : {}), ...(verification.length ? { verification } : {}) };
+    outcome = { ...result, ...(tokens ? { usage: tokens } : {}), ...(verification.length ? { verification } : {}) };
   } catch (error) {
     uncertain = error instanceof ProcessOwnershipUnknown;
+    fail(stageFailure(error));
     try {
       if (error instanceof ProcessFailure) {
         const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage);
         const tokens = reportedClaudeUsage(error.output, { delegated: nativeClaudeDelegation(input) }); if (tokens) await input.onTokenUsage?.(tokens);
         await captureClaudeResponse(input, error.output);
       }
-    } finally {
-      let cleanupFailure: unknown;
-      try { await brokered?.bridge.dispose(); } catch (cleanupError) { uncertain = true; cleanupFailure = cleanupError; }
-      await changes(`Cumulative changes after failed ${input.workflow?.step.name ?? stage}`);
-      if (cleanupFailure !== undefined) throw cleanupFailure;
-    }
-    if (error instanceof ProcessOwnershipUnknown) throw error;
-    if (error instanceof ProcessFailure) throw new Error(/exited with code/u.test(error.message) ? claudeFailureMessage(error.output) ?? error.message : error.message);
-    if (error instanceof CheckError) throw new Error('Claude output failed schema validation. The idea was not advanced.');
-    if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))
-      throw new Error(`Update native Claude Code to the current release; required restricted/safe-mode/structured-output flags are not supported. No permissive fallback is used. ${error.message}`);
-    throw error;
-  } finally {
-    try { await brokered?.dispose(); } catch (cleanupError) { uncertain = true; throw cleanupError; }
-    finally { await lease?.release(uncertain || brokered?.uncertain() || undefined); }
-    if (temporary) await rm(temporary, { recursive: true, force: true });
+    } catch (evidenceError) { fail(evidenceError); }
+    try { await brokered?.bridge.dispose(); } catch (cleanupError) { uncertain = true; fail(cleanupError); }
+    try { await changes(`Cumulative changes after failed ${input.workflow?.step.name ?? stage}`); } catch (captureError) { fail(captureError); }
   }
+  // Settle every owned resource before propagating either the result or the strongest failure.
+  try { await brokered?.dispose(); } catch (cleanupError) { uncertain = true; fail(cleanupError); }
+  try { await lease?.release(uncertain || brokered?.uncertain() || undefined); } catch (releaseError) { fail(releaseError); }
+  if (temporary) { try { await rm(temporary, { recursive: true, force: true }); } catch (cleanupError) { fail(cleanupError); } }
+  if (failed) throw failure;
+  if (!outcome) throw new Error('Claude completed without a validated result. The idea was not advanced.');
+  return outcome;
 }

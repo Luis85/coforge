@@ -26,6 +26,12 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
   let uncertain = false;
   let nativeProcess: NativeWorkflowProcessRecord | undefined;
   let privateRuntime: NativeWorkflowPrivateRuntime | undefined;
+  let outcome: StageResult | undefined;
+  let failed = false; let failure: unknown;
+  const fail = (error: unknown, prefer = false) => {
+    if (!failed || error instanceof ProcessOwnershipUnknown || prefer && !(failure instanceof ProcessOwnershipUnknown)) failure = error;
+    failed = true;
+  };
   const observeNative: NonNullable<StageInput['onNativeProcess']> = async record => {
     nativeProcess = record; await input.onNativeProcess?.(record);
   };
@@ -66,28 +72,24 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     if (nativeProcess) await observeNative({ ...nativeProcess, phase: 'terminated', observedAt: new Date().toISOString() });
     const increment = await changes(result.summary ?? `Cumulative changes after ${snapshot.step.name}`);
     const verification = bridge.verificationRecords();
-    return { ...result, ...(increment ? { increment } : {}), ...(verification.length ? { verification } : {}), ...(response.usage ? { usage: response.usage } : {}) };
+    outcome = { ...result, ...(increment ? { increment } : {}), ...(verification.length ? { verification } : {}), ...(response.usage ? { usage: response.usage } : {}) };
   } catch (error) {
-    uncertain = error instanceof ProcessOwnershipUnknown;
-    try { await drain(); } catch { /* Cleanup failure retains authority and private runtime for recovery. */ }
+    fail(error); uncertain ||= error instanceof ProcessOwnershipUnknown;
+    try { await drain(); } catch (cleanupError) { fail(cleanupError, true); }
     if (nativeProcess && nativeProcess.phase !== 'terminated') await markUnknown();
-    await changes(`Cumulative changes after failed ${snapshot.step.name}`);
-    throw error;
-  } finally {
-    try { await drain(); }
-    finally {
-      try {
-        if (privateRuntime && !uncertain) {
-          try {
-            await purgeCodexPrivateRuntime(privateRuntime);
-            if (nativeProcess?.privateRuntime) await observeNative({ ...nativeProcess, privateRuntime: undefined, observedAt: new Date().toISOString() });
-            await input.onNativeRuntime!(undefined); privateRuntime = undefined;
-          } catch (error) { await markUnknown(); throw error; }
-        }
-      } finally {
-        try { await lease.release(uncertain || undefined); }
-        finally { if (directory && !uncertain) await rm(directory, { recursive: true, force: true }); }
-      }
-    }
+    try { await changes(`Cumulative changes after failed ${snapshot.step.name}`); } catch (captureError) { fail(captureError); }
   }
+  try { await drain(); } catch (cleanupError) { fail(cleanupError, true); }
+  if (privateRuntime && !uncertain) {
+    try {
+      await purgeCodexPrivateRuntime(privateRuntime);
+      if (nativeProcess?.privateRuntime) await observeNative({ ...nativeProcess, privateRuntime: undefined, observedAt: new Date().toISOString() });
+      await input.onNativeRuntime!(undefined); privateRuntime = undefined;
+    } catch (cleanupError) { await markUnknown(); fail(cleanupError, true); }
+  }
+  try { await lease.release(uncertain || undefined); } catch (releaseError) { fail(releaseError); }
+  if (directory && !uncertain) { try { await rm(directory, { recursive: true, force: true }); } catch (cleanupError) { fail(cleanupError); } }
+  if (failed) throw failure;
+  if (!outcome) throw new Error('Codex did not produce a validated workflow result.');
+  return outcome;
 }

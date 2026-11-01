@@ -705,7 +705,12 @@ recovery, project scope, host permissions and final human review.
 
 ## Open questions
 
-- None recorded.
+- TODO(owner): choose the authentication/context policy for native Codex workflow
+  agents. Existing CLI sign-in preserves its SDK-managed global AGENTS/skills;
+  strict context isolation needs a separately authenticated CoForge-owned store
+  or an explicit API key. Per-invocation copies of the existing OAuth bundle must
+  not ship because refreshed credentials can be lost or raced. The implementation
+  and merge remain pending this decision.
 
 ## Service Design (owner decisions, 2026-10-29)
 

@@ -2,7 +2,7 @@ import { number, record, text } from '../domain/check';
 import { validateModelEffort, type ReasoningEffort } from '../domain/provider-models';
 import type { StageUsage } from '../domain/ai-usage';
 import { nativeWorkflowToolsCheck, type NativeWorkflowTools } from '../domain/native-workflow-tools';
-import { rootCodexEvents } from './codex-events';
+import { codexReconnectNotice, rootCodexEvents } from './codex-events';
 
 const DISABLED = ['shell_tool', 'unified_exec', 'shell_snapshot', 'apps', 'plugins', 'hooks', 'memories', 'multi_agent', 'multi_agent_v2', 'browser_use', 'browser_use_external', 'browser_use_full_cdp_access', 'computer_use', 'image_generation', 'in_app_browser', 'code_mode', 'code_mode_host', 'workspace_dependencies', 'goals', 'skill_search', 'skill_mcp_dependency_install', 'tool_suggest'];
 export interface CodexInvocation { model: string; effort?: ReasoningEffort; schemaPath: string; modelProfilePath: string; mcpUrl?: string; mcpToolTimeoutSeconds?: number; nativeTools?: NativeWorkflowTools }
@@ -33,7 +33,8 @@ function toml(value: unknown): string {
 export function codexResult(raw: string, options: { delegated?: boolean } = {}): { output: unknown; usage?: StageUsage } {
   const { events, hasRootIdentity } = rootCodexEvents(raw);
   if (options.delegated && !hasRootIdentity) throw new Error('Codex did not provide a verifiable root identity for this delegated invocation.');
-  if (!events.some(event => event.type === 'turn.completed') || events.some(event => event.type === 'turn.failed' || event.type === 'error'))
+  const completion = events.findIndex(event => event.type === 'turn.completed');
+  if (completion < 0 || events.some((event, index) => event.type === 'turn.failed' || event.type === 'error' && !(index < completion && codexReconnectNotice(event))))
     throw new Error('Codex did not complete this attempt. Review any partial worktree changes before retrying.');
   const messages = events.filter(event => event.type === 'item.completed' && record(event.item).type === 'agent_message');
   const message = messages.at(-1);
