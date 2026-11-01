@@ -20,7 +20,7 @@ async function fixture() {
   const backend = vi.fn(async (_executable: string, _args: readonly string[], options: OwnedWorktreeOptions): Promise<OwnedWorktreeProcess> => {
     await options.onStarted({ pid: 321, platform: 'win32', birth: 'fixture', image: 'a'.repeat(64) }, { version: 1, kind: 'windows-job', directory: root, ownerToken: 'b'.repeat(64), sourceHash: 'c'.repeat(64), ...options.owner });
     const saved = await readFile(join(root, 'mcp-command-ledger/commands.json'), 'utf8'); expect(saved).toContain('fixture'); expect(saved).not.toContain('TOKEN_IN_COMMAND');
-    options.onStdout?.(Buffer.from('Observed output\nBearer PRIVATE_OUTPUT_TOKEN\n'));
+    await options.onStdout?.(Buffer.from('Observed output\nBearer PRIVATE_OUTPUT_TOKEN\n'));
     return { identity: { pid: 321, platform: 'win32', birth: 'fixture', image: 'a'.repeat(64) }, lifetime: { version: 1, kind: 'windows-job', directory: root, ownerToken: 'b'.repeat(64), sourceHash: 'c'.repeat(64), ...options.owner },
       result: done, stop: async () => { const result = ended('cancelled'); finish(result); return result; }, snapshot: () => ({ state: 'running', startedAt: new Date().toISOString() }) };
   });

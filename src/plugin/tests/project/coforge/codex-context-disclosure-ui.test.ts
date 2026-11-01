@@ -13,7 +13,10 @@ it('discloses SDK-owned global context beside captured native Codex policy witho
   try {
     expect(wrapper.text()).toContain('global AGENTS.md and skills');
     expect(wrapper.text()).toContain('do not grant tools');
-    expect(wrapper.text()).toContain('maximum 2 concurrent');
+    const requestedTools = wrapper.get('[aria-label="Captured native tool policies"]');
+    expect(requestedTools.text()).toContain('Saved native assistant limit · 2 concurrent.');
+    expect(requestedTools.text()).toContain('Saved options are distinct from admitted capabilities.');
+    expect(wrapper.find('[aria-label="Captured attempt coding profiles"]').exists()).toBe(false);
     f.store.state!.projects![0]!.settings.provider = 'claude';
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain('global AGENTS.md and skills');
