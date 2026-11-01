@@ -44,7 +44,7 @@ export interface StudioStorage {
 export type ExternalNoteChange = { kind: 'upsert'; idea: NoteIdea } | { kind: 'remove'; id: string };
 
 export interface StageResult { verification?: import('../domain/workflow-verification').WorkflowVerificationRecord[]; markdown?: string; summary?: string; screening?: Screening; rice?: RiceScore; plan?: ImplementationPlan; increment?: Increment; costUsd?: number; usage?: import('../domain/ai-usage').StageUsage }
-export interface StageInput { onNativeRuntime?: (record: import('../domain/native-workflow-process').NativeWorkflowPrivateRuntime | undefined) => Promise<void>; workflow?: import('../domain/configured-workflow-run').ConfiguredStepExecution; onNativeProcess?: (record: import('../domain/native-workflow-process').NativeWorkflowProcessRecord) => Promise<void>; onVerification?: (record: import('../domain/workflow-verification').WorkflowVerificationRecord) => Promise<void>; onVerificationRuntime?: (record: import('../domain/workflow-verification').WorkflowVerificationRuntimeRecord) => Promise<void>; onConversation?: (event: import('../domain/agent-conversation').AgentConversationEvent) => Promise<void>; onChanges?: (increment: Increment | null) => Promise<void>; onWorkspace?: (workspaceId: string) => Promise<void>; jobId?: string; stage: AgentStage; idea: Idea; settings: Settings; integration: IntegrationSettings; signal?: AbortSignal; onLog?: (message: string) => void; onUsage?: (costUsd: number) => Promise<void>; onTokenUsage?: (usage: import('../domain/ai-usage').StageUsage) => Promise<void> }
+export interface StageInput { onSessionEvent?: (event: import('../domain/agent-session').AgentSessionEvent) => Promise<void>; onNativeRuntime?: (record: import('../domain/native-workflow-process').NativeWorkflowPrivateRuntime | undefined) => Promise<void>; workflow?: import('../domain/configured-workflow-run').ConfiguredStepExecution; onNativeProcess?: (record: import('../domain/native-workflow-process').NativeWorkflowProcessRecord) => Promise<void>; onVerification?: (record: import('../domain/workflow-verification').WorkflowVerificationRecord) => Promise<void>; onVerificationRuntime?: (record: import('../domain/workflow-verification').WorkflowVerificationRuntimeRecord) => Promise<void>; onConversation?: (event: import('../domain/agent-conversation').AgentConversationEvent) => Promise<void>; onChanges?: (increment: Increment | null) => Promise<void>; onWorkspace?: (workspaceId: string) => Promise<void>; jobId?: string; stage: AgentStage; idea: Idea; settings: Settings; integration: IntegrationSettings; signal?: AbortSignal; onLog?: (message: string) => void; onUsage?: (costUsd: number) => Promise<void>; onTokenUsage?: (usage: import('../domain/ai-usage').StageUsage) => Promise<void> }
 export type StageRunner = (input: StageInput) => Promise<StageResult>;
 
 /** Host timers (Obsidian window timers in the plugin) keep pure code popout-safe and testable. */
@@ -86,6 +86,8 @@ export interface StudioHost {
 
 /** Host operations the CoForge views may request. Secrets can be written but never read back by a view. */
 export interface StudioHostActions {
+  /** Explicit read-only terminal follow for an existing private attempt; never resumes or controls the provider. */
+  sessionFollow?: { open(jobId: string): Promise<void> };
   outputTemplates?: import('./workflow-output-templates').WorkflowOutputTemplateActions;
   serviceDesign?: import('../../service-design/domain/blueprint').ServiceDesignActions;
   obsProduction?: import('./obs-production-workflow').ObsProductionActions;

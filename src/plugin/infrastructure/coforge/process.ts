@@ -8,6 +8,10 @@ export interface ProcessOptions {
   /** Delegated invocations retain ownership until their original process tree is proven stopped. */
   ownedTree?: true;
   onOwnedProcess?(identity: NativeProcessIdentity, phase: 'launched' | 'terminated' | 'unknown'): Promise<void>;
+  /** Internal observation only. Raw bytes must be decoded/sanitized before publication; failures never affect execution. */
+  onStdout?(chunk: Uint8Array): void | Promise<void>;
+  /** A protocol adapter retains bounded terminal semantics instead of a verbose raw transcript. */
+  stdoutResult?: { append(chunk: Uint8Array): void; result(): string };
 }
 const OUTPUT_LIMIT = 2 * 1024 * 1024;
 /** Raw transport output for usage recovery and response extraction. Never expose raw output to UI/logs; extracted evidence must be redacted. */
@@ -53,6 +57,7 @@ export function captureProcess(executable: string, args: readonly string[], opti
       });
     } catch (error) { reject(error instanceof Error ? error : new Error(String(error))); return; }
     const chunks: Buffer[] = []; const errors: Buffer[] = [];
+    const output = () => options.stdoutResult?.result() ?? Buffer.concat(chunks).toString('utf8');
     let bytes = 0; let errorBytes = 0; let failure: Error | undefined; let hardKill: ReturnType<typeof processTimeout> | undefined; let finished = false;
     const identity = options.ownedTree && child.pid ? readNativeProcessIdentity(child.pid).catch(() => undefined) : Promise.resolve(undefined);
     const launched = identity.then(async original => { if (original) await options.onOwnedProcess?.(original, 'launched'); });
@@ -69,7 +74,7 @@ export function captureProcess(executable: string, args: readonly string[], opti
         hardKill = processTimeout(() => {
           if (finished) return;
           cleanup(); child.stdin?.destroy(); child.stdout?.destroy(); child.stderr?.destroy(); child.unref();
-          reject(new ProcessOwnershipUnknown(Buffer.concat(chunks).toString('utf8')));
+          reject(new ProcessOwnershipUnknown(output()));
         }, 15000);
       } else {
         kill('SIGTERM'); hardKill = processTimeout(() => kill('SIGKILL'), 1500);
@@ -81,8 +86,12 @@ export function captureProcess(executable: string, args: readonly string[], opti
     const cleanup = () => { finished = true; clearProcessTimeout(timeout); if (hardKill !== undefined) clearProcessTimeout(hardKill); options.signal?.removeEventListener('abort', abort); };
     child.stdout?.on('data', (chunk: Buffer) => {
       bytes += chunk.length;
-      if (bytes > (options.maxBytes ?? OUTPUT_LIMIT)) stop('Process output exceeded its limit. The run was stopped.');
-      else chunks.push(Buffer.from(chunk));
+      if (options.stdoutResult) options.stdoutResult.append(chunk);
+      else if (bytes > (options.maxBytes ?? OUTPUT_LIMIT)) stop('Process output exceeded its limit. The run was stopped.');
+      else {
+        chunks.push(Buffer.from(chunk));
+      }
+      try { void Promise.resolve(options.onStdout?.(Uint8Array.from(chunk))).catch(() => {}); } catch { /* Observers cannot change provider outcomes. */ }
     });
     child.stderr?.on('data', (chunk: Buffer) => {
       errorBytes += chunk.length;
@@ -97,12 +106,13 @@ export function captureProcess(executable: string, args: readonly string[], opti
           await launched;
           const original = await identity;
           if (original && (failure || code !== 0)) await options.onOwnedProcess?.(original, !confirmed || !failure && code !== 0 ? 'unknown' : 'terminated');
-        } catch { cleanup(); reject(new ProcessOwnershipUnknown(Buffer.concat(chunks).toString('utf8'))); return; }
+        } catch { cleanup(); reject(new ProcessOwnershipUnknown(output())); return; }
         if (finished) return; cleanup();
-        if (!confirmed || options.ownedTree && !failure && code !== 0) reject(new ProcessOwnershipUnknown(Buffer.concat(chunks).toString('utf8'), redact(Buffer.concat(errors).toString('utf8'), options.env)));
-        else if (failure) reject(new ProcessFailure(failure.message, Buffer.concat(chunks).toString('utf8')));
-        else if (code !== 0) reject(new ProcessFailure(`${basename(executable)} exited with code ${String(code)}. ${redact(Buffer.concat(errors).toString('utf8'), options.env).slice(-1800) || 'Check the CLI installation and authentication.'}`, Buffer.concat(chunks).toString('utf8')));
-        else resolve(Buffer.concat(chunks).toString('utf8'));
+        if (!confirmed || options.ownedTree && !failure && code !== 0) reject(new ProcessOwnershipUnknown(output(), redact(Buffer.concat(errors).toString('utf8'), options.env)));
+        else if (failure) reject(new ProcessFailure(failure.message, output()));
+        else if (code !== 0) reject(new ProcessFailure(`${basename(executable)} exited with code ${String(code)}. ${redact(Buffer.concat(errors).toString('utf8'), options.env).slice(-1800) || 'Check the CLI installation and authentication.'}`, output()));
+        else if (Buffer.byteLength(output()) > (options.maxBytes ?? OUTPUT_LIMIT)) reject(new ProcessFailure('Process result exceeded its limit.', ''));
+        else resolve(output());
       });
     });
     child.stdin?.on('error', () => { /* An early exit is reported by close. */ });

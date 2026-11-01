@@ -60,20 +60,25 @@ it('refuses linked ownership markers and inconsistent enclosing process identity
   expect(() => nativeWorkflowProcessRecordCheck({ ...f.identity, runId: 'other', identity: { pid: 123, platform: 'win32', birth: 'fixture', image: 'a'.repeat(64) }, phase: 'unknown', observedAt: '2026-11-01T00:00:00Z', privateRuntime: f.runtime })).toThrow();
 });
 
-it('keeps native credential copies out of repository reads and verification snapshots even under a broader project root', async () => {
+it('keeps native transport data and session feeds out of reads and verification snapshots under a broader project root', async () => {
   const repository = await realpath(await mkdtemp(join(tmpdir(), 'coforge-game-'))); folders.push(repository);
   const home = join(repository, 'coforge-codex-Ab1234', 'codex-home'); await mkdir(home, { recursive: true });
   await writeFile(join(home, 'auth.json'), 'OPAQUE_FAKE_AUTH'); await writeFile(join(repository, 'game.ts'), 'game code');
   const input = { stage: 'plan' as const, idea: createSeed().ideas[0]!, settings: defaultSettings(), integration: defaultIntegration() };
   const lease = { cwd: repository, readOnly: true as const, validate: async () => {}, capture: async () => undefined, release: async () => {} };
   const files = new McpStepFiles();
+  const observer = join(repository, 'coforge-session-follow-Ab1234'); await mkdir(observer);
+  await writeFile(join(observer, 'feed.json'), 'PRIVATE_OPERATOR_OBSERVATIONS');
   await expect(files.call('coforge_read_file', { input, lease }, { path: 'coforge-codex-Ab1234/codex-home/auth.json' })).rejects.toThrow();
+  await expect(files.call('coforge_read_file', { input, lease }, { path: 'coforge-session-follow-Ab1234/feed.json' })).rejects.toThrow();
   const before = await captureVerificationSource(lease);
   await writeFile(join(home, 'auth.json'), 'CHANGED_PRIVATE_AUTH');
+  await writeFile(join(observer, 'feed.json'), 'CHANGED_PRIVATE_OBSERVATIONS');
   expect((await captureVerificationSource(lease)).sourceHash).toBe(before.sourceHash);
   const privateLease = { ...lease, cwd: join(repository, 'coforge-codex-Ab1234') };
   await expect(files.call('coforge_read_file', { input, lease: privateLease }, { path: 'codex-home/auth.json' })).rejects.toThrow();
   await expect(captureVerificationSource(privateLease)).rejects.toThrow();
+  await expect(captureVerificationSource({ ...lease, cwd: observer })).rejects.toThrow();
 });
 
 it('reserves known private transport names without treating every CoForge source folder or contained fixture root as private', () => {

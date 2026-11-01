@@ -65,6 +65,7 @@ const menu = useIdeaCardMenu(props, model);
           {{ model.state.label }}
         </span>
       </button>
+      <div class="cf-card-sessions"><button type="button" class="cf-btn cf-btn-ghost" :aria-label="`Sessions for ${model.idea.id}`" @click.stop="model.sessions()"><CfIcon name="messages-square" size="sm" />Sessions <span class="cf-card-session-count">{{ model.sessionSummary }}</span></button></div>
       <div class="cf-idea-card-footer">
         <div class="cf-idea-author" :title="model.authorName">
           <span class="cf-avatar cf-avatar-sm" :style="model.avatar">{{

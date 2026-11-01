@@ -7,6 +7,7 @@ import { WorkerFiles } from './files';
 import { workflowVerificationRuntimeRecordsCheck } from '../../../features/coforge/domain/workflow-verification';
 import { recoverWorkerVerification } from './verification-recovery';
 import { nativeWorkflowPrivateRuntimeCheck } from '../../../features/coforge/domain/native-workflow-process';
+import { appendAgentSessionEvent, type AgentSessionEvent } from '../../../features/coforge/domain/agent-session';
 
 const idsCheck = list(text({ pattern: /^build-[a-f0-9]{40}$/u }), { max: 1000 });
 export const nativeIdentityCheck = shape({ pid: number({ integer: true, min: 1 }), platform: text({ min: 1, max: 40 }), birth: text({ min: 1, max: 320 }),
@@ -108,6 +109,18 @@ export class WorkerStore {
         await current.files.write('record.json', checked); current.record = checked;
       } catch { this.available = false; throw new Error('The background Build journal could not commit. Work remains quarantined.'); }
       return structuredClone(checked.snapshot);
+    });
+  }
+  /** Cosmetic observation writes never change control fields or quarantine a healthy provider. */
+  observeSession(ref: DurableBuildRef, event: AgentSessionEvent): Promise<void> {
+    return this.command(async () => {
+      try {
+        const current = this.get(ref); const next = structuredClone(current.record);
+        next.snapshot.sessionTrace = appendAgentSessionEvent(next.snapshot.sessionTrace, event, new Date(this.now()).toISOString());
+        next.snapshot.sequence++;
+        const checked = recordCheck(next);
+        await current.files.write('record.json', checked); current.record = checked;
+      } catch { /* Lost display evidence cannot stop or replay the original provider. */ }
     });
   }
   acknowledge(ref: DurableBuildRef, sequence: number): Promise<void> {

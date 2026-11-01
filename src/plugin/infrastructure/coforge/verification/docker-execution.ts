@@ -11,7 +11,7 @@ import { VERIFICATION_CONTAINER_RUNNER } from './container-runner';
 
 export interface VerificationBackend {
   prepare(profile: WorkflowVerificationProfile): Promise<string>;
-  execute(profile: WorkflowVerificationProfile, command: WorkflowVerificationCommand, identity: Omit<WorkflowVerificationRuntimeRecord, 'ownerToken' | 'phase' | 'startedAt' | 'terminalAt' | 'containerName'>, lifecycle: (record: WorkflowVerificationRuntimeRecord) => Promise<void>, signal?: AbortSignal, outputLimit?: number, hasDependencies?: boolean): Promise<VerificationOutput & { exitCode?: number; unknown: boolean }>;
+  execute(profile: WorkflowVerificationProfile, command: WorkflowVerificationCommand, identity: Omit<WorkflowVerificationRuntimeRecord, 'ownerToken' | 'phase' | 'startedAt' | 'terminalAt' | 'containerName'>, lifecycle: (record: WorkflowVerificationRuntimeRecord) => Promise<void>, signal?: AbortSignal, outputLimit?: number, hasDependencies?: boolean, onOutput?: (snapshot: VerificationOutput) => void): Promise<VerificationOutput & { exitCode?: number; unknown: boolean }>;
 }
 
 /** A real isolated engine is mandatory. Readiness never pulls images or weakens a policy. */
@@ -34,7 +34,7 @@ export class DockerVerificationBackend implements VerificationBackend {
     if (this.imageEnvironmentNames.some(name => !/^[a-zA-Z_][a-zA-Z0-9_]*$/u.test(name))) throw new Error('The verification image environment cannot be isolated safely.');
     return endpoint;
   }
-  async execute(profile: WorkflowVerificationProfile, command: WorkflowVerificationCommand, identity: Omit<WorkflowVerificationRuntimeRecord, 'ownerToken' | 'phase' | 'startedAt' | 'terminalAt' | 'containerName'>, lifecycle: (record: WorkflowVerificationRuntimeRecord) => Promise<void>, signal?: AbortSignal, outputLimit?: number, hasDependencies = false): Promise<VerificationOutput & { exitCode?: number; unknown: boolean }> {
+  async execute(profile: WorkflowVerificationProfile, command: WorkflowVerificationCommand, identity: Omit<WorkflowVerificationRuntimeRecord, 'ownerToken' | 'phase' | 'startedAt' | 'terminalAt' | 'containerName'>, lifecycle: (record: WorkflowVerificationRuntimeRecord) => Promise<void>, signal?: AbortSignal, outputLimit?: number, hasDependencies = false, onOutput?: (snapshot: VerificationOutput) => void): Promise<VerificationOutput & { exitCode?: number; unknown: boolean }> {
     const directory = verificationDirectory(identity.verificationId);
     if (directory !== identity.sourceDirectory || /[,\r\n]/u.test(directory) || hasDependencies) throw new Error('Verification uses a private source snapshot and image-provided dependencies only.');
     await writeFile(join(directory, 'runner.cjs'), VERIFICATION_CONTAINER_RUNNER, { flag: 'wx', mode: 0o444 });
@@ -56,7 +56,7 @@ export class DockerVerificationBackend implements VerificationBackend {
       assertVerificationSandbox(prepared, runtime);
       signal?.throwIfAborted();
       runtime = { ...runtime, phase: 'started' }; await persist();
-      observed = await this.attach(profile.dockerBin, runtime.endpoint, runtime.containerName, profile.timeoutSeconds, signal, outputLimit);
+      observed = await this.attach(profile.dockerBin, runtime.endpoint, runtime.containerName, profile.timeoutSeconds, signal, outputLimit, onOutput);
       const state = await inspectVerificationRuntime(runtime, this.capture);
       if (state !== 'missing' && !state.State.Running && state.State.Status === 'exited' && !state.State.StartedAt.startsWith('0001-') && Number.isFinite(Date.parse(state.State.StartedAt))) exitCode = state.State.ExitCode;
     } catch { observed = { ...observed, interrupted: true }; }

@@ -14,6 +14,7 @@ export function projectDurableBuild(state: InternalState, job: AgentJob, snapsho
   job.logs = [...snapshot.logs];
   if (snapshot.conversation) job.conversation = structuredClone(snapshot.conversation);
   if (snapshot.verification) job.verification = structuredClone(snapshot.verification);
+  if (snapshot.sessionTrace) job.sessionTrace = structuredClone(snapshot.sessionTrace);
   const cost = snapshot.costUsd ?? snapshot.result?.costUsd;
   if (cost !== undefined) job.costUsd = Math.max(job.costUsd ?? 0, cost);
   const usage = snapshot.usage ?? snapshot.result?.usage;

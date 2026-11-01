@@ -3,6 +3,7 @@ import type { Increment } from './types';
 import { stageUsageCheck, type StageUsage } from './ai-usage';
 import { agentConversationCheck, type AgentConversation } from './agent-conversation';
 import { workflowVerificationRecordsCheck, workflowSourceHashCheck, type WorkflowVerificationRecord } from './workflow-verification';
+import { agentSessionTraceCheck, type AgentSessionTrace } from './agent-session';
 
 /** Missing execution policy preserves foreground behavior. Missing deadline permits long quiet work. */
 export interface DurableBuildPolicy { mode: 'background'; maxRuntimeSeconds?: number; idleWarningSeconds?: number; maxTurns?: number; maxBudgetUsd?: number }
@@ -27,11 +28,13 @@ export interface DurableBuildSnapshot {
   logs: string[]; workspaceId?: string; workspaceCaptured?: boolean; cancellationRequested?: boolean; result?: DurableBuildResult;
   increment?: Increment; conversation?: AgentConversation; costUsd?: number; usage?: StageUsage; error?: string;
   verification?: WorkflowVerificationRecord[];
+  sessionTrace?: AgentSessionTrace;
 }
 export const durableBuildSnapshotCheck = shape({ version: oneOf([1] as const), ref: durableBuildRefCheck, sequence: number({ integer: true, min: 0, max: Number.MAX_SAFE_INTEGER }), phase: oneOf(DURABLE_BUILD_PHASES),
   createdAt: timestamp, startedAt: optional(timestamp), lastContactAt: timestamp, lastActivityAt: optional(timestamp), elapsedSeconds: number({ min: 0 }), logs: list(text({ max: 1000 }), { max: 50 }),
   workspaceId: optional(identity), workspaceCaptured: optional(boolean), cancellationRequested: optional(boolean), result: optional(durableBuildResultCheck), increment: optional(increment), conversation: optional(agentConversationCheck), costUsd: optional(money), usage: optional(stageUsageCheck), error: optional(text({ max: 3900 })),
   verification: optional(workflowVerificationRecordsCheck),
+  sessionTrace: optional(agentSessionTraceCheck),
 }, { strict: true });
 export interface DurableBuildExecution {
   intent: 'start' | 'cancel'; ref: DurableBuildRef; policy: DurableBuildPolicy; snapshot?: DurableBuildSnapshot;

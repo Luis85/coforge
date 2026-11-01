@@ -64,7 +64,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     input.onLog?.(`Codex ${snapshot.step.name}: scoped CoForge tools; native project access is disabled. Claude USD/turn caps are not Codex spending limits.`);
     const response = await runCodexTransport({ directory, executable: input.integration.codexBin, model: snapshot.step.model, effort: snapshot.step.effort,
       schema: executionSchema(input), instructions: executionSystemPrompt(input), prompt: executionTaskPrompt(input), timeoutMs: input.settings.timeoutSeconds * 1000,
-      signal: input.signal, mcp: bridge, nativeTools: snapshot.step.nativeTools, privateRuntime, capture, onConversation: input.onConversation, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); },
+      signal: input.signal, mcp: bridge, nativeTools: snapshot.step.nativeTools, privateRuntime, capture, onConversation: input.onConversation, onSessionEvent: input.onSessionEvent, telemetry: async usage => { if (usage) await input.onTokenUsage?.(usage); },
       onOwnedProcess: async (identity, phase) => observeNative({ runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea), identity, phase, observedAt: new Date().toISOString(), ...(privateRuntime ? { privateRuntime } : {}) }) });
     await drain();
     bridge.assertBudget();

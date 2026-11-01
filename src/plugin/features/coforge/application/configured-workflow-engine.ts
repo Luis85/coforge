@@ -11,6 +11,7 @@ import { configuredJobInput, completeConfiguredJob, failConfiguredJob } from './
 import { recordOperation } from './population';
 import type { StudioStore } from './studio-store';
 import { recordAgentConversation } from './agent-conversation';
+import { recordAgentSessionEvent } from './agent-session';
 import { uncertainTaskAttempt, type AgentTaskPort } from './agent-task';
 import { assertWorkflowNotStopped, assertDurableWorkflowMetadata, holdWorkflow, releaseWorkflowStop } from './workflow-stop-policy';
 import { ConfiguredWorkflowCouncil } from './configured-workflow-council';
@@ -317,6 +318,7 @@ export class ConfiguredWorkflowEngine {
     if (!runner) throw new Error('The configured workflow runner is unavailable.');
     const payload: StageInput = { ...input, onUsage: cost => this.host.cost(job.id, cost), onTokenUsage: usage => this.host.usage(job.id, usage),
       onConversation: event => recordAgentConversation(this.store, job.id, event),
+      onSessionEvent: event => recordAgentSessionEvent(this.store, job.id, event),
       onVerification: record => recordWorkflowVerification(this.store, job.id, record),
       onVerificationRuntime: record => recordWorkflowVerificationRuntime(this.store, job.id, record),
       onNativeProcess: record => recordWorkflowNativeProcess(this.store, job.id, record),

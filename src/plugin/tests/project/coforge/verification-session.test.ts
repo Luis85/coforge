@@ -6,6 +6,7 @@ import type { VerificationBackend } from '../../../infrastructure/coforge/verifi
 import type { StageInput } from '../../../features/coforge/application/ports';
 import type { WorkflowVerificationRecord, WorkflowVerificationRuntimeRecord } from '../../../features/coforge/domain/workflow-verification';
 import { createSeed, defaultIntegration, defaultSettings } from '../../../features/coforge/domain/seed';
+import type { AgentSessionEvent } from '../../../features/coforge/domain/agent-session';
 
 const roots: string[] = [];
 afterEach(async () => { for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }); });
@@ -42,6 +43,28 @@ it('reserves actual command evidence before execution and binds outcomes to exac
   await writeFile(join(f.root, 'source.js'), 'changed');
   expect((await session.capture(increment)).verificationSourceHash).not.toBe(result.sourceHash);
   await session.dispose();
+});
+it('observes bounded sanitized complete output lines before verification finishes without making capture an execution gate', async () => {
+  const f = await fixture(); const observations: AgentSessionEvent[] = [];
+  f.input.onSessionEvent = async event => { observations.push(event); };
+  let resume: () => void = () => {};
+  const blocked = new Promise<void>(resolve => { resume = resolve; });
+  f.backend.execute = vi.fn(async (_profile, _command, _identity, _lifecycle, _signal, _limit, _dependencies, onOutput) => {
+    onOutput?.({ output: 'First check line\nBearer private-test-token\nunfinished', truncated: false, interrupted: false });
+    await blocked;
+    return { output: 'First check line\nBearer private-test-token\nfinished', truncated: false, interrupted: false, exitCode: 0, unknown: false };
+  });
+  const session = await createWorkflowVerification(f.input, f.lease, f.backend); if (!session) throw new Error('Missing session.');
+  const running = session.run({ commandId: 'check' });
+  try {
+    await expect.poll(() => observations.some(event => event.text?.includes('First check line'))).toBe(true);
+    expect(f.records.at(-1)?.status).toBe('running');
+    expect(JSON.stringify(observations)).not.toContain('private-test-token');
+    expect(JSON.stringify(observations)).not.toContain('unfinished');
+    resume(); expect((await running).status).toBe('completed');
+    f.input.onSessionEvent = async () => { throw new Error('Observer unavailable'); };
+    expect((await session.run({ commandId: 'check' })).status).toBe('completed');
+  } finally { resume(); await running; await session.dispose(); }
 });
 it('refuses unselected commands and run-limit escalation and leaves legacy invocations unchanged', async () => {
   const f = await fixture(); const session = await createWorkflowVerification(f.input, f.lease, f.backend);

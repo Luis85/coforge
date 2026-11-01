@@ -574,6 +574,20 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-11-01: add Sessions on private Idea cards to inspect active and previous
+  AI attempts. Reuse the card drawer for a session list and read-only live Peek:
+  observed assistant messages, tool activity, verification output, elapsed time,
+  last observed activity and access to existing increment changes. Nest native
+  assistants only when provider events establish their association; unavailable
+  or tool-linked identities must be described honestly. Providers continue to
+  coordinate their own assistants. Add an explicit read-only terminal follow of
+  the same sanitized feed. Opening, observing or closing an inspector never
+  starts, resumes, sends input to, cancels or takes over an agent. Interactive
+  handoff is outside this increment. Keep observations bounded, private,
+  persistent where available, isolated per project/attempt and excluded from
+  model/public projections. Do not retain raw provider output, hidden reasoning,
+  credentials, SDK-global instructions or tool arguments in this feed. Capture
+  failures cannot advance, fail, replay or change execution ownership.
 - 2026-11-01: workflow agents may use their provider's native subagent feature
   and execute tests. The dispatched Claude/Codex agent coordinates its own native
   children inside the parent invocation; CoForge does not dispatch or administer
