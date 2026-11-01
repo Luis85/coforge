@@ -12,24 +12,24 @@ import { createSeed } from '../../../features/coforge/domain/seed';
 import type { WorkflowRun } from '../../../features/coforge/domain/configured-workflow-run';
 import { workflowUiFixture } from './workflow-ui-fixture';
 
-it('keeps a single explicit-save draft across the flat workflow and timing tabs', async () => {
+it('keeps a single explicit-save draft across the workflow and template tabs', async () => {
   const f = await workflowUiFixture();
   f.store.openWorkflowTool('settings');
   const wrapper = mount(WorkflowView, { global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
   try {
     const nav = wrapper.get('nav[aria-label="Agent workflow pages"]');
-    expect(nav.findAll('button').map(button => button.text())).toEqual(['Idea Board Workflow', 'Step attempts', 'Timing & limits', 'Answer / output templates', 'Herdr']);
+    expect(nav.findAll('button').map(button => button.text())).toEqual(['Idea Board Workflow', 'Step attempts', 'Answer / output templates', 'Herdr']);
     expect(wrapper.find('[aria-label="Request workflow execution"]').exists()).toBe(false);
     const editor = useWorkflowEditorStore(f.pinia);
     const session = editor.session;
     const saves = f.storage.saves;
     await wrapper.get('[data-workflow-field="name"]').setValue('Independent process draft');
-    await nav.findAll('button').find(button => button.text() === 'Timing & limits')!.trigger('click');
-    await wrapper.get('[data-workflow-field="limits.timeoutSeconds"]').setValue('240');
+    const capturedLimits = { ...editor.draft.limits };
+    await nav.findAll('button').find(button => button.text() === 'Answer / output templates')!.trigger('click');
     expect(editor.session).toBe(session);
     await nav.findAll('button').find(button => button.text() === 'Idea Board Workflow')!.trigger('click');
     expect(wrapper.get('[data-workflow-field="name"]').element).toHaveProperty('value', 'Independent process draft');
-    expect(editor.draft.limits.timeoutSeconds).toBe(240);
+    expect(editor.draft.limits).toEqual(capturedLimits);
     expect(f.storage.saves).toBe(saves);
     await nav.findAll('button').find(button => button.text() === 'Step attempts')!.trigger('click');
     expect(f.store.workflowTool).toBe('settings');

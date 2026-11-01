@@ -99,7 +99,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
     - [Agent workflow](views/workflow.md) — subpage
       - [Herdr workspace controls](views/herdr.md) — subpage
       - [Step attempts](views/workflow-attempts.md) — subpage
-      - [Timing and limits](views/workflow-limits.md) — subpage
+      - [Earlier agent behavior link](views/workflow-limits.md) — panel
       - [Answer and output templates](views/workflow-output-templates.md) — panel
       - [Idea Board Workflow](views/workflow-settings.md) — subpage
         - [Workflow step editor](views/workflow-step.md) — panel
@@ -231,7 +231,7 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 | [Viewer profile](views/viewer-detail.md) | Review a viewer’s private record and participation controls. | population.selectedId | streamer |
 | [Agent workflow](views/workflow.md) | Manage this project's agent process from configuration through execution. | studio.settingsTool = workflow (compatibility: studio.view = workflow) | streamer |
 | [Step attempts](views/workflow-attempts.md) | Inspect project-wide agent job outcomes without selecting a request run. | studio.workflowTool = runs | streamer |
-| [Timing and limits](views/workflow-limits.md) | Configure the timing and native CLI bounds captured by future workflow runs. | studio.workflowTool = limits | streamer |
+| [Earlier agent behavior link](views/workflow-limits.md) | Understand managed agent sessions when opening an earlier timing link. | compatibility: studio.workflowTool = limits (read-only) | streamer |
 | [Answer and output templates](views/workflow-output-templates.md) | Maintain reusable Markdown answer formats for one project's workflow steps. | project output template library | streamer |
 | [Workflow runs](views/workflow-runs.md) | Resolve the next checkpoint or attempt outcome. | studio.drawerTab = workflow | streamer |
 | [Idea Board Workflow](views/workflow-settings.md) | Save the process that new requests will follow. | studio.workflowTool = settings (compatibility: studio.view = workflow-settings) | streamer |
@@ -259,5 +259,5 @@ Routes below describe local UI state, not browser URLs. Panels and dialogs remai
 - **task-scheduling**: [Task scheduler](views/council-scheduler.md)
 - **twitch-channel-operations**: [Twitch operations](views/twitch-operations.md), [Twitch action review](views/twitch-operations-action.md), [Twitch activity](views/twitch-operations-activity.md), [Twitch breaks and raid preview](views/twitch-operations-broadcast.md), [Twitch data and access](views/twitch-operations-data.md), [Twitch action fields](views/twitch-operations-fields.md), [Twitch action history](views/twitch-operations-history.md), [Twitch dataset records](views/twitch-operations-records.md), [Private Twitch report](views/twitch-operations-report.md)
 - **viewer-intake**: [CoForge integration settings](views/native-settings.md), [Twitch integration settings](views/native-twitch.md), [Twitch authorization](views/native-twitch-authorization.md), [Viewers and players](views/population.md), [Stream chat](views/stream.md), [Chat](views/stream-channel.md), [Twitch settings](views/stream-connection.md), [Bot messages](views/stream-messages.md)
-- **workflow-configuration**: [Herdr workspace controls](views/herdr.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [Project settings](views/settings.md), [Project details](views/settings-general.md), [Repository & build access](views/settings-repository.md), [Local connections](views/settings-runtime.md), [Agent workflow](views/workflow.md), [Timing and limits](views/workflow-limits.md), [Answer and output templates](views/workflow-output-templates.md), [Idea Board Workflow](views/workflow-settings.md), [Workflow step editor](views/workflow-step.md), [Workflow import and export](views/workflow-transfer.md)
+- **workflow-configuration**: [Herdr workspace controls](views/herdr.md), [Claude Code settings](views/native-claude.md), [Local MCP server](views/native-mcp.md), [Project settings](views/settings.md), [Project details](views/settings-general.md), [Repository & build access](views/settings-repository.md), [Local connections](views/settings-runtime.md), [Agent workflow](views/workflow.md), [Earlier agent behavior link](views/workflow-limits.md), [Answer and output templates](views/workflow-output-templates.md), [Idea Board Workflow](views/workflow-settings.md), [Workflow step editor](views/workflow-step.md), [Workflow import and export](views/workflow-transfer.md)
 - **workflow-event-automation**: [Event triggers](views/council-events.md)

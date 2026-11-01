@@ -81,3 +81,13 @@ it('retains known cumulative spend and actual partial edits after interrupted co
     expect(f.release).toHaveBeenCalledWith(unknown || undefined);
   }
 });
+it('uses managed completion for an attached coding step without CLI turn, spending or task-duration stops', async () => {
+  const f = await fixture(); f.input.workflow!.lifecycle = { version: 1, mode: 'managed-session' };
+  const result = await runNativeWorktreeStage(f.input, f.workspaces, { provider: 'claude', probe: f.probe, capture: async (_command, args, options) => {
+    expect(options.timeoutMs).toBeUndefined(); expect(args).not.toContain('--max-turns'); expect(args).not.toContain('--max-budget-usd');
+    expect(JSON.parse(args[args.indexOf('--agents') + 1]!)['coforge-native-coder']).not.toHaveProperty('maxTurns');
+    await options.onOwnedProcess?.(f.identity, 'launched', f.lifetime); await options.onOwnedProcess?.(f.identity, 'terminated', f.lifetime);
+    return JSON.stringify({ type: 'result', subtype: 'success', is_error: false, structured_output: { summary: 'Completed with normal tools' } });
+  } });
+  expect(result.summary).toBe('Completed with normal tools'); expect(f.release).toHaveBeenCalledWith(undefined);
+});

@@ -24,6 +24,8 @@ import { assignProviderFailure, providerFailureFor } from '../../features/coforg
 import { persistProviderEvidence } from './provider-evidence';
 import { runNativeWorktreeStage } from './native-worktree-stage';
 import { ProviderFailureError } from '../../features/coforge/domain/provider-failure';
+import { managedSessionCapture } from './managed-session-capture';
+import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
 
 function executable(integration: IntegrationSettings): string {
   const command = integration.claudeBin.trim() || 'claude';
@@ -74,6 +76,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     if (input.workflow.worktreeCoding.profile !== 'native-worktree-v1' || !workspaces) throw new ProviderFailureError(providerFailureFor('configuration'));
     return runNativeWorktreeStage(input, workspaces, { provider: 'claude', capture });
   }
+  const sessionCapture = managedSessionCapture(input, 'claude', capture);
   const { stage, idea, settings, integration, signal } = input;
   const onLog = input.onLog ?? (() => undefined);
   if (signal?.aborted) throw new Error('Run cancelled.');
@@ -88,6 +91,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     failed = true;
   };
   const changes = async (summary: string) => {
+    if (isManagedWorkflowSession(input.workflow) && executionAccess(input) !== 'editworktree') return undefined;
     if (!lease || captured || (usesNativeClaudeTools(input) || brokered ? lease.readOnly : hasBrokeredReadScope(lease))) return undefined;
     const capturedIncrement = await lease.capture(summary);
     const increment = capturedIncrement && brokered ? await brokered.bridge.captureVerification(capturedIncrement) : capturedIncrement;
@@ -110,9 +114,9 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
   try {
     let raw: string;
     if (lease && (usesNativeClaudeTools(input) || executionAccess(input) === 'editworktree' && lease.protectedProjectPaths !== undefined)) {
-      brokered = await openBrokeredClaude(input, lease, executable(integration), capture);
+      brokered = await openBrokeredClaude(input, lease, executable(integration), sessionCapture);
       raw = await brokered.run();
-    } else if (lease && hasBrokeredReadScope(lease)) raw = await captureBrokeredClaudeRead(input, lease, executable(integration), capture);
+    } else if (lease && hasBrokeredReadScope(lease)) raw = await captureBrokeredClaudeRead(input, lease, executable(integration), sessionCapture);
     else {
       const access = executionAccess(input);
       onLog(`Claude ${input.workflow?.step.name ?? stage}: ${access === 'none' ? 'no tools; isolated temporary directory' : access === 'readproject' ? 'read-only project access' : 'file editing in an isolated worktree'}.`);
@@ -121,8 +125,8 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
       await persistProviderEvidence(() => input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt }));
       signal?.throwIfAborted();
       raw = await captureObservedClaude(input, executable(integration), args, {
-        cwd, input: prompt, timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
-      }, capture);
+        cwd, input: prompt, timeoutMs: isManagedWorkflowSession(input.workflow) ? undefined : settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
+      }, sessionCapture);
     }
     const usage = reportedClaudeCost(raw); if (usage !== undefined) await persistProviderEvidence(() => input.onUsage?.(usage));
     const tokens = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (tokens) await persistProviderEvidence(() => input.onTokenUsage?.(tokens));
@@ -148,12 +152,12 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
       }
     } catch (evidenceError) { fail(evidenceError); }
     try { await brokered?.bridge.dispose(); } catch (cleanupError) { uncertain = true; fail(cleanupError); }
-    try { await changes(`Cumulative changes after failed ${input.workflow?.step.name ?? stage}`); } catch (captureError) { fail(captureError); }
+    if (!uncertain || !isManagedWorkflowSession(input.workflow)) { try { await changes(`Cumulative changes after failed ${input.workflow?.step.name ?? stage}`); } catch (captureError) { fail(captureError); } }
   }
   // Settle every owned resource before propagating either the result or the strongest failure.
   try { await brokered?.dispose(); } catch (cleanupError) { uncertain = true; fail(cleanupError); }
   try { await lease?.release(uncertain || brokered?.uncertain() || undefined); } catch (releaseError) { fail(releaseError); }
-  if (temporary) { try { await rm(temporary, { recursive: true, force: true }); } catch (cleanupError) { fail(cleanupError); } }
+  if (temporary && (!uncertain || !isManagedWorkflowSession(input.workflow))) { try { await rm(temporary, { recursive: true, force: true }); } catch (cleanupError) { fail(cleanupError); } }
   if (failed) throw failure;
   if (!outcome) throw new Error('Claude completed without a validated result. The idea was not advanced.');
   return outcome;

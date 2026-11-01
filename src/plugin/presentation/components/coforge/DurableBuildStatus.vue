@@ -17,6 +17,12 @@ const build = useDurableBuildMonitor(
     "
   >
     <h3 aria-live="polite">{{ build.heading }}</h3>
+    <template v-if="build.managed">
+      <p class="cf-settings-help">{{ build.sessionHelp }}</p>
+      <button type="button" class="cf-btn cf-btn-secondary" aria-label="Open this agent session" @click="build.openSession()">Open Sessions</button>
+    </template>
+    <component v-if="!build.managed || build.hasWorker" :is="build.detailsTag" :class="{ 'cf-workflow-options': build.managed }">
+      <summary v-if="build.managed">Execution details</summary>
     <template v-if="build.legacy">
       <template v-if="build.lifecycle === 'legacy'">
         <p class="cf-settings-help">
@@ -28,8 +34,7 @@ const build = useDurableBuildMonitor(
           partial changes remain available for inspection.
         </p>
         <p class="cf-settings-help">
-          Enable background execution for future runs in the Build step. Saving
-          that policy does not resume this attempt.
+          New native attempts follow the agent session automatically. This historical attempt keeps its original recorded policy.
         </p>
       </template>
       <p v-else-if="build.lifecycle === 'mcp'" class="cf-settings-help">
@@ -94,11 +99,11 @@ const build = useDurableBuildMonitor(
           <dt>Last activity</dt>
           <dd :title="build.snapshot?.lastActivityAt">{{ build.activity }}</dd>
         </div>
-        <div>
+        <div v-if="!build.managed">
           <dt>Captured deadline</dt>
           <dd>{{ build.deadline }}</dd>
         </div>
-        <div>
+        <div v-if="!build.managed">
           <dt>Captured resource bounds</dt>
           <dd>
             {{ build.turns ?? "Not recorded" }} turns/tool calls ·
@@ -118,7 +123,7 @@ const build = useDurableBuildMonitor(
         Contact confirms observation, not completed work. Activity and elapsed
         time do not provide a completion percentage or ETA.
       </p>
-      <p v-if="build.job?.provider === 'codex'" class="cf-settings-help">
+      <p v-if="!build.managed && build.job?.provider === 'codex'" class="cf-settings-help">
         Codex does not enforce the USD spending cap. Token usage and tool-call
         limits remain distinct from reported billing.
       </p>
@@ -176,5 +181,6 @@ const build = useDurableBuildMonitor(
         }}</pre>
       </details>
     </template>
+    </component>
   </section>
 </template>

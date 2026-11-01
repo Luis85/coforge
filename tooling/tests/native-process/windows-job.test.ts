@@ -12,6 +12,9 @@ import { shape } from '../../../src/plugin/features/coforge/domain/check';
 import { nativeWorkflowLifetimeRefCheck } from '../../../src/plugin/features/coforge/domain/native-workflow-lifetime';
 import { nativeWorkflowProcessIdentityCheck } from '../../../src/plugin/features/coforge/domain/native-workflow-process';
 import { OwnedWorktreeError } from '../../../src/plugin/infrastructure/coforge/native-process/owned-worktree-process';
+import { outputClosingProvider } from './transport-provider';
+import { ClaudeSessionResult } from '../../../src/plugin/infrastructure/coforge/claude-stream-result';
+import { providerFailureInfo } from '../../../src/plugin/features/coforge/domain/provider-failure';
 
 if (process.platform !== 'win32') throw new Error('The native Windows lifetime acceptance harness must run on Windows; no skipped substitute qualifies it.');
 afterEach(cleanupNativeFixtures);
@@ -93,4 +96,49 @@ it('cancels the original job and its detached descendants with a known cessation
   try { await expect.poll(f.readMarker, { timeout: 10000 }).not.toBeUndefined(); } finally { controller.abort(); }
   await rejected;
   const before = await f.readMarker(); await pause(300); expect(await f.readMarker()).toBe(before); expect(phases).toEqual(['launched', 'terminated']);
+});
+it('settles a managed SDK whose root stdout transport closes while the original process and writer stay alive', async () => {
+  const f = await nativeProcessFixture();
+  const executable = await outputClosingProvider(f.directory);
+  const handle = await startOwnedWorktreeProcess(executable, [], { cwd: f.directory, owner: nativeCoding,
+    input: 'Synthetic task', watchRootOutputClosure: true, onStarted: async () => {} });
+  try {
+    await expect.poll(f.readMarker, { timeout: 10000 }).not.toBeUndefined();
+    const result = await handle.result;
+    expect(result).toMatchObject({ reason: 'transport-closed', quiescent: true });
+    expect(await inspectOwnedWorktreeLifetime(handle.identity, handle.lifetime)).toMatchObject({ reason: 'transport-closed', activeProcesses: 0 });
+    const stopped = await f.readMarker(); await pause(250); expect(await f.readMarker()).toBe(stopped);
+  } finally { await handle.stop(); }
+});
+it('does not stop a quiet managed SDK or treat prompt input EOF and an earlier result as root transport closure', async () => {
+  const f = await nativeProcessFixture(); await f.writeProvider(true);
+  const handle = await startOwnedWorktreeProcess(process.execPath, [f.script], { cwd: f.directory, owner: nativeCoding,
+    input: 'Synthetic task', watchRootOutputClosure: true, onStarted: async () => {} });
+  try {
+    await expect.poll(f.readMarker, { timeout: 10000 }).not.toBeUndefined(); await pause(500);
+    expect(handle.snapshot().state).toBe('running'); expect(await inspectOwnedWorktreeLifetime(handle.identity, handle.lifetime)).toBeUndefined();
+  } finally { expect(await handle.stop()).toMatchObject({ quiescent: true, reason: 'cancelled' }); }
+});
+it.each([false, true])('treats root output closure as incomplete after verified cleanup, never as accepted output (candidate: %s)', async candidate => {
+  const f = await nativeProcessFixture(); const executable = await outputClosingProvider(f.directory, candidate); const phases: string[] = [];
+  let failure: unknown;
+  try { await captureProcess(executable, [], { cwd: f.directory, input: 'Synthetic task', nativeCoding, managedSession: true,
+    stdoutResult: new ClaudeSessionResult(undefined, true), onOwnedProcess: async (_identity, phase) => { phases.push(phase); } }); }
+  catch (error) { failure = error; }
+  expect(failure).toBeInstanceOf(ProcessFailure); expect(providerFailureInfo(failure)?.code).toBe('incomplete_output');
+  expect(phases).toEqual(['launched', 'terminated']);
+  const stopped = await f.readMarker(); await pause(250); expect(await f.readMarker()).toBe(stopped);
+});
+it('does not impose SDK transport semantics on an ordinary command which deliberately closes its output', async () => {
+  const f = await nativeProcessFixture(); const executable = await outputClosingProvider(f.directory);
+  const handle = await startOwnedWorktreeProcess(executable, [], { cwd: f.directory, owner: nativeCoding, input: 'Synthetic task', onStarted: async () => {} });
+  try { await expect.poll(f.readMarker, { timeout: 10000 }).not.toBeUndefined(); await pause(2500); expect(handle.snapshot().state).toBe('running'); }
+  finally { expect(await handle.stop()).toMatchObject({ reason: 'cancelled', quiescent: true }); }
+});
+it('accepts a managed root only after its natural successful exit, validated envelope and stopped descendants', async () => {
+  const f = await nativeProcessFixture(); await f.writeProvider(); const phases: string[] = [];
+  const output = await captureProcess(process.execPath, [f.script], { cwd: f.directory, input: 'Synthetic task', nativeCoding, managedSession: true,
+    stdoutResult: new ClaudeSessionResult(undefined, true), onOwnedProcess: async (_identity, phase) => { phases.push(phase); } });
+  expect(JSON.parse(output)).toMatchObject({ is_error: false, structured_output: { summary: 'Synthetic completion' } });
+  expect(phases).toEqual(['launched', 'terminated']);
 });

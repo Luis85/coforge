@@ -14,6 +14,7 @@ import {
 } from "../../../features/coforge/domain/durable-build";
 import { buildDuration } from "./durable-build-display";
 import { ideaWorkflowRun } from './idea-workflow-run';
+import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
 
 const phaseLabels = {
   prepared: "Reserved — not started",
@@ -64,6 +65,7 @@ export function useDurableBuildMonitor(
     );
   });
   const durable = computed(() => job.value?.durable);
+  const managed = computed(() => isManagedWorkflowSession(job.value?.workflow));
   watch(
     () =>
       `${ideaId()}:${runId()}:${job.value?.id}:${durable.value?.ref.executionId}`,
@@ -125,7 +127,18 @@ export function useDurableBuildMonitor(
       (!hot.value ? durable.value?.reconcileError : undefined),
   );
   const disconnected = computed(() => Boolean(connectionError.value));
+  const unconfirmed = computed(() => identityMismatch.value || job.value?.failure?.code === 'ownership_unknown' || job.value?.nativeProcess?.phase === 'unknown' || snapshot.value?.phase === 'attention');
   const heading = computed(() => {
+    if (managed.value) {
+      if (unconfirmed.value) return 'Agent state needs confirmation';
+      if (job.value?.status === 'queued') return 'Agent waiting to start';
+      if (cancelled.value) return job.value?.status === 'cancelled' ? 'Agent stopped' : 'Stopping agent';
+      if (job.value?.status === 'succeeded') return 'Agent completed';
+      if (job.value?.status === 'cancelled') return 'Agent stopped';
+      if (job.value?.status === 'failed') return job.value.failure?.code === 'transport' || job.value.failure?.code === 'incomplete_output' ? 'Agent connection closed' : 'Agent needs attention';
+      if (disconnected.value || identityMismatch.value) return 'Agent connection unavailable';
+      return 'Agent working';
+    }
     if (legacy.value)
       return lifecycle.value === "mcp"
         ? "External MCP execution"
@@ -163,6 +176,7 @@ export function useDurableBuildMonitor(
     return phaseLabels[value.phase];
   });
   const inactivity = computed(() => {
+    if (managed.value) return "";
     const value = snapshot.value;
     const warning =
       policy.value?.idleWarningSeconds ?? DEFAULT_DURABLE_IDLE_WARNING_SECONDS;
@@ -200,6 +214,16 @@ export function useDurableBuildMonitor(
   }
   return reactive({
     job,
+    managed,
+    hasWorker: computed(() => Boolean(durable.value)),
+    detailsTag: computed(() => managed.value ? 'details' : 'div'),
+    sessionHelp: computed(() => unconfirmed.value ? 'The original agent’s state is not confirmed. Open Sessions or the execution details before starting more work.' : job.value?.status === 'succeeded'
+      ? 'The agent reported its result. Review the saved answer and any code changes.'
+      : job.value?.status === 'cancelled' ? 'The task is stopped. Your available results and changes are retained.'
+      : job.value?.status === 'failed' ? 'The session ended before this task completed. Your available records and changes are retained.'
+      : disconnected.value || identityMismatch.value ? 'The connection is unavailable. The original execution must be confirmed before more work starts.'
+      : 'Quiet periods do not mean the agent has stopped. Open Sessions to follow reported messages and tool activity. You can stop the task at any time.'),
+    openSession: () => store.select(ideaId(), 'sessions'),
     snapshot,
     policy,
     legacy,

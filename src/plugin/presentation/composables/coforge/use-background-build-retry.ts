@@ -4,9 +4,10 @@ import { workflowDefinition } from '../../../features/coforge/domain/configured-
 import { workflowProposalRevision } from '../../../features/coforge/domain/configured-workflow-run';
 import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import { isActiveJob } from '../../../features/coforge/domain/workflow';
+import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
 import { useStudioStore } from '../../stores/coforge-studio';
 import { useStudioActions } from './use-studio-actions';
-import { backgroundRetryCandidate, retryDeadline, retryIdleWarning } from './background-build-retry-display';
+import { backgroundRetryCandidate, reviewedBackgroundRetryRequired, retryDeadline, retryIdleWarning } from './background-build-retry-display';
 
 export function useBackgroundBuildRetry(ideaId: () => string, runId: () => string | undefined) {
   const store = useStudioStore(); const actions = useStudioActions();
@@ -18,7 +19,10 @@ export function useBackgroundBuildRetry(ideaId: () => string, runId: () => strin
   const stopped = ref(false); const reviewed = ref(false); const releaseHold = ref(false);
   const working = ref(''); const error = ref(''); let generation = 0;
   let trigger: HTMLElement | null = null; let panel: HTMLElement | null = null;
-  const available = computed(() => run.value?.id === runId() && backgroundRetryCandidate(idea.value)
+  const latestStepJob = computed(() => store.state?.jobs.filter(job => job.ideaId === ideaId() && job.workflow !== undefined && job.workflow.runId === runId()
+    && job.workflow.step.id === run.value?.definition.steps[run.value.cursor]?.id).at(-1));
+  const ordinaryManaged = computed(() => isManagedWorkflowSession(latestStepJob.value?.workflow) && !latestStepJob.value?.workflow?.backgroundRetryId && !reviewedBackgroundRetryRequired(run.value));
+  const available = computed(() => !ordinaryManaged.value && run.value?.id === runId() && backgroundRetryCandidate(idea.value)
     && (run.value?.state !== 'awaiting-review' || store.state?.workflowStopHolds?.includes(ideaId()))
     && !store.state?.jobs.some(job => job.ideaId === ideaId() && isActiveJob(job)));
   const context = computed(() => JSON.stringify([ideaId(), runId(), run.value?.id, run.value?.revision, run.value?.cursor,

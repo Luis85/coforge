@@ -33,6 +33,15 @@ Start with `coforge_projects`, then pass an explicit `projectId` to project, req
 
 External workflow runs are marked separately and never automatically switch to native providers between steps. Custom v1 AI steps use their pinned output/access contracts; manual checkpoints remain in the plugin. Existing native runs cannot be taken over. Build requires a clean Git repository.
 
+New ordinary workflow attempts capture a managed-session lifecycle, including
+read-only refinement. CoForge keeps an MCP task available until its client submits
+the required result, requests Stop, or the host connection is deactivated. There
+is no task-duration, turn, spending or tool-call cap. An ordinary HTTP response or
+socket closure does not indicate that the external AI client has finished or
+disconnected; CoForge does not invent that liveness signal. Use the returned task
+identity to continue the conversation and submit its result. Earlier admitted
+attempts retain their captured policy.
+
 Repository discovery is bounded. Use `coforge_list_files` with an optional `path`
 directory and an optional case-insensitive literal `query` to find filenames, then
 read the exact paths returned. Use `coforge_search_files` with a case-sensitive
@@ -191,7 +200,14 @@ listings and literal searches have finite limits. No moderation, manual approval
 or final acceptance tool is exposed. Community and repository content remains
 untrusted.
 
-CoForge cannot constrain an external client's own tools, conversation history, model, cost or turns. Use an appropriately restricted external client. CoForge bounds its own task duration and file access, records the provider as **External MCP client**, and leaves model/cost/token usage unavailable; a manual cost can be recorded separately. It never trusts model-authored cost or test claims.
+CoForge cannot constrain an external client's own tools, conversation history,
+model, cost or turns. Use an appropriately restricted external client. Managed
+workflow tasks wait for a result or Stop; CoForge still checks captured file
+access, finite output and resource ownership, and bounds internal setup/shutdown
+operations. A command may request its own timeout, without imposing an overall
+AI-task deadline. The provider is **External MCP client**; model/cost/token usage
+remains unavailable, and a manual cost can be recorded separately. Model-authored
+cost or test claims never become host verification.
 
 Start with `coforge_help`, then `coforge_projects`. Tool replies include both text
 JSON and MCP `structuredContent`. Queued tasks return `TASK_NOT_READY`, the next

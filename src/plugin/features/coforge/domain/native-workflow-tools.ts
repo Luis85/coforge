@@ -35,13 +35,13 @@ export const defaultWorkflowVerificationProfile = (): WorkflowVerificationProfil
 
 interface NativeStep { nativeTools?: NativeWorkflowTools; provider: string; coworkerId?: string; access: string; execution?: { mode: string; maxRuntimeSeconds?: number } }
 /** Definition validation may defer provider resolution for a saved CoWorker; admission must supply it. */
-export function validateNativeWorkflowTools(step: NativeStep, effectiveProvider?: string, external = false, ordinaryCoding = false): void {
+export function validateNativeWorkflowTools(step: NativeStep, effectiveProvider?: string, external = false, ordinaryCoding = false, managedSession = false): void {
   if (!step.nativeTools) return;
   const policy = nativeWorkflowToolsCheck(step.nativeTools);
   const provider = effectiveProvider ?? (step.coworkerId ? undefined : step.provider);
   if (external || provider !== undefined && !['claude', 'codex'].includes(provider)) throw new Error('Native tools require a captured native Claude Code or Codex workflow invocation. External MCP, Herdr and simulation cannot adopt this policy.');
   if (policy.verification && step.access === 'none') throw new Error('Verification requires read-only project or isolated worktree access.');
-  if (!ordinaryCoding && policy.delegation && provider === 'codex' && step.execution && step.execution.maxRuntimeSeconds === undefined) throw new Error('Delegated background Codex requires an explicit elapsed deadline.');
+  if (!ordinaryCoding && !managedSession && policy.delegation && provider === 'codex' && step.execution && step.execution.maxRuntimeSeconds === undefined) throw new Error('Delegated background Codex requires an explicit elapsed deadline.');
 }
 
 /** Only the independently saved host grant supplies executable command definitions. */

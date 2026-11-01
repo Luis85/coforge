@@ -60,6 +60,7 @@ internal static class Native {
  [DataMember] public string[] args;
  [DataMember] public int parentPid;
  [DataMember] public bool windowsVerbatimArguments;
+ [DataMember] public bool watchRootOutputClosure;
 }
 [DataContract] internal class Receipt {
  [DataMember] public Authority authority;

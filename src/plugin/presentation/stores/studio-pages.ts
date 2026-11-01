@@ -26,11 +26,10 @@ export type CouncilPage = (typeof COUNCIL_PAGES)[number]["id"];
 export const WORKFLOW_PAGES = [
   { id: 'settings', label: 'Idea Board Workflow' },
   { id: 'runs', label: 'Step attempts' },
-  { id: 'limits', label: 'Timing & limits' },
   { id: 'templates', label: 'Answer / output templates' },
   { id: 'herdr', label: 'Herdr' },
 ] as const;
-export type WorkflowPage = (typeof WORKFLOW_PAGES)[number]["id"];
+export type WorkflowPage = (typeof WORKFLOW_PAGES)[number]["id"] | "limits";
 
 export const SETTINGS_PAGES = [
   { id: "general", label: "General" },

@@ -13,6 +13,7 @@ import { polishingAmendmentsCheck } from './polishing-reference-check';
 import { validateNativeWorkflowTools, workflowVerificationProfileCheck, type WorkflowVerificationProfile } from './native-workflow-tools';
 import { workflowSourceHashCheck, workflowVerificationRecordsCheck } from './workflow-verification';
 import { isWorktreeCodingStep, worktreeCodingCapabilityCheck, type WorktreeCodingCapability } from './worktree-coding';
+import { isManagedWorkflowSession, managedWorkflowLifecycleCheck, type ManagedWorkflowLifecycle } from './workflow-lifecycle';
 export const WORKFLOW_RUN_LIMIT_BYTES = 2 * 1024 * 1024;
 export const WORKFLOW_HISTORY_LIMIT_BYTES = 8 * 1024 * 1024;
 export const WORKFLOW_MARKDOWN_LIMIT = 16000;
@@ -57,6 +58,7 @@ export interface WorkflowRun {
   projectContext?: { name: string; brief: string; agentPrompt: string; projectPath: string; worktreeFolder: string };
 }
 export interface ConfiguredStepExecution {
+  lifecycle?: ManagedWorkflowLifecycle;
   worktreeCoding?: WorktreeCodingCapability;
   verificationProfile?: WorkflowVerificationProfile;
   polishingId?: string; polishingSourceHash?: string; polishingFeedback?: string; polishingPayload?: string; approvedPolishingInputs?: PolishingAmendment[];
@@ -162,9 +164,10 @@ export function configuredStepExecutionCheck(value: unknown): ConfiguredStepExec
     automationEvent: optional(automationContextCheck),
     verificationProfile: optional(workflowVerificationProfileCheck),
     worktreeCoding: optional(worktreeCodingCapabilityCheck),
+    lifecycle: optional(managedWorkflowLifecycleCheck),
     step: workflowStepCheck, inputArtifacts: list(workflowArtifactCheck, { max: 200 }), workspaceId: optional(workflowIdCheck) }, { strict: true })(value);
   if (checked.step.kind !== 'ai') throw new Error('Only an AI step can be dispatched to a provider.');
-  if (checked.worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(checked.step, checked.step.provider, false, checked.worktreeCoding?.profile === 'native-worktree-v1');
+  if (checked.worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(checked.step, checked.step.provider, false, checked.worktreeCoding?.profile === 'native-worktree-v1', isManagedWorkflowSession(checked));
   if (checked.worktreeCoding && !isWorktreeCodingStep(checked.step, checked.worktreeCoding.profile === 'mcp-worktree-v1' ? 'mcp' : checked.step.provider)) throw new Error('Worktree coding requires an admitted code-change step with worktree editing.');
   const requested = checked.step.nativeTools?.verification?.commandIds;
   if (checked.worktreeCoding ? !!checked.verificationProfile : !!requested !== !!checked.verificationProfile || checked.verificationProfile && (!checked.verificationProfile.enabled || checked.verificationProfile.commands.length !== requested?.length || checked.verificationProfile.commands.some(command => !requested?.includes(command.id)))) throw new Error('The captured verification profile does not match this step.');

@@ -1,10 +1,48 @@
-# Coding worktrees and captured tool profiles
+# Agent sessions and coding worktrees
 
 New native Build and code-polishing attempts use the provider's normal coding
 tools in a dedicated owned worktree: file tools, shell, project tests and native
 assistants. New MCP-driven coding tasks use CoForge's task-scoped coding tools
 and project commands in their owned worktree. Ordinary coding needs no Docker
 image or approved-command list.
+
+## Start a task, then follow the agent
+
+Install a supported Claude Code or Codex CLI and sign in normally. Choose the
+provider and model for your project, describe the task, and save the workflow.
+Refinement and text-only polishing use the same session lifecycle as other
+ordinary native workflow steps. No task timeout, turn allowance or spending cap
+needs configuring in CoForge. Provider account and service restrictions still
+apply.
+
+New native and external MCP attempts capture `lifecycle: { version: 1,
+mode: "managed-session" }`, independently of their project access and tool grant.
+A quiet period does not fail the task. Native sessions follow the validated
+result, CLI exit/connection end and explicit Stop. A closed connection without a
+usable result is an interrupted attempt, not a completed increment. CoForge
+retains available records and changes and reconciles original process ownership
+before more work starts. A safely stopped main-workflow task offers **Continue**. An explicit
+user Stop never starts more work automatically; an unknown original execution
+must be confirmed before it can be replaced.
+
+A failed independent Improve & polish pass keeps its own immutable authorization,
+feedback, evidence and retained changes. **Start new improvement** dismisses only
+that safely stopped pass and opens a fresh feedback preview with the earlier
+feedback filled in. The new pass still requires review and confirmation; it
+never resumes or changes the old pass's authorization, nor does opening it call
+a model.
+
+
+Keep CoForge open for ordinary attached sessions. An earlier explicitly
+background attempt retains its recorded worker behavior, and reopening observes
+that same execution. External MCP clients supply their results through the task
+protocol; CoForge cannot observe their private model connection or process.
+
+Earlier admitted attempts retain their own captured lifecycle and bounds.
+Historical values remain available in recorded execution details; they are not
+settings the user needs to tune for a new managed task. Internal connection,
+startup and safe shutdown checks remain bounded to detect a broken integration;
+those checks do not act as an elapsed work deadline.
 
 ## Start normal coding
 
@@ -48,15 +86,14 @@ Already admitted restricted and legacy attempts retain their captured scope;
 this allowance does not add research tools to them.
 
 Native coding defaults to at most two concurrent provider-native assistants.
-The Coding and native tools section can save another supported limit. This is
+Optional assistant settings can save another supported concurrency limit. This is
 concurrency permission, not proof that any assistants ran or a lifetime count.
 The optional Improve & polish configuration shares its saved assistant limit
 with restricted text-only passes; it does not grant them coding shell access.
 
-Existing captured deadlines and provider-specific limits remain in force.
-Missing background deadlines do not acquire an invented fallback. Supported
-limits and provider-reported billing remain distinct; a configured USD cap is
-not an invoice. Original-process ownership and cancellation apply to the parent
+Earlier admitted deadlines and limits retain their recorded meaning. New managed
+sessions do not inherit the saved legacy task-duration, turn or USD values.
+Reported usage remains distinct from billing; an amount is not an invoice. Original-process ownership and cancellation apply to the parent
 and its owned execution. Recovery never authorizes automatic replay.
 
 Codex keeps its existing native CLI sign-in and may include global AGENTS.md

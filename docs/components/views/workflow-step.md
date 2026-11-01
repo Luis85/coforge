@@ -76,8 +76,8 @@ A distinct step catalogue gives selected steps a shared accent surface; the edit
 AI steps lead with authored instructions and their answer format. Select one
 optional project [Markdown template](workflow-output-templates.md); a missing
 selection stays visible with a repair instruction. The result contract remains
-separate from template guidance. Advanced agent/access and execution settings are
-grouped in disclosures, while required inputs still validate against preceding
+separate from template guidance. Agent/access and optional native assistant settings
+are grouped in disclosures, while required inputs still validate against preceding
 producers. Step IDs remain stable through duplicate, reorder and rename operations
 according to their existing semantics (a duplicate receives its own identity).
 
@@ -85,6 +85,11 @@ Collapsed settings retain visible provider/model, access and automatic/manual
 summaries. A selected template has a read-only Markdown source preview independent
 of any other template currently being edited in the library. The workflow's
 validation summary names the affected step and opens/focuses its repair target,
-including hidden model settings, previous-result dependencies, timing limits and
+including hidden model settings, previous-result dependencies and
 specific checklist items. These repair actions preserve the draft and never save
 or dispatch work.
+
+New native steps, including refinement, follow agent completion and connection
+state without task duration, turn or USD controls. Quiet periods do not end a
+task. Ordinary attached sessions need a supported signed-in CLI and CoForge kept
+open; the separate background worker is optional legacy/advanced setup.

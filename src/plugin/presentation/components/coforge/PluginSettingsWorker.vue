@@ -9,11 +9,13 @@ const worker = useDurableWorkerReadiness(() => model.workerNodeChanged);
 const lanes = useWorkerIntegrationFields();
 </script>
 <template>
-  <h3 class="cf-setting-heading">Background Build worker</h3>
+  <h3 class="cf-setting-heading">Advanced background worker (optional)</h3>
   <p class="cf-plugin-settings-section-intro">
-    A verified native Node runtime runs the bundled worker for admitted Claude
-    Code and Codex Builds. It owns execution after Obsidian closes. Existing
-    jobs keep their original worker and captured settings.
+    Ordinary native agent sessions, including refinement and code improvements,
+    do not require this worker. Keep CoForge open while those sessions run.
+    Earlier or explicitly configured background Builds use this separate Node
+    worker to continue after Obsidian closes. Existing jobs keep their original
+    worker and captured settings.
   </p>
   <PluginSettingsRow
     name="Worker Node executable"
@@ -88,8 +90,8 @@ const lanes = useWorkerIntegrationFields();
   >
     <template #description
       >Vault-wide foreground/short-task admission limit, from 1 to 16. This
-      includes work such as screening, planning and Design. Saved execution
-      policies and provider resource caps stay unchanged.</template
+      includes work such as screening, planning and Design. Scheduling does not
+      set a task deadline or change an agent's permissions.</template
     >
     <input
       id="cf-ps-short-slots"

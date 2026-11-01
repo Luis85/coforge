@@ -11,6 +11,8 @@ export interface ProcessOptions {
   /** Delegated invocations retain ownership until their original process tree is proven stopped. */
   ownedTree?: true;
   nativeCoding?: { runId: string; attemptId: string; projectId: string };
+  /** New CLI workflow sessions react to root output closure; never set on arbitrary shell commands. */
+  managedSession?: true;
   onOwnedProcess?(identity: NativeProcessIdentity, phase: 'launched' | 'terminated' | 'unknown', lifetime?: NativeWorkflowLifetimeRef): Promise<void>;
   /** Internal observation only. Raw bytes must be decoded/sanitized before publication; failures never affect execution. */
   onStdout?(chunk: Uint8Array): void | Promise<void>;
@@ -28,11 +30,13 @@ export class ProcessFailure extends Error {
 }
 export class ProcessOwnershipUnknown extends ProcessFailure {
   declare readonly ownership?: { identity?: NativeProcessIdentity; lifetime: NativeWorkflowLifetimeRef };
-  constructor(output: string, diagnostic?: string, failure?: ProviderFailureInfo, ownership?: { identity?: NativeProcessIdentity; lifetime: NativeWorkflowLifetimeRef }) {
+  declare readonly originalIdentity?: NativeProcessIdentity;
+  constructor(output: string, diagnostic?: string, failure?: ProviderFailureInfo, ownership?: { identity?: NativeProcessIdentity; lifetime: NativeWorkflowLifetimeRef }, originalIdentity?: NativeProcessIdentity) {
     const info = failure ? providerFailureFor(failure.code, true) : undefined;
     super(info ? providerFailureMessage(info, true) : 'Provider process-tree termination is unverified. The original workspace remains quarantined; inspect it before retrying.', output, diagnostic); this.name = 'ProcessOwnershipUnknown';
     if (info) assignProviderFailure(this, info);
     if (ownership) Object.defineProperty(this, 'ownership', { value: ownership, enumerable: false });
+    if (originalIdentity) Object.defineProperty(this, 'originalIdentity', { value: originalIdentity, enumerable: false });
   }
 }
 const ENVIRONMENT = new Set([
@@ -56,7 +60,7 @@ export function childEnvironment(source: NodeJS.ProcessEnv = process.env): NodeJ
   return Object.fromEntries(Object.entries(source).filter(([name, value]) => ENVIRONMENT.has(name) && value !== undefined));
 }
 
-/** Executes an argv vector, never a shell. Resolves only after the child exits; output and time are bounded. */
+/** Executes an argv vector, never a shell. Managed model sessions have no task deadline; setup and cleanup remain bounded. */
 export function captureProcess(executable: string, args: readonly string[], options: ProcessOptions): Promise<string> {
   if (options.nativeCoding) return captureNativeCoding(executable, args, options);
   if (options.signal?.aborted) return Promise.reject(new Error('Run cancelled.'));
@@ -68,34 +72,52 @@ export function captureProcess(executable: string, args: readonly string[], opti
         detached: process.platform !== 'win32', stdio: ['pipe', 'pipe', 'pipe'],
       });
     } catch (error) { reject(error instanceof Error ? error : new Error(String(error))); return; }
+    const managed = options.managedSession === true && options.input !== undefined;
     const chunks: Buffer[] = []; const errors: Buffer[] = [];
     const output = () => options.stdoutResult?.result() ?? Buffer.concat(chunks).toString('utf8');
     let bytes = 0; let errorBytes = 0; let failure: Error | undefined; let hardKill: ReturnType<typeof processTimeout> | undefined; let finished = false;
-    const identity = options.ownedTree && child.pid ? readNativeProcessIdentity(child.pid).catch(() => undefined) : Promise.resolve(undefined);
-    const launched = identity.then(async original => { if (original) await options.onOwnedProcess?.(original, 'launched'); });
+    let originalIdentity: NativeProcessIdentity | undefined;
+    const identity = ((options.ownedTree || managed) && child.pid ? readNativeProcessIdentity(child.pid).catch(() => undefined) : Promise.resolve(undefined))
+      .then(original => { originalIdentity = original; return original; });
+    const unknown = (diagnostic?: string, cause?: ProviderFailureInfo) => new ProcessOwnershipUnknown(output(), diagnostic, cause, undefined,
+      managed && originalIdentity?.platform !== 'win32' ? originalIdentity : undefined);
+    const launched = identity.then(async original => { if (original && options.ownedTree) await options.onOwnedProcess?.(original, 'launched'); });
+    let settlement: ReturnType<typeof processTimeout> | undefined;
     let treeStopped = Promise.resolve(true);
     const kill = (signal: NodeJS.Signals) => {
       if (!child.pid) return;
       try { if (process.platform !== 'win32') process.kill(-child.pid, signal); else child.kill(signal); } catch { /* The child may already have exited. */ }
     };
-    const stop = (message: string, cause?: ProviderFailureInfo) => {
+    const stop = (message: string, cause?: ProviderFailureInfo, proveTree = options.ownedTree === true || managed) => {
       if (failure || finished) return;
       failure = cause ? assignProviderFailure(new Error(message), cause) : new Error(message);
-      if (options.ownedTree) {
+      if (proveTree) {
         treeStopped = identity.then(async original => original ? (await stopOwnedProcessTree(original)).treeConfirmed : false).catch(() => false);
         hardKill = processTimeout(() => {
           if (finished) return;
           cleanup(); child.stdin?.destroy(); child.stdout?.destroy(); child.stderr?.destroy(); child.unref();
-          reject(new ProcessOwnershipUnknown(output(), undefined, providerFailureInfo(failure)));
+          reject(unknown(undefined, providerFailureInfo(failure)));
         }, 15000);
       } else {
         kill('SIGTERM'); hardKill = processTimeout(() => kill('SIGKILL'), 1500);
       }
     };
     const abort = () => stop('Run cancelled.');
-    const timeout = processTimeout(() => stop('Run timed out. Review any partial worktree changes before retrying.'), options.timeoutMs ?? 180_000);
+    const timeout = managed ? undefined : processTimeout(() => stop('Run timed out. Review any partial worktree changes before retrying.'), options.timeoutMs ?? 180_000);
     options.signal?.addEventListener('abort', abort, { once: true });
-    const cleanup = () => { finished = true; clearProcessTimeout(timeout); if (hardKill !== undefined) clearProcessTimeout(hardKill); options.signal?.removeEventListener('abort', abort); };
+    const cleanup = () => { finished = true; if (timeout !== undefined) clearProcessTimeout(timeout); if (settlement !== undefined) clearProcessTimeout(settlement); if (hardKill !== undefined) clearProcessTimeout(hardKill); options.signal?.removeEventListener('abort', abort); };
+    const transportClosed = () => {
+      if (!managed || finished || failure) return;
+      if (settlement !== undefined) clearProcessTimeout(settlement);
+      // This grace starts only after an actual transport/root termination event, never after silence.
+      settlement = processTimeout(() => stop('The provider connection closed before the session completed.', providerFailureFor('incomplete_output'), true), 2000);
+    };
+    if (managed) {
+      child.stdout?.once('end', transportClosed);
+      child.stdout?.once('close', transportClosed);
+      child.stdout?.once('error', () => stop('The provider output connection failed.', providerFailureFor('incomplete_output'), true));
+      child.once('exit', transportClosed);
+    }
     child.stdout?.on('data', (chunk: Buffer) => {
       bytes += chunk.length;
       if (options.stdoutResult) options.stdoutResult.append(chunk);
@@ -112,23 +134,28 @@ export function captureProcess(executable: string, args: readonly string[], opti
     });
     child.on('error', error => { cleanup(); reject(new Error(`Could not start ${basename(executable)}: ${redact(error.message)}`)); });
     child.on('close', code => {
-      void treeStopped.then(async confirmed => {
+      if (settlement !== undefined) clearProcessTimeout(settlement);
+      void (async () => {
         if (finished) return;
+        let confirmed = true; let settledProof: Promise<boolean>;
         try {
           await launched;
           const original = await identity;
-          if (original && (failure || code !== 0)) await options.onOwnedProcess?.(original, !confirmed || !failure && code !== 0 ? 'unknown' : 'terminated');
-        } catch (error) { cleanup(); reject(new ProcessOwnershipUnknown(output(), undefined, providerFailureInfo(error))); return; }
+          do { settledProof = treeStopped; confirmed = await settledProof; } while (settledProof !== treeStopped);
+          if (original && options.ownedTree && (failure || code !== 0)) await options.onOwnedProcess?.(original, !confirmed || !failure && code !== 0 ? 'unknown' : 'terminated');
+          // A stop during asynchronous ownership persistence must settle its current proof before any result is returned.
+          do { settledProof = treeStopped; confirmed = await settledProof; } while (settledProof !== treeStopped);
+        } catch (error) { cleanup(); reject(unknown(undefined, providerFailureInfo(error))); return; }
         if (finished) return; cleanup();
-        if (!confirmed || options.ownedTree && !failure && code !== 0) reject(new ProcessOwnershipUnknown(output(), redact(Buffer.concat(errors).toString('utf8'), options.env), providerFailureInfo(failure) ?? (failure ? providerFailureFor(failure.message.startsWith('Run cancelled') ? 'cancelled' : failure.message.startsWith('Run timed out') ? 'timeout' : 'execution_failed', true) : undefined)));
+        if (!confirmed || options.ownedTree && !failure && code !== 0) reject(unknown(redact(Buffer.concat(errors).toString('utf8'), options.env), providerFailureInfo(failure) ?? (failure ? providerFailureFor(failure.message.startsWith('Run cancelled') ? 'cancelled' : failure.message.startsWith('Run timed out') ? 'timeout' : 'execution_failed', true) : undefined)));
         else if (failure) { const issue = new ProcessFailure(failure.message, output()); const cause = providerFailureInfo(failure); reject(cause ? assignProviderFailure(issue, cause) : issue); }
         else if (code !== 0) reject(new ProcessFailure(`${basename(executable)} exited with code ${String(code)}. ${redact(Buffer.concat(errors).toString('utf8'), options.env).slice(-1800) || 'Check the CLI installation and authentication.'}`, output(), redact(Buffer.concat(errors).toString('utf8'), options.env)));
         else if (Buffer.byteLength(output()) > (options.maxBytes ?? OUTPUT_LIMIT)) reject(new ProcessFailure('Process result exceeded its limit.', ''));
         else resolve(output());
-      });
+      })();
     });
     child.stdin?.on('error', () => { /* An early exit is reported by close. */ });
-    if (options.ownedTree) {
+    if (options.ownedTree || managed) {
       void identity.then(async original => {
         if (!original) { stop('The provider launch identity could not be verified.'); return; }
         try { await launched; } catch (error) { stop('The provider launch authorization could not be committed.', providerFailureInfo(error)); return; }

@@ -34,6 +34,20 @@ it('records explicit operator cessation acknowledgement without fabricating OS p
   expect(f.store.snapshot().jobs[0]!.nativeProcess?.operatorAcknowledgedAt).toBe(acknowledged.operatorAcknowledgedAt);
   await f.engine.stop();
 });
+it('keeps secondary operator acknowledgement available for an unresolved managed session without native tool preferences', async () => {
+  const f = await orphan();
+  await f.store.transaction(state => {
+    const snapshot = state.jobs[0]!.workflow!; delete snapshot.step.nativeTools;
+    snapshot.lifecycle = { version: 1, mode: 'managed-session' };
+  });
+  try {
+    const review = nativeWorkflowAcknowledgementReview(f.store.snapshot(), f.jobId);
+    await expect(acknowledgeNativeWorkflowProcess(f.store, f.jobId, review, false)).rejects.toThrow('Confirm');
+    await acknowledgeNativeWorkflowProcess(f.store, f.jobId, review, true);
+    expect(f.store.snapshot().jobs[0]!.nativeProcess).toMatchObject({ phase: 'unknown', operatorAcknowledgedAt: expect.any(String) });
+    expect(f.store.snapshot().workflowStopHolds).toContain(f.idea.id); expect(f.runner).toHaveBeenCalledTimes(1);
+  } finally { await f.engine.stop(); }
+});
 
 it.each(['container', 'concurrent', 'identity', 'running', 'durable'] as const)('rejects acknowledgement when %s evidence changed or is unresolved', async reason => {
   const f = await orphan();

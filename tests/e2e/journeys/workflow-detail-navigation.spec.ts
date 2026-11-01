@@ -25,25 +25,20 @@ test('request runs stay in their own detail and Step attempts inspect reopens th
   await expect(execution.getByRole('button', { name: 'Run · Score', exact: true })).toBeEnabled();
 });
 
-test('definition, timing and independent template drafts survive flat-tab navigation', async ({ page }) => {
+test('definition and independent template drafts survive flat-tab navigation', async ({ page }) => {
   await page.goto('/#surface=node-1');
   await expect(page.locator('html')).toHaveAttribute('data-prototype-ready', 'true');
   await openWorkflowSettings(page);
   const nav = page.getByRole('navigation', { name: 'Agent workflow pages', exact: true });
-  await expect(nav.getByRole('button')).toHaveText(['Idea Board Workflow', 'Step attempts', 'Timing & limits', 'Answer / output templates', 'Herdr']);
+  await expect(nav.getByRole('button')).toHaveText(['Idea Board Workflow', 'Step attempts', 'Answer / output templates', 'Herdr']);
   await page.getByLabel('Workflow name', { exact: true }).fill('Preserved definition draft');
-  await nav.getByRole('button', { name: 'Timing & limits', exact: true }).click();
-  const timeout = page.locator('[data-workflow-field="limits.timeoutSeconds"]');
-  await expect(timeout).toBeVisible();
-  await timeout.fill('240');
+  await expect(page.locator('[data-workflow-field="limits.timeoutSeconds"]')).toHaveCount(0);
   await nav.getByRole('button', { name: 'Answer / output templates', exact: true }).click();
   const library = page.locator('.cf-workflow-template-library');
   await expect(library).toHaveAttribute('open', '');
   await library.getByRole('button', { name: 'New template', exact: true }).click();
   await library.getByLabel('Template name', { exact: true }).fill('Independent template draft');
   await library.getByLabel('Template Markdown', { exact: true }).fill('# Preserved output');
-  await nav.getByRole('button', { name: 'Timing & limits', exact: true }).click();
-  await expect(timeout).toHaveValue('240');
   await nav.getByRole('button', { name: 'Idea Board Workflow', exact: true }).click();
   await expect(page.getByLabel('Workflow name', { exact: true })).toHaveValue('Preserved definition draft');
   await nav.getByRole('button', { name: 'Answer / output templates', exact: true }).click();
@@ -54,6 +49,4 @@ test('definition, timing and independent template drafts survive flat-tab naviga
   await nav.getByRole('button', { name: 'Idea Board Workflow', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Save workflow', exact: true })).toBeEnabled();
   await expect(page.getByLabel('Workflow name', { exact: true })).toHaveValue('Preserved definition draft');
-  await nav.getByRole('button', { name: 'Timing & limits', exact: true }).click();
-  await expect(timeout).toHaveValue('240');
 });

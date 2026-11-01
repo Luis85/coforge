@@ -46,7 +46,7 @@ const model = usePluginSettings();
         <div>
           <dt>Workflow settings</dt>
           <dd>
-            Agent providers, models, prompts and run limits for each project,
+            Agent providers, models and prompts for each project,
             under Agent workflow → Idea Board Workflow.
           </dd>
         </div>

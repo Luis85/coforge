@@ -9,74 +9,34 @@ import { defaultWorkflowDefinition } from "../../../features/coforge/domain/conf
 import type { WorkflowRun } from "../../../features/coforge/domain/configured-workflow-run";
 import { workflowUiFixture } from "./workflow-ui-fixture";
 
-it("makes Build execution findable from Timing without replacing or saving the shared draft", async () => {
-  const f = await workflowUiFixture();
-  f.store.openWorkflowTool("limits");
-  const wrapper = mount(WorkflowView, {
-    global: {
-      plugins: [f.pinia, f.provider],
-      directives: { "cf-icon": () => {} },
-    },
-  });
+it("keeps old timing deep links read-only without replacing or saving the shared task draft", async () => {
+  const f = await workflowUiFixture(); f.store.openWorkflowTool('limits');
+  const wrapper = mount(WorkflowView, { global: { plugins: [f.pinia, f.provider], directives: { 'cf-icon': () => {} } } });
   try {
-    await flushPromises();
-    const editor = useWorkflowEditorStore(f.pinia);
-    const session = editor.session;
-    const writes = f.storage.saves;
-    const overview = wrapper.get('[aria-label="Build execution policies"]');
-    expect(overview.text()).toContain("Foreground");
-    await overview
-      .findAll("button")
-      .find((button) => button.text() === "Configure Build execution")!
-      .trigger("click");
-    expect(f.store.workflowTool).toBe("settings");
-    expect(editor.selectedId).toBe("implement");
-    expect(editor.session).toBe(session);
-    expect(
-      wrapper.get('[aria-label="Build execution policy"]').element.tagName,
-    ).toBe("SELECT");
-    expect(f.storage.saves).toBe(writes);
-    expect(f.runner).not.toHaveBeenCalled();
-  } finally {
-    wrapper.unmount();
-    await f.dispose();
-  }
+    const editor = useWorkflowEditorStore(f.pinia); const session = editor.session; const writes = f.storage.saves;
+    const before = JSON.stringify(editor.draft);
+    const behavior = wrapper.get('[aria-label="Managed agent behavior"]');
+    expect(behavior.text()).toContain('completion'); expect(behavior.find('input').exists()).toBe(false);
+    expect(wrapper.find('[aria-label="Build execution policy"]').exists()).toBe(false);
+    f.store.openWorkflowTool('settings'); await flushPromises();
+    expect(editor.session).toBe(session); expect(JSON.stringify(editor.draft)).toBe(before);
+    expect(f.storage.saves).toBe(writes); expect(f.runner).not.toHaveBeenCalled();
+  } finally { wrapper.unmount(); await f.dispose(); }
 });
 
-it("takes an invalid background deadline to its exact field and keeps the draft unsaved", async () => {
+it("keeps model validation actionable when obsolete execution inputs have been removed", async () => {
   const f = await workflowUiFixture();
-  const wrapper = mount(WorkflowEditorView, {
-    attachTo: document.body,
-    global: {
-      plugins: [f.pinia, f.provider],
-      directives: { "cf-icon": () => {} },
-    },
-  });
+  const wrapper = mount(WorkflowEditorView, { attachTo: document.body, global: { plugins: [f.pinia, f.provider], directives: { 'cf-icon': () => {} } } });
   try {
-    const editor = useWorkflowEditorStore(f.pinia);
-    editor.selectedId = "implement";
-    const step = editor.draft.steps.find((item) => item.id === "implement");
-    if (!step || step.kind !== "ai") throw new Error("Missing Build");
-    step.provider = "claude";
-    step.execution = { mode: "background", maxRuntimeSeconds: 0 };
-    await flushPromises();
-    const repair = wrapper
-      .get('[aria-label="Workflow validation"]')
-      .findAll("button")
-      .find((button) => button.text().includes("Execution deadline"));
-    expect(repair).toBeDefined();
-    await repair!.trigger("click");
-    await flushPromises();
-    expect(document.activeElement).toBe(
-      wrapper.get('[data-workflow-field="execution.maxRuntimeSeconds"]')
-        .element,
-    );
-    expect(f.studio.state().settings.workflow).toBeUndefined();
-    expect(f.runner).not.toHaveBeenCalled();
-  } finally {
-    wrapper.unmount();
-    await f.dispose();
-  }
+    await wrapper.get('[aria-label="AI provider"]').setValue('claude');
+    await wrapper.get('[aria-label="AI model"]').setValue('__custom');
+    await wrapper.get('[aria-label="Custom model ID"]').setValue('--invalid');
+    const repair = wrapper.get('[aria-label="Workflow validation"]').findAll('button').find(button => button.text().includes('AI model'));
+    expect(repair).toBeDefined(); await repair!.trigger('click'); await flushPromises();
+    expect(document.activeElement).toBe(wrapper.get('[aria-label="Custom model ID"]').element);
+    expect(wrapper.find('[data-workflow-field="execution.maxRuntimeSeconds"]').exists()).toBe(false);
+    expect(f.studio.state().settings.workflow).toBeUndefined(); expect(f.runner).not.toHaveBeenCalled();
+  } finally { wrapper.unmount(); await f.dispose(); }
 });
 
 it("reads captured Build execution limits without substituting current project settings", async () => {

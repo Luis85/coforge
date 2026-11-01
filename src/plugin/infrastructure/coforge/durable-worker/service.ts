@@ -14,6 +14,7 @@ import type { NativeWorkflowPrivateRuntime, NativeWorkflowProcessRecord } from '
 import type { AgentSessionEvent } from '../../../features/coforge/domain/agent-session';
 import type { NativeWorkflowLifetimeRef } from '../../../features/coforge/domain/native-workflow-lifetime';
 import { assignProviderFailure, providerFailureFor, providerFailureInfo, providerFailureMessage, type ProviderFailureInfo } from '../../../features/coforge/domain/provider-failure';
+import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
 
 export class WorkerOwnershipUnknown extends Error {
   declare readonly output?: string;
@@ -204,10 +205,11 @@ export class WorkerService {
     for (const [id, active] of this.active) {
       const { snapshot } = this.store.get(active.ref).record; const request = this.store.get(active.ref).request;
       const elapsed = Math.max(0, (this.store.now() - Date.parse(snapshot.startedAt ?? snapshot.createdAt)) / 1000);
-      if (request.policy.maxRuntimeSeconds !== undefined && elapsed >= request.policy.maxRuntimeSeconds) active.controller.abort('deadline');
+      const managed = isManagedWorkflowSession(request.input.workflow);
+      if (!managed && request.policy.maxRuntimeSeconds !== undefined && elapsed >= request.policy.maxRuntimeSeconds) active.controller.abort('deadline');
       const hot = this.hot.get(id); if (!hot) continue;
       hot.lastContactAt = new Date(this.store.now()).toISOString(); hot.elapsedSeconds = Math.max(hot.elapsedSeconds, elapsed);
-      const idle = request.policy.idleWarningSeconds ?? 1800;
+      const idle = managed ? 0 : request.policy.idleWarningSeconds ?? 1800;
       const warning = 'Worker alive; no recent provider output observed. This is advisory, not a cancellation.';
       if (idle > 0 && this.store.now() - Date.parse(hot.lastActivityAt ?? snapshot.startedAt ?? snapshot.createdAt) >= idle * 1000 && !hot.logs.includes(warning))
         hot.logs = [...hot.logs, warning].slice(-50);

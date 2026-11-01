@@ -1,12 +1,13 @@
 import { nativeWorkflowPrivateRuntimeCheck, nativeWorkflowProcessRecordCheck, type NativeWorkflowPrivateRuntime, type NativeWorkflowProcessRecord } from '../domain/native-workflow-process';
 import type { StudioStore } from './studio-store';
+import { isManagedWorkflowSession } from '../domain/workflow-lifecycle';
 
 /** Retain the cleanup capability before native runtime state preparation. */
 export async function recordWorkflowNativeRuntime(store: StudioStore, jobId: string, input: NativeWorkflowPrivateRuntime | undefined): Promise<void> {
   const runtime = input ? nativeWorkflowPrivateRuntimeCheck(input) : undefined;
   await store.transaction(state => {
     const job = state.jobs.find(item => item.id === jobId);
-    if (!job?.workflow || !job.workflow.step.nativeTools && job.workflow.worktreeCoding?.profile !== 'native-worktree-v1' || job.durable || job.provider !== 'codex') throw new Error('Private native preparation does not match a foreground Codex attempt.');
+    if (!job?.workflow || !job.workflow.step.nativeTools && job.workflow.worktreeCoding?.profile !== 'native-worktree-v1' && !isManagedWorkflowSession(job.workflow) || job.durable || job.provider !== 'codex') throw new Error('Private native preparation does not match a foreground Codex attempt.');
     if (runtime) {
       if (job.workflow.runId !== runtime.runId || job.workflow.attemptId !== runtime.attemptId || job.projectId !== runtime.projectId || job.nativeProcess || job.nativeRuntime && JSON.stringify(job.nativeRuntime) !== JSON.stringify(runtime))
         throw new Error('Original private native preparation cannot change or attach to a started provider.');
@@ -24,7 +25,7 @@ export async function recordWorkflowNativeProcess(store: StudioStore, jobId: str
   if (record.operatorAcknowledgedAt !== undefined) throw new Error('Only explicit operator review can acknowledge unknown native ownership.');
   await store.transaction(state => {
     const job = state.jobs.find(item => item.id === jobId);
-    if (!job?.workflow || !job.workflow.step.nativeTools && job.workflow.worktreeCoding?.profile !== 'native-worktree-v1' || job.durable || !['claude', 'codex'].includes(job.provider) || job.workflow.runId !== record.runId || job.workflow.attemptId !== record.attemptId || job.projectId !== record.projectId)
+    if (!job?.workflow || !job.workflow.step.nativeTools && job.workflow.worktreeCoding?.profile !== 'native-worktree-v1' && !isManagedWorkflowSession(job.workflow) || job.durable || !['claude', 'codex'].includes(job.provider) || job.workflow.runId !== record.runId || job.workflow.attemptId !== record.attemptId || job.projectId !== record.projectId)
       throw new Error('Native provider ownership does not match the captured foreground attempt.');
     if (job.workflow.worktreeCoding?.profile === 'native-worktree-v1' && !record.lifetime) throw new Error('Native coding requires the original OS lifetime authority.');
     const previous = job.nativeProcess;

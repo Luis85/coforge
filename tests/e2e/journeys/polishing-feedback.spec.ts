@@ -74,15 +74,22 @@ test('saves the optional pass explicitly using real model/effort choices without
   expect((await new AxeBuilder({ page }).include('.cf-workflow-page').withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze()).violations).toEqual([]);
 });
 
-test('keeps main manual continuation behind pending pass resolution while auxiliary Stop and dismissal stay reachable', async ({ page }) => {
+for (const state of ['attention', 'running'] as const) test(`keeps main continuation held while the ${state} improvement offers its appropriate action`, async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 900 }); await page.goto('/#surface=node-1');
   await expect(page.locator('html')).toHaveAttribute('data-prototype-ready', 'true'); await page.evaluate(script);
-  await page.evaluate(() => window.coforgeRetryProof?.showPendingMainDecision());
+  await page.evaluate(state => window.coforgeRetryProof?.showPendingMainDecision(state), state);
   const detail = page.getByRole('dialog', { name: 'Retry presentation proof', exact: true });
   await expect(detail.getByRole('region', { name: 'Manual workflow step', exact: true })).toHaveCount(0);
   await expect(detail.getByRole('button', { name: 'Start a new workflow run', exact: true })).toHaveCount(0);
   await expect(detail.getByRole('region', { name: 'Next workflow action', exact: true })).toContainText('Review Improve & polish pass');
-  await expect(detail.getByRole('button', { name: 'Stop polishing pass', exact: true })).toBeVisible();
-  await expect(detail.getByRole('button', { name: 'Dismiss polishing attempt', exact: true })).toBeVisible();
+  if (state === 'running') {
+    await expect(detail.getByRole('button', { name: 'Stop polishing pass', exact: true })).toBeVisible();
+    await expect(detail.getByRole('button', { name: 'Start new improvement', exact: true })).toHaveCount(0);
+    await expect(detail.getByRole('button', { name: 'Dismiss polishing attempt', exact: true })).toHaveCount(0);
+  } else {
+    await expect(detail.getByRole('button', { name: 'Start new improvement', exact: true })).toBeVisible();
+    await expect(detail.getByRole('button', { name: 'Stop polishing pass', exact: true })).toHaveCount(0);
+    await expect(detail.getByRole('button', { name: 'Dismiss polishing attempt', exact: true })).toBeVisible();
+  }
   expect(await page.evaluate(() => window.coforgeRetryProof?.providerCalls)).toBe(0); await page.evaluate(() => window.coforgeRetryProof?.destroy());
 });

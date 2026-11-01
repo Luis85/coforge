@@ -6,6 +6,7 @@ vi.mock('obsidian', () => import('@test/obsidian'));
 const fixtures = vi.hoisted(() => {
   const retries = { inspect: vi.fn(), verify: vi.fn() };
   const polishing = { materialize: vi.fn() };
+  const foreground = { sources: { inspect: vi.fn(), verify: vi.fn() }, run: vi.fn() };
   const worker = {
   readiness: vi.fn(async () => ({ ready: true, message: 'Verified fixture worker; no Build admitted.' })),
   prepare: vi.fn(), start: vi.fn(), inspect: vi.fn(), cancel: vi.fn(), acknowledge: vi.fn(),
@@ -13,8 +14,9 @@ const fixtures = vi.hoisted(() => {
   ownsWorkspace: () => false, assertReviewable: vi.fn(), acknowledgeWorkspace: vi.fn(),
   retryResources: vi.fn((_storage: WorkflowWorkspaceStorage) => retries),
   polishingResources: vi.fn((_workspaces: LocalWorkflowWorkspaces, _storage: WorkflowWorkspaceStorage) => polishing),
+  foregroundPolishing: vi.fn((_workspaces: LocalWorkflowWorkspaces, _storage: WorkflowWorkspaceStorage) => foreground),
   };
-  return { worker, retries, polishing };
+  return { worker, retries, polishing, foreground };
 });
 const { worker } = fixtures;
 vi.mock('../../../infrastructure/coforge/durable-build-runtime', () => ({ durableBuildRuntime: () => worker }));
@@ -29,14 +31,17 @@ it('connects the studio to the background worker without admitting a Build durin
   try {
     expect(worker.retryResources).toHaveBeenCalledOnce();
     expect(worker.polishingResources).toHaveBeenCalledOnce();
+    expect(worker.foregroundPolishing).toHaveBeenCalledOnce();
     const retryStorage = worker.retryResources.mock.calls[0]![0];
     const [primaryWorkspaces, polishingStorage] = worker.polishingResources.mock.calls[0]!;
     expect(primaryWorkspaces).toBeInstanceOf(LocalWorkflowWorkspaces);
     expect(polishingStorage).toBe(retryStorage);
+    expect(worker.foregroundPolishing.mock.calls[0]).toEqual([primaryWorkspaces, retryStorage]);
     await runtime.studio.store.init();
     expect(await runtime.studio.refreshDurableBuildRuntime()).toMatchObject({ ready: true });
     expect(runtime.studio.state().runtime.durableBuild?.message).toContain('no Build admitted');
     expect(worker.prepare).not.toHaveBeenCalled(); expect(worker.start).not.toHaveBeenCalled();
     expect(fixtures.retries.inspect).not.toHaveBeenCalled(); expect(fixtures.retries.verify).not.toHaveBeenCalled(); expect(fixtures.polishing.materialize).not.toHaveBeenCalled();
+    expect(fixtures.foreground.sources.inspect).not.toHaveBeenCalled(); expect(fixtures.foreground.sources.verify).not.toHaveBeenCalled(); expect(fixtures.foreground.run).not.toHaveBeenCalled();
   } finally { await runtime.dispose(); }
 });

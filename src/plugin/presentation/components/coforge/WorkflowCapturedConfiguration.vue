@@ -18,11 +18,16 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
     </p>
     <p class="cf-settings-help">
       This run retains these captured task, provider, CoWorker and template versions.
-      Explicit background retry approvals are recorded separately below. Current
+      Earlier execution approvals are recorded separately below. Current
       host permissions and review gates still apply.
     </p>
     <p v-if="model.providerContextHelp" class="cf-settings-help">{{ model.providerContextHelp }}</p>
     <WorkflowBackgroundRetryHistory :run="run" />
+    <section v-if="model.managedSessions.length" aria-label="Captured managed agent sessions">
+      <h3>Managed agent sessions</h3>
+      <p class="cf-settings-help">These attempts follow agent completion and connection state. Earlier attempts retain their own recorded lifecycle.</p>
+      <dl class="cf-settings-runtime-list"><div v-for="session in model.managedSessions" :key="session.id"><dt>{{ session.stepName }} · {{ session.provider }}</dt><dd>{{ session.help }}</dd></div></dl>
+    </section>
     <section v-if="model.codingProfiles.length" aria-label="Captured attempt coding profiles">
       <h3>Admitted coding profiles</h3>
       <p class="cf-settings-help">These profiles belong to the recorded attempts. Current workflow settings do not reinterpret an earlier admission.</p>
@@ -48,7 +53,7 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
       </details>
     </section>
     <section v-if="model.executionPolicies.length" aria-label="Captured execution policies">
-      <h3>Captured Build execution</h3>
+      <h3>Earlier captured execution policy</h3>
       <dl class="cf-settings-runtime-list"><div v-for="policy in model.executionPolicies" :key="policy.id"><dt>{{ policy.name }}</dt><dd>{{ policy.execution }} · {{ policy.deadline }} · {{ policy.turns }} turns/tool calls · USD{{ policy.budget }} configured cap</dd></div></dl>
       <p class="cf-settings-help">These values belong to this run. Current workflow changes affect future admissions; provider-specific enforcement and final review remain separate.</p>
     </section>

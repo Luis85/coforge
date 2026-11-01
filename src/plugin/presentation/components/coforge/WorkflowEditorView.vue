@@ -24,7 +24,7 @@ const openEventTriggers = useEventTriggerLink();
       :class="{ 'cf-workflow-subpage-heading': embedded }"
     >
       <div>
-        <component :is="embedded ? 'h2' : 'h1'">{{ pane === 'limits' ? 'Timing & limits' : pane === 'templates' ? 'Answer / output templates' : 'Idea Board Workflow' }}</component>
+        <component :is="embedded ? 'h2' : 'h1'">{{ pane === 'limits' ? 'Agent behavior' : pane === 'templates' ? 'Answer / output templates' : 'Idea Board Workflow' }}</component>
         <p v-if="pane === 'settings'">
           Configure the board buckets in order, then the AI and human steps inside each bucket for
           {{ model.project?.settings.projectName || "this project" }}. Saving

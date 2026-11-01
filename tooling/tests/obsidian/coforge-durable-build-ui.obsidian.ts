@@ -4,14 +4,13 @@ import { test } from "./support/obsidian-fixture";
 import {
   openWorkflowDisclosure,
   openWorkflowSettings,
-  openWorkflowTiming,
 } from "../../../tests/e2e/support/workflow-navigation";
 
 const title = "Native activity " + "W".repeat(100);
 const buildName = "Build " + "W".repeat(90);
 
 describe("Durable Build configuration and studio activity in the contained host", () => {
-  test("saves future Build policy and Node/lane settings across reload without running a provider, and keeps activity inside its viewport", async ({
+  test("saves managed Build setup and optional worker settings across reload without running a provider, and keeps activity inside its viewport", async ({
     obsidian,
   }) => {
     let view = await obsidian.openView(
@@ -39,11 +38,9 @@ describe("Durable Build configuration and studio activity in the contained host"
     await view
       .getByLabel("AI provider", { exact: true })
       .selectOption("claude");
-    await view
-      .getByLabel("Build execution policy", { exact: true })
-      .selectOption("background");
-    await view.getByLabel("Set an elapsed deadline", { exact: true }).check();
-    await view.getByLabel("Build deadline hours", { exact: true }).fill("120");
+    await browserExpect(view.getByLabel('Build execution policy', { exact: true })).toHaveCount(0);
+    await browserExpect(view.getByLabel('Set an elapsed deadline', { exact: true })).toHaveCount(0);
+    await browserExpect(view.getByRole('region', { name: 'Agent session behavior', exact: true })).toContainText('Quiet periods do not end the task');
     await view.getByLabel("Step name", { exact: true }).fill(buildName);
     await view
       .getByRole("button", { name: "Save workflow", exact: true })
@@ -91,37 +88,31 @@ describe("Durable Build configuration and studio activity in the contained host"
     await view
       .locator('[data-step-id="implement"] .cf-workflow-step-select')
       .click();
-    await browserExpect(
-      view.getByLabel("Build execution policy", { exact: true }),
-    ).toHaveValue("background");
-    await browserExpect(
-      view.getByLabel("Build deadline hours", { exact: true }),
-    ).toHaveValue("120");
+    await browserExpect(view.getByLabel('AI provider', { exact: true })).toHaveValue('claude');
+    await browserExpect(view.getByLabel('Build deadline hours', { exact: true })).toHaveCount(0);
     for (const [width, theme] of [[1440, "dark"], [820, "light"]] as const) {
       await obsidian.page.setViewportSize({ width, height: 900 });
       await obsidian.eval((_context, theme) => {
         document.body.classList.toggle("theme-dark", theme === "dark");
         document.body.classList.toggle("theme-light", theme === "light");
       }, theme);
-      await openWorkflowTiming(view);
-      const overview = view.getByRole("region", { name: "Build execution policies", exact: true });
-      const action = overview.getByRole("button", { name: `Configure ${buildName} execution`, exact: true });
-      await overview.scrollIntoViewIfNeeded();
-      const geometry = await view.locator(".cf-content").evaluate(element => {
-        const button = element.querySelector(".cf-workflow-execution-overview button");
-        if (!button) throw new Error("Build execution action missing");
-        const content = element.getBoundingClientRect(); const control = button.getBoundingClientRect();
-        return { fits: element.scrollWidth <= element.clientWidth + 1,
-          actionInside: control.left >= content.left - 1 && control.right <= content.right + 1 };
+      const behavior = view.getByRole('region', { name: 'Agent session behavior', exact: true });
+      await behavior.scrollIntoViewIfNeeded();
+      const geometry = await view.locator('.cf-content').evaluate(element => {
+        const session = element.querySelector('[aria-label="Agent session behavior"]');
+        if (!session) throw new Error('Managed session summary missing');
+        const content = element.getBoundingClientRect(); const panel = session.getBoundingClientRect();
+        return { fits: element.scrollWidth <= element.clientWidth + 1, panelInside: panel.left >= content.left - 1 && panel.right <= content.right + 1 };
       });
-      expect(geometry).toEqual({ fits: true, actionInside: true });
-      await obsidian.screenshot(`native-build-execution-overview-${theme}-${width}`);
-      await action.focus(); await action.press("Enter");
-      await browserExpect(view.getByLabel("Step name", { exact: true })).toHaveValue(buildName);
+      expect(geometry).toEqual({ fits: true, panelInside: true });
+      await obsidian.screenshot(`native-managed-build-${theme}-${width}`);
+      await view.getByLabel('Step instructions', { exact: true }).focus();
+      await browserExpect(view.getByLabel('Step instructions', { exact: true })).toBeFocused();
+      await browserExpect(view.getByLabel('Step name', { exact: true })).toHaveValue(buildName);
     }
     await obsidian.page.setViewportSize({ width: 1440, height: 900 });
-    await view.getByRole('region', { name: 'Build execution settings', exact: true }).evaluate(element => element.scrollIntoView({ block: 'start' }));
-    await obsidian.screenshot("saved-background-build-policy");
+    await view.getByRole('region', { name: 'Agent session behavior', exact: true }).evaluate(element => element.scrollIntoView({ block: 'start' }));
+    await obsidian.screenshot("saved-managed-build-setup");
     await view
       .locator(".cf-sidebar")
       .getByRole("button", { name: /^Idea board/ })

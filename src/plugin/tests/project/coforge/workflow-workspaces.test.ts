@@ -215,3 +215,26 @@ it("does not return a launchable lease when actual descriptor persistence fails,
   ).rejects.toThrow("attention");
   expect(await readFile(join(root, "game.txt"), "utf8")).toBe("original\n");
 }, 30000);
+it('recovers one proven stopped original workspace atomically, capturing partial edits before making it reusable', async () => {
+  const f = await fixture(); const first = await f.service.acquire(f.request);
+  await writeFile(join(first.cwd, 'game.txt'), 'retained edit\n');
+  const reloaded = new LocalWorkflowWorkspaces(f.storage, f.folder); await reloaded.start();
+  const recovered = await reloaded.recoverStopped({ workspaceId: first.id!, runId: f.request.runId, projectId: f.request.projectId, attemptId: f.request.attemptId });
+  expect(recovered?.diff).toContain('+retained edit');
+  expect(f.records()[0]).toMatchObject({ phase: 'ready', lastAttemptId: f.request.attemptId, reviewedAttemptId: f.request.attemptId });
+  expect(f.records()[0]?.activeAttemptId).toBeUndefined();
+  expect(await readFile(join(f.root, 'game.txt'), 'utf8')).toBe('original\n');
+  const next = await reloaded.acquire({ ...f.request, workspaceId: first.id, attemptId: 'continued-attempt' });
+  expect(next.cwd).toBe(first.cwd); await next.release();
+}, 30000);
+it('does not recover foreign ownership or a changed Git pointer as a stopped original workspace', async () => {
+  const f = await fixture(); const first = await f.service.acquire(f.request); await first.release(true);
+  const original = { workspaceId: first.id!, runId: f.request.runId, projectId: f.request.projectId, attemptId: f.request.attemptId };
+  for (const foreign of [{ runId: 'another-run' }, { projectId: 'another-project' }, { attemptId: 'another-attempt' }])
+    await expect(f.service.recoverStopped({ ...original, ...foreign })).rejects.toThrow();
+  expect(f.records()[0]).toMatchObject({ phase: 'attention', activeAttemptId: f.request.attemptId });
+  await rm(join(first.cwd, '.git'), { force: true });
+  await writeFile(join(first.cwd, '.git'), 'gitdir: /not-owned');
+  await expect(f.service.recoverStopped(original)).rejects.toThrow();
+  expect(f.records()[0]?.phase).toBe('attention');
+}, 30000);

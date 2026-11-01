@@ -25,7 +25,7 @@ describe('Captured coding profiles and distinct evidence in the contained host',
       if (!file) throw new Error('Missing contained request.');
       return { path: file.path, noteText: await app.vault.read(file), stateText: await app.vault.adapter.read(`.obsidian/plugins/${pluginId}/coforge-state.json`) };
     });
-    await obsidian.disablePlugin(); const prepared = worktreeCodingFixture(note.noteText, note.stateText);
+    await obsidian.disablePlugin(); const prepared = worktreeCodingFixture(note.noteText, note.stateText, true);
     await obsidian.eval(async ({ app, pluginId }, input) => {
       await app.vault.adapter.write(input.notePath, input.noteText);
       await app.vault.adapter.write(`.obsidian/plugins/${pluginId}/coforge-state.json`, input.stateText);
@@ -46,6 +46,10 @@ describe('Captured coding profiles and distinct evidence in the contained host',
     await captured.locator('summary').first().click();
     const profiles = captured.getByRole('region', { name: 'Captured attempt coding profiles', exact: true });
     await browserExpect(profiles).toContainText('native-worktree-v1'); await browserExpect(profiles).toContainText('mcp-worktree-v1'); await browserExpect(profiles).toContainText('Legacy scoped tools');
+    const managed = captured.getByRole('region', { name: 'Captured managed agent sessions', exact: true });
+    await browserExpect(managed).toContainText('completion');
+    await browserExpect(managed).toContainText('cannot observe the client');
+    await browserExpect(captured.getByRole('region', { name: 'Captured execution policies', exact: true })).toContainText('timeout');
     await tabs.getByRole('button', { name: 'Sessions', exact: true }).click();
     const peek = drawer.getByRole('region', { name: 'Session Peek', exact: true });
     await drawer.locator('[data-parent-session-id="synthetic-mcp"]').click();
@@ -56,6 +60,14 @@ describe('Captured coding profiles and distinct evidence in the contained host',
     for (const width of [1360, 760]) for (const theme of ['light', 'dark']) {
       await obsidian.page.setViewportSize({ width, height: 960 });
       await obsidian.eval((_context, theme) => { document.body.classList.toggle('theme-light', theme === 'light'); document.body.classList.toggle('theme-dark', theme === 'dark'); }, theme);
+      await tabs.getByRole('button', { name: 'Workflow runs', exact: true }).click();
+      const lifecycle = drawer.locator('details[aria-label="Captured workflow configuration"]');
+      if (!await lifecycle.evaluate(element => element.hasAttribute('open'))) await lifecycle.locator('summary').first().click();
+      const managedSession = lifecycle.getByRole('region', { name: 'Captured managed agent sessions', exact: true });
+      await browserExpect(managedSession).toContainText('Quiet periods do not end the task');
+      expect(await managedSession.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+      await managedSession.scrollIntoViewIfNeeded(); await obsidian.screenshot(`managed-lifecycle-${theme}-${width}`);
+      await tabs.getByRole('button', { name: 'Sessions', exact: true }).click();
       await drawer.locator('[data-parent-session-id="synthetic-mcp"]').click(); await peek.scrollIntoViewIfNeeded();
       expect(await peek.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
       await obsidian.screenshot(`mcp-observations-${theme}-${width}`);

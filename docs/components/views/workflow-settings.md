@@ -92,11 +92,11 @@ unsaved destination draft requires an explicit acknowledgement.
 
 ## Entry and next action
 
-Open [Project settings](settings.md), choose [Agent workflow](workflow.md), then Idea Board Workflow in its flat navigation. Add or select steps, assign CoWorkers or manual AI settings, choose startup mode, preview a saved workflow copy or JSON transfer, then Save explicitly. Step attempts, Timing & limits, Answer / output templates and Herdr are sibling tabs. Request-specific Workflow runs is in request details. Council and event-trigger links use the existing draft guard and never dispatch work.
+Open [Project settings](settings.md), choose [Agent workflow](workflow.md), then Idea Board Workflow in its flat navigation. Add or select steps, assign CoWorkers or manual AI settings, choose startup mode, preview a saved workflow copy or JSON transfer, then Save explicitly. Step attempts, Answer / output templates and Herdr are sibling tabs. Request-specific Workflow runs is in request details. Council and event-trigger links use the existing draft guard and never dispatch work.
 
 ## States and recovery
 
-No project; Standard defaults; Saved; Unsaved draft; Validation error; Active-work guard. Definition and Timing & limits retain one draft across their flat tabs. Leaving the authoring workspace or changing projects still uses the dirty-draft guard. Import and cross-project copy replace only the explicitly reviewed draft; Save remains separate.
+No project; Standard defaults; Saved; Unsaved draft; Validation error; Active-work guard. The workflow draft is retained while moving between local tasks. Leaving the authoring workspace or changing projects still uses the dirty-draft guard. Import and cross-project copy replace only the explicitly reviewed draft; Save remains separate.
 
 ## Composition and boundaries
 

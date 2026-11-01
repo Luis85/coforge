@@ -5,39 +5,43 @@ vi.mock('../../../infrastructure/coforge/durable-worker/process-identity', () =>
 import { captureProcess, ProcessOwnershipUnknown, type ProcessOptions } from '../../../infrastructure/coforge/process';
 
 afterEach(() => { proof.read.mockReset(); proof.stop.mockReset(); });
-it('awaits owned tree termination before releasing a cancelled delegated foreground invocation', async () => {
+it.each([false, true])('awaits original identity/group proof for cancellation (managed compatibility: %s)', async managed => {
   const controller = new AbortController(); let terminationPersisted = false;
   proof.read.mockImplementation(async (pid: number) => ({ pid, platform: process.platform, birth: 'original', image: 'a'.repeat(64) }));
   proof.stop.mockImplementation(async (identity: { pid: number }) => {
     process.kill(identity.pid); await new Promise(resolve => setTimeout(resolve, 30)); terminationPersisted = true;
     return { state: 'terminated', treeConfirmed: true, observedAt: new Date().toISOString() };
   });
-  const run = captureProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { cwd: tmpdir(), signal: controller.signal, ownedTree: true });
+  const run = captureProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { cwd: tmpdir(), signal: controller.signal,
+    ...(managed ? { managedSession: true, input: '' } : { ownedTree: true }) });
   await vi.waitFor(() => expect(proof.read).toHaveBeenCalledOnce()); controller.abort();
   await expect(run).rejects.toThrow('cancelled');
   expect(proof.stop).toHaveBeenCalledOnce(); expect(terminationPersisted).toBe(true);
 });
-it('distinguishes unknown ownership from an ordinary retryable cancellation', async () => {
+it.each([false, true])('holds unknown ownership after cancellation instead of accepting a result (managed compatibility: %s)', async managed => {
   const controller = new AbortController();
   proof.read.mockImplementation(async (pid: number) => ({ pid, platform: process.platform, birth: 'original', image: 'a'.repeat(64) }));
   proof.stop.mockImplementation(async (identity: { pid: number }) => {
     process.kill(identity.pid); return { state: 'unverified', treeConfirmed: false, observedAt: new Date().toISOString() };
   });
-  const run = captureProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { cwd: tmpdir(), signal: controller.signal, ownedTree: true });
+  const run = captureProcess(process.execPath, ['-e', 'setInterval(()=>{},1000)'], { cwd: tmpdir(), signal: controller.signal,
+    ...(managed ? { managedSession: true, input: '' } : { ownedTree: true }) });
   await vi.waitFor(() => expect(proof.read).toHaveBeenCalledOnce()); controller.abort();
   await expect(run).rejects.toMatchObject({ name: 'ProcessOwnershipUnknown' });
 });
-it('does not deliver task input until original process identity has committed', async () => {
+it.each([false, true])('does not deliver task input before original identity (managed compatibility: %s)', async managed => {
   proof.read.mockImplementation(async (pid: number) => ({ pid, platform: process.platform, birth: 'original', image: 'a'.repeat(64) }));
   let release: (() => void) | undefined; let settled = false;
   const committed = new Promise<void>(resolve => { release = resolve; });
-  const onOwnedProcess = vi.fn<NonNullable<ProcessOptions['onOwnedProcess']>>(async () => { await committed; });
-  const run = captureProcess(process.execPath, ['-e', 'process.stdin.pipe(process.stdout)'], { cwd: tmpdir(), input: 'authorized task', ownedTree: true, onOwnedProcess });
+  if (managed) proof.read.mockImplementation(async (pid: number) => { await committed; return { pid, platform: process.platform, birth: 'original', image: 'a'.repeat(64) }; });
+  const onOwnedProcess = vi.fn<NonNullable<ProcessOptions['onOwnedProcess']>>(async () => { if (!managed) await committed; });
+  const run = captureProcess(process.execPath, ['-e', 'process.stdin.pipe(process.stdout)'], { cwd: tmpdir(), input: 'authorized task',
+    ...(managed ? { managedSession: true } : { ownedTree: true }), onOwnedProcess });
   void run.finally(() => { settled = true; });
-  await vi.waitFor(() => expect(onOwnedProcess).toHaveBeenCalledOnce());
+  await vi.waitFor(() => expect(managed ? proof.read : onOwnedProcess).toHaveBeenCalledOnce());
   expect(settled).toBe(false); release!();
   expect(await run).toBe('authorized task');
-  expect(onOwnedProcess.mock.calls[0]?.[1]).toBe('launched');
+  if (managed) expect(onOwnedProcess).not.toHaveBeenCalled(); else expect(onOwnedProcess.mock.calls[0]?.[1]).toBe('launched');
 });
 it('retains bounded redacted nonzero diagnostics privately without changing the quarantine message', async () => {
   proof.read.mockImplementation(async (pid: number) => ({ pid, platform: process.platform, birth: 'original', image: 'a'.repeat(64) }));
@@ -50,4 +54,30 @@ it('retains bounded redacted nonzero diagnostics privately without changing the 
   expect(error.diagnostic).not.toContain('private-token');
   expect(error.message).not.toContain('fixture transport diagnostic');
   expect(Object.keys(error)).not.toContain('diagnostic');
+});
+
+it('clears transport settlement at actual root close before slow ownership persistence finishes', async () => {
+  proof.read.mockImplementation(async (pid: number) => ({ pid, platform: process.platform, birth: 'original', image: 'a'.repeat(64) }));
+  const onOwnedProcess = vi.fn<NonNullable<ProcessOptions['onOwnedProcess']>>(async (_identity, phase) => {
+    if (phase === 'launched') await new Promise(resolve => setTimeout(resolve, 2200));
+  });
+  expect(await captureProcess(process.execPath, ['-e', 'process.stdout.write("closed root result")'], {
+    cwd: tmpdir(), input: '', ownedTree: true, managedSession: true, onOwnedProcess,
+  })).toBe('closed root result');
+  expect(proof.stop).not.toHaveBeenCalled();
+});
+
+it('awaits the current unknown-stop proof when cancellation arrives after root close during ownership persistence', async () => {
+  const controller = new AbortController(); let output = false, stopFinished = false;
+  let commit: (() => void) | undefined; const committed = new Promise<void>(resolve => { commit = resolve; });
+  proof.read.mockImplementation(async (pid: number) => ({ pid, platform: process.platform, birth: 'original', image: 'a'.repeat(64) }));
+  proof.stop.mockImplementation(async () => { await new Promise(resolve => setTimeout(resolve, 30)); stopFinished = true; return { treeConfirmed: false }; });
+  const onOwnedProcess = vi.fn<NonNullable<ProcessOptions['onOwnedProcess']>>(async (_identity, phase) => { if (phase === 'launched') await committed; });
+  const run = captureProcess(process.execPath, ['-e', 'process.stdout.write("closed root result")'], {
+    cwd: tmpdir(), input: '', ownedTree: true, managedSession: true, signal: controller.signal, onOwnedProcess, onStdout: () => { output = true; },
+  });
+  await vi.waitFor(() => expect(output).toBe(true)); await new Promise(resolve => setTimeout(resolve, 100));
+  controller.abort(); commit!();
+  await expect(run).rejects.toBeInstanceOf(ProcessOwnershipUnknown);
+  expect(stopFinished).toBe(true); expect(onOwnedProcess).toHaveBeenCalledWith(expect.anything(), 'unknown');
 });

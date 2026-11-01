@@ -12,7 +12,7 @@ import type { AgentJob, Idea, Increment } from '../../../../src/plugin/features/
 import { splitNote } from '../../../../src/plugin/infrastructure/coforge/markdown';
 
 /** Synthetic historical evidence only: no provider, project command or Docker container is started. */
-export function worktreeCodingFixture(noteText: string, stateText: string) {
+export function worktreeCodingFixture(noteText: string, stateText: string, managed = false) {
   const data = parsePersistedStudio(JSON.parse(stateText)); const split = splitNote(noteText);
   const original = record(parse(split.yaml ?? ''));
   const idea: Idea = { ...parseIdeaNote(original, split.body), voters: [], status: 'review' };
@@ -38,7 +38,9 @@ export function worktreeCodingFixture(noteText: string, stateText: string) {
     workflow: { runId: idea.workflowRun!.id, attemptId: `attempt-${id}`, definitionRevision: definition.revision, proposalRevision, step, inputArtifacts: [] } });
   const native = job('native'); native.workflow!.worktreeCoding = { version: 1, profile: 'native-worktree-v1', maxConcurrent: 2 };
   native.sessionTrace = appendAgentSessionEvent(undefined, { kind: 'tool', tool: 'shell', status: 'completed', text: '<script>SYNTHETIC provider tool output; exit and source comparison not independently captured</script>' }, at);
+  if (managed) native.workflow!.lifecycle = { version: 1, mode: 'managed-session' };
   const mcp = job('mcp'); mcp.provider = 'mcp'; mcp.workflow!.worktreeCoding = { version: 1, profile: 'mcp-worktree-v1' };
+  if (managed) mcp.workflow!.lifecycle = { version: 1, mode: 'managed-session' };
   mcp.sessionTrace = appendAgentSessionEvent(undefined, { kind: 'tool', tool: 'coforge_run_command', status: 'completed', text: 'SYNTHETIC host MCP command event: exit 0, no actual command executed by this fixture.' }, at);
   const legacy = job('legacy'); const command = { id: 'fixture-check', label: 'SYNTHETIC isolated check', executable: 'node', args: ['fixture.cjs'] };
   legacy.workflow!.step = { ...step, nativeTools: { verification: { commandIds: [command.id] } } };

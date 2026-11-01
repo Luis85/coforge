@@ -14,6 +14,8 @@ import { ideaProjectId } from '../../features/coforge/domain/projects';
 import type { NativeProcessIdentity } from './durable-worker/process-identity';
 import { captureObservedClaude } from './claude-observed-capture';
 import { persistProviderEvidence, validateProviderWorkspace } from './provider-evidence';
+import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
+import type { NativeWorkflowLifetimeRef } from '../../features/coforge/domain/native-workflow-lifetime';
 
 /** Native Agent children share this invocation's broker, lease and cumulative tool/test limits. */
 export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorkspaceLease, command: string, capture: typeof captureProcess) {
@@ -29,10 +31,11 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
   let bridge: Awaited<ReturnType<typeof codexWorkflowTools>> | undefined;
   let disposed = false;
   let processRecord: NativeWorkflowProcessRecord | undefined;
-  const observe = async (identity: NativeProcessIdentity, phase: NativeWorkflowProcessRecord['phase']) => {
-    if (!usesNativeClaudeTools(input)) return;
-    const record: NativeWorkflowProcessRecord = { runId: input.workflow!.runId, attemptId: input.workflow!.attemptId, projectId: ideaProjectId(input.idea), identity, phase, observedAt: new Date().toISOString() };
-    await persistProviderEvidence(() => input.onNativeProcess!(record)); processRecord = record;
+  const observe = async (identity: NativeProcessIdentity, phase: NativeWorkflowProcessRecord['phase'], lifetime?: NativeWorkflowLifetimeRef) => {
+    if (!usesNativeClaudeTools(input) && !isManagedWorkflowSession(input.workflow)) return;
+    const original = lifetime ?? processRecord?.lifetime;
+    const record: NativeWorkflowProcessRecord = { runId: input.workflow!.runId, attemptId: input.workflow!.attemptId, projectId: ideaProjectId(input.idea), identity, phase, observedAt: new Date().toISOString(), ...(original ? { lifetime: original } : {}) };
+    processRecord = record; await persistProviderEvidence(() => input.onNativeProcess!(record));
   };
   const dispose = async () => {
     if (disposed) return; disposed = true;
@@ -40,7 +43,7 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
       await bridge?.dispose();
       if (processRecord && processRecord.phase !== 'terminated') await observe(processRecord.identity, 'unknown');
     }
-    finally { await rm(directory, { recursive: true, force: true }); }
+    finally { if (!isManagedWorkflowSession(input.workflow) || !processRecord || processRecord.phase === 'terminated') await rm(directory, { recursive: true, force: true }); }
   };
   try {
     bridge = await codexWorkflowTools(input, lease, lease.protectedProjectPaths);
@@ -53,6 +56,10 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
       complete: async () => {
         if (!usesNativeClaudeTools(input)) return;
         if (!processRecord || processRecord.phase === 'unknown') throw new Error('The original provider completion identity is unverified.');
+        if (isManagedWorkflowSession(input.workflow) && process.platform === 'win32') {
+          if (processRecord.phase !== 'terminated' || !processRecord.lifetime) throw new ProcessOwnershipUnknown('');
+          return;
+        }
         // Qualified Agent workers are in-process and synchronous. This is provider-contract completion,
         // combined with root close and closed broker/container cleanup, not an independent OS-tree receipt.
         await observe(processRecord.identity, 'terminated');
@@ -61,7 +68,7 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
       await persistProviderEvidence(() => input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt }));
       input.signal?.throwIfAborted(); await validateProviderWorkspace(() => lease.validate?.());
       const raw = await captureObservedClaude(input, command, args, { cwd: directory, input: prompt, signal: input.signal,
-        timeoutMs: input.settings.timeoutSeconds * 1000, ownedTree: true, onOwnedProcess: observe }, capture, { COFORGE_SESSION_TOKEN: scoped.token });
+        timeoutMs: isManagedWorkflowSession(input.workflow) ? undefined : input.settings.timeoutSeconds * 1000, ownedTree: true, onOwnedProcess: observe }, capture, { COFORGE_SESSION_TOKEN: scoped.token });
       await scoped.dispose();
       try { scoped.assertBudget(); input.signal?.throwIfAborted(); await validateProviderWorkspace(() => lease.validate?.()); }
       catch (error) {

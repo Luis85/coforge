@@ -25,6 +25,8 @@ it("saves a native worker Node path before a separate readiness check that does 
   });
   try {
     await flushPromises();
+    expect(wrapper.findAll('h3').some(heading => heading.text() === 'Advanced background worker (optional)')).toBe(true);
+    expect(wrapper.text()).toContain('Ordinary native agent sessions, including refinement and code improvements, do not require this worker.');
     const node = wrapper.get('[aria-label="Worker Node executable"]');
     await node.setValue("C:/Runtime/node.exe");
     const button = wrapper
