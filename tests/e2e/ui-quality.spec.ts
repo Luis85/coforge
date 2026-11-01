@@ -13,7 +13,7 @@ const themes = ['light', 'dark'] as const;
 type Theme = (typeof themes)[number];
 type Violation = Awaited<ReturnType<AxeBuilder['analyze']>>['violations'][number];
 const wcagTags = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
-const primaryControls = 'button, a[href], [role="button"], input:not([type="hidden"]):not([type="radio"]), select, textarea';
+const primaryControls = 'button, a[href], [role="button"], input:not([type="hidden"]):not([type="radio"]), select, textarea, summary';
 
 /** Opens a surface by its preview address and returns the page errors collected since. */
 async function openSurface(page: Page, surface: Surface): Promise<string[]> {
@@ -59,6 +59,17 @@ async function scan(page: Page, testInfo: TestInfo, name: string): Promise<void>
   const violations = withoutUpstreamExceptions(analysis.violations, testInfo);
   if (violations.length) await testInfo.attach('axe-' + name + '.json', { body: JSON.stringify(violations, null, 2), contentType: 'application/json' });
   expect(violations.map(readable), 'WCAG 2.1 A/AA violations (' + name + ')').toEqual([]);
+}
+/** Exercise standard disclosure activation before auditing every inner control. Summary remains part of the Tab sweep. */
+async function openPrimaryDisclosures(page: Page): Promise<void> {
+  for (const disclosure of await page.locator('.generated-workbench details').all()) {
+    const summary = disclosure.locator(':scope > summary').first();
+    if (!await summary.isVisible() || await disclosure.evaluate(element => element.hasAttribute('open'))) continue;
+    await summary.focus();
+    await expect(summary).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(disclosure).toHaveJSProperty('open', true);
+  }
 }
 /** Tags the visible, enabled primary controls of the workbench in document order and returns their descriptions.
  * Tabs, options and menu items use one tab stop with arrow keys and hidden form mirrors are not user controls, so they are left out. */
@@ -112,6 +123,7 @@ for (const surface of surfaces) {
   });
   test(name + ': primary actions are keyboard reachable with a visible focus indicator', async ({ page }) => {
     await openSurface(page, surface);
+    await openPrimaryDisclosures(page);
     const labels = await tagPrimaryControls(page);
     const reached = new Map<number, boolean>();
     for (let press = 0; press < labels.length + 60 && reached.size < labels.length; press++) {

@@ -3,6 +3,17 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { record } from '../../features/coforge/domain/check';
 import { nativeWorkflowToolsCheck, type NativeWorkflowTools } from '../../features/coforge/domain/native-workflow-tools';
+import type { NativeCodingProfile } from '../../features/coforge/domain/worktree-coding';
+
+/** Ordinary coding retains the selected SDK model's native tools and coding instructions. No model substitution. */
+export function nativeCodingCodexModel(model: string, cache: unknown): object {
+  const models = record(cache).models;
+  if (!Array.isArray(models)) throw new Error('Codex model metadata is unavailable.');
+  const source = models.map(item => record(item)).find(item => item.slug === model);
+  if (!source) throw new Error('The selected native coding model is not advertised by this runtime.');
+  if (source.multi_agent_version !== 'v2') throw new Error('The selected native coding model does not advertise bounded native v2 assistants.');
+  return { models: [{ ...source }] };
+}
 
 /** Restrict a cached model's advertised client capabilities without changing model identity. */
 export function restrictedCodexModel(model: string, cache: unknown, nativeTools?: NativeWorkflowTools): object {
@@ -22,7 +33,7 @@ export function restrictedCodexModel(model: string, cache: unknown, nativeTools?
     base_instructions: 'You are a CoForge task worker. Use only the invocation-scoped CoForge MCP tools and return the requested structured result. Do not request native file, shell, image or browser tools. ' +
       (delegation ? 'You may use provider-native subagents within the captured concurrency limit. All descendants share this invocation\'s restricted tools, model and human review boundary. Coordinate and finish their work before returning the root result.' : 'Do not request delegation tools.') }] };
 }
-export async function writeCodexModelProfile(directory: string, model: string, nativeTools?: NativeWorkflowTools, nativeCatalogue?: unknown): Promise<string> {
+export async function writeCodexModelProfile(directory: string, model: string, nativeTools?: NativeWorkflowTools, nativeCatalogue?: unknown, nativeCoding?: NativeCodingProfile): Promise<string> {
   let cache: unknown = nativeCatalogue;
   if (nativeTools && cache === undefined) throw new Error('Native Codex requires model metadata refreshed through its configured native runtime before provider start.');
   if (!nativeTools) {
@@ -30,6 +41,6 @@ export async function writeCodexModelProfile(directory: string, model: string, n
     catch { throw new Error('Codex model metadata is unavailable. Open Codex once to refresh its model catalogue.'); }
   }
   const path = join(directory, 'model-profile.json');
-  await writeFile(path, JSON.stringify(restrictedCodexModel(model, cache, nativeTools)), { flag: 'wx', mode: 0o600 });
+  await writeFile(path, JSON.stringify(nativeCoding ? nativeCodingCodexModel(model, cache) : restrictedCodexModel(model, cache, nativeTools)), { flag: 'wx', mode: 0o600 });
   return path;
 }

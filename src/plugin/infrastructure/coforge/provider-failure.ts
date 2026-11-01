@@ -25,10 +25,10 @@ function outputFailure(provider: 'claude' | 'codex', raw: string): ProviderFailu
 export function diagnoseProviderFailure(provider: 'claude' | 'codex', error: unknown, signal?: AbortSignal): Error {
   const previous = providerFailureInfo(error);
   let info = previous;
-  if (!info && error instanceof ProcessFailure) {
+  if ((!info || ['execution_failed', 'provider_error', 'ownership_unknown'].includes(info.code)) && error instanceof ProcessFailure) {
     if (error.message.startsWith('Run cancelled.')) info = providerFailureFor('cancelled');
     else if (error.message.startsWith('Run timed out.')) info = providerFailureFor('timeout');
-    else info = outputFailure(provider, error.output) ?? classifyProviderFailure(provider, { message: error.diagnostic });
+    else info = outputFailure(provider, error.output) ?? classifyProviderFailure(provider, { message: error.diagnostic }) ?? info;
   }
   if (!info && error instanceof CheckError) info = providerFailureFor('output_validation');
   if (!info && error instanceof SyntaxError) info = providerFailureFor('output_validation');
@@ -48,7 +48,7 @@ export function preserveProviderFailure(earlier: unknown, later: unknown): unkno
   const first = providerFailureInfo(earlier), next = providerFailureInfo(later);
   const uncertain = earlier instanceof ProcessOwnershipUnknown ? earlier : later instanceof ProcessOwnershipUnknown ? later : undefined;
   if (uncertain) {
-    const specific = first && !['ownership_unknown', 'execution_failed'].includes(first.code) ? first : next;
+    const specific = next && ['persistence', 'workspace_validation'].includes(next.code) ? next : first && !['ownership_unknown', 'execution_failed'].includes(first.code) ? first : next;
     const info = providerFailureFor(specific?.code ?? 'ownership_unknown', true);
     assignProviderFailure(uncertain, info); uncertain.message = providerFailureMessage(info, true); return uncertain;
   }

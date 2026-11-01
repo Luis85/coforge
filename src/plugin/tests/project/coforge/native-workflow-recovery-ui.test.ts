@@ -20,6 +20,7 @@ it('offers exact parent recovery and explicit cessation acknowledgement without 
     const buttons = () => wrapper.findAll('button');
     const acknowledge = () => buttons().find(button => button.text() === 'Record operator acknowledgement')!;
     expect(wrapper.text()).toContain('captured root PID 123');
+    expect(wrapper.text()).not.toContain('Docker');
     expect(acknowledge().attributes('disabled')).toBeDefined();
     await buttons().find(button => button.text() === 'Check original execution')!.trigger('click');
     await flushPromises(); expect(check).toHaveBeenCalledWith('original-parent');

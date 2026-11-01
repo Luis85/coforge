@@ -104,7 +104,7 @@ it.each(['process', 'schema'] as const)('preserves the Build diff on a %s failur
     if (failure === 'process') throw new ProcessFailure('Original process failed.', output());
     return JSON.stringify({ type: 'result', subtype: 'success', is_error: false, structured_output: { unknown: true } });
   };
-  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toThrow(failure === 'process' ? 'Original process failed' : 'schema validation');
+  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toMatchObject({ failure: { code: failure === 'process' ? 'execution_failed' : 'output_validation' } });
   expect(f.lease.capture).not.toHaveBeenCalled(); expect(f.input.onChanges).not.toHaveBeenCalled(); expect(f.lease.release).toHaveBeenCalledTimes(1);
   expect(await agentGit(f.root, ['diff', '--no-ext-diff', '--no-textconv', '--binary', 'HEAD'])).toBe(f.before);
   await expect(stat(temporary)).rejects.toThrow(); await expect(fetch(endpoint)).rejects.toThrow();
@@ -135,12 +135,12 @@ it('revalidates the original workspace before dispatch and each broker read, rej
     expect(await connection.call('tools/call', { name: 'coforge_read_file', arguments: { path: 'game.ts' } })).toMatchObject({ isError: true });
     return output();
   };
-  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toThrow('Original Build workspace changed');
+  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toMatchObject({ failure: { code: 'workspace_validation' } });
   expect(f.lease.validate.mock.calls.length).toBeGreaterThanOrEqual(2); expect(f.lease.capture).not.toHaveBeenCalled();
   expect(f.input.onUsage).toHaveBeenCalledWith(0.2);
   const second = await fixture(); await writeFile(join(second.root, 'game.ts'), 'Changed before dispatch');
   const dispatch = vi.fn<typeof captureProcess>(async () => output());
-  await expect(runClaudeStage(second.input, second.workspaces, dispatch)).rejects.toThrow('Original Build workspace changed');
+  await expect(runClaudeStage(second.input, second.workspaces, dispatch)).rejects.toMatchObject({ failure: { code: 'workspace_validation' } });
   expect(dispatch).not.toHaveBeenCalled(); expect(second.input.onWorkspace).not.toHaveBeenCalled(); expect(second.lease.release).toHaveBeenCalledTimes(1);
 }, 30_000);
 
@@ -152,7 +152,7 @@ it('retains reported cost and conversation when the captured read-tool bound is 
     expect(await connection.call('tools/call', { name: 'coforge_read_file', arguments: { path: 'game.ts' } })).toMatchObject({ isError: true });
     return output();
   };
-  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toThrow('captured CoForge read-tool call limit');
+  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toMatchObject({ failure: { code: 'tool_limit' } });
   expect(f.input.onUsage).toHaveBeenCalledWith(0.2);
   expect(f.input.onConversation).toHaveBeenCalledWith(expect.objectContaining({ kind: 'response' }));
   expect(f.lease.capture).not.toHaveBeenCalled(); expect(f.input.onChanges).not.toHaveBeenCalled();
@@ -162,7 +162,7 @@ it('never dispatches when saving the scoped request fails, and preserves the ear
   const f = await fixture();
   f.input.onConversation = vi.fn(async () => { throw new Error('Request evidence could not be saved.'); });
   const capture = vi.fn<typeof captureProcess>(async () => output());
-  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toThrow('Request evidence could not be saved');
+  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toMatchObject({ failure: { code: 'persistence' } });
   expect(capture).not.toHaveBeenCalled(); expect(f.lease.release).toHaveBeenCalledTimes(1);
   expect(f.lease.capture).not.toHaveBeenCalled(); expect(f.input.onChanges).not.toHaveBeenCalled();
 }, 30_000);
@@ -174,7 +174,7 @@ it('passes cancellation to the short provider call and closes its read broker wi
     expect(options.signal).toBe(controller.signal); temporary = options.cwd; endpoint = (await broker(args)).url;
     controller.abort(); throw new ProcessFailure('Run cancelled.', output());
   };
-  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toThrow('Run cancelled');
+  await expect(runClaudeStage(f.input, f.workspaces, capture)).rejects.toMatchObject({ failure: { code: 'cancelled' } });
   expect(f.lease.capture).not.toHaveBeenCalled(); expect(f.input.onChanges).not.toHaveBeenCalled(); expect(f.lease.release).toHaveBeenCalledTimes(1);
   expect(f.input.onUsage).toHaveBeenCalledWith(0.2); await expect(fetch(endpoint)).rejects.toThrow(); await expect(stat(temporary)).rejects.toThrow();
 }, 30_000);

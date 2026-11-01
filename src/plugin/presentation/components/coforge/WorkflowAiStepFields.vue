@@ -146,7 +146,7 @@ const fields = useWorkflowAiFields();
       {{ fields.readiness }} Configuration can still be saved.
     </p>
     <WorkflowExecutionPolicy />
-    <WorkflowNativeTools />
+    <WorkflowNativeTools :effective-provider="fields.coworker.effective?.provider" :provider-resolved="fields.coworker.mode === 'manual' || !!fields.coworker.selected" />
     <details class="cf-workflow-options">
       <summary>Automation and previous results</summary>
       <p class="cf-settings-help">

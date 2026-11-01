@@ -12,13 +12,16 @@ import { workerVerificationHooks } from './verification';
 import { workerNativeRuntimeHooks } from './native-runtime';
 import type { NativeWorkflowPrivateRuntime, NativeWorkflowProcessRecord } from '../../../features/coforge/domain/native-workflow-process';
 import type { AgentSessionEvent } from '../../../features/coforge/domain/agent-session';
+import type { NativeWorkflowLifetimeRef } from '../../../features/coforge/domain/native-workflow-lifetime';
 import { assignProviderFailure, providerFailureFor, providerFailureInfo, providerFailureMessage, type ProviderFailureInfo } from '../../../features/coforge/domain/provider-failure';
 
 export class WorkerOwnershipUnknown extends Error {
   declare readonly output?: string;
-  constructor(message: string, failure?: ProviderFailureInfo, output?: string) {
+  declare readonly ownership?: { identity?: NativeProcessIdentity; lifetime: NativeWorkflowLifetimeRef };
+  constructor(message: string, failure?: ProviderFailureInfo, output?: string, ownership?: { identity?: NativeProcessIdentity; lifetime: NativeWorkflowLifetimeRef }) {
     super(message); if (failure) assignProviderFailure(this, failure);
     if (output) Object.defineProperty(this, 'output', { value: output.slice(-8 * 1024 * 1024), enumerable: false });
+    if (ownership) Object.defineProperty(this, 'ownership', { value: ownership, enumerable: false });
   }
 }
 export interface WorkerHooks {
@@ -30,7 +33,7 @@ export interface WorkerHooks {
   conversation(event: AgentConversationEvent): Promise<void>;
   usage(value: StageUsage): Promise<void>;
   cost(value: number): Promise<void>;
-  launched(pid: number, launchId: string, identity?: NativeProcessIdentity): Promise<void>;
+  launched(pid: number, launchId: string, identity?: NativeProcessIdentity, lifetime?: NativeWorkflowLifetimeRef): Promise<void>;
   log(message: string): Promise<void>;
   verification?(record: WorkflowVerificationRecord): Promise<void>;
   verificationRuntime?(record: WorkflowVerificationRuntimeRecord): Promise<void>;
@@ -145,7 +148,10 @@ export class WorkerService {
       changes: async increment => { await update(snapshot => { snapshot.workspaceCaptured = true; snapshot.increment = increment ?? undefined; }); },
       usage: async usage => { await update(snapshot => { snapshot.usage = usage; }); },
       cost: async cost => { await update(snapshot => { snapshot.costUsd = cost; }); },
-      launched: async (pid, launchId, identity) => { await this.store.update(ref, next => { next.provider = { pid, launchId, startedAt: new Date(this.store.now()).toISOString(), ...(identity ? { identity } : {}) }; this.mergeHot(ref, next.snapshot); }); },
+      launched: async (pid, launchId, identity, lifetime) => {
+        if (lifetime && (lifetime.runId !== request.runId || lifetime.attemptId !== request.attemptId || lifetime.projectId !== request.projectId)) throw new Error('Native lifetime does not belong to the admitted command.');
+        await this.store.update(ref, next => { next.provider = { pid, launchId, startedAt: new Date(this.store.now()).toISOString(), ...(identity ? { identity } : {}), ...(lifetime ? { lifetime } : {}) }; this.mergeHot(ref, next.snapshot); });
+      },
       log: async message => { const hot = this.hot.get(ref.executionId); if (hot) hot.logs = [...hot.logs, message.slice(0, 1000)].slice(-50); },
       conversation: async event => {
         await update(snapshot => {

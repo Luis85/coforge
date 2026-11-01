@@ -1,6 +1,7 @@
 import type { AgentJob } from '../../../features/coforge/domain/types';
 import { STAGE_LABELS } from '../../../features/coforge/domain/types';
 import { CODEX_CAPTURE_SCOPE_HELP, CODEX_PROVIDER_CONTEXT_HELP } from './codex-provider-context';
+import { codingProfileDisplay } from './coding-profile-display';
 
 const captureTime = (value: string): string => new Date(value).toLocaleString(undefined, {
   year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
@@ -50,6 +51,8 @@ export function ideaRunHistory(job: AgentJob) {
     outputLabel: simulated ? 'Simulated response' : external ? 'Submitted response' : 'LLM response',
     conversation,
     nativeTools: job.workflow?.step.nativeTools,
+    codingProfile: job.workflow?.worktreeCoding ? codingProfileDisplay(job.workflow.worktreeCoding) : undefined,
+    legacyCoding: !job.workflow?.worktreeCoding && !simulated && ['claude', 'codex', 'mcp'].includes(job.provider) && job.workflow?.step.output === 'codechange' && job.workflow.step.access === 'editworktree',
     verificationProfile: job.workflow?.verificationProfile,
     verification: job.verification ?? [],
     capturedLabel: conversation ? captureTime(conversation.capturedAt) : '',

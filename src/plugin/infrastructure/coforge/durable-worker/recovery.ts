@@ -6,6 +6,7 @@ import { workerRecordCheck, workerSnapshot, nativeIdentityCheck, type WorkerReco
 import { inputHash, workerRequestCheck } from './protocol';
 import { inspectWorkerWorkspace } from './workspace-proof';
 import { readNativeProcessIdentity, stopOwnedProcessTree, type NativeProcessIdentity, type ProcessTerminationProof } from './process-identity';
+import { recoverOwnedWorktreeLifetime } from '../native-process/owned-worktree-process';
 import { workerWorkspaces } from './workspaces';
 import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
 import { recoverWorkerVerification } from './verification-recovery';
@@ -101,6 +102,10 @@ export class WorkerRecovery {
         next.snapshot.phase = 'cancelled'; next.reservationReleased = true; proven = true;
       } else if (!next.provider && next.nativeRuntime) {
         proven = await recoverWorkerNativeRuntime(next); next.snapshot.phase = proven ? 'cancelled' : 'attention';
+      } else if (next.provider?.lifetime && next.provider.identity) {
+        const receipt = await recoverOwnedWorktreeLifetime(next.provider.identity, next.provider.lifetime);
+        proven = !!receipt; next.snapshot.phase = proven ? 'cancelled' : 'attention';
+        if (receipt) next.provider.treeTerminatedAt = receipt.finishedAt;
       } else if (next.provider?.contractCompletedAt || next.provider?.treeTerminatedAt) {
         proven = true; next.snapshot.phase = 'cancelled';
       } else if (next.provider?.identity) {

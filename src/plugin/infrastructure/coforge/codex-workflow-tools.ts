@@ -1,6 +1,7 @@
 import { McpStepFiles } from './mcp-step-files';
 import { LocalMcpServer, type McpTool } from './mcp-server';
 import type { StageInput } from '../../features/coforge/application/ports';
+import { ProviderFailureError, providerFailureFor } from '../../features/coforge/domain/provider-failure';
 import type { WorkflowWorkspaceLease } from '../../features/coforge/application/workflow-workspace-ports';
 import { executionAccess } from '../../features/coforge/application/workflow-execution';
 import type { Increment } from '../../features/coforge/domain/types';
@@ -58,6 +59,6 @@ export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorks
     const url = await server.listen();
     return { url, token, toolTimeoutSeconds: input.workflow?.verificationProfile ? (input.workflow.verificationProfile.timeoutSeconds + 60) * input.workflow.verificationProfile.maxRuns + 60 : undefined,
       verificationRecords: (): WorkflowVerificationRecord[] => verification?.records() ?? [], captureVerification: async (increment: Increment): Promise<Increment> => verification ? verification.capture(increment) : increment,
-      assertBudget: () => { verification?.assertHealthy(); if (exceeded) throw new Error('Codex reached its captured tool-call limit. Review partial changes before explicitly retrying.'); }, dispose };
+      assertBudget: () => { verification?.assertHealthy(); if (exceeded) throw new ProviderFailureError(providerFailureFor('tool_limit')); }, dispose };
   } catch (error) { await dispose(); throw error; }
 }

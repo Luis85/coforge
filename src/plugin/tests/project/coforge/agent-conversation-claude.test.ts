@@ -22,19 +22,19 @@ it('records provider-bound prompts before dispatch and rejected structured answe
     expect(seen).toEqual([{ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1], prompt: options.input }]);
     return JSON.stringify({ type: 'result', subtype: 'success', is_error: false, structured_output: { verdict: 'invalid', reason: '<script>untrusted</script>' } });
   });
-  await expect(runClaudeStage({ ...task, onConversation: async event => { seen.push(event); } })).rejects.toThrow('schema validation');
+  await expect(runClaudeStage({ ...task, onConversation: async event => { seen.push(event); } })).rejects.toMatchObject({ failure: { code: 'output_validation' } });
   expect(seen[1]).toEqual({ kind: 'response', text: JSON.stringify({ verdict: 'invalid', reason: '<script>untrusted</script>' }, null, 2) });
 });
 
 it('never dispatches when persisting request evidence fails', async () => {
-  await expect(runClaudeStage({ ...input(), onConversation: async () => { throw new Error('Disk full'); } })).rejects.toThrow('Disk full');
+  await expect(runClaudeStage({ ...input(), onConversation: async () => { throw new Error('Disk full'); } })).rejects.toMatchObject({ failure: { code: 'persistence' } });
   expect(transport.run).not.toHaveBeenCalled();
 });
 
 it('retains provider response text on a failed process without fabricating missing output', async () => {
   const seen: AgentConversationEvent[] = [];
   transport.run.mockRejectedValueOnce(new ProcessFailure('Run cancelled.', JSON.stringify({ type: 'result', subtype: 'error_max_turns', is_error: true, result: 'Partial final answer' })));
-  await expect(runClaudeStage({ ...input(), onConversation: async event => { seen.push(event); } })).rejects.toThrow('Run cancelled');
+  await expect(runClaudeStage({ ...input(), onConversation: async event => { seen.push(event); } })).rejects.toMatchObject({ failure: { code: 'cancelled' } });
   expect(seen[1]).toEqual({ kind: 'response', text: 'Partial final answer' });
 });
 it('retains reported spending and tokens when saving response evidence fails', async () => {
@@ -42,7 +42,7 @@ it('retains reported spending and tokens when saving response evidence fails', a
   transport.run.mockResolvedValueOnce(JSON.stringify({ type: 'result', subtype: 'success', is_error: false, total_cost_usd: 0.25, usage: { input_tokens: 30 }, structured_output: { verdict: 'clear', reason: 'Safe', signals: [] } }));
   await expect(runClaudeStage({ ...input(), onUsage: async () => { seen.push('cost'); }, onTokenUsage: async () => { seen.push('tokens'); },
     onConversation: async event => { seen.push(event.kind); if (event.kind === 'response') throw new Error('Disk full'); },
-  })).rejects.toThrow('Disk full');
+  })).rejects.toMatchObject({ failure: { code: 'persistence' } });
   expect(seen).toEqual(['request', 'cost', 'tokens', 'response']);
 });
 it('retains malformed primitive output for inspection while rejecting the result', async () => {
@@ -66,7 +66,7 @@ it('still captures partial workspace changes and releases its lease if failed-pr
   transport.run.mockRejectedValueOnce(new ProcessFailure('Run cancelled.', JSON.stringify({ type: 'result', result: 'Partial answer' })));
   await expect(runClaudeStage({ ...task, onChanges: changes,
     onConversation: async event => { if (event.kind === 'response') throw new Error('Disk full'); },
-  }, workspaces)).rejects.toThrow('Disk full');
+  }, workspaces)).rejects.toMatchObject({ failure: { code: 'persistence' } });
   expect(capture).toHaveBeenCalledTimes(1);
   expect(changes).toHaveBeenCalledWith(increment);
   expect(release).toHaveBeenCalledTimes(1);
@@ -84,7 +84,7 @@ it('redacts malformed failed-process stdout before retaining it for inspection',
   vi.stubEnv('COFORGE_TEST_SECRET', 'synthetic-known-credential');
   const seen: AgentConversationEvent[] = [];
   transport.run.mockRejectedValueOnce(new ProcessFailure('Synthetic failure', 'not-json synthetic-known-credential Bearer bearer-credential sk-ant-synthetic-credential'));
-  await expect(runClaudeStage({ ...input(), onConversation: async event => { seen.push(event); } })).rejects.toThrow('Synthetic failure');
+  await expect(runClaudeStage({ ...input(), onConversation: async event => { seen.push(event); } })).rejects.toMatchObject({ failure: { code: 'execution_failed' } });
   expect(seen[1]).toEqual({ kind: 'response', text: 'not-json [redacted] Bearer [redacted] [redacted]' });
 });
 it('retains both returned prose and structured output when the provider supplies both', async () => {

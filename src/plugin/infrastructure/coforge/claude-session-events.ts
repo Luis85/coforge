@@ -1,10 +1,12 @@
 import type { AgentSessionEvent } from '../../features/coforge/domain/agent-session';
 import { sessionId, sessionObject, sessionStatus } from './provider-session-safety';
+import { nativeCommandOutput } from './native-command-output';
 
 export function claudeSessionEvents(emit: (event: AgentSessionEvent) => void) {
   let root: string | undefined; let associationNotice = false;
   const tasks = new Map<string, string>();
   const requested = new Set<string>();
+  const commands = new Map<string, { actor?: string; tool: string }>();
   const child = (tool: string, status: AgentSessionEvent['status'] = 'running') => {
     const id = `claude-tool:${tool}`;
     if (id.length > 160) return undefined;
@@ -34,6 +36,7 @@ export function claudeSessionEvents(emit: (event: AgentSessionEvent) => void) {
         if (block.type === 'tool_use' && sessionId(block.name)) {
           emit({ kind: 'tool', sessionId: actor, tool: sessionId(block.name), status: 'running' });
           const id = sessionId(block.id);
+          if (id && ['Bash', 'PowerShell'].includes(String(block.name)) && commands.size < 64) commands.set(id, { actor, tool: String(block.name) });
           if (block.name === 'Agent' && id && requested.size < 64) { requested.add(id); child(id, 'queued'); }
         }
       }
@@ -42,7 +45,18 @@ export function claudeSessionEvents(emit: (event: AgentSessionEvent) => void) {
       const content = sessionObject(event.message).content;
       for (const value of Array.isArray(content) ? content : []) {
         const block = sessionObject(value), tool = sessionId(block.tool_use_id);
-        if (block.type === 'tool_result' && tool && requested.has(tool)) child(tool, block.is_error === true ? 'failed' : 'completed');
+        // Agent may return acceptance while its native background task is still running.
+        // Only actual SDK task metadata establishes successful child completion.
+        if (block.type === 'tool_result' && tool && requested.has(tool) && block.is_error === true) child(tool, 'failed');
+        const command = tool ? commands.get(tool) : undefined;
+        if (block.type === 'tool_result' && command) {
+          commands.delete(tool!);
+          const result = sessionObject(event.tool_use_result);
+          const output = nativeCommandOutput([result.stdout, result.stderr].filter((value): value is string => typeof value === 'string').join('\n'));
+          const status = result.interrupted === true ? 'unknown' : block.is_error === true ? 'failed' : block.is_error === false ? 'completed' : 'unknown';
+          const statement = result.interrupted === true ? 'The SDK reported an interrupted native command tool.' : block.is_error === true ? 'The SDK reported a native command tool failure.' : 'The SDK returned a native command tool result without an error flag.';
+          emit({ kind: 'tool', sessionId: command.actor, tool: command.tool, status, text: statement + ' Numeric command exit status is unavailable.' + (output ? '\n' + output : '') });
+        }
       }
     }
     if (event.type === 'result' && !parentTool && (!root || !event.session_id || sessionId(event.session_id) === root)) {

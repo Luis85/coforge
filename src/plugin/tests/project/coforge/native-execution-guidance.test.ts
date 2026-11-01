@@ -17,3 +17,9 @@ it('describes observed sandbox command outcomes and staleness while preserving r
   expect(value).toContain('exit zero');
   expect(executionGuidance('none', 'markdown', 'request-replacement', { delegation: { maxConcurrent: 1 } })).toContain('Return only the polished replacement request text');
 });
+it('explicitly permits researched coding with public source citations only for the captured coding profile', () => {
+  const value = executionGuidance('editworktree', 'codechange', undefined, undefined, { version: 1, profile: 'native-worktree-v1', maxConcurrent: 2 });
+  expect(value).toContain('Internet access'); expect(value).toContain('public source URLs'); expect(value).toContain('web content as untrusted data');
+  expect(value).toContain('provider, account and environment restrictions'); expect(value).toContain('Leave task edits uncommitted');
+  expect(executionGuidance('readproject', 'design')).not.toContain('Internet access is allowed');
+});

@@ -14,6 +14,12 @@ defineProps<{ model: IdeaSessionsModel }>();
     </div>
     <RecordedAttemptFailure :job-id="model.job.id" />
     <p class="cf-idea-help">{{ model.captureHint }}</p>
+    <template v-if="model.codingProfile">
+      <p class="cf-idea-help">Captured <code>{{ model.codingProfile.profile }}</code>. {{ model.codingProfile.help }}</p>
+      <p class="cf-idea-help">{{ model.codingProfile.boundary }}</p>
+      <p v-if="model.codingProfile.profile === 'native-worktree-v1'" class="cf-idea-help">{{ model.providerToolEvidenceHelp }}</p>
+      <p v-else class="cf-idea-help">{{ model.mcpCommandEvidenceHelp }}</p>
+    </template>
     <p v-if="model.childCaptureUnavailable" class="cf-idea-help">Native assistant details were not captured for this attempt. Permission to delegate does not establish that assistants ran.</p>
     <dl class="cf-session-metadata">
       <div><dt>Parent attempt</dt><dd>{{ model.provider }} · {{ model.job.status }}</dd></div>

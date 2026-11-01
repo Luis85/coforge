@@ -25,14 +25,14 @@ export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWork
     const capture = captureFactory(files, hooks, provider);
     const restrictedCapture = async (executable: string, args: readonly string[], options: ProcessOptions) => {
       const restricted = [...args];
-      if (provider === 'claude') {
+      if (provider === 'claude' && request.input.workflow.worktreeCoding?.profile !== 'native-worktree-v1') {
         const at = restricted.indexOf('--disallowedTools');
         if (at < 0) throw new Error('The restricted Claude tool policy is unavailable.');
         restricted[at + 1] += ',Read(**/.coforge/**),Edit(**/.coforge/**),Write(**/.coforge/**)';
       }
       try { return await capture(executable, restricted, { ...options, timeoutMs: undefined }); }
       catch (error) {
-        if (error instanceof WorkerOwnershipUnknown) { uncertain = true; throw new ProcessOwnershipUnknown(error.output ?? '', undefined, providerFailureInfo(error)); }
+        if (error instanceof WorkerOwnershipUnknown) { uncertain = true; throw new ProcessOwnershipUnknown(error.output ?? '', undefined, providerFailureInfo(error), error.ownership); }
         throw error;
       }
     };
@@ -57,7 +57,7 @@ export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWork
     try { return provider === 'claude' ? await runBackgroundClaude(input, scoped, files, restrictedCapture, protectedPaths, hooks.activity) : await runCodexStage(input, scoped, restrictedCapture, protectedPaths, hooks.activity); }
     catch (error) { if (uncertain || error instanceof ProcessOwnershipUnknown) {
       const failure = providerFailureInfo(error);
-      throw new WorkerOwnershipUnknown(failure ? providerFailureMessage(failure, true) : 'Provider termination remains unverified.', failure, error instanceof ProcessOwnershipUnknown ? error.output : undefined);
+      throw new WorkerOwnershipUnknown(failure ? providerFailureMessage(failure, true) : 'Provider termination remains unverified.', failure, error instanceof ProcessOwnershipUnknown ? error.output : undefined, error instanceof ProcessOwnershipUnknown ? error.ownership : undefined);
     } throw error; }
   };
 }

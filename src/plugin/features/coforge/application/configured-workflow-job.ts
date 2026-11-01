@@ -11,6 +11,7 @@ import { workflowAttemptWorkspace } from '../domain/workflow-execution-step';
 import { workflowRunOwner } from './workflow-run-owner';
 import { effectivePolishingIdea } from './polishing-amendments';
 import { providerFailureFor, providerFailureInfo, providerFailureMessage } from '../domain/provider-failure';
+import { workerBackedJob } from './workflow-job-lanes';
 
 const now = () => new Date().toISOString();
 export function configuredJobInput(state: InternalState, job: AgentJob, signal?: AbortSignal, start = true): StageInput | null {
@@ -18,7 +19,7 @@ export function configuredJobInput(state: InternalState, job: AgentJob, signal?:
   const current = state.jobs.find(item => item.id === job.id);
   if (!current || current.status !== 'queued') return null;
   const { idea, run, attempt, snapshot } = configuredAttempt(state, current);
-  if (snapshot.step.execution && state.runtime.durableBuild?.ready === false) throw new DurableBuildCapacityError(state.runtime.durableBuild.message || 'The background worker must be checked before queued Builds can start.');
+  if (workerBackedJob(current) && state.runtime.durableBuild?.ready === false) throw new DurableBuildCapacityError(state.runtime.durableBuild.message || 'The background worker must be checked before queued Builds can start.');
   configuredRuntime(state, idea, snapshot.step, run.external, !!snapshot.polishingId && snapshot.step.output !== 'codechange');
   const project = findProject(state, run.projectId);
   if (run.projectContext && (run.projectContext.projectPath !== project.projectPath || run.projectContext.worktreeFolder !== project.worktreeFolder)) throw new Error('This run’s project directory changed. Stop and start a fresh workflow.');

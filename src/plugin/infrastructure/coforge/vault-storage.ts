@@ -84,7 +84,7 @@ export class VaultStudioStorage implements StudioStorage {
       try {
         const idea = readIdeaNote(await this.plugin.app.vault.cachedRead(file));
         if (!idea) continue;
-        notes.push(idea); this.paths.set(idea.id, file.path); this.loadedNotes.set(idea.id, idea);
+        notes.push(idea); this.paths.set(idea.id, file.path); this.loadedNotes.set(idea.id, structuredClone(idea));
       } catch { invalidNotes.push(file.path); }
     }
     const { projects, invalid } = await this.projects.load();

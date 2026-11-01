@@ -23,10 +23,19 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
     </p>
     <p v-if="model.providerContextHelp" class="cf-settings-help">{{ model.providerContextHelp }}</p>
     <WorkflowBackgroundRetryHistory :run="run" />
+    <section v-if="model.codingProfiles.length" aria-label="Captured attempt coding profiles">
+      <h3>Admitted coding profiles</h3>
+      <p class="cf-settings-help">These profiles belong to the recorded attempts. Current workflow settings do not reinterpret an earlier admission.</p>
+      <details v-for="profile in model.codingProfiles" :key="profile.id" class="cf-idea-evidence" :data-coding-profile="profile.profile">
+        <summary>{{ profile.stepName }} · {{ profile.provider }} · {{ profile.title }}<span class="cf-idea-run-meta">Attempt <code>{{ profile.attemptId }}</code></span></summary>
+        <p v-if="profile.profile !== 'legacy'" class="cf-settings-help">Captured profile <code>{{ profile.profile }}</code>.</p>
+        <p class="cf-settings-help">{{ profile.help }}</p><p v-if="profile.assistants" class="cf-settings-help">{{ profile.assistants }}</p><p v-if="profile.boundary" class="cf-settings-help">{{ profile.boundary }}</p>
+      </details>
+    </section>
     <section v-if="model.nativePolicies.length" aria-label="Captured native tool policies">
-      <h3>Captured native tools</h3>
-      <dl class="cf-settings-runtime-list"><div v-for="policy in model.nativePolicies" :key="policy.id"><dt>{{ policy.name }}</dt><dd><span v-if="policy.tools.delegation">Provider-native assistants · maximum {{ policy.tools.delegation.maxConcurrent }} concurrent. </span><span v-if="policy.tools.verification">Requested verification commands: {{ policy.tools.verification.commandIds.join(', ') }}.</span></dd></div></dl>
-      <p class="cf-settings-help">Each admitted attempt separately captures the host-granted command definitions. Activity retains its exact permissions and observed outcomes. This policy does not prove execution or acceptance.</p>
+      <h3>Saved requested tool options</h3>
+      <dl class="cf-settings-runtime-list"><div v-for="policy in model.nativePolicies" :key="policy.id"><dt>{{ policy.name }}</dt><dd><span v-if="policy.tools.delegation">Saved native assistant limit · {{ policy.tools.delegation.maxConcurrent }} concurrent. </span><span v-if="policy.tools.verification">Saved isolated command selections: {{ policy.tools.verification.commandIds.join(', ') }}.</span></dd></div></dl>
+      <p class="cf-settings-help">Saved options are distinct from admitted capabilities. A new coding profile can retain legacy command selections without using them. Activity retains each attempt’s actual profile and observed outcomes.</p>
     </section>
     <section v-if="model.coworkers.length" aria-label="Captured CoWorkers">
       <h3>Captured CoWorkers</h3>

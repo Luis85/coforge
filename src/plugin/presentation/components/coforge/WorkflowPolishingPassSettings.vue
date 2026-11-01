@@ -39,7 +39,7 @@ const fields = usePolishingPassSettings();
         <label class="cf-workflow-check"><input v-model="fields.budgetEnabled" type="checkbox" aria-label="Override improvement code budget" />Override code budget</label>
         <label v-if="fields.budgetEnabled" class="cf-field"><span>Code budget · USD</span><input v-model.number="fields.budget" aria-label="Improvement code budget USD" data-workflow-field="improvementPass.execution.maxBudgetUsd" type="number" min="0.1" max="10000" step="0.01" required /></label>
       </details>
-      <WorkflowNativeTools :subject="fields.pass" prefix="Improvement" />
+      <WorkflowNativeTools :subject="fields.pass" prefix="Improvement" :effective-provider="fields.coworker.effective?.provider" :provider-resolved="fields.coworker.mode === 'manual' || !!fields.coworker.selected" />
     </template>
   </section>
 </template>
