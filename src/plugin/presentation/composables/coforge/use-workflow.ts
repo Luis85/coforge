@@ -14,6 +14,7 @@ import { useStudioActions } from "./use-studio-actions";
 import { workflowProviderSummary } from "./agent-labels";
 import { reviewedBackgroundRetryRequired } from './background-build-retry-display';
 import { nextWorkflowStep, onlyOwnerScreeningRemains, exemptScreeningStep } from '../../../features/coforge/domain/owner-screening';
+import { failedWorkflowJobId } from './attempt-failure-evidence';
 import {
   configuredAgentLabel,
   configuredStepProblem,
@@ -147,6 +148,7 @@ export function useWorkflow(ideaId?: () => string | undefined) {
     changeNudgeRecovery: (event: Event) => { const target = event.target; if (target && 'checked' in target && typeof target.checked === 'boolean') nudgeRecoveryConsent.value = target.checked; },
     acknowledgeNudge: () => { if (selected.value && run.value) perform(() => actions.acknowledgeWorkflowNudge(selected.value!.id, run.value!.revision, nudgeRecoveryConsent.value)); },
     blocked,
+    failureJobId: computed(() => failedWorkflowJobId(run.value, store.projectJobs, selected.value?.id)),
     paused: computed(() => settings.value.paused),
     intervalSeconds: computed(
       () => savedDefinition.value.limits.intervalSeconds,

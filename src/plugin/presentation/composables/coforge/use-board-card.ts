@@ -6,6 +6,7 @@ import { useStudioActions } from './use-studio-actions';
 import { currentDesignSpecification } from './use-idea-design';
 import { ideaSessionJobs } from './agent-session-display';
 import { polishingCardState } from './polishing-card-state';
+import { attemptFailureEvidence, failedWorkflowJobId } from './attempt-failure-evidence';
 
 /** Voter ids the studio uses for the streamer across chat sources. */
 const STREAMER_VOTERS = ['local:streamer', 'streamer', 'simulator:streamer'];
@@ -57,6 +58,7 @@ export function useIdeaCard(props: { idea: Idea }) {
     sessionSummary: computed(() => runningSessions.value ? `${runningSessions.value} parent running` : `${sessions.value.length} parent ${sessions.value.length === 1 ? 'attempt' : 'attempts'}`),
     sessions: () => { store.select(props.idea.id, 'sessions'); },
     state: computed(() => cardState(props.idea, job.value)),
+    failureSummary: computed(() => attemptFailureEvidence(store.state, failedWorkflowJobId(props.idea.workflowRun, sessions.value, props.idea.id))?.summary ?? ''),
     polishingState: computed(() => polishingCardState(props.idea, store.state?.jobs ?? [], store.state?.runtime)),
     authorName,
     authorInitials: computed(() => initials(authorName.value)),

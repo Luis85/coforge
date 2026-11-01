@@ -31,6 +31,10 @@
 .cf-studio pre.cf-session-message { margin: var(--cf-space-sm) 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: var(--font-ui-smaller)/1.8 var(--font-interface); color: var(--cf-text); background: none; padding: 0; user-select: text; }
 .cf-session-notice { color: var(--cf-text); font-size: var(--font-ui-smaller); line-height: 1.7; padding: var(--cf-space-sm); background: var(--cf-surface); border-radius: var(--radius-s); }
 .cf-session-links { display: flex; flex-wrap: wrap; gap: var(--cf-space-sm); }
+.cf-attempt-failure { border-block: 1px solid var(--cf-border); padding-block: var(--cf-space-md); overflow-wrap: anywhere; }
+.cf-attempt-failure h4, .cf-attempt-failure p { margin: 0 0 var(--cf-space-sm); }
+.cf-attempt-resources { margin: var(--cf-space-md) 0; padding-left: var(--cf-space-lg); font-size: var(--font-ui-smaller); line-height: 1.8; }
+.cf-card-failure-note { margin: var(--cf-space-sm) 0 0; color: var(--cf-muted); font-size: var(--font-ui-smaller); line-height: 1.7; overflow-wrap: anywhere; }
 @container plugin-shell-leaf (max-width: 800px) {
   .cf-session-layout { grid-template-columns: minmax(0, 1fr); }
   .cf-session-list { max-height: 180px; border-bottom: 1px solid var(--cf-border); }

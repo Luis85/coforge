@@ -25,6 +25,7 @@ export const sessionProviderLabel = (job: AgentJob) => ({ claude: 'Claude Code',
 export function sessionCaptureHint(job: AgentJob, trace?: AgentSessionTrace): string {
   if (job.provider === 'demo' || job.conversation?.simulated) return 'Simulation · No native provider session or live capture.';
   if (job.provider === 'mcp' || job.provider === 'herdr') return 'External execution · Detailed session visibility is unavailable here.';
+  if (!trace && ['failed', 'cancelled'].includes(job.status)) return 'No detailed session capture was recorded. The failure panel identifies the evidence retained for this attempt.';
   return trace ? 'Observed public messages, tool names and session status. This is a bounded capture, not the complete provider conversation.' : ['queued', 'running'].includes(job.status) ? 'No observations captured yet. Detailed provider output is not available for this attempt.' : 'No detailed session capture was recorded for this attempt. Activity retains any captured task and final response.';
 }
 export interface ObservedSessionChild { id: string; parentId: string; label: string; status: string }

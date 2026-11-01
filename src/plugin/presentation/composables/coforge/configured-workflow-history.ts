@@ -48,6 +48,7 @@ export function workflowAttemptRows(ideas: Idea[], jobs: AgentJob[]) {
               ...(job?.logs ?? []),
               ...(attempt.note ? [attempt.note] : []),
               ...(attempt.error ? [attempt.error] : []),
+              ...(job?.error && job.error !== attempt.error ? [job.error] : []),
             ].join("\n") || "No additional notes.",
         };
       }),

@@ -19,6 +19,7 @@ import { obsSetupStateCheck } from './obs-setup-check';
 import { twitchOperationsCheck } from './twitch-operations-validation';
 import { agentConversationCheck } from './agent-conversation';
 import { agentSessionTraceCheck } from './agent-session';
+import { providerFailureInfoCheck } from './provider-failure';
 import { workflowVerificationProfileCheck } from './native-workflow-tools';
 import { workflowVerificationRecordsCheck, workflowVerificationRuntimeRecordsCheck } from './workflow-verification';
 import { incrementStateCheck as increment } from './increment-state';
@@ -41,6 +42,7 @@ function dictionary<T>(item: Check<T>): Check<Record<string, T>> {
 }
 
 const job: Check<AgentJob> = shape({
+  failure: optional(providerFailureInfoCheck),
   sessionTrace: optional(agentSessionTraceCheck),
   nativeRuntime: optional(nativeWorkflowPrivateRuntimeCheck),
   nativeProcess: optional(nativeWorkflowProcessRecordCheck),

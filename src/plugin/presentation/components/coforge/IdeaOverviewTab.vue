@@ -8,11 +8,13 @@ import { screeningProviderLabel } from '../../composables/coforge/agent-labels';
 import RequestValuesPanel from './RequestValuesPanel.vue';
 import CurrentPolishedResult from './CurrentPolishedResult.vue';
 import PolishingActionButton from './PolishingActionButton.vue';
+import RecordedAttemptFailure from './RecordedAttemptFailure.vue';
 
 defineProps<{ idea: Idea }>();
 const model = useIdeaDrawerContext();
 </script>
 <template>
+  <RecordedAttemptFailure v-if="model.failureJobId" :job-id="model.failureJobId" />
   <PolishingActionButton :idea-id="idea.id" />
   <CurrentPolishedResult :idea="idea" />
   <section class="cf-idea-section">

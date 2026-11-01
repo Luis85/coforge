@@ -62,3 +62,24 @@ it('rolls back a failed private Apply write, retaining the pending review and it
     expect(f.kit.read(f.file.path)).toBe(note); expect(f.kit.read(f.storage.dataPath)).toBe(data); expect(f.current().polishingRuns?.[0]?.review).toBe('pending'); expect(observer).not.toHaveBeenCalled(); unsubscribe();
   } finally { await f.engine.stop(); vi.restoreAllMocks(); }
 });
+
+it('preserves a second external note edit when startup recovery was based on an earlier loaded snapshot', async () => {
+  const f = await ready(true);
+  try {
+    const calls = f.runner.mock.calls.length;
+    const preview = await f.engine.previewPolishingPass(f.ideaId, 'Clarify the design.');
+    await f.engine.confirmPolishingPass(f.ideaId, preview.id, consent);
+    const original = f.kit.read(f.file.path);
+    const external = original.replace(/^title:.*$/mu, 'title: Outside edit after startup read');
+    expect(external).not.toBe(original);
+    const data = f.kit.read(f.storage.dataPath);
+    const storage = new VaultStudioStorage(f.plugin); const load = storage.load.bind(storage);
+    vi.spyOn(storage, 'load').mockImplementation(async () => {
+      const observed = await load(); await f.app.vault.modify(f.file, external); return observed;
+    });
+    const reloaded = new StudioStore(storage);
+    await expect(reloaded.init()).rejects.toThrow('changed outside this save');
+    expect(f.kit.read(f.file.path)).toBe(external); expect(f.kit.read(f.storage.dataPath)).toBe(data);
+    expect(reloaded.ready).toBe(false); expect(f.runner).toHaveBeenCalledTimes(calls);
+  } finally { await f.engine.stop(); vi.restoreAllMocks(); }
+});

@@ -274,7 +274,7 @@ it("uses configured output/access independently of legacy IDs and keeps sequenti
       },
       workspaces,
     ),
-  ).rejects.toThrow("schema validation");
+  ).rejects.toMatchObject({ failure: { code: 'output_validation' } });
   expect(input.onChanges).toHaveBeenLastCalledWith(
     expect.objectContaining({
       diff: expect.stringContaining("+partial actual edit"),
@@ -298,7 +298,7 @@ it("uses configured output/access independently of legacy IDs and keeps sequenti
       },
       workspaces,
     ),
-  ).rejects.toThrow("Run cancelled.");
+  ).rejects.toMatchObject({ failure: { code: 'cancelled' } });
   expect(input.onChanges).toHaveBeenLastCalledWith(
     expect.objectContaining({
       diff: expect.stringContaining("+cancelled actual edit"),

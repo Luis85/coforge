@@ -8,6 +8,7 @@ import { requestObjectPropertyKeys } from "../../features/coforge/domain/request
 import { requestObjectEditIdentity } from "../../features/coforge/domain/request-object-integrity";
 import type { Idea } from "../../features/coforge/domain/types";
 import type { NoteIdea } from "../../features/coforge/application/ports";
+import { assertIdeaWriteIdentity } from './idea-note-write-identity';
 
 /** Rewrite only managed YAML ranges; unrelated frontmatter and the entire Markdown body stay byte-identical. */
 export function writeManagedIdeaProperties(current: string, idea: Idea, author: string): string {
@@ -65,6 +66,8 @@ export async function writeRequestValuesNote(
   author: string,
   expectedInputIdentity: string,
   read: (content: string) => NoteIdea | null,
+  expected?: NoteIdea,
+  record?: (bytes: string) => void,
 ): Promise<() => Promise<void>> {
   let before = "";
   let after = "";
@@ -92,7 +95,9 @@ export async function writeRequestValuesNote(
           "The request note changed outside this form. Refresh and review it before saving; no values were overwritten.",
         );
       before = current;
+      if (expected) assertIdeaWriteIdentity(source, expected);
       after = writeManagedIdeaProperties(current, idea, author);
+      record?.(after);
       return after;
     });
   } catch (error) {

@@ -8,6 +8,7 @@ import type { InternalState, StageResult } from './ports';
 import { appendWorkflowArtifact, configuredChanges, projectWorkflowChanges } from './configured-workflow-policy';
 import { failConfiguredJob } from './configured-workflow-job';
 import { currentWorkspaceAttempt, workflowAttemptWorkspace } from '../domain/workflow-execution-step';
+import { assignProviderFailure } from '../domain/provider-failure';
 
 /** Retain independently captured evidence even after Stop; advancement is a separate guarded operation. */
 export function projectDurableBuild(state: InternalState, job: AgentJob, snapshot: DurableBuildSnapshot, complete: (state: InternalState, job: AgentJob, result: StageResult) => void): void {
@@ -15,6 +16,7 @@ export function projectDurableBuild(state: InternalState, job: AgentJob, snapsho
   if (snapshot.conversation) job.conversation = structuredClone(snapshot.conversation);
   if (snapshot.verification) job.verification = structuredClone(snapshot.verification);
   if (snapshot.sessionTrace) job.sessionTrace = structuredClone(snapshot.sessionTrace);
+  if (snapshot.failure) job.failure = structuredClone(snapshot.failure);
   const cost = snapshot.costUsd ?? snapshot.result?.costUsd;
   if (cost !== undefined) job.costUsd = Math.max(job.costUsd ?? 0, cost);
   const usage = snapshot.usage ?? snapshot.result?.usage;
@@ -56,5 +58,6 @@ export function projectDurableBuild(state: InternalState, job: AgentJob, snapsho
     } catch {
       failConfiguredJob(state, job, false, new Error('The original request or execution changed. Its worker result was preserved; review the original work before starting again.'));
     }
-  } else failConfiguredJob(state, job, snapshot.phase === 'cancelled' || job.durable?.intent === 'cancel', new Error(snapshot.error ?? 'Background Build stopped. Inspect its preserved worktree before retrying.'));
+  } else { const error = new Error(snapshot.error ?? 'Background Build stopped. Inspect its preserved worktree before retrying.');
+    failConfiguredJob(state, job, snapshot.phase === 'cancelled' || job.durable?.intent === 'cancel', snapshot.failure ? assignProviderFailure(error, snapshot.failure) : error); }
 }

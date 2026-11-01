@@ -1,0 +1,12 @@
+.cf-idea-cost-summary, .cf-idea-cost-detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: var(--cf-space-md); margin: var(--cf-space-lg) 0; }
+.cf-idea-costs :is(dt, small) { color: var(--cf-muted); font-size: var(--font-ui-smaller); line-height: 1.7; }
+.cf-idea-costs dd { margin: var(--cf-space-xs) 0 0; overflow-wrap: anywhere; }
+.cf-idea-cost-summary dd { font-variant-numeric: tabular-nums; }
+.cf-idea-cost-attempts { list-style: none; padding: 0; margin: var(--cf-space-md) 0; }
+.cf-idea-cost-attempts summary { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--cf-space-md); }
+.cf-idea-cost-attempts summary > span { min-width: 0; overflow-wrap: anywhere; }
+.cf-idea-cost-attempts summary > span:last-child { text-align: right; }
+.cf-idea-cost-attempts small { display: block; }
+.cf-idea-costs .cf-ai-token-totals { grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); }
+.cf-idea-costs .cf-ai-token-totals :is(dd, strong) { overflow-wrap: anywhere; }
+.cf-idea-costs .cf-ai-token-totals small { display: block; margin-top: var(--cf-space-xs); }

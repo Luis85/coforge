@@ -41,6 +41,16 @@ Deletion binds state plus whole-note fingerprints, rechecks readiness, preserves
 
 ## Evidence and untested scope
 
-Ignored evidence: reports/ui-gallery/, reports/obsidian/ and .obsidian-sandbox/logs/. Original note-path mappings and recovery copies live under CoForge/Recovery/RequestDeletion in the user's vault when this action is used. No personal vault, live Twitch mutation, paid provider inference, actual game build, release, push or commit was used for this change.
+Ignored evidence: reports/ui-gallery/, reports/obsidian/ and .obsidian-sandbox/logs/. Original note-path mappings and recovery copies live under CoForge/Recovery/RequestDeletion in the user's vault when this action is used. Qualification used no personal vault, live Twitch mutation, paid provider inference, actual game build or release.
 
 Local Node is 24.20.0; .nvmrc pins 24.21.0. The full product suite reports 6 existing skips; no new skipped or TODO tests were added. All required current-source gates passed. No dependencies, test thresholds, host guards or screenshot baselines were changed to obtain these results.
+
+## Integration with current main
+
+After local qualification, main advanced through PR #65 (3c757207). Its committed
+note-write trust, typed failure evidence and request AI costs are retained. Merge
+resolutions preserve both owner integrity metadata and normalized note inputs,
+both save-option contracts, and deletion-event suppression around the new committed
+write observer. The local full results above precede this integration; combined
+source qualification and the complete GitHub check/browser/native jobs must pass
+before merge.

@@ -2,6 +2,7 @@ import type { AgentConversationEvent } from '../../features/coforge/domain/agent
 import { redact } from './process';
 import { CodexEventScope } from '../../features/coforge/application/codex-events';
 import { record } from '../../features/coforge/domain/check';
+import { persistProviderEvidence } from './provider-evidence';
 
 /** Extract only completed, user-visible assistant messages; never retain the raw event stream or reasoning. */
 export async function captureCodexResponse(
@@ -22,5 +23,5 @@ export async function captureCodexResponse(
   }
   if (!messages.length) return;
   const text = messages.length === 1 ? messages[0]! : JSON.stringify({ messages }, null, 2);
-  await capture({ kind: 'response', text: redact(text, { ...process.env, ...environment }) });
+  await persistProviderEvidence(() => capture({ kind: 'response', text: redact(text, { ...process.env, ...environment }) }));
 }
