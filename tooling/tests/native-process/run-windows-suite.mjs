@@ -26,7 +26,7 @@ if (isAdmin) {
   await run(join(system, 'System32/icacls.exe'), [root, '/grant', `*${user}:(OI)(CI)M`, '/T', '/Q'], { timeout: 120000 });
   executable = join(target, 'RestrictedAcceptance.exe');
   await run(join(system, 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'), ['/nologo', '/target:exe', '/out:' + executable,
-    join(root, 'tooling/tests/native-process/restricted-test-runner.cs'), join(root, 'tooling/tests/native-process/restricted-test-desktop.cs')], { env: environment, timeout: 20000 });
+    ...['restricted-test-runner.cs', 'restricted-test-desktop.cs', 'restricted-test-token.cs', 'restricted-test-probe.cs'].map(file => join(root, 'tooling/tests/native-process', file))], { env: environment, timeout: 20000 });
   args = [process.execPath, vitest, root];
 }
 const child = spawn(executable, args, { cwd: root, env: environment, windowsHide: true, stdio: 'inherit', shell: false });

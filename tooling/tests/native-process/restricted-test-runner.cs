@@ -48,6 +48,18 @@ internal static class RestrictedAcceptance {
    AssertNormalToken(token);
    // Hosted administrator desktops need not grant a filtered token the rights required by CLR initialization.
    desktop=new RestrictedTestDesktop();
+   Console.WriteLine("Native original token: "+RestrictedTestToken.Describe(original));
+   Console.WriteLine("Native filtered token before normalization: "+RestrictedTestToken.Describe(token));
+   RestrictedTestProbe.Run(token,desktop.Name,args[0],args[2],"before-owned");
+   RestrictedTestProbe.Run(token,"winsta0\\default",args[0],args[2],"before-default");
+   RestrictedTestToken.Normalize(token,false);AssertNormalToken(token);
+   Console.WriteLine("Native filtered token after DACL normalization: "+RestrictedTestToken.Describe(token));
+   RestrictedTestProbe.Run(token,desktop.Name,args[0],args[2],"dacl-owned");
+   RestrictedTestProbe.Run(token,"winsta0\\default",args[0],args[2],"dacl-default");
+   RestrictedTestToken.Normalize(token,true);AssertNormalToken(token);
+   Console.WriteLine("Native filtered token after normalization: "+RestrictedTestToken.Describe(token));
+   RestrictedTestProbe.Run(token,desktop.Name,args[0],args[2],"after-owned");
+   RestrictedTestProbe.Run(token,"winsta0\\default",args[0],args[2],"after-default");
    var startup=new Startup{cb=Marshal.SizeOf(typeof(Startup)),desktop=desktop.Name,flags=0x100,stdin=GetStdHandle(-10),stdout=GetStdHandle(-11),stderr=GetStdHandle(-12)};
    var argv=new StringBuilder(Quote(args[0])+" "+Quote(args[1])+" run --config configs/testing/vitest.native-process.config.mjs");
    Check(CreateProcessAsUser(token,args[0],argv,IntPtr.Zero,IntPtr.Zero,true,0,IntPtr.Zero,args[2],ref startup,out child));
