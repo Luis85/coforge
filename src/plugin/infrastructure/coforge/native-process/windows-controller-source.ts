@@ -25,11 +25,22 @@ internal static class Controller {
   using(var stream=new FileStream(pending,FileMode.CreateNew,FileAccess.Write,FileShare.None)){new DataContractJsonSerializer(typeof(Receipt)).WriteObject(stream,receipt);stream.Flush(true);}
   File.Move(pending,target);
  }
+ static int Identity(string[] args) {
+  int pid;if(args.Length!=2||!Int32.TryParse(args[1],out pid)||pid<1)return 64;
+  var process=Native.OpenProcess(0x101000,false,pid);
+  if(process==IntPtr.Zero){if(Marshal.GetLastWin32Error()==87){Console.Write("null");return 0;}Native.Check(false);}
+  try {
+   var state=Native.WaitForSingleObject(process,0);if(state==0){Console.Write("null");return 0;}if(state!=258)throw new IOException();
+   var identity=new ProcessIdentityRecord{pid=pid,birth=Native.Birth(process).ToString(),imagePath=Native.ImagePath(process)};
+   new DataContractJsonSerializer(typeof(ProcessIdentityRecord)).WriteObject(Console.OpenStandardOutput(),identity);return 0;
+  }finally{Native.Close(ref process);}
+ }
  static int Recover(string[] args) {
-  if(args.Length!=5)return 64;directory=args[1];authority=ReadJson<Authority>(File.ReadAllText(Path.Combine(directory,"owner.json")));
+  if(args.Length!=5&&args.Length!=6)return 64;directory=args[1];authority=ReadJson<Authority>(File.ReadAllText(Path.Combine(directory,"owner.json")));
   originalPid=Int32.Parse(args[2]);originalBirth=args[3];
   owner=Native.OpenProcess(0x101001,false,originalPid);Native.Check(owner!=IntPtr.Zero);
-  if(Native.Birth(owner).ToString()!=originalBirth||Native.Image(owner)!=args[4])return 73;
+  // The host has matched the existing JavaScript image fingerprint. Hold this same birth/path through termination.
+  if(Native.Birth(owner).ToString()!=originalBirth||(args.Length==6?!String.Equals(Native.ImagePath(owner),args[5],StringComparison.Ordinal):Native.Image(owner)!=args[4]))return 73;
   job=Native.OpenJobObject(0x10000C,false,JobName());Native.Check(job!=IntPtr.Zero);
   Native.Check(Native.TerminateJobObject(job,130));Native.Check(Native.TerminateProcess(owner,130));Native.Check(Native.WaitForSingleObject(owner,5000)==0);
   var until=DateTime.UtcNow.AddSeconds(8);while(Active()!=0&&DateTime.UtcNow<until)Thread.Sleep(20);
@@ -83,6 +94,7 @@ internal static class Controller {
   receipt=new Receipt{rootExitCode=-1,reason="start-failed",proof="controller",activeProcesses=-1};
   try {
    if(args.Length==1&&args[0]=="--probe")return Native.Elevated()?74:0;
+   if(args.Length>0&&args[0]=="--identity")return Identity(args);
    if(args.Length>0&&args[0]=="--recover"){recovering=true;return Recover(args);}
    if(args.Length!=1)return 64;directory=args[0];authority=ReadJson<Authority>(File.ReadAllText(Path.Combine(directory,"owner.json")));
    if(authority==null||authority.version!=1||authority.kind!="windows-job"||authority.directory!=directory||authority.ownerToken.Length!=64)return 64;

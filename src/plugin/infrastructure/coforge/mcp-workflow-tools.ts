@@ -50,15 +50,19 @@ export class McpWorkflowTools {
   private task(projectId: string, taskId: string) {
     const queued = this.studio.state().jobs.find(job => job.id === taskId && job.projectId === projectId && job.provider === 'mcp' && job.status === 'queued');
     if (queued) throw new McpToolError('TASK_NOT_READY', 'The task is queued behind another active invocation. Wait before polling again.', 'coforge_step_context', 1000);
-    const task = this.runner.task(projectId, taskId);
     const state = this.studio.store.internalSnapshot();
     const job = state.jobs.find(item => item.id === taskId && item.projectId === projectId && item.provider === 'mcp' && item.status === 'running');
     if (!job) throw new Error('This MCP attempt is no longer active.');
     configuredAttempt(state, job);
+    const task = this.preparedTask(projectId, taskId);
     const project = findProject(state, projectId);
     if (project.unavailable || task.input.integration.projectPath !== project.projectPath || task.input.integration.worktreeFolder !== project.worktreeFolder ||
       (task.input.workflow?.step.access === 'editworktree' && !project.allowImplementation)) throw new Error('The project permission or directory changed.');
     return task;
+  }
+  private preparedTask(projectId: string, taskId: string) {
+    try { return this.runner.task(projectId, taskId); }
+    catch { throw new McpToolError('TASK_NOT_READY', 'This active attempt is preparing its workspace or finalizing its result. Wait before polling again; keep the same task identity.', 'coforge_step_context', 1000); }
   }
   private waitForResult(taskId: string): Promise<void> {
     const finished = () => !this.studio.state().jobs.some(job => job.id === taskId && ['queued', 'running'].includes(job.status));

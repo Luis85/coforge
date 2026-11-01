@@ -14,16 +14,16 @@ import type { McpCodingCommands, McpCommandOutcome } from '../../../features/cof
 
 const stops: Array<() => Promise<void>> = [];
 afterEach(async () => { for (const stop of stops.splice(0)) await stop(); });
-async function fixture(commands?: McpCodingCommands) {
+async function fixture(commands?: McpCodingCommands, workspaceReady: Promise<void> = Promise.resolve()) {
   const state = createSeed();
   state.settings = { ...state.settings, provider: 'claude', paused: true, minVotes: 0 };
   const captures: string[] = [];
   const workspaces: WorkflowWorkspaces = {
     start: async () => {}, acknowledge: async () => {}, assertReviewable: async () => {},
-    acquire: async () => ({ id: 'workspace-one', cwd: '/bounded', capture: async summary => {
+    acquire: async () => { await workspaceReady; return { id: 'workspace-one', cwd: '/bounded', capture: async summary => {
       captures.push(summary);
       return { summary, files: [{ path: 'game.ts', additions: 1, deletions: 0 }], diff: '+lantern', tests: ['Not run'], createdAt: new Date().toISOString(), simulated: false };
-    }, release: async () => {} }),
+    }, release: async () => {} }; },
   };
   const runner = new McpStepRunner(workspaces, nodeTimers(), commands);
   const studio = new StudioService(new MemoryStorage(state), { runners: { demo: async () => { throw new Error('Native runner must not run'); }, claude: async () => { throw new Error('Native runner must not run'); }, mcp: input => runner.run(input) }, timers: nodeTimers(),
@@ -52,6 +52,17 @@ it('does not expose operator Restart or allow an external agent to release a sto
   expect(f.studio.state().workflowStopHolds).toContain(f.idea.id);
   expect(f.studio.state().ideas.find(idea => idea.id === f.idea.id)?.status).toBe('inbox');
   expect(f.studio.state().jobs).toHaveLength(count);
+});
+it('returns a typed retry while a running external task is still acquiring its workspace', async () => {
+  let release = () => {};
+  const ready = new Promise<void>(resolve => { release = resolve; }); const f = await fixture(undefined, ready);
+  try {
+    const admitted = record(await f.tools.call(f.projectId, 'coforge_begin_step', { ideaId: f.idea.id })); const taskId = String(admitted.taskId);
+    await expect.poll(() => f.studio.state().jobs.find(job => job.id === taskId)?.status).toBe('running');
+    await expect(f.tools.call(f.projectId, 'coforge_step_context', { taskId })).rejects.toMatchObject({ code: 'TASK_NOT_READY', nextTool: 'coforge_step_context', retryAfterMs: 1000 });
+    release(); await expect.poll(() => f.runner.tasks(f.projectId).some(task => task.taskId === taskId)).toBe(true);
+    expect(await f.tools.call(f.projectId, 'coforge_step_context', { taskId })).toMatchObject({ taskId, ideaId: f.idea.id });
+  } finally { release(); }
 });
 it('routes captured coding commands through the live task, provides compact status and preserves final human review', async () => {
   let outcome: McpCommandOutcome = { id: 'command', projectId: '', taskId: '', runId: '', attemptId: '', label: 'Checks', status: 'completed',

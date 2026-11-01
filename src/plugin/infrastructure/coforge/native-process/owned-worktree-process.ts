@@ -4,11 +4,12 @@ import { execFile } from 'node:child_process';
 import { setTimeout as deadlineTimer, clearTimeout } from 'node:timers';
 import { setTimeout as pause } from 'node:timers/promises';
 import type { NativeWorkflowLifetimeRef } from '../../../features/coforge/domain/native-workflow-lifetime';
-import { readNativeProcessIdentity, sameNativeProcessIdentity, type NativeProcessIdentity } from '../durable-worker/process-identity';
+import { sameNativeProcessIdentity, type NativeProcessIdentity } from '../durable-worker/process-identity';
 import { nativeSystemEnvironment, prepareWindowsJob, windowsControllerExecutable } from './windows-controller';
 import { inspectOwnedWorktreeLifetime, ownedLifetimeFiles, type OwnedProcessReason } from './lifetime-receipt';
 import { ownedNativeExecutable } from './native-executable';
 import { OwnedWorktreeError, type OwnedWorktreeFailureCode } from './errors';
+import { readWindowsNativeIdentity } from './windows-identity';
 export { inspectOwnedWorktreeLifetime } from './lifetime-receipt';
 export { OwnedWorktreeError } from './errors';
 
@@ -35,7 +36,7 @@ export async function startOwnedWorktreeProcess(executable: string, args: readon
   if (!Array.isArray(args) || args.some(value => typeof value !== 'string' || value.includes('\0')) || Buffer.byteLength(options.input ?? '') > 8 * 1024 * 1024) throw new OwnedWorktreeError('invalid_invocation');
   const command = await ownedNativeExecutable(executable); const cwd = await realpath(options.cwd).catch(() => { throw new OwnedWorktreeError('invalid_invocation'); });
   const prepared = await prepareWindowsJob(options.owner, options.signal); const startedAt = new Date().toISOString();
-  const parent = await readNativeProcessIdentity(process.pid); if (!parent) throw new Error('Original native command owner identity is unavailable.');
+  const parent = (await readWindowsNativeIdentity(prepared.executable, process.pid))?.identity; if (!parent) throw new Error('Original native command owner identity is unavailable.');
   const child = spawn(prepared.executable, [prepared.files.directory], { cwd: prepared.files.directory, env: options.env ?? nativeSystemEnvironment(), shell: false, windowsHide: true, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
   let identity: NativeProcessIdentity | undefined; let finished: OwnedWorktreeResult | undefined; let bootstrapped = false;
   let requested: 'cancelled' | 'timeout' | 'owner-lost' | undefined;
@@ -62,7 +63,7 @@ export async function startOwnedWorktreeProcess(executable: string, args: readon
   options.signal?.addEventListener('abort', abort, { once: true });
   if (options.signal?.aborted) abort();
   try {
-    identity = child.pid ? await readNativeProcessIdentity(child.pid) : undefined;
+    identity = child.pid ? (await readWindowsNativeIdentity(prepared.executable, child.pid))?.identity : undefined;
     if (!identity) throw new Error('Original native lifetime controller identity is unavailable.');
     await options.onStarted(identity, prepared.lifetime);
     const frame = { executable: command, args, cwd, input: Buffer.from(options.input ?? '').toString('base64'), parentPid: parent.pid, parentBirth: parent.birth, windowsVerbatimArguments: options.windowsVerbatimArguments === true };
@@ -90,10 +91,10 @@ export async function recoverOwnedWorktreeLifetime(identity: NativeProcessIdenti
   const known = await inspectOwnedWorktreeLifetime(identity, lifetime); if (known) return known;
   try {
     await ownedLifetimeFiles(lifetime);
-    const current = await readNativeProcessIdentity(identity.pid);
-    if (!current || !sameNativeProcessIdentity(identity, current)) return undefined;
     const executable = await windowsControllerExecutable();
-    await new Promise<void>((resolve, reject) => execFile(executable, ['--recover', lifetime.directory, String(identity.pid), identity.birth, identity.image],
+    const current = await readWindowsNativeIdentity(executable, identity.pid);
+    if (!current || !sameNativeProcessIdentity(identity, current.identity)) return undefined;
+    await new Promise<void>((resolve, reject) => execFile(executable, ['--recover', lifetime.directory, String(identity.pid), identity.birth, identity.image, current.imagePath],
       { env: nativeSystemEnvironment(), windowsHide: true, timeout: 15000, maxBuffer: 4000 }, error => error ? reject(new Error('Original native command recovery is unverified.')) : resolve()));
     return inspectOwnedWorktreeLifetime(identity, lifetime);
   } catch { return undefined; }

@@ -47,7 +47,8 @@ internal static class Native {
  internal static void Check(bool valid) { if(!valid) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()); }
  internal static void Close(ref IntPtr handle) { if(handle!=IntPtr.Zero) { CloseHandle(handle);handle=IntPtr.Zero; } }
  internal static long Birth(IntPtr process) { long birth,exit,kernel,user;Check(GetProcessTimes(process,out birth,out exit,out kernel,out user));return DateTime.FromFileTimeUtc(birth).Ticks; }
- internal static string Image(IntPtr process) {var path=new StringBuilder(32768);int size=path.Capacity;Check(QueryFullProcessImageName(process,0,path,ref size));using(var sha=System.Security.Cryptography.SHA256.Create()){return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(path.ToString().Normalize().ToLowerInvariant()))).Replace("-","").ToLowerInvariant();}}
+ internal static string ImagePath(IntPtr process) {var path=new StringBuilder(32768);int size=path.Capacity;Check(QueryFullProcessImageName(process,0,path,ref size));return path.ToString();}
+ internal static string Image(IntPtr process) {using(var sha=System.Security.Cryptography.SHA256.Create()){return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(ImagePath(process).Normalize().ToLowerInvariant()))).Replace("-","").ToLowerInvariant();}}
  internal static bool Elevated() { IntPtr token;Check(OpenProcessToken(GetCurrentProcess(),8,out token));try {int value,returned;Check(GetTokenInformation(token,20,out value,4,out returned));return value!=0;}finally{CloseHandle(token);} }
 }
 [DataContract] internal class Authority {
@@ -66,5 +67,9 @@ internal static class Native {
  [DataMember] public string controllerBirth,reason,finishedAt;
  [DataMember] public bool quiescent;
  [DataMember] public string proof;
+}
+[DataContract] internal class ProcessIdentityRecord {
+ [DataMember] public int pid;
+ [DataMember] public string birth,imagePath;
 }
 `;

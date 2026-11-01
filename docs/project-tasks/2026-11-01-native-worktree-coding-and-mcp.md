@@ -66,7 +66,7 @@ an agent. Platform support requires independent lifetime qualification.
 Implementation is committed and under final qualification in PR #66. Dedicated
 product, UX, engineering and independent release reviews are complete. Both
 installed native SDK coding/delegation canaries passed with zero real model calls.
-Windows ownership: 11 real tests passed; final UI quality: 8 passed; gallery:
+Windows ownership: 14 real tests passed (native Win32 identity, Unicode paths and tampered references included); final UI quality: 8 passed; gallery:
 40 reviewed captures with zero failures; final contained authoring/evidence:
 2 passed; fresh pinned Obsidian load/reload passed with errors [] and no console
 messages. A production MCP HTTPS probe fetched complete official documentation
