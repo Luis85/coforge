@@ -122,6 +122,8 @@ export class StudioStore {
       const previous = this.current();
       const next = structuredClone(previous);
       const result = await mutate(next);
+      const noteWriteInputs = options.fromNotes?.length ? Object.fromEntries(next.ideas.filter(idea => options.fromNotes?.includes(idea.id))
+        .map(idea => [idea.id, structuredClone(omit(idea, 'voters', 'increment'))])) : undefined;
       enforceWorkflowStopHolds(next);
       const { events, fromNotes } = prepareStudioCommit(previous, next, options);
       const revoked = previous.projects.filter(project => projectIsPublic({ projects: previous.projects }, project.id) && !projectIsPublic({ projects: next.projects }, project.id)).map(project => project.id);
@@ -133,7 +135,7 @@ export class StudioStore {
       mergeDenials();
       const release = await this.beforeCommit?.(next, previous);
       try {
-        await this.storage.save(next, previous, { ...options, ...(fromNotes ? { fromNotes } : {}) });
+        await this.storage.save(next, previous, { ...options, noteWriteInputs, ...(fromNotes ? { fromNotes } : {}) });
         mergeDenials();
         this.state = next;
         this.events.publish(events, ++this.revision);

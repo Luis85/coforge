@@ -3,7 +3,6 @@ import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 import { implementationOutput, planOutput, scoreOutput, screeningOutput, stageInput } from '../../features/coforge/application/agent-prompts';
 import { buildClaudeArgs, parseClaudeEnvelope, reportedClaudeCost, reportedClaudeUsage, supportsRequiredVersion } from '../../features/coforge/application/claude-protocol';
-import { claudeFailureMessage } from '../../features/coforge/application/claude-failure';
 import type { StageInput, StageResult } from '../../features/coforge/application/ports';
 import { CheckError } from '../../features/coforge/domain/check';
 import { cleanDeep } from '../../features/coforge/domain/sanitize';
@@ -19,10 +18,13 @@ import { captureBrokeredClaudeRead, hasBrokeredReadScope } from './claude-broker
 import { nativeClaudeDelegation, usesNativeClaudeTools } from './claude-native-tools';
 import { openBrokeredClaude } from './claude-brokered-invocation';
 import { captureObservedClaude } from './claude-observed-capture';
+import { captureProviderFailure, diagnoseProviderFailure, preserveProviderFailure } from './provider-failure';
+import { providerFailureInfo } from '../../features/coforge/domain/provider-failure';
+import { assignProviderFailure, providerFailureFor } from '../../features/coforge/domain/provider-failure';
 
 function executable(integration: IntegrationSettings): string {
   const command = integration.claudeBin.trim() || 'claude';
-  if (/\.(cmd|bat)$/i.test(command)) throw new Error('Set the Claude executable to the native claude.exe, not a .cmd/.bat shim. Shell execution is disabled.');
+  if (/\.(cmd|bat)$/i.test(command)) throw assignProviderFailure(new Error('Set the Claude executable to the native claude.exe, not a .cmd/.bat shim. Shell execution is disabled.'), providerFailureFor('installation'));
   return command;
 }
 
@@ -54,9 +56,10 @@ async function interpret(input: StageInput, output: unknown, costUsd: number | u
 }
 
 function stageFailure(error: unknown): unknown {
+  if (providerFailureInfo(error)) return error;
   if (error instanceof ProcessOwnershipUnknown) return error;
-  if (error instanceof ProcessFailure) return new Error(/exited with code/u.test(error.message) ? claudeFailureMessage(error.output) ?? error.message : error.message);
-  if (error instanceof CheckError) return new Error('Claude output failed schema validation. The idea was not advanced.');
+  if (error instanceof ProcessFailure) return diagnoseProviderFailure('claude', error);
+  if (error instanceof CheckError) return diagnoseProviderFailure('claude', error);
   if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))
     return new Error(`Update native Claude Code to the current release; required restricted/safe-mode/structured-output flags are not supported. No permissive fallback is used. ${error.message}`);
   return error;
@@ -74,7 +77,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
   let captured = false;
   let outcome: StageResult | undefined; let failed = false; let failure: unknown;
   const fail = (error: unknown) => {
-    if (!failed || !(failure instanceof ProcessOwnershipUnknown) || error instanceof ProcessOwnershipUnknown) failure = error;
+    failure = failed ? preserveProviderFailure(failure, error) : error;
     failed = true;
   };
   const changes = async (summary: string) => {
@@ -129,6 +132,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
   } catch (error) {
     uncertain = error instanceof ProcessOwnershipUnknown;
     fail(stageFailure(error));
+    if (!(error instanceof ProcessFailure)) await captureProviderFailure(input.onSessionEvent, failure);
     try {
       if (error instanceof ProcessFailure) {
         const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage);

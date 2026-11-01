@@ -19,6 +19,7 @@ import { obsSetupStateCheck } from './obs-setup-check';
 import { twitchOperationsCheck } from './twitch-operations-validation';
 import { agentConversationCheck } from './agent-conversation';
 import { agentSessionTraceCheck } from './agent-session';
+import { providerFailureInfoCheck } from './provider-failure';
 import { workflowVerificationProfileCheck } from './native-workflow-tools';
 import { workflowSourceHashCheck, workflowVerificationRecordsCheck, workflowVerificationRuntimeRecordsCheck } from './workflow-verification';
 import { nativeWorkflowPrivateRuntimeCheck, nativeWorkflowProcessRecordCheck } from './native-workflow-process';
@@ -45,6 +46,7 @@ const increment = shape({
   branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
 });
 const job: Check<AgentJob> = shape({
+  failure: optional(providerFailureInfoCheck),
   sessionTrace: optional(agentSessionTraceCheck),
   nativeRuntime: optional(nativeWorkflowPrivateRuntimeCheck),
   nativeProcess: optional(nativeWorkflowProcessRecordCheck),

@@ -72,6 +72,7 @@ const menu = useIdeaCardMenu(props, model);
             <span>{{ model.polishingState.label }}</span>
           </span>
         </div>
+        <p v-if="model.failureSummary" class="cf-card-failure-note">{{ model.failureSummary }}</p>
       </button>
       <div class="cf-card-sessions"><button type="button" class="cf-btn cf-btn-ghost" :aria-label="`Sessions ${model.sessionSummary} for ${model.idea.id}`" @click.stop="model.sessions()"><CfIcon name="messages-square" size="sm" />Sessions <span class="cf-card-session-count">{{ model.sessionSummary }}</span></button></div>
       <div class="cf-idea-card-footer">

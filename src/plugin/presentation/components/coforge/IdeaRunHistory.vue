@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import type { IdeaRunHistory } from '../../composables/coforge/idea-run-history';
 import WorkflowVerificationEvidence from './WorkflowVerificationEvidence.vue';
+import RecordedAttemptFailure from './RecordedAttemptFailure.vue';
+import AttemptRetainedChanges from './AttemptRetainedChanges.vue';
 
 defineProps<{ job: IdeaRunHistory }>();
 </script>
 <template>
   <div class="cf-idea-history" role="region" aria-label="Chat history">
+    <RecordedAttemptFailure :job-id="job.id" within-details />
+    <AttemptRetainedChanges :job-id="job.id" />
     <section v-if="job.nativeTools" class="cf-idea-section" aria-label="Captured native tool policy">
       <h4>Captured native tools</h4>
       <p v-if="job.nativeTools.delegation" class="cf-idea-help">Provider-native assistants permitted · maximum {{ job.nativeTools.delegation.maxConcurrent }} concurrent. This records permission, not proof that delegation occurred.</p>
@@ -21,13 +25,13 @@ defineProps<{ job: IdeaRunHistory }>();
     </template>
     <p v-if="job.providerContextHelp" class="cf-idea-help">{{ job.providerContextHelp }}</p>
     <template v-if="job.conversation">
-      <section class="cf-idea-message">
+      <section class="cf-idea-message" data-attempt-section="task">
         <h4>{{ job.promptLabel }}</h4>
         <time :datetime="job.conversation.capturedAt" :title="job.conversation.capturedAt">{{ job.capturedLabel }}</time>
         <pre class="cf-idea-transcript">{{ job.conversation.prompt.text }}</pre>
         <p v-if="job.conversation.prompt.truncated" class="cf-idea-help cf-idea-truncation">Prompt capture truncated; only the retained beginning is shown.</p>
       </section>
-      <section class="cf-idea-message">
+      <section class="cf-idea-message" data-attempt-section="response">
         <h4>{{ job.outputLabel }}</h4>
         <template v-if="job.conversation.response">
           <time v-if="job.conversation.responseCapturedAt" :datetime="job.conversation.responseCapturedAt" :title="job.conversation.responseCapturedAt">{{ job.responseLabel }}</time>

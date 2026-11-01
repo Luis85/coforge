@@ -30,6 +30,8 @@ export function ideaRunHistory(job: AgentJob) {
   if (job.error) lines.push(`Error: ${job.error}`);
   return {
     id: job.id,
+    durable: !!job.durable,
+    runId: job.workflow?.runId,
     label: job.workflow?.step.name ?? STAGE_LABELS[job.stage],
     provider: job.provider,
     model: simulated || external ? '' : model || 'Model not recorded',

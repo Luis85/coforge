@@ -30,7 +30,8 @@ export type StudioView =
   | "ai-costs"
   | "schedule"
   | "workflow-settings";
-export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow' | 'sessions';
+export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow' | 'sessions' | 'ai-costs';
+export type AttemptInspectionSection = 'details' | 'task' | 'response' | 'changes' | 'recovery';
 export interface Toast {
   id: number;
   message: string;
@@ -54,6 +55,7 @@ export const useStudioStore = defineStore("coforge-studio", () => {
   const navigationRevision = ref(0);
   const selected = ref<string | null>(null);
   const drawerTab = ref<IdeaDrawerTab>("overview");
+  const inspectedJob = ref<{ id: string; section: AttemptInspectionSection } | null>(null);
   const chatDraft = ref({
     username: "Local tester",
     text: "",
@@ -245,9 +247,16 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     } else if (changeView("settings")) settingsTool.value = next;
   }
   function select(id: string | null, tab: IdeaDrawerTab = "overview") {
+    inspectedJob.value = null;
     selected.value = id;
     drawerTab.value = tab;
     activityOpen.value = false;
+  }
+  function inspectJob(ideaId: string, jobId: string, section: AttemptInspectionSection = 'details') {
+    const idea = projectIdeas.value.find(idea => idea.id === ideaId);
+    const job = projectJobs.value.find(job => job.id === jobId && job.ideaId === ideaId);
+    if (!idea || !job) return;
+    select(ideaId, 'activity'); inspectedJob.value = { id: jobId, section };
   }
   watch(() => [activeProject.value, dirtySettings.value, dirtyWorkflow.value, dirtyCommunitySettings.value, dirtyEconomy.value], () => {
     if (!studioViewEnabled(view.value, activeProject.value)) navigate(studioHome(activeProject.value));
@@ -317,6 +326,8 @@ export const useStudioStore = defineStore("coforge-studio", () => {
     setupStep,
     setupRequested,
     historySelection,
+    inspectedJob,
+    inspectJob,
     statisticsStream,
     statisticsComparisons,
     statisticsMetric,

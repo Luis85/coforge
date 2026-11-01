@@ -11,17 +11,6 @@ export class VaultCommandCommit {
   readonly writing = new Set<string>();
   private uncertain = false;
   private cleanupPending = false;
-  private readonly echoes = new Map<string, string[]>();
-  consumeEcho(path: string, bytes: string): boolean {
-    const queue = this.echoes.get(path);
-    const index = queue?.indexOf(bytes) ?? -1;
-    if (!queue || index < 0) return false;
-    queue.splice(index, 1);
-    return true;
-  }
-  private remember(path: string, bytes: string) {
-    this.echoes.set(path, [...(this.echoes.get(path) ?? []), bytes].slice(-20));
-  }
   constructor(
     private readonly plugin: Plugin,
     private readonly dataPath: string,
@@ -194,7 +183,6 @@ export class VaultCommandCommit {
     }
   }
   private async apply(note: AtomicCommandNote): Promise<void> {
-    this.remember(note.path, note.after);
     if (note.before === null) {
       if ((await this.note(note.path)) !== null) throw commandRecoveryFailure();
       await this.vault.create(note.path, note.after);
@@ -256,7 +244,6 @@ export class VaultCommandCommit {
       if (note.before === null) {
         await this.archiveCreated(note);
       } else {
-        this.remember(note.path, note.before);
         await this.vault.process(file, (value) => {
           if (value !== note.after) throw commandRecoveryFailure();
           return note.before!;

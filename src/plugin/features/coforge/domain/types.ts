@@ -45,6 +45,7 @@ export interface ChatMessage {
 }
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
+  failure?: import('./provider-failure').ProviderFailureInfo;
   sessionTrace?: import('./agent-session').AgentSessionTrace;
   nativeRuntime?: import('./native-workflow-process').NativeWorkflowPrivateRuntime;
   nativeProcess?: import('./native-workflow-process').NativeWorkflowProcessRecord;

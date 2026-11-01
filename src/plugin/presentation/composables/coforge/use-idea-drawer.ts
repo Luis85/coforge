@@ -22,14 +22,16 @@ import { projectFeatureEnabled } from '../../../features/coforge/domain/project-
 import { currentDesignSpecification } from "./use-idea-design";
 import { ideaRunHistory } from './idea-run-history';
 import { backgroundRetryCandidate } from './background-build-retry-display';
+import { failedWorkflowJobId } from './attempt-failure-evidence';
 
-export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow' | 'sessions';
+export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow' | 'sessions' | 'ai-costs';
 const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
   { value: "overview", label: "Overview" },
   { value: 'sessions', label: 'Sessions' },
   { value: "plan", label: "Plan & Design" },
   { value: "increment", label: "Increment" },
   { value: 'workflow', label: 'Workflow runs' },
+  { value: 'ai-costs', label: 'AI costs' },
   { value: "activity", label: "Activity" },
 ];
 /** Contributor ids the streamer votes under (the studio votes as the simulator's `streamer`). */
@@ -256,6 +258,7 @@ function createIdeaDrawer() {
     jobs: computed(() =>
       [...ideaJobs.value].reverse().map(ideaRunHistory),
     ),
+    failureJobId: computed(() => failedWorkflowJobId(idea.value?.workflowRun, ideaJobs.value, idea.value?.id)),
     close,
     selectTab: (value: IdeaDrawerTab) => {
       tab.value = value;

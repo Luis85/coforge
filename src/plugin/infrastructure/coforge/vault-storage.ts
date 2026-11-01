@@ -5,10 +5,8 @@ import { VaultCommandCommit } from "./vault-command-commit";
 import { planAtomicCommand, needsAtomicCommand } from "./atomic-command-plan";
 import { normalizePath, parseYaml, stringifyYaml, TFile, type Plugin } from 'obsidian';
 import type { ExternalNoteChange, InternalState, LoadedStudio, NoteIdea, SaveOptions, StudioStorage } from '../../features/coforge/application/ports';
-import { descriptionFromBody, ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, OWNED_PROPERTIES, parseIdeaNote } from '../../features/coforge/domain/idea-note';
+import { ideaBody, ideaFileName, ideaProperties, isIdeaFrontmatter, parseIdeaNote } from '../../features/coforge/domain/idea-note';
 import { omit } from '../../features/coforge/domain/objects';
-import { cleanText } from '../../features/coforge/domain/sanitize';
-import { record } from '../../features/coforge/domain/check';
 import { appendContextBody } from '../../features/coforge/domain/idea-context';
 import { parsePersistedStudio, type PersistedStudio } from '../../features/coforge/domain/persisted';
 import { defaultIntegration } from '../../features/coforge/domain/seed';
@@ -18,8 +16,9 @@ import { VaultProjects, type ProjectNoteChange } from './vault-projects';
 import { validateFolderLayout } from '../../features/coforge/domain/vault-folder-policy';
 import { protectPrivateData } from './private-data-guard';
 import { VaultExampleCleanup } from './vault-example-cleanup';
-import { requestObjectFromProperties, requestObjectNoteProperties, requestObjectPropertyKeys } from '../../features/coforge/domain/request-object-note';
 import { writeManagedIdeaProperties, writeRequestValuesNote } from './request-values-note';
+import { CommittedNoteWrites, type NoteWriteCommit } from './committed-note-writes';
+import { assertIdeaWriteIdentity } from './idea-note-write-identity';
 export { splitNote } from './markdown';
 
 /** Reads an idea from note text, or returns null for notes that are not CoForge ideas. Throws for invalid idea notes. */
@@ -32,13 +31,6 @@ export function readIdeaNote(content: string): NoteIdea | null {
 
 const inFolder = (path: string, folder: string) => path.startsWith(`${normalizePath(folder)}/`);
 const noteValues = (idea: Idea, author: string) => JSON.stringify(ideaProperties(idea, author));
-/** Order-independent fingerprint of the CoForge-owned properties, as written or as read back from YAML. */
-function ownedFingerprint(properties: Record<string, unknown>): string {
-  const object = requestObjectFromProperties(properties);
-  const normalized = { ...properties, ...(object ? requestObjectNoteProperties(object) : {}) };
-  return JSON.stringify([...OWNED_PROPERTIES, ...requestObjectPropertyKeys(object)].filter(key => normalized[key] !== undefined)
-    .map(key => { const value = normalized[key]; return [key, value instanceof Date ? value.toISOString() : value]; }));
-}
 
 /**
  * Idea notes in a vault folder plus `coforge-state.json` in the plugin folder for votes, increments,
@@ -46,8 +38,8 @@ function ownedFingerprint(properties: Record<string, unknown>): string {
  */
 export class VaultStudioStorage implements StudioStorage {
   private readonly paths = new Map<string, string>();
-  /** Fingerprints of note writes not yet echoed back by the metadata cache, per note path. */
-  private readonly echoes = new Map<string, string[]>();
+  private readonly noteWrites = new CommittedNoteWrites();
+  private readonly loadedNotes = new Map<string, NoteIdea>();
   private folder = defaultIntegration().ideasFolder;
   private readonly projects: VaultProjects;
   private readonly cleanup: VaultExampleCleanup;
@@ -72,6 +64,7 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   async load(): Promise<LoadedStudio> {
+    await this.noteWrites.reset();
     const adapter = this.plugin.app.vault.adapter;
     await protectPrivateData(this.plugin);
     await this.cleanup.recover();
@@ -85,12 +78,13 @@ export class VaultStudioStorage implements StudioStorage {
     await protectPrivateData(this.plugin, layout);
     this.folder = layout.ideasFolder;
     this.paths.clear();
+    this.loadedNotes.clear();
     const notes: NoteIdea[] = []; const invalidNotes: string[] = [];
     for (const file of this.plugin.app.vault.getMarkdownFiles().filter(f => inFolder(f.path, this.folder))) {
       try {
         const idea = readIdeaNote(await this.plugin.app.vault.cachedRead(file));
         if (!idea) continue;
-        notes.push(idea); this.paths.set(idea.id, file.path);
+        notes.push(idea); this.paths.set(idea.id, file.path); this.loadedNotes.set(idea.id, idea);
       } catch { invalidNotes.push(file.path); }
     }
     const { projects, invalid } = await this.projects.load();
@@ -98,6 +92,11 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   async save(next: InternalState, previous: InternalState | null, options: SaveOptions = {}): Promise<void> {
+    const writes = this.noteWrites.begin();
+    try { await this.saveCanonical(next, previous, options, writes); writes.commit(); }
+    finally { writes.settle(); }
+  }
+  private async saveCanonical(next: InternalState, previous: InternalState | null, options: SaveOptions, writes: NoteWriteCommit): Promise<void> {
     this.economyReservations.assertReady();
     await this.cleanup.settleBeforeSave();
     await this.commands.settleBeforeSave();
@@ -113,7 +112,7 @@ export class VaultStudioStorage implements StudioStorage {
         folder: this.folder, file: id => this.file(id), read: readIdeaNote });
       await this.ensureFolder(this.folder);
       await this.commands.commit(plan);
-      for (const note of plan.notes) this.paths.set(note.id, note.path);
+      for (const note of plan.notes) { this.paths.set(note.id, note.path); writes.record(note.path, note.after); }
       return;
     }
     if (options.exampleCleanup) {
@@ -139,7 +138,7 @@ export class VaultStudioStorage implements StudioStorage {
       const author = authors.get(idea.authorId) ?? idea.authorId;
       const before = previous?.ideas.find(i => i.id === idea.id);
       if (before && noteValues(before, authors.get(before.authorId) ?? before.authorId) === noteValues(idea, author) && this.paths.has(idea.id)) continue;
-      const undo = await this.writeIdea(idea, author, options.requestValuesEdit?.ideaId === idea.id ? options.requestValuesEdit.expectedInputIdentity : undefined);
+      const undo = await this.writeIdea(idea, author, options.noteWriteInputs?.[idea.id] ?? before ?? this.loadedNotes.get(idea.id), writes, options.requestValuesEdit?.ideaId === idea.id ? options.requestValuesEdit.expectedInputIdentity : undefined);
       if (undo) requestUndos.push(undo);
     }
     for (const idea of previous?.ideas ?? []) {
@@ -162,25 +161,28 @@ export class VaultStudioStorage implements StudioStorage {
   /** Reports edits, deletions and renames of idea notes made in the vault. */
   watch(onChange: (change: ExternalNoteChange) => void, onInvalid: (path: string) => void): void {
     const { vault, metadataCache } = this.plugin.app;
-    this.plugin.registerEvent(metadataCache.on('changed', (file, data) => {
-      if (this.cleanup.writing.has(file.path) || this.commands.writing.has(file.path) || !vault.getFileByPath(file.path)) return;
-      if (this.commands.consumeEcho(file.path, data)) return;
+    this.plugin.registerEvent(metadataCache.on('changed', file => {
+      if (this.cleanup.writing.has(file.path) || !vault.getFileByPath(file.path)) return;
       if (!inFolder(file.path, this.folder)) return;
-      if (this.isEcho(file.path, data)) return;
-      let idea: NoteIdea | null;
-      try { idea = readIdeaNote(data); } catch { onInvalid(file.path); return; }
-      if (!idea) return;
-      const known = this.paths.get(idea.id);
-      if (known && known !== file.path && this.plugin.app.vault.getFileByPath(known)) { onInvalid(file.path); return; }
-      this.paths.set(idea.id, file.path);
-      onChange({ kind: 'upsert', idea });
+      const path = file.path;
+      this.noteWrites.observe(path, async () => { const current = vault.getFileByPath(path); return current ? vault.read(current) : undefined; }, data => {
+        let idea: NoteIdea | null;
+        try { idea = readIdeaNote(data); } catch { onInvalid(path); return; }
+        if (!idea) return;
+        const known = this.paths.get(idea.id);
+        if (known && known !== path && this.plugin.app.vault.getFileByPath(known)) { onInvalid(path); return; }
+        this.paths.set(idea.id, path);
+        onChange({ kind: 'upsert', idea });
+      }, () => onInvalid(path));
     }));
     this.plugin.registerEvent(vault.on('delete', file => {
       if (this.cleanup.writing.has(file.path) || this.commands.writing.has(file.path)) return;
+      this.noteWrites.forget(file.path);
       for (const [id, path] of this.paths) if (path === file.path) { this.paths.delete(id); onChange({ kind: 'remove', id }); }
     }));
     this.plugin.registerEvent(vault.on('rename', (file, oldPath) => {
       if (this.cleanup.writing.has(file.path) || this.cleanup.writing.has(oldPath) || this.commands.writing.has(file.path) || this.commands.writing.has(oldPath)) return;
+      this.noteWrites.forget(oldPath);
       for (const [id, path] of this.paths) {
         if (path !== oldPath) continue;
         if (inFolder(file.path, this.folder)) this.paths.set(id, file.path);
@@ -204,47 +206,27 @@ export class VaultStudioStorage implements StudioStorage {
     };
   }
 
-  /** CoForge's own writes come back as change events; they must not re-apply older values over newer state. */
-  private isEcho(path: string, data: string): boolean {
-    const pending = this.echoes.get(path);
-    if (!pending?.length) return false;
-    let frontmatter: unknown;
-    try { frontmatter = parseYaml(splitNote(data).yaml ?? ''); } catch { return false; }
-    if (!frontmatter || typeof frontmatter !== 'object') return false;
-    // The body description is part of the key, so an edit to the note text is never mistaken for an echo.
-    const { body } = splitNote(data);
-    let fingerprint: string;
-    try { fingerprint = ownedFingerprint(record(frontmatter)); } catch { return false; }
-    const index = pending.indexOf(`${fingerprint}\n${descriptionFromBody(body, '')}`);
-    if (index === -1) return false;
-    pending.splice(0, index + 1);
-    return true;
-  }
-
-  private remember(path: string, idea: Idea, author: string): void {
-    this.echoes.set(path, [...(this.echoes.get(path) ?? []), `${ownedFingerprint(ideaProperties(idea, author))}\n${cleanText(idea.description, 3000)}`].slice(-20));
-  }
-
-  private async writeIdea(idea: Idea, author: string, expectedInputIdentity?: string): Promise<(() => Promise<void>) | undefined> {
+  private async writeIdea(idea: Idea, author: string, before: NoteIdea | undefined, writes: NoteWriteCommit, expectedInputIdentity?: string): Promise<(() => Promise<void>) | undefined> {
     const file = this.file(idea.id);
-    if (file) this.remember(file.path, idea, author);
     if (expectedInputIdentity !== undefined) {
       if (!file) throw new Error('The canonical request note is missing. Refresh before saving its fields.');
-      return writeRequestValuesNote(this.plugin, file, idea, author, expectedInputIdentity, readIdeaNote);
+      return writeRequestValuesNote(this.plugin, file, idea, author, expectedInputIdentity, readIdeaNote, before, bytes => writes.record(file.path, bytes));
     }
     if (file) {
       await this.plugin.app.vault.process(file, current => {
+        assertIdeaWriteIdentity(readIdeaNote(current), before);
         const managed = writeManagedIdeaProperties(current, idea, author);
-        if (!idea.contexts?.length) return managed;
+        if (!idea.contexts?.length) { writes.record(file.path, managed); return managed; }
         const { body } = splitNote(managed);
-        return managed.slice(0, managed.length - body.length) + appendContextBody(body, idea.contexts);
+        const after = managed.slice(0, managed.length - body.length) + appendContextBody(body, idea.contexts);
+        writes.record(file.path, after); return after;
       }); return;
     }
     await this.ensureFolder(this.folder);
     let path = normalizePath(`${this.folder}/${ideaFileName(idea)}`);
     for (let n = 2; this.plugin.app.vault.getAbstractFileByPath(path); n++) path = normalizePath(`${this.folder}/${ideaFileName(idea).replace(/\.md$/, ` ${n}.md`)}`);
-    this.remember(path, idea, author);
-    const created = await this.plugin.app.vault.create(path, `---\n${stringifyYaml(ideaProperties(idea, author))}---\n${appendContextBody(ideaBody(idea), idea.contexts ?? [])}`);
+    const bytes = `---\n${stringifyYaml(ideaProperties(idea, author))}---\n${appendContextBody(ideaBody(idea), idea.contexts ?? [])}`;
+    const created = await this.plugin.app.vault.create(path, bytes); writes.record(path, bytes);
     this.paths.set(idea.id, created.path);
   }
 

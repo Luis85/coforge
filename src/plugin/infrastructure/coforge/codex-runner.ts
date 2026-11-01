@@ -11,6 +11,8 @@ import { ProcessOwnershipUnknown, type captureProcess } from './process';
 import { validateNativeWorkflowTools } from '../../features/coforge/domain/native-workflow-tools';
 import type { NativeWorkflowPrivateRuntime, NativeWorkflowProcessRecord } from '../../features/coforge/domain/native-workflow-process';
 import { createCodexPrivateRuntime, purgeCodexPrivateRuntime } from './codex-private-runtime';
+import { captureProviderFailure, diagnoseProviderFailure, preserveProviderFailure } from './provider-failure';
+import { CheckError } from '../../features/coforge/domain/check';
 
 export async function runCodexStage(input: StageInput, workspaces: WorkflowWorkspaces, capture?: typeof captureProcess, protectedPaths?: readonly string[], onActivity?: () => Promise<void>): Promise<StageResult> {
   if (!input.workflow) throw new Error('Codex requires a captured workflow. Save and start the project workflow before dispatching.');
@@ -29,7 +31,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
   let outcome: StageResult | undefined;
   let failed = false; let failure: unknown;
   const fail = (error: unknown, prefer = false) => {
-    if (!failed || error instanceof ProcessOwnershipUnknown || prefer && !(failure instanceof ProcessOwnershipUnknown)) failure = error;
+    if (!failed || error instanceof ProcessOwnershipUnknown || prefer && !(failure instanceof ProcessOwnershipUnknown)) failure = failed ? preserveProviderFailure(failure, error) : error;
     failed = true;
   };
   const observeNative: NonNullable<StageInput['onNativeProcess']> = async record => {
@@ -74,7 +76,9 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     const verification = bridge.verificationRecords();
     outcome = { ...result, ...(increment ? { increment } : {}), ...(verification.length ? { verification } : {}), ...(response.usage ? { usage: response.usage } : {}) };
   } catch (error) {
-    fail(error); uncertain ||= error instanceof ProcessOwnershipUnknown;
+    const diagnosed = error instanceof CheckError ? diagnoseProviderFailure('codex', error) : error;
+    fail(diagnosed); uncertain ||= error instanceof ProcessOwnershipUnknown;
+    if (error instanceof CheckError) await captureProviderFailure(input.onSessionEvent, diagnosed);
     try { await drain(); } catch (cleanupError) { fail(cleanupError, true); }
     if (nativeProcess && nativeProcess.phase !== 'terminated') await markUnknown();
     try { await changes(`Cumulative changes after failed ${snapshot.step.name}`); } catch (captureError) { fail(captureError); }

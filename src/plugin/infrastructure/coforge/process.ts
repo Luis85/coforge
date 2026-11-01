@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from 'child_process';
 import { basename } from 'path';
 import { setTimeout as processTimeout, clearTimeout as clearProcessTimeout } from 'node:timers';
 import { readNativeProcessIdentity, stopOwnedProcessTree, type NativeProcessIdentity } from './durable-worker/process-identity';
+import { assignProviderFailure, providerFailureFor, providerFailureMessage, type ProviderFailureInfo } from '../../features/coforge/domain/provider-failure';
 
 export interface ProcessOptions {
   cwd: string; input?: string; signal?: AbortSignal; timeoutMs?: number; maxBytes?: number; env?: NodeJS.ProcessEnv;
@@ -15,13 +16,17 @@ export interface ProcessOptions {
 }
 const OUTPUT_LIMIT = 2 * 1024 * 1024;
 /** Raw transport output for usage recovery and response extraction. Never expose raw output to UI/logs; extracted evidence must be redacted. */
-export class ProcessFailure extends Error { constructor(message: string, readonly output: string) { super(message); this.name = 'ProcessFailure'; } }
-export class ProcessOwnershipUnknown extends ProcessFailure {
-  /** Private bounded transport diagnostic. Never pass this to UI, model context or structured logs. */
+export class ProcessFailure extends Error {
   declare readonly diagnostic?: string;
-  constructor(output: string, diagnostic?: string) {
-    super('Provider process-tree termination is unverified. The original workspace remains quarantined; inspect it before retrying.', output); this.name = 'ProcessOwnershipUnknown';
+  constructor(message: string, readonly output: string, diagnostic?: string) {
+    super(message); this.name = 'ProcessFailure';
     if (diagnostic) Object.defineProperty(this, 'diagnostic', { value: redact(diagnostic).slice(-1800), enumerable: false });
+  }
+}
+export class ProcessOwnershipUnknown extends ProcessFailure {
+  constructor(output: string, diagnostic?: string, failure?: ProviderFailureInfo) {
+    super(failure ? providerFailureMessage(failure, true) : 'Provider process-tree termination is unverified. The original workspace remains quarantined; inspect it before retrying.', output, diagnostic); this.name = 'ProcessOwnershipUnknown';
+    if (failure) assignProviderFailure(this, failure);
   }
 }
 const ENVIRONMENT = new Set([
@@ -108,9 +113,9 @@ export function captureProcess(executable: string, args: readonly string[], opti
           if (original && (failure || code !== 0)) await options.onOwnedProcess?.(original, !confirmed || !failure && code !== 0 ? 'unknown' : 'terminated');
         } catch { cleanup(); reject(new ProcessOwnershipUnknown(output())); return; }
         if (finished) return; cleanup();
-        if (!confirmed || options.ownedTree && !failure && code !== 0) reject(new ProcessOwnershipUnknown(output(), redact(Buffer.concat(errors).toString('utf8'), options.env)));
+        if (!confirmed || options.ownedTree && !failure && code !== 0) reject(new ProcessOwnershipUnknown(output(), redact(Buffer.concat(errors).toString('utf8'), options.env), failure ? providerFailureFor(failure.message.startsWith('Run cancelled') ? 'cancelled' : failure.message.startsWith('Run timed out') ? 'timeout' : 'execution_failed', true) : undefined));
         else if (failure) reject(new ProcessFailure(failure.message, output()));
-        else if (code !== 0) reject(new ProcessFailure(`${basename(executable)} exited with code ${String(code)}. ${redact(Buffer.concat(errors).toString('utf8'), options.env).slice(-1800) || 'Check the CLI installation and authentication.'}`, output()));
+        else if (code !== 0) reject(new ProcessFailure(`${basename(executable)} exited with code ${String(code)}. ${redact(Buffer.concat(errors).toString('utf8'), options.env).slice(-1800) || 'Check the CLI installation and authentication.'}`, output(), redact(Buffer.concat(errors).toString('utf8'), options.env)));
         else if (Buffer.byteLength(output()) > (options.maxBytes ?? OUTPUT_LIMIT)) reject(new ProcessFailure('Process result exceeded its limit.', ''));
         else resolve(output());
       });

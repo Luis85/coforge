@@ -82,7 +82,7 @@ describe('Project Request Object in the contained host', () => {
     });
     expect(surface.opacity).toBe('1'); expect(surface.background).not.toBe('transparent'); expect(surface.alpha).toBe(1);
     const tabs = drawer.getByRole('navigation', { name: 'Idea sections', exact: true });
-    await browserExpect(tabs.getByRole('button')).toHaveText(['Overview', 'Sessions', 'Plan & Design', 'Increment', 'Workflow runs', 'Activity']);
+    await browserExpect(tabs.getByRole('button')).toHaveText(['Overview', 'Sessions', 'Plan & Design', 'Increment', 'Workflow runs', 'AI costs', 'Activity']);
     await browserExpect(tabs).toHaveCSS('flex-direction', 'row'); await browserExpect(tabs).toHaveCSS('flex-wrap', 'wrap');
     const geometry = await tabs.evaluate(element => {
       const bounds = element.getBoundingClientRect(); const style = getComputedStyle(element);
@@ -90,7 +90,7 @@ describe('Project Request Object in the contained host', () => {
       const padding = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
       return { width: bounds.width, top: bounds.top, bottom: bounds.bottom, left: bounds.left, right: bounds.right, contentWidth: bounds.width - padding, gap: Number.parseFloat(style.columnGap) || 0, basis: style.flexBasis, buttons, fits: element.scrollWidth <= element.clientWidth + 1 };
     });
-    expect(geometry.buttons).toHaveLength(6); expect(geometry.basis).toBe('auto'); expect(geometry.fits).toBe(true);
+    expect(geometry.buttons).toHaveLength(7); expect(geometry.basis).toBe('auto'); expect(geometry.fits).toBe(true);
     const neededWidth = geometry.buttons.reduce((sum, button) => sum + button.width, 0) + geometry.gap * (geometry.buttons.length - 1);
     if (neededWidth <= geometry.contentWidth + 1)
       expect(Math.max(...geometry.buttons.map(button => button.top)) - Math.min(...geometry.buttons.map(button => button.top))).toBeLessThan(1);

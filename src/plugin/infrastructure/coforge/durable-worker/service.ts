@@ -12,8 +12,15 @@ import { workerVerificationHooks } from './verification';
 import { workerNativeRuntimeHooks } from './native-runtime';
 import type { NativeWorkflowPrivateRuntime, NativeWorkflowProcessRecord } from '../../../features/coforge/domain/native-workflow-process';
 import type { AgentSessionEvent } from '../../../features/coforge/domain/agent-session';
+import { assignProviderFailure, providerFailureFor, providerFailureInfo, providerFailureMessage, type ProviderFailureInfo } from '../../../features/coforge/domain/provider-failure';
 
-export class WorkerOwnershipUnknown extends Error {}
+export class WorkerOwnershipUnknown extends Error {
+  declare readonly output?: string;
+  constructor(message: string, failure?: ProviderFailureInfo, output?: string) {
+    super(message); if (failure) assignProviderFailure(this, failure);
+    if (output) Object.defineProperty(this, 'output', { value: output.slice(-8 * 1024 * 1024), enumerable: false });
+  }
+}
 export interface WorkerHooks {
   signal: AbortSignal;
   activity(): Promise<void>;
@@ -166,20 +173,23 @@ export class WorkerService {
     } catch (caught) {
       const error = this.store.get(ref).record.nativeRuntime || this.store.get(ref).record.verificationRuntime?.some(record => record.phase !== 'terminal')
         ? new WorkerOwnershipUnknown('Original verification container termination is unverified.') : caught;
+      const unknown = error instanceof WorkerOwnershipUnknown;
+      const reported = providerFailureInfo(caught);
+      const failure = providerFailureFor(reported?.code ?? (unknown ? 'ownership_unknown' : controller.signal.reason === 'deadline' ? 'timeout' : controller.signal.aborted ? 'cancelled' : 'execution_failed'), unknown);
       if (!(error instanceof WorkerOwnershipUnknown)) {
         const current = this.store.get(ref).record.snapshot;
         await this.store.get(ref).files.write('failure.json', { version: 1, ref, providerTerminated: true,
           phase: controller.signal.aborted && controller.signal.reason === 'operator' ? 'cancelled' : 'failed',
+          failure,
           ...(current.increment ? { increment: current.increment } : {}) }).catch(() => undefined);
       }
       await this.store.update(ref, next => {
         this.mergeHot(ref, next.snapshot);
-        if (error instanceof WorkerOwnershipUnknown) { next.snapshot.phase = 'attention'; next.terminationUnknown = true; next.snapshot.error = 'Provider termination is unverified. The original Build and workspace remain quarantined.'; }
+        next.snapshot.failure = failure;
+        next.snapshot.error = providerFailureMessage(next.snapshot.failure, unknown);
+        if (unknown) { next.snapshot.phase = 'attention'; next.terminationUnknown = true; }
         else {
           next.snapshot.phase = controller.signal.aborted && controller.signal.reason === 'operator' ? 'cancelled' : 'failed';
-          next.snapshot.error = controller.signal.reason === 'deadline' ? 'The captured Build execution deadline elapsed. Retained changes require review.'
-            : controller.signal.aborted ? 'The background Build stopped. Retained changes require review.'
-            : 'The background Build did not complete. Inspect its retained conversation and workspace before explicitly retrying.';
         }
       }).catch(() => undefined);
     } finally { this.active.delete(ref.executionId); this.hot.delete(ref.executionId); }

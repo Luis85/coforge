@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { buildCodexArgs, codexResult, codexUsage } from '../../features/coforge/application/codex-protocol';
 import type { ReasoningEffort } from '../../features/coforge/domain/provider-models';
 import type { StageUsage } from '../../features/coforge/domain/ai-usage';
-import { captureProcess, childEnvironment, ProcessFailure, ProcessOwnershipUnknown, type ProcessOptions } from './process';
+import { captureProcess, childEnvironment, ProcessFailure, type ProcessOptions } from './process';
 import { codexExecutable } from './codex-executable';
 import { writeCodexModelProfile } from './codex-model-profile';
 import { codexOutputSchema, normalizeCodexOutput } from '../../features/coforge/application/codex-schema';
@@ -16,6 +16,8 @@ import { assertCodexPrivateRuntime } from './codex-private-runtime';
 import type { NativeWorkflowPrivateRuntime } from '../../features/coforge/domain/native-workflow-process';
 import type { AgentSessionEvent } from '../../features/coforge/domain/agent-session';
 import { providerSessionObserver } from './provider-session-stream';
+import { captureProviderFailure, diagnoseProviderFailure } from './provider-failure';
+import { assignProviderFailure, providerFailureFor } from '../../features/coforge/domain/provider-failure';
 
 export interface CodexTransportInput {
   directory: string; executable?: string; model: string; effort?: ReasoningEffort;
@@ -35,13 +37,17 @@ export function codexEnvironment(source: NodeJS.ProcessEnv = process.env): NodeJ
 }
 /** A raw provider stream never reaches a note or user-facing error. */
 export async function runCodexTransport(input: CodexTransportInput): Promise<{ output: unknown; usage?: StageUsage }> {
-  if (input.nativeTools?.delegation && (!Number.isFinite(input.timeoutMs) || input.timeoutMs <= 0)) throw new Error('Codex native delegation requires a finite invocation deadline.');
+  try { return await runScopedCodexTransport(input); }
+  catch (error) { const failure = diagnoseProviderFailure('codex', error, input.signal); await captureProviderFailure(input.onSessionEvent, failure); throw failure; }
+}
+async function runScopedCodexTransport(input: CodexTransportInput): Promise<{ output: unknown; usage?: StageUsage }> {
+  if (input.nativeTools?.delegation && (!Number.isFinite(input.timeoutMs) || input.timeoutMs <= 0)) throw assignProviderFailure(new Error('Codex native delegation requires a finite invocation deadline.'), providerFailureFor('configuration'));
   const schemaPath = join(input.directory, 'result-schema.json');
   await writeFile(schemaPath, JSON.stringify(codexOutputSchema(input.schema)), { flag: 'wx', mode: 0o600 });
   const executable = await codexExecutable(input.executable);
   const delegated = Boolean(input.nativeTools?.delegation);
   if (input.nativeTools) {
-    if (!input.privateRuntime) throw new Error('Native Codex requires a retained private runtime ownership receipt before state preparation.');
+    if (!input.privateRuntime) throw assignProviderFailure(new Error('Native Codex requires a retained private runtime ownership receipt before state preparation.'), providerFailureFor('configuration'));
     await assertCodexPrivateRuntime(input.privateRuntime, input.directory);
   }
   const nativeState = input.nativeTools ? await prepareNativeCodexState(input.directory) : undefined;
@@ -76,12 +82,9 @@ export async function runCodexTransport(input: CodexTransportInput): Promise<{ o
     if (error instanceof ProcessFailure) {
       await input.telemetry?.(codexUsage(error.output, { delegated }));
       await captureCodexResponse(input.onConversation, error.output, environment);
-      if (error instanceof ProcessOwnershipUnknown) throw error;
-      throw new Error(/^Run (?:cancelled|timed out)/u.test(error.message) ? error.message : input.nativeTools
-        ? 'Codex did not complete this native-tools attempt. Check its normal CLI sign-in, model access and configured limits. Review retained changes before explicitly retrying.'
-        : 'Codex did not complete this attempt. Check its local installation, sign-in, model access and configured limits; review partial worktree changes before retrying.');
+      throw diagnoseProviderFailure('codex', error);
     }
-    if (error instanceof SyntaxError) throw new Error('Codex returned invalid structured output. The request was not advanced.');
+    if (error instanceof SyntaxError) throw diagnoseProviderFailure('codex', error);
     throw error;
   } finally { await observer.finish().catch(() => {}); }
 }

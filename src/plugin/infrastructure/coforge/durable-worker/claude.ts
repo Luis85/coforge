@@ -12,6 +12,9 @@ import { captureProcess, ProcessFailure, ProcessOwnershipUnknown } from '../proc
 import type { WorkerFiles } from './files';
 import { brokeredClaudeArgs, nativeClaudeDelegation, prepareNativeClaude, usesNativeClaudeTools } from '../claude-native-tools';
 import { captureObservedClaude } from '../claude-observed-capture';
+import { diagnoseProviderFailure, captureProviderFailure, preserveProviderFailure } from '../provider-failure';
+import { providerFailureInfo } from '../../../features/coforge/domain/provider-failure';
+import { CheckError } from '../../../features/coforge/domain/check';
 
 /** A private-CWD Claude process receives only five broker tools, never native filesystem/delegation authority. */
 export function backgroundClaudeArgs(input: StageInput, configPath: string): string[] {
@@ -25,7 +28,7 @@ export async function runBackgroundClaude(input: StageInput, workspaces: Workflo
   let raw = ''; let captured = false; let providerReturned = false; let resultValidated = false; let uncertain = false;
   let outcome: StageResult | undefined; let failed = false; let failure: unknown;
   const fail = (error: unknown) => {
-    if (!failed || !(failure instanceof ProcessOwnershipUnknown) || error instanceof ProcessOwnershipUnknown) failure = error;
+    failure = failed ? preserveProviderFailure(failure, error) : error;
     failed = true;
   };
   const changes = async (summary: string) => {
@@ -58,7 +61,9 @@ export async function runBackgroundClaude(input: StageInput, workspaces: Workflo
   } catch (caught) {
     uncertain = caught instanceof ProcessOwnershipUnknown || usesNativeClaudeTools(input) && providerReturned && !resultValidated;
     if (caught instanceof ProcessFailure) raw = caught.output;
-    fail(uncertain && !(caught instanceof ProcessOwnershipUnknown) ? new ProcessOwnershipUnknown(raw) : caught);
+    const diagnosed = caught instanceof CheckError ? diagnoseProviderFailure('claude', caught) : caught;
+    fail(uncertain && !(diagnosed instanceof ProcessOwnershipUnknown) ? new ProcessOwnershipUnknown(raw, undefined, providerFailureInfo(diagnosed)) : diagnosed);
+    if (!(caught instanceof ProcessFailure)) await captureProviderFailure(input.onSessionEvent, failure);
     try {
       if (caught instanceof ProcessFailure) {
         const cost = reportedClaudeCost(raw); if (cost !== undefined) await input.onUsage?.(cost);

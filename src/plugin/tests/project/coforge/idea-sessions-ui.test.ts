@@ -33,7 +33,7 @@ it('opens the private card Sessions view with parent running count, literal Peek
     expect(f.store.drawerTab).toBe('sessions');
     const drawer = mount(IdeaDrawer, { global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
     try {
-      expect(drawer.get('[aria-label="Idea sections"]').findAll('button').map(button => button.text())).toEqual(['Overview', 'Sessions', 'Plan & Design', 'Increment', 'Workflow runs', 'Activity']);
+      expect(drawer.get('[aria-label="Idea sections"]').findAll('button').map(button => button.text())).toEqual(['Overview', 'Sessions', 'Plan & Design', 'Increment', 'Workflow runs', 'AI costs', 'Activity']);
       const peek = drawer.get('[aria-label="Session Peek"]');
       expect(peek.text()).toContain('<script>untrusted literal</script>');
       expect(peek.find('script').exists()).toBe(false);

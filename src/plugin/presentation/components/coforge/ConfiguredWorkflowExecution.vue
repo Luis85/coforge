@@ -6,6 +6,7 @@ import WorkflowCapturedConfiguration from "./WorkflowCapturedConfiguration.vue";
 import DurableBuildStatus from './DurableBuildStatus.vue';
 import NativeWorkflowRecoveryList from './NativeWorkflowRecoveryList.vue';
 import WorkflowBackgroundBuildRetry from './WorkflowBackgroundBuildRetry.vue';
+import RecordedAttemptFailure from './RecordedAttemptFailure.vue';
 defineProps<{ model: WorkflowModel }>();
 </script>
 <template>
@@ -21,6 +22,7 @@ defineProps<{ model: WorkflowModel }>();
         </div>
         <strong class="cf-configured-run-state">{{ model.runLabel }}</strong>
       </div>
+      <RecordedAttemptFailure v-if="model.failureJobId" :job-id="model.failureJobId" />
       <p v-if="model.capturedEarlier" class="cf-workflow-policy">
         This run retains an earlier saved definition. Changes in Workflow
         settings apply to new runs.

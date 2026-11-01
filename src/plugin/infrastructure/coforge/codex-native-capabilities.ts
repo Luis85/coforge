@@ -1,6 +1,8 @@
 import { captureProcess, type ProcessOptions } from './process';
 import { record } from '../../features/coforge/domain/check';
 import type { NativeWorkflowTools } from '../../features/coforge/domain/native-workflow-tools';
+import { assignProviderFailure, providerFailureFor, providerFailureInfo, providerFailureMessage } from '../../features/coforge/domain/provider-failure';
+import { diagnoseProviderFailure } from './provider-failure';
 
 const REQUIRED_FLAGS = ['--strict-config', '--ignore-user-config', '--ignore-rules', '--ephemeral', '--sandbox', '--json', '--output-schema'];
 const PROBE_ENV = new Set(['PATH', 'Path', 'PATHEXT', 'SystemRoot', 'SYSTEMROOT', 'COMSPEC', 'WINDIR', 'APPDATA', 'LOCALAPPDATA', 'USERPROFILE', 'TEMP', 'TMP']);
@@ -9,7 +11,7 @@ const PROBE_ENV = new Set(['PATH', 'Path', 'PATHEXT', 'SystemRoot', 'SYSTEMROOT'
 export async function assertCodexNativeCapabilities(executable: string, directory: string, args: readonly string[], signal?: AbortSignal): Promise<void> {
   const env = { ...Object.fromEntries(Object.entries(process.env).filter(([key, value]) => PROBE_ENV.has(key) && value !== undefined)), CODEX_HOME: directory };
   const options: ProcessOptions = { cwd: directory, env, timeoutMs: 5000, maxBytes: 64000, signal };
-  const unavailable = () => new Error('Codex native delegation requires CLI 0.145.0 or newer with the verified restricted flags and bounded native v2 configuration. No provider was started.');
+  const unavailable = () => assignProviderFailure(new Error('Codex native delegation requires CLI 0.145.0 or newer with the verified restricted flags and bounded native v2 configuration. No provider was started.'), providerFailureFor('capability'));
   try {
     signal?.throwIfAborted();
     const version = /codex-cli (\d+)\.(\d+)\.(\d+)/u.exec(await captureProcess(executable, ['--version'], options));
@@ -50,13 +52,15 @@ export async function nativeCodexCatalogue(executable: string, directory: string
     const values = Array.isArray(parsed) ? parsed : record(parsed).models;
     if (!Array.isArray(values)) throw new Error('Invalid catalogue');
     models = values.map(value => record(value));
-  } catch {
+  } catch (error) {
     signal?.throwIfAborted();
-    throw new Error('Codex could not refresh native model availability. Check its normal CLI sign-in and configuration, then retry. No model inference was started.');
+    const diagnosed = providerFailureInfo(diagnoseProviderFailure('codex', error));
+    const info = diagnosed && !['execution_failed', 'output_validation'].includes(diagnosed.code) ? diagnosed : providerFailureFor('configuration');
+    throw assignProviderFailure(new Error(`Codex could not refresh native model availability. ${providerFailureMessage(info)} No model inference was started.`), info);
   }
   const selected = models.find(item => item.slug === model);
-  if (!selected) throw new Error('The selected model is not advertised by this configured native Codex runtime. Explicitly choose an available native model; CoForge never substitutes another model. No model inference was started.');
-  if (nativeTools.delegation && selected.multi_agent_version !== 'v2') throw new Error('The selected native Codex model does not advertise v2 delegation. Explicitly choose a supported model. No model inference was started.');
+  if (!selected) throw assignProviderFailure(new Error('The selected model is not advertised by this configured native Codex runtime. Explicitly choose an available native model; CoForge never substitutes another model. No model inference was started.'), providerFailureFor('model_access'));
+  if (nativeTools.delegation && selected.multi_agent_version !== 'v2') throw assignProviderFailure(new Error('The selected native Codex model does not advertise v2 delegation. Explicitly choose a supported model. No model inference was started.'), providerFailureFor('capability'));
   return { models };
 }
 
@@ -79,6 +83,6 @@ export async function assertCodexNativeContext(executable: string, directory: st
     if (slots.length !== 1 || Number(slots[0]![1]) !== maxConcurrent + 1) throw new Error('Unexpected native slot semantics');
   } catch {
     signal?.throwIfAborted();
-    throw new Error('Codex native concurrency boundary could not be verified for this CLI and selected model. No provider inference was started; use a qualified CLI version or disable native delegation.');
+    throw assignProviderFailure(new Error('Codex native concurrency boundary could not be verified for this CLI and selected model. No provider inference was started; use a qualified CLI version or disable native delegation.'), providerFailureFor('capability'));
   }
 }

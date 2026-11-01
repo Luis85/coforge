@@ -42,11 +42,12 @@ iteration: ""
 
 Decide the next valid action for one request.
 
-Overview, Sessions, Plan & Design, Increment, Workflow runs and Activity support
-exactly one request. Sessions provides read-only observation of captured attempts;
-Workflow runs contains its captured process and retained run history. Execution
-controls and mandatory review remain in their owning tabs; Sessions exposes no
-execution mutations. Services reject invalid transitions.
+Overview, Sessions, Plan & Design, Increment, Workflow runs, AI costs and Activity
+support exactly one request. Sessions provides read-only observation of captured
+attempts; Workflow runs contains its captured process and retained run history.
+AI costs reads the request's scoped retained ledger. Execution controls and
+mandatory review remain in their owning tabs; Sessions and AI costs expose no
+execution or charge mutations. Services reject invalid transitions.
 
 ## Entry and next action
 

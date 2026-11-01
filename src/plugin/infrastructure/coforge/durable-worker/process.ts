@@ -7,6 +7,7 @@ import { WorkerOwnershipUnknown } from './service';
 import { OutputSpool, ProviderOutput } from './output';
 import type { WorkerFiles } from './files';
 import { readNativeProcessIdentity, stopOwnedProcessTree } from './process-identity';
+import { providerFailureFor } from '../../../features/coforge/domain/provider-failure';
 
 /** Node owns the child, pipes and cancellation. No renderer/window object participates. */
 export function workerCapture(files: WorkerFiles, hooks: WorkerHooks, provider: 'claude' | 'codex') {
@@ -30,7 +31,7 @@ export function workerCapture(files: WorkerFiles, hooks: WorkerHooks, provider: 
         treeStopped = identity.then(async value => value ? (await stopOwnedProcessTree(value)).treeConfirmed : false).catch(() => false);
         watchdog = timer(() => {
           if (finished) return; finished = true; clean(); child.stdin.destroy(); child.stdout?.destroy(); child.stderr?.destroy(); child.unref();
-          reject(new WorkerOwnershipUnknown('Provider termination could not be verified.'));
+          reject(new WorkerOwnershipUnknown('Provider termination could not be verified.', providerFailureFor(options.signal?.reason === 'deadline' ? 'timeout' : options.signal?.aborted ? 'cancelled' : 'ownership_unknown', true), output.result()));
         }, 10000);
       };
       const abort = () => stop('Run cancelled. Review retained changes.');
@@ -57,9 +58,9 @@ export function workerCapture(files: WorkerFiles, hooks: WorkerHooks, provider: 
           const original = await identity;
           if (options.ownedTree && failure && !uncertain && original) await options.onOwnedProcess?.(original, 'terminated');
           if (options.ownedTree && uncertain && original) await options.onOwnedProcess?.(original, 'unknown');
-          if (uncertain) { reject(new WorkerOwnershipUnknown('The original provider process tree needs inspection.')); return; }
+          if (uncertain) { reject(new WorkerOwnershipUnknown('The original provider process tree needs inspection.', providerFailureFor(options.signal?.reason === 'deadline' ? 'timeout' : options.signal?.aborted ? 'cancelled' : 'ownership_unknown', true), output.result())); return; }
           if (failure) { reject(new ProcessFailure(failure.message, output.result())); return; }
-          if (code !== 0) { reject(new ProcessFailure('Native provider exited without completing this Build.', output.result())); return; }
+          if (code !== 0) { reject(new ProcessFailure('Native provider exited without completing this Build.', output.result(), redact(errorTail, options.env))); return; }
           await hooks.phase(); resolve(output.result());
         }).catch(() => { reject(new Error('The provider exited but its evidence could not be finalized.')); });
       });

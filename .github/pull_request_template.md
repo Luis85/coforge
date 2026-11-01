@@ -1,35 +1,28 @@
 ## Summary
 
-Add Sessions to private Idea cards so an operator can inspect current and previous parent attempts, select observed native assistants, and read a live Peek of sanitized messages, tool activity and verification output. Opening or closing an inspector never dispatches, resumes, sends input to or takes over an agent.
+Fix false external-edit protection on successful CoForge writes, retain useful native Build failure reasons, and add a dedicated read-only request AI costs tab.
 
-Windows desktop adds an explicit read-only terminal follower of the same parent feed. It uses a fixed observer, no SDK credentials/provider input, bounded private files, verified cleanup and conservative uncertain-launch handling. Other platforms use Peek. Captured native execution permissions, authentication, model selection, result validation and final human review remain unchanged.
+Note observers now reconcile current disk bytes after the concrete transaction settles, using only the latest successful exact-byte receipt. Managed-value fingerprinting matches canonical read-back; failed writes, external reverts and a second concurrent edit do not gain trust. Human body/frontmatter and workflow/artifact identities are preserved.
 
-## Requirements and traceability
+Native failures carry a fixed safe cause/next-step catalogue through CLI parsing, durable handshakes, snapshots and recovery without losing ownership quarantine or known spend. Legacy runs whose cause was discarded explicitly remain unknown. Failure panels link only to the selected attempt's actual task/response/diff/recovery evidence. Request AI costs reads the canonical ledger scoped by project and request, including failed/manual charges and explicit unavailable values.
 
-Owner approval recorded in BRIEF.md. The scaffold declares no req-* or vi-* obligations. Dedicated provider, engineering and UX agents implemented and cross-reviewed the flow. Plan: docs/project-tasks/2026-11-01-card-agent-sessions.md. Operator guide: docs/coforge/AGENT-SESSIONS.md.
+## Traceability
+
+Owner CF-133 report and AI-cost panel request are recorded in BRIEF.md; no req/vi obligations are declared by the scaffold. Task: docs/project-tasks/2026-11-01-cf133-run-reliability-and-costs.md. The separately requested normal native-worktree coding profile is the next increment; it is not implemented by this PR and no execution authority is expanded here.
 
 ## Validation
 
-- Behavioral red/green tests cover bounded trace ordering/retention, capture before parent completion, persistence/reload, observer failure isolation, child provenance, redaction before clipping, explicit message truncation, parent-only terminal payloads, follow/pause/unread/focus, project isolation, private feed exclusion and lifecycle cleanup.
-- Provider integration: 55 focused tests passed; final privacy/truncation follow-up 36 passed. Installed Claude 2.1.281 and Codex 0.145.0 were exercised against local fixture APIs, with live observations before CLI close and unchanged structured results. Recorded Claude child-stream replay also passed. No paid inference or real credentials were used for these canaries.
-- Terminal/worker focused batch: 24 passed; final terminal suite: 9 passed. Genuine Windows visible-terminal fixture proved live updates, observer exit and feed removal. Only the owned synthetic window was captured.
-- Final UI-focused batch: 7 passed. Contained Sessions spec: 1 passed (16.25s), eight parent/child captures reviewed at 1440/760 in light/dark; strict 1px Resume, keyboard focus, literal HTML, no host errors and exact note bytes. Fixture is explicitly synthetic historical evidence; live provider/terminal behavior is qualified separately.
-- npm run test:ui-quality: 8 passed. npm run ui:gallery: 40 captures reviewed, zero capture failures. Impeccable detector: no findings.
-- npm run -s dev:obsidian -- --json --port 9334: passed, pinned Obsidian 1.14.4 / launcher 3.2.1, loaded/enabled, errors: [], hostErrorCount: 0, pluginConsole: []. Screenshot and debug report inspected; contained host stopped.
-- Typecheck, explicit-config changed-source ESLint (67 files), whole-source lint (2,192 files) and diff checks passed. Final full local aggregate and final-head GitHub qualification are still running and will be recorded here before merge.
+- Guard/storage/atomic/integrity: eight suites, 44 tests passed, including ten red/green regressions for round-trip normalization, duplicate/stale events, failed note/data writes, external reverts/conflicts and receipt invalidation across reload.
+- Failure backend: 11 suites, 53 tests passed, including actual fixture processes, streamed Claude budget failure, partial changes/cost retention, unknown process ownership and durable/backcompat recovery. Classification uses safe fixed text; no raw diagnostic/prompt/credential payload is persisted.
+- UI-related batch: 27 tests passed. Exact seven-tab browser cases: two passed with original geometry/containment limits.
+- Contained Obsidian batch: four files/four tests passed (65.12s): self-write/reload/external revert, legacy/typed failure resources and canonical cost history, request-object and Sessions. Final bounded UI confirmation: one passed (24.05s); captures reviewed at wide/narrow light/dark.
+- npm run test:ui-quality: eight passed. npm run ui:gallery: 40 captures, zero failures, reviewed. Final Impeccable detector: no findings.
+- Typecheck, zero-warning focused ESLint/source lint, source caps/locale and diff checks passed. Fresh contained load/reload passed on pinned Obsidian 1.14.4 / launcher 3.2.1, with errors [], hostErrorCount 0 and pluginConsole []; host stopped. Final full project/CI results are recorded before merge.
 
-## Review findings resolved
+## Review boundaries
 
-Actual native keyboard scrolling competed with Resume; a stable focusable toggle and bounded frame settling fixed the behavior without weakening the end-position assertion. New user scrolling still pauses immediately.
+CF-133's actual empty execution log contains only the old generic worker fallback. That does not establish which provider failure occurred, and this change does not invent a historical diagnosis. The false-guard round-trip/race defects are independently reproduced, not asserted as the exact historical trigger. No real CF-133 request, personal vault or paid provider run was touched or retried.
 
-Private terminal roots are excluded from file tools and verification snapshots even under a broad project root. Normalization and credential/path redaction precede display clipping, including command labels and line-wrapped bearer tokens. Requested foreign delegation targets are not presented as observed children. Verbose Claude framing retains a bounded root result without persisting raw transcripts or changing the legacy result/cost parsers. Observation and observer-launch failures never quarantine an AgentJob or replay work.
+Unknown execution ownership still requires original-execution recovery. Read-only inspection and cost views offer no retry, provider input or cost editing. Costs are retained reports/manual provenance, not billing invoices; unknown cost is not zero and native assistant observations add no duplicate charges.
 
-## Evidence and limits
-
-Ignored evidence: reports/card-agent-sessions/, reports/card-sessions-dev-loop/, reports/obsidian/, reports/ui-gallery/ and contained .nq/ CLI fixtures. No generated reports, credentials, private feeds, dist or native caches are committed. No dependencies were added.
-
-Terminal follow currently supports Windows desktop; it is an observer console, not interactive CLI attachment. Child details depend on provider-emitted evidence; Claude tool-linked identities and unavailable Codex details are disclosed. Existing workers/historical attempts without capture are not reconstructed from SDK databases or global rollouts. Live Peek is a partial bounded feed; authoritative verification evidence and human review remain required.
-
-Local Node is 24.20.0; GitHub uses pinned 24.21.0. Local Docker execution was not run. The mandatory real Linux Docker suite adds a test that checks the container is still running when sanitized output arrives. No actual CF-133/CF-135 execution, personal vault, agent input, release or automatic code acceptance occurred.
-
-Integration: the branch incorporates main PR #63, preserving its polishing indicators and Kanban alignment alongside Sessions. Combined UI and final-head CI qualification are recorded in this PR before merge.
+Ignored evidence: reports/cf133-run-reliability/, reports/obsidian/, reports/ui-gallery/. No reports, private data, screenshots, dist or native caches are committed. Local Node is 24.20.0; CI uses repository pins. No dependency/global-auth change, safety-rule weakening or automatic acceptance/replay.
