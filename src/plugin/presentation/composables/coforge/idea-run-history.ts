@@ -1,5 +1,6 @@
 import type { AgentJob } from '../../../features/coforge/domain/types';
 import { STAGE_LABELS } from '../../../features/coforge/domain/types';
+import { CODEX_CAPTURE_SCOPE_HELP, CODEX_PROVIDER_CONTEXT_HELP } from './codex-provider-context';
 
 const captureTime = (value: string): string => new Date(value).toLocaleString(undefined, {
   year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
@@ -23,6 +24,7 @@ export function ideaRunHistory(job: AgentJob) {
   const conversation = job.conversation;
   const simulated = job.provider === 'demo' || conversation?.simulated === true;
   const external = job.provider === 'mcp';
+  const nativeCodex = job.provider === 'codex' && !simulated;
   const model = job.model ?? (job.workflow?.step.kind === 'ai' ? job.workflow.step.model : undefined);
   const lines = [job.logs.join('\n') || 'No log entries.'];
   if (job.error) lines.push(`Error: ${job.error}`);
@@ -39,9 +41,15 @@ export function ideaRunHistory(job: AgentJob) {
     log: lines.join('\n'),
     simulated,
     external,
-    promptLabel: simulated ? 'Simulated input' : external ? 'Task context' : 'Captured prompt',
+    promptLabel: simulated ? 'Simulated input' : external ? 'Task context' : nativeCodex ? 'CoForge task prompt' : 'Captured prompt',
+    instructionsLabel: nativeCodex ? 'CoForge instructions' : 'System instructions',
+    providerContextHelp: nativeCodex ? CODEX_PROVIDER_CONTEXT_HELP : '',
+    captureScopeHelp: nativeCodex ? CODEX_CAPTURE_SCOPE_HELP : 'Includes the initial prompt and recorded output. Intermediate tool turns are not retained.',
     outputLabel: simulated ? 'Simulated response' : external ? 'Submitted response' : 'LLM response',
     conversation,
+    nativeTools: job.workflow?.step.nativeTools,
+    verificationProfile: job.workflow?.verificationProfile,
+    verification: job.verification ?? [],
     capturedLabel: conversation ? captureTime(conversation.capturedAt) : '',
     responseLabel: conversation?.responseCapturedAt ? captureTime(conversation.responseCapturedAt) : '',
     missingHistory: missingHistory(job),

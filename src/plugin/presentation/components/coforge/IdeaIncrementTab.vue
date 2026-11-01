@@ -4,6 +4,7 @@ import { useIdeaDrawerContext } from "../../composables/coforge/use-idea-drawer"
 import { useIncrementReview } from "../../composables/coforge/use-increment-review";
 import CfIcon from "./CfIcon.vue";
 import MarkdownBody from "./MarkdownBody.vue";
+import WorkflowVerificationEvidence from './WorkflowVerificationEvidence.vue';
 
 const props = defineProps<{ idea: Idea }>();
 const drawer = useIdeaDrawerContext();
@@ -89,16 +90,23 @@ const review = useIncrementReview(props);
     <section class="cf-idea-section">
       <h3><CfIcon name="flask-conical" /> Verification notes</h3>
       <p class="cf-idea-help">Read the recorded outcomes and limitations below. Written tests and successful agent runs are not executed checks.</p>
-      <ul v-if="idea.increment.tests.length" class="cf-idea-list">
-        <li v-for="(test, index) in idea.increment.tests" :key="index">
+      <p v-if="review.evidence.postBuildChecks.length" class="cf-idea-help">Earlier Build notes do not describe the later command executions shown below. Compare each recorded source fingerprint before reviewing acceptance.</p>
+      <ul v-if="review.verificationNotes.length" class="cf-idea-list">
+        <li v-for="(test, index) in review.verificationNotes" :key="index">
           <MarkdownBody :source="test" />
         </li>
       </ul>
-      <p v-else class="cf-idea-help">
+      <p v-else-if="!review.evidence.postBuildChecks.length" class="cf-idea-help">
         No test results were reported. Verify the increment in the game project
         before accepting it.
       </p>
     </section>
+    <div v-for="check in review.evidence.postBuildChecks" :key="check.id" class="cf-idea-section" role="region" :aria-label="`Post-build verification for ${check.name}`">
+      <h3>{{ check.name }} · {{ check.jobStatus }}</h3>
+      <p class="cf-idea-help">Observed on this step's captured review snapshot. A source match is shown only when the increment has a recorded comparison fingerprint.</p>
+      <WorkflowVerificationEvidence :records="check.records" :current-hash="check.currentHash" />
+    </div>
+    <WorkflowVerificationEvidence :records="review.evidence.polishing ? review.evidence.verification ?? [] : idea.increment.verification ?? []" :current-hash="review.evidence.polishing ? undefined : idea.increment.verificationSourceHash" :historical="review.evidence.historicalVerification" />
     <section class="cf-idea-section">
       <h3>
         <CfIcon name="file-code" />

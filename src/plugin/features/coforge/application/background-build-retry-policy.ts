@@ -8,8 +8,10 @@ import { configuredIdea, configuredInputs, configuredRuntime } from './configure
 import { uncertainTaskAttempt } from './agent-task';
 import type { InternalState } from './ports';
 import { workflowSourceExecutors } from './workflow-source-executors';
+import { assertVerificationSettled } from './verification-admission';
 
 export function backgroundBuildRetryContext(state: InternalState, ideaId: string, executorBusy = false) {
+  assertVerificationSettled(state, ideaId);
   const idea = configuredIdea(state, ideaId); const run = idea.workflowRun;
   if (!run) throw new Error('Restore the original managed workflow before retrying its Build.');
   const stopHold = state.workflowStopHolds?.includes(ideaId) ?? false;

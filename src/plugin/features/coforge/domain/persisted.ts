@@ -18,6 +18,9 @@ import { obsShowStateCheck } from './obs-show-check';
 import { obsSetupStateCheck } from './obs-setup-check';
 import { twitchOperationsCheck } from './twitch-operations-validation';
 import { agentConversationCheck } from './agent-conversation';
+import { workflowVerificationProfileCheck } from './native-workflow-tools';
+import { workflowSourceHashCheck, workflowVerificationRecordsCheck, workflowVerificationRuntimeRecordsCheck } from './workflow-verification';
+import { nativeWorkflowPrivateRuntimeCheck, nativeWorkflowProcessRecordCheck } from './native-workflow-process';
 
 export interface IngestMeta { processedMessages: Array<{ id: string; ideaId?: string }>; lastRequests: Record<string, string>; chatRemovals?: import('./chat-removal').ChatRemovalHistory }
 /** Everything except the idea notes. Stored as one JSON file in the plugin folder. */
@@ -35,11 +38,15 @@ function dictionary<T>(item: Check<T>): Check<Record<string, T>> {
 }
 
 const increment = shape({
+  verification: optional(workflowVerificationRecordsCheck), verificationSourceHash: optional(workflowSourceHashCheck),
   snapshotHash: optional(text({ pattern: /^[a-f0-9]{64}$/u })),
   summary: str, files: list(shape({ path: str, additions: number({ min: 0 }), deletions: number({ min: 0 }) })), tests: list(str), diff: str,
   branch: optional(str), worktree: optional(str), commit: optional(str), createdAt: timestamp, simulated: boolean,
 });
 const job: Check<AgentJob> = shape({
+  nativeRuntime: optional(nativeWorkflowPrivateRuntimeCheck),
+  nativeProcess: optional(nativeWorkflowProcessRecordCheck),
+  verification: optional(workflowVerificationRecordsCheck), verificationRuntime: optional(workflowVerificationRuntimeRecordsCheck),
   durable: optional(durableBuildExecutionCheck),
   conversation: optional(agentConversationCheck),
   workflow: optional(configuredStepExecutionCheck),
@@ -62,6 +69,7 @@ export const settingsCheck: Check<Settings> = shape({
   timeoutSeconds: number({ gt: 0 }), model: str, requestCooldownSeconds: number({ min: 0 }),
 });
 const integration: Check<IntegrationSettings> = shape({
+  workflowVerification: optional(workflowVerificationProfileCheck),
   executionConcurrency: optional(executionConcurrencyCheck),
   workerNodeBin: optional(text({ min: 1, max: 1000 })),
   codexBin: optional(text({ min: 1, max: 1000 })),

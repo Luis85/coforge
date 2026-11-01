@@ -1,0 +1,67 @@
+# Task: Let workflow agents delegate natively and qualify their work
+
+- Status: implemented; final merge qualification tracked in [PR #62](https://github.com/Luis85/coforge/pull/62).
+- Journey in `BRIEF.md`: captured workflow → native planning/building/review → verified increment → human acceptance.
+
+## Why
+
+File-only native runs cannot carry out the requested subagent-led implementation and verification. The provider should coordinate its own assistants and call scoped test tools, returning actual command evidence with its increment. CoForge remains the parent attempt's execution/evidence boundary rather than introducing a second child-dispatch workflow.
+
+## Traceability
+
+Owner request: 2026-11-01 decision in `BRIEF.md`. `design/traceability.json` has no declared requirement/interaction obligations; no synthetic req-* or vi-* IDs are introduced.
+
+## Acceptance
+
+- Explicitly enabled Claude/Codex workflow steps use the provider's native subagent feature. No CoWorker recipient picker, operator-side child dispatch or child-run administration is added.
+- Parent and children retain one captured model/provider, task-scoped MCP broker, protected files, cumulative tool-call allowance, finite concurrency and cancellation boundary. Native shell/browser/unrelated configuration does not gain authority.
+- Missing policy preserves existing behavior; unsupported providers/features fail explicitly. Existing attempts never adopt later capability/settings changes. Delegated Codex background work needs a finite elapsed deadline; USD/turn controls are not misrepresented as Codex spending caps.
+- A separately saved host verification grant specifies a local immutable container image and approved command IDs. Imported workflow text cannot grant test execution. No implicit image pull or unsandboxed fallback occurs.
+- Actual tests execute against a private filtered snapshot, with no host credentials, Git metadata, managed vault notes or network. Test code cannot modify the canonical worktree; root/child file tools remain the only source-edit path.
+- Persist command admission before execution and observed command identity, source fingerprint, timestamps, bounded/redacted output and outcome before returning. Later source edits make previous results historical. Missing/interrupted/unknown outcomes never become passes.
+- Cancellation and recovery stop only verified-owned provider/container processes, preserve evidence and avoid replay. Native tests cover reload and original worker reconciliation.
+- Full qualification includes behavioral red/green tests, adversarial isolation/ownership tests, provider-native delegation proof, complete required project/UI/Obsidian gates and a polishing/cross-review pass. PR and merge require final-head GitHub checks to be green.
+
+## Implementation plan
+
+1. Research installed provider capabilities and official primary documentation, then fix the shared policy/evidence contracts.
+2. Dedicated Claude/process/recovery agent; Codex/profile/stream agent; policy/config/UI/evidence agent. Root owns isolated verification snapshots/container broker and integration closeout.
+3. Use explicit step native-tool preferences and a separate host verification grant. Preserve custom authored instructions; update shipped guidance to describe the selected effective capabilities.
+4. Test-first implementation with early typecheck, then qualify actual providers and sandbox canaries. Review both themes/pane sizes and keyboard flow.
+5. Self-review, fill the PR template, commit/push/open with full E2E qualification and merge only when green.
+
+## Initial research and evidence
+
+- Initial checkout clean on `main`, base `db6d87f` (PR #61). Branch `codex/native-workflow-agents`.
+- `node bin/app status`: ok; dependencies installed, generation matches design, zero pending scaffold obligations.
+- Installed Claude Code 2.1.281 supports explicit native agent definitions. Native children need their own trust instructions; the parent system prompt is not inherited. `safe-mode` disables custom agents, so only the explicitly enabled private coordinator/worker profile may replace that switch.
+- Installed Codex 0.145.0 parses native v2 delegation with finite concurrency. Its selected-model profile currently strips native delegation metadata; supplied tools remain scoped. CLI capability checks are necessary because newer documentation includes features absent locally.
+- A private Codex sandbox canary refused admission with `Restricted read-only access requires the elevated Windows sandbox backend`. The current unelevated backend does not qualify test isolation. No fixture process/network contact occurred; no administrator provisioning was attempted.
+- Docker Desktop is installed but failed during startup with an existing inference-manager socket error; its stop command also timed out. No factory reset, administrator provisioning or global configuration change was performed. Positive isolated execution is a mandatory CI proof on a local Linux Docker engine rather than an unqualified Windows fallback.
+
+## Qualification evidence
+
+- Actual Claude 2.1.281 proof passed: one native child read the allowed fixture, was denied private access, returned through StructuredOutput, and completed under the original parent. Three bounded calls reported $0.3252812 estimated whole-query cost; this is CLI telemetry, not a billing invoice. Qualification found and fixed missing root StructuredOutput authorization and private-CWD/relative-path ambiguity. Source remained unchanged; no host shell or real project dispatch occurred.
+- Actual Codex 0.145.0 proof passed with a freshly advertised native model: one native child, two private threads/one spawn edge, allowed source read and denied credential/managed-note reads, root result attribution and known completion/cleanup. Four bounded calls exposed account-model availability, root-inclusive concurrency and native forking's need for private session persistence. No USD or inclusive token total was invented.
+- Provider-native agents remain internal. CoForge does not create or poll child CoWorker jobs. Explicit code-level permission profiles, not prompt text, enforce scoped file/test tools. Actual hostile local-image tool requests were denied by the closed text-only Codex handler despite its advertised tool name.
+- Behavioral red/green evidence includes capability/capture/admission, partial-result retention, private runtime before stdin, orphan lane accounting, owned private state cleanup, whole-tree token coverage, readonly Review command evidence, historical polishing results, canonical nested/non-Git protection, test persistence fencing and final output byte limits. Root focused batches: 18 tests passed and a separate 11-test source/session/control batch passed; independent subagent batches are recorded in their closeout evidence.
+- Native settings save/reload/keyboard proof: 1 passed, wide/narrow light/dark reviewed; no jobs, Docker or model calls. UI quality: 8 passed. Gallery: 40 captures reviewed. Detector: no findings. Final rendered command/recovery and authentication evidence appears below.
+- Mandatory real-Docker CI [41267332339](https://github.com/Luis85/coforge/actions/runs/41267332339) passed **6/6, zero failures/skips**, on `f7aac7a`. Downloaded results at `reports/native-workflow-tools/final/docker-ci/results.json` confirm `success: true`, six passed and zero pending. The runtime never pulls an image or uses the desktop's dependency tree. Immutable prepared-image dependencies are bound with source bytes/executable permissions in the test fingerprint.
+- Final contained load/reload: `npm run -s dev:obsidian -- --json --port 9334` reported **passed**, Obsidian 1.14.4 / launcher 3.2.1, `errors: []`, `hostErrorCount: 0`, `pluginConsole: []`.
+- Final stored-evidence native render proof passed twice (22.67s and 21.63s), twenty captures reviewed across both themes/pane widths, including readonly Review attribution, current/stale/unknown/truncated outcomes, recovery and updated image guidance. Data is explicitly synthetic; no provider/container/PID action occurred. Exact request body and fixture jobs were retained.
+- Integrated independent review verified actual Linux Docker evidence and the file/test permission boundary. A subsequent Codex authentication review found that copying an OAuth bundle per invocation can discard SDK-refreshed credentials or race the normal CLI. The owner selected **existing CLI sign-in and its global AGENTS/skills context**. The correction removes credential copying, retains canonical SDK-managed refresh and uses private invocation SQLite/log/model-profile state. Native rollout files remain provider-owned. Fake shared-home/private-SQLite checks proved foreign-root native IDs inaccessible. Global instructions/skills are context, never a permission grant; captured CoForge input does not claim complete SDK prompt capture.
+- First full `npm run verify:project`: **4 stages passed, 1 failed in 1786.5s**. Typecheck, ESLint, maker types and all **2,024 product tests passed**, with six existing Windows skips. Source lint rejected cleanup control flow (`no-unsafe-finally`) in native runner paths. The runners now settle result/failure and cleanup explicitly outside `finally`; no rules were weakened.
+- Corrected whole-source `node tooling/quality/lint-source.mjs`: **passed, 2,155 files**, zero warnings. Final standalone typecheck and strict verification-harness typecheck: exit 0. Relevant cleanup batches: Claude 45 passed plus five existing Windows skips; Codex 34 passed. A transparent SDK reconnect notice now permits a later genuine root completion; fatal/failed/missing/late completion paths still reject (four-suite/23-test regression batch passed).
+- `npm run verify:artifacts`: **exit 0**, release build and prototype embedding **1 passed**. UI effects explicitly skip because no generated visual definitions are declared. The authentication correction is qualified below; final aggregate and GitHub results are retained in PR #62. The first failed aggregate run remains at `reports/native-workflow-tools/final/verify-project-first.log`.
+
+## Final authentication qualification
+
+Final-source authentication qualification passed: Codex 0.145.0 / gpt-5.6-sol completed in 54.28s using canonical sign-in, exactly one root-scoped native spawn, one child whose own rollout records the allowed README read and denied credential/managed-note reads, native child completion, root JSON/completion and guarded private-state cleanup. Evidence: `.nq/codex-native-live-owIGcT/root-scoped-native-proof.json`. SDK global rollout indexing makes raw private-database totals invalid evidence of this run's child count. A genuine-SDK fake-API canary separately proved that Root B indexes Root A's real child but cannot send/follow up through its known UUID or canonical path; legacy resume is unavailable. Evidence: `.nq/codex-shared-home-scope-uASqdx/indexed-foreign-ownership-proof.json`. The first canonical-auth call exposed an endpoint override regression (401); removing exec endpoint pins restored the SDK's normal authentication-dependent routing. Discovery retains closed endpoints/settings and reports configured catalogue metadata, not guaranteed account entitlement. No further paid probes were run.
+
+Final UI authentication/context batch passed 2/2 (31.55s), with keyboard and wide/narrow light/dark captures reviewed. Final focused provider/authentication batch passed 9 suites / 55 tests; standalone typecheck, focused ESLint, whole-source lint (2,158 files) and diff checks passed. The detached Node worker → provider environment proof passed without persisting keys or forwarding SDK credentials to verification. Independent final auth/context/cleanup review found no actionable defects.
+
+Final UI refresh: `npm run test:ui-quality` passed 8/8; `npm run ui:gallery` produced 40 reviewed captures. Final `npm run -s dev:obsidian -- --json --port 9334` passed with pinned Obsidian 1.14.4 / launcher 3.2.1, plugin loaded/enabled, `errors: []`, `hostErrorCount: 0`, `pluginConsole: []`. Screenshot and debug report were inspected (two debug records, zero errors). An initial pre-host `Database is not open` failure was retained; a single unchanged-command retry with a fresh contained profile passed without source, dependency, version or guard changes.
+
+## Untested scope
+
+Final local/GitHub gate results are retained in PR #62. Local Docker Desktop cannot supply positive Windows container execution evidence in this session. Real providers and actual Docker are qualified separately; the combined persistence/broker flow uses a provider fixture. Existing CF-133/CF-135 notes and retained worktrees are not qualification targets. No publication, code acceptance or provider/model fallback is authorized by an agent's summary; final human review remains mandatory.

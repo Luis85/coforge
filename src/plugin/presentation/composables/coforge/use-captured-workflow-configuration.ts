@@ -1,6 +1,7 @@
 import { computed, reactive } from "vue";
 import type { WorkflowRun } from "../../../features/coforge/domain/configured-workflow-run";
 import { buildDuration } from './durable-build-display';
+import { CODEX_PROVIDER_CONTEXT_HELP } from './codex-provider-context';
 
 /** Provenance comes entirely from the selected run; current definitions are never read. */
 export function useCapturedWorkflowConfiguration(run: () => WorkflowRun) {
@@ -8,6 +9,8 @@ export function useCapturedWorkflowConfiguration(run: () => WorkflowRun) {
   return reactive({
     workflowName: computed(() => run().definition.name),
     workflowRevision: computed(() => run().definition.revision),
+    providerContextHelp: computed(() => !run().external && run().definition.steps.some(step => step.kind === 'ai' && step.provider === 'codex') ? CODEX_PROVIDER_CONTEXT_HELP : ''),
+    nativePolicies: computed(() => run().definition.steps.flatMap(step => step.kind === 'ai' && step.nativeTools ? [{ id: step.id, name: step.name, tools: step.nativeTools }] : [])),
     executionPolicies: computed(() => run().definition.steps.flatMap(step => step.kind === 'ai' && step.output === 'codechange' ? [{
       id: step.id, name: step.name,
       execution: run().external ? 'External MCP client lifecycle' : step.provider === 'herdr' ? 'External Herdr lifecycle' : step.execution ? 'Background Build' : 'Foreground',

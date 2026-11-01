@@ -5,11 +5,12 @@ import type { WorkflowWorkspaceLease } from '../../features/coforge/application/
 import { executionAccess } from '../../features/coforge/application/workflow-execution';
 import { text, shape, optional, nullable } from '../../features/coforge/domain/check';
 import { protectedPrefix } from './durable-worker/protection';
+import { nativePrivateRuntimeSegment, privateWorkflowSegment } from './native-private-path';
 
 const MAX = 200000;
 const narrowingHint = 'Results are incomplete. Retry with a narrower repository-relative path; list_files query filters file paths before the result limit.';
 const incomplete = { truncated: true, narrowingHint };
-const denied = (segment: string): boolean => /^(?:\.git|\.claude|\.codex|\.coforge|\.coforge-run-output|\.agents|\.mcp\.json|\.obsidian|node_modules|\.env(?:\..*)?|\.ssh|\.aws|\.npmrc|\.netrc|credentials?(?:\..*)?|secrets?(?:\..*)?)$/iu.test(segment) || /\.(?:pem|key|p12|pfx)$/iu.test(segment);
+const denied = (segment: string): boolean => privateWorkflowSegment(segment) || /^(?:\.git|\.claude|\.codex|\.coforge|\.coforge-run-output|\.agents|\.mcp\.json|\.obsidian|node_modules|\.env(?:\..*)?|\.ssh|\.aws|\.npmrc|\.netrc|credentials?(?:\..*)?|secrets?(?:\..*)?)$/iu.test(segment) || /\.(?:pem|key|p12|pfx)$/iu.test(segment);
 const ambiguous = (segment: string): boolean => segment.trimEnd() !== segment || segment.endsWith('.') || [...segment].some(character => character.charCodeAt(0) < 32)
   || /^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\.|$)/iu.test(segment);
 function parts(path: string): string[] {
@@ -100,6 +101,7 @@ export class McpStepFiles {
     const rootInfo = await lstat(task.lease.cwd);
     if (!rootInfo.isDirectory() || rootInfo.isSymbolicLink()) throw new Error('The task repository identity changed.');
     const root = await realpath(resolve(task.lease.cwd));
+    if (root.split(sep).some(nativePrivateRuntimeSegment)) throw new Error('Private native runtimes are outside repository tool authority.');
     if (root !== resolve(task.lease.cwd)) throw new Error('The task repository boundary changed.');
     const taskId = optional(text({ min: 1, max: 100 }));
     const pathCheck = text({ max: 1000 });

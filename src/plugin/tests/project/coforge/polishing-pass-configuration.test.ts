@@ -24,3 +24,12 @@ it('validates the configurable identity, instructions, short bounds and optional
   expect(workflowDefinitionCheck({ ...source, improvementPass: { ...pass, provider: 'codex', model: 'gpt-6.1-sol', effort: 'high',
     execution: { mode: 'background', maxRuntimeSeconds: 360000, maxTurns: 1000, maxBudgetUsd: 200 } } }).improvementPass?.execution).toMatchObject({ maxRuntimeSeconds: 360000 });
 });
+
+it('preserves optional bounded native tools in polishing copies and requires finite delegated background Codex', () => {
+  const source = definition([ai('analysis')]);
+  const pass = { ...defaultImprovementPass(defaultSettings()), provider: 'claude' as const, nativeTools: { delegation: { maxConcurrent: 2 }, verification: { commandIds: ['test'] } } };
+  const saved = workflowDefinitionCheck({ ...source, improvementPass: pass });
+  expect(parseWorkflowDefinition(serializeWorkflowDefinition(saved)).improvementPass?.nativeTools).toEqual(pass.nativeTools);
+  expect(() => workflowDefinitionCheck({ ...source, improvementPass: { ...pass, provider: 'codex' } })).toThrow('elapsed deadline');
+  expect(() => workflowDefinitionCheck({ ...source, improvementPass: { ...pass, provider: 'herdr' } })).toThrow('native Claude');
+});

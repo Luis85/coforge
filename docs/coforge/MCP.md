@@ -35,10 +35,13 @@ example, search filenames for `coworkers` under `src`, then search content under
 retry before concluding that a file does not exist. These options preserve the
 existing protected-path, file-size and scan limits.
 
-Native request-workflow invocations receive only their supplied task tools.
-Instructions asking for subagents, executed tests or browser inspection do not
-grant those capabilities. The vault-level CoWorker tools below are a separate
-analytical route; they are not implicitly available inside a native request step.
+Native request-workflow invocations receive only their captured task tools.
+Explicit native-tool preferences enable provider-owned assistants and approved
+isolated verification commands; instructions alone never grant capabilities.
+The provider coordinates its own native children inside the parent invocation.
+The vault-level CoWorker tools below remain a separate analytical route and are
+not implicitly available inside a native request step. See
+[Native workflow tools](NATIVE-WORKFLOW-TOOLS.md) for host grants and recovery.
 Keep generated source tests separate from executed verification, and carry
 unfinished styling, documentation, open questions and qualification steps into
 the final handoff. In the private Increment view, saved criteria and captured

@@ -26,6 +26,9 @@ import type { BackgroundBuildRetryApproval } from '../domain/background-build-re
 import type { PolishingRun } from '../domain/polishing';
 import { assertPolishingMetadata, assertPolishingResolved } from './workflow-run-owner';
 import { polishingSaveOptions, workflowRunSaveOptions } from './polishing-save-options';
+import { captureWorkflowVerification, validateNativeWorkflowTools } from '../domain/native-workflow-tools';
+import { recordWorkflowVerification, recordWorkflowVerificationRuntime } from './workflow-verification';
+import { recordWorkflowNativeProcess, recordWorkflowNativeRuntime } from './native-workflow-process';
 
 interface ConfiguredHost {
   dispatchAllowed?(): boolean;
@@ -105,6 +108,8 @@ export class ConfiguredWorkflowEngine {
       return null;
     }
     const provider = run.external ? 'mcp' : step.provider;
+    validateNativeWorkflowTools(step, provider, run.external === true);
+    const verificationProfile = captureWorkflowVerification(step.nativeTools, state.integration.workflowVerification, step.access);
     if (step.execution && (run.external || !['claude', 'codex'].includes(provider) || !this.host.durableBuilds)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
     if (step.execution && state.runtime.durableBuild?.ready === false) throw new Error(state.runtime.durableBuild.message || 'Check the background worker before admitting another Build.');
     configuredRuntime(state, idea, step, run.external, !!polish && step.output !== 'codechange');
@@ -112,6 +117,7 @@ export class ConfiguredWorkflowEngine {
     if (state.jobs.filter(job => job.status === 'queued').length >= 50) throw new Error('The queue is full.');
     const inputs = polish ? polish.sourceArtifacts : configuredInputs(run, step, idea.workflowHistory, idea);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
+      ...(verificationProfile ? { verificationProfile } : {}),
       ...(retry ? { backgroundRetryId: retry.id } : {}),
       ...(polish ? { polishingId: polish.id, polishingSourceHash: polish.sourceHash, polishingFeedback: polish.feedback, polishingPayload: JSON.stringify(polish.target),
         ...((polish.reviewedSource?.runId ?? polish.target.sourceRunId) ? { sourceRunId: polish.reviewedSource?.runId ?? polish.target.sourceRunId } : {}) } : {}),
@@ -311,6 +317,10 @@ export class ConfiguredWorkflowEngine {
     if (!runner) throw new Error('The configured workflow runner is unavailable.');
     const payload: StageInput = { ...input, onUsage: cost => this.host.cost(job.id, cost), onTokenUsage: usage => this.host.usage(job.id, usage),
       onConversation: event => recordAgentConversation(this.store, job.id, event),
+      onVerification: record => recordWorkflowVerification(this.store, job.id, record),
+      onVerificationRuntime: record => recordWorkflowVerificationRuntime(this.store, job.id, record),
+      onNativeProcess: record => recordWorkflowNativeProcess(this.store, job.id, record),
+      onNativeRuntime: runtime => recordWorkflowNativeRuntime(this.store, job.id, runtime),
       onWorkspace: async workspaceId => { await this.store.transaction(state => {
         const { run } = configuredAttempt(state, job, true);
         if (run.workspaceId && run.workspaceId !== workspaceId) throw new Error('This run already owns a different workspace.');

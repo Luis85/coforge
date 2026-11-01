@@ -1,20 +1,31 @@
 import { readdir } from 'node:fs/promises';
-import { boolean, list, number, optional, shape, text } from '../../../features/coforge/domain/check';
+import { boolean, list, number, optional, shape, text, timestamp } from '../../../features/coforge/domain/check';
 import { durableBuildResultCheck, durableBuildSnapshotCheck, sameDurableBuildRef, type DurableBuildRef, type DurableBuildSnapshot } from '../../../features/coforge/domain/durable-build';
 import type { DurableBuildRequest } from '../../../features/coforge/application/durable-build-ports';
 import { inputHash, workerRequestCheck } from './protocol';
 import { WorkerFiles } from './files';
+import { workflowVerificationRuntimeRecordsCheck } from '../../../features/coforge/domain/workflow-verification';
+import { recoverWorkerVerification } from './verification-recovery';
+import { nativeWorkflowPrivateRuntimeCheck } from '../../../features/coforge/domain/native-workflow-process';
 
 const idsCheck = list(text({ pattern: /^build-[a-f0-9]{40}$/u }), { max: 1000 });
 export const nativeIdentityCheck = shape({ pid: number({ integer: true, min: 1 }), platform: text({ min: 1, max: 40 }), birth: text({ min: 1, max: 320 }),
   image: text({ pattern: /^[a-f0-9]{64}$/u }), groupId: optional(number({ integer: true, min: 1 })) }, { strict: true });
-export const workerRecordCheck = shape({ snapshot: durableBuildSnapshotCheck, acknowledgedSequence: optional(number({ integer: true, min: 0 })),
-  provider: optional(shape({ pid: number({ integer: true, min: 1 }), launchId: text({ min: 1, max: 160 }), startedAt: text({ min: 1, max: 100 }), identity: optional(nativeIdentityCheck) }, { strict: true })),
+const workerRecordShape = shape({ snapshot: durableBuildSnapshotCheck, acknowledgedSequence: optional(number({ integer: true, min: 0 })),
+  provider: optional(shape({ pid: number({ integer: true, min: 1 }), launchId: text({ min: 1, max: 160 }), startedAt: text({ min: 1, max: 100 }), identity: optional(nativeIdentityCheck),
+    contractCompletedAt: optional(timestamp), treeTerminatedAt: optional(timestamp) }, { strict: true })),
   terminationUnknown: optional(boolean),
+  verificationRuntime: optional(workflowVerificationRuntimeRecordsCheck),
+  nativeRuntime: optional(nativeWorkflowPrivateRuntimeCheck),
   startIntent: optional(boolean), reservationReleased: optional(boolean),
   recovery: optional(shape({ version: number({ min: 1, max: 1 }), evidenceHash: text({ pattern: /^[a-f0-9]{64}$/u }), observedAt: text({ min: 1, max: 100 }), quiescent: boolean,
     workspaceCaptured: optional(boolean), increment: (value: unknown) => value === undefined ? undefined : durableBuildResultCheck({ increment: value }).increment }, { strict: true })),
 }, { strict: true });
+export const workerRecordCheck = (value: unknown) => {
+  const record = workerRecordShape(value);
+  if ((record.provider?.contractCompletedAt || record.provider?.treeTerminatedAt) && !record.provider.identity) throw new Error('Original provider identity is required for a quiescence receipt.');
+  return record;
+};
 const recordCheck = workerRecordCheck;
 export type WorkerRecord = ReturnType<typeof workerRecordCheck>;
 export function workerSnapshot(record: WorkerRecord): DurableBuildSnapshot {
@@ -37,11 +48,20 @@ export class WorkerStore {
       const files = await this.files.child(id); const request = workerRequestCheck(await files.read('input.json'));
       const record = recordCheck(await files.read('record.json'));
       if (record.snapshot.ref.executionId !== id || record.snapshot.ref.inputHash !== inputHash(request)) throw new Error('Build authorization identity changed.');
+      if (record.nativeRuntime && (record.nativeRuntime.runId !== request.runId || record.nativeRuntime.attemptId !== request.attemptId || record.nativeRuntime.projectId !== request.projectId)) throw new Error('Private native authorization identity changed.');
       this.jobs.set(id, { request, record, files });
     }
     this.available = true;
     for (const job of this.jobs.values()) if (['starting', 'running', 'finalizing'].includes(job.record.snapshot.phase)) {
       await this.update(job.record.snapshot.ref, next => { next.snapshot.phase = 'attention'; next.terminationUnknown = true; next.snapshot.error = 'The original Build worker stopped without verified provider termination. Its work is quarantined; no provider was restarted.'; });
+    }
+    for (const job of this.jobs.values()) if (job.record.verificationRuntime?.some(record => record.phase !== 'terminal' || job.record.snapshot.verification?.some(evidence => evidence.id === record.verificationId && evidence.status === 'running'))) {
+      const recovered = structuredClone(job.record);
+      const proven = await recoverWorkerVerification(recovered);
+      await this.update(job.record.snapshot.ref, next => {
+        next.verificationRuntime = recovered.verificationRuntime; next.snapshot.verification = recovered.snapshot.verification;
+        if (!proven) { next.snapshot.phase = 'attention'; next.terminationUnknown = true; next.snapshot.error = 'Original verification-container termination remains unverified. No command was replayed.'; }
+      });
     }
   }
   private command<T>(work: () => Promise<T>): Promise<T> {
@@ -93,7 +113,7 @@ export class WorkerStore {
   acknowledge(ref: DurableBuildRef, sequence: number): Promise<void> {
     return this.command(async () => {
       const current = this.get(ref); const snapshot = current.record.snapshot;
-      if (!['completed', 'failed', 'cancelled'].includes(snapshot.phase) || snapshot.sequence !== sequence || current.record.terminationUnknown)
+      if (!['completed', 'failed', 'cancelled'].includes(snapshot.phase) || snapshot.sequence !== sequence || current.record.terminationUnknown || current.record.nativeRuntime || current.record.verificationRuntime?.some(item => item.phase !== 'terminal'))
         throw new Error('Only this verified terminal Build result can be acknowledged.');
       const record = { ...current.record, acknowledgedSequence: sequence };
       await current.files.write('record.json', record); current.record = record;

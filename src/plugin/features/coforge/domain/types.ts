@@ -14,6 +14,8 @@ export interface Screening { verdict: 'clear' | 'flagged'; reason: string; signa
 export interface ImplementationPlan { summary: string; steps: string[]; acceptanceCriteria: string[]; risks: string[]; markdown: string; createdAt: string }
 export interface FileChange { path: string; additions: number; deletions: number }
 export interface Increment {
+  verification?: import('./workflow-verification').WorkflowVerificationRecord[];
+  verificationSourceHash?: string;
   /** Optional host-owned hash of the actual scoped file tree; legacy/model output cannot invent it. */
   snapshotHash?: string;
   summary: string; files: FileChange[]; tests: string[]; diff: string;
@@ -43,6 +45,10 @@ export interface ChatMessage {
 }
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 export interface AgentJob {
+  nativeRuntime?: import('./native-workflow-process').NativeWorkflowPrivateRuntime;
+  nativeProcess?: import('./native-workflow-process').NativeWorkflowProcessRecord;
+  verification?: import('./workflow-verification').WorkflowVerificationRecord[];
+  verificationRuntime?: import('./workflow-verification').WorkflowVerificationRuntimeRecord[];
   durable?: import('./durable-build').DurableBuildExecution;
   conversation?: import('./agent-conversation').AgentConversation;
   workflow?: import('./configured-workflow-run').ConfiguredStepExecution;
@@ -121,6 +127,7 @@ export interface AppState {
 }
 /** Host-side configuration that replaced the prototype's .env file. Secrets are referenced by name only. */
 export interface IntegrationSettings {
+  workflowVerification?: import('./native-workflow-tools').WorkflowVerificationProfile;
   executionConcurrency?: import('./execution-concurrency').ExecutionConcurrency;
   workerNodeBin?: string;
   codexBin?: string;
