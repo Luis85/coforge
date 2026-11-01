@@ -13,6 +13,7 @@ import type { NativeWorkflowPrivateRuntime, NativeWorkflowProcessRecord } from '
 import { createCodexPrivateRuntime, purgeCodexPrivateRuntime } from './codex-private-runtime';
 import { captureProviderFailure, diagnoseProviderFailure, preserveProviderFailure } from './provider-failure';
 import { CheckError } from '../../features/coforge/domain/check';
+import { persistProviderEvidence } from './provider-evidence';
 
 export async function runCodexStage(input: StageInput, workspaces: WorkflowWorkspaces, capture?: typeof captureProcess, protectedPaths?: readonly string[], onActivity?: () => Promise<void>): Promise<StageResult> {
   if (!input.workflow) throw new Error('Codex requires a captured workflow. Save and start the project workflow before dispatching.');
@@ -35,7 +36,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     failed = true;
   };
   const observeNative: NonNullable<StageInput['onNativeProcess']> = async record => {
-    nativeProcess = record; await input.onNativeProcess?.(record);
+    nativeProcess = record; await persistProviderEvidence(() => input.onNativeProcess?.(record));
   };
   const markUnknown = async () => {
     uncertain = true;
@@ -51,16 +52,16 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     if (captured || lease.readOnly) return;
     const raw = await lease.capture(summary); captured = true;
     const increment = raw && bridge ? await bridge.captureVerification(raw) : raw;
-    if (lease.id) await input.onChanges?.(increment ?? null);
+    if (lease.id) await persistProviderEvidence(() => input.onChanges?.(increment ?? null));
     return increment;
   };
   try {
-    if (lease.id) await input.onWorkspace?.(lease.id);
+    if (lease.id) await persistProviderEvidence(() => input.onWorkspace?.(lease.id!));
     directory = await mkdtemp(join(tmpdir(), 'coforge-codex-'));
     if (snapshot.step.nativeTools) {
       privateRuntime = await createCodexPrivateRuntime(directory, { runId: snapshot.runId, attemptId: snapshot.attemptId, projectId: ideaProjectId(input.idea) });
       directory = privateRuntime.directory;
-      await input.onNativeRuntime!(privateRuntime);
+      await persistProviderEvidence(() => input.onNativeRuntime!(privateRuntime));
     }
     bridge = await codexWorkflowTools(input, lease, protectedPaths ?? lease.protectedProjectPaths ?? [], onActivity);
     input.onLog?.(`Codex ${snapshot.step.name}: scoped CoForge tools; native project access is disabled. Claude USD/turn caps are not Codex spending limits.`);
@@ -76,7 +77,7 @@ export async function runCodexStage(input: StageInput, workspaces: WorkflowWorks
     const verification = bridge.verificationRecords();
     outcome = { ...result, ...(increment ? { increment } : {}), ...(verification.length ? { verification } : {}), ...(response.usage ? { usage: response.usage } : {}) };
   } catch (error) {
-    const diagnosed = error instanceof CheckError ? diagnoseProviderFailure('codex', error) : error;
+    const diagnosed = error instanceof CheckError || error instanceof ProcessOwnershipUnknown ? diagnoseProviderFailure('codex', error) : error;
     fail(diagnosed); uncertain ||= error instanceof ProcessOwnershipUnknown;
     if (error instanceof CheckError) await captureProviderFailure(input.onSessionEvent, diagnosed);
     try { await drain(); } catch (cleanupError) { fail(cleanupError, true); }

@@ -18,6 +18,7 @@ import type { AgentSessionEvent } from '../../features/coforge/domain/agent-sess
 import { providerSessionObserver } from './provider-session-stream';
 import { captureProviderFailure, diagnoseProviderFailure } from './provider-failure';
 import { assignProviderFailure, providerFailureFor } from '../../features/coforge/domain/provider-failure';
+import { persistProviderEvidence } from './provider-evidence';
 
 export interface CodexTransportInput {
   directory: string; executable?: string; model: string; effort?: ReasoningEffort;
@@ -64,7 +65,7 @@ async function runScopedCodexTransport(input: CodexTransportInput): Promise<{ ou
     : 'Native project files, shell, browser, other MCP servers and delegation are unavailable.'} Return the required structured result.`;
   const observer = providerSessionObserver({ provider: 'codex', capture: input.onSessionEvent, environment, privatePaths: [input.directory] });
   try {
-    await input.onConversation?.({ kind: 'request', instructions, prompt: input.prompt });
+    await persistProviderEvidence(() => input.onConversation?.({ kind: 'request', instructions, prompt: input.prompt }));
     input.signal?.throwIfAborted();
     const raw = await (input.capture ?? captureProcess)(executable, args, {
       cwd: input.directory, timeoutMs: input.timeoutMs, signal: input.signal,
@@ -74,13 +75,13 @@ async function runScopedCodexTransport(input: CodexTransportInput): Promise<{ ou
       ...(input.nativeTools ? { ownedTree: true as const } : {}),
       ...(input.onOwnedProcess ? { onOwnedProcess: input.onOwnedProcess } : {}),
     });
-    await input.telemetry?.(codexUsage(raw, { delegated }));
+    await persistProviderEvidence(() => input.telemetry?.(codexUsage(raw, { delegated })));
     await captureCodexResponse(input.onConversation, raw, environment);
     const result = codexResult(raw, { delegated });
     return { ...result, output: normalizeCodexOutput(result.output, input.schema) };
   } catch (error) {
     if (error instanceof ProcessFailure) {
-      await input.telemetry?.(codexUsage(error.output, { delegated }));
+      await persistProviderEvidence(() => input.telemetry?.(codexUsage(error.output, { delegated })));
       await captureCodexResponse(input.onConversation, error.output, environment);
       throw diagnoseProviderFailure('codex', error);
     }

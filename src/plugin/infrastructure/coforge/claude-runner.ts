@@ -21,6 +21,7 @@ import { captureObservedClaude } from './claude-observed-capture';
 import { captureProviderFailure, diagnoseProviderFailure, preserveProviderFailure } from './provider-failure';
 import { providerFailureInfo } from '../../features/coforge/domain/provider-failure';
 import { assignProviderFailure, providerFailureFor } from '../../features/coforge/domain/provider-failure';
+import { persistProviderEvidence } from './provider-evidence';
 
 function executable(integration: IntegrationSettings): string {
   const command = integration.claudeBin.trim() || 'claude';
@@ -57,7 +58,7 @@ async function interpret(input: StageInput, output: unknown, costUsd: number | u
 
 function stageFailure(error: unknown): unknown {
   if (providerFailureInfo(error)) return error;
-  if (error instanceof ProcessOwnershipUnknown) return error;
+  if (error instanceof ProcessOwnershipUnknown) return diagnoseProviderFailure('claude', error);
   if (error instanceof ProcessFailure) return diagnoseProviderFailure('claude', error);
   if (error instanceof CheckError) return diagnoseProviderFailure('claude', error);
   if (error instanceof Error && /unknown (?:option|argument)|unrecognized (?:option|argument)|unexpected (?:option|argument)/i.test(error.message))
@@ -85,7 +86,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     const capturedIncrement = await lease.capture(summary);
     const increment = capturedIncrement && brokered ? await brokered.bridge.captureVerification(capturedIncrement) : capturedIncrement;
     captured = true;
-    if (lease.id) await input.onChanges?.(increment ?? null);
+    if (lease.id) await persistProviderEvidence(() => input.onChanges?.(increment ?? null));
     return increment;
   };
   if (input.workflow) {
@@ -93,7 +94,7 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     lease = await workspaces.acquire({ runId: input.workflow.runId, projectId: ideaProjectId(idea), attemptId: input.workflow.attemptId,
       access: executionAccess(input), integration, ...(input.workflow.workspaceId ? { workspaceId: input.workflow.workspaceId } : {}), ...(signal ? { signal } : {}) });
     cwd = lease.cwd;
-    try { if (lease.id && !usesNativeClaudeTools(input) && !hasBrokeredReadScope(lease)) await input.onWorkspace?.(lease.id); }
+    try { if (lease.id && !usesNativeClaudeTools(input) && !hasBrokeredReadScope(lease)) await persistProviderEvidence(() => input.onWorkspace?.(lease!.id!)); }
     catch (error) { await lease.release(); throw error; }
   } else if (stage === 'screen' || stage === 'score') cwd = temporary = await mkdtemp(join(tmpdir(), 'coforge-classifier-'));
   else {
@@ -111,14 +112,14 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
       onLog(`Claude ${input.workflow?.step.name ?? stage}: ${access === 'none' ? 'no tools; isolated temporary directory' : access === 'readproject' ? 'read-only project access' : 'file editing in an isolated worktree'}.`);
       const args = buildClaudeArgs(stage, settings, input.workflow);
       const prompt = input.workflow ? executionTaskPrompt(input) : stageInput(stage, idea, settings);
-      await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt });
+      await persistProviderEvidence(() => input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt }));
       signal?.throwIfAborted();
       raw = await captureObservedClaude(input, executable(integration), args, {
         cwd, input: prompt, timeoutMs: settings.timeoutSeconds * 1000, ...(signal ? { signal } : {}),
       }, capture);
     }
-    const usage = reportedClaudeCost(raw); if (usage !== undefined) await input.onUsage?.(usage);
-    const tokens = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (tokens) await input.onTokenUsage?.(tokens);
+    const usage = reportedClaudeCost(raw); if (usage !== undefined) await persistProviderEvidence(() => input.onUsage?.(usage));
+    const tokens = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (tokens) await persistProviderEvidence(() => input.onTokenUsage?.(tokens));
     await captureClaudeResponse(input, raw);
     const envelope = parseClaudeEnvelope(raw);
     // Model output is saved to notes and shown to viewers: it gets the same sanitizing as chat before validation.
@@ -135,8 +136,8 @@ export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWor
     if (!(error instanceof ProcessFailure)) await captureProviderFailure(input.onSessionEvent, failure);
     try {
       if (error instanceof ProcessFailure) {
-        const usage = reportedClaudeCost(error.output); if (usage !== undefined) await input.onUsage?.(usage);
-        const tokens = reportedClaudeUsage(error.output, { delegated: nativeClaudeDelegation(input) }); if (tokens) await input.onTokenUsage?.(tokens);
+        const usage = reportedClaudeCost(error.output); if (usage !== undefined) await persistProviderEvidence(() => input.onUsage?.(usage));
+        const tokens = reportedClaudeUsage(error.output, { delegated: nativeClaudeDelegation(input) }); if (tokens) await persistProviderEvidence(() => input.onTokenUsage?.(tokens));
         await captureClaudeResponse(input, error.output);
       }
     } catch (evidenceError) { fail(evidenceError); }

@@ -15,6 +15,7 @@ import { captureObservedClaude } from '../claude-observed-capture';
 import { diagnoseProviderFailure, captureProviderFailure, preserveProviderFailure } from '../provider-failure';
 import { providerFailureInfo } from '../../../features/coforge/domain/provider-failure';
 import { CheckError } from '../../../features/coforge/domain/check';
+import { persistProviderEvidence } from '../provider-evidence';
 
 /** A private-CWD Claude process receives only five broker tools, never native filesystem/delegation authority. */
 export function backgroundClaudeArgs(input: StageInput, configPath: string): string[] {
@@ -35,10 +36,10 @@ export async function runBackgroundClaude(input: StageInput, workspaces: Workflo
     if (captured) return undefined;
     const capturedIncrement = await lease.capture(summary);
     const increment = capturedIncrement && bridge ? await bridge.captureVerification(capturedIncrement) : capturedIncrement;
-    captured = true; await input.onChanges?.(increment ?? null); return increment;
+    captured = true; await persistProviderEvidence(() => input.onChanges?.(increment ?? null)); return increment;
   };
   try {
-    if (lease.id) await input.onWorkspace?.(lease.id);
+    if (lease.id) await persistProviderEvidence(() => input.onWorkspace?.(lease.id!));
     await files.verifyIdentity();
     const cwd = join(files.directory, 'claude-' + randomUUID()); await mkdir(cwd, { mode: 0o700 });
     bridge = await codexWorkflowTools(input, lease, protectedPaths, onActivity);
@@ -47,12 +48,12 @@ export async function runBackgroundClaude(input: StageInput, workspaces: Workflo
     await files.verifyIdentity();
     await prepareNativeClaude(input, config, input.integration.claudeBin, probe);
     const args = backgroundClaudeArgs(input, config); const prompt = executionTaskPrompt(input);
-    await input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt }); input.signal?.throwIfAborted();
+    await persistProviderEvidence(() => input.onConversation?.({ kind: 'request', instructions: args[args.indexOf('--system-prompt') + 1] ?? '', prompt })); input.signal?.throwIfAborted();
     raw = await captureObservedClaude(input, input.integration.claudeBin, args, { cwd, input: prompt, signal: input.signal, ...(usesNativeClaudeTools(input) ? { ownedTree: true as const } : {}) }, capture, { COFORGE_SESSION_TOKEN: bridge.token });
     providerReturned = true;
     await bridge.dispose(); bridge.assertBudget();
-    const cost = reportedClaudeCost(raw); if (cost !== undefined) await input.onUsage?.(cost);
-    const usage = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (usage) await input.onTokenUsage?.(usage);
+    const cost = reportedClaudeCost(raw); if (cost !== undefined) await persistProviderEvidence(() => input.onUsage?.(cost));
+    const usage = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (usage) await persistProviderEvidence(() => input.onTokenUsage?.(usage));
     await captureClaudeResponse(input, raw);
     const result = executionResult(input, parseClaudeEnvelope(raw).output); resultValidated = true;
     const increment = await changes(result.summary ?? 'Background Claude Build changes');
@@ -66,8 +67,8 @@ export async function runBackgroundClaude(input: StageInput, workspaces: Workflo
     if (!(caught instanceof ProcessFailure)) await captureProviderFailure(input.onSessionEvent, failure);
     try {
       if (caught instanceof ProcessFailure) {
-        const cost = reportedClaudeCost(raw); if (cost !== undefined) await input.onUsage?.(cost);
-        const usage = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (usage) await input.onTokenUsage?.(usage);
+        const cost = reportedClaudeCost(raw); if (cost !== undefined) await persistProviderEvidence(() => input.onUsage?.(cost));
+        const usage = reportedClaudeUsage(raw, { delegated: nativeClaudeDelegation(input) }); if (usage) await persistProviderEvidence(() => input.onTokenUsage?.(usage));
         await captureClaudeResponse(input, raw);
       }
     } catch (evidenceError) { fail(evidenceError); }

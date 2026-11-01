@@ -33,7 +33,7 @@ it("reports provider tokens before invalid structured output or process failure 
     structured_output: { verdict: "invalid" },
   });
   transport.run.mockResolvedValueOnce(raw);
-  await expect(runClaudeStage(input)).rejects.toThrow("schema validation");
+  await expect(runClaudeStage(input)).rejects.toMatchObject({ failure: { code: 'output_validation' } });
   expect(seen).toEqual([{ inputTokens: 0, outputTokens: 12 }]);
   const failed = JSON.stringify({
     type: "result",
@@ -49,9 +49,7 @@ it("reports provider tokens before invalid structured output or process failure 
   transport.run.mockRejectedValueOnce(
     new ProcessFailure("Synthetic process failure", failed),
   );
-  await expect(runClaudeStage(input)).rejects.toThrow(
-    "Synthetic process failure",
-  );
+  await expect(runClaudeStage(input)).rejects.toMatchObject({ failure: { code: 'turn_limit' } });
   expect(seen[1]).toEqual({
     inputTokens: 20,
     outputTokens: 0,
@@ -61,7 +59,7 @@ it("reports provider tokens before invalid structured output or process failure 
   transport.run.mockRejectedValueOnce(
     new ProcessFailure("Run cancelled.", failed),
   );
-  await expect(runClaudeStage(input)).rejects.toThrow("Run cancelled.");
+  await expect(runClaudeStage(input)).rejects.toMatchObject({ failure: { code: 'cancelled' } });
   expect(seen[2]).toEqual(seen[1]);
   transport.run.mockRejectedValueOnce(new ProcessFailure('claude exited with code 1. Check the CLI installation and authentication.', failed));
   await expect(runClaudeStage(input)).rejects.toThrow('turn limit');

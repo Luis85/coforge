@@ -1,6 +1,6 @@
 import { CheckError, oneOf, shape, text, type Check } from './check';
 
-export const PROVIDER_FAILURE_CODES = ['installation', 'authentication', 'model_access', 'access_denied', 'rate_limit', 'turn_limit', 'budget_limit', 'tool_limit', 'capability', 'configuration', 'output_validation', 'incomplete_output', 'transport', 'cancelled', 'timeout', 'ownership_unknown', 'provider_error', 'execution_failed'] as const;
+export const PROVIDER_FAILURE_CODES = ['installation', 'authentication', 'model_access', 'access_denied', 'rate_limit', 'turn_limit', 'budget_limit', 'tool_limit', 'capability', 'configuration', 'output_validation', 'incomplete_output', 'transport', 'cancelled', 'timeout', 'ownership_unknown', 'provider_error', 'execution_failed', 'persistence', 'workspace_validation'] as const;
 export type ProviderFailureCode = typeof PROVIDER_FAILURE_CODES[number];
 export interface ProviderFailureInfo { readonly code: ProviderFailureCode; readonly summary: string; readonly nextStep: string }
 export const providerFailureCodeCheck = oneOf(PROVIDER_FAILURE_CODES);
@@ -24,6 +24,8 @@ const catalogue: Record<ProviderFailureCode, readonly [string, string]> = {
   ownership_unknown: ['Original execution or resource ownership is unverified.', 'Check the original execution and confirm it has stopped before releasing its workspace or explicitly starting another attempt.'],
   provider_error: ['The provider reported an execution failure.', 'The specific cause was not established. Inspect recorded sessions, normal CLI status and any partial worktree changes before an explicit retry.'],
   execution_failed: ['The attempt did not complete; its specific cause was not established.', 'Inspect the retained conversation, original execution and any partial worktree changes before explicitly starting another attempt.'],
+  persistence: ['The attempt’s execution evidence could not be saved.', 'Check execution-data storage, available disk space and write permissions. Review this attempt’s original execution and retained changes before starting another attempt.'],
+  workspace_validation: ['The original workspace could not be validated for this attempt.', 'Inspect this attempt’s original workspace and retained changes. Restore its verified ownership before explicitly starting another attempt.'],
 };
 const ownershipNextStep = 'First check the original execution and confirm it has stopped. ';
 export function providerFailureFor(code: ProviderFailureCode, ownershipUnknown = false): ProviderFailureInfo {

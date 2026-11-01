@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from 'child_process';
 import { basename } from 'path';
 import { setTimeout as processTimeout, clearTimeout as clearProcessTimeout } from 'node:timers';
 import { readNativeProcessIdentity, stopOwnedProcessTree, type NativeProcessIdentity } from './durable-worker/process-identity';
-import { assignProviderFailure, providerFailureFor, providerFailureMessage, type ProviderFailureInfo } from '../../features/coforge/domain/provider-failure';
+import { assignProviderFailure, providerFailureFor, providerFailureInfo, providerFailureMessage, type ProviderFailureInfo } from '../../features/coforge/domain/provider-failure';
 
 export interface ProcessOptions {
   cwd: string; input?: string; signal?: AbortSignal; timeoutMs?: number; maxBytes?: number; env?: NodeJS.ProcessEnv;
@@ -25,8 +25,9 @@ export class ProcessFailure extends Error {
 }
 export class ProcessOwnershipUnknown extends ProcessFailure {
   constructor(output: string, diagnostic?: string, failure?: ProviderFailureInfo) {
-    super(failure ? providerFailureMessage(failure, true) : 'Provider process-tree termination is unverified. The original workspace remains quarantined; inspect it before retrying.', output, diagnostic); this.name = 'ProcessOwnershipUnknown';
-    if (failure) assignProviderFailure(this, failure);
+    const info = failure ? providerFailureFor(failure.code, true) : undefined;
+    super(info ? providerFailureMessage(info, true) : 'Provider process-tree termination is unverified. The original workspace remains quarantined; inspect it before retrying.', output, diagnostic); this.name = 'ProcessOwnershipUnknown';
+    if (info) assignProviderFailure(this, info);
   }
 }
 const ENVIRONMENT = new Set([
@@ -71,15 +72,15 @@ export function captureProcess(executable: string, args: readonly string[], opti
       if (!child.pid) return;
       try { if (process.platform !== 'win32') process.kill(-child.pid, signal); else child.kill(signal); } catch { /* The child may already have exited. */ }
     };
-    const stop = (message: string) => {
+    const stop = (message: string, cause?: ProviderFailureInfo) => {
       if (failure || finished) return;
-      failure = new Error(message);
+      failure = cause ? assignProviderFailure(new Error(message), cause) : new Error(message);
       if (options.ownedTree) {
         treeStopped = identity.then(async original => original ? (await stopOwnedProcessTree(original)).treeConfirmed : false).catch(() => false);
         hardKill = processTimeout(() => {
           if (finished) return;
           cleanup(); child.stdin?.destroy(); child.stdout?.destroy(); child.stderr?.destroy(); child.unref();
-          reject(new ProcessOwnershipUnknown(output()));
+          reject(new ProcessOwnershipUnknown(output(), undefined, providerFailureInfo(failure)));
         }, 15000);
       } else {
         kill('SIGTERM'); hardKill = processTimeout(() => kill('SIGKILL'), 1500);
@@ -111,10 +112,10 @@ export function captureProcess(executable: string, args: readonly string[], opti
           await launched;
           const original = await identity;
           if (original && (failure || code !== 0)) await options.onOwnedProcess?.(original, !confirmed || !failure && code !== 0 ? 'unknown' : 'terminated');
-        } catch { cleanup(); reject(new ProcessOwnershipUnknown(output())); return; }
+        } catch (error) { cleanup(); reject(new ProcessOwnershipUnknown(output(), undefined, providerFailureInfo(error))); return; }
         if (finished) return; cleanup();
-        if (!confirmed || options.ownedTree && !failure && code !== 0) reject(new ProcessOwnershipUnknown(output(), redact(Buffer.concat(errors).toString('utf8'), options.env), failure ? providerFailureFor(failure.message.startsWith('Run cancelled') ? 'cancelled' : failure.message.startsWith('Run timed out') ? 'timeout' : 'execution_failed', true) : undefined));
-        else if (failure) reject(new ProcessFailure(failure.message, output()));
+        if (!confirmed || options.ownedTree && !failure && code !== 0) reject(new ProcessOwnershipUnknown(output(), redact(Buffer.concat(errors).toString('utf8'), options.env), providerFailureInfo(failure) ?? (failure ? providerFailureFor(failure.message.startsWith('Run cancelled') ? 'cancelled' : failure.message.startsWith('Run timed out') ? 'timeout' : 'execution_failed', true) : undefined)));
+        else if (failure) { const issue = new ProcessFailure(failure.message, output()); const cause = providerFailureInfo(failure); reject(cause ? assignProviderFailure(issue, cause) : issue); }
         else if (code !== 0) reject(new ProcessFailure(`${basename(executable)} exited with code ${String(code)}. ${redact(Buffer.concat(errors).toString('utf8'), options.env).slice(-1800) || 'Check the CLI installation and authentication.'}`, output(), redact(Buffer.concat(errors).toString('utf8'), options.env)));
         else if (Buffer.byteLength(output()) > (options.maxBytes ?? OUTPUT_LIMIT)) reject(new ProcessFailure('Process result exceeded its limit.', ''));
         else resolve(output());
@@ -124,7 +125,7 @@ export function captureProcess(executable: string, args: readonly string[], opti
     if (options.ownedTree) {
       void identity.then(async original => {
         if (!original) { stop('The provider launch identity could not be verified.'); return; }
-        try { await launched; } catch { stop('The provider launch authorization could not be committed.'); return; }
+        try { await launched; } catch (error) { stop('The provider launch authorization could not be committed.', providerFailureInfo(error)); return; }
         if (!failure && !finished) child.stdin?.end(options.input ?? '');
       });
     } else child.stdin?.end(options.input ?? '');

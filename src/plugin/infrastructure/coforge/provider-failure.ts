@@ -48,7 +48,7 @@ export function preserveProviderFailure(earlier: unknown, later: unknown): unkno
   const first = providerFailureInfo(earlier), next = providerFailureInfo(later);
   const uncertain = earlier instanceof ProcessOwnershipUnknown ? earlier : later instanceof ProcessOwnershipUnknown ? later : undefined;
   if (uncertain) {
-    const specific = first && !['ownership_unknown', 'execution_failed'].includes(first.code) ? first : next;
+    const specific = next && ['persistence', 'workspace_validation'].includes(next.code) ? next : first && !['ownership_unknown', 'execution_failed'].includes(first.code) ? first : next;
     const info = providerFailureFor(specific?.code ?? 'ownership_unknown', true);
     assignProviderFailure(uncertain, info); uncertain.message = providerFailureMessage(info, true); return uncertain;
   }
