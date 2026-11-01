@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { codexWorkflowTools } from '../../../src/plugin/infrastructure/coforge/codex-workflow-tools';
 import { workflowVerificationRecordCheck } from '../../../src/plugin/features/coforge/domain/workflow-verification';
+import { ProviderFailureError, providerFailureFor } from '../../../src/plugin/features/coforge/domain/provider-failure';
 import { verificationFixture } from './fixture';
 import { callTool, nativeFixtureChild } from './mcp-fixture';
 
@@ -33,7 +34,8 @@ it('shares the production MCP broker with a provider-owned fixture child through
   await expect(callTool(broker, 'coforge_read_file', { path: 'Managed/Note.md' })).rejects.toThrow('refused');
   await nativeFixtureChild(f.directory, broker, 'coforge_read_file', { path: 'feature.cjs' });
   await expect(callTool(broker, 'coforge_read_file', { path: 'feature.cjs' })).rejects.toThrow('refused');
-  expect(() => broker.assertBudget()).toThrow('tool-call limit');
+  expect(() => broker.assertBudget()).toThrow(ProviderFailureError);
+  expect(() => broker.assertBudget()).toThrow(new ProviderFailureError(providerFailureFor('tool_limit')).message);
   await writeFile(join(f.source, 'node_modules/fixture-dependency/index.js'), 'module.exports=3;\n');
   expect((await broker.captureVerification(increment)).verificationSourceHash).toBe(second.sourceHash);
   await writeFile(join(f.source, 'feature.cjs'), 'module.exports=3;\n');
