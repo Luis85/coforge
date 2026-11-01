@@ -36,7 +36,7 @@ internal static class RestrictedAcceptance {
   } finally {Marshal.FreeHGlobal(value);}
  }
  public static int Main(string[] args) {
-  if(args.Length!=3)return 64;IntPtr original=IntPtr.Zero,token=IntPtr.Zero,admin=IntPtr.Zero,medium=IntPtr.Zero;var child=new ProcessInfo();RestrictedTestDesktop desktop=null;
+  if(args.Length!=3)return 64;IntPtr original=IntPtr.Zero,token=IntPtr.Zero,admin=IntPtr.Zero,medium=IntPtr.Zero;var child=new ProcessInfo();
   try {
    Check(OpenProcessToken(GetCurrentProcess(),0xF01FF,out original));
    admin=SidBytes(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid,null));var disabled=new Sid{value=admin};
@@ -46,26 +46,18 @@ internal static class RestrictedAcceptance {
    Check(SetTokenInformation(token,25,ref level,Marshal.SizeOf(typeof(Sid))+integrity.BinaryLength));
    int elevated,returned;Check(GetTokenInformation(token,20,out elevated,4,out returned));if(elevated!=0)throw new Exception("Acceptance child remained elevated");
    AssertNormalToken(token);
-   // Hosted administrator desktops need not grant a filtered token the rights required by CLR initialization.
-   desktop=new RestrictedTestDesktop();
    Console.WriteLine("Native original token: "+RestrictedTestToken.Describe(original));
    Console.WriteLine("Native filtered token before normalization: "+RestrictedTestToken.Describe(token));
-   RestrictedTestProbe.Run(token,desktop.Name,args[0],args[2],"before-owned");
    RestrictedTestProbe.Run(token,"winsta0\\default",args[0],args[2],"before-default");
-   RestrictedTestToken.Normalize(token,false);AssertNormalToken(token);
+   RestrictedTestToken.Normalize(token);AssertNormalToken(token);
    Console.WriteLine("Native filtered token after DACL normalization: "+RestrictedTestToken.Describe(token));
-   RestrictedTestProbe.Run(token,desktop.Name,args[0],args[2],"dacl-owned");
-   RestrictedTestProbe.Run(token,"winsta0\\default",args[0],args[2],"dacl-default");
-   RestrictedTestToken.Normalize(token,true);AssertNormalToken(token);
-   Console.WriteLine("Native filtered token after normalization: "+RestrictedTestToken.Describe(token));
-   RestrictedTestProbe.Run(token,desktop.Name,args[0],args[2],"after-owned");
    RestrictedTestProbe.Run(token,"winsta0\\default",args[0],args[2],"after-default");
-   var startup=new Startup{cb=Marshal.SizeOf(typeof(Startup)),desktop=desktop.Name,flags=0x100,stdin=GetStdHandle(-10),stdout=GetStdHandle(-11),stderr=GetStdHandle(-12)};
+   var startup=new Startup{cb=Marshal.SizeOf(typeof(Startup)),desktop="winsta0\\default",flags=0x100,stdin=GetStdHandle(-10),stdout=GetStdHandle(-11),stderr=GetStdHandle(-12)};
    var argv=new StringBuilder(Quote(args[0])+" "+Quote(args[1])+" run --config configs/testing/vitest.native-process.config.mjs");
    Check(CreateProcessAsUser(token,args[0],argv,IntPtr.Zero,IntPtr.Zero,true,0,IntPtr.Zero,args[2],ref startup,out child));
-   Console.WriteLine("Native acceptance: same-user non-admin medium-integrity token, administrator SID disabled, owned noninteractive desktop; no accounts or UAC settings changed.");
+   Console.WriteLine("Native acceptance: same-user non-admin medium-integrity token, administrator SID disabled, normal same-user object DACL; no accounts, desktop ACLs or UAC settings changed.");
    WaitForSingleObject(child.process,0xFFFFFFFF);uint code;Check(GetExitCodeProcess(child.process,out code));return unchecked((int)code);
   } catch(Exception error) {var native=error as System.ComponentModel.Win32Exception;Console.Error.WriteLine("Native acceptance could not create its non-admin child: "+error.GetType().Name+" stage="+(error.Data["nativeAcceptanceStage"] as string??"token-or-launch")+(native==null?"":" win32="+native.NativeErrorCode));return 1;}
-  finally {if(child.thread!=IntPtr.Zero)CloseHandle(child.thread);if(child.process!=IntPtr.Zero)CloseHandle(child.process);if(desktop!=null)desktop.Dispose();if(token!=IntPtr.Zero)CloseHandle(token);if(original!=IntPtr.Zero)CloseHandle(original);if(admin!=IntPtr.Zero)Marshal.FreeHGlobal(admin);if(medium!=IntPtr.Zero)Marshal.FreeHGlobal(medium);}
+  finally {if(child.thread!=IntPtr.Zero)CloseHandle(child.thread);if(child.process!=IntPtr.Zero)CloseHandle(child.process);if(token!=IntPtr.Zero)CloseHandle(token);if(original!=IntPtr.Zero)CloseHandle(original);if(admin!=IntPtr.Zero)Marshal.FreeHGlobal(admin);if(medium!=IntPtr.Zero)Marshal.FreeHGlobal(medium);}
  }
 }

@@ -1,4 +1,4 @@
-// TEST ONLY: give newly created IPC/process objects the normal same-user owner and DACL.
+// TEST ONLY: give newly created IPC/process objects a normal same-user DACL; existing objects/tokens are untouched.
 using System;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
@@ -26,13 +26,12 @@ internal static class RestrictedTestToken {
   value=Read(token,2);try{int count=Marshal.ReadInt32(value),offset=Marshal.OffsetOf(typeof(Groups),"first").ToInt32(),width=Marshal.SizeOf(typeof(Sid));if(count<0||count>1024)throw new Exception("Invalid token group count");for(int index=0;index<count;index++){var group=(Sid)Marshal.PtrToStructure(IntPtr.Add(value,offset+index*width),typeof(Sid));bool enabled=(group.flags&4)!=0&&(group.flags&0x10)==0;var sid=new SecurityIdentifier(group.value);usersEnabled|=enabled&&sid.IsWellKnown(WellKnownSidType.BuiltinUsersSid);authenticatedEnabled|=enabled&&sid.IsWellKnown(WellKnownSidType.AuthenticatedUserSid);}}finally{Marshal.FreeHGlobal(value);}
   return "ownerIsUser="+ownerUser+" userDacl="+userAllow+" adminDacl="+adminAllow+" systemDacl="+systemAllow+" usersEnabled="+usersEnabled+" authenticatedUsersEnabled="+authenticatedEnabled;
  }
- public static void Normalize(IntPtr token,bool includeOwner) {
-  var user=WindowsIdentity.GetCurrent().User;IntPtr descriptor=IntPtr.Zero,sid=IntPtr.Zero;uint size;
+ public static void Normalize(IntPtr token) {
+  var user=WindowsIdentity.GetCurrent().User;IntPtr descriptor=IntPtr.Zero;uint size;
   try {
    Check(ConvertStringSecurityDescriptorToSecurityDescriptor("D:P(A;;GA;;;SY)(A;;GA;;;"+user.Value+")",1,out descriptor,out size));
    bool present,defaulted;IntPtr acl;Check(GetSecurityDescriptorDacl(descriptor,out present,out acl,out defaulted));if(!present||acl==IntPtr.Zero)throw new Exception("Missing same-user DACL");
    var pointer=new Pointer{value=acl};Check(SetTokenInformation(token,6,ref pointer,Marshal.SizeOf(typeof(Pointer))));
-   if(includeOwner){var bytes=new byte[user.BinaryLength];user.GetBinaryForm(bytes,0);sid=Marshal.AllocHGlobal(bytes.Length);Marshal.Copy(bytes,0,sid,bytes.Length);pointer.value=sid;Check(SetTokenInformation(token,4,ref pointer,Marshal.SizeOf(typeof(Pointer))));}
-  }finally{if(descriptor!=IntPtr.Zero)LocalFree(descriptor);if(sid!=IntPtr.Zero)Marshal.FreeHGlobal(sid);}
+  }finally{if(descriptor!=IntPtr.Zero)LocalFree(descriptor);}
  }
 }
