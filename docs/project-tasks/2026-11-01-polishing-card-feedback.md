@@ -94,6 +94,17 @@ during the user's test pass. Preserve existing authorization and review gates.
   passed (one file / one test, 21.01s). Full combined-source verification,
   browser/native suites and isolated verification are required on the PR's exact
   head before merge. Their final results belong to the PR checks and description.
+- First PR CI head passed the full project gate, all 244 browser tests, 40 gallery
+  captures and workflow isolation. Native CI passed 61 tests and exposed a Linux
+  default-palette failure in the new card case: red text was 3.27:1 and purple
+  text 3.62:1. Card-only foregrounds now mix semantic color with theme text while
+  retaining their semantic backgrounds. No accessibility rule was weakened.
+- Host and portable native light/dark palettes now have full-board Axe plus direct
+  Canvas-composited WCAG checks, including accepted-card green. Tests establish
+  that the original Linux red/purple colors fail against the same backdrop and
+  that every current badge reaches 4.5:1. Final browser: four cases passed (1.6m);
+  final contained native: two cases passed (47.97s). Scoped ESLint and source lint
+  (2,163 files) passed. A fresh CI head must qualify this correction before merge.
 
 ## Untested scope
 

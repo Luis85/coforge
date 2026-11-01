@@ -92,6 +92,11 @@
 .cf-state-review { background: color-mix(in srgb, var(--color-orange) 16%, transparent); color: var(--color-orange); }
 .cf-state-agent { background: color-mix(in srgb, var(--color-purple) 16%, transparent); color: var(--color-purple); }
 .cf-state-done { background: color-mix(in srgb, var(--color-green) 15%, transparent); color: var(--color-green); }
+/* Native semantic palettes need stronger foregrounds for compact card labels. */
+.cf-card-states .cf-state-flagged { color: color-mix(in srgb, var(--color-red) 40%, var(--cf-text)); }
+.cf-card-states .cf-state-review { color: color-mix(in srgb, var(--color-orange) 40%, var(--cf-text)); }
+.cf-card-states .cf-state-agent { color: color-mix(in srgb, var(--color-purple) 40%, var(--cf-text)); }
+.cf-card-states .cf-state-done { color: color-mix(in srgb, var(--color-green) 40%, var(--cf-text)); }
 .cf-idea-card-footer {
   display: flex; align-items: center; justify-content: space-between; gap: 5px; border-top: 1px solid var(--cf-border); padding: 9px 10px; min-width: 0;
 }

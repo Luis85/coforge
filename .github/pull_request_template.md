@@ -20,6 +20,8 @@ Owner requests are recorded in BRIEF.md and docs/project-tasks/2026-11-01-polish
 - Pinned contained Obsidian 1.14.4 smoke: passed, errors: [], pluginConsole: []. Final card native spec passed; after main integration it passed again (one file / one test, 21.01s). Native checks include both themes, every state, zoom, geometry and Axe.
 - Source lint: 2094 files passed. Mechanical design detector: []. No dependencies, audit thresholds, platform skips, assertions or image baselines were weakened or changed.
 
+First PR CI qualification passed full verify:project, all 244 browser tests, 40 gallery captures and workflow isolation. Native CI passed 61 cases and exposed a Linux default-palette contrast failure in the new card case (red 3.27:1, purple 3.62:1). Card-only semantic foregrounds now mix with theme text, preserving semantic backgrounds. Host and portable native light/dark palette coverage retains all Axe checks and adds renderer-composited WCAG assertions for every badge, including accepted green, plus assertions proving the original colors failed. Final local browser: four passed (1.6m); contained native: two passed (47.97s); scoped ESLint and source lint (2163 files) passed. Fresh exact-head CI qualification is required for this correction.
+
 The exact PR head must pass full verify:project, browser/native E2E and isolated workflow verification before merge. Final CI results are recorded in this PR's checks and description.
 
 ## Evidence and limits
