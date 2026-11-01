@@ -6,6 +6,7 @@ import { createSeed } from '../../../features/coforge/domain/seed';
 import IdeaDrawer from '../../../presentation/components/coforge/IdeaDrawer.vue';
 import { ai, definition } from './configured-workflow-fixture';
 import { workflowUiFixture } from './workflow-ui-fixture';
+import { appendAgentSessionEvent } from '../../../features/coforge/domain/agent-session';
 
 async function fixture() {
   const f = await workflowUiFixture();
@@ -34,6 +35,29 @@ async function fixture() {
   const wrapper = mount(IdeaDrawer, { global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
   return { ...f, wrapper, current: () => f.store.state!.ideas[0]!, close: async () => { wrapper.unmount(); await f.dispose(); } };
 }
+
+it('keeps producing-attempt provider tool observations separate from isolated verification and never infers a passing current-source test', async () => {
+  const f = await fixture();
+  try {
+    const idea = f.current(); const run = idea.workflowRun!;
+    idea.increment!.simulated = false;
+    for (const artifact of run.artifacts) if (artifact.increment) artifact.contentHash = workflowArtifactHash(artifact);
+    const build = run.definition.steps.find(step => step.id === 'build');
+    if (!build || build.kind !== 'ai') throw new Error('Missing Build.');
+    f.store.state!.jobs = [{ id: 'native-build', ideaId: idea.id, projectId: f.project.id, provider: 'codex', model: 'captured-model', stage: 'implement', status: 'succeeded', startedAt: run.createdAt, logs: [],
+      workflow: { runId: run.id, attemptId: 'build-attempt', definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision, step: { ...build, provider: 'codex' }, inputArtifacts: [],
+        worktreeCoding: { version: 1, profile: 'native-worktree-v1', maxConcurrent: 2 } },
+      sessionTrace: appendAgentSessionEvent(undefined, { kind: 'tool', tool: 'shell', status: 'completed', text: '<script>captured tool output, not an independently verified test verdict</script>' }, run.createdAt) }];
+    await flushPromises();
+    const observations = f.wrapper.get('[aria-label="Provider tool observations"]');
+    expect(observations.text()).toContain('not a passing test result');
+    expect(observations.text()).toContain('build-attempt'); expect(observations.text()).toContain('captured tool output');
+    expect(observations.find('script').exists()).toBe(false);
+    expect(observations.text()).not.toContain('Completed · exit 0'); expect(observations.text()).not.toContain('Matches the captured source snapshot');
+    expect(f.wrapper.find('[aria-label="Observed verification commands"]').exists()).toBe(false);
+    expect(f.runner).not.toHaveBeenCalled();
+  } finally { await f.close(); }
+});
 
 it('presents planned criteria, attributed post-build findings and evidence boundaries without executing or accepting', async () => {
   const f = await fixture();

@@ -18,6 +18,7 @@ import { McpVaultTools } from './mcp-vault-tools';
 import { McpCoworkerTools } from './mcp-coworker-tools';
 import type { CouncilActions } from '../../features/coforge/application/council-ports';
 import { McpObsidianTools } from './mcp-obsidian-tools';
+import { McpWorktreeCommands } from './mcp-worktree-commands';
 
 const entryCheck = shape({ command: text({ min: 1, max: 1000 }), args: list(text({ min: 1, max: 4096 }), { min: 2, max: 2 }) }, { strict: true });
 const registrationCheck = shape({ name: text({ min: 1, max: 100 }), phase: oneOf(['pending', 'active', 'attention'] as const),
@@ -61,6 +62,7 @@ export class McpModule implements McpActions {
   private pending: Promise<unknown> = Promise.resolve();
   private connection: McpConnectionFile | undefined;
   constructor(private readonly plugin: Plugin, private readonly studio: StudioService, private readonly runner: McpStepRunner, private readonly environment?: McpEnvironment, council?: CouncilActions, privateFolders: () => readonly string[] = () => []) {
+    runner.configureCodingCommands(new McpWorktreeCommands(() => this.directory));
     const authorize = () => { if (!this.status().active) throw new Error('CoForge MCP is inactive.'); };
     const workflow = new McpWorkflowTools(studio, runner, new McpStepFiles(), authorize);
     this.obsidian = new McpObsidianTools(plugin, {
@@ -172,7 +174,8 @@ export class McpModule implements McpActions {
       const job = jobs.find(item => item.id === taskId && item.provider === 'mcp');
       if (!job?.workflow?.workspaceId || !['failed', 'cancelled'].includes(job.status) || jobs.some(item => item.projectId === job.projectId && ['queued', 'running'].includes(item.status)))
         throw new Error('Finish or cancel this project’s active attempts and inspect the original failed MCP workspace before recovery.');
-      await this.runner.acknowledge(job.workflow.workspaceId, job.workflow.attemptId);
+      await this.runner.acknowledge(job.workflow.workspaceId, job.workflow.attemptId,
+        job.workflow.worktreeCoding?.profile === 'mcp-worktree-v1' && job.projectId ? { projectId: job.projectId, taskId: job.id } : undefined);
       const previous = this.acknowledgedTasks;
       this.acknowledgedTasks = [...new Set([...previous, taskId])].slice(-1000);
       try { await this.persist(); }

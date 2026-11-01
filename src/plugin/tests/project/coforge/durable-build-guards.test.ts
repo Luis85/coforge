@@ -16,10 +16,10 @@ it('rejects an assigned profile that now resolves to Herdr rather than falling b
   } finally { await engine.stop(); await f.engine.stop(); }
 });
 
-it('rejects external MCP admission for a saved background Build policy without creating a run or job', async () => {
+it('rejects an unavailable external MCP runner for a saved background Build without falling back to a native worker', async () => {
   const f = await durableFixture();
   try {
-    await expect(f.engine.startMcpWorkflow(f.id)).rejects.toThrow('No foreground/provider fallback');
+    await expect(f.engine.startMcpWorkflow(f.id)).rejects.toThrow('This step’s selected provider is unavailable.');
     expect(f.store.snapshot().jobs).toEqual([]); expect(f.store.snapshot().ideas[0]?.workflowRun).toBeUndefined();
     expect(f.worker.start).not.toHaveBeenCalled(); expect(f.foreground).not.toHaveBeenCalled();
   } finally { await f.engine.stop(); }

@@ -3,12 +3,15 @@ import { basename } from 'path';
 import { setTimeout as processTimeout, clearTimeout as clearProcessTimeout } from 'node:timers';
 import { readNativeProcessIdentity, stopOwnedProcessTree, type NativeProcessIdentity } from './durable-worker/process-identity';
 import { assignProviderFailure, providerFailureFor, providerFailureInfo, providerFailureMessage, type ProviderFailureInfo } from '../../features/coforge/domain/provider-failure';
+import type { NativeWorkflowLifetimeRef } from '../../features/coforge/domain/native-workflow-lifetime';
+import { captureNativeCoding } from './native-process/capture-native-coding';
 
 export interface ProcessOptions {
   cwd: string; input?: string; signal?: AbortSignal; timeoutMs?: number; maxBytes?: number; env?: NodeJS.ProcessEnv;
   /** Delegated invocations retain ownership until their original process tree is proven stopped. */
   ownedTree?: true;
-  onOwnedProcess?(identity: NativeProcessIdentity, phase: 'launched' | 'terminated' | 'unknown'): Promise<void>;
+  nativeCoding?: { runId: string; attemptId: string; projectId: string };
+  onOwnedProcess?(identity: NativeProcessIdentity, phase: 'launched' | 'terminated' | 'unknown', lifetime?: NativeWorkflowLifetimeRef): Promise<void>;
   /** Internal observation only. Raw bytes must be decoded/sanitized before publication; failures never affect execution. */
   onStdout?(chunk: Uint8Array): void | Promise<void>;
   /** A protocol adapter retains bounded terminal semantics instead of a verbose raw transcript. */
@@ -24,10 +27,12 @@ export class ProcessFailure extends Error {
   }
 }
 export class ProcessOwnershipUnknown extends ProcessFailure {
-  constructor(output: string, diagnostic?: string, failure?: ProviderFailureInfo) {
+  declare readonly ownership?: { identity?: NativeProcessIdentity; lifetime: NativeWorkflowLifetimeRef };
+  constructor(output: string, diagnostic?: string, failure?: ProviderFailureInfo, ownership?: { identity?: NativeProcessIdentity; lifetime: NativeWorkflowLifetimeRef }) {
     const info = failure ? providerFailureFor(failure.code, true) : undefined;
     super(info ? providerFailureMessage(info, true) : 'Provider process-tree termination is unverified. The original workspace remains quarantined; inspect it before retrying.', output, diagnostic); this.name = 'ProcessOwnershipUnknown';
     if (info) assignProviderFailure(this, info);
+    if (ownership) Object.defineProperty(this, 'ownership', { value: ownership, enumerable: false });
   }
 }
 const ENVIRONMENT = new Set([
@@ -53,6 +58,7 @@ export function childEnvironment(source: NodeJS.ProcessEnv = process.env): NodeJ
 
 /** Executes an argv vector, never a shell. Resolves only after the child exits; output and time are bounded. */
 export function captureProcess(executable: string, args: readonly string[], options: ProcessOptions): Promise<string> {
+  if (options.nativeCoding) return captureNativeCoding(executable, args, options);
   if (options.signal?.aborted) return Promise.reject(new Error('Run cancelled.'));
   return new Promise((resolve, reject) => {
     let child: ChildProcess;

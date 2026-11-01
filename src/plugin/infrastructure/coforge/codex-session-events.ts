@@ -1,5 +1,6 @@
 import type { AgentSessionEvent } from '../../features/coforge/domain/agent-session';
 import { sessionId, sessionObject, sessionStatus } from './provider-session-safety';
+import { nativeCommandOutput } from './native-command-output';
 
 export function codexSessionEvents(emit: (event: AgentSessionEvent) => void) {
   let root: string | undefined; let missingChildren = false;
@@ -28,8 +29,15 @@ export function codexSessionEvents(emit: (event: AgentSessionEvent) => void) {
     if (event.type === 'error') { emit({ kind: 'notice', sessionId: actor, text: 'The provider reported a connection or execution notice.' }); return; }
     if (event.type !== 'item.started' && event.type !== 'item.completed') return;
     if (item.type === 'agent_message' && event.type === 'item.completed' && typeof item.text === 'string') emit({ kind: 'message', sessionId: actor, text: item.text });
-    if (item.type === 'mcp_tool_call' || item.type === 'command_execution' || item.type === 'file_change')
+    if (item.type === 'mcp_tool_call' || item.type === 'file_change')
       emit({ kind: 'tool', sessionId: actor, tool: sessionId(item.tool) ?? String(item.type), status: event.type === 'item.started' ? 'running' : item.status === 'failed' ? 'failed' : 'completed' });
+    if (item.type === 'command_execution') {
+      const exit = typeof item.exit_code === 'number' && Number.isInteger(item.exit_code) ? item.exit_code : undefined;
+      const output = typeof item.aggregated_output === 'string' ? nativeCommandOutput(item.aggregated_output) : '';
+      emit({ kind: 'tool', sessionId: actor, tool: 'native_command', status: event.type === 'item.started' ? 'running' : exit === undefined ? sessionStatus(item.status) : exit === 0 ? 'completed' : 'failed',
+        ...(event.type === 'item.completed' ? { text: (exit === undefined ? 'The SDK reported native command completion; numeric exit status is unavailable.' : `The SDK reported native command exit code ${exit}.`)
+          + (output ? '\n' + output : '') } : {}) });
+    }
     if (item.type !== 'collab_tool_call') return;
     const receivers = Array.isArray(item.receiver_thread_ids) ? item.receiver_thread_ids.flatMap(value => sessionId(value) ?? []).slice(0, 64) : [];
     if (event.type === 'item.completed' && item.status === 'completed') for (const id of Object.keys(sessionObject(item.agents_states)).slice(0, 64)) if (sessionId(id) && !receivers.includes(id)) receivers.push(id);

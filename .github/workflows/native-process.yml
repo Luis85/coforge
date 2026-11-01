@@ -1,0 +1,43 @@
+name: Native Windows process lifetime
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-process-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-windows-lifetime:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Select the pinned npm
+        shell: pwsh
+        run: |
+          npm install --prefix "$env:RUNNER_TEMP/pinned-npm" --ignore-scripts --no-fund --package-lock=false npm@11.19.1
+          "PINNED_NPM=$env:RUNNER_TEMP/pinned-npm/node_modules/npm/bin/npm-cli.js" >> $env:GITHUB_ENV
+      - name: Install exact dependencies
+        shell: pwsh
+        run: node "$env:PINNED_NPM" ci --no-fund
+      - name: Qualify actual non-admin Windows jobs without a provider installation or model call
+        shell: pwsh
+        run: node tooling/tests/native-process/run-windows-suite.mjs
+      - name: Keep exact native lifetime evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-windows-lifetime-results
+          path: reports/native-process/
+          if-no-files-found: error
+          retention-days: 14

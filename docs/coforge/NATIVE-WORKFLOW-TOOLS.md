@@ -1,136 +1,104 @@
-# Native workflow assistants and verification
+# Coding worktrees and captured tool profiles
 
-Workflow agents can use their provider's own native assistants. Claude Code or
-Codex dispatches, waits for and combines that work inside one parent invocation.
-CoForge keeps one workflow attempt; there is no CoWorker recipient picker or
-separate child-dispatch queue for this feature.
+New native Build and code-polishing attempts use the provider's normal coding
+tools in a dedicated owned worktree: file tools, shell, project tests and native
+assistants. New MCP-driven coding tasks use CoForge's task-scoped coding tools
+and project commands in their owned worktree. Ordinary coding needs no Docker
+image or approved-command list.
 
-## Enable assistants
+## Start normal coding
 
-In Project settings → Agent workflow → Workflow settings, select an AI step and
-open **Native tools**. Enable native assistants and choose their maximum
-concurrency. Save explicitly. New attempts capture these settings; existing
-attempts retain their original instructions, provider, model and capabilities.
-The Improve & polish configuration offers the same choices for new passes.
+Choose a supported native provider, its model, and worktree editing for a Build
+step in Project settings → Agent workflow → Workflow settings. Enable real
+implementation for the project in Agent workspace, then save the workflow.
+The existing project, runtime, cost, lifetime and human review gates still apply.
+Saving settings does not dispatch work. MCP clients follow the captured task
+workflow described in [Local MCP integration](MCP.md).
 
-Native tools require a supported Claude Code or Codex installation and the
-selected account's model access. Unsupported providers fail before dispatch;
-CoForge never silently substitutes a provider or model. Codex discovery reports
-the configured runtime's catalogue, which can include a personal catalogue
-override; it is not proof of account entitlement. The provider decides whether
-the exact selected model is accessible. Custom saved instructions
-are preserved: revise instructions that prohibit delegation or checks when you
-intend to enable those activities.
+At admission CoForge captures `worktreeCoding` on the attempt:
 
-Parent and assistants use the same scoped CoForge broker, exact-content write
-checks and protected-file rules. Native host shell, unrelated MCP servers and
-unrestricted file/image/browser tools are not granted. Codex retains the existing
-native CLI sign-in and its SDK-managed global AGENTS/skills context. Those
-instructions are context, not permission to expand the captured tools. Runtime
-hooks, additional MCP servers and custom agent configuration stay disabled.
-The provider's working directory contains private transport data, not project
-files. File-tool arguments are repository-relative paths with forward slashes.
+| Captured profile | Execution |
+| --- | --- |
+| `native-worktree-v1` | The selected Claude Code or Codex invocation uses normal coding tools in its worktree. The native provider directs its own assistants. |
+| `mcp-worktree-v1` | The external MCP client uses the task's CoForge coding tools and project commands. The client directs its own agents; no SDK assistant concurrency is invented for it. |
+| No marker | An already admitted attempt retains its original tool contract. Its present-day step definition does not grant new capabilities. |
 
-Claude's provider budget covers native assistants and is an estimated limit that
-can overshoot. Codex does not expose an equivalent enforced USD/turn cap: the
-CoForge allowance limits broker calls. Foreground execution retains its elapsed
-deadline; delegated background Codex also requires an explicit elapsed deadline.
-Concurrency limits assistants, not a claimed lifetime count of all children.
+New eligible admissions receive the current coding profile even when they use
+an older saved workflow. Their saved custom instructions and previous results
+are preserved. Review instructions that still prohibit the coding or tests you
+intend. Classifiers, text-only passes and read-only analysis retain their
+intended restricted access. Simulation and Herdr retain their separate behavior.
 
-## Authorize verification separately
+## Permissions, assistants and lifetime
 
-In Obsidian Settings → CoForge → **Workflow verification**, save a host grant:
+A worktree separates Git changes; it is not an operating-system sandbox.
+Execution uses the supported provider or command permissions of the desktop
+account running the attempt. CoForge requests no administrator elevation or
+bypass-permissions fallback.
 
-- A native Docker executable and a running **local Linux** engine.
-- An existing immutable image ID, beginning `sha256:`. Tags are not accepted.
-- Approved command IDs, labels, executables and literal argument lists.
-- A command timeout and maximum number of runs per attempt.
+Internet research is allowed for these ordinary coding profiles. Claude Code
+can use its available WebSearch and WebFetch tools; Codex coding invocations
+enable shell networking and live web search. MCP project commands use normal
+desktop connectivity, and the external client controls its own research tools.
+Provider, account and network restrictions still apply: permission does not
+guarantee that a site is reachable or establish that research actually ran.
+Retrieved pages are untrusted source material, not instructions that expand the
+task's authority. Keep citations and observed results distinct from claims.
+Already admitted restricted and legacy attempts retain their captured scope;
+this allowance does not add research tools to them.
 
-Then select the allowed command IDs in each step's Native tools section and save
-the workflow. This independent host grant is not supplied by a workflow import,
-community request or agent prompt. At admission the selected command definitions,
-image, timeouts and run allowance are captured. Later settings edits do not
-reinterpret an admitted attempt.
+Native coding defaults to at most two concurrent provider-native assistants.
+The Coding and native tools section can save another supported limit. This is
+concurrency permission, not proof that any assistants ran or a lifetime count.
+The optional Improve & polish configuration shares its saved assistant limit
+with restricted text-only passes; it does not grant them coding shell access.
 
-The image must provide Node at `/usr/local/bin/node` for the trusted controller.
-Project dependencies can be prepared in the image at
-`/opt/coforge/node_modules`; they remain read-only. Host `node_modules` is never
-copied, avoiding Windows/Linux native-binary incompatibility. CoForge agents
-cannot pull/build an image or install dependencies on the desktop.
+Existing captured deadlines and provider-specific limits remain in force.
+Missing background deadlines do not acquire an invented fallback. Supported
+limits and provider-reported billing remain distinct; a configured USD cap is
+not an invoice. Original-process ownership and cancellation apply to the parent
+and its owned execution. Recovery never authorizes automatic replay.
 
-For a Node project, prepare a trusted image outside the agent workflow using its
-exact dependency lockfile. A minimal Dockerfile is:
+Codex keeps its existing native CLI sign-in and may include global AGENTS.md
+and skills as context. CoForge's captured task and instructions are not the
+complete SDK prompt. Context is not a tool permission grant. Runtime/model
+state and provider credential handling retain their existing ownership rules.
 
-```dockerfile
-ARG BASE_IMAGE
-FROM ${BASE_IMAGE}
-WORKDIR /opt/coforge
-COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts --no-fund
-```
+## Inspect what happened
 
-Choose a reviewed immutable base appropriate for the project. Explicitly build
-the image, inspect its local ID with `docker image inspect`, and save that ID in
-the host grant. Projects needing build/install scripts or additional runtimes
-must prepare those requirements in their trusted image. Test execution does not
-perform that preparation or gain network access.
+Use the private card's Sessions tab for bounded live observations and read-only
+Peek. Activity and Captured configuration show the exact admitted coding
+profile, provider, model and attempt. Missing markers remain visibly legacy.
+Native assistants appear only when their identities were actually observed;
+MCP command observations do not become CoForge-owned SDK children.
 
-## What a command can access
+Increment separates the agent's summary and written test notes from captured
+tool observations. Native SDK tool turns are provider-observed evidence. MCP
+project command events retain host-observed outcomes. A completed tool turn or
+exit zero is not proof of every acceptance criterion or of unchanged current
+source. Source comparisons are displayed only when independently recorded.
+Missing, interrupted and unknown outcomes stay explicit. Polishing evidence
+retained through Apply remains historical until execution in the new worktree
+is actually observed.
 
-Commands run at `/work` in a writable private source copy, as UID/GID 65534.
-Only filtered source bytes are mounted read-only from the host. Host home,
-credential storage, Git metadata, managed vault folders, links and host dependency
-trees are excluded. Inherited image environment and health checks cannot preload
-project code into the trusted controller.
+The AI costs tab reads retained project-and-request usage, including failed and
+cancelled attempts. Unknown amounts are not zero; manual fallback and provider
+reports keep their provenance. Native assistant observations are not counted
+as additional charges on top of canonical task totals.
 
-Each container has no network, a read-only image, no Docker socket, 2 CPU units,
-1 GiB memory and a 128-process limit. Source capture is bounded to 50,000 files,
-256 MiB and depth 40; oversized or unsafe snapshots are refused. Output is
-redacted and clipped to 8 KiB per command and 64 KiB per attempt, without stopping
-a healthy command merely because it printed more text.
+If an original process or command may still be running, inspect its exact
+retained execution before releasing the workspace or starting another attempt.
+Readonly Sessions supplies navigation to the evidence that exists; it does not
+offer Retry, takeover or process input. Human acceptance remains required.
 
-The native agent calls `coforge_run_tests` with an approved command ID. It cannot
-supply another executable, arguments, environment, mount or network policy.
-Ordinary failures can be repaired through scoped file tools and tested again
-within the captured allowance.
+## Legacy isolated verification
 
-## Read outcomes and recover
+Already captured Docker verification profiles and their command records retain
+their original meaning. Explicit restricted read-only checks can still use the
+advanced profile. These records stay separate from native and MCP coding-worktree
+commands. [Legacy scoped tools and isolated verification](LEGACY-WORKFLOW-VERIFICATION.md)
+contains the retained Docker setup, command, isolation and recovery details.
 
-Use **Sessions** on a private Idea card for live read-only Peek and terminal
-follow. See [Inspect workflow sessions](AGENT-SESSIONS.md) for capture limits,
-native child attribution and supported terminal hosts.
-
-Activity and Increment distinguish observed completion, failure, interruption,
-unavailability and unknown outcomes. Exit zero records command completion, not
-proof of every acceptance criterion. Each record retains its actual command,
-attempt, image, timestamps, source fingerprint and bounded output. Changes after
-a command make earlier results historical. Read-only post-Build checks remain
-attributed to their producing review attempt. Polishing Apply retains producer
-evidence as historical until the new worktree is verified.
-
-CoForge records the instructions and task text it supplies. The native SDK may
-add its own global instructions, skills and built-in context; the record does not
-claim to capture every provider-generated prompt augmentation.
-
-Original provider/container ownership is private. Stop and recovery act only on
-matching original identities. Lost outcomes never authorize automatic replay.
-Use **Check original execution** when recovery is required. An explicit operator
-acknowledgement of an inspected stopped provider is distinct from OS proof;
-containers must first have verified termination. Private Codex SQLite, log and
-model-profile state is removed after known completion or attributable recovery.
-CoForge never copies, synchronizes or deletes the native credential bundle. The
-SDK refreshes its canonical credentials normally. Native rollout files remain
-in provider-owned storage, outside CoForge cleanup. The SDK may index existing
-rollouts into invocation SQLite; the native ownership boundary prevents access
-to another invocation's assistants, including known indexed child IDs.
-
-## Provider references
-
-- [Claude native subagents](https://code.claude.com/docs/en/sub-agents)
-- [Claude structured finalization](https://code.claude.com/docs/en/agent-sdk/structured-outputs)
-- [Claude whole-query cost and token coverage](https://code.claude.com/docs/en/agent-sdk/cost-tracking)
-- [Codex native subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents)
-- [Codex permission boundaries](https://learn.chatgpt.com/docs/permissions)
-
-Qualification and installation-specific limits are recorded in
-[the implementation report](../project-tasks/2026-11-01-native-workflow-agents.md).
+See [Inspect workflow sessions](AGENT-SESSIONS.md) for capture limits and
+read-only terminal follow, and [Local MCP integration](MCP.md) for the coding
+tool protocol. This guide does not change already captured attempts.

@@ -34,6 +34,7 @@ export function useNativeWorkflowRecovery(props: { jobId: string }) {
     finally { busy.value = false; }
   }
   return reactive({ job, confirmed, busy, error, review,
+    hasContainers: computed(() => !!(job.value?.verificationRuntime?.some(record => record.phase !== 'terminal') || job.value?.verification?.some(record => ['running', 'unknown'].includes(record.status)))),
     visible: computed(() => !!job.value && !job.value.durable && ['failed', 'cancelled'].includes(job.value.status) && !!(job.value.nativeRuntime || job.value.nativeProcess || job.value.verificationRuntime?.some(record => record.phase !== 'terminal'))),
     acknowledged: computed(() => job.value?.nativeProcess?.operatorAcknowledgedAt),
     settled: computed(() => job.value?.nativeProcess?.phase === 'terminated' && !job.value.nativeProcess.privateRuntime && !job.value.nativeRuntime && !job.value.verificationRuntime?.some(record => record.phase !== 'terminal')),

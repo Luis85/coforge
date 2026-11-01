@@ -4,6 +4,7 @@ import { useStudioStore } from '../../stores/coforge-studio';
 import { useCoforge } from '../../context/coforge-context';
 import { ideaProjectId } from '../../../features/coforge/domain/projects';
 import { formatTime } from './format';
+import { codingProfileDisplay, MCP_COMMAND_EVIDENCE_HELP, PROVIDER_TOOL_EVIDENCE_HELP } from './coding-profile-display';
 import { ideaSessionJobs, nativeSessionProvider, observedSessionChildren, sessionCaptureHint, sessionElapsed, sessionEventView, sessionObservation, sessionProviderLabel, sessionTitle } from './agent-session-display';
 
 export function useIdeaSessions(props: { idea: Idea }) {
@@ -14,7 +15,7 @@ export function useIdeaSessions(props: { idea: Idea }) {
   const jobs = computed(() => ideaSessionJobs(store.state, props.idea));
   const job = computed(() => jobs.value.find(job => job.id === selected.value) ?? jobs.value.find(job => job.status === 'running') ?? jobs.value[0]);
   const observation = computed(() => job.value ? sessionObservation(store.state, job.value) : undefined);
-  const children = computed(() => observedSessionChildren(observation.value?.trace));
+  const children = computed(() => job.value && nativeSessionProvider(job.value) ? observedSessionChildren(observation.value?.trace) : []);
   const child = computed(() => children.value.find(child => child.id === childId.value));
   watch(() => jobs.value.map(job => job.id).join(','), () => { if (!jobs.value.some(job => job.id === selected.value)) selected.value = jobs.value.find(job => job.status === 'running')?.id ?? jobs.value[0]?.id ?? ''; }, { immediate: true });
   watch(() => props.idea.id, () => { selected.value = ''; childId.value = ''; });
@@ -37,8 +38,11 @@ export function useIdeaSessions(props: { idea: Idea }) {
     finally { if (token === generation) terminalPending.value = false; }
   }
   return reactive({ job, childId, child, terminalPending, terminalError,
-    rows: computed(() => jobs.value.map(job => ({ id: job.id, title: sessionTitle(job), provider: sessionProviderLabel(job), status: job.status, model: job.provider === 'demo' ? 'No model call' : job.model ?? job.workflow?.step.model ?? 'Model not recorded',
-      started: formatTime(job.startedAt), children: observedSessionChildren(sessionObservation(store.state, job).trace) }))),
+    codingProfile: computed(() => job.value?.workflow?.worktreeCoding ? codingProfileDisplay(job.value.workflow.worktreeCoding) : undefined),
+    providerToolEvidenceHelp: PROVIDER_TOOL_EVIDENCE_HELP,
+    mcpCommandEvidenceHelp: MCP_COMMAND_EVIDENCE_HELP,
+    rows: computed(() => jobs.value.map(job => ({ id: job.id, title: sessionTitle(job), provider: sessionProviderLabel(job), status: job.status, model: job.provider === 'demo' ? 'No model call' : job.provider === 'mcp' ? 'Client model not reported' : job.model ?? job.workflow?.step.model ?? 'Model not recorded',
+      started: formatTime(job.startedAt), children: nativeSessionProvider(job) ? observedSessionChildren(sessionObservation(store.state, job).trace) : [] }))),
     title: computed(() => child.value?.label ?? (childId.value ? 'Observed native assistant · earlier metadata unavailable' : job.value ? sessionTitle(job.value) : 'Choose a session')),
     provider: computed(() => job.value ? sessionProviderLabel(job.value) : ''),
     captureHint: computed(() => job.value ? sessionCaptureHint(job.value, observation.value?.trace) : ''),
@@ -47,8 +51,8 @@ export function useIdeaSessions(props: { idea: Idea }) {
     truncated: computed(() => observation.value?.trace?.truncated === true),
     captureAvailable: computed(() => !!observation.value?.trace),
     failed: computed(() => ['failed', 'cancelled'].includes(job.value?.status ?? '')),
-    childCaptureUnavailable: computed(() => !!job.value?.workflow?.step.nativeTools?.delegation && !children.value.length),
-    entries: computed(() => (observation.value?.trace?.events ?? []).filter(event => !childId.value || event.sessionId === childId.value).map(event => sessionEventView(event, children.value))),
+    childCaptureUnavailable: computed(() => !!job.value && nativeSessionProvider(job.value) && !!(job.value.workflow?.step.nativeTools?.delegation || job.value.workflow?.worktreeCoding?.profile === 'native-worktree-v1') && !children.value.length),
+    entries: computed(() => (observation.value?.trace?.events ?? []).filter(event => !childId.value || event.sessionId === childId.value).map(event => ({ ...sessionEventView(event, children.value), ...(job.value?.provider === 'mcp' ? { actor: 'Host MCP observation' } : {}) }))),
     selectionKey: computed(() => `${props.idea.id}:${job.value?.id ?? ''}:${childId.value}`),
     verification: computed(() => observation.value?.verification ?? []),
     terminalAvailable: computed(() => !!host.sessionFollow && !!job.value && nativeSessionProvider(job.value) && !!observation.value?.trace),

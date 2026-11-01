@@ -71,9 +71,13 @@ it('keeps native transport data and session feeds out of reads and verification 
   await writeFile(join(observer, 'feed.json'), 'PRIVATE_OPERATOR_OBSERVATIONS');
   await expect(files.call('coforge_read_file', { input, lease }, { path: 'coforge-codex-Ab1234/codex-home/auth.json' })).rejects.toThrow();
   await expect(files.call('coforge_read_file', { input, lease }, { path: 'coforge-session-follow-Ab1234/feed.json' })).rejects.toThrow();
+  const controller = join(repository, 'coforge-native-job-Ab1234'); await mkdir(controller);
+  await writeFile(join(controller, 'owner.json'), 'PRIVATE_NATIVE_LIFETIME');
+  await expect(files.call('coforge_read_file', { input, lease }, { path: 'coforge-native-job-Ab1234/owner.json' })).rejects.toThrow();
   const before = await captureVerificationSource(lease);
   await writeFile(join(home, 'auth.json'), 'CHANGED_PRIVATE_AUTH');
   await writeFile(join(observer, 'feed.json'), 'CHANGED_PRIVATE_OBSERVATIONS');
+  await writeFile(join(controller, 'owner.json'), 'CHANGED_PRIVATE_LIFETIME');
   expect((await captureVerificationSource(lease)).sourceHash).toBe(before.sourceHash);
   const privateLease = { ...lease, cwd: join(repository, 'coforge-codex-Ab1234') };
   await expect(files.call('coforge_read_file', { input, lease: privateLease }, { path: 'codex-home/auth.json' })).rejects.toThrow();
@@ -82,7 +86,7 @@ it('keeps native transport data and session feeds out of reads and verification 
 });
 
 it('reserves known private transport names without treating every CoForge source folder or contained fixture root as private', () => {
-  for (const name of ['.nq', 'coforge-workflow-verification', 'coforge-codex-Ab1234', 'coforge-claude-reader-Ab1234', 'coforge-claude-native-Ab1234', 'coforge-council-Ab1234']) expect(privateWorkflowSegment(name)).toBe(true);
+  for (const name of ['.nq', 'coforge-workflow-verification', 'coforge-codex-Ab1234', 'coforge-claude-reader-Ab1234', 'coforge-claude-native-Ab1234', 'coforge-council-Ab1234', 'coforge-native-job-Ab1234', 'coforge-native-controller-' + 'a'.repeat(64)]) expect(privateWorkflowSegment(name)).toBe(true);
   expect(nativePrivateRuntimeSegment('.nq')).toBe(false);
   for (const name of ['coforge-features', 'coforge-codex-tools', 'coforge-game-Ab1234']) expect(privateWorkflowSegment(name)).toBe(false);
 });

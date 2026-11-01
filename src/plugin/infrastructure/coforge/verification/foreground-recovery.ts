@@ -3,8 +3,10 @@ import { recoverVerificationRuntime } from './runtime';
 import { stopOwnedProcessTree } from '../durable-worker/process-identity';
 import type { NativeWorkflowProcessRecord } from '../../../features/coforge/domain/native-workflow-process';
 import { purgeCodexPrivateRuntime } from '../codex-private-runtime';
+import { recoverOwnedWorktreeLifetime } from '../native-process/owned-worktree-process';
 
 const recoverNativeProvider = async (record: NativeWorkflowProcessRecord): Promise<'terminal' | 'unknown'> => {
+  if (record.lifetime) return await recoverOwnedWorktreeLifetime(record.identity, record.lifetime) ? 'terminal' : 'unknown';
   const proof = await stopOwnedProcessTree(record.identity);
   return proof.state === 'terminated' && proof.treeConfirmed ? 'terminal' : 'unknown';
 };

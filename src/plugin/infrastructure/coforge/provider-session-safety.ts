@@ -18,13 +18,14 @@ function visibleText(value: string): string {
   }
   return result;
 }
+export const normalizeSessionText = (value: string): string => cleanText(visibleText(value));
 
 /** Sanitize a complete text observation before any display chunking. Never use this on arbitrary transport payloads. */
 export function sessionTextSanitizer(environment: NodeJS.ProcessEnv = {}, paths: readonly string[] = []): (value: string, max?: number) => string {
   const secrets = [...new Set(Object.entries({ ...process.env, ...environment }).filter(([key, value]) => value && value.length >= 4 && /TOKEN|SECRET|API_KEY|PASSWORD|AUTHORIZATION/iu.test(key))
     .flatMap(([, value]) => [value!, cleanText(visibleText(value!))]).filter(Boolean))].sort((a, b) => b.length - a.length);
   return (value: string, max = 2048): string => {
-    let text = cleanText(visibleText(value));
+    let text = normalizeSessionText(value);
     for (const secret of secrets) text = text.split(secret).join('[redacted]');
     text = text.replace(/sk-[A-Za-z0-9_-]{8,}/gu, '[redacted]').replace(/Bearer\s+\S+/giu, 'Bearer [redacted]');
     for (const raw of paths.filter(Boolean)) {

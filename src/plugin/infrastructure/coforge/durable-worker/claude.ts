@@ -16,12 +16,18 @@ import { diagnoseProviderFailure, captureProviderFailure, preserveProviderFailur
 import { providerFailureInfo } from '../../../features/coforge/domain/provider-failure';
 import { CheckError } from '../../../features/coforge/domain/check';
 import { persistProviderEvidence } from '../provider-evidence';
+import { runNativeWorktreeStage } from '../native-worktree-stage';
+import { ProviderFailureError, providerFailureFor } from '../../../features/coforge/domain/provider-failure';
 
 /** A private-CWD Claude process receives only five broker tools, never native filesystem/delegation authority. */
 export function backgroundClaudeArgs(input: StageInput, configPath: string): string[] {
   return brokeredClaudeArgs(input, configPath);
 }
 export async function runBackgroundClaude(input: StageInput, workspaces: WorkflowWorkspaces, files: WorkerFiles, capture: typeof captureProcess, protectedPaths: readonly string[], onActivity?: () => Promise<void>, probe: typeof captureProcess = captureProcess) {
+  if (input.workflow?.worktreeCoding) {
+    if (input.workflow.worktreeCoding.profile !== 'native-worktree-v1') throw new ProviderFailureError(providerFailureFor('configuration'));
+    return runNativeWorktreeStage(input, workspaces, { provider: 'claude', capture, probe });
+  }
   const snapshot = input.workflow; if (!snapshot) throw new Error('A captured background Build is required.');
   const lease = await workspaces.acquire({ runId: snapshot.runId, projectId: ideaProjectId(input.idea), attemptId: snapshot.attemptId, access: 'editworktree',
     integration: input.integration, workspaceId: snapshot.workspaceId, signal: input.signal });

@@ -8,6 +8,7 @@ import { STAGES, STAGE_LABELS, type Provider, type Settings } from './types';
 import { nativeWorkflowToolsCheck, validateNativeWorkflowTools, type NativeWorkflowTools } from './native-workflow-tools';
 import { validateWorkflowBuckets, workflowBucketCheck, type WorkflowBucket } from './workflow-buckets';
 import { improvementPassConfigurationCheck, type ImprovementPassConfiguration } from './polishing-pass-configuration';
+import { isWorktreeCodingStep } from './worktree-coding';
 
 export const WORKFLOW_OUTPUTS = ['markdown', 'screening', 'rice', 'plan', 'design', 'codechange'] as const;
 export const WORKFLOW_ACCESS = ['none', 'readproject', 'editworktree'] as const;
@@ -58,7 +59,7 @@ export function workflowStepCheck(value: unknown): WorkflowStep {
   const kind = record(value).kind;
   const step = kind === 'ai' ? ai(value) : kind === 'approval' ? approval(value) : kind === 'nudge' ? nudge(value) : kind === 'council' ? council(value) : checklist(value);
   if (step.kind === 'ai') validateModelEffort(step);
-  if (step.kind === 'ai') validateNativeWorkflowTools(step);
+  if (step.kind === 'ai') validateNativeWorkflowTools(step, undefined, false, isWorktreeCodingStep(step, step.provider));
   if (step.kind === 'ai' && step.execution && (step.output !== 'codechange' || step.access !== 'editworktree' || !step.coworkerId && !['claude', 'codex'].includes(step.provider))) throw new Error('Background execution requires a native Claude or Codex Build with isolated worktree editing.');
   if (step.kind === 'council' && (!step.instructions.trim() || new Set(step.inputs).size !== (step.inputs?.length ?? 0))) throw new Error('Ask Council needs a prompt and unique input roles.');
   if (step.kind === 'council' && step.contextMode === 'selected' && !step.inputs?.length) throw new Error('Choose at least one earlier result role, or choose no earlier results.');

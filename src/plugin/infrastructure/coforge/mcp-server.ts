@@ -3,6 +3,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { record, text } from '../../features/coforge/domain/check';
 import { CheckError } from '../../features/coforge/domain/check';
 import { McpToolError } from './mcp-errors';
+import { providerFailureInfo, providerFailureMessage } from '../../features/coforge/domain/provider-failure';
 
 export interface McpTool {
   name: string;
@@ -121,11 +122,19 @@ export class LocalMcpServer {
     catch { json(response, 200, rpcError(input.id, -32602, 'tools/call requires a name and object arguments.')); return; }
     try {
       const result = await this.dispatcher.call(name, args);
+      if (name === 'coforge_read_artifact' && result && typeof result === 'object' && 'kind' in result && result.kind === 'image'
+        && 'data' in result && typeof result.data === 'string' && result.data.length <= 3 * 1024 * 1024
+        && 'mimeType' in result && ['image/png', 'image/jpeg', 'image/webp'].includes(String(result.mimeType))) {
+        const metadata = Object.fromEntries(Object.entries(result).filter(([key]) => key !== 'data'));
+        reply({ content: [{ type: 'text', text: JSON.stringify(metadata) }, { type: 'image', data: result.data, mimeType: result.mimeType }], structuredContent: metadata }); return;
+      }
       const structured = result && typeof result === 'object' && !Array.isArray(result) ? result : { value: result ?? null };
       reply({ content: [{ type: 'text', text: JSON.stringify(result ?? null) }], structuredContent: structured });
     } catch (error) {
-      if (error instanceof McpToolError || error instanceof CheckError) {
-        const safe = error instanceof McpToolError ? error : new McpToolError('INVALID_ARGUMENTS', 'Arguments do not match this tool’s input schema. Inspect tools/list and correct the request.');
+      const failure = providerFailureInfo(error);
+      if (error instanceof McpToolError || error instanceof CheckError || failure) {
+        const safe = error instanceof McpToolError ? error : failure ? new McpToolError('HOST_UNAVAILABLE', providerFailureMessage(failure), 'coforge_request_status')
+          : new McpToolError('INVALID_ARGUMENTS', 'Arguments do not match this tool’s input schema. Inspect tools/list and correct the request.');
         reply({ isError: true, content: [{ type: 'text', text: safe.message }], structuredContent: { error: { code: safe.code, message: safe.message, ...(safe.nextTool ? { nextTool: safe.nextTool } : {}), ...(safe.retryAfterMs ? { retryAfterMs: safe.retryAfterMs } : {}) } } }); return;
       }
       // Arbitrary native causes can contain paths, secrets or note content.

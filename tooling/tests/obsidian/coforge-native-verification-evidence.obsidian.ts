@@ -131,6 +131,7 @@ describe('SYNTHETIC native verification evidence rendering in the contained host
     const settingsWindow = obsidian.page.context().waitForEvent('page'); await obsidian.runCommand('app:open-settings'); const settings = await settingsWindow;
     await settings.waitForLoadState('domcontentloaded'); await settings.locator('.vertical-tab-nav-item').filter({ hasText: /^CoForge$/ }).last().click();
     const hostGrant = settings.getByRole('region', { name: 'Isolated workflow verification', exact: true });
+    await hostGrant.locator('summary').filter({ hasText: 'Configure isolated Docker verification' }).click();
     await browserExpect(hostGrant).toContainText('/usr/local/bin/node'); await browserExpect(hostGrant).toContainText('/opt/coforge/node_modules');
     await browserExpect(hostGrant).toContainText('Host dependencies are never copied');
     for (const width of [1280, 720]) for (const theme of ['light', 'dark']) {

@@ -17,8 +17,8 @@ export function providerSessionObserver(input: ProviderSessionObserverInput): { 
   let closed = false;
   const emit = (event: AgentSessionEvent) => {
     const safe = sanitize(event); sink.emit(safe);
-    if (event.kind === 'message' && event.text && textSanitize(event.text, 65536).length > 2048)
-      sink.emit({ kind: 'notice', ...(safe.sessionId ? { sessionId: safe.sessionId } : {}), text: 'This assistant message was truncated for the bounded display. Inspect the saved result for the complete output.' });
+    if (event.text && textSanitize(event.text, 65536).length > 2048)
+      sink.emit({ kind: 'notice', ...(safe.sessionId ? { sessionId: safe.sessionId } : {}), text: event.kind === 'tool' ? 'This native tool output preview was truncated. It does not establish complete output or final-source coverage.' : 'This assistant message was truncated for the bounded display. Inspect the saved result for the complete output.' });
   };
   const accept = input.provider === 'codex' ? codexSessionEvents(emit) : claudeSessionEvents(emit);
   const decoder = new StringDecoder('utf8'); let pending = ''; let skipping = false;

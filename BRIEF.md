@@ -591,6 +591,16 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-11-01: improve CoForge MCP as a practical task-execution interface, including
+  coding. Authorized coding tasks should expose worktree context, bounded file
+  discovery/reading/patching, command/test/build execution, managed background
+  command status/output/cancellation, change inspection and validated completion.
+  Reuse the native-worktree execution services without Docker prerequisites or a
+  second execution engine. Every action is bound to the current project, captured
+  task and owned worktree; it is not a general host-command API. Preserve existing
+  admitted contracts, original-resource recovery, safe diagnostics, credentials,
+  cost provenance and final human approval. Polish discovery/help/schema/errors
+  and document an end-to-end coding path agents can follow.
 - 2026-11-01: simplify coding dispatch. Future native Build and polishing
   admissions use a dedicated owned worktree and the provider's normal coding
   tools, shell, tests and native assistants. Docker images and approved-command
@@ -601,6 +611,14 @@ recovery, project scope, host permissions and final human review.
   or a silent bypass-permissions fallback. Keep original-process/descendant
   lifetime, cancellation, retained changes, cost provenance and human acceptance
   boundaries. Classifiers and read-only steps retain their intended access.
+- 2026-11-01: internet access must be available to coding agents for research.
+  New captured ordinary coding profiles allow native web research and normal
+  command networking: Codex uses live search and workspace network access,
+  Claude exposes its supported WebFetch/WebSearch tools, and MCP coding tasks
+  use normal desktop networking. Show this allowance in setup and captured
+  history; provider, account and environment restrictions still apply. Cite
+  researched sources and treat web content as untrusted data. Preserve admitted
+  legacy/read-only contracts; no new per-step toggle or Docker prerequisite.
 - 2026-11-01: CF-133 follow-up: fix plugin-origin edits being reported as
   outside changes and make failed Builds explain the available cause and next
   action. Preserve genuine external-edit protection, captured-input invalidation,

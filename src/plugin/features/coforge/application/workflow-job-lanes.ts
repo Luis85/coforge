@@ -4,7 +4,7 @@ import { executionConcurrency } from '../domain/execution-concurrency';
 import { DurableBuildCapacityError } from './durable-build-ports';
 
 export const workflowJobLane = (job: AgentJob): 'build' | 'short' => job.stage === 'implement' || job.workflow?.step.access === 'editworktree' ? 'build' : 'short';
-export const workerBackedJob = (job: AgentJob): boolean => job.workflow?.step.execution?.mode === 'background';
+export const workerBackedJob = (job: AgentJob): boolean => job.workflow?.step.execution?.mode === 'background' && job.workflow.worktreeCoding?.profile !== 'mcp-worktree-v1';
 const orphanForegroundProvider = (job: AgentJob): boolean => !job.durable && !workerBackedJob(job) && ['failed', 'cancelled'].includes(job.status)
   && Boolean(job.nativeProcess && job.nativeProcess.phase !== 'terminated' && !job.nativeProcess.operatorAcknowledgedAt);
 const ownsLane = (job: AgentJob): boolean => job.status === 'running' || Boolean(job.durable && !job.durable.acknowledged) || orphanForegroundProvider(job);

@@ -29,6 +29,8 @@ it('activates the vault once, displays failures and permits deactivation and exp
     const button = wrapper.findAll('button').find(button => button.text() === 'Activate MCP')!;
     await button.trigger('click'); await flushPromises();
     expect(wrapper.get('[role="alert"]').text()).toContain('Repair the JSON');
+    expect(wrapper.text()).toContain('Internet research is allowed');
+    expect(wrapper.text()).toContain('normal desktop connectivity');
     expect(wrapper.find('select').exists()).toBe(false);
     await button.trigger('click'); await flushPromises(); expect(wrapper.text()).toContain('Active while CoForge');
     expect(activate).toHaveBeenLastCalledWith();

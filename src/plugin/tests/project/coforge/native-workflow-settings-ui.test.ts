@@ -40,9 +40,9 @@ it('authors native assistants as an explicit future-step policy without dispatch
     expect(wrapper.text()).toContain('Existing attempts keep their captured capabilities');
     await wrapper.get('[aria-label="Enable Improve & polish"]').setValue(true);
     await wrapper.get('[aria-label="Improvement provider"]').setValue('claude');
-    await wrapper.get('[aria-label="Improvement Allow provider-native assistants"]').setValue(true);
+    await wrapper.get('[aria-label="Improvement Maximum concurrent native assistants"]').setValue(2);
     expect(wrapper.get('[aria-label="Improvement Maximum concurrent native assistants"]').element).toHaveProperty('value', '2');
-    expect(wrapper.text()).toContain('Verification applies to code polishing only');
+    expect(wrapper.text()).toContain('Text-only polishing retains restricted analysis access');
     await provider.setValue('codex');
     expect(wrapper.get('[aria-label="Native workflow tools"]').text()).toContain('global AGENTS.md and skills');
     expect(wrapper.get('[aria-label="Native workflow tools"]').text()).toContain('do not grant tools');

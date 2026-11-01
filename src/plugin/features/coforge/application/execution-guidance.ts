@@ -1,8 +1,11 @@
 import type { WorkflowAccess, WorkflowOutput } from '../domain/configured-workflow';
 import type { NativeWorkflowTools } from '../domain/native-workflow-tools';
+import type { WorktreeCodingCapability } from '../domain/worktree-coding';
+import { worktreeCodingGuidance } from './worktree-coding-guidance';
 
 /** Describe the existing tool boundary and evidence obligations; saved instructions never grant capabilities. */
-export function executionGuidance(access: WorkflowAccess, output: WorkflowOutput, purpose?: 'request-replacement', nativeTools?: NativeWorkflowTools): string {
+export function executionGuidance(access: WorkflowAccess, output: WorkflowOutput, purpose?: 'request-replacement', nativeTools?: NativeWorkflowTools, worktreeCoding?: WorktreeCodingCapability): string {
+  if (worktreeCoding) return worktreeCodingGuidance(worktreeCoding);
   const repository = access === 'none'
     ? 'No repository tools are available. Base conclusions on supplied context and identify what you could not inspect.'
     : access === 'readproject'

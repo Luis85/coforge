@@ -22,6 +22,8 @@ import { captureProviderFailure, diagnoseProviderFailure, preserveProviderFailur
 import { providerFailureInfo } from '../../features/coforge/domain/provider-failure';
 import { assignProviderFailure, providerFailureFor } from '../../features/coforge/domain/provider-failure';
 import { persistProviderEvidence } from './provider-evidence';
+import { runNativeWorktreeStage } from './native-worktree-stage';
+import { ProviderFailureError } from '../../features/coforge/domain/provider-failure';
 
 function executable(integration: IntegrationSettings): string {
   const command = integration.claudeBin.trim() || 'claude';
@@ -68,6 +70,10 @@ function stageFailure(error: unknown): unknown {
 
 /** Runs one stage through the native Claude Code CLI with stage-specific tool restrictions. */
 export async function runClaudeStage(input: StageInput, workspaces?: WorkflowWorkspaces, capture: typeof captureProcess = captureProcess): Promise<StageResult> {
+  if (input.workflow?.worktreeCoding) {
+    if (input.workflow.worktreeCoding.profile !== 'native-worktree-v1' || !workspaces) throw new ProviderFailureError(providerFailureFor('configuration'));
+    return runNativeWorktreeStage(input, workspaces, { provider: 'claude', capture });
+  }
   const { stage, idea, settings, integration, signal } = input;
   const onLog = input.onLog ?? (() => undefined);
   if (signal?.aborted) throw new Error('Run cancelled.');

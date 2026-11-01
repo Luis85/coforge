@@ -10,11 +10,20 @@ defineProps<{ job: IdeaRunHistory }>();
   <div class="cf-idea-history" role="region" aria-label="Chat history">
     <RecordedAttemptFailure :job-id="job.id" within-details />
     <AttemptRetainedChanges :job-id="job.id" />
-    <section v-if="job.nativeTools" class="cf-idea-section" aria-label="Captured native tool policy">
-      <h4>Captured native tools</h4>
-      <p v-if="job.nativeTools.delegation" class="cf-idea-help">Provider-native assistants permitted · maximum {{ job.nativeTools.delegation.maxConcurrent }} concurrent. This records permission, not proof that delegation occurred.</p>
-      <p v-if="job.verificationProfile" class="cf-idea-help">Isolated verification permitted · {{ job.verificationProfile.commands.map(command => command.label).join(', ') }} · {{ job.verificationProfile.timeoutSeconds }} seconds per command · {{ job.verificationProfile.maxRuns }} invocations shared by this attempt.</p>
-      <p v-if="job.nativeTools.verification && !job.verification.length" class="cf-idea-help">No verification command outcome was observed for this attempt.</p>
+    <section v-if="job.nativeTools || job.codingProfile || job.legacyCoding" class="cf-idea-section" aria-label="Captured native tool policy">
+      <template v-if="job.codingProfile">
+        <h4>{{ job.codingProfile.title }}</h4>
+        <p class="cf-idea-help">Captured profile <code>{{ job.codingProfile.profile }}</code>. {{ job.codingProfile.help }}</p>
+        <p v-if="job.codingProfile.assistants" class="cf-idea-help">{{ job.codingProfile.assistants }}</p>
+        <p class="cf-idea-help">{{ job.codingProfile.boundary }}</p>
+      </template>
+      <template v-else>
+        <h4>{{ job.legacyCoding ? 'Legacy scoped tools' : 'Restricted native tools' }}</h4>
+        <p v-if="job.legacyCoding" class="cf-idea-help">No worktree coding profile was captured for this admitted attempt. Its original tool contract is retained.</p>
+        <p v-if="job.nativeTools?.delegation" class="cf-idea-help">Provider-native assistants permitted through the scoped broker · maximum {{ job.nativeTools.delegation.maxConcurrent }} concurrent. This records permission, not proof that delegation occurred.</p>
+        <p v-if="job.verificationProfile" class="cf-idea-help">Isolated verification permitted · Docker profile · {{ job.verificationProfile.commands.map(command => command.label).join(', ') }} · {{ job.verificationProfile.timeoutSeconds }} seconds per command · {{ job.verificationProfile.maxRuns }} invocations shared by this attempt.</p>
+        <p v-if="job.nativeTools?.verification && !job.verification.length" class="cf-idea-help">No isolated verification command outcome was observed for this attempt.</p>
+      </template>
     </section>
     <WorkflowVerificationEvidence :records="job.verification" />
     <p v-if="job.simulated" class="cf-idea-help">Simulation · No LLM was contacted. Input and response are illustrative.</p>
