@@ -574,6 +574,26 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-11-01: workflow agents may use their provider's native subagent feature
+  and execute tests. The dispatched Claude/Codex agent coordinates its own native
+  children inside the parent invocation; CoForge does not dispatch or administer
+  CoWorker children for this feature. Implement through dedicated subagents,
+  qualify and polish the full flow, then open a PR and merge only when checks are
+  green. Retain captured execution permissions, private evidence, isolated
+  workspaces, finite execution limits, explicit recovery and final human review.
+  This supersedes the earlier blanket native-delegation/test-tool prohibition
+  for explicitly enabled, supported workflow invocations; existing captured runs
+  retain their original capabilities. Test execution requires actual isolation
+  and observed outcomes; a model's summary is not an executed test result.
+  Authentication follow-up (owner choice): keep the existing Codex CLI sign-in
+  and its SDK-managed global AGENTS/skills context. Use the canonical native
+  credential store; do not clone OAuth bundles or require a new sign-in/API key.
+  Global context never expands CoForge's tool permissions. Keep invocation
+  SQLite/log/model-profile state private; native provider rollout files remain
+  provider-owned. Captured CoForge instructions/task text are distinct from
+  additional SDK-managed context, rather than a claim to capture every provider
+  prompt augmentation.
+
 - 2026-10-31: review the first complete CF-133 intake-to-increment run through
   dedicated product-perspective subagents, then perform a subagent-driven plugin
   improvement and polishing pass so agents can present better-quality increments.

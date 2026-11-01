@@ -1,0 +1,43 @@
+import { expect, it } from 'vitest';
+import { readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { codexWorkflowTools } from '../../../src/plugin/infrastructure/coforge/codex-workflow-tools';
+import { workflowVerificationRecordCheck } from '../../../src/plugin/features/coforge/domain/workflow-verification';
+import { verificationFixture } from './fixture';
+import { callTool, nativeFixtureChild } from './mcp-fixture';
+
+it('shares the production MCP broker with a provider-owned fixture child through fail, scoped edit, pass and stale evidence', async () => {
+  const f = await verificationFixture(undefined, { maxRuns: 2 });
+  f.input.settings.maxTurns = 8;
+  const broker = await codexWorkflowTools(f.input, f.lease);
+  f.closeables.push(broker.dispose);
+  const first = workflowVerificationRecordCheck(await callTool(broker, 'coforge_run_tests', { commandId: 'check' }));
+  expect(first.status).toBe('failed'); expect(first.exitCode).not.toBe(0);
+  expect(await readFile(join(f.source, 'feature.cjs'), 'utf8')).toBe('module.exports=1;\n');
+  await expect(readFile(join(f.source, 'private-test-write.txt'))).rejects.toThrow();
+  // The scripted provider fixture launches its own child; CoForge creates no child job or dispatcher.
+  await nativeFixtureChild(f.directory, broker, 'coforge_write_file', { path: 'feature.cjs', expectedContent: 'module.exports=1;\n', content: 'module.exports=2;\n' });
+  const second = workflowVerificationRecordCheck(await callTool(broker, 'coforge_run_tests', { commandId: 'check' }));
+  expect(second).toMatchObject({ status: 'completed', exitCode: 0 });
+  expect(second.sourceHash).not.toBe(first.sourceHash);
+  expect(second.output).toContain('Observed fixture check passed');
+  const increment = await f.lease.capture('Fixture provider handoff');
+  if (!increment) throw new Error('Fixture capture missing.');
+  const current = await broker.captureVerification(increment);
+  expect(current.verification).toEqual([first, second]);
+  expect(current.verificationSourceHash).toBe(second.sourceHash);
+  expect(current.tests.join(' ')).not.toContain('Not run: shell tools are disabled');
+  await expect(callTool(broker, 'coforge_run_tests', { commandId: 'check' })).rejects.toThrow('refused');
+  await expect(callTool(broker, 'coforge_run_tests', { commandId: 'check', executable: 'sh', args: ['-c', 'echo unsafe'] })).rejects.toThrow('refused');
+  await expect(callTool(broker, 'coforge_read_file', { path: '.env' })).rejects.toThrow('refused');
+  await expect(callTool(broker, 'coforge_read_file', { path: 'Managed/Note.md' })).rejects.toThrow('refused');
+  await nativeFixtureChild(f.directory, broker, 'coforge_read_file', { path: 'feature.cjs' });
+  await expect(callTool(broker, 'coforge_read_file', { path: 'feature.cjs' })).rejects.toThrow('refused');
+  expect(() => broker.assertBudget()).toThrow('tool-call limit');
+  await writeFile(join(f.source, 'node_modules/fixture-dependency/index.js'), 'module.exports=3;\n');
+  expect((await broker.captureVerification(increment)).verificationSourceHash).toBe(second.sourceHash);
+  await writeFile(join(f.source, 'feature.cjs'), 'module.exports=3;\n');
+  expect((await broker.captureVerification(increment)).verificationSourceHash).not.toBe(second.sourceHash);
+  expect(broker.verificationRecords()).toHaveLength(2);
+  await f.assertSourceUnchanged();
+});

@@ -82,7 +82,7 @@ export class McpWorkflowTools {
     if (name === 'coforge_request' || name === 'coforge_begin_step') {
       const { ideaId } = shape({ ideaId: id }, { strict: true })(raw);
       const idea = this.idea(projectId, ideaId);
-      if (name === 'coforge_request') return { request: idea, jobs: this.studio.state().jobs.filter(job => job.ideaId === ideaId && job.projectId === projectId) };
+      if (name === 'coforge_request') return { request: idea, jobs: this.studio.state().jobs.filter(job => job.ideaId === ideaId && job.projectId === projectId).map(job => { const visible = { ...job }; delete visible.verificationRuntime; delete visible.nativeProcess; delete visible.nativeRuntime; return visible; }) };
       const active = this.studio.state().jobs.find(job => job.ideaId === ideaId && ['queued', 'running'].includes(job.status));
       if (active) {
         if (active.provider !== 'mcp') throw new Error('This request already has a native attempt.');

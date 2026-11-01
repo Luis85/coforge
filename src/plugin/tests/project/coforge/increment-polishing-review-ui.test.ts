@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { flushPromises, mount } from '@vue/test-utils';
 import { expect, it } from 'vitest';
+import { toRaw } from 'vue';
 import IdeaDrawer from '../../../presentation/components/coforge/IdeaDrawer.vue';
 import { incrementReviewEvidence } from '../../../presentation/composables/coforge/use-increment-review';
 import { polishingTargetForView } from '../../../presentation/composables/coforge/polishing-target-for-view';
@@ -65,6 +66,32 @@ it.each([true, false])('projects only genuine applied polishing code and bound p
     expect(wrapper.text()).toContain('Host-captured changes'); expect(wrapper.text()).toContain('auxiliary'); expect(wrapper.text()).toContain(f.binding.ownerRunId);
     expect(wrapper.text()).not.toContain('Old primary assessment must not describe'); wrapper.unmount();
     expect(f.runner).not.toHaveBeenCalled();
+  } finally { await f.dispose(); }
+});
+
+it('retains producer verification as historical after Apply and never labels the fresh materialization as rerun', async () => {
+  const f = await fixture();
+  try {
+    const pass = f.idea.polishingRuns![0]!;
+    const record = { id: 'original-test', runId: pass.id, attemptId: 'polish-attempt', projectId: f.project.id, commandId: 'test', label: 'Product tests', executable: 'npm', args: ['test'], runtime: 'docker' as const, imageId: `sha256:${'a'.repeat(64)}`, sourceHash: 'c'.repeat(64), startedAt: '2026-10-31T18:58:00Z', finishedAt: '2026-10-31T18:59:00Z', status: 'completed' as const, exitCode: 0, output: 'Passed in the producing source copy.', truncated: false };
+    for (const artifact of pass.workflow.artifacts) { artifact.increment!.verification = [record]; artifact.increment!.verificationSourceHash = record.sourceHash; artifact.contentHash = workflowArtifactHash(artifact); }
+    const output = polishingResultArtifact(pass);
+    f.idea.polishingAmendments![0]!.artifactHash = output.contentHash; pass.applyIntent!.sourceArtifactHash = output.contentHash;
+    expect(f.idea.increment!.verification).toBeUndefined();
+    expect(incrementReviewEvidence(f.idea).verification).toEqual([record]);
+    f.store.select(f.idea.id, 'increment');
+    const wrapper = mount(IdeaDrawer, { global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
+    expect(wrapper.text()).toContain('Recorded before Apply; not rerun in this worktree');
+    expect(wrapper.text()).toContain('Passed in the producing source copy.');
+    expect(wrapper.text()).not.toContain('Matches the captured source snapshot');
+    for (const corruption of ['pending', 'unapproved', 'mismatched binding'] as const) {
+      const changed = structuredClone(toRaw(f.idea));
+      if (corruption === 'pending') changed.polishingRuns![0]!.review = 'pending';
+      if (corruption === 'unapproved') changed.polishingAmendments = [];
+      if (corruption === 'mismatched binding') changed.polishingAmendments![0]!.resourceBinding!.increment.diff = '+different bytes';
+      expect(incrementReviewEvidence(changed).verification).toBeUndefined();
+    }
+    wrapper.unmount();
   } finally { await f.dispose(); }
 });
 

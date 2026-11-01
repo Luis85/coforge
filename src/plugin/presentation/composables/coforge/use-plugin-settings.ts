@@ -2,6 +2,7 @@ import { computed, inject, provide, reactive, ref, toRaw, watch, type InjectionK
 import { defaultIntegration } from '../../../features/coforge/domain/seed';
 import type { IntegrationSettings } from '../../../features/coforge/domain/types';
 import { useStudioApp } from './use-studio-app';
+import { defaultWorkflowVerificationProfile, workflowVerificationProfileCheck } from '../../../features/coforge/domain/native-workflow-tools';
 
 type Key = keyof IntegrationSettings;
 type TextKey = { [K in Key]-?: NonNullable<IntegrationSettings[K]> extends string ? K : never }[Key];
@@ -15,6 +16,7 @@ const WRAPPER = /\.(?:cmd|bat|ps1)$/i;
 const TEXT_KEYS: TextKey[] = ['ideasFolder', 'claudeBin', 'codexBin', 'workerNodeBin', 'projectPath', 'worktreeFolder', 'twitchClientId', 'twitchBotUserId', 'twitchBroadcasterId', 'twitchTokenSecret', 'publicFolder'];
 
 function validate(draft: IntegrationSettings): string | null {
+  try { if (draft.workflowVerification) workflowVerificationProfileCheck(draft.workflowVerification); } catch (error) { return error instanceof Error ? error.message : 'Review the verification profile.'; }
   if (draft.executionConcurrency && ![draft.executionConcurrency.builds, draft.executionConcurrency.shortTasks].every(value => Number.isInteger(value) && value >= 1 && value <= 16)) return 'Set each execution lane limit to a whole number from 1 to 16.';
   if (draft.workerNodeBin !== undefined && (!draft.workerNodeBin.trim() || draft.workerNodeBin.length > 1000 || WRAPPER.test(draft.workerNodeBin.trim()))) return 'Set the worker Node path to a native executable or node on PATH, without a shell wrapper.';
   if (draft.codexBin !== undefined && (!draft.codexBin.trim() || draft.codexBin.length > 1000 || WRAPPER.test(draft.codexBin.trim()))) return 'Set Codex to a native executable or codex on PATH, without a shell wrapper.';
@@ -56,6 +58,7 @@ function changes(draft: IntegrationSettings, saved: IntegrationSettings): Partia
   const lanes = draft.executionConcurrency ?? { builds: 1, shortTasks: 1 };
   const previous = saved.executionConcurrency ?? { builds: 1, shortTasks: 1 };
   if (lanes.builds !== previous.builds || lanes.shortTasks !== previous.shortTasks) patch.executionConcurrency = { ...lanes };
+  if (JSON.stringify(draft.workflowVerification ?? defaultWorkflowVerificationProfile()) !== JSON.stringify(saved.workflowVerification ?? defaultWorkflowVerificationProfile())) patch.workflowVerification = structuredClone(toRaw(draft.workflowVerification));
   return patch;
 }
 
@@ -77,6 +80,7 @@ function createPluginSettings() {
   const replaceDraft = (next: IntegrationSettings) => {
     Object.assign(draft, structuredClone(toRaw(next)));
     if (next.executionConcurrency === undefined) delete draft.executionConcurrency;
+    draft.workflowVerification = structuredClone(next.workflowVerification ?? defaultWorkflowVerificationProfile());
   };
   const load = () => {
     const next = { ...defaultIntegration(), ...actions.integration() };
@@ -98,6 +102,7 @@ function createPluginSettings() {
       if (next.executionConcurrency) draft.executionConcurrency = { ...next.executionConcurrency };
       else delete draft.executionConcurrency;
     }
+    if (JSON.stringify(draft.workflowVerification ?? defaultWorkflowVerificationProfile()) === JSON.stringify(saved.value.workflowVerification ?? defaultWorkflowVerificationProfile())) draft.workflowVerification = structuredClone(next.workflowVerification ?? defaultWorkflowVerificationProfile());
     saved.value = structuredClone(next);
   });
 

@@ -207,6 +207,8 @@
 .cf-plugin-settings-section-intro { color: var(--cf-muted); font-size: var(--font-ui-small); line-height: 1.6; margin: 0 0 0.75em; }
 .cf-plugin-settings-intro strong,
 .cf-plugin-settings-section-intro strong { color: var(--cf-text); font-weight: var(--font-semibold); }
+.cf-verification-command { padding: var(--cf-space-md) 0; border-top: 1px solid var(--cf-border); min-width: 0; }
+.cf-verification-command > .cf-field { margin-top: var(--cf-space-sm); }
 .cf-setting-heading {
   display: flex; align-items: center; gap: 8px; margin: 1.5em 0 0.5em; padding: 0.75em 0 0.25em; font-size: var(--font-ui-medium);
   font-weight: var(--font-bold); color: var(--cf-text); border-top: 1px solid var(--cf-border);

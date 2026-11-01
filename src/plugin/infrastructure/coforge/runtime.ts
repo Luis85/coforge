@@ -71,6 +71,9 @@ import durableWorkerSource from 'virtual:coforge-durable-worker-source';
 import { durableBuildRuntime } from './durable-build-runtime';
 import { durableBuildWorkspaces } from './durable-build-client';
 import { executionConcurrency } from '../../features/coforge/domain/execution-concurrency';
+import { protectedWorkflowWorkspaces } from './workflow-workspace-protection';
+import { recoverForegroundVerification } from './verification/foreground-recovery';
+import { purgeCodexPrivateRuntime } from './codex-private-runtime';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -101,7 +104,11 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const localWorkspaces = new LocalWorkflowWorkspaces(workspaceStorage);
   const durableBuilds = durableBuildRuntime(plugin, durableWorkerSource, () => studio.integration().workerNodeBin,
     () => ['CoForge', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders(), ...serviceDesignFolders()]);
-  const workspaces = durableBuilds ? durableBuildWorkspaces(durableBuilds, localWorkspaces) : localWorkspaces;
+  const workspaces = protectedWorkflowWorkspaces(durableBuilds ? durableBuildWorkspaces(durableBuilds, localWorkspaces) : localWorkspaces, () => {
+    const adapter = plugin.app.vault.adapter;
+    if (!('getBasePath' in adapter) || typeof adapter.getBasePath !== 'function') throw new Error('Native workflow access requires a local desktop vault.');
+    return adapter.getBasePath();
+  }, () => ['CoForge', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders(), ...serviceDesignFolders()]);
   const log = operationsLog(logger);
   const listeners = new Set<(notice: StudioNotice) => void>();
   const notify = (message: string, error = false) => { for (const listener of listeners) listener({ message, error }); };
@@ -129,6 +136,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const studio: StudioService = new StudioService(storage, {
     ...(durableBuilds ? { durableBuilds, backgroundBuildRetries: durableBuilds.retryResources(workspaceStorage), polishingCode: durableBuilds.polishingResources(localWorkspaces, workspaceStorage) } : {}),
     outputTemplates,
+    nativeWorkflowRecovery: { check: jobId => recoverForegroundVerification(studio.store, undefined, undefined, jobId), purgePrivateRuntime: purgeCodexPrivateRuntime },
     agentTasks: { prepareCoworker: (projectId, coworkerId) => workflowAgentTasks(plugin, studio, council.actions).prepareCoworker!(projectId, coworkerId), prepareCouncil: (projectId, councilId) => workflowAgentTasks(plugin, studio, council.actions).prepareCouncil!(projectId, councilId), create: input => workflowAgentTasks(plugin, studio, council.actions).create(input), cancel: id => workflowAgentTasks(plugin, studio, council.actions).cancel!(id), result: id => workflowAgentTasks(plugin, studio, council.actions).result!(id) },
     beforeCommit: (next, previous) => publisher.beforeCommit(next, previous),
     economyReservations: storage.economyReservations,
@@ -294,6 +302,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
       await alerts.start().catch(() => notify('Alerts could not start. Open Alerts to inspect the error; restore its saved configuration or free its local port, then reload CoForge.', true));
       if (disposed) return;
       await workspaces.start().catch(() => notify('Workflow workspace recovery records could not be loaded. Restore the private journal before running agents.', true));
+      await recoverForegroundVerification(studio.store).catch(() => notify('Verification recovery is incomplete. Inspect the original private container records before dispatching.', true));
       if (disposed) return;
       await council.start();
       if (disposed) return;

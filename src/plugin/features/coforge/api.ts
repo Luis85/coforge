@@ -1,6 +1,7 @@
 import type { StudioService } from './application/studio';
 /** Consumer-facing application contract. Storage, worker internals and lifecycle belong to runtime composition. */
 export type CoforgeApplication = Pick<StudioService,
+  'checkNativeWorkflowRecovery' | 'acknowledgeNativeWorkflowProcess' |
   'getEconomy' | 'saveEconomyConfiguration' | 'fulfillEconomyPerk' |
   'previewExampleCleanup' | 'removeExampleContent' | 'exampleCleanupWarning' |
   'previewBackgroundBuildRetry' | 'confirmBackgroundBuildRetry' |

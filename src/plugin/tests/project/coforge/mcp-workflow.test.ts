@@ -52,6 +52,23 @@ it('does not expose operator Restart or allow an external agent to release a sto
   expect(f.studio.state().jobs).toHaveLength(count);
 });
 
+it('keeps verification container ownership and private source directories out of model-facing request jobs', async () => {
+  const f = await fixture(); await f.next();
+  await f.studio.store.transaction(state => {
+    state.jobs.at(-1)!.verificationRuntime = [{ verificationId: 'private-check', containerName: 'private-container', ownerToken: 'DO-NOT-DISCLOSE', dockerBin: 'docker', endpoint: 'npipe:////./pipe/private-engine', imageId: `sha256:${'a'.repeat(64)}`, runId: 'run', attemptId: 'attempt', projectId: f.projectId, sourceDirectory: '/private/source-copy', sourceHash: 'b'.repeat(64), commandId: 'test', phase: 'prepared', startedAt: new Date().toISOString() }];
+    state.jobs.at(-1)!.nativeProcess = { runId: 'run', attemptId: 'attempt', projectId: f.projectId, identity: { pid: 123, platform: 'win32', birth: 'DO-NOT-DISCLOSE-NATIVE', image: 'd'.repeat(64) }, phase: 'unknown', observedAt: new Date().toISOString() };
+    state.jobs.at(-1)!.nativeRuntime = { runId: 'run', attemptId: 'attempt', projectId: f.projectId, directory: '/private/native-home', ownerToken: 'e'.repeat(64) };
+  });
+  const visible = await f.tools.call(f.projectId, 'coforge_request', { ideaId: f.idea.id });
+  expect(JSON.stringify(visible)).not.toContain('verificationRuntime');
+  expect(JSON.stringify(visible)).not.toContain('nativeProcess');
+  expect(JSON.stringify(visible)).not.toContain('nativeRuntime');
+  expect(JSON.stringify(visible)).not.toContain('/private/native-home');
+  expect(JSON.stringify(visible)).not.toContain('DO-NOT-DISCLOSE');
+  expect(JSON.stringify(visible)).not.toContain('/private/source-copy');
+  expect(f.studio.state().jobs.at(-1)?.verificationRuntime?.[0]?.ownerToken).toBe('DO-NOT-DISCLOSE');
+});
+
 it('lets an external agent perform all five default steps, preserving the design handoff and human review', async () => {
   const f = await fixture();
   const outputs = [

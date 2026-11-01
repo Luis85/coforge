@@ -86,6 +86,7 @@
     "check:architecture": "node tooling/quality/check-architecture.mjs",
     "test:native": "node tooling/testing/check-native.mjs",
     "test:obsidian": "node tooling/testing/run-obsidian-tests.mjs",
+    "test:workflow-verification": "node tooling/testing/run-workflow-verification.mjs",
     "dev:obsidian": "node tooling/dev/obsidian-dev.mjs",
     "check:analyzer": "node tooling/quality/check-analyzer.mjs",
     "check:maintainability": "node tooling/quality/check-maintainability.mjs",

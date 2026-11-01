@@ -12,6 +12,7 @@ import { assertPolishingMetadata, assertPolishingResolved, workflowRunOwner } fr
 import { configuredInputs } from './configured-workflow-policy';
 import { uncertainTaskAttempt } from './agent-task';
 import { workflowIntegrityKey } from './workflow-note-integrity';
+import { assertVerificationSettled } from './verification-admission';
 
 export function polishingCheckpoint(idea: Idea): PolishingCheckpoint | undefined {
   const run = idea.workflowRun;
@@ -23,6 +24,7 @@ export function assertPolishingSource(idea: Idea, pass: PolishingRun): void {
       target.proposalRevision !== pass.target.proposalRevision) throw new Error('The polishing source or primary checkpoint changed. Inspect the retained result before applying it.');
 }
 export function polishingContext(state: InternalState, ideaId: string, feedback: string, busy: boolean) {
+  assertVerificationSettled(state, ideaId);
   assertPolishingMetadata(state, ideaId);
   const idea = state.ideas.find(item => item.id === ideaId); if (!idea) throw new Error('Request not found.');
   if (!idea.workflowRun && Object.hasOwn(state.integrity, workflowIntegrityKey(idea))) throw new Error('Restore the original managed workflow metadata before polishing this request.');

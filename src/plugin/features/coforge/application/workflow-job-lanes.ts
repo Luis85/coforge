@@ -5,7 +5,10 @@ import { DurableBuildCapacityError } from './durable-build-ports';
 
 export const workflowJobLane = (job: AgentJob): 'build' | 'short' => job.stage === 'implement' || job.workflow?.step.access === 'editworktree' ? 'build' : 'short';
 export const workerBackedJob = (job: AgentJob): boolean => job.workflow?.step.execution?.mode === 'background';
-const ownsLane = (job: AgentJob): boolean => job.status === 'running' || Boolean(job.durable && !job.durable.acknowledged);
+const orphanForegroundProvider = (job: AgentJob): boolean => !job.durable && !workerBackedJob(job) && ['failed', 'cancelled'].includes(job.status)
+  && Boolean(job.nativeProcess && job.nativeProcess.phase !== 'terminated' && !job.nativeProcess.operatorAcknowledgedAt);
+const ownsLane = (job: AgentJob): boolean => job.status === 'running' || Boolean(job.durable && !job.durable.acknowledged) || orphanForegroundProvider(job);
+const ownerLane = (job: AgentJob): 'build' | 'short' => orphanForegroundProvider(job) ? 'short' : workflowJobLane(job);
 
 /** Bounded vault-wide pools; blocked capacity never reschedules itself in a tight loop. */
 export class WorkflowJobLanes {
@@ -25,11 +28,12 @@ export class WorkflowJobLanes {
       const limit = lane === 'build' ? limits.builds : limits.shortTasks;
       while (!this.closed) {
       const jobs = this.store.snapshot().jobs;
+      const privateCleanupIdeas = new Set(jobs.filter(job => ['failed', 'cancelled'].includes(job.status) && (job.nativeRuntime || job.nativeProcess?.privateRuntime)).map(job => job.ideaId));
       const owners = new Map(jobs.filter(ownsLane).map(job => [job.id, job]));
       for (const active of this.active.values()) if (!owners.has(active.job.id)) owners.set(active.job.id, active.job);
-      if ([...owners.values()].filter(job => workflowJobLane(job) === lane).length >= limit) break;
+      if ([...owners.values()].filter(job => ownerLane(job) === lane).length >= limit) break;
       const capacityHead = jobs.findIndex(job => job.status === 'queued' && workflowJobLane(job) === lane && this.capacityBlocked.has(job.id));
-      const next = jobs.find((job, index) => (capacityHead < 0 || index < capacityHead) && job.status === 'queued' && !this.active.has(job.id) && !this.blocked.has(job.id) && workflowJobLane(job) === lane && ![...owners.values()].some(other =>
+      const next = jobs.find((job, index) => (capacityHead < 0 || index < capacityHead) && job.status === 'queued' && !privateCleanupIdeas.has(job.ideaId) && !this.active.has(job.id) && !this.blocked.has(job.id) && workflowJobLane(job) === lane && ![...owners.values()].some(other =>
         (other.ideaId === job.ideaId || job.workflow?.workspaceId && other.workflow?.workspaceId === job.workflow.workspaceId)));
       if (!next) break;
       const controller = new AbortController();

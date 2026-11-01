@@ -7,6 +7,8 @@ import { inspectWorkerWorkspace } from './workspace-proof';
 import { readNativeProcessIdentity, stopOwnedProcessTree, type NativeProcessIdentity, type ProcessTerminationProof } from './process-identity';
 import { workerWorkspaces } from './workspaces';
 import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
+import { recoverWorkerVerification } from './verification-recovery';
+import { recoverWorkerNativeRuntime } from './native-runtime';
 
 export interface RecoveryProofDriver {
   read(pid: number): Promise<NativeProcessIdentity | undefined>;
@@ -21,6 +23,7 @@ export async function retainedJob(files: WorkerFiles, ref: DurableBuildRef) {
   const jobFiles = new WorkerFiles(files.path(checked.executionId)); await jobFiles.attach();
   const request = workerRequestCheck(await jobFiles.read('input.json')); const record = workerRecordCheck(await jobFiles.read('record.json'));
   if (!sameDurableBuildRef(record.snapshot.ref, checked) || checked.inputHash !== inputHash(request)) throw new Error('The retained original Build identity changed.');
+  if (record.nativeRuntime && (record.nativeRuntime.runId !== request.runId || record.nativeRuntime.attemptId !== request.attemptId || record.nativeRuntime.projectId !== request.projectId)) throw new Error('Retained private native authorization identity changed.');
   return { request, record, files: jobFiles };
 }
 export async function supervisorGone(files: WorkerFiles, ref: DurableBuildRef, driver = nativeProof): Promise<boolean> {
@@ -52,8 +55,8 @@ export class WorkerRecovery {
   }
   private async commit(ref: DurableBuildRef, next: WorkerRecord): Promise<DurableBuildSnapshot> {
     const current = await retainedJob(this.files, ref);
-    const checked = workerRecordCheck(durableBuildTerminal(current.record.snapshot.phase) && !current.record.terminationUnknown
-      ? { ...current.record, ...(next.recovery ? { recovery: next.recovery } : {}) } : next);
+    const checked = workerRecordCheck(durableBuildTerminal(current.record.snapshot.phase) && !current.record.terminationUnknown && !next.terminationUnknown
+      ? { ...current.record, verificationRuntime: next.verificationRuntime, nativeRuntime: next.nativeRuntime, ...(next.recovery ? { recovery: next.recovery } : {}) } : next);
     if (this.context) await this.context.store.replaceRecovered(ref, checked);
     else await current.files.write('record.json', checked);
     return workerSnapshot(checked);
@@ -66,6 +69,10 @@ export class WorkerRecovery {
     const next = structuredClone(original.record);
     const observedAt = new Date().toISOString();
     if (durableBuildTerminal(next.snapshot.phase) && !next.terminationUnknown) {
+      if (!await recoverWorkerVerification(next) || !await recoverWorkerNativeRuntime(next)) {
+        next.snapshot.phase = 'attention'; next.terminationUnknown = true; next.snapshot.error = 'Original verification-container termination remains unverified. No command was replayed.';
+        return this.commit(ref, next);
+      }
       const actual = await inspectWorkerWorkspace(this.files, original.request, next.snapshot);
       if (actual.evidenceHash !== evidenceHash) throw new Error('The retained workspace changed during inspection. Inspect it again before recovery.');
       if (actual.record) {
@@ -91,6 +98,10 @@ export class WorkerRecovery {
         next.snapshot.phase = prepared.phase; proven = true;
       } else if (!next.startIntent && !next.provider && next.snapshot.phase === 'prepared') {
         next.snapshot.phase = 'cancelled'; next.reservationReleased = true; proven = true;
+      } else if (!next.provider && next.nativeRuntime) {
+        proven = await recoverWorkerNativeRuntime(next); next.snapshot.phase = proven ? 'cancelled' : 'attention';
+      } else if (next.provider?.contractCompletedAt || next.provider?.treeTerminatedAt) {
+        proven = true; next.snapshot.phase = 'cancelled';
       } else if (next.provider?.identity) {
         const receipt = await original.files.read('termination.json');
         if (receipt !== undefined) {
@@ -103,8 +114,10 @@ export class WorkerRecovery {
           if (proven) await original.files.write('termination.json', { version: 1, ref, provider: next.provider.identity, treeConfirmed: true, observedAt: stopped.observedAt });
         }
         next.snapshot.phase = proven ? 'cancelled' : 'attention';
+        if (proven) next.provider.treeTerminatedAt = new Date().toISOString();
       }
     }
+    if (proven) proven = await recoverWorkerVerification(next) && await recoverWorkerNativeRuntime(next);
     const after = await this.inspect(ref);
     if (after.evidenceHash !== evidenceHash) throw new Error('The retained workspace changed during process verification. Inspect it again; no ownership was released.');
     next.snapshot.sequence = Math.max(next.snapshot.sequence, minimumSequence) + 1;
@@ -128,7 +141,7 @@ export class WorkerRecovery {
   }
   async acknowledge(ref: DurableBuildRef, sequence: number): Promise<void> {
     const job = await this.authority(ref);
-    if (!durableBuildTerminal(job.record.snapshot.phase) || job.record.snapshot.sequence !== sequence || job.record.terminationUnknown || !job.record.recovery?.quiescent)
+    if (!durableBuildTerminal(job.record.snapshot.phase) || job.record.snapshot.sequence !== sequence || job.record.terminationUnknown || job.record.nativeRuntime || !job.record.recovery?.quiescent)
       throw new Error('Only the verified recovered terminal result can be acknowledged offline.');
     await job.files.write('record.json', { ...job.record, acknowledgedSequence: sequence });
     await this.markRetiredIfSettled(ref);

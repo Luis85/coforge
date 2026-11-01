@@ -1,0 +1,82 @@
+import { expect as browserExpect } from '@playwright/test';
+import { describe, expect } from 'vitest';
+import { test } from './support/obsidian-fixture';
+import { openWorkflowDisclosure, openWorkflowSettings } from '../../../tests/e2e/support/workflow-navigation';
+import { parsePersistedStudio } from '../../../src/plugin/features/coforge/domain/persisted';
+
+describe('Native workflow tools authoring in the contained host', () => {
+  test('saves independent host grants and future workflow capabilities without dispatch, preserving keyboard layout across reload', async ({ obsidian }) => {
+    let view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await view.locator('.cf-project-switcher').click();
+    await view.getByRole('button', { name: 'Add project', exact: true }).click();
+    await view.getByLabel('Project name', { exact: true }).fill('Native tools authoring');
+    await view.getByLabel(/^Project path/).fill('/synthetic/native-tools-ui');
+    await view.getByLabel('Description', { exact: true }).fill('Authoring only: no model, Docker command or image availability claim.');
+    await view.getByRole('button', { name: 'Create project', exact: true }).click();
+    const settingsWindow = obsidian.page.context().waitForEvent('page');
+    await obsidian.runCommand('app:open-settings');
+    const settings = await settingsWindow;
+    await settings.waitForLoadState('domcontentloaded');
+    await settings.locator('.vertical-tab-nav-item').filter({ hasText: /^CoForge$/ }).last().click();
+    await settings.getByLabel('Enable isolated workflow verification', { exact: true }).check();
+    await settings.getByLabel('Verification image ID', { exact: true }).fill(`sha256:${'a'.repeat(64)}`);
+    await settings.getByRole('button', { name: 'Add verification command', exact: true }).click();
+    await settings.getByLabel('Command ID', { exact: true }).fill('tests');
+    await settings.getByLabel('Command label', { exact: true }).fill('Product tests');
+    await settings.getByLabel('Command executable', { exact: true }).fill('npm');
+    await settings.getByLabel('Command arguments', { exact: true }).fill('run\ntest');
+    await settings.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await browserExpect(settings.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
+    await settings.getByRole('region', { name: 'Isolated workflow verification', exact: true }).scrollIntoViewIfNeeded();
+    await settings.screenshot({ path: `${obsidian.directory}/verification-host-grant.png` });
+    await settings.close();
+    await openWorkflowSettings(view);
+    await view.locator('[data-step-id="implement"] .cf-workflow-step-select').click();
+    await openWorkflowDisclosure(view, 'Agent and project access');
+    await view.getByLabel('AI provider', { exact: true }).selectOption('codex');
+    await view.getByLabel('Allow provider-native assistants', { exact: true }).check();
+    await view.getByLabel('Maximum concurrent native assistants', { exact: true }).fill('3');
+    await view.getByLabel('Allow verification: Product tests', { exact: true }).check();
+    await view.getByRole('button', { name: 'Save workflow', exact: true }).click();
+    await browserExpect(view.locator('.cf-workflow-editor-notice')).toContainText('Workflow saved.');
+    await obsidian.reloadPlugin();
+    view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
+    await openWorkflowSettings(view);
+    await view.locator('[data-step-id="implement"] .cf-workflow-step-select').click();
+    await browserExpect(view.getByLabel('Allow provider-native assistants', { exact: true })).toBeChecked();
+    await browserExpect(view.getByLabel('AI model', { exact: true })).toHaveValue('gpt-6.1-sol');
+    await browserExpect(view.getByLabel('Maximum concurrent native assistants', { exact: true })).toHaveValue('3');
+    await browserExpect(view.getByLabel('Allow verification: Product tests', { exact: true })).toBeChecked();
+    const tools = view.getByRole('region', { name: 'Native workflow tools', exact: true });
+    await browserExpect(tools).toContainText('global AGENTS.md and skills');
+    await browserExpect(tools).toContainText('do not grant tools');
+    for (const width of [1360, 760]) for (const theme of ['light', 'dark']) {
+      await obsidian.page.setViewportSize({ width, height: 900 });
+      await obsidian.eval((_context, selected) => {
+        document.body.classList.toggle('theme-light', selected === 'light');
+        document.body.classList.toggle('theme-dark', selected === 'dark');
+      }, theme);
+      const checkbox = tools.getByLabel('Allow provider-native assistants', { exact: true });
+      await checkbox.focus();
+      await browserExpect(checkbox).toBeFocused();
+      await obsidian.page.keyboard.press('Tab');
+      const concurrency = tools.getByLabel('Maximum concurrent native assistants', { exact: true });
+      await browserExpect(concurrency).toBeFocused();
+      await obsidian.page.keyboard.press('ArrowUp');
+      await browserExpect(concurrency).toHaveValue('4');
+      await obsidian.page.keyboard.press('ArrowDown');
+      await browserExpect(concurrency).toHaveValue('3');
+      expect(await tools.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+      await tools.scrollIntoViewIfNeeded();
+      await obsidian.screenshot(`native-tools-${theme}-${width}`);
+    }
+    const data = await obsidian.eval(async ({ app, pluginId }) => {
+      const folder = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
+      return app.vault.adapter.read(`${folder}/coforge-state.json`);
+    });
+    const saved = parsePersistedStudio(JSON.parse(data));
+    expect(saved.jobs).toEqual([]);
+    expect(saved.integration.workflowVerification).toMatchObject({ enabled: true, commands: [{ id: 'tests', executable: 'npm', args: ['run', 'test'] }] });
+    expect(obsidian.errors()).toEqual([]);
+  });
+});

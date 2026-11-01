@@ -2,6 +2,7 @@
 import { useIdeaDrawerContext } from '../../composables/coforge/use-idea-drawer';
 import CfIcon from './CfIcon.vue';
 import IdeaRunHistory from './IdeaRunHistory.vue';
+import NativeWorkflowRecovery from './NativeWorkflowRecovery.vue';
 
 const drawer = useIdeaDrawerContext();
 </script>
@@ -38,6 +39,7 @@ const drawer = useIdeaDrawerContext();
         <span class="cf-muted cf-idea-run-status">{{ job.status }}</span>
       </summary>
       <IdeaRunHistory :job="job" />
+      <NativeWorkflowRecovery :job-id="job.id" />
     </details>
     <p v-if="drawer.jobs.length === 0" class="cf-idea-help">No agent runs yet.</p>
   </section>

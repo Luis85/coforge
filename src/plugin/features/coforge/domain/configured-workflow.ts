@@ -5,6 +5,7 @@ import { agentModelCheck, stageAgent } from './stage-agents';
 import { durableBuildPolicyCheck, type DurableBuildPolicy } from './durable-build';
 import { resolvedStagePrompts } from './stage-prompts';
 import { STAGES, STAGE_LABELS, type Provider, type Settings } from './types';
+import { nativeWorkflowToolsCheck, validateNativeWorkflowTools, type NativeWorkflowTools } from './native-workflow-tools';
 import { validateWorkflowBuckets, workflowBucketCheck, type WorkflowBucket } from './workflow-buckets';
 import { improvementPassConfigurationCheck, type ImprovementPassConfiguration } from './polishing-pass-configuration';
 
@@ -14,6 +15,7 @@ export type WorkflowOutput = typeof WORKFLOW_OUTPUTS[number];
 export type WorkflowAccess = typeof WORKFLOW_ACCESS[number];
 interface StepBase { id: string; name: string; instructions: string; bucketId?: string }
 export interface AiWorkflowStep extends StepBase {
+  nativeTools?: NativeWorkflowTools;
   execution?: DurableBuildPolicy;
   coworkerId?: string;
   outputTemplateId?: string;
@@ -39,6 +41,7 @@ export interface WorkflowDefinition {
 export const workflowIdCheck = text({ min: 1, max: 80, pattern: /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/u });
 const base = { id: workflowIdCheck, name: text({ trim: true, min: 1, max: 100 }), instructions: text({ max: 8000 }), bucketId: optional(workflowIdCheck) };
 const ai = shape({ ...base, kind: oneOf(['ai'] as const), output: oneOf(WORKFLOW_OUTPUTS), access: oneOf(WORKFLOW_ACCESS),
+  nativeTools: optional(nativeWorkflowToolsCheck),
   execution: optional(durableBuildPolicyCheck),
   coworkerId: optional(workflowIdCheck),
   outputTemplateId: optional(workflowIdCheck),
@@ -55,6 +58,7 @@ export function workflowStepCheck(value: unknown): WorkflowStep {
   const kind = record(value).kind;
   const step = kind === 'ai' ? ai(value) : kind === 'approval' ? approval(value) : kind === 'nudge' ? nudge(value) : kind === 'council' ? council(value) : checklist(value);
   if (step.kind === 'ai') validateModelEffort(step);
+  if (step.kind === 'ai') validateNativeWorkflowTools(step);
   if (step.kind === 'ai' && step.execution && (step.output !== 'codechange' || step.access !== 'editworktree' || !step.coworkerId && !['claude', 'codex'].includes(step.provider))) throw new Error('Background execution requires a native Claude or Codex Build with isolated worktree editing.');
   if (step.kind === 'council' && (!step.instructions.trim() || new Set(step.inputs).size !== (step.inputs?.length ?? 0))) throw new Error('Ask Council needs a prompt and unique input roles.');
   if (step.kind === 'council' && step.contextMode === 'selected' && !step.inputs?.length) throw new Error('Choose at least one earlier result role, or choose no earlier results.');
