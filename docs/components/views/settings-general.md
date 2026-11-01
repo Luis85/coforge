@@ -102,6 +102,6 @@ Canonical note identity, unrelated frontmatter and Markdown body remain preserve
 The project switcher identifies the active project and its private visibility.
 
 Agent workflow is a sibling settings section. Its flat Idea Board Workflow,
-Step attempts, Timing & limits, Answer / output templates and Herdr tabs have
+Step attempts, Answer / output templates and Herdr tabs have
 their own authoring boundaries. General settings does not own the workflow's
 startup preference or release per-request operator stop holds.

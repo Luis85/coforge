@@ -15,7 +15,7 @@ import type { PolishingPreview, PolishingRun } from '../../../src/plugin/feature
 import { polishingTargetForView } from '../../../src/plugin/presentation/composables/coforge/polishing-target-for-view';
 
 declare global {
-  interface Window { coforgeRetryProof?: { inspections: number; confirmations: number; polishingPreviews: number; polishingConfirmations: number; feedback: string; providerCalls: number; closed: boolean; consent?: BackgroundBuildRetryConsent; showCleanCodeSource(attached?: boolean): void; showPendingMainDecision(): void; destroy(): void } }
+  interface Window { coforgeRetryProof?: { inspections: number; confirmations: number; polishingPreviews: number; polishingConfirmations: number; feedback: string; providerCalls: number; closed: boolean; consent?: BackgroundBuildRetryConsent; showCleanCodeSource(attached?: boolean): void; showPendingMainDecision(state?: 'attention' | 'running'): void; destroy(): void } }
 }
 
 /** Test-only composition: real presentation components, fake private snapshot API, no provider port. */
@@ -69,7 +69,7 @@ async function mountProof() {
       inspection: { ...data.preview.inspection, sourceKind: 'repository', sourceWorkspaceId: undefined, sourceOwner: undefined, increment: null, fileCount: 0, totalBytes: 0, humanCessationRequired: false },
       readiness: attached ? undefined : data.preview.readiness, oldExecutorAcknowledgementRequired: false };
   };
-  proof.showPendingMainDecision = () => {
+  proof.showPendingMainDecision = (state = 'attention') => {
     const current = store.state!.ideas[0]!; delete current.increment;
     current.workflowRun = { ...data.run, revision: 9, state: 'waiting-human', cursor: 0, attempts: [], artifacts: [],
       definition: { ...data.run.definition, steps: [{ id: 'human', kind: 'approval', name: 'Primary checkpoint', instructions: 'Review the main work.' }] } };
@@ -77,7 +77,7 @@ async function mountProof() {
     const pass: PolishingRun = { id: 'pending-polishing-proof', feedback: 'Retained failed-pass feedback.', target, sourceHash: target.contentHash, previousStatus: current.status,
       consent: { oldExecutorStopped: false, changesReviewed: true, releaseStopHold: false }, sourceArtifacts: [], policySourceRevision: data.preview.policySource.definitionRevision,
       createdAt: data.preview.createdAt, review: 'pending', primaryCheckpoint: { runId: data.run.id, revision: 9, cursor: 0, state: 'waiting-human', contentHash: 'checkpoint' },
-      workflow: { ...data.run, id: 'pending-polishing-proof', revision: 1, state: 'attention', cursor: 0, attempts: [], artifacts: [],
+      workflow: { ...data.run, id: 'pending-polishing-proof', revision: 1, state, cursor: 0, attempts: [], artifacts: [],
         definition: { ...data.run.definition, steps: [{ id: 'polish', kind: 'ai', name: 'Improve & polish', output: target.kind === 'request' ? 'markdown' : target.kind,
           access: 'none', provider: 'claude', model: 'sonnet', instructions: 'Polish', automatic: false }] } } };
     current.polishingRuns = [pass];

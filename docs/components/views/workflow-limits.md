@@ -1,50 +1,49 @@
 ---
 id: workflow-limits
-title: Timing and limits
-goal: Configure the timing and native CLI bounds captured by future workflow runs.
+title: Earlier agent behavior link
+goal: Understand managed agent sessions when opening an earlier timing link.
 audience: streamer
-kind: subpage
-route: studio.workflowTool = limits
+kind: panel
+route: "compatibility: studio.workflowTool = limits (read-only)"
 parent: "[[docs/components/views/workflow]]"
 component: src/plugin/presentation/components/coforge/WorkflowDefinitionLimits.vue
 entry:
-  - Open Project settings, Agent workflow, then Timing & limits.
+  - Follow an earlier retained Timing and limits link.
 actions:
-  - Adjust cadence, timeout, turns and budget
-  - Save or discard the shared workflow draft
+  - Read how agent sessions complete
+  - Return to Idea Board Workflow
 states:
-  - Saved
-  - Unsaved draft
-  - Invalid limits
+  - Managed session explanation
+  - Earlier captured configuration retained
 journeys:
   - workflow-configuration
 privacy: Private project configuration; excluded from public projections.
-coverage:
-  group: workflow
-  key: limits
 order: 90000
 ---
 
-# Timing and limits
+# Earlier agent behavior link
 
 ## Purpose
 
-Timing & limits exposes its fields directly in the flat Agent workflow tab row.
-It shares one mounted draft and explicit Save with [Idea Board Workflow](workflow-settings.md).
-Switching between these tabs preserves pending edits; saving prepares future runs
-and leaves existing captured limits and current Play/Pause state intact.
+Retained timing links open a read-only explanation of managed agent sessions.
+Timing and limits is absent from ordinary Agent workflow navigation. New native
+sessions follow completion and connection state, without task duration, turn or
+USD controls. Quiet periods do not end a task; Stop and human review remain.
 
 ## Entry and next action
 
-Open Project settings → Agent workflow → Timing & limits. Adjust bounds, inspect
-validation, then explicitly Save workflow or discard the shared draft.
+Follow an earlier retained timing link, then return to
+[Idea Board Workflow](workflow-settings.md) to edit steps or agent instructions.
+This explanation does not edit the shared workflow draft or start an agent.
 
 ## States and recovery
 
-Saved; Unsaved draft; Invalid limits. Failed saves keep the draft and saved
-configuration. Repair links reveal and focus the affected field.
+Earlier captured limits remain available in each request's recorded configuration.
+Opening this compatibility panel does not upgrade an existing attempt or change
+its captured values. Current Play/Pause and operator Stop holds remain authoritative.
 
 ## Composition and boundaries
 
 Source: [WorkflowDefinitionLimits.vue](../../../src/plugin/presentation/components/coforge/WorkflowDefinitionLimits.vue).
-Native CLI limits do not impose spending caps on an interactive Herdr agent.
+This panel is a compatibility destination, not a visible workflow navigation tab.
+Council and Herdr keep their separate execution contracts.

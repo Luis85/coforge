@@ -10,9 +10,12 @@ import { ProcessOwnershipUnknown, type ProcessOptions } from '../../../infrastru
 import { record, text } from '../../../features/coforge/domain/check';
 import { writeCodexModelProfile } from '../../../infrastructure/coforge/codex-model-profile';
 import { codexResult } from '../../../features/coforge/application/codex-protocol';
+import { managedSessionCapture } from '../../../infrastructure/coforge/managed-session-capture';
 
 const roots: string[] = [];
+const platform = Object.getOwnPropertyDescriptor(process, 'platform')!;
 afterEach(async () => {
+  Object.defineProperty(process, 'platform', platform);
   vi.unstubAllEnvs();
   for (const root of roots.splice(0)) {
     if (!root.startsWith(resolve('.nq') + sep)) throw new Error('Unsafe managed-session fixture cleanup');
@@ -37,7 +40,7 @@ async function fixture() {
   await mkdir('.nq', { recursive: true }); const root = await mkdtemp(join(resolve('.nq'), 'managed-refinement-')); roots.push(root);
   await writeFile(join(root, 'game.ts'), 'export const radius = 2;\n');
   const release = vi.fn(async () => {}), capture = vi.fn(async () => undefined);
-  const lease = { id: 'preserved-workspace', cwd: root, readOnly: true, protectedProjectPaths: [], validate: vi.fn(async () => {}), capture, release };
+  const lease = { id: 'preserved-workspace', cwd: root, readOnly: true as const, protectedProjectPaths: [], validate: vi.fn(async () => {}), capture, release };
   const workspaces = { start: async () => {}, acquire: async () => lease, assertReviewable: async () => {}, acknowledge: async () => {} };
   const identity = { pid: 42, platform: 'win32', birth: '123', image: 'a'.repeat(64) };
   const lifetime = { version: 1 as const, kind: 'windows-job' as const, directory: join(root, 'controller'), ownerToken: 'b'.repeat(64), sourceHash: 'c'.repeat(64), runId: 'run', attemptId: 'refine', projectId: 'CFP-001' };
@@ -62,6 +65,7 @@ it('records a closed Codex turn without a final root answer as incomplete instea
 });
 
 it('lets a read-only refinement complete after repeated scoped reads without a foreground timer or coding grant', async () => {
+  Object.defineProperty(process, 'platform', { value: 'win32' });
   const f = await fixture(); const managed = input();
   const capture = async (_command: string, args: readonly string[], options: ProcessOptions) => {
     expect(options.timeoutMs).toBeUndefined(); expect(options.nativeCoding).toEqual({ runId: 'run', attemptId: 'refine', projectId: 'CFP-001' });
@@ -84,9 +88,67 @@ it('lets a read-only refinement complete after repeated scoped reads without a f
 });
 
 it('cannot promote a semantic result when a managed refinement has no original descendant-stop proof', async () => {
+  Object.defineProperty(process, 'platform', { value: 'win32' });
   const f = await fixture(); const managed = input();
   await expect(runClaudeStage(managed, f.workspaces, async (_command, _args, options) => {
     await options.onOwnedProcess?.(f.identity, 'launched', f.lifetime); return response;
   })).rejects.toBeInstanceOf(ProcessOwnershipUnknown);
   expect(f.release).toHaveBeenCalledWith(true); expect(f.capture).not.toHaveBeenCalled(); expect(managed.onChanges).not.toHaveBeenCalled();
+});
+
+it('keeps managed Linux refinement on its restricted read broker without inventing Windows ownership', async () => {
+  Object.defineProperty(process, 'platform', { value: 'linux' });
+  const f = await fixture(); const managed = input(); managed.onNativeProcess = undefined;
+  const result = await runClaudeStage(managed, f.workspaces, async (_command, args, options) => {
+    expect(options.managedSession).toBe(true); expect(options.timeoutMs).toBeUndefined();
+    expect(options.nativeCoding).toBeUndefined(); expect(options.ownedTree).toBeUndefined(); expect(options.onOwnedProcess).toBeUndefined();
+    expect(args).not.toContain('--max-turns'); expect(args).not.toContain('--max-budget-usd');
+    expect(args[args.indexOf('--tools') + 1]).not.toContain('Bash');
+    const config = record(JSON.parse(await readFile(args[args.indexOf('--mcp-config') + 1]!, 'utf8')));
+    const server = record(record(config.mcpServers).coforge), url = text()(server.url), authorization = text()(record(server.headers).Authorization);
+    for (let count = 0; count < 4; count++) {
+      const read = await fetch(url, { method: 'POST', headers: { Authorization: authorization, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: count, method: 'tools/call', params: { name: 'coforge_read_file', arguments: { path: 'game.ts' } } }) });
+      expect(record(record(await read.json()).result).isError).not.toBe(true);
+    }
+    return response;
+  });
+  expect(result.markdown).toBe('# Refined specification'); expect(f.capture).not.toHaveBeenCalled();
+  expect(managed.onChanges).not.toHaveBeenCalled(); expect(f.release).toHaveBeenCalledWith(undefined);
+  expect(await readFile(join(f.root, 'game.ts'), 'utf8')).toBe('export const radius = 2;\n');
+});
+
+it('retains existing scoped Linux delegation completion and bounded setup queries without claiming a Windows receipt', async () => {
+  Object.defineProperty(process, 'platform', { value: 'linux' });
+  const f = await fixture(); const managed = input(); managed.workflow!.step.nativeTools = { delegation: { maxConcurrent: 1 } };
+  const result = await runClaudeStage(managed, f.workspaces, async (_command, args, options) => {
+    expect(options.nativeCoding).toBeUndefined();
+    if (args.includes('--version') || args.includes('--help')) {
+      expect(options.managedSession).toBeUndefined(); expect(options.timeoutMs).toBe(5000);
+      return args.includes('--version') ? 'Claude Code 2.1.281' : '--agents --agent --restricted --strict-mcp-config --permission-prompts --max-budget-usd';
+    }
+    expect(options.managedSession).toBe(true); expect(options.ownedTree).toBe(true); expect(options.timeoutMs).toBeUndefined();
+    await options.onOwnedProcess?.({ ...f.identity, platform: 'linux', groupId: 42 }, 'launched'); return response;
+  });
+  expect(result.markdown).toBe('# Refined specification');
+  expect(managed.onNativeProcess).toHaveBeenCalledWith(expect.objectContaining({ phase: 'terminated', identity: expect.objectContaining({ platform: 'linux' }) }));
+  expect(managed.onNativeProcess).not.toHaveBeenCalledWith(expect.objectContaining({ lifetime: expect.anything() }));
+  expect(f.release).toHaveBeenCalledWith(undefined); expect(f.capture).not.toHaveBeenCalled();
+});
+
+it('retains an actual POSIX original privately on uncertainty and records unknown through the existing callback', async () => {
+  Object.defineProperty(process, 'platform', { value: 'linux' });
+  const f = await fixture(), managed = input(), original = { ...f.identity, platform: 'linux', groupId: 42 };
+  const error = new ProcessOwnershipUnknown(response, undefined, undefined, undefined, original);
+  const observe = vi.fn<NonNullable<ProcessOptions['onOwnedProcess']>>(async () => {});
+  const capture = managedSessionCapture(managed, 'codex', async () => { throw error; });
+  await expect(capture('synthetic-cli', [], { cwd: f.root, input: 'authorized prompt', onOwnedProcess: observe })).rejects.toBe(error);
+  expect(observe.mock.calls.map(call => call[1])).toEqual(['launched', 'unknown']);
+  expect(observe).toHaveBeenCalledWith(original, 'unknown'); expect(managed.onNativeProcess).not.toHaveBeenCalled();
+  expect(error.originalIdentity).toEqual(original); expect(Object.keys(error)).not.toContain('originalIdentity');
+  expect(JSON.stringify(error)).not.toContain(original.image);
+  const fallback = managedSessionCapture(managed, 'claude', async () => { throw error; });
+  await expect(fallback('synthetic-cli', [], { cwd: f.root, input: 'authorized prompt' })).rejects.toBe(error);
+  expect(managed.onNativeProcess).toHaveBeenCalledWith(expect.objectContaining({ identity: original, phase: 'unknown' }));
+  expect(managed.onNativeProcess).not.toHaveBeenCalledWith(expect.objectContaining({ lifetime: expect.anything() }));
 });

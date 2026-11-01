@@ -4744,33 +4744,28 @@
     },
     {
       "id": "workflow-limits",
-      "title": "Timing and limits",
-      "goal": "Configure the timing and native CLI bounds captured by future workflow runs.",
+      "title": "Earlier agent behavior link",
+      "goal": "Understand managed agent sessions when opening an earlier timing link.",
       "audience": "streamer",
-      "kind": "subpage",
-      "route": "studio.workflowTool = limits",
+      "kind": "panel",
+      "route": "compatibility: studio.workflowTool = limits (read-only)",
       "parent": "workflow",
       "component": "src/plugin/presentation/components/coforge/WorkflowDefinitionLimits.vue",
       "entry": [
-        "Open Project settings, Agent workflow, then Timing & limits."
+        "Follow an earlier retained Timing and limits link."
       ],
       "actions": [
-        "Adjust cadence, timeout, turns and budget",
-        "Save or discard the shared workflow draft"
+        "Read how agent sessions complete",
+        "Return to Idea Board Workflow"
       ],
       "states": [
-        "Saved",
-        "Unsaved draft",
-        "Invalid limits"
+        "Managed session explanation",
+        "Earlier captured configuration retained"
       ],
       "journeys": [
         "workflow-configuration"
       ],
       "privacy": "Private project configuration; excluded from public projections.",
-      "coverage": {
-        "group": "workflow",
-        "key": "limits"
-      },
       "order": 90000,
       "file": "workflow-limits.md"
     },

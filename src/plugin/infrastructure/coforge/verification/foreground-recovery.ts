@@ -7,6 +7,7 @@ import { recoverOwnedWorktreeLifetime } from '../native-process/owned-worktree-p
 import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
 import type { WorkflowWorkspaces } from '../../../features/coforge/application/workflow-workspace-ports';
 import { recoverManagedSessionWorkspace } from './managed-session-recovery';
+import { safeFailureHasUnknownOwnership } from '../../../features/coforge/domain/provider-failure';
 
 const recoverNativeProvider = async (record: NativeWorkflowProcessRecord): Promise<'terminal' | 'unknown'> => {
   if (record.lifetime) return await recoverOwnedWorktreeLifetime(record.identity, record.lifetime) ? 'terminal' : 'unknown';
@@ -76,7 +77,8 @@ export async function recoverForegroundVerification(store: StudioStore, recover 
       });
     }
     const current = store.internalSnapshot().jobs.find(job => job.id === retained.id);
-    const process = current?.nativeProcess; const prepared = !process && current?.nativeRuntime;
+    const process = current?.nativeProcess;
+    const prepared = !process && !safeFailureHasUnknownOwnership(current?.failure) && current?.nativeRuntime;
     const privateRuntime = process?.privateRuntime ?? prepared;
     if (privateRuntime && (!process || process.phase === 'terminated' || process.operatorAcknowledgedAt)) {
       let purged = false;

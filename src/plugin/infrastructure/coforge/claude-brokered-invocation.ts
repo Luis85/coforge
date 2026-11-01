@@ -56,7 +56,7 @@ export async function openBrokeredClaude(input: StageInput, lease: WorkflowWorks
       complete: async () => {
         if (!usesNativeClaudeTools(input)) return;
         if (!processRecord || processRecord.phase === 'unknown') throw new Error('The original provider completion identity is unverified.');
-        if (isManagedWorkflowSession(input.workflow)) {
+        if (isManagedWorkflowSession(input.workflow) && process.platform === 'win32') {
           if (processRecord.phase !== 'terminated' || !processRecord.lifetime) throw new ProcessOwnershipUnknown('');
           return;
         }

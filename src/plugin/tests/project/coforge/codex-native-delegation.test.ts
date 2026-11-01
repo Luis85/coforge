@@ -57,8 +57,11 @@ it('takes the root exec result rather than a later native child result or child 
 it('rejects child-only completion, foreign thread events and root failure without laundering a child output', () => {
   const start = { type: 'thread.started', thread_id: 'primary' };
   expect(() => codexResult(stream(start, childMessage, { type: 'turn.completed', agent: { agent_name: '/root/reviewer' }, usage }), { delegated: true })).toThrow('did not complete');
-  expect(() => codexResult(stream(start, { ...rootMessage, thread_id: 'foreign' }, { type: 'turn.completed', usage }), { delegated: true })).toThrow('final message');
-  expect(() => codexResult(stream(start, { ...rootMessage, thread_id: 'primary', item: { ...rootMessage.item, thread_id: 'foreign' } }, { type: 'turn.completed', usage }), { delegated: true })).toThrow('final message');
+  for (const foreign of [{ ...rootMessage, thread_id: 'foreign' }, { ...rootMessage, thread_id: 'primary', item: { ...rootMessage.item, thread_id: 'foreign' } }]) {
+    let failure: unknown;
+    try { codexResult(stream(start, foreign, { type: 'turn.completed', usage }), { delegated: true }); } catch (error) { failure = error; }
+    expect(failure).toMatchObject({ failure: { code: 'incomplete_output' } });
+  }
   expect(() => codexResult(stream(start, rootMessage, { type: 'turn.failed' }, childMessage, { type: 'turn.completed', thread_id: 'child', usage }), { delegated: true })).toThrow('did not complete');
   expect(() => codexResult(stream(rootMessage, { type: 'turn.completed', usage }), { delegated: true })).toThrow('root identity');
 });

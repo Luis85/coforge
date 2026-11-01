@@ -1,6 +1,6 @@
 # Task: Run workflow sessions until completion and simplify agent operation
 
-- Status: in progress
+- Status: implemented; final CI and merge qualification in progress
 - Journey in `BRIEF.md`: dispatch a task/refinement, observe useful progress, and review an increment.
 
 ## Why
@@ -52,5 +52,17 @@ Council/v2 and explicit legacy verification remain separately governed.
 
 ## Evidence
 
-In progress. Initial failing regressions reproduce missing lifecycle capture and
-the rejection of owned native lifetime records on a read-only refinement.
+Failing regressions reproduced missing lifecycle capture, read-only ownership
+rejection and the legacy MCP task deadline before implementation. Installed
+Claude/Codex read-only and native-child canaries, a real HTTP MCP five-step flow
+and foreground polishing Dispatch through human Apply passed against local
+synthetic endpoints with zero paid model calls. Original source and ownership
+boundaries were checked.
+
+UI quality passed 8 checks; 40 gallery captures were generated and reviewed. A
+contained pinned Obsidian clone passed 9 tests across 6 files, with fresh dev JSON
+status passed, errors [] and hostErrorCount 0. Immutable first-head CI passed
+20 Windows lifetime tests and 70 real-Obsidian tests across 60 files. Follow-up
+compatibility and stale fixture fixes require final-head CI before merge; the
+PR records the exact checks and any local gate limitation. Detailed evidence
+is retained in ignored reports/ and contained .nq/ fixtures.

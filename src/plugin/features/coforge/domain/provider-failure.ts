@@ -42,6 +42,12 @@ export const providerFailureInfoCheck: Check<ProviderFailureInfo> = (value, path
   if (checked.summary !== normal.summary || checked.nextStep !== normal.nextStep && checked.nextStep !== uncertain.nextStep) throw new CheckError(path ?? '', 'failure details are not from the safe catalogue');
   return checked;
 };
+/** Uncertainty survives persistence through its validated catalogue variant, never arbitrary error prose. */
+export function safeFailureHasUnknownOwnership(info: ProviderFailureInfo | undefined): boolean {
+  if (!info) return false;
+  const checked = providerFailureInfoCheck(info);
+  return checked.code === 'ownership_unknown' || checked.nextStep !== providerFailureFor(checked.code).nextStep;
+}
 export function providerFailureInfo(error: unknown): ProviderFailureInfo | undefined {
   try { if (error && typeof error === 'object' && 'failure' in error) return providerFailureInfoCheck(error.failure); } catch { /* Unknown errors never become invented causes. */ }
   return undefined;

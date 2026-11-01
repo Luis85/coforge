@@ -51,7 +51,7 @@ iteration: ""
 
 Configure the selected project and manage its agent workflow.
 
-General, Requests, Repository, Agent workflow, Runtime and Data & examples divide settings into focused tasks. Canonical project-note saves preserve unrelated properties and Markdown body. Provider steps, models and limits live in Agent workflow → Workflow settings.
+General, Requests, Repository, Agent workflow, Runtime and Data & examples divide settings into focused tasks. Canonical project-note saves preserve unrelated properties and Markdown body. Provider steps, models and prompts live in Agent workflow → Workflow settings.
 
 [Request Object](settings-request-object.md) configures the frontmatter class and optional typed fields for new requests. Existing request notes retain their captured format; no migration runs when this project definition changes.
 

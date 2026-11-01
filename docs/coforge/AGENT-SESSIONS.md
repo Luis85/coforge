@@ -18,6 +18,12 @@ configuration. It does not silently replay work or release a user Stop. An
 unknown original execution remains held for recovery. Earlier captured attempts
 keep their original limits and lifecycle in secondary execution details.
 
+On Windows, managed native sessions retain the original owned process job,
+including read-only refinement. Linux/macOS read-only sessions keep their
+restricted scoped tools. Their original process identity is checked before prompt
+input and retained privately when a stop cannot be verified. Uncertainty does not
+release resources or authorize another paid attempt.
+
 External MCP sessions retain a separate boundary: CoForge waits for submitted
 results or task cancellation, and cannot infer the external client's model state
 from one HTTP connection closing.
