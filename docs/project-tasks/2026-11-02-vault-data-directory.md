@@ -1,6 +1,6 @@
 # Task: Preserve CoForge data independently of plugin installation
 
-- Status: implementation complete; full-suite qualification remains outstanding
+- Status: implementation complete; final qualification and merge are tracked in [PR #73](https://github.com/Luis85/coforge/pull/73).
 - Journey: BRIEF.md, Data it works with; owner request of 2026-11-02.
 - Traceability: design/traceability.json declares no requirement or interaction IDs.
 
@@ -123,3 +123,22 @@ still needs private vault backups. Editable/recovery Markdown stays visible.
   `verify-project.log`, `herdr-worktree-check.log` and `verify-artifacts.log`.
   No test configuration, threshold or dependency was changed. No UI components
   or styles were changed in this pass. `git diff --check` passes.
+
+## PR integration and delivery
+
+PR #73 is based on current main, including #70 and #71. The unrelated source
+checkout remains preserved. Provider research/tool restrictions were retained while
+adding the private-data exclusions. Newly added analytical host fixtures and stream
+history recovery text now use the migrated data paths.
+
+Integrated focused qualification: 7 files / 41 tests passed. Extracting the
+unchanged configured-run revision/completion helpers also clears the source-size
+violation introduced on newer main; 3 workflow files / 20 tests passed and the
+source-size/locale audit passes (4,017 inputs; 226 keys).
+
+The PR's latest-head CI checks are the final merge qualification: canonical project
+verification, browser journeys/gallery, real Obsidian, Windows process lifetime
+and workflow verification isolation. Earlier Windows full-suite timeouts remain
+recorded above and are not claimed as passes. The user authorized opening the PR,
+bringing checks green, merging, then updating local main and installing the local
+plugin. Final CI and delivery results are maintained in the PR description.
