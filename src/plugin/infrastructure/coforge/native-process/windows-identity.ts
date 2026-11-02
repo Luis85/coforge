@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process';
 import { number, shape, text } from '../../../features/coforge/domain/check';
-import { nativeProcessImageHash, type NativeProcessIdentity } from '../durable-worker/process-identity';
+import type { NativeProcessIdentity } from '../durable-worker/process-identity';
+import { nativeProcessImageHash } from './image-hash';
 import { nativeSystemEnvironment } from './windows-controller';
 import { OwnedWorktreeError } from './errors';
 

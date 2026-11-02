@@ -13,7 +13,7 @@ const model = useIdeaDrawerContext();
     <div class="cf-idea-inline">
       <span class="cf-mono cf-idea-id">{{ idea.id }}</span>
       <CfIcon name="chevron-right" size="sm" />
-      <span>Idea details</span>
+      <span>Request details</span>
     </div>
     <div class="cf-idea-inline cf-idea-wrap">
       <RequestDeleteButton :idea-id="idea.id" />
@@ -41,13 +41,4 @@ const model = useIdeaDrawerContext();
       <time :datetime="idea.createdAt">{{ model.createdLabel }}</time>
     </div>
   </div>
-  <nav class="cf-idea-tabs" aria-label="Idea sections">
-    <button
-      v-for="item in model.tabs" :key="item.value" type="button" :class="{ 'is-active': item.active }"
-      :aria-pressed="item.active" @click="model.selectTab(item.value)"
-    >
-      {{ item.label }}
-      <span v-if="item.dot" class="cf-idea-tab-dot" />
-    </button>
-  </nav>
 </template>

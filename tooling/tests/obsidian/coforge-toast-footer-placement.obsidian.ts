@@ -14,9 +14,14 @@ async function clearOfFooter(view: Locator, selector: string) {
     const root = element.closest('.cf-studio'); const footer = root?.querySelector(selector);
     if (!footer) throw new Error('Missing operator footer');
     const box = element.getBoundingClientRect(); const actions = footer.getBoundingClientRect();
-    const header = root?.querySelector(selector === '.cf-idea-footer' ? '.cf-idea-tabs' : '.cf-topbar')?.getBoundingClientRect();
-    return { toastTop: box.top, toastBottom: box.bottom, footerTop: actions.top, footerHeight: actions.height, headerBottom: header?.bottom ?? 0 };
+    const headers = [...root?.querySelectorAll(selector === '.cf-idea-footer' ? '.cf-idea-heading, .cf-idea-tabs' : '.cf-topbar') ?? []]
+      .map(header => header.getBoundingClientRect()).filter(header => header.width > 0 && header.height > 0);
+    // Wide section navigation is beside the reading area; narrow navigation is above it.
+    const controlsClear = headers.every(header => box.right <= header.left || box.left >= header.right || box.top >= header.bottom);
+    const headerBottom = Math.max(0, ...headers.filter(header => box.left < header.right && box.right > header.left).map(header => header.bottom));
+    return { toastTop: box.top, toastBottom: box.bottom, footerTop: actions.top, footerHeight: actions.height, headerBottom, controlsClear };
   }, selector);
+  expect(geometry.controlsClear).toBe(true);
   expect(geometry.toastTop).toBeGreaterThanOrEqual(geometry.headerBottom);
   return geometry;
 }

@@ -8,7 +8,11 @@ const drawer = useIdeaDrawerContext();
 </script>
 <template>
   <footer class="cf-idea-footer">
-    <template v-if="drawer.reviewable && drawer.canFinalReview">
+    <template v-if="drawer.reviewable && drawer.canFinalReview && drawer.tab !== 'increment'">
+      <p class="cf-idea-help">An increment is ready for your review. Inspect its changes and verification before deciding.</p>
+      <button type="button" class="cf-btn cf-btn-primary cf-idea-full-button" @click="drawer.selectTab('increment')">Review increment <CfIcon name="arrow-right" /></button>
+    </template>
+    <template v-else-if="drawer.reviewable && drawer.canFinalReview">
       <label class="cf-field cf-idea-field">
         <span
           >Review note
@@ -16,11 +20,14 @@ const drawer = useIdeaDrawerContext();
         >
         <textarea
           v-model="drawer.note"
+          :aria-invalid="Boolean(drawer.reviewNoteError)"
+          :aria-describedby="drawer.reviewNoteError ? 'cf-idea-review-note-error' : undefined"
           rows="2"
           maxlength="2000"
           placeholder="What worked? What should change?"
         />
       </label>
+      <p v-if="drawer.reviewNoteError" id="cf-idea-review-note-error" class="cf-inline-error" role="alert">{{ drawer.reviewNoteError }}</p>
       <div class="cf-idea-review-actions">
         <button
           type="button"

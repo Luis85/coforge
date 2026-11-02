@@ -32,26 +32,6 @@ const review = useIncrementReview(props);
       <p v-if="review.evidence.polishing" class="cf-idea-help">Reviewed polishing output · producing run <code>{{ review.evidence.polishing.runId }}</code> · artifact <code>{{ review.evidence.polishing.artifactId }}</code>. The current workspace belongs to <code>{{ review.evidence.polishing.ownerRunId }}</code>; earlier primary assessments are retained in Workflow runs and do not assess these new bytes.</p>
       <MarkdownBody class="cf-idea-body" :source="idea.increment.summary" />
     </section>
-    <section v-if="review.evidence.followups.length" class="cf-idea-section" aria-label="Post-build findings">
-      <h3><CfIcon name="clipboard-check" /> Post-build findings</h3>
-      <p class="cf-idea-help">Agent assessments of this increment. Completed runs do not verify acceptance or replace your decision.</p>
-      <details v-for="finding in review.evidence.followups" :key="finding.id" class="cf-idea-evidence cf-increment-finding" open>
-        <summary>{{ finding.name }} <span class="cf-idea-run-meta">{{ finding.assessmentLabel }} · <time :datetime="finding.createdAt">{{ finding.savedLabel }}</time></span></summary>
-        <MarkdownBody class="cf-idea-body" :source="finding.markdown" />
-      </details>
-    </section>
-    <section class="cf-idea-section" aria-label="Planned acceptance criteria">
-      <h3><CfIcon name="list-checks" /> Acceptance criteria</h3>
-      <p v-if="review.evidence.polishing" class="cf-idea-help">Captured plan input · not verified. Only intact criteria bound to the producing polishing attempt are shown; current project plans and earlier assessments are not substituted.</p>
-      <p v-else class="cf-idea-help">Saved plan · not verified. Check each criterion against the increment and verification evidence.</p>
-      <ul v-if="review.evidence.criteria.length" class="cf-idea-check-list">
-        <li v-for="(criterion, index) in review.evidence.criteria" :key="index">
-          <span class="cf-idea-check-box" aria-hidden="true" />
-          <MarkdownBody :source="criterion" />
-        </li>
-      </ul>
-      <p v-else class="cf-idea-help">No saved acceptance criteria are bound to this Build. Inspect Plan &amp; Design and Workflow runs for earlier context.</p>
-    </section>
     <section class="cf-idea-section">
       <h3><CfIcon name="file-code" /> {{ idea.increment.simulated ? 'Illustrative changes' : review.evidence.hostCaptured ? 'Host-captured changes' : 'Recorded changes' }}</h3>
       <p v-if="!idea.increment.simulated && review.evidence.hostCaptured" class="cf-idea-help">CoForge captured these files and the diff from the worktree. This records changes; it does not prove they work.</p>
@@ -88,6 +68,17 @@ const review = useIncrementReview(props);
         </li>
       </ul>
     </section>
+    <section class="cf-idea-section">
+      <h3>
+        <CfIcon name="file-code" />
+        {{
+          idea.increment.simulated ? "Illustrative diff" : "Working tree diff"
+        }}
+      </h3>
+      <pre class="cf-idea-code" tabindex="0" role="region" :aria-label="idea.increment.simulated ? 'Illustrative diff' : 'Working tree diff'">{{
+        idea.increment.diff || "No diff available."
+      }}</pre>
+    </section>
     <IncrementCodingObservations :idea="idea" :source="review.evidence.producingAttempt" />
     <section class="cf-idea-section">
       <h3><CfIcon name="flask-conical" /> Verification notes</h3>
@@ -109,16 +100,25 @@ const review = useIncrementReview(props);
       <WorkflowVerificationEvidence :records="check.records" :current-hash="check.currentHash" />
     </div>
     <WorkflowVerificationEvidence :records="review.evidence.polishing ? review.evidence.verification ?? [] : idea.increment.verification ?? []" :current-hash="review.evidence.polishing ? undefined : idea.increment.verificationSourceHash" :historical="review.evidence.historicalVerification" />
-    <section class="cf-idea-section">
-      <h3>
-        <CfIcon name="file-code" />
-        {{
-          idea.increment.simulated ? "Illustrative diff" : "Working tree diff"
-        }}
-      </h3>
-      <pre class="cf-idea-code" tabindex="0" role="region" :aria-label="idea.increment.simulated ? 'Illustrative diff' : 'Working tree diff'">{{
-        idea.increment.diff || "No diff available."
-      }}</pre>
+    <section class="cf-idea-section" aria-label="Planned acceptance criteria">
+      <h3><CfIcon name="list-checks" /> Acceptance criteria</h3>
+      <p v-if="review.evidence.polishing" class="cf-idea-help">Captured plan input · not verified. Only intact criteria bound to the producing polishing attempt are shown; current project plans and earlier assessments are not substituted.</p>
+      <p v-else class="cf-idea-help">Saved plan · not verified. Check each criterion against the increment and verification evidence.</p>
+      <ul v-if="review.evidence.criteria.length" class="cf-idea-check-list">
+        <li v-for="(criterion, index) in review.evidence.criteria" :key="index">
+          <span class="cf-idea-check-box" aria-hidden="true" />
+          <MarkdownBody :source="criterion" />
+        </li>
+      </ul>
+      <p v-else class="cf-idea-help">No saved acceptance criteria are bound to this Build. Inspect Plan &amp; Design and Workflow runs for earlier context.</p>
+    </section>
+    <section v-if="review.evidence.followups.length" class="cf-idea-section" aria-label="Post-build findings">
+      <h3><CfIcon name="clipboard-check" /> Post-build findings</h3>
+      <p class="cf-idea-help">Agent assessments of this increment. Completed runs do not verify acceptance or replace your decision.</p>
+      <details v-for="finding in review.evidence.followups" :key="finding.id" class="cf-idea-evidence cf-increment-finding">
+        <summary>{{ finding.name }} <span class="cf-idea-run-meta">{{ finding.assessmentLabel }} · <time :datetime="finding.createdAt">{{ finding.savedLabel }}</time></span></summary>
+        <MarkdownBody class="cf-idea-body" :source="finding.markdown" />
+      </details>
     </section>
     <div
       v-if="drawer.reviewable && drawer.canFinalReview"

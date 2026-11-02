@@ -1,9 +1,12 @@
 import { execFile } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { readFile, readlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { setTimeout as pause } from 'node:timers/promises';
 import { number, shape, text } from '../../../features/coforge/domain/check';
+import { nativeProcessImageHash } from '../native-process/image-hash';
+import { existingWindowsControllerExecutable } from '../native-process/windows-controller';
+import { readWindowsNativeIdentity } from '../native-process/windows-identity';
+export { nativeProcessImageHash } from '../native-process/image-hash';
 
 export interface NativeProcessIdentity { pid: number; platform: string; birth: string; image: string; groupId?: number }
 export interface ProcessTerminationProof { state: 'terminated' | 'absent' | 'different' | 'unverified'; treeConfirmed: boolean; observedAt: string; reason?: string }
@@ -11,7 +14,6 @@ export interface ProcessIdentityDriver { read(pid: number): Promise<NativeProces
 const unavailable = () => new Error('The original native process identity could not be verified. No unrelated process was signalled.');
 class ProcessIdentityIssue extends Error { constructor(readonly reason: string) { super('Native process proof is incomplete.'); } }
 const pidCheck = number({ integer: true, min: 1, max: 2147483647 });
-export const nativeProcessImageHash = (path: string, platform = process.platform) => createHash('sha256').update(platform === 'win32' ? path.normalize().toLowerCase() : path).digest('hex');
 const imageHash = nativeProcessImageHash;
 const systemEnvironment = () => Object.fromEntries(Object.entries(process.env).filter(([key]) => ['PATH', 'Path', 'PATHEXT', 'SystemRoot', 'SYSTEMROOT', 'WINDIR', 'windir', 'TEMP', 'TMP', 'HOME', 'USERPROFILE'].includes(key)));
 function command(executable: string, args: string[]): Promise<string> {
@@ -26,6 +28,14 @@ const windowsRecord = shape({ pid: pidCheck, birth: text({ min: 1, max: 160, pat
 export async function readNativeProcessIdentity(pid: number): Promise<NativeProcessIdentity | undefined> {
   pidCheck(pid);
   if (process.platform === 'win32') {
+    // A dead original cannot become live again. Existence alone never proves its birth or image.
+    try { process.kill(pid, 0); }
+    catch (error) { if (error instanceof Error && 'code' in error && error.code === 'ESRCH') return undefined; }
+    const controller = await existingWindowsControllerExecutable();
+    if (controller) {
+      try { return (await readWindowsNativeIdentity(controller, pid))?.identity; }
+      catch { throw unavailable(); }
+    }
     const raw = await ps(`[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);$ErrorActionPreference='Stop';$p=Get-Process -Id ${pid} -ErrorAction SilentlyContinue;if($null -eq $p){'null';exit 0};try{if(-not $p.Path){throw 'identity'};@{pid=$p.Id;birth=$p.StartTime.ToUniversalTime().Ticks.ToString();image=$p.Path}|ConvertTo-Json -Compress}finally{$p.Dispose()}`);
     const value: unknown = JSON.parse(raw); if (value === null) return undefined;
     const record = windowsRecord(value); if (record.pid !== pid) throw unavailable();

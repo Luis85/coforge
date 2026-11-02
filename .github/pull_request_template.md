@@ -1,38 +1,40 @@
 ## Summary
 
-Read-only/text refinement still inherited the foreground timeout even though coding could run without one. Ordinary setup also exposed several layers of deadlines, turns, spending caps, execution modes and retry resources.
+Request details now provide one consistent workspace for all seven sections, with clear task navigation, readable evidence and final review after the changes. Drafts survive section navigation, visible disclosures participate in keyboard focus, and review-note errors appear beside their field.
 
-New Claude/Codex and MCP workflow attempts now capture a managed-session lifecycle independently of tools and repository access. Native agents run until a validated CLI result and cessation, connection end or explicit Stop; quiet elapsed time is not failure. Task-duration, turn/tool-call and spending caps are not applied. Internal setup, output and shutdown proof bounds remain. Already admitted legacy, Council/v2 and explicit verification contracts remain compatible.
-
-Managed native sessions use the original owned Windows job, including read-only refinement. Root output closure with a still-live CLI triggers internal cleanup and an incomplete-result outcome; a candidate result or EOF alone cannot succeed. Prompt-input EOF and ordinary MCP command output closure do not trigger that behavior. On Windows, actual original descendants must stop before changes or completion are accepted. Linux/macOS read-only refinement retains its restricted scoped-tool transport; managed invocations capture the original OS identity before prompt input and verify stop requests against that identity. Uncertain original identities remain private and retained for recovery, without inventing a Windows lifetime or all-descendant proof.
-
-Known-stopped managed attempts retain their failure, spend and changes and reconcile original resources automatically. Ordinary background Continue finishes a pending acknowledgement before a new explicit attempt in the same verified workspace. Unknown ownership and explicit Stop remain protected; no paid execution is replayed automatically. External MCP task duration is uncapped, while HTTP closure is not invented external-agent liveness or cessation.
-
-Ordinary workflow/refinement/polishing setup has no timing, turn/budget or foreground/background controls. Captured legacy policy remains read-only. Continue is a plain user action; failed auxiliary polishing opens a new reviewed improvement instead of reusing old authorization. Optional legacy Node-worker setup is distinguished from the normal CLI path.
-
-Code polishing runs in an attached foreground worktree without an extra Node worker. Reviewed baseline authorization, a distinct paid-admission/terminal ledger, actual native cessation and source/target checks protect Dispatch through explicit human Apply. No worker or unpaid operator receipt is fabricated. Applied copies accurately say checks were not rerun on the copied snapshot.
+Repair the verification blockers behind the panel work: MCP ledger replacement now tolerates bounded transient Windows sharing locks without replaying commands. Worker identity checks reuse validated code while reading fresh OS proof; Git identity/index queries are consolidated, and independent capture reads run in settled pairs. Permanent write failures preserve the previous journal and prevent command effects. Freshness, original-resource ownership, private evidence and human-review gates remain intact.
 
 ## Traceability
 
-Owner decision: BRIEF.md. Task: docs/project-tasks/2026-11-01-managed-workflow-sessions.md. No scaffold requirement or vi-* entries exist for this increment; none are invented or marked implemented.
+Owner requests recorded in BRIEF.md and docs/project-tasks/2026-11-01-request-detail-overhaul.md; follow-up repair in docs/project-tasks/2026-11-01-worker-recovery-verification.md. The design scaffold declares no req-* or vi-* obligations; none invented or changed.
 
-## Qualification
+## Final validation: actual results
 
-- Managed lifecycle capture/readonly ownership/legacy compatibility: 3 new behavioral regressions passed after failing first.
-- Managed MCP: quiet full-day task, legacy timer, disconnect quarantine and related workflow/command suites passed (25 tests/4 suites). Isolated original HEAD timer proof failed, current implementation passed.
-- Actual Windows process ownership/connection-close suite: 20 passed, zero skips. Related native product batch: 45 passed. Wrong/foreign/reused references and Unicode compatibility remain covered.
-- Installed Claude/Codex read-only refinement: both exceeded saved 15-second and one-turn/tool settings with four verified read-only calls; Claude exceeded saved USD0.1 with fake reported cost USD0.5005. Source unchanged, no coding grant/capture, original job quiescent. Zero real model calls.
-- Both installed coding/native-child canaries passed on the managed lifecycle. Real HTTP MCP five-step flow passed with a quiet 16-second npm command despite saved 15-second task settings, physical idempotency count 1, real diff/artifacts and human-review submission. Zero models.
-- Actual installed Claude foreground polishing Dispatch -> paid ledger -> human Apply passed with native child edits/tests and original-source preservation, without constructing a worker or using worker RPC; zero real model calls.
-- Recovery/Continue: 37 passed. Foreground Git/source/provenance/conflict/cancellation: 10 passed. Attached standalone-CLI application/configuration: 6 passed. Applied-copy wording and legacy copy checks: 10 passed. Runtime-adapter readiness regression: 1 passed.
-- UI quality: 8 passed; gallery: 40 captures generated and reviewed. Catalogue and pending-affordance suites: 16 passed; final browser attention/running polishing states: 2 passed. Canonical product Vue typecheck, scoped ESLint and catalogue generation checks passed.
-- Immutable first head 85c04f90: native Windows 20 passed; legacy verification passed; real Obsidian 70 tests/60 files passed. Contained pinned-host clone: 9 tests/6 files passed; dev JSON passed with errors: [], hostErrorCount: 0. Initial general/UI CI exposed stale mocks, changed affordance assertions and catalogue contracts; these were fixed with targeted passing regressions. Full final-head checks remain mandatory.
-- npm run verify:project is running locally. The exact final-head CI receipt and any local gate limitation will be recorded in the PR before merge. Whole TypeScript, global source caps and scoped zero-warning ESLint passed during iteration.
+npm run verify:project exited 0 on pinned Node 24.21.0 / npm 11.19.1:
 
-## Boundaries
+    [ok] typecheck      30.7s
+    [ok] source lint     6.8s
+    [ok] ESLint        241.1s (zero warnings)
+    [ok] product tests 1350.9s
+    [ok] maker types    37.8s
+    Summary: 5 gates passed, 0 failed, 0 skipped (1667.3s)
 
-This does not infer that an external MCP client's model or native writers stopped from HTTP closure or owned-command cleanup; interrupted MCP work retains recovery consent. It does not clear explicit user Stop, accept unknown original process ownership, rerun uncertain work, change captured tool rights or grant automatic human code acceptance.
+- Full product report: 568 files; 2294 tests passed, 0 failed, 6 unchanged Windows-inapplicable skips. Those are the existing POSIX fake-CLI adapter cases and a POSIX Herdr symlink case; no skips or TODO acceptance were added.
+- The same verify:project command passed production build (2192 modules, 11.74s) and 1 embedding test. UI-effect checks remain explicitly skipped by the repository script because no visual definitions are declared.
+- npm run test:obsidian -- coforge-durable-worker-lifecycle coforge-mcp-vault plugin-lifecycle: final 3 files / 3 tests passed (30.24s). Includes actual Obsidian quit/reconnect without second worker admission, authenticated MCP restoration and plugin unload/reload.
+- npm run -s dev:obsidian -- --json --port 9338: final passed on pinned Obsidian 1.14.4 / launcher 3.2.1; errors [], hostErrorCount 0, pluginConsole []; build 9264ms, reload 629ms; session ended complete. Latest log, debug report and screenshot reviewed.
+- npm run test:ui-quality: 8 passed (47.9s). npm run ui:gallery: 40 captures generated and reviewed; no baselines changed. Earlier detailed panel journeys passed 9 tests in both themes and wide/narrow panes; prior targeted panel host flows passed 5 tests.
+- Focused red/green coverage includes transient/permanent ledger locks, ownership before effects, no replay, fresh process identity, no cache compilation during observation, changed pointer/commit/bytes, hidden Git flags, bounded capture concurrency and settlement before error propagation. The final provider aggregate retains its original 30-second limit and all five-stage assertions.
+- Independent backend and finishing reviews approved the repair and final paired-read delta. git diff --check passes. No test configuration, isolation, timeout, permission, dependency or lockfile change.
 
-No personal vault, live request retry, copied OAuth login, global CLI configuration, extra dependency/global package installation or paid model qualification. The previously timed-out live refinement cannot be reconstructed without its original diagnostics; the shared timeout path is independently reproduced.
+## Evidence
 
-Evidence stays ignored under reports/managed-workflow-sessions/, reports/managed-session-runtime/ and contained .nq/ fixtures. Reports, binaries, native caches, dist and screenshots are not committed. Final required CI must be green before merge.
+## Integration follow-up
+
+After integrating upstream workflow-session completion, the focused product run passed 10 files / 43 tests and typecheck passed. The first CI project gate passed all five gates in 435.8s, plus build, local installation and 16 submission checks. Full CI exposed narrow navigation clipping under larger Linux fonts, a toast test that treated the new vertical sidebar as a horizontal header, and an asynchronous project-switch test race. Narrow labels now use 12px with the existing 32px controls, 8px gaps and 110px height limit. Tests retain all clearance and model assertions and add large-font and return-trip project isolation coverage. The corrected local browser batch passed 20 tests (including all 8 UI-quality checks); the contained toast test passed in both themes and widths. Independent finishing review approved the changes. Final CI results are recorded on the pull request before merge.
+
+Final gate: reports/verification-repair/verify-project-final.log. Full JSON: reports/verification-repair/full-product-tests.json. Native: reports/verification-repair/obsidian-final.log and obsidian-smoke-final.log, plus reports/obsidian/cases/. UI audit: reports/request-panel/audit.md. Gallery: reports/ui-gallery/index.json; reviewed contact sheet: reports/verification-repair/gallery-contact.png. Reports, portable toolchain binaries, caches and builds remain ignored.
+
+## Validation limits
+
+No live external model request or actual billing was exercised. Host validation used targeted contained-vault suites, not every Obsidian spec. The six existing platform skips remain unchanged. No release operation is included. The owner authorized committing, pushing, opening this pull request and merging after CI passes.

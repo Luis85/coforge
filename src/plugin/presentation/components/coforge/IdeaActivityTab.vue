@@ -13,19 +13,6 @@ const inspection = useAttemptInspection();
 <template>
   <RecordedAttemptFailure v-if="!drawer.store.inspectedJob && drawer.failureJobId" :job-id="drawer.failureJobId" />
   <section class="cf-idea-section">
-    <h3><CfIcon name="history" /> Idea timeline</h3>
-    <ol v-if="drawer.activity.length > 0" class="cf-idea-timeline">
-      <li v-for="event in drawer.activity" :key="event.id">
-        <span class="cf-idea-timeline-dot" :class="`is-${event.type}`" aria-hidden="true" />
-        <div>
-          <p>{{ event.text }}</p>
-          <time :datetime="event.createdAt">{{ event.when }}</time>
-        </div>
-      </li>
-    </ol>
-    <p v-else class="cf-idea-help">Activity will appear here as the community and agents move this idea forward.</p>
-  </section>
-  <section class="cf-idea-section">
     <h3><CfIcon name="bot" /> Agent runs</h3>
     <p v-if="drawer.jobs.length" class="cf-idea-help">Expand a run to inspect its chat history and execution log.</p>
     <details v-for="job in drawer.jobs" :key="job.id" :ref="inspection.bind" class="cf-idea-run" :data-job-id="job.id" :open="drawer.store.inspectedJob?.id === job.id">
@@ -50,5 +37,18 @@ const inspection = useAttemptInspection();
       </div>
     </details>
     <p v-if="drawer.jobs.length === 0" class="cf-idea-help">No agent runs yet.</p>
+  </section>
+  <section class="cf-idea-section">
+    <h3><CfIcon name="history" /> Request timeline</h3>
+    <ol v-if="drawer.activity.length > 0" class="cf-idea-timeline">
+      <li v-for="event in drawer.activity" :key="event.id">
+        <span class="cf-idea-timeline-dot" :class="`is-${event.type}`" aria-hidden="true" />
+        <div>
+          <p>{{ event.text }}</p>
+          <time :datetime="event.createdAt">{{ event.when }}</time>
+        </div>
+      </li>
+    </ol>
+    <p v-else class="cf-idea-help">Activity will appear here as the community and agents move this idea forward.</p>
   </section>
 </template>

@@ -12,15 +12,18 @@ import { childEnvironment } from '../process';
 import { workflowWorkspaceRecordsCheck } from '../workflow-workspace-check';
 import { WorkerFiles } from './files';
 import { inputHash } from './protocol';
+import { inspectGitWorkspace } from '../git-workspace-identity';
 
 const changed = () => new Error('The retained Build workspace identity changed. Preserve it and inspect again before recovery.');
-export async function verifyRetainedWorkspace(record: WorkflowWorkspaceRecord): Promise<void> {
+export async function verifyRetainedWorkspace(record: WorkflowWorkspaceRecord) {
   if (!record.pointer || record.directoryDevice === undefined || record.directoryInode === undefined) throw changed();
   const info = await lstat(record.cwd);
   if (!info.isDirectory() || info.isSymbolicLink() || await realpath(record.cwd) !== record.cwd || info.dev !== record.directoryDevice || info.ino !== record.directoryInode) throw changed();
   const pointer = await lstat(join(record.cwd, '.git'));
   if (!pointer.isFile() || pointer.isSymbolicLink() || pointer.nlink !== 1 || pointer.size > 4096 || await readFile(join(record.cwd, '.git'), 'utf8') !== record.pointer) throw changed();
-  if ((await agentGit(record.cwd, ['rev-parse', 'HEAD'])).trim() !== record.baseCommit || (await agentGit(record.cwd, ['symbolic-ref', '--short', 'HEAD'])).trim() !== record.branch) throw changed();
+  const identity = await inspectGitWorkspace(record.cwd);
+  if (identity.root !== record.cwd || identity.head !== record.baseCommit || identity.reference !== 'refs/heads/' + record.branch) throw changed();
+  return identity;
 }
 async function trackedDiffHash(record: WorkflowWorkspaceRecord): Promise<string> {
   return new Promise((resolveHash, reject) => {

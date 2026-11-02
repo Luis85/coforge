@@ -14,11 +14,8 @@ defineProps<{ idea: Idea }>();
 const model = useIdeaDrawerContext();
 </script>
 <template>
-  <RecordedAttemptFailure v-if="model.failureJobId" :job-id="model.failureJobId" />
-  <PolishingActionButton :idea-id="idea.id" />
-  <CurrentPolishedResult :idea="idea" />
   <section class="cf-idea-section">
-    <h3><CfIcon name="message-square" /> The community request</h3>
+    <h3><CfIcon name="message-square" /> Original request</h3>
     <MarkdownBody class="cf-idea-request" :source="idea.description" />
     <section
       v-if="idea.contexts?.length"
@@ -51,6 +48,7 @@ const model = useIdeaDrawerContext();
     </div>
   </section>
 
+  <RecordedAttemptFailure v-if="model.failureJobId" :job-id="model.failureJobId" />
   <RequestValuesPanel v-if="idea.requestObject" :key="idea.id" :idea="idea" />
   <section v-if="idea.screening" class="cf-idea-section">
     <h3>
@@ -159,4 +157,12 @@ const model = useIdeaDrawerContext();
       </p>
     </div>
   </div>
+  <section class="cf-idea-section" aria-label="Improve this request">
+    <div class="cf-idea-section-heading">
+      <h3><CfIcon name="sparkles" /> Improve this request</h3>
+      <PolishingActionButton :idea-id="idea.id" />
+    </div>
+    <p class="cf-idea-help">Add feedback to prepare a proposed improvement. Review it before replacing the current result.</p>
+    <CurrentPolishedResult :idea="idea" />
+  </section>
 </template>

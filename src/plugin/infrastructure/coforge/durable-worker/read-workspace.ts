@@ -1,5 +1,4 @@
 import { realpath } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import type { Increment } from '../../../features/coforge/domain/types';
 import type { WorkflowWorkspaceLease, WorkflowWorkspaceRequest } from '../../../features/coforge/application/workflow-workspace-ports';
 import { durableBuildTerminal } from '../../../features/coforge/domain/durable-build';
@@ -14,12 +13,12 @@ import { inputHash } from './protocol';
 import { protectedPrefix } from './protection';
 import { verifyRetainedWorkspace } from './workspace-proof';
 import { operatorWorkspaceRecord } from '../background-build-seed/operator-record';
+import { inspectGitWorkspace } from '../git-workspace-identity';
 
 const denied = () => new Error('The original background workspace must be terminal, attributable and unchanged before a read-only follow-up. Inspect its retained execution; no foreground editing authority was granted.');
 const idsCheck = list(text({ pattern: /^build-[a-f0-9]{40}$/u }), { max: 1000 });
 const equalPath = (left: string, right: string) => process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
 async function gitRoot(directory: string): Promise<string> { return realpath((await agentGit(directory, ['rev-parse', '--show-toplevel'])).trim()); }
-async function commonRoot(directory: string): Promise<string> { return realpath(resolve(directory, (await agentGit(directory, ['rev-parse', '--git-common-dir'])).trim())); }
 
 async function originalAuthority(files: WorkerFiles, request: WorkflowWorkspaceRequest) {
   request.signal?.throwIfAborted();
@@ -27,9 +26,9 @@ async function originalAuthority(files: WorkerFiles, request: WorkflowWorkspaceR
   const rows = workflowWorkspaceRecordsCheck(await files.read('workspaces.json', 8 * 1024 * 1024) ?? []);
   const workspace = rows.find(row => row.id === request.workspaceId);
   if (!workspace || workspace.runId !== request.runId || workspace.projectId !== request.projectId || workspace.phase !== 'ready' || workspace.activeAttemptId || !workspace.lastAttemptId) throw denied();
-  await verifyRetainedWorkspace(workspace);
-  const source = await gitRoot(request.integration.projectPath);
-  if (!equalPath(source, await realpath(workspace.projectPath)) || !equalPath(await commonRoot(source), await commonRoot(workspace.cwd))) throw denied();
+  const workspaceIdentity = await verifyRetainedWorkspace(workspace);
+  const sourceIdentity = await inspectGitWorkspace(request.integration.projectPath); const source = sourceIdentity.root;
+  if (!equalPath(source, await realpath(workspace.projectPath)) || !equalPath(sourceIdentity.common, workspaceIdentity.common)) throw denied();
   const jobs = [];
   for (const id of idsCheck(await files.read('index.json') ?? [])) {
     const child = new WorkerFiles(files.path(id)); await child.attach();

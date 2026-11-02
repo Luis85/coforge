@@ -343,6 +343,12 @@ configurable labels readable and the Add control accessible.
   controls must align and wrap clearly in narrow panes. Keep readable severity,
   accessible announcements and all recovery/error information.
 
+Request detail overhaul (owner, 2026-11-01): review all seven detail tabs through
+dedicated subagents, then implement an information-architecture, UI and UX
+improvement and polishing pass. Improve all tabs equally. Keep the existing
+project/workflow, private evidence and mandatory human-review boundaries; make
+each tab's purpose, content and available actions clear.
+
 Deliver this increment subagent-driven, then create and execute a comprehensive
 improvement/polishing plan, qualify all increments end to end, perform a final
 polish, and commit/push/open/merge a PR only when all checks are green.

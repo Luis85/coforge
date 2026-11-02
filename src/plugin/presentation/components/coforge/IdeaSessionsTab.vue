@@ -7,8 +7,6 @@ const model = useIdeaSessions(props);
 </script>
 <template>
   <section aria-label="Request agent sessions" class="cf-idea-sessions">
-    <h3>Sessions</h3>
-    <p class="cf-idea-help">Private parent attempts for this request. Select a session to follow recorded observations; opening this view does not dispatch work.</p>
     <div v-if="model.rows.length" class="cf-session-layout">
       <nav aria-label="Parent sessions" class="cf-session-list">
         <ol>
@@ -22,6 +20,6 @@ const model = useIdeaSessions(props);
       </nav>
       <SessionPeek :model="model" />
     </div>
-    <div v-else class="cf-idea-empty"><h3>No agent sessions yet</h3><p>This request has no captured parent attempts. Its workflow remains separate from session observation.</p></div>
+    <div v-else class="cf-idea-empty"><h3>No agent sessions yet</h3><p>Sessions appear after an agent attempt starts. Use Workflow runs to manage the request’s next step; return here to follow its recorded activity.</p></div>
   </section>
 </template>

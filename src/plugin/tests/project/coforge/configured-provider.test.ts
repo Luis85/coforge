@@ -22,7 +22,6 @@ vi.mock("../../../infrastructure/coforge/process", async (importOriginal) => {
   };
 });
 import {
-  captureProcess,
   ProcessFailure,
 } from "../../../infrastructure/coforge/process";
 import { record } from "../../../features/coforge/domain/check";
@@ -30,6 +29,7 @@ import { executionResult } from "../../../features/coforge/application/workflow-
 import { WORKFLOW_MARKDOWN_LIMIT } from "../../../features/coforge/domain/configured-workflow-run";
 import { runClaudeStage } from "../../../infrastructure/coforge/claude-runner";
 import { LocalWorkflowWorkspaces } from "../../../infrastructure/coforge/workflow-workspaces";
+import { agentGit } from '../../../infrastructure/coforge/agent-worktree';
 import { LocalHerdrAttemptFiles } from "../../../infrastructure/coforge/herdr-workflow-files";
 import { buildClaudeArgs } from "../../../features/coforge/application/claude-protocol";
 import {
@@ -137,21 +137,21 @@ async function fixture() {
   folders.push(folder);
   const project = join(folder, "project");
   await mkdir(project);
-  await captureProcess("git", ["init", "-q"], { cwd: project });
+  await agentGit(project, ["init", "-q"]);
   await writeFile(join(project, "game.txt"), "original\n");
-  await captureProcess("git", ["add", "game.txt"], { cwd: project });
-  await captureProcess(
-    "git",
+  await agentGit(project, ["add", "game.txt"]);
+  await agentGit(
+    project,
     [
       "-c",
       "user.name=Test",
       "-c",
       "user.email=test@example.invalid",
       "commit",
+      "--no-gpg-sign",
       "-qm",
       "fixture",
     ],
-    { cwd: project },
   );
   let records: WorkflowWorkspaceRecord[] = [];
   const workspaces = new LocalWorkflowWorkspaces(

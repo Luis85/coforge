@@ -14,6 +14,7 @@ import type {
 import { agentGit, projectRoot } from "./agent-worktree";
 import { captureWorkflowIncrement } from './workflow-workspace-capture';
 import { recoverStoppedWorkspace } from './workflow-workspace-recovery';
+import { inspectGitWorkspace } from './git-workspace-identity';
 
 const attention = () =>
   new Error(
@@ -89,13 +90,8 @@ export class LocalWorkflowWorkspaces implements WorkflowWorkspaces {
       (await readFile(join(record.cwd, ".git"), "utf8")) !== record.pointer
     )
       throw attention();
-    if (
-      (await agentGit(record.cwd, ["rev-parse", "HEAD"])).trim() !==
-        record.baseCommit ||
-      (
-        await agentGit(record.cwd, ["symbolic-ref", "--short", "HEAD"])
-      ).trim() !== record.branch
-    )
+    const identity = await inspectGitWorkspace(record.cwd);
+    if (identity.root !== record.cwd || identity.head !== record.baseCommit || identity.reference !== 'refs/heads/' + record.branch)
       throw attention();
   }
   private lease(

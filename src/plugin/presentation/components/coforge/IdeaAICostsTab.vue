@@ -7,9 +7,9 @@ const model = useIdeaAICosts(props);
 </script>
 <template>
   <section class="cf-idea-costs" aria-label="Request AI costs">
-    <div class="cf-session-peek-heading"><h3>AI costs</h3><button v-if="model.available" type="button" class="cf-btn cf-btn-secondary cf-idea-small-button" :disabled="model.refreshing || model.loading" @click="model.refresh()">{{ model.refreshing ? 'Refreshing…' : 'Refresh cost history' }}</button></div>
+    <div class="cf-session-peek-heading"><button v-if="model.available" type="button" class="cf-btn cf-btn-secondary cf-idea-small-button" :disabled="model.refreshing || model.loading" @click="model.refresh()">{{ model.refreshing ? 'Refreshing…' : 'Refresh cost history' }}</button></div>
     <p class="cf-idea-help">Retained usage for this request and project, including failed and cancelled attempts. Provider USD amounts are usage reports, not an invoice.</p>
-    <p v-if="!model.available" class="cf-idea-help">AI cost history is available in Obsidian. No cost estimate is substituted here.</p>
+    <div v-if="!model.available" class="cf-idea-empty"><h3>Cost history needs Obsidian</h3><p>AI cost history is available in Obsidian. No cost estimate is substituted here. Open this request there to inspect retained usage and coverage.</p></div>
     <template v-else>
       <p v-if="model.loading" class="cf-idea-help" role="status">Loading retained cost history…</p>
       <p v-if="model.failed" class="cf-inline-error" role="alert">Cost history is unavailable. Refresh this tab to check the retained ledger again.</p>
@@ -22,7 +22,7 @@ const model = useIdeaAICosts(props);
           <div><dt>Simulations / not started</dt><dd>{{ model.summary.simulations }} / {{ model.summary.notStarted }}</dd></div>
         </dl>
         <p class="cf-idea-help">Unavailable amounts are not zero. Costs are counted once per retained task; native assistant observations do not add separate charges here.</p>
-        <AIUsageSummary :summary="model.usage" />
+        <AIUsageSummary :summary="model.usage" heading-level="h4" />
         <h4>Recorded attempts · {{ model.count }}</h4>
         <ol class="cf-idea-cost-attempts">
           <li v-for="row in model.rows" :key="row.id"><details class="cf-idea-evidence">

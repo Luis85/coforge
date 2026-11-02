@@ -7,7 +7,7 @@ import DurableBuildStatus from './DurableBuildStatus.vue';
 import NativeWorkflowRecoveryList from './NativeWorkflowRecoveryList.vue';
 import WorkflowBackgroundBuildRetry from './WorkflowBackgroundBuildRetry.vue';
 import RecordedAttemptFailure from './RecordedAttemptFailure.vue';
-defineProps<{ model: WorkflowModel }>();
+defineProps<{ model: WorkflowModel; compact?: boolean }>();
 </script>
 <template>
   <section class="cf-configured-run" aria-label="Request workflow execution">
@@ -15,7 +15,8 @@ defineProps<{ model: WorkflowModel }>();
     <template v-if="model.selected"
       ><div class="cf-configured-run-heading">
         <div>
-          <h2>{{ model.selected.title }}</h2>
+          <h3 v-if="compact">Current workflow</h3>
+          <h2 v-else>{{ model.selected.title }}</h2>
           <p>
             <code>{{ model.selected.id }}</code> · {{ model.definition.name }}
           </p>
