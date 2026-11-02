@@ -108,7 +108,7 @@ describe("Show plan rundown in the contained host", () => {
         name: "Stream studio pages",
         exact: true,
       });
-      expect(
+      await expect.poll(async () =>
         (await pages.getByRole("button").allTextContents())
           .slice(0, 2)
           .map((label) => label.trim()),
