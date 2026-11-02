@@ -72,7 +72,7 @@ describe("private stream JSON storage", () => {
     const files = new Files();
     const storage = new StreamHistoryStorage(files);
     await storage.save(history());
-    const path = "CoForge/Streams/twitch-123-1.json";
+    const path = ".coforge-data/streams/twitch-123-1.json";
     const changed = JSON.stringify({ ...history(), id: "another-stream" });
     files.data.set(path, changed);
     await expect(storage.read("twitch-123-1")).rejects.toThrow("invalid");
@@ -86,7 +86,7 @@ describe("private stream JSON storage", () => {
     await storage.save(value);
     expect(await storage.active()).toEqual(persisted(value));
     expect(await storage.list()).toHaveLength(1);
-    expect(JSON.parse(await files.read("CoForge/Streams/twitch-123-1.json"))).toEqual(persisted(value));
+    expect(JSON.parse(await files.read(".coforge-data/streams/twitch-123-1.json"))).toEqual(persisted(value));
     expect(() => storage.read("../outside")).toThrow();
   });
   it("preserves the last complete object when replacement fails", async () => {

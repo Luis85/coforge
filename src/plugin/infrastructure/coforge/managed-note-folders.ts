@@ -7,6 +7,8 @@ export class ManagedNoteFolders implements ManagedNoteFolderPolicy {
   constructor(private readonly serviceDesignFolders: () => readonly string[]) {}
 
   assertAvailable(folders: readonly string[]): void {
+    if (folders.some(folder => vaultFoldersOverlap(folder, '.coforge-data')))
+      throw new Error('Keep managed Markdown notes outside the hidden CoForge data folder.');
     if (folders.some(folder => this.serviceDesignFolders().some(root => vaultFoldersOverlap(folder, root))))
       throw new Error('Keep other managed note folders separate from current and retained Service Design folders.');
   }

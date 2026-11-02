@@ -29,7 +29,7 @@ export async function protectCouncilPrivatePaths(
   for (const value of paths) {
     const path = normalizeVaultFolder(value);
     if (
-      [publicFolder, "CoForge/Public", vault.configDir, ".git"].some((folder) =>
+      [publicFolder, "CoForge/Public", vault.configDir, ".git", '.coforge-data'].some((folder) =>
         vaultFoldersOverlap(path, folder),
       )
     )
@@ -53,17 +53,6 @@ export async function protectCouncilPrivatePaths(
         `${before}${before && !before.endsWith("\n") ? "\n" : ""}${marker}\n*\n!.gitignore\n`,
       );
   }
-  const directory =
-    plugin.manifest.dir ?? `${vault.configDir}/plugins/${plugin.manifest.id}`;
-  const ignore = `${directory}/.gitignore`;
-  const before = (await vault.adapter.exists(ignore))
-    ? await vault.adapter.read(ignore)
-    : "";
-  if (!before.includes("coforge-*.json*"))
-    await vault.adapter.write(
-      ignore,
-      `${before}${before && !before.endsWith("\n") ? "\n" : ""}coforge-*.json*\n`,
-    );
 }
 import type { IntakeBinding } from "../../features/coforge/domain/intake-bindings";
 import type { IntakeFolderPolicy } from "../../features/coforge/domain/intake-bindings";

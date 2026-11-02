@@ -3,6 +3,7 @@ import type { Plugin } from "obsidian";
 import type { Check } from "../../features/coforge/domain/check";
 import { text } from "../../features/coforge/domain/check";
 import { protectPrivateData } from "./private-data-guard";
+import { COFORGE_DATA, CoforgeDataDirectory } from './vault-data-location';
 
 const eventCheck = text({ min: 1, max: 2000 });
 const inputCheck = text({ min: 1, max: 100000 });
@@ -26,6 +27,7 @@ export class VaultEconomyReservations<
   T extends { eventKey: string; inputIdentity: string },
 > {
   readonly directory: string;
+  private readonly dataDirectory = new CoforgeDataDirectory(() => this.plugin);
   private tail: Promise<unknown> = Promise.resolve();
   private blocked = false;
   constructor(
@@ -33,15 +35,13 @@ export class VaultEconomyReservations<
     private readonly check: Check<T>,
     private readonly draw = secureEconomyInteger,
   ) {
-    const root =
-      plugin.manifest.dir ??
-      `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
-    this.directory = `${root}/coforge-economy-reservations`;
+    this.directory = `${COFORGE_DATA}/economy/reservations`;
   }
   assertReady(): void {
     if (this.blocked) throw recovery();
   }
   async validate(): Promise<void> {
+    await this.dataDirectory.prepare();
     this.assertReady();
     const adapter = this.plugin.app.vault.adapter;
     if (!(await adapter.exists(this.directory))) return;
@@ -95,6 +95,7 @@ export class VaultEconomyReservations<
     const eventKey = eventCheck(event);
     const inputIdentity = inputCheck(input);
     const work = this.tail.then(async () => {
+      await this.dataDirectory.prepare();
       this.assertReady();
       const path = this.path(eventKey);
       const existing = await this.retained(path, eventKey, inputIdentity);

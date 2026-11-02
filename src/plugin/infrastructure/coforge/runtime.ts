@@ -76,6 +76,8 @@ import { recoverForegroundVerification } from './verification/foreground-recover
 import { purgeCodexPrivateRuntime } from './codex-private-runtime';
 import { AgentSessionTerminal } from './agent-session-terminal';
 import { agentSessionFollowView } from './agent-session-follow-view';
+import { coforgeDataPath } from './vault-data-location';
+import type { WorkerDataLocation } from './worker-data-migration';
 
 export type StudioNotice = { message: string; error: boolean };
 export interface CoforgeRuntime {
@@ -97,7 +99,7 @@ const request: HttpRequest = async ({ url, method, headers, body }) => {
 };
 
 /** Composes CoForge for one plugin instance: vault storage, agent runners, Twitch intake and host actions. */
-export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => void, logger?: Pick<StructuredLogger, 'registerCatalog' | 'current' | 'correlation'>): CoforgeRuntime {
+export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => void, logger?: Pick<StructuredLogger, 'registerCatalog' | 'current' | 'correlation'>, workerLocation?: WorkerDataLocation): CoforgeRuntime {
   let councilPrivateFolders: () => readonly string[] = () => [];
   let serviceDesignFolders: () => readonly string[] = () => [];
   const noteFolders = new ManagedNoteFolders(() => serviceDesignFolders());
@@ -105,13 +107,13 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   const workspaceStorage = new WorkflowWorkspaceStateStorage(plugin);
   const localWorkspaces = new LocalWorkflowWorkspaces(workspaceStorage);
   const durableBuilds = durableBuildRuntime(plugin, durableWorkerSource, () => studio.integration().workerNodeBin,
-    () => ['CoForge', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders(), ...serviceDesignFolders()]);
+    () => ['CoForge', '.coforge-data', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders(), ...serviceDesignFolders()], workerLocation);
   const foregroundPolishing = durableBuilds?.foregroundPolishing(localWorkspaces, workspaceStorage);
   const workspaces = protectedWorkflowWorkspaces(durableBuilds ? durableBuildWorkspaces(durableBuilds, localWorkspaces) : localWorkspaces, () => {
     const adapter = plugin.app.vault.adapter;
     if (!('getBasePath' in adapter) || typeof adapter.getBasePath !== 'function') throw new Error('Native workflow access requires a local desktop vault.');
     return adapter.getBasePath();
-  }, () => ['CoForge', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders(), ...serviceDesignFolders()]);
+  }, () => ['CoForge', '.coforge-data', plugin.app.vault.configDir, studio.integration().ideasFolder, studio.integration().publicFolder, ...councilPrivateFolders(), ...serviceDesignFolders()]);
   const log = operationsLog(logger);
   const listeners = new Set<(notice: StudioNotice) => void>();
   const notify = (message: string, error = false) => { for (const listener of listeners) listener({ message, error }); };
@@ -230,7 +232,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
   };
   const saveJson = async (kind: 'export' | 'diagnostics', json: string) => {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const path = `${storage.dataPath.replace(/coforge-state\.json$/, '')}coforge-${kind}-${stamp}-${crypto.randomUUID()}.json`;
+    const path = coforgeDataPath(`coforge-${kind}-${stamp}-${crypto.randomUUID()}.json`);
     await plugin.app.vault.adapter.write(path, json); return path;
   };
   const sessionTerminal = new AgentSessionTerminal({ read: jobId => agentSessionFollowView(studio.state(), jobId), nodeExecutable: () => studio.integration().workerNodeBin });
@@ -252,7 +254,7 @@ export function createCoforgeRuntime(plugin: Plugin, report: (code: string) => v
     herdr,
     streamHistory: { list: () => streamHistory.list(), read: id => streamHistory.read(id), export: async id => {
       const history = await streamHistory.read(id);
-      if (!history) throw new Error('This stream history is unavailable. Check its JSON file in CoForge/Streams.');
+      if (!history) throw new Error('This stream history is unavailable. Check its JSON file in .coforge-data/streams.');
       return saveJson('export', JSON.stringify(history, null, 2));
     } },
     obs,

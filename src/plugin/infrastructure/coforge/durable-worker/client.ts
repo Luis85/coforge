@@ -33,7 +33,7 @@ import { PolishingCopyRetainedError } from '../../../features/coforge/applicatio
 import { ForegroundPolishingResources } from '../background-build-seed/foreground';
 
 export interface DurableBuildClientOptions { workerSource: string; privateDirectory: string; nodeExecutable?: string | (() => string | undefined);
-  vaultDirectory?: string; protectedVaultFolders?: () => readonly string[]; validatePrivateDirectory?: () => string }
+  vaultDirectory?: string; protectedVaultFolders?: () => readonly string[]; validatePrivateDirectory?: () => string; migrationPending?: boolean }
 const missing = (error: unknown) => error instanceof Error && 'code' in error && error.code === 'ENOENT';
 const unreachable = () => new Error('The original background Build worker is unreachable. No provider was restarted; inspect its retained local evidence.');
 async function rpc(descriptor: WorkerDescriptor, input: unknown, timeoutMs = 10000): Promise<unknown> {
@@ -82,6 +82,7 @@ export class DurableBuildClient implements DurableBuildPort {
     } catch { return undefined; }
   }
   async readiness() {
+    if (this.options.migrationPending) return { ready: false, message: 'Worker data migration is pending. Settle and review original Builds, stop the original local execution runtime, then reload CoForge. Recovery remains available; new Builds are held.' };
     try {
       this.validateDirectory();
       const node = await this.node(); let existing;
@@ -102,6 +103,7 @@ export class DurableBuildClient implements DurableBuildPort {
     } catch (error) { return { ready: false, message: error instanceof Error && !/[/\\]/u.test(error.message) ? error.message : 'The native Node runtime or original worker needs inspection before starting Builds.' }; }
   }
   private async launch(): Promise<WorkerDescriptor> {
+    if (this.options.migrationPending) throw new Error('Worker data migration is pending. Original recovery remains available; no new worker resources were created.');
     const node = await this.node(); let existing;
     try { existing = await this.existing(); }
     catch (error) { const settled = await this.settledGeneration(); if (!settled) throw error; await archiveGeneration(this.files, settled); return this.launch(); }
@@ -164,6 +166,7 @@ export class DurableBuildClient implements DurableBuildPort {
     return this.connected(descriptor);
   }
   async prepare(request: DurableBuildRequest): Promise<DurableBuildRef> {
+    if (this.options.migrationPending) throw new Error('Settle the original worker and reload CoForge to migrate its data before preparing another Build.');
     this.validateDirectory();
     if (request.reviewedSnapshot) await this.assertReviewedSnapshots();
     if (!this.options.vaultDirectory || !this.options.protectedVaultFolders) throw new Error('The managed vault-folder authority is unavailable. No background provider was started.');

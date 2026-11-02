@@ -1,3 +1,4 @@
+import { coforgeDataPath, CoforgeDataDirectory } from './vault-data-location';
 import type { Plugin } from "obsidian";
 import type {
   HerdrSaved,
@@ -49,12 +50,13 @@ const savedCheck = shape({
   ),
 });
 export class HerdrStateStorage implements HerdrStorage {
+  private readonly dataDirectory = new CoforgeDataDirectory(() => this.plugin);
   constructor(private readonly plugin: Plugin) {}
   private get path(): string {
-    const { app, manifest } = this.plugin;
-    return `${manifest.dir ?? `${app.vault.configDir}/plugins/${manifest.id}`}/coforge-herdr.json`;
+    return coforgeDataPath('coforge-herdr.json');
   }
   async load(): Promise<HerdrSaved> {
+    await this.dataDirectory.prepare();
     try {
       const adapter = this.plugin.app.vault.adapter;
       if (!(await adapter.exists(this.path)))
@@ -67,6 +69,7 @@ export class HerdrStateStorage implements HerdrStorage {
     }
   }
   async save(value: HerdrSaved): Promise<void> {
+    await this.dataDirectory.prepare();
     const checked = savedCheck(value);
     try {
       await this.plugin.app.vault.adapter.write(

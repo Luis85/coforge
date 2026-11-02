@@ -64,7 +64,7 @@ it('preserves externally edited scheduler state instead of overwriting it', asyn
   class TestPlugin extends Plugin {}
   const plugin = new TestPlugin(app, { id: 'coforge', name: 'CoForge', version: '0.1.0', minAppVersion: '1.13.7', author: '', description: '' });
   const storage = new TaskSchedulerStateStorage(plugin); const state = await storage.load(); await storage.save(state);
-  const path = '.obsidian/plugins/coforge/coforge-task-scheduler.json';
+  const path = '.coforge-data/automation/coforge-task-scheduler.json';
   const changed = JSON.stringify({ ...emptyTaskScheduler(), revision: 42 }); await app.vault.adapter.write(path, changed);
   await expect(storage.save({ ...state, revision: 1 })).rejects.toThrow('changed');
   expect(await app.vault.adapter.read(path)).toBe(changed);

@@ -22,12 +22,12 @@ describe('Admitted analytical tools in the contained host', () => {
     const note = await obsidian.eval(async ({ app, pluginId }) => {
       const file = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Ideas/'));
       if (!file) throw new Error('Missing contained request.');
-      return { path: file.path, noteText: await app.vault.read(file), stateText: await app.vault.adapter.read(`.obsidian/plugins/${pluginId}/coforge-state.json`) };
+      return { path: file.path, noteText: await app.vault.read(file), stateText: await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`) };
     });
     await obsidian.disablePlugin(); const prepared = analyticalToolsFixture(note.noteText, note.stateText);
     await obsidian.eval(async ({ app, pluginId }, input) => {
       await app.vault.adapter.write(input.path, input.noteText);
-      await app.vault.adapter.write(`.obsidian/plugins/${pluginId}/coforge-state.json`, input.stateText);
+      await app.vault.adapter.write(`.coforge-data/studio/coforge-state.json`, input.stateText);
     }, { path: note.path, ...prepared });
     await obsidian.enablePlugin(); view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
     await view.getByRole('button', { name: /^Idea board/ }).first().click();

@@ -1,4 +1,5 @@
 import type { Plugin } from "obsidian";
+import { COFORGE_DATA, CoforgeDataDirectory } from './vault-data-location';
 import {
   list,
   number,
@@ -68,14 +69,14 @@ const intakeCheck = shape(
   { strict: true },
 );
 export class CouncilStateStorage {
+  private readonly dataDirectory = new CoforgeDataDirectory(() => this.plugin);
   readonly directory: string;
   constructor(private readonly plugin: Plugin,
     private readonly assertNoteFoldersAvailable: (folders: readonly string[]) => void = () => undefined) {
-    this.directory =
-      plugin.manifest.dir ??
-      `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
+    this.directory = `${COFORGE_DATA}/council`;
   }
   private async read(name: string): Promise<unknown | undefined> {
+    await this.dataDirectory.prepare();
     const path = `${this.directory}/coforge-council-${name}.json`;
     if (!(await this.plugin.app.vault.adapter.exists(path))) return undefined;
     const raw = await this.plugin.app.vault.adapter.read(path);
@@ -120,6 +121,7 @@ export class CouncilStateStorage {
     );
   }
   async saveIntake(value: IntakeState): Promise<void> {
+    await this.dataDirectory.prepare();
     await this.plugin.app.vault.adapter.write(
       `${this.directory}/coforge-council-intake.json`,
       JSON.stringify(intakeCheck(value)),

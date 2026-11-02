@@ -81,8 +81,8 @@ export class McpObsidianTools implements McpDispatcher {
       const input = cliInput(raw);
       const args = cliArguments(input);
       const assertReadable = (path: string) => {
-        if (vaultFoldersOverlap(path, this.plugin.app.vault.configDir))
-          throw new McpToolError('PERMISSION_DENIED', 'Obsidian configuration is excluded from vault tools.');
+        if ([this.plugin.app.vault.configDir, '.coforge-data'].some(folder => vaultFoldersOverlap(path, folder)))
+          throw new McpToolError('PERMISSION_DENIED', 'Private CoForge data and Obsidian configuration are excluded from vault tools.');
       };
       if (input.path) assertReadable(input.path);
       if (input.folder) assertReadable(input.folder);
@@ -123,7 +123,7 @@ export class McpObsidianTools implements McpDispatcher {
       throw new McpToolError('INVALID_ARGUMENTS', 'Choose an ordinary Markdown note in a private parent folder without reserved CoForge output markers.');
     const assertDestination = () => {
       this.assert(signal);
-      if ([...this.options.blockedWriteFolders(), this.options.publicFolder(), 'CoForge/Public', this.plugin.app.vault.configDir].some(blocked => vaultFoldersOverlap(input.path, blocked)))
+      if ([...this.options.blockedWriteFolders(), '.coforge-data', this.options.publicFolder(), 'CoForge/Public', this.plugin.app.vault.configDir].some(blocked => vaultFoldersOverlap(input.path, blocked)))
         throw new McpToolError('PERMISSION_DENIED', 'Managed CoForge notes, watched sources and public exports require dedicated tools or the operator in Obsidian.');
     };
     assertDestination();

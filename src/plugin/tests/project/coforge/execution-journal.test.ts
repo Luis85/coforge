@@ -32,7 +32,7 @@ function fixture() {
     },
   };
   return {
-    journal: new FileExecutionJournal(files, ".obsidian/plugins/coforge"),
+    journal: new FileExecutionJournal(files, ".coforge-data/council"),
     map,
     failRename: (value: boolean) => {
       failRename = value;
@@ -102,7 +102,7 @@ describe("private execution journal replacement", () => {
     await f.journal.save({ ...emptyExecutionJournal(), revision: 1 }, 0);
     await f.journal.save({ ...emptyExecutionJournal(), revision: 2 }, 1);
     f.map.set(
-      ".obsidian/plugins/coforge/coforge-execution-v2.json",
+      ".coforge-data/council/coforge-execution-v2.json",
       "{damaged",
     );
     await expect(f.journal.load()).rejects.toThrow("damaged");
@@ -128,7 +128,7 @@ describe("private execution journal replacement", () => {
       format: "coforge-execution/v2",
     };
     f.map.set(
-      ".obsidian/plugins/coforge/coforge-execution-v2.json",
+      ".coforge-data/council/coforge-execution-v2.json",
       JSON.stringify({
         format: "coforge-execution-envelope/v2",
         checksum: contextEventId(JSON.stringify(payload)),
@@ -145,7 +145,7 @@ describe("private execution journal replacement", () => {
       400000,
     );
     const stored = f.map.get(
-      ".obsidian/plugins/coforge/coforge-execution-v2.json",
+      ".coforge-data/council/coforge-execution-v2.json",
     )!;
     expect(stored.length).toBeLessThan(17 * 1024 * 1024);
   });
@@ -154,7 +154,7 @@ describe("private execution journal replacement", () => {
     const journal = nearCapJournal();
     const legacyPayload = JSON.stringify(journal);
     f.map.set(
-      ".obsidian/plugins/coforge/coforge-execution-v2.json",
+      ".coforge-data/council/coforge-execution-v2.json",
       JSON.stringify({
         checksum: contextEventId(legacyPayload),
         payload: legacyPayload,

@@ -150,14 +150,14 @@ it("protects the candidate folder before persisted private writes and rejects co
     .filter((file) => file.path.startsWith("Requests/Backlog/"));
   expect(notes).toHaveLength(1);
   const body = kit.read(notes[0]!.path);
-  const saved = kit.read(".custom-config/plugins/coforge/coforge-state.json");
+  const saved = kit.read(".coforge-data/studio/coforge-state.json");
   await expect(
     studio.updateIntegration({ publicFolder: "requests" }),
   ).rejects.toThrow("private");
   await expect(
     studio.updateIntegration({ ideasFolder: "Website/Ideas" }),
   ).rejects.toThrow("private");
-  expect(kit.read(".custom-config/plugins/coforge/coforge-state.json")).toBe(
+  expect(kit.read(".coforge-data/studio/coforge-state.json")).toBe(
     saved,
   );
   expect(kit.read(notes[0]!.path)).toBe(body);
@@ -183,4 +183,6 @@ it("blocks publication and workflow installation into custom private data before
     false,
   );
   expect(kit.read("Requests/Backlog/Human.md")).toBe("# Keep\n");
+  await expect(publisher.publish(createSeed(), '.COFORGE-DATA/public')).rejects.toThrow('private');
+  await expect(publisher.installWorkflow('.coforge-data/runtime/public')).rejects.toThrow('private');
 });

@@ -20,6 +20,7 @@ interface Change { path: string; before: string | null; after: string }
 export class McpRegistration {
   install(paths: string[], name: string, entry: McpRegistrationEntry): Promise<void> { return this.update(paths, name, entry, false); }
   remove(paths: string[], name: string, entry: McpRegistrationEntry): Promise<void> { return this.update(paths, name, entry, true); }
+  relocate(paths: string[], name: string, previous: McpRegistrationEntry, next: McpRegistrationEntry): Promise<void> { return this.update(paths, name, next, false, previous); }
   private async replace(path: string, before: string | null, after: string): Promise<void> {
     const temporary = `${path}.coforge-${crypto.randomUUID()}.tmp`;
     try {
@@ -29,7 +30,7 @@ export class McpRegistration {
       else await rename(temporary, path);
     } finally { await unlink(temporary).catch(() => undefined); }
   }
-  private async update(paths: string[], name: string, entry: McpRegistrationEntry, remove: boolean): Promise<void> {
+  private async update(paths: string[], name: string, entry: McpRegistrationEntry, remove: boolean, previousEntry?: McpRegistrationEntry): Promise<void> {
     const locks: string[] = [];
     const written: Change[] = [];
     try {
@@ -43,7 +44,8 @@ export class McpRegistration {
         const data = before === null ? {} : record(JSON.parse(before));
         const servers = data.mcpServers === undefined ? {} : record(data.mcpServers);
         const previous = servers[name];
-        if (previous !== undefined && !same(previous, entry)) throw new Error('An existing MCP registration uses this name. Its configuration was preserved; resolve the conflict before retrying.');
+        if (previousEntry && previous === undefined) throw new Error('The original MCP registration is missing. Activate explicitly after inspecting both client settings.');
+        if (previous !== undefined && !same(previous, entry) && !(previousEntry && same(previous, previousEntry))) throw new Error('An existing MCP registration uses this name. Its configuration was preserved; resolve the conflict before retrying.');
         if (remove && previous === undefined || !remove && same(previous, entry)) continue;
         if (remove) delete servers[name]; else servers[name] = entry;
         data.mcpServers = servers;

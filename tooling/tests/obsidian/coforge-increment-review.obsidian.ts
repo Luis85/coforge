@@ -13,10 +13,9 @@ const TITLE = 'Review the captured lantern increment';
 
 async function retainedEvidence(obsidian: ObsidianHarness) {
   const retained = await obsidian.eval(async ({ app, pluginId }) => {
-    const directory = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
     const note = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Ideas/'));
     if (!note) throw new Error('The request note is missing.');
-    return { state: await app.vault.adapter.read(`${directory}/coforge-state.json`), note: await app.vault.read(note) };
+    return { state: await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`), note: await app.vault.read(note) };
   });
   return { state: parsePersistedStudio(JSON.parse(retained.state)), note: retained.note };
 }

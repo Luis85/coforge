@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { Plugin, TFile } from 'obsidian';
+import { ensureDataFolder } from './vault-data-location';
 
 const ROOTS = { examples: 'CoForge/Recovery/ExampleCleanup', request: 'CoForge/Recovery/RequestDeletion' };
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -17,10 +18,12 @@ export class VaultExampleCleanup {
   private get journalPath() { return this.dataPath.replace(/coforge-state\.json$/u, this.intent === 'request' ? 'coforge-request-deletion.json' : 'coforge-example-cleanup.json'); }
   private stagedPath(directory: string, index: number, original: string) { return this.intent === 'request' ? `${directory}/${index}/${original.slice(original.lastIndexOf('/') + 1)}` : `${directory}/${index}.coforge-archive`; }
   private get vault() { return this.plugin.app.vault; }
-  private recoveryCopy(note: ArchivedNote) { return `${note.staged.slice(0, note.staged.lastIndexOf('/'))}/request.coforge-recovery`; }
+  private recoveryDirectory(directory: string) { return directory.replace(/^CoForge\/Recovery\//u, '.coforge-data/recovery/'); }
+  private recoveryCopy(note: ArchivedNote) { return `${this.recoveryDirectory(note.staged.slice(0, note.staged.lastIndexOf('/')))}/request.coforge-recovery`; }
   private async retainRequestCopy(note: ArchivedNote, content: string): Promise<void> {
     if (this.intent !== 'request') return;
     const path = this.recoveryCopy(note);
+    await ensureDataFolder(this.vault.adapter, path.slice(0, path.lastIndexOf('/')));
     if (!await this.vault.adapter.exists(path)) await this.vault.adapter.write(path, content);
     if (hash(await this.vault.adapter.read(path)) !== note.fingerprint) throw failure();
   }
@@ -156,7 +159,9 @@ export class VaultExampleCleanup {
     try {
       // Keep a private receipt so retained archive bytes can be matched to their original note paths.
       const notes = this.intent === 'request' ? journal.notes.map(note => ({ ...note, recoveryCopy: this.recoveryCopy(note) })) : journal.notes;
-      await this.vault.adapter.write(`${journal.directory}/receipt.json`, JSON.stringify({ schema: 1, notes, retained }, null, 2));
+      const directory = this.recoveryDirectory(journal.directory);
+      await ensureDataFolder(this.vault.adapter, directory);
+      await this.vault.adapter.write(`${directory}/receipt.json`, JSON.stringify({ schema: 1, notes, retained }, null, 2));
       receipt = true;
     } catch { retained = true; }
     const pending = journal.notes.some(note => this.vault.getFileByPath(note.staged));

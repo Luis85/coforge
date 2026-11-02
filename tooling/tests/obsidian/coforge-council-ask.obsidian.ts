@@ -15,7 +15,7 @@ function definitions(projectId: string) {
 }
 async function journal(obsidian: ObsidianHarness) {
   const payload: unknown = await obsidian.eval(async ({ app, pluginId }) => {
-    const path = `${app.vault.configDir}/plugins/${pluginId}/coforge-execution-v2.json`;
+    const path = `.coforge-data/council/coforge-execution-v2.json`;
     if (!await app.vault.adapter.exists(path)) return { format: 'coforge-execution/v2', revision: 0, runs: [], submissions: [] };
     const envelope = JSON.parse(await app.vault.adapter.read(path));
     return typeof envelope.payload === 'string' ? JSON.parse(envelope.payload) : envelope.payload;
@@ -34,7 +34,7 @@ describe('Ask the Council in the contained host', () => {
     await view.getByRole('button', { name: 'Create project', exact: true }).click();
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Native advice project');
     const projectId = await obsidian.eval(async ({ app, pluginId }) => {
-      const state = JSON.parse(await app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`));
+      const state = JSON.parse(await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`));
       if (typeof state.activeProjectId !== 'string') throw new Error('Project identity is unavailable.');
       return state.activeProjectId;
     });

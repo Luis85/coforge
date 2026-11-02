@@ -1,3 +1,4 @@
+import { coforgeDataPath, CoforgeDataDirectory } from './vault-data-location';
 import type { Plugin } from "obsidian";
 import type {
   WorkflowWorkspaceRecord,
@@ -6,12 +7,13 @@ import type {
 import { workflowWorkspaceRecordsCheck as validate } from './workflow-workspace-check';
 /** Private metadata only; unreadable journals fail closed instead of discarding holds. */
 export class WorkflowWorkspaceStateStorage implements WorkflowWorkspaceStorage {
+  private readonly dataDirectory = new CoforgeDataDirectory(() => this.plugin);
   constructor(private readonly plugin: Plugin) {}
   private get path(): string {
-    const { app, manifest } = this.plugin;
-    return `${manifest.dir ?? `${app.vault.configDir}/plugins/${manifest.id}`}/coforge-workspaces.json`;
+    return coforgeDataPath('coforge-workspaces.json');
   }
   async load(): Promise<WorkflowWorkspaceRecord[]> {
+    await this.dataDirectory.prepare();
     try {
       const adapter = this.plugin.app.vault.adapter;
       if (!(await adapter.exists(this.path))) return [];
@@ -28,6 +30,7 @@ export class WorkflowWorkspaceStateStorage implements WorkflowWorkspaceStorage {
     }
   }
   async save(records: WorkflowWorkspaceRecord[]): Promise<void> {
+    await this.dataDirectory.prepare();
     try {
       const raw = JSON.stringify(validate(records), null, 2);
       if (Buffer.byteLength(raw) > 8 * 1024 * 1024) throw new Error("limit");

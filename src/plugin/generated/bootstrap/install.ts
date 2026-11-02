@@ -16,14 +16,17 @@ import { createSources } from './sources.ts';
 import { configureSourceProviders } from './source-providers.ts';
 import { mountProject } from './mount.ts';
 import { createCoforgeRuntime } from '../../infrastructure/coforge/runtime.ts';
+import { prepareCoforgeWorkers } from '../../infrastructure/coforge/worker-data-migration';
 import { registerCoforgeCommands } from '../../infrastructure/coforge/commands.ts';
 export async function initializeProject(plugin: Plugin, isCurrent: () => boolean = () => true) {
+  const workerLocation = await prepareCoforgeWorkers(plugin);
+  if (!isCurrent()) return { dispose: () => {} };
   const shell = await createServices(nativeAdapters(plugin));
   if (!isCurrent()) { shell.dispose(); return { dispose: shell.dispose }; }
   // The CoForge studio supplies its own header; use the host adapter's owned-view preference.
   if (!shell.preferences.current.hideObsidianViewHeader) await shell.preferences.update({ hideObsidianViewHeader: true });
   if (!isCurrent()) { shell.dispose(); return { dispose: shell.dispose }; }
-  const coforge = createCoforgeRuntime(plugin, code => shell.diagnostics.report(code, 'coforge.runtime'), shell.logger);
+  const coforge = createCoforgeRuntime(plugin, code => shell.diagnostics.report(code, 'coforge.runtime'), shell.logger, workerLocation);
   let sources: ReturnType<typeof createSources>;
   let providers: ReturnType<typeof configureSourceProviders> | undefined;
   const views = new Set<ShowcaseView>(); const modals = new Set<Modal>(); const settings = new Set<() => void>();

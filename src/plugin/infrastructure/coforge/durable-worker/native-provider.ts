@@ -28,7 +28,7 @@ export function nativeBuildExecutor(store: WorkerStore, workspaces: WorkflowWork
       if (provider === 'claude' && request.input.workflow.worktreeCoding?.profile !== 'native-worktree-v1') {
         const at = restricted.indexOf('--disallowedTools');
         if (at < 0) throw new Error('The restricted Claude tool policy is unavailable.');
-        restricted[at + 1] += ',Read(**/.coforge/**),Edit(**/.coforge/**),Write(**/.coforge/**)';
+        restricted[at + 1] += ',Read(**/.coforge-data/**),Read(**/.coforge/**),Edit(**/.coforge-data/**),Edit(**/.coforge/**),Write(**/.coforge-data/**),Write(**/.coforge/**)';
       }
       try { return await capture(executable, restricted, { ...options, timeoutMs: undefined }); }
       catch (error) {

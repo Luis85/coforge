@@ -5,11 +5,11 @@ import { test } from './support/obsidian-fixture.ts';
 describe('CoForge projects in the contained vault', () => {
   test('exports a private per-stream JSON object from the contained vault', async ({ obsidian }) => {
     await obsidian.eval(async ({ app }) => {
-      for (const folder of ['CoForge', 'CoForge/Streams']) if (!await app.vault.adapter.exists(folder)) await app.vault.adapter.mkdir(folder);
+      for (const folder of ['.coforge-data', '.coforge-data/streams']) if (!await app.vault.adapter.exists(folder)) await app.vault.adapter.mkdir(folder);
       const history = { schemaVersion: 1, id: 'twitch-123-1', channelId: '123', startedAt: '2026-10-27T10:00:00Z', twitchStreamId: '1', obsStartedAt: null,
         endedAt: '2026-10-27T11:00:00Z', endReason: 'offline', baselineCounters: {}, samples: [] };
-      await app.vault.adapter.write('CoForge/Streams/twitch-123-1.json', JSON.stringify(history));
-      await app.vault.adapter.write('CoForge/Streams/.index.json', JSON.stringify({ activeId: null, streams: [{ id: history.id, channelId: '123', startedAt: history.startedAt, endedAt: history.endedAt, samples: 0, lastSampleAt: history.startedAt, peakObservedViewers: null, meanObservedViewers: null }] }));
+      await app.vault.adapter.write('.coforge-data/streams/twitch-123-1.json', JSON.stringify(history));
+      await app.vault.adapter.write('.coforge-data/streams/.index.json', JSON.stringify({ activeId: null, streams: [{ id: history.id, channelId: '123', startedAt: history.startedAt, endedAt: history.endedAt, samples: 0, lastSampleAt: history.startedAt, peakObservedViewers: null, meanObservedViewers: null }] }));
     });
     const view = await obsidian.openView(`${obsidian.pluginId}-view-project-workbench`);
     await view.getByRole('navigation', { name: 'Stream studio pages', exact: true }).getByRole('button', { name: 'History', exact: true }).click();
@@ -39,7 +39,7 @@ describe('CoForge projects in the contained vault', () => {
     await view.getByLabel('OBS executable (optional)', { exact: true }).fill('/synthetic/obs');
     await view.getByRole('button', { name: 'Save OBS setup', exact: true }).click();
     await browserExpect(view.getByText('OBS connection and scenes saved.', { exact: true })).toBeVisible();
-    const setup: unknown = JSON.parse(await obsidian.eval(({ app, pluginId }) => app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`)));
+    const setup: unknown = JSON.parse(await obsidian.eval(({ app, pluginId }) => app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`)));
     expect(setup).toMatchObject({ obsSettings: { executable: '/synthetic/obs', autoConnect: false } });
     await browserExpect(view.locator('.cf-studio')).toBeVisible();
     await browserExpect(view.locator(':scope > .view-header')).toBeHidden();
@@ -121,7 +121,7 @@ describe('CoForge projects in the contained vault', () => {
     await view.getByLabel('Rank 2 minimum XP', { exact: true }).fill('200');
     await view.getByRole('button', { name: 'Save community settings', exact: true }).click();
     await browserExpect(view.getByText('Community settings saved. Existing balances are unchanged.', { exact: true })).toBeVisible();
-    const saved: unknown = JSON.parse(await obsidian.eval(({ app, pluginId }) => app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`)));
+    const saved: unknown = JSON.parse(await obsidian.eval(({ app, pluginId }) => app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`)));
     expect(saved).toMatchObject({ population: { players: expect.arrayContaining([expect.objectContaining({ id: 'simulator:bug reporter', blocked: true })]),
       environment: { actorName: 'Citizen', currencyName: 'credits', ranks: [{ name: 'Agent', minimumXp: 0 }, { name: 'Builder', minimumXp: 200 }] } },
       streamMessages: [expect.objectContaining({ text: 'Join The Hood with !register', active: false, intervalMinutes: 5 })] });

@@ -84,8 +84,8 @@ describe("private viewer CRM notes", () => {
       tags: ["regular"],
     });
     expect(kit.read("CoForge/.gitignore")).toContain("!Public/**");
-    expect(kit.read(".obsidian/plugins/coforge/.gitignore")).toContain(
-      "coforge-*.json",
+    expect(kit.read(".gitignore")).toContain(
+      "/.coforge-data/",
     );
     await recorder.dispose();
   });

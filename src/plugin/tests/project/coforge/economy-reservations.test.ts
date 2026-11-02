@@ -60,8 +60,8 @@ it("reuses an immutable private draw across reload, duplicate delivery and later
       /\/[a-f0-9]{64}\.json$/u,
     );
     expect(
-      f.kit.read(`${f.app.vault.configDir}/plugins/coforge/.gitignore`),
-    ).toContain("coforge-economy-reservations/");
+      f.kit.read('.gitignore'),
+    ).toContain('/.coforge-data/');
     await expect(
       port.reserve(
         "twitch:channel:message",

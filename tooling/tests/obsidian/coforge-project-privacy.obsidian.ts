@@ -11,7 +11,7 @@ describe('Private project publication in the contained host', () => {
     await view.locator('.cf-settings-reset-confirm').getByRole('button', { name: 'Load sample workspace', exact: true }).click();
     await browserExpect(view.locator('.cf-project-switcher')).toContainText('Mosslight');
     const original = await obsidian.eval(async ({ app, pluginId }) => {
-      const state = JSON.parse(await app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`));
+      const state = JSON.parse(await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`));
       const file = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Ideas/'));
       if (!file) throw new Error('Expected a contained sample request note.');
       await app.vault.adapter.write('CoForge/Personal board.json', '{"human":"preserve exact unrelated bytes"}\n');

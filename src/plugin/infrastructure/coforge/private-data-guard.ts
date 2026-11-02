@@ -1,4 +1,6 @@
 import type { Plugin } from "obsidian";
+import { assertNativeVaultData } from './vault-data-native';
+import { pluginInstallationDirectory } from './plugin-installation-directory';
 import {
   validateFolderLayout,
   type VaultFolderLayout,
@@ -33,9 +35,9 @@ export async function protectPrivateData(
   folders?: VaultFolderLayout,
 ): Promise<void> {
   const adapter = plugin.app.vault.adapter;
-  const pluginFolder =
-    plugin.manifest.dir ??
-    `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`;
+  if ('getBasePath' in adapter && typeof adapter.getBasePath === 'function')
+    await assertNativeVaultData(adapter.getBasePath(), ['.gitignore', '.coforge-data', '.coforge-data/.gitignore']);
+  const pluginFolder = [...pluginInstallationDirectory(plugin)].map(character => '\\*?[] !#'.includes(character) ? '\\' + character : character).join('');
   const layout = folders
     ? validateFolderLayout(folders, [plugin.app.vault.configDir])
     : undefined;
@@ -58,11 +60,11 @@ export async function protectPrivateData(
   };
   try {
     await ensureFolder("CoForge", true);
-    await ensureFolder(pluginFolder);
+    await ensureFolder('.coforge-data');
     await append("CoForge/.gitignore", "*\n!Public/\n!Public/**\n!.gitignore");
     await append(
-      `${pluginFolder}/.gitignore`,
-      "coforge-*.json\ncoforge-alerts*.json*\ncoforge-economy-reservations/\ndata.json\n*.log",
+      ".gitignore",
+      `/.coforge-data/\n/${pluginFolder}/data.json`,
     );
     if (layout) {
       await ensureFolder(layout.ideasFolder, true);

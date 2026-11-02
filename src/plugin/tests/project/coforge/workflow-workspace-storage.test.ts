@@ -16,7 +16,7 @@ function fixture() {
     author: "",
     description: "",
   });
-  const path = ".custom-host-config/plugins/coforge/coforge-workspaces.json";
+  const path = ".coforge-data/automation/coforge-workspaces.json";
   const record: WorkflowWorkspaceRecord = {
     id: "workspace-one",
     runId: "run-one",
@@ -36,7 +36,7 @@ function fixture() {
     storage: new WorkflowWorkspaceStateStorage(plugin),
   };
 }
-it("persists private workspace holds and retired recovery descriptors in the actual host config directory", async () => {
+it("persists private workspace holds and retired recovery descriptors in the vault data directory", async () => {
   const f = fixture();
   expect(await f.storage.load()).toEqual([]);
   await f.storage.save([f.record]);

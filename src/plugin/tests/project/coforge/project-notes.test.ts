@@ -112,7 +112,7 @@ describe('canonical project notes', () => {
     await first.studio.engine.waitUntilIdle();
     const ideaFile = first.app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Ideas/'))!;
     const legacyNote = first.kit.read(ideaFile.path).replace(/^coforge-project:.*\r?\n/m, '').replace('---\n', '---\nproject: "[[My studio note]]"\n');
-    const dataPath = '.obsidian/plugins/coforge/coforge-state.json';
+    const dataPath = '.coforge-data/studio/coforge-state.json';
     const legacyData = parsePersistedStudio(JSON.parse(first.kit.read(dataPath)));
     delete legacyData.activeProjectId; delete legacyData.nextProjectNumber;
     legacyData.integrity['CF-101'] = ideaFingerprint(readIdeaNote(legacyNote)!);

@@ -1,3 +1,4 @@
+import { coforgeDataPath, CoforgeDataDirectory } from './vault-data-location';
 import { parseYaml, stringifyYaml, type Plugin } from 'obsidian';
 import {
   blueprintFolder, blueprintId, blueprintRelationshipWarnings, isBlueprintKind, validateBlueprintInput,
@@ -23,6 +24,7 @@ const ids = (value: unknown): string[] => {
 
 /** Canonical note storage with exact previous-content guards and retained folder history. */
 export class VaultServiceDesign implements BlueprintRepository {
+  private readonly dataDirectory = new CoforgeDataDirectory(() => this.plugin);
   private folder = DEFAULT_ROOT;
   private roots = [DEFAULT_ROOT];
   private readonly pendingRoots = new Set<string>();
@@ -33,13 +35,13 @@ export class VaultServiceDesign implements BlueprintRepository {
     private readonly otherPrivateFolders: () => readonly string[],
   ) {}
   private get settingsPath() {
-    return `${this.plugin.manifest.dir ?? `${this.plugin.app.vault.configDir}/plugins/${this.plugin.manifest.id}`}/coforge-service-design.json`;
+    return coforgeDataPath('coforge-service-design.json');
   }
   private validateFolder(value: string): string {
     const folder = blueprintFolder(value);
     const layout = this.layout();
     validateFolderLayout(layout, [...this.otherPrivateFolders(), folder, this.plugin.app.vault.configDir]);
-    const reserved = [layout.ideasFolder, 'CoForge/Projects', 'CoForge/Viewers', 'CoForge/Finance',
+    const reserved = ['.coforge-data', layout.ideasFolder, 'CoForge/Projects', 'CoForge/Viewers', 'CoForge/Finance',
       'CoForge/AI-Costs', 'CoForge/Music', 'CoForge/Streams', 'CoForge/Schedule',
       'CoForge/Agents', 'CoForge/Teams', 'CoForge/Councils', 'CoForge/Tasks', 'CoForge/CouncilTasks',
       'CoForge/Inboxes', 'CoForge/Messages', 'CoForge/Recovery', 'CoForge/Tests', ...this.otherPrivateFolders()];
@@ -48,6 +50,7 @@ export class VaultServiceDesign implements BlueprintRepository {
     return folder;
   }
   async initialize(): Promise<void> {
+    await this.dataDirectory.prepare();
     const adapter = this.plugin.app.vault.adapter;
     if (!await adapter.exists(this.settingsPath)) return;
     try {
@@ -63,6 +66,7 @@ export class VaultServiceDesign implements BlueprintRepository {
   }
   privateFolders(): readonly string[] { return [...new Set([...this.roots, ...this.pendingRoots])]; }
   async load(): Promise<BlueprintCatalogue> {
+    await this.dataDirectory.prepare();
     await this.initialize();
     const files = this.plugin.app.vault.getMarkdownFiles().filter(file => this.roots.some(root => file.path.startsWith(root + '/')));
     if (files.length > 5000) throw new Error('Service Design exceeds 5,000 notes. Reduce the collection before refreshing.');
@@ -153,6 +157,7 @@ export class VaultServiceDesign implements BlueprintRepository {
       blueprint: link(note.blueprintId), step: note.stepId ? link(note.stepId) : '', related: note.links.map(link) };
   }
   async save(input: BlueprintNote): Promise<BlueprintNote> {
+    await this.dataDirectory.prepare();
     validateBlueprintInput(input);
     if (![input.id, input.projectId, input.blueprintId].every(blueprintId))
       throw new Error('Invalid Service Design identity. Refresh before saving.');

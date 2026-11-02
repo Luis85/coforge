@@ -12,8 +12,7 @@ const SCORE_INSTRUCTION = 'History scoring instruction captured at admission.';
 
 async function privateState(obsidian: ObsidianHarness) {
   const json = await obsidian.eval(async ({ app, pluginId }) => {
-    const directory = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
-    return app.vault.adapter.read(`${directory}/coforge-state.json`);
+    return app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`);
   });
   return parsePersistedStudio(JSON.parse(json));
 }

@@ -21,14 +21,14 @@ it.each(['CoForge/Service Design', 'Private/Retained', 'Private/Current/Requests
       await runtime.start();
       await runtime.host.serviceDesign!.configure('Private/Retained');
       await runtime.host.serviceDesign!.configure('Private/Current');
-      const previous = kit.read('.obsidian/plugins/coforge/coforge-state.json');
+      const previous = kit.read('.coforge-data/studio/coforge-state.json');
       await expect(runtime.studio.updateIntegration({ ideasFolder: folder })).rejects.toThrow('Service Design');
-      expect(kit.read('.obsidian/plugins/coforge/coforge-state.json')).toBe(previous);
+      expect(kit.read('.coforge-data/studio/coforge-state.json')).toBe(previous);
       expect((await runtime.host.serviceDesign!.load()).folder).toBe('Private/Current');
       await runtime.dispose();
       const reloaded = fixture({
-        '.obsidian/plugins/coforge/coforge-state.json': kit.read('.obsidian/plugins/coforge/coforge-state.json'),
-        '.obsidian/plugins/coforge/coforge-service-design.json': kit.read('.obsidian/plugins/coforge/coforge-service-design.json'),
+        '.coforge-data/studio/coforge-state.json': kit.read('.coforge-data/studio/coforge-state.json'),
+        '.coforge-data/settings/coforge-service-design.json': kit.read('.coforge-data/settings/coforge-service-design.json'),
       }).runtime;
       try {
         await reloaded.start();
@@ -49,11 +49,11 @@ it.each(['CoForge/Service Design', 'Private/Retained', 'Private/Current/Agents',
       const council = runtime.host.council!;
       await council.designateExecutor();
       const preferences = council.snapshot().preferences;
-      const before = kit.read('.obsidian/plugins/coforge/coforge-council-settings.json');
+      const before = kit.read('.coforge-data/council/coforge-council-settings.json');
       const folders = { agents: folder, teams: 'CoForge/Teams', councils: 'CoForge/Councils' };
       await expect(council.definitionFolders.preview(folders)).rejects.toThrow('Service Design');
       await expect(council.definitionFolders.configure(folders, preferences.revision)).rejects.toThrow('Service Design');
-      expect(kit.read('.obsidian/plugins/coforge/coforge-council-settings.json')).toBe(before);
+      expect(kit.read('.coforge-data/council/coforge-council-settings.json')).toBe(before);
       expect(council.snapshot().preferences).toEqual(preferences);
       expect((await runtime.host.serviceDesign!.load()).folder).toBe('Private/Current');
     } finally { await runtime.dispose(); }
@@ -71,20 +71,20 @@ it('reserves a pending Service Design root before another managed-folder configu
     await runtime.start();
     const council = runtime.host.council!;
     await council.designateExecutor();
-    const preferences = kit.read('.obsidian/plugins/coforge/coforge-council-settings.json');
+    const preferences = kit.read('.coforge-data/council/coforge-council-settings.json');
     vi.spyOn(plugin.app.vault.adapter, 'write').mockImplementation(async (path, contents, options) => {
       if (path === 'Private/Pending/.gitignore') { writing = true; await held; }
       return originalWrite(path, contents, options);
     });
     configuring = runtime.host.serviceDesign!.configure('Private/Pending');
     await vi.waitFor(() => expect(writing).toBe(true));
-    const before = kit.read('.obsidian/plugins/coforge/coforge-state.json');
+    const before = kit.read('.coforge-data/studio/coforge-state.json');
     await expect(runtime.studio.updateIntegration({ ideasFolder: 'Private/Pending/Requests' })).rejects.toThrow('Service Design');
     await expect(council.definitionFolders.configure({
       agents: 'Private/Pending/Agents', teams: 'CoForge/Teams', councils: 'CoForge/Councils',
     }, council.snapshot().preferences.revision)).rejects.toThrow('Service Design');
-    expect(kit.read('.obsidian/plugins/coforge/coforge-state.json')).toBe(before);
-    expect(kit.read('.obsidian/plugins/coforge/coforge-council-settings.json')).toBe(preferences);
+    expect(kit.read('.coforge-data/studio/coforge-state.json')).toBe(before);
+    expect(kit.read('.coforge-data/council/coforge-council-settings.json')).toBe(preferences);
     release();
     await configuring;
     expect((await runtime.host.serviceDesign!.load()).folder).toBe('Private/Pending');
@@ -123,7 +123,7 @@ it.each(['ideas', 'Council'])(
       await runtime.host.serviceDesign!.configure('Private/Services');
       const council = runtime.host.council!;
       await council.designateExecutor();
-      const before = kit.read('.obsidian/plugins/coforge/coforge-service-design.json');
+      const before = kit.read('.coforge-data/settings/coforge-service-design.json');
       vi.spyOn(plugin.app.vault.adapter, 'write').mockImplementation(async (path, contents, options) => {
         if (path === 'Pending/Managed/.gitignore' && !writing) { writing = true; await held; }
         return originalWrite(path, contents, options);
@@ -133,7 +133,7 @@ it.each(['ideas', 'Council'])(
         : council.definitionFolders.configure({ agents: 'Pending/Managed', teams: 'CoForge/Teams', councils: 'CoForge/Councils' }, council.snapshot().preferences.revision);
       await vi.waitFor(() => expect(writing).toBe(true));
       await expect(runtime.host.serviceDesign!.configure('Pending/Managed')).rejects.toThrow(/managed|separate|Service Design/i);
-      expect(kit.read('.obsidian/plugins/coforge/coforge-service-design.json')).toBe(before);
+      expect(kit.read('.coforge-data/settings/coforge-service-design.json')).toBe(before);
       release();
       await configuring;
       expect((await runtime.host.serviceDesign!.load()).folder).toBe('Private/Services');

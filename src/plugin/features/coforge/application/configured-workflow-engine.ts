@@ -1,4 +1,5 @@
 import { workflowDefinition } from '../domain/configured-workflow';
+import { finishConfiguredRun as finish, touchConfiguredRun as touch } from './configured-workflow-run-state';
 import { captureWorkflowLifecycle } from '../domain/workflow-lifecycle';
 import { automationContextCheck, type AutomationContext } from '../domain/automation-context';
 import { WORKFLOW_ATTEMPT_RESERVE_BYTES, WORKFLOW_HISTORY_LIMIT_BYTES, WORKFLOW_RUN_LIMIT_BYTES, workflowSerializedSize, workflowProposalRevision, type ConfiguredStepExecution, type WorkflowRun } from '../domain/configured-workflow-run';
@@ -45,18 +46,6 @@ interface ConfiguredHost {
   cost(id: string, value: number): Promise<void>; usage(id: string, value: StageUsage): Promise<void>;
 }
 const time = () => new Date().toISOString();
-function touch(run: WorkflowRun): void { run.revision++; run.updatedAt = time(); }
-function finish(state: InternalState, ideaId: string): WorkflowRun {
-  const idea = configuredIdea(state, ideaId);
-  const run = idea.workflowRun!;
-  projectWorkflowChanges(idea, run);
-  run.state = idea.increment?.files.length ? 'awaiting-review' : 'finished';
-  delete run.activeAttemptId;
-  touch(run);
-  recordOperation(state, run.state === 'awaiting-review' ? 'workflow-run-awaiting-review' : 'workflow-run-finished', 'committed', undefined, 1, run.id);
-  return run;
-}
-
 /** Ordered, pinned execution. Legacy stages are transport labels, never progress authority. */
 export class ConfiguredWorkflowEngine {
   private readonly nudges: ConfiguredWorkflowNudges;

@@ -74,7 +74,7 @@ describe('canonical Service Design notes', () => {
     await app.vault.create('CoForge/Service Design/duplicate.md', test.read(blueprint.path));
     expect((await repository.load()).warnings.length).toBeGreaterThan(0);
     await expect(service.save('CFP-001', input('journey-step'))).rejects.toThrow('Resolve');
-    const settings = '.obsidian/plugins/coforge/coforge-service-design.json';
+    const settings = '.coforge-data/settings/coforge-service-design.json';
     await app.vault.adapter.write(settings, '{broken');
     await expect(repository.load()).rejects.toThrow('settings');
     await expect(service.configure('Other/Services')).rejects.toThrow();
@@ -131,7 +131,7 @@ describe('canonical Service Design notes', () => {
     let publicFolder = 'CoForge/Public';
     const repository = new VaultServiceDesign(plugin, () => ({ ideasFolder: 'CoForge/Ideas', publicFolder }), () => []);
     await repository.configure('Existing/Services');
-    const settings = '.obsidian/plugins/coforge/coforge-service-design.json';
+    const settings = '.coforge-data/settings/coforge-service-design.json';
     const previous = await app.vault.adapter.read(settings);
     const write = app.vault.adapter.write.bind(app.vault.adapter);
     let reserved = false;
@@ -153,7 +153,7 @@ describe('canonical Service Design notes', () => {
   it('keeps the previous folder history when saving new root settings fails', async () => {
     const { repository, app } = kit();
     await repository.configure('Existing/Services');
-    const settings = '.obsidian/plugins/coforge/coforge-service-design.json';
+    const settings = '.coforge-data/settings/coforge-service-design.json';
     const previous = await app.vault.adapter.read(settings);
     const write = app.vault.adapter.write.bind(app.vault.adapter);
     vi.spyOn(app.vault.adapter, 'write').mockImplementation(async (path, content) => {

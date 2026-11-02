@@ -59,7 +59,7 @@ describe('Council first-use setup in the contained host', () => {
     await browserExpect(view.getByRole('button', { name: 'Submit reviewed task', exact: true })).toBeDisabled();
     await browserExpect(view.getByRole('button', { name: 'Queue simulation', exact: true })).toBeDisabled();
     const attempts = await obsidian.eval(async ({ app, pluginId }) => {
-      const path = `${app.vault.configDir}/plugins/${pluginId}/coforge-execution-v2.json`;
+      const path = `.coforge-data/council/coforge-execution-v2.json`;
       if (!await app.vault.adapter.exists(path)) return { runs: 0, attempts: 0 };
       const envelope = JSON.parse(await app.vault.adapter.read(path));
       const journal = typeof envelope.payload === 'string' ? JSON.parse(envelope.payload) : envelope.payload;

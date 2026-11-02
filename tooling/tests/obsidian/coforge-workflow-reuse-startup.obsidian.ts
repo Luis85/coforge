@@ -75,7 +75,7 @@ describe('Reusable request workflows and automation startup in real Obsidian', (
     await browserExpect(view.getByLabel('Idea board automation on startup', { exact: true })).toHaveValue('paused');
     expect(savedWorkflow(await projectNote(obsidian, sourceId))).toEqual(sourceWorkflow);
     const jobs = await obsidian.eval(async ({ app, pluginId }) => {
-      const state: unknown = JSON.parse(await app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`));
+      const state: unknown = JSON.parse(await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`));
       if (!state || typeof state !== 'object' || !('jobs' in state) || !Array.isArray(state.jobs)) throw new Error('Missing durable job inventory');
       return state.jobs.length;
     });

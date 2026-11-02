@@ -58,7 +58,7 @@ it('rejects routing overrides, arbitrary commands, traversal, metadata and unkno
   const f = await fixture();
   for (const args of [
     { command: 'eval', code: 'anything' }, { command: 'command', id: 'coforge:accept' },
-    { command: 'read', path: '../personal.md' }, { command: 'read', path: '.obsidian/data.md' },
+    { command: 'read', path: '../personal.md' }, { command: 'read', path: '.obsidian/data.md' }, { command: 'read', path: '.coforge-data/runtime/private.md' },
     { command: 'read', path: 'Notes/Existing.md', vault: 'Other' }, { command: 'read' },
     { command: 'read', path: 'Notes/Existing.md', flags: ['--copy'] },
   ]) await expect(f.tools.call('coforge_obsidian_cli', args)).rejects.toThrow();
@@ -79,7 +79,7 @@ it('edits ordinary Markdown through atomic host preconditions and preserves comp
 it('creates ordinary notes without overwrites and blocks managed, watched or public destinations', async () => {
   const f = await fixture();
   expect(await f.tools.call('coforge_obsidian_note', { path: 'Notes/New.md', content: 'Private authored note.', expectedContent: null })).toMatchObject({ created: true });
-  for (const path of ['CoForge/Ideas/request.md', 'Managed/Agent.md', 'CoForge/Public/output.md', '.obsidian/test.md'])
+  for (const path of ['CoForge/Ideas/request.md', 'Managed/Agent.md', 'CoForge/Public/output.md', '.obsidian/test.md', '.coforge-data/private.md'])
     await expect(f.tools.call('coforge_obsidian_note', { path, content: 'Override', expectedContent: null })).rejects.toThrow();
   expect(f.kit.read('Notes/New.md')).toBe('Private authored note.');
 });

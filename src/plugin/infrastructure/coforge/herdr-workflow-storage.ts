@@ -1,3 +1,4 @@
+import { coforgeDataPath, CoforgeDataDirectory } from './vault-data-location';
 import type { Plugin } from 'obsidian';
 import type { HerdrWorkflowRecord, HerdrWorkflowStorage } from '../../features/coforge/application/herdr-workflow-ports';
 import { boolean, list, number, oneOf, optional, shape, text, timestamp } from '../../features/coforge/domain/check';
@@ -43,12 +44,13 @@ function validate(value: unknown): HerdrWorkflowRecord[] {
 
 /** Private recovery evidence. Never replaces unreadable data with an empty successful load. */
 export class HerdrWorkflowStateStorage implements HerdrWorkflowStorage {
+  private readonly dataDirectory = new CoforgeDataDirectory(() => this.plugin);
   constructor(private readonly plugin: Plugin) {}
   private get path(): string {
-    const { app, manifest } = this.plugin;
-    return `${manifest.dir ?? `${app.vault.configDir}/plugins/${manifest.id}`}/coforge-herdr-workflow.json`;
+    return coforgeDataPath('coforge-herdr-workflow.json');
   }
   async load(): Promise<HerdrWorkflowRecord[]> {
+    await this.dataDirectory.prepare();
     try {
       const adapter = this.plugin.app.vault.adapter;
       if (!(await adapter.exists(this.path))) return [];
@@ -62,6 +64,7 @@ export class HerdrWorkflowStateStorage implements HerdrWorkflowStorage {
     }
   }
   async save(records: HerdrWorkflowRecord[]): Promise<void> {
+    await this.dataDirectory.prepare();
     try {
       const checked = validate(records);
       const raw = JSON.stringify(checked, null, 2);

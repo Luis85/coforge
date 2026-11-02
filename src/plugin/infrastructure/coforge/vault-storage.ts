@@ -1,3 +1,4 @@
+import { coforgeDataPath, CoforgeDataDirectory } from './vault-data-location';
 import { VaultEconomyReservations } from "./economy-reservations";
 import { economyUsageReservationCheck } from "../../features/coforge/domain/command-economy-check";
 import type { EconomyUsageReservation } from "../../features/coforge/domain/command-economy";
@@ -33,10 +34,11 @@ const inFolder = (path: string, folder: string) => path.startsWith(`${normalizeP
 const noteValues = (idea: Idea, author: string) => JSON.stringify(ideaProperties(idea, author));
 
 /**
- * Idea notes in a vault folder plus `coforge-state.json` in the plugin folder for votes, increments,
+ * Idea notes in a vault folder plus `.coforge-data/studio/coforge-state.json` for votes, increments,
  * contributors, chat, runs and settings. Notes keep their body bytes and unrelated properties.
  */
 export class VaultStudioStorage implements StudioStorage {
+  private readonly dataDirectory = new CoforgeDataDirectory(() => this.plugin);
   private readonly paths = new Map<string, string>();
   private readonly noteWrites = new CommittedNoteWrites();
   private readonly loadedNotes = new Map<string, NoteIdea>();
@@ -64,11 +66,11 @@ export class VaultStudioStorage implements StudioStorage {
   watchProjects(onChange: (change: ProjectNoteChange) => void, onInvalid: (path: string) => void): void { this.projects.watch(onChange, onInvalid); }
 
   get dataPath(): string {
-    const { manifest, app } = this.plugin;
-    return normalizePath(`${manifest.dir ?? `${app.vault.configDir}/plugins/${manifest.id}`}/coforge-state.json`);
+    return normalizePath(coforgeDataPath('coforge-state.json'));
   }
 
   async load(): Promise<LoadedStudio> {
+    await this.dataDirectory.prepare();
     await this.noteWrites.reset();
     const adapter = this.plugin.app.vault.adapter;
     await protectPrivateData(this.plugin);
@@ -98,6 +100,7 @@ export class VaultStudioStorage implements StudioStorage {
   }
 
   async save(next: InternalState, previous: InternalState | null, options: SaveOptions = {}): Promise<void> {
+    await this.dataDirectory.prepare();
     const writes = this.noteWrites.begin();
     try { await this.saveCanonical(next, previous, options, writes); writes.commit(); }
     finally { writes.settle(); }

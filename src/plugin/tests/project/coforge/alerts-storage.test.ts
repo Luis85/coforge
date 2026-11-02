@@ -10,7 +10,8 @@ it('keeps exact saved definitions and stable endpoint identity across new storag
   const f = alertVaultFixture(); const storage = new VaultAlertsStorage(f.plugin);
   await protectPrivateData(f.plugin);
   const ignore = f.kit.read('.obsidian/plugins/coforge/.gitignore');
-  expect(ignore).toContain('# Human rules'); expect(ignore).toContain('coforge-alerts*.json*');
+  expect(ignore).toBe('# Human rules\n');
+  expect(f.kit.read('.gitignore')).toContain('/.coforge-data/');
   expect(await storage.load()).toEqual({ version: 1, templates: [] });
   const definition = { version: 1 as const, templates: [welcomeAlert] };
   await storage.save(definition);

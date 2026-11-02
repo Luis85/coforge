@@ -1,12 +1,12 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { describe, expect } from 'vitest';
 import { test } from './support/obsidian-fixture';
 
 describe('CoForge vault MCP in contained Obsidian', () => {
   test('restores a contained MCP connection and authors notes atomically without client registration', async ({ obsidian }) => {
-    const configDir = await obsidian.eval(({ app }) => app.vault.configDir);
-    const directory = join(obsidian.vaultPath, configDir, 'plugins', obsidian.pluginId);
+    const vault = resolve(obsidian.vaultPath);
+    const directory = join(vault, '.coforge-data', 'integrations', 'mcp');
     const descriptor = join(directory, 'coforge-mcp-connection.json');
     const connectionCheck = (raw: unknown): { endpoint: string; token: string } => {
       if (!raw || typeof raw !== 'object' || !('endpoint' in raw) || !('token' in raw) || typeof raw.endpoint !== 'string' || typeof raw.token !== 'string') throw new Error('Missing contained MCP connection');
@@ -19,10 +19,10 @@ describe('CoForge vault MCP in contained Obsidian', () => {
     await expect.poll(async () => connectionCheck(JSON.parse(await readFile(descriptor, 'utf8'))).token.length).toBe(0);
     // Restore only a scratch-vault registration journal. Never activate MCP against
     // the operator's user settings or invoke the globally installed Obsidian CLI.
-    const clientPath = join(obsidian.vaultPath, 'contained-client.json');
+    const clientPath = join(vault, 'contained-client.json');
     await writeFile(join(directory, 'coforge-mcp-settings.json'), JSON.stringify({
       format: 'coforge-mcp/v1', acknowledgedTasks: [], registration: {
-        name: 'coforge-contained', phase: 'active', paths: [join(obsidian.vaultPath, '.mcp.json'), clientPath],
+        name: 'coforge-contained', phase: 'active', paths: [join(vault, '.mcp.json'), clientPath],
         entry: { command: 'node', args: [join(directory, 'coforge-mcp-bridge.cjs'), descriptor] },
       },
     }));

@@ -57,7 +57,7 @@ describe('idea notes in the vault', () => {
     expect(kit.read('Welcome.md')).toBe('# Hello\n');
   });
 
-  it('creates one note per idea and keeps votes and increments in plugin data', async () => {
+  it('creates one note per idea and keeps votes and increments in private vault data', async () => {
     const { kit, studio } = await open();
     await studio.sendChat('River', '!request CFP-001 Add a garden behind the camp');
     await studio.sendChat('Alice', '!vote CF-101');
@@ -67,7 +67,7 @@ describe('idea notes in the vault', () => {
     const parsed = readIdeaNote(note);
     expect(parsed).toMatchObject({ id: 'CF-101', title: 'Add a garden behind the camp', status: 'inbox', authorId: 'simulator:river', description: 'Add a garden behind the camp' });
     expect(splitNote(note).yaml).toContain('votes: 1');
-    const data = JSON.parse(kit.read('.obsidian/plugins/coforge/coforge-state.json')) as { votes: Record<string, string[]> };
+    const data = JSON.parse(kit.read('.coforge-data/studio/coforge-state.json')) as { votes: Record<string, string[]> };
     expect(data.votes['CF-101']).toEqual(['simulator:alice']);
   });
 
