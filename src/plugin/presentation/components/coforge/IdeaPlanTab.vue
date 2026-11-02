@@ -5,6 +5,7 @@ import { useIdeaPlan } from '../../composables/coforge/use-idea-plan';
 import { useIdeaDesign } from '../../composables/coforge/use-idea-design';
 import CfIcon from './CfIcon.vue';
 import MarkdownBody from './MarkdownBody.vue';
+import ReadableContent from './ReadableContent.vue';
 import CurrentPolishedResult from './CurrentPolishedResult.vue';
 
 const props = defineProps<{ idea: Idea }>();
@@ -24,7 +25,7 @@ const design = useIdeaDesign(props);
           <CfIcon name="copy" size="sm" /> Copy Markdown
         </button>
       </div>
-      <MarkdownBody class="cf-idea-body" :source="idea.plan.summary" />
+      <ReadableContent class="cf-idea-body" :source="idea.plan.summary" original-label="Original plan summary" />
       <ol class="cf-idea-plan-steps">
         <li v-for="(step, index) in idea.plan.steps" :key="index">
           <span>{{ index + 1 }}</span>
@@ -64,7 +65,7 @@ const design = useIdeaDesign(props);
           <CfIcon name="copy" size="sm" /> Copy Design Markdown
         </button>
       </div>
-      <MarkdownBody class="cf-idea-body" :source="design.markdown" />
+      <ReadableContent class="cf-idea-body" :source="design.markdown" original-label="Original design text" />
       <p class="cf-idea-help">{{ design.savedLabel }}</p>
     </template>
     <template v-else>

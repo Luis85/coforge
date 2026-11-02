@@ -55,7 +55,11 @@ export function useSessionStream(props: { entries: SessionEventView[]; selection
     wheel: (event: WheelEvent) => { if (event.deltaY < 0) pause(); },
     pointer: pause,
     keydown: (event: KeyboardEvent) => {
-      if (!element || event.target !== element || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (!element || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.target !== element) {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target instanceof Element && event.target.closest('summary')) pause();
+        return;
+      }
       const page = Math.max(40, element.clientHeight - 40);
       const offsets: Record<string, number> = { Home: -element.scrollHeight, End: element.scrollHeight, PageUp: -page, PageDown: page, ArrowUp: -40, ArrowDown: 40, ' ': event.shiftKey ? -page : page };
       const offset = offsets[event.key]; if (offset === undefined) return;

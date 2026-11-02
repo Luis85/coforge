@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SessionEventView } from '../../composables/coforge/agent-session-display';
 import { useSessionStream } from '../../composables/coforge/use-session-stream';
+import ReadableContent from './ReadableContent.vue';
 const props = defineProps<{ entries: SessionEventView[]; selectionKey: string }>();
 const stream = useSessionStream(props);
 </script>
@@ -13,7 +14,8 @@ const stream = useSessionStream(props);
     <ol v-if="entries.length" class="cf-session-events">
       <li v-for="entry in entries" :key="entry.sequence" :data-session-sequence="entry.sequence">
         <div class="cf-session-event-meta"><strong>{{ entry.heading }}</strong><span>{{ entry.actor }}<template v-if="entry.status"> · {{ entry.status }}</template></span><time :datetime="entry.observedAt">{{ entry.timeLabel }}</time></div>
-        <pre v-if="entry.text" class="cf-session-message">{{ entry.text }}</pre>
+        <ReadableContent v-if="entry.text && entry.kind === 'message'" :source="entry.text" original-label="Original assistant message" />
+        <pre v-else-if="entry.text" class="cf-session-message">{{ entry.text }}</pre>
       </li>
     </ol>
     <p v-else class="cf-idea-help">No retained observations for this selection.</p>

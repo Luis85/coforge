@@ -3,6 +3,7 @@ import { usePolishingHistory } from '../../composables/coforge/use-polishing-his
 import PolishingResultBody from './PolishingResultBody.vue';
 import WorkflowCapturedConfiguration from './WorkflowCapturedConfiguration.vue';
 import DurableBuildStatus from './DurableBuildStatus.vue';
+import ReadableContent from './ReadableContent.vue';
 const props = defineProps<{ ideaId: string }>();
 const history = usePolishingHistory(() => props.ideaId);
 </script>
@@ -13,7 +14,7 @@ const history = usePolishingHistory(() => props.ideaId);
     <details v-for="row in history.rows" :key="row.pass.id" class="cf-workflow-options" open>
       <summary>{{ row.label }} · {{ row.time }} · {{ row.status }}</summary>
       <p>Pass <code>{{ row.pass.id }}</code> · main checkpoint {{ row.pass.primaryCheckpoint?.runId ?? 'No main workflow run' }}<template v-if="row.pass.primaryCheckpoint"> · cursor {{ row.pass.primaryCheckpoint.cursor }}</template></p>
-      <details><summary>Captured operator feedback</summary><pre class="cf-workflow-code-block" tabindex="0">{{ row.pass.feedback }}</pre></details>
+      <details><summary>Captured operator feedback</summary><ReadableContent :source="row.pass.feedback" original-label="Original polishing feedback" /></details>
       <PolishingResultBody v-if="row.result" :value="row.result" />
       <p v-if="row.problem || row.pass.workflow.error" class="cf-inline-error" role="alert">{{ row.problem || row.pass.workflow.error }}</p>
       <DurableBuildStatus :idea-id="ideaId" :run-id="row.pass.workflow.id" />

@@ -4,6 +4,7 @@ import { useIdeaDrawerContext } from "../../composables/coforge/use-idea-drawer"
 import CfIcon from "./CfIcon.vue";
 import IdeaRiceEditor from "./IdeaRiceEditor.vue";
 import MarkdownBody from "./MarkdownBody.vue";
+import ReadableContent from './ReadableContent.vue';
 import { screeningProviderLabel } from '../../composables/coforge/agent-labels';
 import RequestValuesPanel from './RequestValuesPanel.vue';
 import CurrentPolishedResult from './CurrentPolishedResult.vue';
@@ -78,7 +79,7 @@ const model = useIdeaDrawerContext();
         </span>
         <span class="cf-muted">{{ screeningProviderLabel(idea.screening.provider) }}</span>
       </div>
-      <MarkdownBody :source="idea.screening.reason" />
+      <ReadableContent :source="idea.screening.reason" original-label="Original screening explanation" />
       <ul v-if="idea.screening.signals.length > 0" class="cf-idea-list">
         <li v-for="(signal, index) in idea.screening.signals" :key="index">
           {{ signal }}

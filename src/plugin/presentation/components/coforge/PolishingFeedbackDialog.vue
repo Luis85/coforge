@@ -2,6 +2,7 @@
 import { usePolishingFeedback } from '../../composables/coforge/use-polishing-feedback';
 import PolishingResultBody from './PolishingResultBody.vue';
 import ReviewedSnapshotScope from './ReviewedSnapshotScope.vue';
+import ReadableContent from './ReadableContent.vue';
 const model = usePolishingFeedback();
 </script>
 <template>
@@ -26,7 +27,7 @@ const model = usePolishingFeedback();
           <div v-if="model.managedPreview"><dt>Agent session</dt><dd>{{ model.sessionHelp }}</dd></div>
           <div v-if="model.preview.primaryCheckpoint"><dt>Retained main workflow checkpoint</dt><dd>{{ model.preview.primaryCheckpoint.runId }} · cursor {{ model.preview.primaryCheckpoint.cursor }} · {{ model.preview.primaryCheckpoint.state }}</dd></div>
         </dl>
-        <details class="cf-workflow-options"><summary>Captured instructions and persona</summary><pre class="cf-workflow-code-block" tabindex="0">{{ model.preview.step.instructions }}</pre><template v-if="model.preview.coworker"><p>{{ model.preview.coworker.role }}</p><pre class="cf-workflow-code-block" tabindex="0">{{ model.preview.coworker.instructions }}</pre></template></details>
+        <details class="cf-workflow-options"><summary>Captured instructions and persona</summary><ReadableContent :source="model.preview.step.instructions" original-label="Original polishing instructions" /><template v-if="model.preview.coworker"><p>{{ model.preview.coworker.role }}</p><ReadableContent :source="model.preview.coworker.instructions" original-label="Original CoWorker instructions" /></template></details>
         <section v-if="model.preview.inspection" aria-label="Reviewed code snapshot">
           <h4>Actual code source being reviewed</h4>
           <dl class="cf-background-build-facts">

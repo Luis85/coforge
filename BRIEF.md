@@ -353,6 +353,11 @@ Deliver this increment subagent-driven, then create and execute a comprehensive
 improvement/polishing plan, qualify all increments end to end, perform a final
 polish, and commit/push/open/merge a PR only when all checks are green.
 
+Readable agent content (owner, 2026-11-02): audit every place the studio displays
+agent prompts and responses. Present structured content and Markdown in a
+human-readable form, including the captured task JSON in request Activity.
+Preserve exact retained evidence and existing review, execution and privacy boundaries.
+
 Design-column readiness (owner correction, 2026-10-30): keep requests whose
 Design is complete and whose next captured step is Build in the Design column.
 Show "Design complete · Ready to build" clearly; do not add another column or

@@ -2,7 +2,7 @@
 import type { Idea } from "../../../features/coforge/domain/types";
 import { useIdeaRiceEditor } from "../../composables/coforge/use-idea-rice-editor";
 import CfIcon from "./CfIcon.vue";
-import MarkdownBody from "./MarkdownBody.vue";
+import ReadableContent from "./ReadableContent.vue";
 
 const props = defineProps<{ idea: Idea }>();
 const rice = useIdeaRiceEditor(props);
@@ -52,7 +52,7 @@ const rice = useIdeaRiceEditor(props);
         ><span>RICE</span>
       </div>
     </div>
-    <MarkdownBody class="cf-idea-rationale" :source="idea.rice.rationale" />
+    <ReadableContent class="cf-idea-rationale" :source="idea.rice.rationale" original-label="Original scoring rationale" />
     <p class="cf-idea-help">
       Reach estimates distinct players over 30 days. Effort is in person-days.
       Votes express community interest; they do not replace the reach estimate.

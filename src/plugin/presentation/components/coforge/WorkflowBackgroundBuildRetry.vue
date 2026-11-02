@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBackgroundBuildRetry } from '../../composables/coforge/use-background-build-retry';
 import ReviewedSnapshotScope from './ReviewedSnapshotScope.vue';
+import ReadableContent from './ReadableContent.vue';
 const props = defineProps<{ ideaId: string; runId?: string }>();
 const retry = useBackgroundBuildRetry(() => props.ideaId, () => props.runId);
 </script>
@@ -32,10 +33,10 @@ const retry = useBackgroundBuildRetry(() => props.ideaId, () => props.runId);
         <div v-if="retry.receipt.previousAttemptId"><dt>Latest failed attempt</dt><dd>{{ retry.receipt.previousAttemptId }}</dd></div>
       </dl>
       <ReviewedSnapshotScope :inspection="retry.receipt.inspection" />
-      <details class="cf-workflow-options"><summary>Captured task and persona</summary><pre class="cf-workflow-code-block" tabindex="0">{{ retry.receipt.step.instructions }}</pre><template v-if="retry.receipt.coworker"><p>{{ retry.receipt.coworker.role }}</p><pre class="cf-workflow-code-block" tabindex="0">{{ retry.receipt.coworker.instructions }}</pre></template></details>
+      <details class="cf-workflow-options"><summary>Captured task and persona</summary><ReadableContent :source="retry.receipt.step.instructions" original-label="Original retry instructions" /><template v-if="retry.receipt.coworker"><p>{{ retry.receipt.coworker.role }}</p><ReadableContent :source="retry.receipt.coworker.instructions" original-label="Original CoWorker instructions" /></template></details>
       <section aria-label="Reviewed Build snapshot">
         <h4>Actual reviewed files and changes</h4>
-        <template v-if="retry.receipt.inspection.increment"><p>{{ retry.receipt.inspection.increment.summary }}</p><ul><li v-for="file in retry.receipt.inspection.increment.files" :key="file.path"><code>{{ file.path }}</code> · +{{ file.additions }} / −{{ file.deletions }}</li></ul><pre class="cf-workflow-code-block" tabindex="0">{{ retry.receipt.inspection.increment.diff }}</pre></template>
+        <template v-if="retry.receipt.inspection.increment"><ReadableContent :source="retry.receipt.inspection.increment.summary" original-label="Original retry change summary" /><ul><li v-for="file in retry.receipt.inspection.increment.files" :key="file.path"><code>{{ file.path }}</code> · +{{ file.additions }} / −{{ file.deletions }}</li></ul><pre class="cf-workflow-code-block" tabindex="0">{{ retry.receipt.inspection.increment.diff }}</pre></template>
         <p v-else>No pending changes in this verified snapshot. Review the captured repository base before continuing.</p>
       </section>
       <p class="cf-settings-help">{{ retry.receipt.readiness.message }} Preview and readiness checks do not start a provider. Confirmation rechecks this exact snapshot and policy; changed files require another review. Native provider spending rules still apply; Codex does not enforce the Claude USD cap.</p>

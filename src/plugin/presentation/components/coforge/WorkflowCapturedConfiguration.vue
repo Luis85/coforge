@@ -2,6 +2,7 @@
 import type { WorkflowRun } from "../../../features/coforge/domain/configured-workflow-run";
 import { useCapturedWorkflowConfiguration } from "../../composables/coforge/use-captured-workflow-configuration";
 import MarkdownBody from "./MarkdownBody.vue";
+import ReadableContent from './ReadableContent.vue';
 import WorkflowBackgroundRetryHistory from './WorkflowBackgroundRetryHistory.vue';
 const props = defineProps<{ run: WorkflowRun }>();
 const model = useCapturedWorkflowConfiguration(() => props.run);
@@ -62,7 +63,7 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
         <p>{{ coworker.execution }}</p>
         <p>{{ coworker.role }}</p>
         <p>CoWorker revision <code>{{ coworker.revision }}</code></p>
-        <MarkdownBody :source="coworker.instructions" />
+        <ReadableContent :source="coworker.instructions" original-label="Original CoWorker instructions" />
       </details>
     </section>
     <section v-if="model.executionPolicies.length" aria-label="Captured execution policies">

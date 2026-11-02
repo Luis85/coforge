@@ -127,6 +127,15 @@ current settings never reconstruct historical prompts. Saved workflow definition
 attempt provenance, explicit recovery and mandatory human acceptance remain
 authoritative.
 
+Captured prompts, answers and instructions use the shared `ReadableContent`
+reading view. JSON becomes labelled fields and lists; Markdown becomes formatted
+prose. Nested encoded JSON is decoded for display only. Exact retained text stays
+inside an initially closed, keyboard-accessible Original text disclosure, with
+capture truncation and reading limits called out explicitly. Untrusted HTML,
+embeds and privileged links never execute. Command logs and diffs remain code.
+The same reader serves Council answers and captured inputs, workflow and
+polishing results, Herdr prompts and assistant messages in Sessions/Peek.
+
 Implementation and qualification evidence is recorded in
 [the request-detail task](../../project-tasks/2026-11-01-request-detail-overhaul.md).
 The local design contract is

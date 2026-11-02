@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCouncilModel } from '../../composables/coforge/use-council';
-import MarkdownBody from './MarkdownBody.vue';
+import ReadableContent from './ReadableContent.vue';
 import CouncilRunControls from './CouncilRunControls.vue';
 const model = useCouncilModel();
 </script>
@@ -21,12 +21,12 @@ const model = useCouncilModel();
       <h4>{{ model.artifactLabel(model.selectedRun, artifact) }}</h4>
       <p class="cf-settings-help">{{ artifact.simulated ? 'Simulation · ' : '' }}{{ artifact.provider }} · {{ artifact.model }}<span v-if="artifact.skipped"> · Missing contribution</span></p>
       <p v-if="artifact.skipped">{{ artifact.skipReason || 'This contribution was explicitly skipped.' }}</p>
-      <MarkdownBody v-else :source="artifact.markdown" />
+      <ReadableContent v-else :source="artifact.markdown" original-label="Original Council answer" />
       <p v-if="artifact.messageRejection" role="status" class="cf-inline-error">Proposed messages were not delivered: {{ artifact.messageRejection.reason }}</p>
       <p v-else-if="artifact.messagesRejected" role="status">Proposed messages were not delivered. Inspect the retained evidence for their outcome.</p>
       <details><summary>Contribution reference and reported usage</summary>
         <p><time :datetime="artifact.createdAt">{{ artifact.createdAt }}</time> · {{ artifact.costUsd === undefined ? 'Cost not reported' : `$${artifact.costUsd.toFixed(4)} USD reported` }}</p>
-        <pre>{{ JSON.stringify(artifact, null, 2) }}</pre>
+        <ReadableContent :source="JSON.stringify(artifact)" original-label="Original contribution record" />
       </details>
     </article>
     <p class="cf-settings-help">Contributions retain their own authors and rounds. Agreement or consensus is not inferred.</p>
