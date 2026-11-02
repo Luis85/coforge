@@ -24,7 +24,7 @@ export function buildNativeCodexArgs(input: NativeCodexInvocation): string[] {
     '--model', input.model, '--output-schema', input.schemaPath, ...codexConfigArgs(config), '-'];
 }
 
-const CODING_TOOLS = ['Read', 'Glob', 'Grep', 'Edit', 'Write', 'Bash', 'NotebookEdit', 'Skill', 'WebFetch', 'WebSearch', 'TaskCreate', 'TaskGet', 'TaskList', 'TaskUpdate', 'TaskStop'];
+const CODING_TOOLS = ['Read', 'Glob', 'Grep', 'Edit', 'Write', 'Bash', 'PowerShell', 'NotebookEdit', 'Skill', 'WebFetch', 'WebSearch', 'TaskCreate', 'TaskGet', 'TaskList', 'TaskUpdate', 'TaskStop'];
 const WORKER = 'coforge-native-coder';
 export function nativeClaudeCodingAgents(settings: Pick<Settings, 'maxTurns'>, managedSession = false) {
   return {

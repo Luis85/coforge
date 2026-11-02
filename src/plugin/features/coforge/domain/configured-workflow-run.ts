@@ -14,6 +14,7 @@ import { validateNativeWorkflowTools, workflowVerificationProfileCheck, type Wor
 import { workflowSourceHashCheck, workflowVerificationRecordsCheck } from './workflow-verification';
 import { isWorktreeCodingStep, worktreeCodingCapabilityCheck, type WorktreeCodingCapability } from './worktree-coding';
 import { isManagedWorkflowSession, managedWorkflowLifecycleCheck, type ManagedWorkflowLifecycle } from './workflow-lifecycle';
+import { analyticalWorkflowToolsCheck, isAnalyticalWorkflowStep, type AnalyticalWorkflowTools } from './workflow-analytical-tools';
 export const WORKFLOW_RUN_LIMIT_BYTES = 2 * 1024 * 1024;
 export const WORKFLOW_HISTORY_LIMIT_BYTES = 8 * 1024 * 1024;
 export const WORKFLOW_MARKDOWN_LIMIT = 16000;
@@ -58,6 +59,7 @@ export interface WorkflowRun {
   projectContext?: { name: string; brief: string; agentPrompt: string; projectPath: string; worktreeFolder: string };
 }
 export interface ConfiguredStepExecution {
+  analyticalTools?: AnalyticalWorkflowTools;
   lifecycle?: ManagedWorkflowLifecycle;
   worktreeCoding?: WorktreeCodingCapability;
   verificationProfile?: WorkflowVerificationProfile;
@@ -165,8 +167,11 @@ export function configuredStepExecutionCheck(value: unknown): ConfiguredStepExec
     verificationProfile: optional(workflowVerificationProfileCheck),
     worktreeCoding: optional(worktreeCodingCapabilityCheck),
     lifecycle: optional(managedWorkflowLifecycleCheck),
+    analyticalTools: optional(analyticalWorkflowToolsCheck),
     step: workflowStepCheck, inputArtifacts: list(workflowArtifactCheck, { max: 200 }), workspaceId: optional(workflowIdCheck) }, { strict: true })(value);
   if (checked.step.kind !== 'ai') throw new Error('Only an AI step can be dispatched to a provider.');
+  if (checked.analyticalTools && (!isAnalyticalWorkflowStep(checked.step, checked.step.provider) || checked.step.nativeTools?.delegation === undefined || checked.step.nativeTools.research === undefined))
+    throw new Error('The captured analytical tools are incomplete or incompatible with this step.');
   if (checked.worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(checked.step, checked.step.provider, false, checked.worktreeCoding?.profile === 'native-worktree-v1', isManagedWorkflowSession(checked));
   if (checked.worktreeCoding && !isWorktreeCodingStep(checked.step, checked.worktreeCoding.profile === 'mcp-worktree-v1' ? 'mcp' : checked.step.provider)) throw new Error('Worktree coding requires an admitted code-change step with worktree editing.');
   const requested = checked.step.nativeTools?.verification?.commandIds;

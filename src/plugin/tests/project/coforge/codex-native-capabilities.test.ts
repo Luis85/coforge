@@ -70,7 +70,7 @@ it('validates installed native flags and bounded v2 feature configuration locall
   expect(invocation.args).toContain('--ignore-user-config');
   expect(invocation.options.input).toContain('provider-native subagents');
   expect(invocation.options.input).toContain('same scoped CoForge tools');
-  expect(invocation.options.input).toContain('Native project files, shell, browser and other MCP servers are unavailable');
+  expect(invocation.options.input).toContain('Native project files, shell, interactive browser and other MCP servers are unavailable');
   expect(result).toEqual({ output: { summary: 'Native root' }, usage: undefined });
   expect(fake.model).toHaveBeenCalledWith(f.directory, 'gpt-6.1-sol', f.request.nativeTools, { models: [{ slug: 'gpt-6.1-sol', multi_agent_version: 'v2' }] });
 });

@@ -44,6 +44,21 @@ async function fixture() {
   stops.push(async () => { await module.dispose(); await council.dispose(); await studio.stop(); await rm(root, { recursive: true, force: true }); });
   return { root, directory, project, userSettings, studio, module, make, acknowledged, runners, projectId: studio.state().activeProjectId! };
 }
+async function requestStatus(f: Awaited<ReturnType<typeof fixture>>, ideaId: string): Promise<unknown> {
+  const descriptor = record(JSON.parse(await readFile(join(f.directory, 'coforge-mcp-connection.json'), 'utf8')));
+  if (typeof descriptor.endpoint !== 'string' || typeof descriptor.token !== 'string') throw new Error('Missing contained MCP connection');
+  const { endpoint, token } = descriptor;
+  return new Promise((resolve, reject) => {
+    const call = request(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } }, response => {
+      let body = ''; response.setEncoding('utf8');
+      response.on('data', (chunk: string) => { body += chunk; });
+      response.on('end', () => { try { resolve(JSON.parse(body)); } catch (error) { reject(error); } });
+      response.on('error', reject);
+    });
+    call.on('error', reject); call.end(JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call',
+      params: { name: 'coforge_request_status', arguments: { projectId: f.projectId, ideaId } } }));
+  });
+}
 it('keeps the replacement connection active when the previous instance finishes closing later', async () => {
   const f = await fixture(); await f.module.activate();
   let release = () => {}; let entered = () => {};
@@ -171,15 +186,23 @@ it('requires a failed external attempt and persists explicit human workspace rec
   await f.studio.store.transaction(state => { state.jobs.push({ id: 'interrupted', ideaId: state.ideas[0]!.id, projectId: f.projectId, stage: 'implement', status: 'failed', provider: 'mcp', startedAt: new Date().toISOString(), logs: [],
     workflow: { runId: 'run', definitionRevision: definition.revision, proposalRevision: 'proposal', attemptId: 'attempt', workspaceId: 'workspace', step, inputArtifacts: [] } }); });
   expect(f.module.status().recovery).toHaveLength(1);
+  const ideaId = f.studio.state().ideas[0]!.id;
+  expect(await requestStatus(f, ideaId)).toMatchObject({ result: { structuredContent: { operatorRecoveryRequired: true } } });
   const before = f.studio.state().jobs.length;
   await f.module.recover('interrupted');
   expect(f.acknowledged).toEqual(['workspace:attempt']);
   expect(f.module.status().recovery).toEqual([]);
+  expect(await requestStatus(f, ideaId)).toMatchObject({ result: { structuredContent: { operatorRecoveryRequired: false } } });
   expect(f.studio.state().jobs).toHaveLength(before);
+  await f.module.dispose(); const reloaded = f.make();
+  try {
+    await reloaded.start();
+    expect(await requestStatus(f, ideaId)).toMatchObject({ result: { structuredContent: { operatorRecoveryRequired: false } } });
+  } finally { await reloaded.dispose(); }
 });
 
 it('blocks selected MCP cleanup beyond the bounded status list until explicit recovery is acknowledged', async () => {
-  const f = await fixture();
+  const f = await fixture(); await f.module.activate();
   const { workflowDefinition } = await import('../../../features/coforge/domain/configured-workflow');
   const definition = workflowDefinition(f.studio.state().settings);
   const step = definition.steps.find(step => step.kind === 'ai')!;
@@ -195,14 +218,27 @@ it('blocks selected MCP cleanup beyond the bounded status list until explicit re
   });
   expect(f.module.status().recovery).toHaveLength(25);
   expect(f.module.status().recovery?.some(item => item.taskId === 'mcp-recovery-0')).toBe(false);
+  expect(await requestStatus(f, selected.id)).toMatchObject({ result: { structuredContent: { operatorRecoveryRequired: true } } });
+  expect(await requestStatus(f, untouched.id)).toMatchObject({ result: { structuredContent: { operatorRecoveryRequired: false } } });
   expect(() => f.module.assertExampleCleanup([selected.id])).toThrow(/MCP.*recover|acknowledge/i);
   expect(() => f.module.assertExampleCleanup([untouched.id])).not.toThrow();
   expect(() => f.module.assertExampleCleanup([])).not.toThrow();
   await f.module.recover('mcp-recovery-0');
   expect(f.acknowledged).toEqual(['workspace-0:attempt-0']);
+  expect(await requestStatus(f, selected.id)).toMatchObject({ result: { structuredContent: { operatorRecoveryRequired: false } } });
+  expect(await requestStatus(f, other.id)).toMatchObject({ result: { structuredContent: { operatorRecoveryRequired: true } } });
   expect(() => f.module.assertExampleCleanup([selected.id])).not.toThrow();
   expect(() => f.module.assertExampleCleanup([other.id])).toThrow(/MCP.*recover|acknowledge/i);
   expect(f.studio.state().jobs).toHaveLength(31);
+});
+
+it('does not invent workspace recovery for a known prelaunch MCP failure without a workspace', async () => {
+  const f = await fixture(); await f.module.activate(); const selected = f.studio.state().ideas[0]!;
+  await f.studio.store.transaction(state => { state.jobs.push({ id: 'prelaunch-mcp', ideaId: selected.id, projectId: f.projectId,
+    stage: 'screen', status: 'failed', provider: 'mcp', startedAt: new Date().toISOString(), logs: [] }); });
+  expect(f.module.status().recovery).toEqual([]);
+  expect(await requestStatus(f, selected.id)).toMatchObject({ result: { structuredContent: { operatorRecoveryRequired: false } } });
+  expect(f.acknowledged).toEqual([]);
 });
 
 it.each(['queued', 'running'] as const)('blocks a selected %s MCP reservation before it has a workspace', async status => {

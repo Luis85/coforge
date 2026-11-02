@@ -177,7 +177,10 @@ export class McpWorktreeCommands implements McpCodingCommands {
     return { commands, total: records.length, ...(offset + commands.length < records.length ? { nextOffset: offset + commands.length } : {}) };
   }
   async cancel(projectId: string, taskId: string, commandId: string): Promise<McpCommandOutcome> {
-    await this.ready(); const record = this.find(projectId, taskId, commandId); const active = this.active.get(commandId);
+    await this.ready();
+    // Intent persistence precedes the active controller; a concurrent cancel must observe that original admission.
+    await this.pending;
+    const record = this.find(projectId, taskId, commandId); const active = this.active.get(commandId);
     if (active) { active.controller.abort(); await active.process?.stop('cancelled'); await active.work; }
     return this.public(record);
   }

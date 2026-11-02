@@ -597,6 +597,17 @@ recovery, project scope, host permissions and final human review.
 
 ## Decisions
 
+- 2026-11-02: review the latest CF-133 run and improve workflow-agent tools so
+  agents can perform the assigned work. The owner explicitly permits inspection
+  of CF-133's live records and retained workspace for this review. New ordinary
+  native analytical attempts should have scoped native assistants and internet
+  research available by default, with explicit opt-outs. Capture those effective
+  capabilities at admission without changing historical attempts, custom
+  instructions, repository write rights or separate Council/v2 and external-client
+  contracts. Fix file-search ergonomics and retain safe actionable tool outcomes.
+  Preserve the current run during inspection and require explicit dispatch and
+  human code acceptance; no automatic paid retry or live request rewrite.
+
 - 2026-11-01: ordinary workflow agents and refinement/polishing sessions should
   be completion-driven. The owner rejects task timeouts, turn/tool-call caps,
   spending caps and timing/retry configuration as part of ordinary setup. New

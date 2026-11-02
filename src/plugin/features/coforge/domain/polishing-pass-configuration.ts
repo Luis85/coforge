@@ -20,7 +20,9 @@ const check = shape({ provider: oneOf(['demo', 'claude', 'codex', 'herdr'] as co
   limits: shape({ timeoutSeconds: number({ integer: true, min: 15, max: 1800 }), maxTurns: number({ integer: true, min: 1, max: 50 }), maxBudgetUsd: number({ min: 0.1, max: 20 }) }, { strict: true }),
 }, { strict: true });
 export function improvementPassConfigurationCheck(value: unknown): ImprovementPassConfiguration {
-  const checked = check(value); validateModelEffort(checked); validateNativeWorkflowTools({ ...checked, access: 'editworktree', execution: checked.execution ?? { mode: 'background' } }); return checked;
+  const checked = check(value); validateModelEffort(checked);
+  validateNativeWorkflowTools({ ...checked, access: 'editworktree', output: 'codechange', execution: checked.execution ?? { mode: 'background' } }, undefined, false, true);
+  return checked;
 }
 export function defaultImprovementPass(settings: Settings): ImprovementPassConfiguration {
   const agent = stageAgent(settings, 'implement');

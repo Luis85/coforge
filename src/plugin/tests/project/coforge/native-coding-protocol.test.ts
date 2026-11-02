@@ -14,6 +14,7 @@ it('uses native Codex workspace permissions and bounded native assistants withou
   expect(args).toContain('windows.sandbox="unelevated"');
   expect(args).toContain('sandbox_workspace_write.network_access=true');
   expect(args).toContain('web_search="live"');
+  expect(args).not.toContain('tools.view_image=false');
 });
 it('permits ordinary Claude coding tools with inherited native workers and normal sign-in, not a permission bypass', () => {
   const args = buildNativeClaudeArgs({ ...defaultSettings(), maxTurns: 12, maxBudgetUsd: 1 }, { model: 'sonnet', nativeCoding: profile,
@@ -21,11 +22,13 @@ it('permits ordinary Claude coding tools with inherited native workers and norma
   expect(args).toContain('--restricted'); expect(args[args.indexOf('--permission-mode') + 1]).toBe('acceptEdits');
   expect(args[args.indexOf('--permission-prompts') + 1]).toBe('none'); expect(args[args.indexOf('--tools') + 1]).toContain('Bash');
   expect(args[args.indexOf('--tools') + 1]).toContain('Edit'); expect(args[args.indexOf('--allowedTools') + 1]).toContain('Bash');
+  expect(args[args.indexOf('--tools') + 1]!.split(',')).toContain('PowerShell');
   expect(args[args.indexOf('--tools') + 1]).toContain('TaskGet'); expect(args[args.indexOf('--tools') + 1]).toContain('TaskStop');
   expect(args).toContain('--append-system-prompt'); expect(args).not.toContain('--safe-mode'); expect(args).not.toContain('--bare'); expect(args.join(' ')).not.toContain('dangerously');
   const agents = JSON.parse(args[args.indexOf('--agents') + 1]!);
   expect(agents['coforge-native-coder']).toMatchObject({ model: 'inherit', permissionMode: 'acceptEdits' });
   expect(agents['coforge-native-coder'].tools).toContain('Bash'); expect(agents['coforge-native-coder'].omitClaudeMd).not.toBe(true);
+  expect(agents['coforge-native-coder'].tools).toContain('PowerShell');
   expect(agents['coforge-native-coder'].prompt).toContain('Leave task edits uncommitted');
   expect(JSON.parse(args[args.indexOf('--settings') + 1]!).env.CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS).toBe('2');
 });

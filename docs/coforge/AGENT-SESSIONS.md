@@ -41,6 +41,13 @@ an association. Claude can associate activity through an Agent tool ID without
 exposing a separate native session ID; these rows are labelled tool-linked.
 Unavailable child detail does not establish that no delegation occurred.
 
+Workflow runs → Captured configuration separates each attempt's admitted
+analytical tools from the saved workflow's requested options. New scoped Plan,
+Design, refinement and text-improvement attempts can allow native assistants and
+web research while retaining read-only/no-file access. Earlier attempts without
+that grant stay labelled restricted; present-day defaults do not grant them tools.
+These permission records do not prove that research or delegation happened.
+
 Scroll upward or choose **Pause follow** to read earlier entries. New retained
 observations increase the unread count. **Resume follow** returns to the latest
 entry. Closing Peek or switching projects leaves execution unchanged.

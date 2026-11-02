@@ -1,9 +1,8 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { record, text } from '../../features/coforge/domain/check';
-import { CheckError } from '../../features/coforge/domain/check';
-import { McpToolError } from './mcp-errors';
-import { providerFailureInfo, providerFailureMessage } from '../../features/coforge/domain/provider-failure';
+import { safeMcpToolFailure } from './mcp-errors';
+import { isMcpControlTool } from './mcp-control-tools';
 
 export interface McpTool {
   name: string;
@@ -17,6 +16,8 @@ export interface McpDispatcher {
 }
 const VERSIONS = ['2025-11-25', '2025-06-18', '2025-03-26'];
 const LIMIT = 1024 * 1024;
+const TOOL_CALL_LIMIT = 32;
+const CONTROL_CALL_LIMIT = 4;
 const rpcError = (id: unknown, code: number, message: string) => ({ jsonrpc: '2.0', id: id ?? null, error: { code, message } });
 function json(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
@@ -39,6 +40,8 @@ export class LocalMcpServer {
   private server: Server | undefined;
   private origin = '';
   private token: string | undefined;
+  private activeToolCalls = 0;
+  private activeControlCalls = 0;
   constructor(private readonly dispatcher: McpDispatcher) {}
   allow(): string {
     return this.token ??= randomBytes(32).toString('hex');
@@ -54,7 +57,8 @@ export class LocalMcpServer {
     });
     server.requestTimeout = 15_000;
     server.headersTimeout = 10_000;
-    server.maxConnections = 32;
+    // Keep enough sockets to answer ordinary agent fan-out with an MCP error, rather than silently dropping it.
+    server.maxConnections = 128;
     this.server = server;
     try {
       await new Promise<void>((resolve, reject) => {
@@ -120,6 +124,14 @@ export class LocalMcpServer {
     let args: Record<string, unknown>;
     try { const params = record(input.params); name = text({ min: 1, max: 100 })(params.name); args = record(params.arguments ?? {}); }
     catch { json(response, 200, rpcError(input.id, -32602, 'tools/call requires a name and object arguments.')); return; }
+    const control = isMcpControlTool(name);
+    if (control ? this.activeControlCalls >= CONTROL_CALL_LIMIT : this.activeToolCalls >= TOOL_CALL_LIMIT) {
+      const message = 'This tool call has not started. Wait for other calls to finish before repeating this request.';
+      reply({ isError: true, content: [{ type: 'text', text: message }], structuredContent: { error: {
+        code: 'HOST_UNAVAILABLE', message, requestNotStarted: true, retryAfterMs: 1000,
+      } } }); return;
+    }
+    if (control) this.activeControlCalls++; else this.activeToolCalls++;
     try {
       const result = await this.dispatcher.call(name, args);
       if (name === 'coforge_read_artifact' && result && typeof result === 'object' && 'kind' in result && result.kind === 'image'
@@ -131,14 +143,13 @@ export class LocalMcpServer {
       const structured = result && typeof result === 'object' && !Array.isArray(result) ? result : { value: result ?? null };
       reply({ content: [{ type: 'text', text: JSON.stringify(result ?? null) }], structuredContent: structured });
     } catch (error) {
-      const failure = providerFailureInfo(error);
-      if (error instanceof McpToolError || error instanceof CheckError || failure) {
-        const safe = error instanceof McpToolError ? error : failure ? new McpToolError('HOST_UNAVAILABLE', providerFailureMessage(failure), 'coforge_request_status')
-          : new McpToolError('INVALID_ARGUMENTS', 'Arguments do not match this tool’s input schema. Inspect tools/list and correct the request.');
-        reply({ isError: true, content: [{ type: 'text', text: safe.message }], structuredContent: { error: { code: safe.code, message: safe.message, ...(safe.nextTool ? { nextTool: safe.nextTool } : {}), ...(safe.retryAfterMs ? { retryAfterMs: safe.retryAfterMs } : {}) } } }); return;
-      }
       // Arbitrary native causes can contain paths, secrets or note content.
-      reply({ isError: true, content: [{ type: 'text', text: 'CoForge could not complete this tool call. Inspect the request and workflow state in the plugin before retrying.' }] });
-    }
+      const safe = safeMcpToolFailure(error, 'coforge_request_status');
+      let nextTool: string | undefined;
+      try { if (safe.nextTool && this.dispatcher.tools().some(tool => tool.name === safe.nextTool)) nextTool = safe.nextTool; }
+      catch { /* Optional discovery cannot replace the original safe tool failure. */ }
+      reply({ isError: true, content: [{ type: 'text', text: safe.message }], structuredContent: { error: { code: safe.code, message: safe.message,
+        ...(nextTool ? { nextTool } : {}), ...(safe.retryAfterMs ? { retryAfterMs: safe.retryAfterMs } : {}) } } });
+    } finally { if (control) this.activeControlCalls--; else this.activeToolCalls--; }
   }
 }

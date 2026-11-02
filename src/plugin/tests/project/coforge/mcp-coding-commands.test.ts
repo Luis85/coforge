@@ -114,6 +114,30 @@ it('records cancellation during intent storage as interrupted without launching 
   expect(outcome).toMatchObject({ status: 'interrupted', failure: { code: 'cancelled' } });
   expect(f.backend).not.toHaveBeenCalled(); expect((await f.commands.settle(f.input)).quiescent).toBe(true);
 });
+it('fences discovered command cancellation behind its in-flight intent before admitting original effects', async () => {
+  const f = await fixture(); await expect(f.commands.status('CFP-001', 'task', 'missing')).rejects.toThrow();
+  let release = () => {}, stored = false, cancelFinished = false, effects = 0;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  const save = McpCommandJournal.prototype.save;
+  vi.spyOn(McpCommandJournal.prototype, 'save').mockImplementationOnce(async function (this: McpCommandJournal, records) {
+    stored = true; await held; await save.call(this, records);
+  });
+  const backend = f.backend.getMockImplementation()!;
+  f.backend.mockImplementation(async (executable, args, options) => {
+    if (options.signal?.aborted) throw new Error('Cancelled before command effects');
+    effects++; return backend(executable, args, options);
+  });
+  const start = f.commands.start(f.input, f.lease, { command: 'echo scoped', idempotencyKey: 'held-intent', yieldTimeMs: 0 }, () => {});
+  let cancellation: Promise<unknown> | undefined;
+  try {
+    await expect.poll(() => stored).toBe(true);
+    const page = await f.commands.list('CFP-001', 'task', {}); const id = page.commands[0]!.id;
+    cancellation = f.commands.cancel('CFP-001', 'task', id).then(result => { cancelFinished = true; return result; });
+    await new Promise(resolve => setTimeout(resolve, 30)); expect(cancelFinished).toBe(false);
+    release(); await start;
+    expect(await cancellation).toMatchObject({ status: 'interrupted' }); expect(effects).toBe(0);
+  } finally { release(); await start.catch(() => {}); await cancellation?.catch(() => {}); await f.commands.settle(f.input); }
+});
 it('redacts a known environment credential before retaining command display or emitting observations', async () => {
   const credential = 'opaque-unformatted-private-value-12345'; vi.stubEnv('OPENAI_API_KEY', credential);
   const f = await fixture();

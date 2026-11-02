@@ -6,6 +6,8 @@ import { codingProfileDisplay } from './coding-profile-display';
 import { useStudioStore } from '../../stores/coforge-studio';
 import { isManagedWorkflowSession } from '../../../features/coforge/domain/workflow-lifecycle';
 import { MANAGED_NATIVE_SESSION_HELP, MANAGED_MCP_SESSION_HELP } from './workflow-session-display';
+import { capturedAnalyticalTools } from './analytical-tools-display';
+import { needsBuildInstructionReview } from './build-instruction-review';
 
 /** Provenance comes entirely from the selected run; current definitions are never read. */
 export function useCapturedWorkflowConfiguration(run: () => WorkflowRun) {
@@ -29,6 +31,8 @@ export function useCapturedWorkflowConfiguration(run: () => WorkflowRun) {
       provider: job.provider === 'mcp' ? 'External MCP client' : job.provider === 'codex' ? 'Codex' : 'Claude Code',
       help: job.provider === 'mcp' ? MANAGED_MCP_SESSION_HELP : `${MANAGED_NATIVE_SESSION_HELP} ${job.durable ? 'This recorded background agent can keep working after CoForge closes. Reopening observes the same execution.' : 'Keep CoForge open while this attached agent works.'}` }))),
     nativePolicies: computed(() => run().definition.steps.flatMap(step => step.kind === 'ai' && step.nativeTools ? [{ id: step.id, name: step.name, tools: step.nativeTools }] : [])),
+    instructionReviewSteps: computed(() => run().definition.steps.filter(step => step.kind === 'ai' && step.output === 'codechange' && needsBuildInstructionReview(step.instructions)).map(step => step.name)),
+    analyticalTools: computed(() => capturedJobs.value.flatMap(job => { const row = capturedAnalyticalTools(job); return row ? [row] : []; })),
     codingProfiles: computed(() => store.state?.activeProjectId === run().projectId ? (store.state.jobs ?? []).flatMap(job => {
       const execution = job.workflow;
       const attempt = run().attempts.find(attempt => attempt.id === execution?.attemptId);
