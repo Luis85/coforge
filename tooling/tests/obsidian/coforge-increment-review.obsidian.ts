@@ -69,8 +69,12 @@ describe('Increment review handoff in the contained host', () => {
     await browserExpect(criteria).toContainText('Saved plan · not verified');
     await browserExpect(findings).toContainText('Simulated assessment');
     await browserExpect(view.getByRole('button', { name: 'Accept increment', exact: true })).toBeEnabled();
-    const disclosure = findings.locator('details');
-    const summary = disclosure.locator('summary');
+    const disclosure = findings.locator('details.cf-increment-finding');
+    const summary = disclosure.locator(':scope > summary');
+    const original = disclosure.locator('details.cf-readable-original');
+    const originalSummary = original.locator(':scope > summary');
+    const savedFinding = saved.state.ideas.find(idea => idea.title === TITLE)?.workflowRun?.artifacts.find(artifact => artifact.stepId === 'assessment')?.markdown;
+    if (!savedFinding) throw new Error('The captured assessment is missing.');
     await browserExpect(disclosure).not.toHaveAttribute('open', '');
     const diff = view.getByRole('region', { name: 'Illustrative diff', exact: true });
     for (const width of [1280, 720]) for (const theme of ['light', 'dark']) {
@@ -84,6 +88,13 @@ describe('Increment review handoff in the contained host', () => {
       await obsidian.page.keyboard.press('Enter');
       await browserExpect(disclosure).toHaveAttribute('open', '');
       await browserExpect(summary).toBeFocused();
+      await browserExpect(original).not.toHaveAttribute('open', '');
+      await originalSummary.focus(); await originalSummary.press('Enter');
+      await browserExpect(original).toHaveAttribute('open', '');
+      await browserExpect(original.locator('pre')).toBeVisible();
+      expect(await original.locator('pre').textContent()).toBe(savedFinding);
+      await originalSummary.press('Enter');
+      await browserExpect(original).not.toHaveAttribute('open', '');
       expect(await findings.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
       expect(await criteria.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
       await findings.scrollIntoViewIfNeeded();
