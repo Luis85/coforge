@@ -29,6 +29,10 @@ npm run verify:project exited 0 on pinned Node 24.21.0 / npm 11.19.1:
 
 ## Evidence
 
+## Integration follow-up
+
+After integrating upstream workflow-session completion, the focused product run passed 10 files / 43 tests and typecheck passed. The first CI project gate passed all five gates in 435.8s, plus build, local installation and 16 submission checks. Full CI exposed narrow navigation clipping under larger Linux fonts, a toast test that treated the new vertical sidebar as a horizontal header, and an asynchronous project-switch test race. Narrow labels now use 12px with the existing 32px controls, 8px gaps and 110px height limit. Tests retain all clearance and model assertions and add large-font and return-trip project isolation coverage. The corrected local browser batch passed 20 tests (including all 8 UI-quality checks); the contained toast test passed in both themes and widths. Independent finishing review approved the changes. Final CI results are recorded on the pull request before merge.
+
 Final gate: reports/verification-repair/verify-project-final.log. Full JSON: reports/verification-repair/full-product-tests.json. Native: reports/verification-repair/obsidian-final.log and obsidian-smoke-final.log, plus reports/obsidian/cases/. UI audit: reports/request-panel/audit.md. Gallery: reports/ui-gallery/index.json; reviewed contact sheet: reports/verification-repair/gallery-contact.png. Reports, portable toolchain binaries, caches and builds remain ignored.
 
 ## Validation limits

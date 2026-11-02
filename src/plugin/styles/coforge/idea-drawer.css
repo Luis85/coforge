@@ -222,7 +222,7 @@
 @container plugin-shell-leaf (max-width: 700px) {
   .cf-idea-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .cf-studio nav.cf-idea-tabs { flex-flow: row wrap; gap: var(--cf-space-sm); padding: var(--cf-space-sm); border-right: 0; border-bottom: 1px solid var(--cf-border); overflow-y: auto; max-height: 110px; }
-  .cf-studio .cf-idea-tabs button { padding: var(--cf-space-xs) var(--cf-space-sm); min-height: 32px; justify-content: center; }
+  .cf-studio .cf-idea-tabs button { padding: var(--cf-space-xs) var(--cf-space-sm); min-height: 32px; font-size: 12px; justify-content: center; }
   .cf-idea-tabs small { display: none; }
   .cf-idea-fields-grid { gap: 0 12px; }
   .cf-idea-top { gap: var(--cf-space-xs); padding: var(--cf-space-sm); }

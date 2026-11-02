@@ -7,7 +7,7 @@ for (const theme of ['light', 'dark']) test(`request drawer navigation resists n
   await expect(page.locator('html')).toHaveAttribute('data-prototype-ready', 'true');
   await page.evaluate(value => { document.body.classList.toggle('theme-light', value === 'light'); document.body.classList.toggle('theme-dark', value === 'dark'); }, theme);
   // Match native wrapper rules; the request's own navigation must retain its intended layout.
-  await page.addStyleTag({ content: '.ps--coforge .cf-studio nav { flex-direction: column; flex: 0 0 12rem; } .ps--coforge .cf-studio nav button { width: 100%; }' });
+  await page.addStyleTag({ content: '.ps--coforge .cf-studio { --font-ui-small: 16px; } .ps--coforge .cf-studio nav { flex-direction: column; flex: 0 0 12rem; } .ps--coforge .cf-studio nav button { width: 100%; }' });
   await page.locator('.cf-sidebar').getByRole('button', { name: /^Idea board/ }).click();
   await page.locator('.cf-idea-card .cf-idea-open').first().click();
   const drawer = page.locator('.cf-idea-drawer'); const tabs = drawer.getByRole('navigation', { name: 'Idea sections', exact: true });

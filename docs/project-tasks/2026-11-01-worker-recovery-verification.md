@@ -45,4 +45,12 @@ Pinned status reports ok; detailed logs under reports/verification-repair/.
 
 ## Untested scope
 
-No live external provider or real billing invocation was performed. Native host validation was targeted rather than the entire Obsidian suite. The six pre-existing POSIX-only product cases remain skipped on Windows; all supported-platform product tests pass. No remote Git/release action was requested.
+No live external provider or real billing invocation was performed. Native host validation was targeted rather than the entire Obsidian suite. The six pre-existing POSIX-only product cases remain skipped on Windows; all supported-platform product tests pass. No release action is included.
+
+## Pull request integration (2026-11-02)
+
+The owner authorized commit, push, pull request and merge after all CI checks pass. PR #69 integrates the work with upstream workflow-session completion (`7d4f08ff`). Both stopped-session recovery and fresh Git identity verification remain present. Post-rebase local typecheck passed; 10 focused product files / 43 tests passed (57.20s).
+
+The first CI run passed the full project gate (5 gates in 435.8s), production build, local installation, submission checks (16 pass / 0 warn / 0 fail), Windows native lifetime and verification isolation. The full Obsidian run passed 69 of 70 tests, exposing a stale toast geometry assertion: the new full-height sidebar was treated as a horizontal header. The correction explicitly checks non-overlap with both header and responsive section navigation, retains footer clearance, and changes no runtime behavior, timeout or guard. The contained-host regression then passed (1 file / 1 test, 11.57s), with six measured feature/project cases across both themes and wide/narrow panes. Screenshot and geometry evidence reviewed under `reports/verification-repair/` and `reports/obsidian/cases/`.
+
+The first full browser run passed 251 of 254 tests. Its two navigation failures exposed clipping under Linux's larger UI font; a 16px native-font fixture reproduced both failures locally. Narrow labels now use a consistent 12px while retaining 32px controls, 8px gaps, the 110px limit and every clipping assertion. The remaining project-switch failure came from inspecting the previous project's workflow before asynchronous navigation finished. Its test now waits for both project identity and the Settings destination, retains exact model/provider assertions, and adds return-trip project isolation checks. An independent finishing review approved these four changed files without findings.

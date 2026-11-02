@@ -33,6 +33,15 @@ async function save(page: Page) {
     ),
   ).toBeVisible();
 }
+async function openProjectWorkflow(page: Page, name: string) {
+  await page.locator(".cf-project-switcher").click();
+  await page.getByRole("button", { name: `Settings for ${name}`, exact: true }).click();
+  // Project selection and its Settings destination finish asynchronously.
+  // Bind subsequent step assertions to the selected project's loaded editor.
+  await expect(page.locator(".cf-project-switcher")).toContainText(name);
+  await expect(page.locator(".cf-settings-page").getByRole("heading", { name: "Project settings", exact: true })).toBeVisible();
+  await openWorkflowSettings(page);
+}
 test("configures explicit mixed step agents independently and restores the standard definition in the dedicated editor", async ({
   page,
 }) => {
@@ -91,11 +100,7 @@ test("keeps each project’s explicit step models separate", async ({ page }) =>
   );
   await step(page, "plan", "claude", "opus");
   await save(page);
-  await page.locator(".cf-project-switcher").click();
-  await page
-    .getByRole("button", { name: "Settings for Mosslight", exact: true })
-    .click();
-  await openWorkflowSettings(page);
+  await openProjectWorkflow(page, "Mosslight");
   await page
     .locator('[data-step-id="screen"] .cf-workflow-step-select')
     .click();
@@ -109,6 +114,13 @@ test("keeps each project’s explicit step models separate", async ({ page }) =>
   await expect(page.getByLabel("AI provider", { exact: true })).toHaveValue(
     "demo",
   );
+  await openProjectWorkflow(page, "Orbit garden");
+  await page.locator('[data-step-id="plan"] .cf-workflow-step-select').click();
+  await expect(page.getByLabel("AI provider", { exact: true })).toHaveValue("claude");
+  await expect(page.getByLabel("AI model", { exact: true })).toHaveValue("opus");
+  await page.locator('[data-step-id="screen"] .cf-workflow-step-select').click();
+  await expect(page.getByLabel("AI provider", { exact: true })).toHaveValue("demo");
+  await expect(page.getByLabel("AI model", { exact: true })).toBeDisabled();
 });
 test("keeps an invalid explicit model draft and prevents navigation from discarding it", async ({
   page,
