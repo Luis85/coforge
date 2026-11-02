@@ -23,6 +23,8 @@ Owner decisions: BRIEF.md, 2026-11-02. Task: docs/project-tasks/2026-11-02-cf133
 
 ## Validation so far
 
+- First-head full CI: 2,429/2,430 product tests passed, zero skips; the sole failure was an obsolete literal browser-wording expectation. The exact expectation was updated to interactive browser, with no production change; current guidance/native-capability suites passed 15/15.
+- Composed real engine qualification passed: new admission → installed Claude native child/four scoped reads/research → one saved artifact/succeeded job → strict persisted reload. Original OS cessation was retained, source unchanged, no extra scheduler dispatch, zero real model calls.
 - Test-first regressions reproduce missing analytical defaults, false opt-out rejection, external/provider forgery, persisted property-order rejection, exact-file ENOTDIR, absent terminal observations, unstructured host failures, stale recovery flags, physical socket resets, control starvation and cancellation races.
 - Backend targeted batches: 49 tests/12 suites and final 24 tests/6 suites passed. File-search batch: 38 passed. MCP HTTP/status/observation batch: 43 passed. Final cancellation/control batch: 40 passed. These batches overlap; they are not summed.
 - Installed Claude and Codex: actual native child, four verified scoped reads and native research passed against local synthetic endpoints. Actual root/child image denials passed with zero image payloads; source unchanged and original Windows job quiescence verified. Coding child edits plus actual PowerShell assertions passed. Zero real model calls, copied credentials or global configuration writes.
