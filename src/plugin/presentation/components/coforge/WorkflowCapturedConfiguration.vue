@@ -22,6 +22,10 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
       host permissions and review gates still apply.
     </p>
     <p v-if="model.providerContextHelp" class="cf-settings-help">{{ model.providerContextHelp }}</p>
+    <section v-if="model.instructionReviewSteps.length" aria-label="Captured Build instructions need review">
+      <h3>Build instructions need review</h3>
+      <p class="cf-settings-help">{{ model.instructionReviewSteps.join(', ') }} contains saved command or test-execution restrictions. Current tools do not rewrite these captured instructions. Review this run's text before continuing; editing the workflow changes future runs, and does not rerun this one.</p>
+    </section>
     <WorkflowBackgroundRetryHistory :run="run" />
     <section v-if="model.managedSessions.length" aria-label="Captured managed agent sessions">
       <h3>Managed agent sessions</h3>
@@ -37,9 +41,18 @@ const model = useCapturedWorkflowConfiguration(() => props.run);
         <p class="cf-settings-help">{{ profile.help }}</p><p v-if="profile.assistants" class="cf-settings-help">{{ profile.assistants }}</p><p v-if="profile.boundary" class="cf-settings-help">{{ profile.boundary }}</p>
       </details>
     </section>
+    <section v-if="model.analyticalTools.length" aria-label="Captured analytical tools">
+      <h3>Admitted analytical tools</h3>
+      <p class="cf-settings-help">These permissions belong to each recorded attempt. They do not change when the workflow's defaults change. Allowed tools are not proof they were used; open Sessions for observed activity.</p>
+      <details v-for="tools in model.analyticalTools" :key="tools.id" class="cf-idea-evidence" :data-analytical-attempt="tools.attemptId">
+        <summary>{{ tools.stepName }} · {{ tools.provider }} · {{ tools.title }}<span class="cf-idea-run-meta">Attempt <code>{{ tools.attemptId }}</code></span></summary>
+        <p class="cf-settings-help">{{ tools.assistants }}. {{ tools.research }}.</p>
+        <p class="cf-settings-help">{{ tools.access }} Analytical assistants inherit that scope; these tools do not allow shell commands or repository writes. Provider and network availability still apply.</p>
+      </details>
+    </section>
     <section v-if="model.nativePolicies.length" aria-label="Captured native tool policies">
       <h3>Saved requested tool options</h3>
-      <dl class="cf-settings-runtime-list"><div v-for="policy in model.nativePolicies" :key="policy.id"><dt>{{ policy.name }}</dt><dd><span v-if="policy.tools.delegation">Saved native assistant limit · {{ policy.tools.delegation.maxConcurrent }} concurrent. </span><span v-if="policy.tools.verification">Saved isolated command selections: {{ policy.tools.verification.commandIds.join(', ') }}.</span></dd></div></dl>
+      <dl class="cf-settings-runtime-list"><div v-for="policy in model.nativePolicies" :key="policy.id"><dt>{{ policy.name }}</dt><dd><span v-if="policy.tools.delegation">Saved native assistant limit · {{ policy.tools.delegation.maxConcurrent }} concurrent. </span><span v-else-if="policy.tools.delegation === false">Saved analytical assistants preference: disabled. </span><span v-if="policy.tools.research !== undefined">Saved analytical research preference: {{ policy.tools.research ? 'enabled' : 'disabled' }}. </span><span v-if="policy.tools.verification">Saved isolated command selections: {{ policy.tools.verification.commandIds.join(', ') }}.</span></dd></div></dl>
       <p class="cf-settings-help">Saved options are distinct from admitted capabilities. A new coding profile can retain legacy command selections without using them. Activity retains each attempt’s actual profile and observed outcomes.</p>
     </section>
     <section v-if="model.coworkers.length" aria-label="Captured CoWorkers">

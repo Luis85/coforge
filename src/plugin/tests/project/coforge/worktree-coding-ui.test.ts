@@ -31,7 +31,7 @@ it('presents ordinary native coding and its assistant limit without a Docker set
     expect(coding.text()).not.toContain('Enable isolated workflow verification');
     expect(coding.find('[aria-label="Allow provider-native assistants"]').exists()).toBe(false);
     await coding.get('[aria-label="Maximum concurrent native assistants"]').setValue(3);
-    expect(build.nativeTools.delegation?.maxConcurrent).toBe(3);
+    expect(build.nativeTools.delegation).toEqual({ maxConcurrent: 3 });
     expect(build.nativeTools.verification?.commandIds).toEqual(['retained-old-check']); expect(build.instructions).toBe(instructions);
     expect(f.studio.integration().workflowVerification).toBeUndefined(); expect(f.runner).not.toHaveBeenCalled();
     const project = { ...f.project, allowImplementation: true };

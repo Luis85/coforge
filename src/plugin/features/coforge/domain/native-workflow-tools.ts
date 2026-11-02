@@ -1,7 +1,8 @@
 import { boolean, list, number, optional, shape, text, type Check } from './check';
 
 export interface NativeWorkflowTools {
-  delegation?: { maxConcurrent: number };
+  delegation?: false | { maxConcurrent: number };
+  research?: boolean;
   verification?: { commandIds: string[] };
 }
 export interface WorkflowVerificationCommand { id: string; label: string; executable: string; args: string[] }
@@ -17,10 +18,11 @@ export const workflowVerificationCommandCheck: Check<WorkflowVerificationCommand
   if (bytes > 4096) throw new Error('Each approved verification command must fit within 4096 encoded bytes, including its label and arguments.');
   return result;
 };
-const tools = shape({ delegation: optional(shape({ maxConcurrent: number({ integer: true, min: 1, max: 8 }) }, { strict: true })), verification: optional(shape({ commandIds: list(id, { min: 1, max: 16 }) }, { strict: true })) }, { strict: true });
+const delegation: Check<NonNullable<NativeWorkflowTools['delegation']>> = (value, path) => value === false ? false : shape({ maxConcurrent: number({ integer: true, min: 1, max: 8 }) }, { strict: true })(value, path);
+const tools = shape({ delegation: optional(delegation), research: optional(boolean), verification: optional(shape({ commandIds: list(id, { min: 1, max: 16 }) }, { strict: true })) }, { strict: true });
 export const nativeWorkflowToolsCheck: Check<NativeWorkflowTools> = (value, path) => {
   const result = tools(value, path);
-  if (!result.delegation && !result.verification) throw new Error('Select native delegation or verification, or omit the native tools policy.');
+  if (result.delegation === undefined && result.research === undefined && !result.verification) throw new Error('Select native delegation, research or verification, save an explicit opt-out, or omit the native tools policy.');
   if (result.verification && new Set(result.verification.commandIds).size !== result.verification.commandIds.length) throw new Error('Verification command selections must be unique.');
   return result;
 };
@@ -33,13 +35,16 @@ export const workflowVerificationProfileCheck: Check<WorkflowVerificationProfile
 };
 export const defaultWorkflowVerificationProfile = (): WorkflowVerificationProfile => ({ enabled: false, dockerBin: 'docker', imageId: '', commands: [], timeoutSeconds: 600, maxRuns: 8 });
 
-interface NativeStep { nativeTools?: NativeWorkflowTools; provider: string; coworkerId?: string; access: string; execution?: { mode: string; maxRuntimeSeconds?: number } }
+interface NativeStep { nativeTools?: NativeWorkflowTools; provider: string; coworkerId?: string; access: string; output?: string; execution?: { mode: string; maxRuntimeSeconds?: number } }
 /** Definition validation may defer provider resolution for a saved CoWorker; admission must supply it. */
 export function validateNativeWorkflowTools(step: NativeStep, effectiveProvider?: string, external = false, ordinaryCoding = false, managedSession = false): void {
   if (!step.nativeTools) return;
   const policy = nativeWorkflowToolsCheck(step.nativeTools);
+  if (!policy.delegation && !policy.research && !policy.verification) return;
   const provider = effectiveProvider ?? (step.coworkerId ? undefined : step.provider);
   if (external || provider !== undefined && !['claude', 'codex'].includes(provider)) throw new Error('Native tools require a captured native Claude Code or Codex workflow invocation. External MCP, Herdr and simulation cannot adopt this policy.');
+  if (policy.research && !(['none', 'readproject'].includes(step.access) && ['plan', 'design', 'markdown'].includes(step.output ?? '') || step.access === 'editworktree' && step.output === 'codechange'))
+    throw new Error('Native research requires an analytical step or an ordinary coding task; classifiers cannot adopt it.');
   if (policy.verification && step.access === 'none') throw new Error('Verification requires read-only project or isolated worktree access.');
   if (!ordinaryCoding && !managedSession && policy.delegation && provider === 'codex' && step.execution && step.execution.maxRuntimeSeconds === undefined) throw new Error('Delegated background Codex requires an explicit elapsed deadline.');
 }

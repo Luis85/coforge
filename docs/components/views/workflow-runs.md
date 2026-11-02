@@ -93,3 +93,10 @@ not repeatedly retry the held request. Captured configuration shows the current
 run's workflow revision and exact template content, with literal Markdown source
 and a safe rendered preview. Retained prior runs expose their own captured
 configuration separately, without looking up live template notes.
+
+Captured configuration shows admitted analytical tools per exact attempt, apart
+from saved requested options. New scoped analytical grants record assistant
+concurrency and research permission; absent historical grants stay restricted.
+Sessions remains the source of observed activity, rather than treating allowed
+tools as evidence they ran. Known trusted command/test prohibitions are flagged without
+rewriting this run's captured instructions or replaying work.

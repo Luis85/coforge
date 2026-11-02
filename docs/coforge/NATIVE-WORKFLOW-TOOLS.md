@@ -53,6 +53,32 @@ The existing project, runtime, cost, lifetime and human review gates still apply
 Saving settings does not dispatch work. MCP clients follow the captured task
 workflow described in [Local MCP integration](MCP.md).
 
+## Research, planning and refinement
+
+New native Claude Code and Codex Plan, Design and Markdown attempts include
+scoped native assistants and web research by default. This also covers new
+text-only improvement passes. The agent directs its own assistants; the default
+is two concurrent assistants. No CoWorker roster or separate worker setup is
+required for these tools.
+
+The workflow step's **Agent tools** section shows both choices enabled. Uncheck
+one to save an explicit analytical opt-out, or expand **Optional assistant
+settings** to change concurrency. Merely viewing defaults does not edit the
+saved definition or start work. Save workflow applies draft edits to future runs.
+
+These analytical tools inherit the step's existing access: read-only project
+files or no repository files. They do not grant shell commands, test execution,
+native filesystem writes or coding access. Research uses supported provider
+search/fetch tools; account and network restrictions still apply. Classification,
+Council/v2, Simulation, Herdr and external MCP retain their own contracts.
+
+Eligible new admissions record `analyticalTools: { version: 1,
+profile: "scoped-analyst-v1" }` and their resolved tool choices on the job. Saved
+definitions and already admitted attempts are not upgraded. Captured configuration
+shows admitted analytical permissions separately from saved requested options;
+Sessions provides observed activity. Permission is not proof an assistant or
+research tool actually ran.
+
 At admission CoForge captures `worktreeCoding` on the attempt:
 
 | Captured profile | Execution |
@@ -64,8 +90,18 @@ At admission CoForge captures `worktreeCoding` on the attempt:
 New eligible admissions receive the current coding profile even when they use
 an older saved workflow. Their saved custom instructions and previous results
 are preserved. Review instructions that still prohibit the coding or tests you
-intend. Classifiers, text-only passes and read-only analysis retain their
-intended restricted access. Simulation and Herdr retain their separate behavior.
+intend. Analytical assistants and research retain read-only/no-file access as
+described above. Classifiers, Simulation and Herdr keep their separate behavior.
+
+An exact earlier shipped Build starter forbids commands and test execution.
+When that starter is detected in the editor, **Update known starter in draft**
+replaces only that known prefix and preserves the owner's added instructions.
+Review the resulting draft and save explicitly. Arbitrary custom prompts are not
+rewritten. Existing runs retain their captured instructions, with a warning in
+Captured configuration; editing the workflow never reruns the old attempt.
+Customized trusted Build instructions containing the known command/test
+prohibitions receive a review warning only. Their text is preserved; the
+exact-starter replacement is not offered for custom instructions.
 
 ## Permissions, assistants and lifetime
 
@@ -89,7 +125,12 @@ Native coding defaults to at most two concurrent provider-native assistants.
 Optional assistant settings can save another supported concurrency limit. This is
 concurrency permission, not proof that any assistants ran or a lifetime count.
 The optional Improve & polish configuration shares its saved assistant limit
-with restricted text-only passes; it does not grant them coding shell access.
+with scoped text-only passes; text analytical opt-outs do not change the separate
+ordinary coding profile. Text-only passes never gain coding shell access.
+Open **Text-only improvement tools** to disable or re-enable their assistants or
+research. Both default on. Disabling text-only assistants preserves that explicit
+preference and leaves code improvements at the coding default of two concurrent
+assistants; re-enable them to edit the shared limit. Save workflow remains explicit.
 
 Earlier admitted deadlines and limits retain their recorded meaning. New managed
 sessions do not inherit the saved legacy task-duration, turn or USD values.

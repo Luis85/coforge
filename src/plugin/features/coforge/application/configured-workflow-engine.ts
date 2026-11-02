@@ -30,6 +30,7 @@ import { assertPolishingMetadata, assertPolishingResolved } from './workflow-run
 import { polishingSaveOptions, workflowRunSaveOptions } from './polishing-save-options';
 import { captureWorkflowVerification, validateNativeWorkflowTools } from '../domain/native-workflow-tools';
 import { captureWorktreeCodingCapability } from '../domain/worktree-coding';
+import { admittedAnalyticalStep, isAnalyticalWorkflowStep, type AnalyticalWorkflowTools } from '../domain/workflow-analytical-tools';
 import { recordWorkflowVerification, recordWorkflowVerificationRuntime } from './workflow-verification';
 import { recordWorkflowNativeProcess, recordWorkflowNativeRuntime } from './native-workflow-process';
 import { skipOwnerScreening } from './owner-screening';
@@ -114,12 +115,14 @@ export class ConfiguredWorkflowEngine {
       return null;
     }
     const provider = run.external ? 'mcp' : step.provider;
+    const analyticalTools: AnalyticalWorkflowTools | undefined = !run.external && isAnalyticalWorkflowStep(step, provider) ? { version: 1, profile: 'scoped-analyst-v1' } : undefined;
+    const admittedStep = admittedAnalyticalStep(step, analyticalTools);
     if (step.execution && !run.external && !['claude', 'codex'].includes(provider)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
     configuredRuntime(state, idea, step, run.external, !!polish && step.output !== 'codechange');
     const lifecycle = captureWorkflowLifecycle(provider);
     const worktreeCoding = captureWorktreeCodingCapability(step, provider, findProject(state, run.projectId).allowImplementation);
-    if (worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(step, provider, run.external === true, worktreeCoding?.profile === 'native-worktree-v1', !!lifecycle);
-    const verificationProfile = worktreeCoding ? undefined : captureWorkflowVerification(step.nativeTools, state.integration.workflowVerification, step.access);
+    if (worktreeCoding?.profile !== 'mcp-worktree-v1') validateNativeWorkflowTools(admittedStep, provider, run.external === true, worktreeCoding?.profile === 'native-worktree-v1', !!lifecycle);
+    const verificationProfile = worktreeCoding ? undefined : captureWorkflowVerification(admittedStep.nativeTools, state.integration.workflowVerification, step.access);
     const nativeBackground = step.execution && worktreeCoding?.profile !== 'mcp-worktree-v1';
     if (nativeBackground && (run.external || !['claude', 'codex'].includes(provider) || !this.host.durableBuilds)) throw new Error('Background Build requires the native Claude or Codex worker. No foreground/provider fallback is allowed.');
     if (nativeBackground && state.runtime.durableBuild?.ready === false) throw new Error(state.runtime.durableBuild.message || 'Check the background worker before admitting another Build.');
@@ -128,6 +131,7 @@ export class ConfiguredWorkflowEngine {
     const inputs = polish ? polish.sourceArtifacts : configuredInputs(run, step, idea.workflowHistory, idea);
     const snapshot: ConfiguredStepExecution = { runId: run.id, definitionRevision: run.definition.revision, proposalRevision: run.proposalRevision,
       ...(lifecycle ? { lifecycle } : {}),
+      ...(analyticalTools ? { analyticalTools } : {}),
       ...(worktreeCoding ? { worktreeCoding } : {}),
       ...(verificationProfile ? { verificationProfile } : {}),
       ...(retry ? { backgroundRetryId: retry.id } : {}),
@@ -137,7 +141,7 @@ export class ConfiguredWorkflowEngine {
       ...(step.coworkerId ? { coworker: structuredClone(run.coworkerBindings?.find(item => item.stepId === step.id)?.profile) } : {}),
       ...(step.outputTemplateId ? { outputTemplate: structuredClone(run.outputTemplates?.find(template => template.id === step.outputTemplateId)) } : {}),
       ...(run.automationEvent ? { automationEvent: structuredClone(run.automationEvent) } : {}),
-      attemptId: id, step: structuredClone(step), inputArtifacts: structuredClone(inputs), ...(!retry && run.workspaceId ? { workspaceId: run.workspaceId } : {}) };
+      attemptId: id, step: structuredClone(admittedStep), inputArtifacts: structuredClone(inputs), ...(!retry && run.workspaceId ? { workspaceId: run.workspaceId } : {}) };
     const job: AgentJob = { id: ids?.jobId ?? retry?.jobId ?? crypto.randomUUID(), ideaId, projectId: run.projectId, stage: compatibilityStage(step.output), provider,
       ...(!run.external ? { model: step.model, ...(step.provider === 'herdr' ? { herdrAgent: step.herdrAgent ?? 'claude' } : {}) } : {}), workflow: snapshot,
       status: 'queued', startedAt: at, logs: [`${step.name} queued.`] };

@@ -9,6 +9,8 @@ import type { McpStepFiles } from './mcp-step-files';
 import { McpToolError } from './mcp-errors';
 import { modelWorkflowJob } from './model-workflow-job';
 import { mcpCodingTools } from './mcp-coding-tools';
+import { assertVerificationSettled } from '../../features/coforge/application/verification-admission';
+import { isMcpControlTool } from './mcp-control-tools';
 
 const id = text({ min: 1, max: 100 });
 const identifier = { type: 'string', minLength: 1, maxLength: 100 };
@@ -22,7 +24,8 @@ const taskCheck = shape({ taskId: id }, { strict: true });
 /** Project/attempt authorization is repeated on every tool, independent of the transport's credentials. */
 export class McpWorkflowTools {
   private pending: Promise<unknown> = Promise.resolve();
-  constructor(private readonly studio: StudioService, private readonly runner: McpStepRunner, private readonly files?: McpStepFiles, private readonly authorize: (projectId: string) => void = () => {}) {}
+  constructor(private readonly studio: StudioService, private readonly runner: McpStepRunner, private readonly files?: McpStepFiles, private readonly authorize: (projectId: string) => void = () => {},
+    private readonly mcpRecoveryRequired?: (projectId: string, ideaId: string) => boolean) {}
   tools(): McpTool[] {
     return [
       ...mcpCodingTools(),
@@ -35,7 +38,7 @@ export class McpWorkflowTools {
       definition('coforge_cancel_step', 'Cancel this request’s active MCP step. Partial changes stay in its private workspace for inspection.', schema({ taskId: identifier }), false),
       definition('coforge_list_files', 'Discover bounded repository file paths. Optional path narrows the directory; optional query filters file paths by a case-insensitive literal substring before the result limit. Truncated results are incomplete; narrow path and retry. Credentials, metadata, managed notes and symlinks are excluded.', schema({ taskId: identifier, path: pathSchema, query: querySchema }, ['taskId'])),
       definition('coforge_read_file', 'Read a bounded UTF-8 repository file using the task access profile.', schema({ taskId: identifier, path: pathSchema })),
-      definition('coforge_search_files', 'Search case-sensitive literal text in bounded UTF-8 repository files. Optional path narrows the directory. Returns matching lines with file names. Truncated results are incomplete; narrow path and retry.', schema({ taskId: identifier, query: querySchema, path: pathSchema }, ['taskId', 'query'])),
+      definition('coforge_search_files', 'Search case-sensitive literal text in bounded UTF-8 repository files. Optional path selects one exact file or narrows to a directory. Returns matching lines with file names. Truncated results are incomplete; narrow path and retry.', schema({ taskId: identifier, query: querySchema, path: pathSchema }, ['taskId', 'query'])),
       definition('coforge_write_file', 'Create or replace a UTF-8 file in this task’s owned Build worktree. Existing content must match expectedContent; use null to create. This file operation never runs commands or changes Git metadata. Captured legacy tasks retain their original dependency-file restrictions.', schema({ taskId: identifier, path: pathSchema, content: { type: 'string', maxLength: 200000 }, expectedContent: { type: ['string', 'null'], maxLength: 200000 } }), false),
       definition('coforge_delete_file', 'Delete one regular UTF-8 file only in the Build worktree, with its exact previous content. No directories, metadata or credentials.', schema({ taskId: identifier, path: pathSchema, expectedContent: { type: 'string', maxLength: 200000 } }), false),
     ];
@@ -64,6 +67,12 @@ export class McpWorkflowTools {
     try { return this.runner.task(projectId, taskId); }
     catch { throw new McpToolError('TASK_NOT_READY', 'This active attempt is preparing its workspace or finalizing its result. Wait before polling again; keep the same task identity.', 'coforge_step_context', 1000); }
   }
+  private cancellationTask(projectId: string, taskId: string): void {
+    const state = this.studio.store.internalSnapshot();
+    const job = state.jobs.find(item => item.id === taskId && item.projectId === projectId && item.provider === 'mcp' && ['queued', 'running'].includes(item.status));
+    if (!job) throw new McpToolError('PERMISSION_DENIED', 'No active MCP attempt with that identity belongs to this project.');
+    if (!configuredAttempt(state, job).run.external) throw new McpToolError('PERMISSION_DENIED', 'Cancellation requires the original external MCP workflow attempt.');
+  }
   private waitForResult(taskId: string): Promise<void> {
     const finished = () => !this.studio.state().jobs.some(job => job.id === taskId && ['queued', 'running'].includes(job.status));
     if (finished()) return Promise.resolve();
@@ -75,6 +84,7 @@ export class McpWorkflowTools {
     });
   }
   call(projectId: string, name: string, raw: unknown): Promise<unknown> {
+    if (isMcpControlTool(name)) return this.execute(projectId, name, raw);
     const next = this.pending.then(() => this.execute(projectId, name, raw));
     this.pending = next.catch(() => undefined); return next;
   }
@@ -91,7 +101,11 @@ export class McpWorkflowTools {
       const { ideaId } = shape({ ideaId: id }, { strict: true })(raw); const idea = this.idea(projectId, ideaId);
       const jobs = this.studio.state().jobs.filter(job => job.ideaId === ideaId && job.projectId === projectId);
       const job = jobs.find(job => ['queued', 'running'].includes(job.status)) ?? jobs.at(-1);
-      const unknownOwnership = !!job && (job.failure?.code === 'ownership_unknown' || job.nativeProcess?.phase === 'unknown' || job.verificationRuntime?.some(record => record.phase !== 'terminal') || job.durable?.snapshot?.phase === 'attention');
+      const retained = this.studio.store.internalSnapshot().jobs.filter(item => item.ideaId === ideaId && item.projectId === projectId
+        && !['queued', 'running'].includes(item.status));
+      let unknownOwnership = !!this.mcpRecoveryRequired?.(projectId, ideaId) || jobs.some(item => item.durable?.snapshot?.phase === 'attention');
+      try { assertVerificationSettled({ ideas: [idea], jobs: retained }, ideaId); }
+      catch { unknownOwnership = true; }
       return { ideaId, projectId, status: idea.status, workflow: idea.workflowRun ? { runId: idea.workflowRun.id, state: idea.workflowRun.state, stepIndex: idea.workflowRun.cursor } : null,
         attempt: job ? { taskId: job.id, provider: job.provider, status: job.status, step: job.workflow?.step.name ?? job.stage,
           startedAt: job.startedAt, finishedAt: job.finishedAt, failure: job.failure,
@@ -134,8 +148,8 @@ export class McpWorkflowTools {
     }
     if (name === 'coforge_step_context' || name === 'coforge_cancel_step') {
       const { taskId } = taskCheck(raw);
-      this.task(projectId, taskId);
-      if (name === 'coforge_step_context') return this.runner.context(projectId, taskId);
+      if (name === 'coforge_step_context') { this.task(projectId, taskId); return this.runner.context(projectId, taskId); }
+      this.cancellationTask(projectId, taskId);
       await this.studio.cancel(taskId); return { status: 'cancellation-requested', taskId };
     }
     if (name === 'coforge_run_command') {

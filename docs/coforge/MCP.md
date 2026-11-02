@@ -47,9 +47,32 @@ directory and an optional case-insensitive literal `query` to find filenames, th
 read the exact paths returned. Use `coforge_search_files` with a case-sensitive
 content `query` and optional directory `path` to inspect a focused area. For
 example, search filenames for `coworkers` under `src`, then search content under
-`src/plugin/styles`. A truncated reply is incomplete: narrow the directory and
+`src/plugin/styles`. Search also accepts an exact file path, for example
+`src/plugin/features/coforge/domain/seed.ts`. An explicit file must be a permitted
+regular UTF-8 file within the read limit; an invalid or unreadable explicit target
+returns a typed error rather than an empty match list. A truncated reply is incomplete: narrow the directory and
 retry before concluding that a file does not exist. These options preserve the
 existing protected-path, file-size and scan limits.
+
+Tool failures include a safe structured code. Suggested next tools are included
+only when this connection actually exposes them. Unexpected host failures do not
+publish raw causes and do not establish that a change had no effect; inspect the
+current task and files before repeating a mutation. A rejected search does not
+close the task or authorize another attempt.
+
+Parallel tool pressure returns a bounded `HOST_UNAVAILABLE` response with
+`requestNotStarted: true` and an internal wait hint, rather than dropping an
+ordinary agent connection. That explicit flag means this request never reached
+execution; it is different from an uncertain outcome after execution began.
+Existing status and cancellation tools have a separate bounded control lane so
+they can inspect or stop work while ordinary calls are busy. All task/project
+authorization and original-process settlement checks still apply.
+
+Compact request status checks retained native recovery evidence as well as the
+external task's private workspace acknowledgements, including older attempts.
+Normal running work is not an operator-recovery action; a durable execution in
+attention remains an unresolved recovery state. Status inspection never dispatches
+work, acknowledges recovery or exposes private ownership handles.
 
 New implementation-authorized coding attempts capture the ordinary worktree
 coding profile. Native providers use their own coding tools and native children;

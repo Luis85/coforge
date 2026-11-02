@@ -76,7 +76,7 @@ describe('honest increment handoffs', () => {
     const args = backgroundClaudeArgs(request, '/private/broker.json');
     const prompt = args[args.indexOf('--system-prompt') + 1]!;
     expect(prompt).toContain('checks actually executed');
-    expect(prompt).toContain('Native file, shell, browser and agent tools are unavailable');
+    expect(prompt).toContain('Native file, shell, interactive browser and agent tools are unavailable');
     expect(args[args.indexOf('--tools') + 1]).toBe('');
     expect(args[args.indexOf('--allowedTools') + 1]).not.toContain('Agent');
   });

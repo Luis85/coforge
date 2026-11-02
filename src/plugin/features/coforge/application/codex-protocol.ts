@@ -13,7 +13,7 @@ export interface CodexInvocation { model: string; effort?: ReasoningEffort; sche
 export function buildCodexArgs(input: CodexInvocation): string[] {
   validateModelEffort({ provider: 'codex', model: input.model, effort: input.effort });
   const toolTimeout = input.mcpToolTimeoutSeconds === undefined ? undefined : number({ integer: true, min: 1, max: Number.MAX_SAFE_INTEGER })(input.mcpToolTimeoutSeconds);
-  const config: Record<string, unknown> = { approval_policy: 'never', web_search: 'disabled', project_doc_max_bytes: 0,
+  const config: Record<string, unknown> = { approval_policy: 'never', web_search: input.nativeTools?.research === true ? 'live' : 'disabled', project_doc_max_bytes: 0,
     model_catalog_json: input.modelProfilePath, 'apps._default.enabled': false, 'mcp_servers': input.mcpUrl ? { coforge: { url: input.mcpUrl, bearer_token_env_var: 'COFORGE_CODEX_MCP_TOKEN', required: true, default_tools_approval_mode: 'approve', ...(toolTimeout === undefined ? {} : { tool_timeout_sec: toolTimeout }) } } : {} };
   for (const feature of DISABLED) config[`features.${feature}`] = false;
   const delegation = input.nativeTools ? nativeWorkflowToolsCheck(input.nativeTools).delegation : undefined;

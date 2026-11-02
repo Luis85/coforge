@@ -34,6 +34,17 @@ describe('Native workflow tools authoring in the contained host', () => {
     await openWorkflowDisclosure(view, 'Agent and project access');
     await view.getByLabel('AI provider', { exact: true }).selectOption('claude');
     await view.getByLabel('Project access', { exact: true }).selectOption('readproject');
+    const analysis = view.getByRole('region', { name: 'Analytical agent tools', exact: true });
+    await browserExpect(analysis.getByLabel('Allow provider-native assistants', { exact: true })).toBeChecked();
+    await browserExpect(analysis.getByLabel('Allow native web research', { exact: true })).toBeChecked();
+    for (const [theme, width] of [['light', 1360], ['dark', 760]] as const) {
+      await obsidian.page.setViewportSize({ width, height: 900 });
+      await obsidian.eval((_context, selected) => { document.body.classList.toggle('theme-light', selected === 'light'); document.body.classList.toggle('theme-dark', selected === 'dark'); }, theme);
+      expect(await analysis.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+      await analysis.scrollIntoViewIfNeeded(); await obsidian.screenshot(`analytical-defaults-${theme}-${width}`);
+    }
+    await analysis.getByLabel('Allow provider-native assistants', { exact: true }).uncheck();
+    await analysis.getByLabel('Allow native web research', { exact: true }).uncheck();
     await browserExpect(view.getByRole('region', { name: 'Agent session behavior', exact: true })).toContainText('Quiet periods do not end the task');
     await browserExpect(view.locator('[data-workflow-field="limits.timeoutSeconds"]')).toHaveCount(0);
     await view.getByRole('button', { name: 'Save workflow', exact: true }).click();
@@ -44,6 +55,8 @@ describe('Native workflow tools authoring in the contained host', () => {
     await view.locator('.cf-workflow-step-select').filter({ hasText: 'Refinement' }).click();
     await browserExpect(view.getByLabel('Step name', { exact: true })).toHaveValue('Refinement');
     await browserExpect(view.getByLabel('Result contract', { exact: true })).toHaveValue('markdown');
+    await browserExpect(view.getByLabel('Allow provider-native assistants', { exact: true })).not.toBeChecked();
+    await browserExpect(view.getByLabel('Allow native web research', { exact: true })).not.toBeChecked();
     await browserExpect(view.getByRole('region', { name: 'Agent session behavior', exact: true })).toContainText('completion');
     await view.locator('[data-step-id="implement"] .cf-workflow-step-select').click();
     await browserExpect(view.getByLabel('Allow provider-native assistants', { exact: true })).toHaveCount(0);
@@ -93,6 +106,7 @@ describe('Native workflow tools authoring in the contained host', () => {
     expect(refinement?.kind === 'ai' && refinement.output).toBe('markdown');
     expect(refinement?.kind === 'ai' && refinement.access).toBe('readproject');
     expect(refinement?.kind === 'ai' && refinement.execution).toBeUndefined();
+    expect(refinement?.kind === 'ai' && refinement.nativeTools).toEqual({ delegation: false, research: false });
     expect(obsidian.errors()).toEqual([]);
   });
 });

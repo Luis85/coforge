@@ -64,7 +64,8 @@ export class McpModule implements McpActions {
   constructor(private readonly plugin: Plugin, private readonly studio: StudioService, private readonly runner: McpStepRunner, private readonly environment?: McpEnvironment, council?: CouncilActions, privateFolders: () => readonly string[] = () => []) {
     runner.configureCodingCommands(new McpWorktreeCommands(() => this.directory));
     const authorize = () => { if (!this.status().active) throw new Error('CoForge MCP is inactive.'); };
-    const workflow = new McpWorkflowTools(studio, runner, new McpStepFiles(), authorize);
+    const workflow = new McpWorkflowTools(studio, runner, new McpStepFiles(), authorize,
+      (projectId, ideaId) => this.recoveryJobs().some(job => (job.projectId ?? 'CFP-001') === projectId && job.ideaId === ideaId));
     this.obsidian = new McpObsidianTools(plugin, {
       authorize,
       identity: () => {
@@ -120,10 +121,14 @@ export class McpModule implements McpActions {
       }
     });
   }
+  private recoveryJobs() {
+    return this.studio.state().jobs.filter(job => job.provider === 'mcp' && ['failed', 'cancelled'].includes(job.status)
+      && job.workflow?.workspaceId && !this.acknowledgedTasks.includes(job.id));
+  }
   status(): McpStatus {
     const active = !this.disposed && this.saved?.phase === 'active' && !!this.token;
-    const recovery = this.studio.state().jobs.filter(job => job.provider === 'mcp' && ['failed', 'cancelled'].includes(job.status) && job.workflow?.workspaceId && !this.acknowledgedTasks.includes(job.id))
-      .slice(-25).map(job => ({ projectId: job.projectId ?? 'CFP-001', taskId: job.id, ideaId: job.ideaId, step: job.workflow?.step.name ?? job.stage }));
+    const recovery = this.recoveryJobs().slice(-25)
+      .map(job => ({ projectId: job.projectId ?? 'CFP-001', taskId: job.id, ideaId: job.ideaId, step: job.workflow?.step.name ?? job.stage }));
     return { active, recovery, message: this.failure || (active ? 'Active for all projects in this vault. Restart or reconnect your MCP client to load the tools.' : this.saved ? 'Inactive. Inspect the MCP settings files, then deactivate to clean up or activate to retry registration.' : 'Inactive. Activate once to connect all CoForge projects in this vault.') };
   }
   /** Cleanup must preserve every selected attempt's explicit recovery route, including rows outside the UI limit. */

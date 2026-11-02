@@ -1,40 +1,40 @@
 ## Summary
 
-Request details now provide one consistent workspace for all seven sections, with clear task navigation, readable evidence and final review after the changes. Drafts survive section navigation, visible disclosures participate in keyboard focus, and review-note errors appear beside their field.
+CF-133's latest Refinement completed but could not perform its required dedicated-subagent work: its captured launch disabled native assistants and web research. The agent produced an honest single-agent draft and reported file-search failures. The run is ready for Design with automation paused; this PR does not edit or rerun it.
 
-Repair the verification blockers behind the panel work: MCP ledger replacement now tolerates bounded transient Windows sharing locks without replaying commands. Worker identity checks reuse validated code while reading fresh OS proof; Git identity/index queries are consolidated, and independent capture reads run in settled pairs. Permanent write failures preserve the previous journal and prevent command effects. Freshness, original-resource ownership, private evidence and human-review gates remain intact.
+New ordinary Claude/Codex analytical admissions (planning, design and Markdown, with no repository access or read-only access) capture scoped assistants and research defaults. Explicit false preferences and configured concurrency are preserved. An independent versioned admission marker validates these effective tools against the immutable definition and actual native executor; external/provider forgery, grant tampering and persisted-parser round trips are tested. Historical admissions, classifiers, Council/v2, external clients and custom instructions retain their separate contracts. Read-only analysis gains no shell or native filesystem access. The SDK may advertise an image stub; actual parent/child probes confirm that the enforced text-only profile denies it without transmitting image content.
+
+Authoring shows the defaults and saved opt-outs; captured attempt permissions remain separate from settings and observed activity. New shipped Build instructions agree with coding capabilities. Exact earlier starters can be updated only by an explicit draft action; customized command prohibitions receive a review warning and remain unchanged. Coding adds actual-qualified PowerShell support and preserves only the documented custom Git Bash environment override.
+
+MCP improvements:
+
+- Search accepts a permitted exact file or a directory, with safe typed errors and unchanged path/link/scan/read boundaries.
+- Claude scoped tool outcomes are retained through the existing bounded observation sink; Codex keeps its SDK terminal events. No arguments, file contents, private paths or raw causes are published. Unknown effects stay unknown, and observation failure cannot change execution.
+- Safe structured failures suggest only tools actually available on that connection.
+- A real parallel-request reset is reproduced and replaced with bounded application backpressure and an explicit not-started response. Status/cancellation retain bounded reserved capacity and bypass queued work, without bypassing authorization or original-process proof.
+- Command cancellation fences pending intent before finding the original controller. Task cancellation reaches preparing/completing attempts with canonical project/provider/attempt checks; unknown cleanup remains held.
+- Compact status uses retained native authority and the external module's full private workspace acknowledgements, including history outside its UI page.
+
+Quality guidance keeps optional scope separate and distinguishes Simulation wiring checks from real-model answer quality. CF-133's proposed bulk hiring/team staffing/provenance are not accepted product decisions in this PR.
 
 ## Traceability
 
-Owner requests recorded in BRIEF.md and docs/project-tasks/2026-11-01-request-detail-overhaul.md; follow-up repair in docs/project-tasks/2026-11-01-worker-recovery-verification.md. The design scaffold declares no req-* or vi-* obligations; none invented or changed.
+Owner decisions: BRIEF.md, 2026-11-02. Task: docs/project-tasks/2026-11-02-cf133-agent-tools.md. The scaffold has no matching requirement/vi-* obligations; none were invented or marked implemented.
 
-## Final validation: actual results
+## Validation so far
 
-npm run verify:project exited 0 on pinned Node 24.21.0 / npm 11.19.1:
+- First-head full CI: 2,429/2,430 product tests passed, zero skips; the sole failure was an obsolete literal browser-wording expectation. The exact expectation was updated to interactive browser, with no production change; current guidance/native-capability suites passed 15/15.
+- Composed real engine qualification passed: new admission → installed Claude native child/four scoped reads/research → one saved artifact/succeeded job → strict persisted reload. Original OS cessation was retained, source unchanged, no extra scheduler dispatch, zero real model calls.
+- Test-first regressions reproduce missing analytical defaults, false opt-out rejection, external/provider forgery, persisted property-order rejection, exact-file ENOTDIR, absent terminal observations, unstructured host failures, stale recovery flags, physical socket resets, control starvation and cancellation races.
+- Backend targeted batches: 49 tests/12 suites and final 24 tests/6 suites passed. File-search batch: 38 passed. MCP HTTP/status/observation batch: 43 passed. Final cancellation/control batch: 40 passed. These batches overlap; they are not summed.
+- Installed Claude and Codex: actual native child, four verified scoped reads and native research passed against local synthetic endpoints. Actual root/child image denials passed with zero image payloads; source unchanged and original Windows job quiescence verified. Coding child edits plus actual PowerShell assertions passed. Zero real model calls, copied credentials or global configuration writes.
+- UI batches passed: 15 tests/5 suites, then final 12 tests/4 suites including global text-only defaults, false preferences, save/reopen and explicit re-enable for Claude and Codex. Targeted browser journeys passed 10 cases plus final 2/2 confirmations. UI quality: 8 passed; gallery: 40 captures generated and reviewed. Last canonical Vue typecheck and scoped UI lint exited 0.
+- Six contained native scenarios qualified; a first screenshot-only timeout is retained and the unchanged isolated authoring case then passed, including actual false preferences through reload. Fresh pinned Obsidian dev JSON: passed, errors [], hostErrorCount 0, pluginConsole [].
+- Final canonical product Vue typecheck exited 0; source caps passed for 2,325 files; scoped zero-warning ESLint and diff checks passed during iteration.
+- Local npm run verify:project exited 1: typecheck, source caps, full ESLint and maker types passed; the combined Windows product suite hit its unchanged 30-minute test-gate limit. It overlapped final self-review fixes and exposed one stale Codex browser-wording assertion, since corrected. Current affected HTTP/Codex/polishing suites then passed 22/22 tests across three files. Separate final npm run verify:artifacts exited 0: production build and prototype embedding passed; no UI-effect definitions are declared. Exact final-head full CI remains required and will be recorded before merge.
 
-    [ok] typecheck      30.7s
-    [ok] source lint     6.8s
-    [ok] ESLint        241.1s (zero warnings)
-    [ok] product tests 1350.9s
-    [ok] maker types    37.8s
-    Summary: 5 gates passed, 0 failed, 0 skipped (1667.3s)
+## Boundaries and untested scope
 
-- Full product report: 568 files; 2294 tests passed, 0 failed, 6 unchanged Windows-inapplicable skips. Those are the existing POSIX fake-CLI adapter cases and a POSIX Herdr symlink case; no skips or TODO acceptance were added.
-- The same verify:project command passed production build (2192 modules, 11.74s) and 1 embedding test. UI-effect checks remain explicitly skipped by the repository script because no visual definitions are declared.
-- npm run test:obsidian -- coforge-durable-worker-lifecycle coforge-mcp-vault plugin-lifecycle: final 3 files / 3 tests passed (30.24s). Includes actual Obsidian quit/reconnect without second worker admission, authenticated MCP restoration and plugin unload/reload.
-- npm run -s dev:obsidian -- --json --port 9338: final passed on pinned Obsidian 1.14.4 / launcher 3.2.1; errors [], hostErrorCount 0, pluginConsole []; build 9264ms, reload 629ms; session ended complete. Latest log, debug report and screenshot reviewed.
-- npm run test:ui-quality: 8 passed (47.9s). npm run ui:gallery: 40 captures generated and reviewed; no baselines changed. Earlier detailed panel journeys passed 9 tests in both themes and wide/narrow panes; prior targeted panel host flows passed 5 tests.
-- Focused red/green coverage includes transient/permanent ledger locks, ownership before effects, no replay, fresh process identity, no cache compilation during observation, changed pointer/commit/bytes, hidden Git flags, bounded capture concurrency and settlement before error propagation. The final provider aggregate retains its original 30-second limit and all five-stage assertions.
-- Independent backend and finishing reviews approved the repair and final paired-read delta. git diff --check passes. No test configuration, isolation, timeout, permission, dependency or lockfile change.
+The original CF-133-reported connection reset has no retained raw transport cause. The independently reproduced parallel-capacity reset is not asserted to be its cause. SDK fixtures qualify protocol/tool behavior rather than live answer quality. Actual macOS provider execution was not run.
 
-## Evidence
-
-## Integration follow-up
-
-After integrating upstream workflow-session completion, the focused product run passed 10 files / 43 tests and typecheck passed. The first CI project gate passed all five gates in 435.8s, plus build, local installation and 16 submission checks. Full CI exposed narrow navigation clipping under larger Linux fonts, a toast test that treated the new vertical sidebar as a horizontal header, and an asynchronous project-switch test race. Narrow labels now use 12px with the existing 32px controls, 8px gaps and 110px height limit. Tests retain all clearance and model assertions and add large-font and return-trip project isolation coverage. The corrected local browser batch passed 20 tests (including all 8 UI-quality checks); the contained toast test passed in both themes and widths. Independent finishing review approved the changes. Final CI results are recorded on the pull request before merge.
-
-Final gate: reports/verification-repair/verify-project-final.log. Full JSON: reports/verification-repair/full-product-tests.json. Native: reports/verification-repair/obsidian-final.log and obsidian-smoke-final.log, plus reports/obsidian/cases/. UI audit: reports/request-panel/audit.md. Gallery: reports/ui-gallery/index.json; reviewed contact sheet: reports/verification-repair/gallery-contact.png. Reports, portable toolchain binaries, caches and builds remain ignored.
-
-## Validation limits
-
-No live external model request or actual billing was exercised. Host validation used targeted contained-vault suites, not every Obsidian spec. The six existing platform skips remain unchanged. No release operation is included. The owner authorized committing, pushing, opening this pull request and merging after CI passes.
+CF-133 was read only with explicit owner authorization; its records, workflow, workspaces and outputs were not edited or rerun. Private captures, runtime receipts, screenshots, dist and reports remain ignored. Existing custom Build instructions can still restrict commands; tool availability never overrides them. Final human code acceptance and original ownership/quarantine checks remain authoritative.

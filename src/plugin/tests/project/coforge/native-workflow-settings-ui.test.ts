@@ -28,7 +28,7 @@ it('keeps verification as a disabled, unsaved host grant until valid image and e
   } finally { wrapper.unmount(); await f.dispose(); }
 });
 
-it('authors native assistants as an explicit future-step policy without dispatching or requiring a CoWorker roster', async () => {
+it('authors classifier assistants as an explicit future-step policy without dispatching or requiring a CoWorker roster', async () => {
   const f = await workflowUiFixture();
   const wrapper = mount(WorkflowEditorView, { global: { plugins: [f.pinia, f.provider], stubs: { CfIcon: true } } });
   try {
@@ -42,7 +42,8 @@ it('authors native assistants as an explicit future-step policy without dispatch
     await wrapper.get('[aria-label="Improvement provider"]').setValue('claude');
     await wrapper.get('[aria-label="Improvement Maximum concurrent native assistants"]').setValue(2);
     expect(wrapper.get('[aria-label="Improvement Maximum concurrent native assistants"]').element).toHaveProperty('value', '2');
-    expect(wrapper.text()).toContain('Text-only polishing retains restricted analysis access');
+    expect(wrapper.text()).toContain('Text-only improvements keep restricted analysis access');
+    expect(wrapper.text()).toContain('native web research is enabled by default');
     await provider.setValue('codex');
     expect(wrapper.get('[aria-label="Native workflow tools"]').text()).toContain('global AGENTS.md and skills');
     expect(wrapper.get('[aria-label="Native workflow tools"]').text()).toContain('do not grant tools');

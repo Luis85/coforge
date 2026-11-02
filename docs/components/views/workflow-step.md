@@ -93,3 +93,20 @@ New native steps, including refinement, follow agent completion and connection
 state without task duration, turn or USD controls. Quiet periods do not end a
 task. Ordinary attached sessions need a supported signed-in CLI and CoForge kept
 open; the separate background worker is optional legacy/advanced setup.
+
+Agent tools shows native assistants and web research enabled by default for new
+native Plan, Design and Markdown attempts with read-only/no-file access. Unchecking
+persists an explicit analytical opt-out; concurrency stays in Optional assistant
+settings. Classifiers and unsupported providers do not inherit these defaults.
+Neither research nor assistants grants shell commands or repository writes.
+The global Improve & polish configuration exposes Text-only improvement tools as
+a collapsed section. Its default-on choices save explicit opt-outs independently
+of the separate coding profile, and can be re-enabled after reopening the editor.
+
+If the exact earlier shipped Build starter is present, its command/test prohibition
+is identified. Update known starter in draft preserves any custom suffix and still
+requires explicit Save. Saved and captured instructions are not changed by viewing
+the warning, and arbitrary custom instructions are never automatically replaced.
+Customized trusted instructions with the known command/test prohibitions expose
+Review step instructions only; that action focuses the existing field and never
+rewrites the owner's text or changes permissions.

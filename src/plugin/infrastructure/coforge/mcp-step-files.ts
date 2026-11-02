@@ -74,6 +74,7 @@ export class McpStepFiles {
         if (error instanceof McpToolError) throw error;
         if (error instanceof Error && 'code' in error) {
           if (error.code === 'ENOENT') throw new McpToolError('INVALID_ARGUMENTS', 'Repository file or directory was not found. Discover its current path before retrying.', 'coforge_list_files');
+          if (error.code === 'ENOTDIR' || error.code === 'EISDIR') throw new McpToolError('INVALID_ARGUMENTS', 'The repository path has the wrong file or directory type. Discover its current path before retrying.', 'coforge_list_files');
           if (error.code === 'EEXIST') throw new McpToolError('CONFLICT', 'The destination already exists. Inspect it before choosing another destination.', 'coforge_read_file');
           if (error.code === 'EACCES' || error.code === 'EPERM') throw new McpToolError('PERMISSION_DENIED', 'The desktop account cannot access this repository file. Check its local permissions.');
         }
@@ -137,12 +138,17 @@ export class McpStepFiles {
     }
     if (name === 'coforge_search_files') {
       const { query, path = '' } = shape({ taskId, query: queryCheck, path: optional(pathCheck) }, { strict: true })(raw);
-      const listing = await this.list(root, path);
+      const scope = await this.bound(root, path);
+      const info = await lstat(scope);
+      const fileScope = info.isFile();
+      if (!fileScope && !info.isDirectory()) throw new McpToolError('PERMISSION_DENIED', 'Search requires a regular repository file or directory.');
+      const listing = fileScope ? { files: [relative(root, scope).split(sep).join('/')], truncated: false } : await this.list(root, path);
       const matches: Array<{ path: string; line: number; text: string }> = [];
       let total = 0;
       for (const path of listing.files) {
         let content: string;
-        try { content = await read(await this.bound(root, path)); } catch { continue; }
+        try { content = await read(await this.bound(root, path)); }
+        catch (error) { if (fileScope) throw error; continue; }
         total += Buffer.byteLength(content);
         if (total > 2 * 1024 * 1024) return { matches, ...incomplete };
         for (const [index, line] of content.split('\n').entries()) if (line.includes(query)) {

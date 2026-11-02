@@ -41,9 +41,11 @@ export class PolishingPasses {
   async preview(ideaId: string, feedback: string): Promise<PolishingPreview> {
     this.receipts.delete(ideaId); const context = this.context(ideaId, feedback); const configuration = context.configuration;
     const code = context.target.kind === 'codechange'; const attached = code && !!this.foregroundSources;
+    const { verification, ...analyticalTools } = configuration.nativeTools ?? {};
+    const nativeTools = { ...analyticalTools, ...(code && verification ? { verification } : {}) };
     const step: AiWorkflowStep = { id: 'polish-result', kind: 'ai', name: 'Improve & polish', instructions: configuration.instructions,
       provider: configuration.provider, model: configuration.model, ...(configuration.effort ? { effort: configuration.effort } : {}),
-      ...(configuration.nativeTools?.delegation || code && configuration.nativeTools?.verification ? { nativeTools: { ...(configuration.nativeTools.delegation ? { delegation: structuredClone(configuration.nativeTools.delegation) } : {}), ...(code && configuration.nativeTools.verification ? { verification: structuredClone(configuration.nativeTools.verification) } : {}) } } : {}),
+      ...(Object.keys(nativeTools).length ? { nativeTools: structuredClone(nativeTools) } : {}),
       ...(configuration.coworkerId ? { coworkerId: configuration.coworkerId } : {}), output: context.target.kind === 'request' ? 'markdown' : context.target.kind,
       access: code ? 'editworktree' : 'none', automatic: false,
       ...(code && !attached ? { execution: durableBuildPolicyCheck({ ...(configuration.execution ?? { mode: 'background' }), idleWarningSeconds: configuration.execution?.idleWarningSeconds ?? 1800 }) } : {}) };

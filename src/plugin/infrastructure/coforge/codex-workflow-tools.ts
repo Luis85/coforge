@@ -8,6 +8,8 @@ import type { Increment } from '../../features/coforge/domain/types';
 import type { WorkflowVerificationRecord } from '../../features/coforge/domain/workflow-verification';
 import { createWorkflowVerification } from './verification/session';
 import { isManagedWorkflowSession } from '../../features/coforge/domain/workflow-lifecycle';
+import { safeMcpToolFailure } from './mcp-errors';
+import { boundedSessionSink } from './session-observation-sink';
 
 const path = { type: 'string', maxLength: 1000, description: 'Repository-relative path with forward slashes. Use an empty path to list the repository root. The native CLI working directory contains private transport files, not repository files; never pass its absolute paths.' };
 const content = { type: 'string', maxLength: 200000 };
@@ -23,7 +25,7 @@ export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorks
   const tools: McpTool[] = access === 'none' ? [] : [
     tool('coforge_list_files', 'Discover allowed repository file paths. Optional path narrows the directory; optional query filters paths by a case-insensitive literal substring before the result limit. Truncated results are incomplete; narrow path and retry.', { path, query }, true, []),
     tool('coforge_read_file', 'Read one bounded UTF-8 repository file using its repository-relative forward-slash path. Discover names with coforge_list_files; never prepend the native CLI working directory.', { path }),
-    tool('coforge_search_files', 'Search allowed UTF-8 repository text for a case-sensitive literal string. Optional path narrows the directory. Truncated results are incomplete; narrow path and retry.', { query, path }, true, ['query']),
+    tool('coforge_search_files', 'Search allowed UTF-8 repository text for a case-sensitive literal string. Optional path selects one exact file or narrows to a directory. Truncated results are incomplete; narrow path and retry.', { query, path }, true, ['query']),
     ...(verification ? [tool('coforge_run_tests', 'Execute one captured approved command ID at the isolated snapshot root. Returns observed command outcome and source fingerprint. No arbitrary executable, arguments, environment, paths or network access can be supplied. Approved commands: ' + input.workflow!.verificationProfile!.commands.map(command => `${command.id} (${command.label})`).join('; '), { commandId: { type: 'string', minLength: 1, maxLength: 80, enum: input.workflow!.verificationProfile!.commands.map(command => command.id) } }, false)] : []),
     ...(access === 'editworktree' ? [
       tool('coforge_write_file', 'Create or replace a file in the isolated worktree. expectedContent must exactly match the previous read, or be null for a new file. Protected files are denied.', { path, content, expectedContent: { anyOf: [content, { type: 'null' }] } }, false),
@@ -36,6 +38,16 @@ export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorks
   let closed = false;
   let closing: Promise<void> | undefined;
   let pending: Promise<unknown> = Promise.resolve();
+  // Codex already reports MCP item completion. Claude's SDK feed omits these outcomes.
+  const observations = boundedSessionSink(input.workflow?.step.provider === 'claude' ? input.onSessionEvent : undefined);
+  const observe = (name: string, status: 'completed' | 'failed', error?: unknown) => {
+    const failure = status === 'failed' ? safeMcpToolFailure(error) : undefined;
+    const outcome = failure?.code === 'HOST_UNAVAILABLE' ? 'unknown' : status;
+    const text = !failure ? 'CoForge completed this scoped tool call.' : outcome === 'unknown'
+      ? `CoForge could not verify this scoped tool call's outcome (${failure.code}).` : `CoForge scoped tool failed (${failure.code}).`;
+    // The host knows the tool outcome even if the SDK only publishes its start. Observation is never execution authority.
+    observations.emit({ kind: 'tool', tool: `mcp__coforge__${name}`, status: outcome, text });
+  };
   const server = new LocalMcpServer({ tools: () => tools, call: (name, args) => {
     const next = pending.then(async () => {
       if (closed) throw new Error('This captured Codex invocation is closed.');
@@ -43,9 +55,12 @@ export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorks
       if (!isManagedWorkflowSession(input.workflow) && ++calls > input.settings.maxTurns) { exceeded = true; throw new Error('The captured Codex tool-call limit was reached.'); }
       if (!tools.some(item => item.name === name)) throw new Error('This operation is not permitted for this invocation.');
       input.signal?.throwIfAborted();
-      const result = name === 'coforge_run_tests' && verification ? await verification.run(args) : await files.call(name, { input, lease: scopedLease }, args);
-      await onActivity?.();
-      return result;
+      try {
+        const result = name === 'coforge_run_tests' && verification ? await verification.run(args) : await files.call(name, { input, lease: scopedLease }, args);
+        await onActivity?.();
+        observe(name, 'completed');
+        return result;
+      } catch (error) { observe(name, 'failed', error); throw error; }
     });
     pending = next.catch(() => undefined);
     return next;
@@ -53,7 +68,7 @@ export async function codexWorkflowTools(input: StageInput, lease: WorkflowWorks
   const dispose = () => closing ??= (async () => {
     closed = true; server.revoke();
     try { await verification?.dispose(); }
-    finally { await server.close(); await pending; }
+    finally { try { await server.close(); await pending; } finally { await observations.finish(); } }
   })();
   try {
     const token = server.allow();

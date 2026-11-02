@@ -1,5 +1,5 @@
 import { WORKFLOW_RUN_LIMIT_BYTES, workflowSerializedSize, workflowArtifactCheck, workflowArtifactHash, workflowProposalRevision, type ConfiguredStepExecution, type WorkflowArtifact, type WorkflowRun } from '../domain/configured-workflow-run';
-import type { AiWorkflowStep, WorkflowOutput } from '../domain/configured-workflow';
+import { workflowStepCheck, type AiWorkflowStep, type WorkflowOutput } from '../domain/configured-workflow';
 import { findProject, ideaProjectId } from '../domain/projects';
 import { riceValue, type AgentJob, type AgentStage, type Idea } from '../domain/types';
 import { heuristicSignals } from '../domain/workflow';
@@ -10,6 +10,7 @@ import { assertPolishingSource } from './polishing-policy';
 import { effectivePolishingInputs } from './polishing-amendments';
 import { polishingResultArtifact } from '../domain/polishing-target';
 import { assertVerificationSettled } from './verification-admission';
+import { admittedAnalyticalStep, isAnalyticalWorkflowStep } from '../domain/workflow-analytical-tools';
 
 export const compatibilityStage = (output: WorkflowOutput): AgentStage => output === 'screening' ? 'screen' : output === 'rice' ? 'score' : output === 'codechange' ? 'implement' : 'plan';
 export function configuredIdea(state: InternalState, id: string, allowClosed = false): Idea {
@@ -62,10 +63,18 @@ export function configuredAttempt(state: InternalState, job: AgentJob, allowStop
   const idea = state.ideas.find(item => item.id === job.ideaId);
   const run = idea && workflowRunOwner(idea, snapshot.runId);
   const attempt = run?.attempts.find(item => item.id === snapshot.attemptId);
+  const definedStep = run && effectiveWorkflowStep(run, run.cursor, snapshot.backgroundRetryId);
+  if (snapshot.analyticalTools && (run?.external || !['claude', 'codex'].includes(job.provider) || job.provider !== snapshot.step.provider
+    || !definedStep || definedStep.kind !== 'ai' || !isAnalyticalWorkflowStep(definedStep, job.provider)))
+    throw new Error('The captured analytical tools do not belong to this native executor.');
+  const expectedStep = definedStep?.kind === 'ai' ? admittedAnalyticalStep(definedStep, snapshot.analyticalTools) : definedStep;
+  // Persisted parsers use schema order; a new defaulted field must not invalidate an otherwise identical captured grant.
+  const comparisonStep = snapshot.analyticalTools && expectedStep ? workflowStepCheck(expectedStep) : expectedStep;
+  const capturedStep = snapshot.analyticalTools ? workflowStepCheck(snapshot.step) : snapshot.step;
   if (!idea || !run || !attempt || ideaProjectId(idea) !== job.projectId || run.ideaId !== idea.id || run.projectId !== ideaProjectId(idea) ||
       run.id !== snapshot.runId || run.definition.revision !== snapshot.definitionRevision || run.activeAttemptId !== attempt.id ||
       workflowProposalRevision(idea) !== snapshot.proposalRevision || run.proposalRevision !== snapshot.proposalRevision ||
-      JSON.stringify(effectiveWorkflowStep(run, run.cursor, snapshot.backgroundRetryId)) !== JSON.stringify(snapshot.step) || (!allowStopped && run.state !== 'running'))
+      JSON.stringify(comparisonStep) !== JSON.stringify(capturedStep) || (!allowStopped && run.state !== 'running'))
     throw new Error('The request, workflow or active step changed. Its result cannot advance this run.');
   if (snapshot.backgroundRetryId && !run.backgroundRetries?.some(retry => retry.id === snapshot.backgroundRetryId && retry.attemptId === attempt.id && retry.jobId === job.id)) throw new Error('The background retry does not authorize this attempt.');
   const auxiliary = idea.polishingRuns?.find(item => item.id === snapshot.polishingId);
