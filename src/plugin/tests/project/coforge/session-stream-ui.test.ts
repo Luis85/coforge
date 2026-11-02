@@ -5,6 +5,19 @@ import SessionStream from '../../../presentation/components/coforge/SessionStrea
 import { sessionEventView } from '../../../presentation/composables/coforge/agent-session-display';
 
 const entry = (sequence: number, text: string) => sessionEventView({ kind: 'message', sequence, observedAt: '2026-11-01T12:00:00Z', text }, []);
+it('formats assistant answers, pauses for keyboard inspection and keeps tool output as code', async () => {
+  const source = JSON.stringify({ summary: '**A readable answer**', nextSteps: ['Review the changes', 'Approve explicitly'] });
+  const command = 'git diff\n+**literal source**';
+  const tool = sessionEventView({ kind: 'tool', sequence: 2, observedAt: '2026-11-01T12:00:01Z', text: command, tool: 'Read-only diff' }, []);
+  const wrapper = mount(SessionStream, { props: { entries: [entry(1, source), tool], selectionKey: 'reading' } });
+  expect(wrapper.get('.cf-readable-body strong').text()).toBe('A readable answer');
+  expect(wrapper.get('.cf-readable-source').element.textContent).toBe(source);
+  expect(wrapper.get('pre.cf-session-message').element.textContent).toBe(command);
+  expect(wrapper.get('pre.cf-session-message').find('strong').exists()).toBe(false);
+  await wrapper.get('.cf-readable-original summary').trigger('keydown', { key: 'Enter' });
+  expect(wrapper.text()).toContain('Follow paused');
+  wrapper.unmount();
+});
 it('pauses on user scrolling, retains position while counting new events, then resumes at the end without taking focus', async () => {
   const frames = new Map<number, FrameRequestCallback>(); let frameId = 0;
   const requestFrame = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => { frames.set(++frameId, callback); return frameId; });

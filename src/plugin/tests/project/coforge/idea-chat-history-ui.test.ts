@@ -30,6 +30,27 @@ function job(id: string, status: AgentJob['status'] = 'succeeded'): AgentJob {
   return { id, ideaId: 'pending', stage: 'screen', provider: 'claude', model: 'captured-model', status, startedAt: at, logs: ['Diagnostic log only'] };
 }
 
+it('reads structured task context and answers in Activity without writing or dispatching work', async () => {
+  const prompt = JSON.stringify({ trustedProject: { name: 'Captured project' }, untrustedCommunityProposal: { title: 'Hiring pool', description: '**Choose a CoWorker** before hiring.' }, streamerReviewFeedback: 'Keep explicit approval.' });
+  const response = JSON.stringify({ summary: '**Preview each role**', acceptanceCriteria: ['Show capabilities', 'Require confirmation'] });
+  const captured = { ...conversation(), prompt: { text: prompt, truncated: false }, response: { text: response, truncated: false } };
+  const f = await fixture([Object.assign(job('structured'), { conversation: captured })]);
+  try {
+    const writes = f.storage.saves;
+    const history = f.wrapper.get('[aria-label="Chat history"]');
+    const task = history.get('[data-attempt-section="task"] .cf-readable-body');
+    const answer = history.get('[data-attempt-section="response"] .cf-readable-body');
+    expect(task.text()).toContain('Community proposal (untrusted)');
+    expect(task.get('strong').text()).toBe('Choose a CoWorker');
+    expect(answer.get('strong').text()).toBe('Preview each role');
+    expect(answer.findAll('li').map(item => item.text())).toEqual(['Show capabilities', 'Require confirmation']);
+    expect(history.findAll('.cf-readable-original[open]')).toHaveLength(0);
+    expect(f.store.state!.jobs).toHaveLength(1);
+    expect(f.store.state!.jobs[0]!.conversation).toEqual(captured);
+    expect(f.storage.saves).toBe(writes);
+  } finally { await f.close(); }
+});
+
 it('reads captured prompts and answers in the matching attempt without sending, writing or interpreting HTML', async () => {
   const f = await fixture([
     Object.assign(job('first'), { conversation: conversation() }),
@@ -51,12 +72,13 @@ it('reads captured prompts and answers in the matching attempt without sending, 
     expect(first.get('[aria-label="Chat history"]').text()).toContain('capture alone does not confirm delivery');
     expect(first.get('[aria-label="Chat history"]').text()).toContain('LLM response');
     expect(first.get('[aria-label="Chat history"]').text()).toContain('Recognizable credentials in Claude response captures are redacted.');
-    expect(first.findAll('.cf-idea-transcript').map(node => node.text())).toEqual([
+    expect(first.findAll('.cf-readable-source').map(node => node.text())).toEqual([
       conversation().prompt.text, conversation().response.text, conversation().instructions.text,
     ]);
     expect(first.find('script').exists()).toBe(false);
     expect(first.find('img').exists()).toBe(false);
-    expect(first.findAll('.cf-idea-evidence summary').map(node => node.text())).toEqual(['System instructions', 'Execution log']);
+    expect(first.findAll('.cf-idea-evidence > summary').map(node => node.text())).toEqual(['System instructions', 'Execution log']);
+    expect(first.findAll('.cf-readable-original > summary').map(node => node.text())).toEqual(['Original prompt text', 'Original response text', 'Original instruction text']);
     expect(first.findAll('time').map(node => node.attributes('datetime'))).toContain(at);
     f.store.state!.projects![0]!.settings.agentPrompt = 'New instructions are not past evidence';
     f.store.state!.ideas[0]!.description = 'Edited current request';
@@ -124,7 +146,7 @@ it('attributes Codex history to its captured model and effort after current sett
     expect(capture.findAll('h4').map(heading => heading.text())).toContain('CoForge task prompt');
     expect(capture.findAll('summary').map(summary => summary.text())).toContain('CoForge instructions');
     expect(f.wrapper.get('[aria-label="Chat history"]').text()).toContain('Recognizable credentials in Codex response captures are redacted.');
-    expect(f.wrapper.get('[data-job-id="codex"]').findAll('.cf-idea-transcript')[1]!.text()).toBe(conversation().response.text);
+    expect(f.wrapper.get('[data-job-id="codex"]').findAll('.cf-readable-source')[1]!.text()).toBe(conversation().response.text);
     expect(f.wrapper.find('img').exists()).toBe(false);
     f.store.state!.projects![0]!.settings.agentPrompt = 'Changed current instructions';
     f.store.state!.projects![0]!.settings.model = 'new-model';

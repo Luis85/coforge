@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useHerdr } from "../../composables/coforge/use-herdr";
+import ReadableContent from './ReadableContent.vue';
 const model = useHerdr();
 </script>
 <template>
@@ -307,7 +308,7 @@ const model = useHerdr();
               {{ model.store.review.target.paneId }} ·
               {{ model.store.review.projectPath }}
             </p>
-            <pre tabindex="0">{{ model.store.review.prompt }}</pre>
+            <ReadableContent :source="model.store.review.prompt" original-label="Original Herdr task prompt" />
             <button
               type="button"
               class="cf-btn cf-btn-primary"

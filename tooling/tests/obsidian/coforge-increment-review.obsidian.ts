@@ -1,10 +1,13 @@
 import { expect as browserExpect } from '@playwright/test';
 import { describe, expect } from 'vitest';
+import { parse } from 'yaml';
 import { test, type ObsidianHarness } from './support/obsidian-fixture';
 import { openWorkflowDisclosure, openWorkflowRuns, openWorkflowSettings } from '../../../tests/e2e/support/workflow-navigation';
 import { defaultWorkflowDefinition } from '../../../src/plugin/features/coforge/domain/configured-workflow';
 import { defaultSettings } from '../../../src/plugin/features/coforge/domain/seed';
 import { parsePersistedStudio } from '../../../src/plugin/features/coforge/domain/persisted';
+import { parseIdeaNote } from '../../../src/plugin/features/coforge/domain/idea-note';
+import { splitNote } from '../../../src/plugin/infrastructure/coforge/markdown';
 
 const TITLE = 'Review the captured lantern increment';
 
@@ -69,8 +72,15 @@ describe('Increment review handoff in the contained host', () => {
     await browserExpect(criteria).toContainText('Saved plan · not verified');
     await browserExpect(findings).toContainText('Simulated assessment');
     await browserExpect(view.getByRole('button', { name: 'Accept increment', exact: true })).toBeEnabled();
-    const disclosure = findings.locator('details');
-    const summary = disclosure.locator('summary');
+    const disclosure = findings.locator('details.cf-increment-finding');
+    const summary = disclosure.locator(':scope > summary');
+    const original = disclosure.locator('details.cf-readable-original');
+    const originalSummary = original.locator(':scope > summary');
+    const savedParts = splitNote(saved.note);
+    if (!savedParts.yaml) throw new Error('The captured request frontmatter is missing.');
+    const savedIdea = parseIdeaNote(parse(savedParts.yaml), savedParts.body);
+    const savedFinding = savedIdea.workflowRun?.artifacts.find(artifact => artifact.stepId === 'assessment')?.markdown;
+    if (!savedFinding) throw new Error('The captured assessment is missing.');
     await browserExpect(disclosure).not.toHaveAttribute('open', '');
     const diff = view.getByRole('region', { name: 'Illustrative diff', exact: true });
     for (const width of [1280, 720]) for (const theme of ['light', 'dark']) {
@@ -84,6 +94,13 @@ describe('Increment review handoff in the contained host', () => {
       await obsidian.page.keyboard.press('Enter');
       await browserExpect(disclosure).toHaveAttribute('open', '');
       await browserExpect(summary).toBeFocused();
+      await browserExpect(original).not.toHaveAttribute('open', '');
+      await originalSummary.focus(); await originalSummary.press('Enter');
+      await browserExpect(original).toHaveAttribute('open', '');
+      await browserExpect(original.locator('pre')).toBeVisible();
+      expect(await original.locator('pre').textContent()).toBe(savedFinding);
+      await originalSummary.press('Enter');
+      await browserExpect(original).not.toHaveAttribute('open', '');
       expect(await findings.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
       expect(await criteria.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
       await findings.scrollIntoViewIfNeeded();

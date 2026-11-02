@@ -2,6 +2,7 @@
 import { useCouncilModel } from "../../composables/coforge/use-council";
 import CouncilSimulationPanel from "./CouncilSimulationPanel.vue";
 import CouncilRoundSchedule from "./CouncilRoundSchedule.vue";
+import ReadableContent from './ReadableContent.vue';
 withDefaults(defineProps<{ taskIntake?: boolean }>(), { taskIntake: false });
 const model = useCouncilModel();
 </script>
@@ -158,8 +159,8 @@ const model = useCouncilModel();
           <CouncilRoundSchedule :rounds="model.store.preview.plan.definition.rounds" />
           <details>
             <summary>Captured source and context</summary>
-          <pre>{{ model.store.preview.source.markdown }}</pre>
-          <pre>{{ model.store.preview.context }}</pre>
+          <ReadableContent :source="model.store.preview.source.markdown" original-label="Original submission input" />
+          <ReadableContent :source="model.store.preview.context" original-label="Original submission context" />
         </details>
       </section>
       <CouncilSimulationPanel :task-intake="taskIntake" />

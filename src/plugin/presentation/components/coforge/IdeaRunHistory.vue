@@ -3,6 +3,7 @@ import type { IdeaRunHistory } from '../../composables/coforge/idea-run-history'
 import WorkflowVerificationEvidence from './WorkflowVerificationEvidence.vue';
 import RecordedAttemptFailure from './RecordedAttemptFailure.vue';
 import AttemptRetainedChanges from './AttemptRetainedChanges.vue';
+import ReadableContent from './ReadableContent.vue';
 
 defineProps<{ job: IdeaRunHistory }>();
 </script>
@@ -37,14 +38,14 @@ defineProps<{ job: IdeaRunHistory }>();
       <section class="cf-idea-message" data-attempt-section="task">
         <h4>{{ job.promptLabel }}</h4>
         <time :datetime="job.conversation.capturedAt" :title="job.conversation.capturedAt">{{ job.capturedLabel }}</time>
-        <pre class="cf-idea-transcript">{{ job.conversation.prompt.text }}</pre>
+        <ReadableContent :source="job.conversation.prompt.text" :truncated="job.conversation.prompt.truncated" original-label="Original prompt text" />
         <p v-if="job.conversation.prompt.truncated" class="cf-idea-help cf-idea-truncation">Prompt capture truncated; only the retained beginning is shown.</p>
       </section>
       <section class="cf-idea-message" data-attempt-section="response">
         <h4>{{ job.outputLabel }}</h4>
         <template v-if="job.conversation.response">
           <time v-if="job.conversation.responseCapturedAt" :datetime="job.conversation.responseCapturedAt" :title="job.conversation.responseCapturedAt">{{ job.responseLabel }}</time>
-          <pre class="cf-idea-transcript">{{ job.conversation.response.text }}</pre>
+          <ReadableContent :source="job.conversation.response.text" :truncated="job.conversation.response.truncated" original-label="Original response text" />
           <p v-if="job.conversation.response.truncated" class="cf-idea-help cf-idea-truncation">Response capture truncated; only the retained beginning is shown.</p>
           <p class="cf-idea-help">Response captured for this attempt. Review remains required.</p>
           <p v-if="job.responsePrivacyLabel" class="cf-idea-help">Recognizable credentials in {{ job.responsePrivacyLabel }} response captures are redacted.</p>
@@ -53,7 +54,7 @@ defineProps<{ job: IdeaRunHistory }>();
       </section>
       <details class="cf-idea-evidence">
         <summary>{{ job.instructionsLabel }}</summary>
-        <pre class="cf-idea-transcript">{{ job.conversation.instructions.text }}</pre>
+        <ReadableContent :source="job.conversation.instructions.text" :truncated="job.conversation.instructions.truncated" original-label="Original instruction text" />
         <p v-if="job.conversation.instructions.truncated" class="cf-idea-help cf-idea-truncation">Instruction capture truncated; only the retained beginning is shown.</p>
       </details>
     </template>

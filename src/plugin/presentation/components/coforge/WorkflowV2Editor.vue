@@ -6,6 +6,7 @@ import { useEventTriggerLink } from "../../composables/coforge/use-event-trigger
 import WorkflowV2Steps from "./WorkflowV2Steps.vue";
 import WorkflowV2Transfer from "./WorkflowV2Transfer.vue";
 import WorkflowOutputTemplates from "./WorkflowOutputTemplates.vue";
+import ReadableContent from './ReadableContent.vue';
 const props = defineProps<{
   actions: WorkflowV2Actions;
   catalogue: CouncilCatalogueActions;
@@ -284,17 +285,13 @@ const openEventTriggers = useEventTriggerLink();
             :key="invocation.id"
           >
             <h4>{{ invocation.agentId }} · {{ invocation.roundId }}</h4>
-            <pre
-              class="cf-workflow-json"
-              tabindex="0"
-              :aria-label="`Captured instructions for ${invocation.id}`"
-              >{{ invocation.instructions }}</pre>
+            <ReadableContent :source="invocation.instructions" :original-label="`Captured instructions for ${invocation.id}`" />
           </section>
         </details>
         <details>
           <summary>Captured input and context</summary>
-          <pre>{{ model.store.preview.source.markdown }}</pre>
-          <pre>{{ model.store.preview.context }}</pre>
+          <ReadableContent :source="model.store.preview.source.markdown" original-label="Original workflow input" />
+          <ReadableContent :source="model.store.preview.context" original-label="Original workflow context" />
         </details>
         <button
           type="button"

@@ -1,40 +1,47 @@
 ## Summary
 
-CF-133's latest Refinement completed but could not perform its required dedicated-subagent work: its captured launch disabled native assistants and web research. The agent produced an honest single-agent draft and reported file-search failures. The run is ready for Design with automation paused; this PR does not edit or rerun it.
+Agent prompts and answers now open as readable sections, lists and formatted Markdown throughout Activity, Sessions/Peek, Council, saved artifacts, workflow results, polishing and Herdr previews. JSON fields use human labels, encoded nested content is decoded for display, and exact retained source stays in closed keyboard-accessible disclosures. Commands and diffs keep literal code formatting. Keyboard inspection pauses session follow.
 
-New ordinary Claude/Codex analytical admissions (planning, design and Markdown, with no repository access or read-only access) capture scoped assistants and research defaults. Explicit false preferences and configured concurrency are preserved. An independent versioned admission marker validates these effective tools against the immutable definition and actual native executor; external/provider forgery, grant tampering and persisted-parser round trips are tested. Historical admissions, classifiers, Council/v2, external clients and custom instructions retain their separate contracts. Read-only analysis gains no shell or native filesystem access. The SDK may advertise an image stub; actual parent/child probes confirm that the enforced text-only profile denies it without transmitting image content.
-
-Authoring shows the defaults and saved opt-outs; captured attempt permissions remain separate from settings and observed activity. New shipped Build instructions agree with coding capabilities. Exact earlier starters can be updated only by an explicit draft action; customized command prohibitions receive a review warning and remain unchanged. Coding adds actual-qualified PowerShell support and preserves only the documented custom Git Bash environment override.
-
-MCP improvements:
-
-- Search accepts a permitted exact file or a directory, with safe typed errors and unchanged path/link/scan/read boundaries.
-- Claude scoped tool outcomes are retained through the existing bounded observation sink; Codex keeps its SDK terminal events. No arguments, file contents, private paths or raw causes are published. Unknown effects stay unknown, and observation failure cannot change execution.
-- Safe structured failures suggest only tools actually available on that connection.
-- A real parallel-request reset is reproduced and replaced with bounded application backpressure and an explicit not-started response. Status/cancellation retain bounded reserved capacity and bypass queued work, without bypassing authorization or original-process proof.
-- Command cancellation fences pending intent before finding the original controller. Task cancellation reaches preparing/completing attempts with canonical project/provider/attempt checks; unknown cleanup remains held.
-- Compact status uses retained native authority and the external module's full private workspace acknowledgements, including history outside its UI page.
-
-Quality guidance keeps optional scope separate and distinguishes Simulation wiring checks from real-model answer quality. CF-133's proposed bulk hiring/team staffing/provenance are not accepted product decisions in this PR.
+The shared renderer bounds reading previews, identifies missing/empty values, preserves unsafe numeric notation, handles incomplete captures honestly and retains appended-response separators. Rendering uses the existing allowlisted Markdown nodes; untrusted HTML, media and privileged links cannot execute. Reading does not write notes or dispatch work.
 
 ## Traceability
 
-Owner decisions: BRIEF.md, 2026-11-02. Task: docs/project-tasks/2026-11-02-cf133-agent-tools.md. The scaffold has no matching requirement/vi-* obligations; none were invented or marked implemented.
+Owner request recorded in BRIEF.md and docs/project-tasks/2026-11-02-readable-agent-content.md. The design scaffold declares no req-* or vi-* obligations for this change; none were invented or changed.
 
-## Validation so far
+## Validation: actual results
 
-- First-head full CI: 2,429/2,430 product tests passed, zero skips; the sole failure was an obsolete literal browser-wording expectation. The exact expectation was updated to interactive browser, with no production change; current guidance/native-capability suites passed 15/15.
-- Composed real engine qualification passed: new admission → installed Claude native child/four scoped reads/research → one saved artifact/succeeded job → strict persisted reload. Original OS cessation was retained, source unchanged, no extra scheduler dispatch, zero real model calls.
-- Test-first regressions reproduce missing analytical defaults, false opt-out rejection, external/provider forgery, persisted property-order rejection, exact-file ENOTDIR, absent terminal observations, unstructured host failures, stale recovery flags, physical socket resets, control starvation and cancellation races.
-- Backend targeted batches: 49 tests/12 suites and final 24 tests/6 suites passed. File-search batch: 38 passed. MCP HTTP/status/observation batch: 43 passed. Final cancellation/control batch: 40 passed. These batches overlap; they are not summed.
-- Installed Claude and Codex: actual native child, four verified scoped reads and native research passed against local synthetic endpoints. Actual root/child image denials passed with zero image payloads; source unchanged and original Windows job quiescence verified. Coding child edits plus actual PowerShell assertions passed. Zero real model calls, copied credentials or global configuration writes.
-- UI batches passed: 15 tests/5 suites, then final 12 tests/4 suites including global text-only defaults, false preferences, save/reopen and explicit re-enable for Claude and Codex. Targeted browser journeys passed 10 cases plus final 2/2 confirmations. UI quality: 8 passed; gallery: 40 captures generated and reviewed. Last canonical Vue typecheck and scoped UI lint exited 0.
-- Six contained native scenarios qualified; a first screenshot-only timeout is retained and the unchanged isolated authoring case then passed, including actual false preferences through reload. Fresh pinned Obsidian dev JSON: passed, errors [], hostErrorCount 0, pluginConsole [].
-- Final canonical product Vue typecheck exited 0; source caps passed for 2,325 files; scoped zero-warning ESLint and diff checks passed during iteration.
-- Local npm run verify:project exited 1: typecheck, source caps, full ESLint and maker types passed; the combined Windows product suite hit its unchanged 30-minute test-gate limit. It overlapped final self-review fixes and exposed one stale Codex browser-wording assertion, since corrected. Current affected HTTP/Codex/polishing suites then passed 22/22 tests across three files. Separate final npm run verify:artifacts exited 0: production build and prototype embedding passed; no UI-effect definitions are declared. Exact final-head full CI remains required and will be recorded before merge.
+Final npm run verify:project exited 0 in an isolated checkout based on d9a675db, using pinned Node 24.21.0 / npm 11.19.1:
 
-## Boundaries and untested scope
+    [ok] typecheck    134.0s
+    [ok] source lint    8.9s
+    [ok] ESLint       341.6s (zero warnings)
+    [ok] tests       1741.4s
+    [ok] maker types   45.7s
+    Summary: 5 passed, 0 failed, 0 skipped (2271.7s)
 
-The original CF-133-reported connection reset has no retained raw transport cause. The independently reproduced parallel-capacity reset is not asserted to be its cause. SDK fixtures qualify protocol/tool behavior rather than live answer quality. Actual macOS provider execution was not run.
+- Full product report: 581 files, 2372 tests passed, zero failed, nine existing Windows-inapplicable skips and no TODOs. Skips: five POSIX fake-CLI cases, one Herdr symlink case, three managed POSIX lifetime cases. No new skip was added.
+- The same command passed the production build (2201 modules, 18.84s) and one embedding test. The repository explicitly skips UI-effect checks because it declares no visual definitions; that is not an acceptance pass.
+- Final focused formatter/Activity/session batch: 3 files / 16 tests passed (9.47s), including byte preservation, hostile markup, encoded/fenced JSON, malformed input, appended replies, prototype-shaped keys, deep/large content and keyboard follow pause.
+- Final browser batch: 21 passed (4.1m): Design, all detail sections, the shared reader and all eight UI-quality checks. Earlier Council/polishing batch: 27 passed (3.0m). Both themes, wide/narrow panes, keyboard inspection and axe checks passed.
+- Native request navigation passed in the initial targeted batch. The captured-context case passed on rerun (1 passed, 33.25s) after removing a concurrent migration's storage-path hunk from the isolated fixture. Exact capture bytes, immutable request-note bytes and source disclosure keyboard access were verified. The migrated path remains intact in the shared checkout.
+- Final npm run -s dev:obsidian -- --json --port 9350: passed; errors [], hostErrorCount 0, pluginConsole []. Logs, debug report and task/answer screenshots reviewed; session ended complete.
+- npm run ui:gallery: 40 captures, zero failures; index/contact sheet reviewed. No baseline changed.
+- Self-review and git diff --check passed. No application/domain/infrastructure, dependency, permission, timeout or test-configuration change belongs to this task.
 
-CF-133 was read only with explicit owner authorization; its records, workflow, workspaces and outputs were not edited or rerun. Private captures, runtime receipts, screenshots, dist and reports remain ignored. Existing custom Build instructions can still restrict commands; tool availability never overrides them. Final human code acceptance and original ownership/quarantine checks remain authoritative.
+## Qualification environment and evidence
+
+Concurrent vault-storage migration edits arrived in the shared checkout during verification. The readability diff was qualified separately; 30 UI/test file hashes matched the shared checkout. Only the native fixture storage-path adaptation differs. No unrelated edit was reverted.
+
+Final full run used Node's code-compilation cache, with fresh process/file-read behavior checked. Test-result reuse, process/file isolation, assertions and original limits remain unchanged. Earlier fast/full attempts hit their existing test budgets; a late formatter patch also exposed a stale transform in the earlier full run. The final source stayed frozen during the successful rerun.
+
+Evidence is retained under reports/readable-content/isolated/: verify-project.log, full-product-tests.json, browser-final.log, focused-confirmation.log, obsidian-final.log, obsidian-context-final.log, obsidian-smoke.log, source-match.json and audit.md. Gallery: isolated/gallery/. Native: isolated/host/. Reviewed screenshots include host-answer-dark.png and host-task-narrow.png. Reports, compile caches, binaries and builds remain ignored.
+
+## Untested scope
+
+No live provider request or real billing was exercised. Host validation targets affected reader/navigation paths, not every native spec. Concurrent vault-storage migration code is excluded from this isolated qualification. No release operation is included.
+
+## Integration qualification
+
+Rebased onto 8d4ec0ef (#70, workflow agent refinement and task execution). Prior local results above qualify d9a675db plus the readability diff. The merged captured-configuration view preserves upstream analytical-tool evidence alongside readable CoWorker instructions. Full PR CI, including browser and real-Obsidian jobs, will qualify the integrated commit before merge. The owner explicitly requested opening this PR and merging after CI is green.
+
+Post-rebase focused checks passed 4 files / 17 tests (26.87s). Initial CI passed the repository, browser, Windows lifetime, isolation and security jobs. The host suite passed 70/71 and exposed an old assessment-disclosure selector matching the new nested source disclosure. The corrected test scopes both disclosures explicitly and verifies original assessment bytes from the canonical note with keyboard access across both themes and widths. Local contained-host confirmation: 1 passed (37.42s). Existing data/privacy assertions and limits are retained. Final CI qualification is recorded on PR #71 before merge.

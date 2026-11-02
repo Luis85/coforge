@@ -4,6 +4,7 @@ import { useIdeaDrawerContext } from "../../composables/coforge/use-idea-drawer"
 import { useIncrementReview } from "../../composables/coforge/use-increment-review";
 import CfIcon from "./CfIcon.vue";
 import MarkdownBody from "./MarkdownBody.vue";
+import ReadableContent from './ReadableContent.vue';
 import WorkflowVerificationEvidence from './WorkflowVerificationEvidence.vue';
 import IncrementCodingObservations from './IncrementCodingObservations.vue';
 
@@ -30,7 +31,7 @@ const review = useIncrementReview(props);
       </h3>
       <p class="cf-idea-help">Agent-reported summary · review against the captured changes and criteria.</p>
       <p v-if="review.evidence.polishing" class="cf-idea-help">Reviewed polishing output · producing run <code>{{ review.evidence.polishing.runId }}</code> · artifact <code>{{ review.evidence.polishing.artifactId }}</code>. The current workspace belongs to <code>{{ review.evidence.polishing.ownerRunId }}</code>; earlier primary assessments are retained in Workflow runs and do not assess these new bytes.</p>
-      <MarkdownBody class="cf-idea-body" :source="idea.increment.summary" />
+      <ReadableContent class="cf-idea-body" :source="idea.increment.summary" original-label="Original increment summary" />
     </section>
     <section class="cf-idea-section">
       <h3><CfIcon name="file-code" /> {{ idea.increment.simulated ? 'Illustrative changes' : review.evidence.hostCaptured ? 'Host-captured changes' : 'Recorded changes' }}</h3>
@@ -117,7 +118,7 @@ const review = useIncrementReview(props);
       <p class="cf-idea-help">Agent assessments of this increment. Completed runs do not verify acceptance or replace your decision.</p>
       <details v-for="finding in review.evidence.followups" :key="finding.id" class="cf-idea-evidence cf-increment-finding">
         <summary>{{ finding.name }} <span class="cf-idea-run-meta">{{ finding.assessmentLabel }} · <time :datetime="finding.createdAt">{{ finding.savedLabel }}</time></span></summary>
-        <MarkdownBody class="cf-idea-body" :source="finding.markdown" />
+        <ReadableContent class="cf-idea-body" :source="finding.markdown" original-label="Original assessment text" />
       </details>
     </section>
     <div

@@ -3,6 +3,7 @@ import { useCouncilModel } from "../../composables/coforge/use-council";
 import CouncilAnswers from "./CouncilAnswers.vue";
 import CouncilRunControls from './CouncilRunControls.vue';
 import CouncilRecoveryTools from "./CouncilRecoveryTools.vue";
+import ReadableContent from './ReadableContent.vue';
 const model = useCouncilModel();
 </script>
 <template>
@@ -208,12 +209,12 @@ const model = useCouncilModel();
       >
       <details>
         <summary>Captured input</summary>
-        <pre>{{ model.selectedRun.subject.markdown }}</pre>
-        <pre>{{ model.selectedRun.context }}</pre>
+        <ReadableContent :source="model.selectedRun.subject.markdown" original-label="Original Council input" />
+        <ReadableContent :source="model.selectedRun.context" original-label="Original Council context" />
       </details>
       <details>
         <summary>Attempt history</summary>
-        <pre>{{ JSON.stringify(model.selectedRun.attempts, null, 2) }}</pre>
+        <ReadableContent :source="JSON.stringify(model.selectedRun.attempts)" original-label="Original attempt records" />
       </details>
       <CouncilRecoveryTools />
       </details>

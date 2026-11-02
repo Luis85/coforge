@@ -1,11 +1,12 @@
 import { expect as browserExpect } from '@playwright/test';
 import { describe, expect } from 'vitest';
 import { test, type ObsidianHarness } from './support/obsidian-fixture';
+import { READING_TASK, READING_ANSWER } from '../../../tests/e2e/support/readable-content-fixture';
 
 const TITLE = 'Codex context disclosure rendering fixture';
-const PROMPT = 'Rendering fixture only: no Codex call was dispatched.\nCoForge task bytes stay literal: <script>never execute()</script>';
+const PROMPT = READING_TASK;
 const INSTRUCTIONS = 'Rendering fixture CoForge instructions only. No personal AGENTS or skill content was read.';
-const RESPONSE = 'Rendering fixture output only. No paid inference or verification command ran.';
+const RESPONSE = READING_ANSWER;
 const AT = '2026-11-01T08:00:00.000Z';
 
 async function requestNote(obsidian: ObsidianHarness) {
@@ -59,10 +60,20 @@ describe('Codex CoForge-context disclosure in the contained host', () => {
     await browserExpect(history.getByRole('heading', { name: 'CoForge task prompt', exact: true })).toBeVisible();
     await browserExpect(history).toContainText('not the complete SDK prompt');
     await browserExpect(history).toContainText('global AGENTS.md and skills');
+    await browserExpect(history.locator('[data-attempt-section="task"] .cf-readable-body')).toContainText('Community proposal (untrusted)');
+    await browserExpect(history.locator('[data-attempt-section="task"] .cf-readable-body strong')).toHaveText('Hiring Pool');
+    await browserExpect(history.locator('[data-attempt-section="response"] .cf-readable-body strong')).toHaveText('preview a role');
+    await browserExpect(history.locator('.cf-readable-original[open]')).toHaveCount(0);
     await browserExpect(run.locator('summary').first()).toContainText('gpt-6.1-sol');
     const instructions = history.locator('summary').filter({ hasText: /^CoForge instructions$/ });
     await instructions.focus(); await obsidian.page.keyboard.press('Enter');
-    expect(await history.locator('.cf-idea-transcript').allTextContents()).toEqual([PROMPT, RESPONSE, INSTRUCTIONS]);
+    expect(await history.locator('.cf-readable-source').allTextContents()).toEqual([PROMPT, RESPONSE, INSTRUCTIONS]);
+    for (const label of ['Original prompt text', 'Original response text']) {
+      const original = history.locator('summary').filter({ hasText: new RegExp(`^${label}$`, 'u') });
+      await original.focus(); await original.press('Enter');
+      await browserExpect(history.locator(`pre[aria-label="${label}"]`)).toBeVisible();
+      await original.press('Enter');
+    }
     await browserExpect(history.locator('script')).toHaveCount(0);
     for (const width of [1360, 760]) for (const theme of ['light', 'dark']) {
       await obsidian.page.setViewportSize({ width, height: 900 });
@@ -73,6 +84,8 @@ describe('Codex CoForge-context disclosure in the contained host', () => {
       await history.getByRole('heading', { name: 'CoForge task prompt', exact: true }).scrollIntoViewIfNeeded();
       expect(await history.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
       await obsidian.screenshot(`codex-coforge-context-fixture-${theme}-${width}`);
+      await history.getByRole('heading', { name: 'LLM response', exact: true }).scrollIntoViewIfNeeded();
+      await obsidian.screenshot(`readable-agent-answer-${theme}-${width}`);
     }
     expect(await requestNote(obsidian)).toEqual(original);
     expect(obsidian.errors()).toEqual([]);

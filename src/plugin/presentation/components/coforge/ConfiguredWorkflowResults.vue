@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { WorkflowRun } from "../../../features/coforge/domain/configured-workflow-run";
 import { WORKFLOW_OUTPUT_LABELS } from "../../stores/workflow-editor-draft";
-import MarkdownBody from "./MarkdownBody.vue";
+import ReadableContent from "./ReadableContent.vue";
 defineProps<{ run: WorkflowRun }>();
 </script>
 <template>
@@ -28,23 +28,23 @@ defineProps<{ run: WorkflowRun }>();
       >
         Retained for history. Later steps cannot use this superseded result.
       </p>
-      <MarkdownBody
+      <ReadableContent
         v-if="artifact.markdown"
         :source="artifact.markdown"
       /><template v-if="artifact.screening"
         ><p>
           <strong>{{ artifact.screening.verdict }}</strong>
         </p>
-        <MarkdownBody :source="artifact.screening.reason" /></template
+        <ReadableContent :source="artifact.screening.reason" /></template
       ><template v-if="artifact.rice"
         ><p>
           <strong>RICE {{ artifact.rice.score.toLocaleString() }}</strong>
         </p>
-        <MarkdownBody :source="artifact.rice.rationale" /></template
-      ><MarkdownBody
+        <ReadableContent :source="artifact.rice.rationale" /></template
+      ><ReadableContent
         v-if="artifact.plan"
         :source="artifact.plan.markdown"
-      /><MarkdownBody v-if="artifact.summary" :source="artifact.summary" />
+      /><ReadableContent v-if="artifact.summary" :source="artifact.summary" />
       <pre v-if="artifact.increment" class="cf-workflow-json" tabindex="0">{{
         artifact.increment.diff || "No changed files were recorded."
       }}</pre>

@@ -1,0 +1,18 @@
+.cf-readable-content { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.cf-readable-body { max-width: 75ch; line-height: 1.7; margin-block: 12px 16px; min-width: 0; }
+.cf-readable-fields { margin: 0; }
+.cf-readable-field { margin-block: 0 16px; min-width: 0; }
+.cf-readable-field > dt { font-weight: var(--font-semibold); margin-block-end: 4px; color: var(--cf-text); }
+.cf-readable-field > dd { margin: 0; min-width: 0; }
+.cf-readable-field > dd > .cf-readable-fields { padding-inline-start: 12px; margin-block-start: 10px; }
+.cf-readable-items { padding-inline-start: 24px; margin-block: 8px; }
+.cf-readable-items > li { padding-inline-start: 4px; margin-block-end: 8px; min-width: 0; }
+.cf-readable-items > li > .cf-readable-fields { margin-block: 8px 18px; }
+.cf-readable-content .cf-markdown :is(h1, h2, h3) { font-size: 1.15em; }
+.cf-readable-content .cf-markdown :is(h4, h5, h6) { font-size: 1em; }
+.cf-readable-code, .cf-readable-source { font-family: var(--font-monospace); font-size: 12px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; overflow: auto; padding: 12px; background: var(--cf-surface); }
+.cf-readable-original { border-top: 1px solid var(--cf-border); padding-block: 8px; margin-block: 12px; }
+.cf-readable-original > summary { color: var(--cf-muted); cursor: pointer; }
+.cf-readable-original > pre { max-height: 32rem; margin-block: 12px 0; }
+.cf-readable-notice { color: var(--cf-muted); font-size: 12px; line-height: 1.65; margin-block: 8px; }
+.cf-session-events .cf-readable-body { margin-block: 8px; }

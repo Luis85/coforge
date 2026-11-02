@@ -3,6 +3,7 @@ version: 1
 slug: "components-coforge-ideadrawer-vue"
 primary_target: "src/plugin/presentation/components/coforge/IdeaDrawer.vue"
 related_targets:
+  - "src/plugin/presentation/components/coforge/ReadableContent.vue"
   - "src/plugin/presentation/components/coforge/IdeaDrawerHeader.vue"
   - "src/plugin/presentation/components/coforge/IdeaSectionNavigation.vue"
   - "src/plugin/presentation/components/coforge/IdeaOverviewTab.vue"
@@ -61,6 +62,12 @@ Qualification and the final verdict belong to the request-detail task record;
 this documentation does not certify pending checks.
 
 ## Interaction contract
+
+Captured agent content is a reading task. Present structured JSON with labelled
+fields and lists, Markdown with the existing safe renderer, and exact retained
+source behind a keyboard-accessible disclosure. Announce incomplete or shortened
+reading previews; never guess missing content. Keep tool commands and diffs as
+code. Share this treatment across Activity, Sessions, Council and workflow outputs.
 
 - Overview leads with Original request and keeps its unsaved edits through
   section navigation using a request-keyed kept-alive component. Closing or
