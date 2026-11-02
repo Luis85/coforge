@@ -8,6 +8,7 @@ export interface VaultFolderLayout {
 export const DEFAULT_IDEAS_FOLDER = "CoForge/Ideas";
 export const DEFAULT_PUBLIC_FOLDER = "CoForge/Public";
 const PRIVATE_FOLDERS = [
+  '.coforge-data',
   DEFAULT_IDEAS_FOLDER,
   "CoForge/Projects",
   'CoForge/Output Templates',
@@ -66,6 +67,8 @@ export function validateFolderLayout(
     ideasFolder: normalizeVaultFolder(value.ideasFolder),
     publicFolder: normalizeVaultFolder(value.publicFolder),
   };
+  if (vaultFoldersOverlap(layout.ideasFolder, '.coforge-data'))
+    throw new Error('Keep editable Markdown notes outside the private CoForge data folder so Obsidian can index them.');
   const privateFolders = [
     layout.ideasFolder,
     ...PRIVATE_FOLDERS,

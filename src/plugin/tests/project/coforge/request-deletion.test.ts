@@ -17,8 +17,9 @@ it('removes only the confirmed card, trashes the original note name and retains 
     expect(f.app.vault.getFileByPath(f.file.path)).toBeNull();
     expect(f.kit.vault.trashed.at(-1)).toMatchObject({ system: true, data: before });
     expect(f.kit.vault.trashed.at(-1)?.path.endsWith(f.file.name)).toBe(true);
-    const recovery = f.app.vault.getFiles().find(file => file.path.endsWith('/request.coforge-recovery'));
-    expect(recovery).toBeDefined(); expect(f.kit.read(recovery!.path)).toBe(before);
+    const folders = await f.app.vault.adapter.list('.coforge-data/recovery/RequestDeletion');
+    const recovery = `${folders.folders[0]!}/0/request.coforge-recovery`;
+    expect(f.kit.read(recovery)).toBe(before);
     expect(f.studio.state().jobs.find(job => job.id === 'old-task')?.logs).toEqual(['Retained evidence']);
     expect(f.studio.state().deletedRequests?.at(-1)).toMatchObject({ id: f.idea.id, title: f.idea.title, voters: ['simulator:viewer'] });
     const costs = f.studio.store.aiCostSnapshot([]);

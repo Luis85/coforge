@@ -1,3 +1,4 @@
+import { coforgeDataPath, CoforgeDataDirectory } from './vault-data-location';
 import type { Plugin, TFile } from "obsidian";
 import { parseDocument } from "yaml";
 import type { StudioService } from "../../features/coforge/application/studio";
@@ -40,15 +41,17 @@ const registryCheck = shape(
 type Entry = ReturnType<typeof entryCheck>;
 /** Private source anchors prevent removing editable task metadata from bypassing request screening. */
 export class CouncilIdeaLinks {
+  private readonly dataDirectory = new CoforgeDataDirectory(() => this.plugin);
   private readonly path: string;
   constructor(
     private readonly plugin: Plugin,
     private readonly studio: StudioService,
     private readonly ideaFile?: (id: string) => TFile | null,
   ) {
-    this.path = `${plugin.manifest.dir ?? `${plugin.app.vault.configDir}/plugins/${plugin.manifest.id}`}/coforge-council-idea-links.json`;
+    this.path = coforgeDataPath('coforge-council-idea-links.json');
   }
   private async entries(): Promise<Entry[]> {
+    await this.dataDirectory.prepare();
     const adapter = this.plugin.app.vault.adapter;
     if (!(await adapter.exists(this.path))) return [];
     const entries = registryCheck(

@@ -35,6 +35,7 @@ export function councilDefinitionFoldersCheck(
     "CoForge/Public",
     publicFolder,
     ".git",
+    '.coforge-data',
     ...(configFolder ? [configFolder] : []),
   ];
   if (

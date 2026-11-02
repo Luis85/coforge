@@ -45,8 +45,7 @@ describe('Private card Sessions and read-only Peek in the contained host', () =>
     if (!ideaId) throw new Error('Synthetic request identity missing.');
     await obsidian.disablePlugin();
     await obsidian.eval(async ({ app, pluginId }, fixture) => {
-      const folder = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
-      const path = `${folder}/coforge-state.json`; const state = JSON.parse(await app.vault.adapter.read(path));
+      const path = `.coforge-data/studio/coforge-state.json`; const state = JSON.parse(await app.vault.adapter.read(path));
       if (state.jobs.length) throw new Error('Synthetic fixture cannot replace actual dispatched jobs.');
       state.jobs = [{ id: 'synthetic-parent', ideaId: fixture.ideaId, projectId: state.activeProjectId, provider: 'codex', model: 'gpt-6.1-sol', stage: 'implement', status: 'succeeded', startedAt: fixture.at, finishedAt: '2026-11-01T12:01:00Z', logs: ['PRIVATE_DIAGNOSTIC_NOT_SESSION_OUTPUT'], sessionTrace: fixture.trace,
         verification: [{ id: 'synthetic-check', runId: 'synthetic-run', attemptId: 'synthetic-attempt', projectId: state.activeProjectId, commandId: 'fixture', label: 'Synthetic fixture command', executable: 'node', args: ['fixture.cjs'], runtime: 'docker', imageId: 'sha256:' + 'a'.repeat(64), sourceHash: 'b'.repeat(64), startedAt: fixture.at, finishedAt: '2026-11-01T12:00:10Z', status: 'completed', exitCode: 0, output: 'Synthetic output only; no actual command was executed.', truncated: false }] }];

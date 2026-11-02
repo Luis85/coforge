@@ -59,7 +59,7 @@ export function brokeredClaudeArgs(input: StageInput, configPath: string): strin
   args[args.indexOf('--tools') + 1] = [...(delegation ? ['Agent', 'StructuredOutput'] : []), ...(research ? ['WebFetch', 'WebSearch'] : [])].join(',');
   const denied = args.indexOf('--disallowedTools') + 1;
   args[denied] = [...args[denied]!.split(',').filter(name => name !== 'mcp__*' && (!delegation || name !== 'Agent' && name !== 'Task') && (!research || !['WebFetch', 'WebSearch'].includes(name))),
-    ...deniedNative, ...(!delegation ? ['Agent', 'Task'] : []), 'Read(**/.coforge/**)', 'Edit(**/.coforge/**)', 'Write(**/.coforge/**)'].join(',');
+    ...deniedNative, ...(!delegation ? ['Agent', 'Task'] : []), 'Read(**/.coforge-data/**)', 'Edit(**/.coforge-data/**)', 'Write(**/.coforge-data/**)', 'Read(**/.coforge/**)', 'Edit(**/.coforge/**)', 'Write(**/.coforge/**)'].join(',');
   const env: Record<string, string> = delegation ? { CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS: String(delegation.maxConcurrent), CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH: '1',
     CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1', CLAUDE_CODE_FORK_SUBAGENT: '0' } : {};
   const verification = input.workflow.verificationProfile;

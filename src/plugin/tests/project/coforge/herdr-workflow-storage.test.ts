@@ -10,14 +10,14 @@ function fixture() {
   const kit = createTestApp({ configDir: '.custom-host-config' });
   class TestPlugin extends Plugin {}
   const plugin = new TestPlugin(hostInstance(kit.app, App), { id: 'coforge', name: 'CoForge', version: '0.1.0', minAppVersion: '1.13.7', author: '', description: '' });
-  const path = `${kit.vault.configDir}/plugins/coforge/coforge-herdr-workflow.json`;
+  const path = `.coforge-data/integrations/herdr/coforge-herdr-workflow.json`;
   const record: HerdrWorkflowRecord = { id: 'attempt', jobId: 'job', ideaId: 'CF-001', projectId: 'CFP-001', stage: 'screen',
     model: 'sonnet', kind: 'claude', settings: { executable: 'herdr', session: 'default' }, fingerprint: 'fingerprint', nonce: 'nonce', at: '2026-10-28T10:00:00.000Z', phase: 'attention' };
   return { kit, plugin, path, record, storage: new HerdrWorkflowStateStorage(plugin) };
 }
 
 describe('private Herdr workflow recovery storage', () => {
-  it('uses the host configuration directory and round-trips unresolved records without public vault notes', async () => {
+  it('uses vault-owned data independently of the host configuration directory and round-trips unresolved records', async () => {
     const f = fixture();
     expect(await f.storage.load()).toEqual([]);
     await f.storage.save([f.record]);

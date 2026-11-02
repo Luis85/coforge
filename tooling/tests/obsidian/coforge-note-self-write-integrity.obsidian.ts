@@ -89,8 +89,7 @@ describe('Committed own-note writes in the contained host', () => {
     }, initial.path)).state).toBe('stopped');
     const final = await obsidian.eval(async ({ app, pluginId }, path) => {
       const note = app.vault.getFileByPath(path); if (!note) throw new Error('Synthetic note disappeared.');
-      const folder = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
-      const state = JSON.parse(await app.vault.adapter.read(`${folder}/coforge-state.json`));
+      const state = JSON.parse(await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`));
       return { bytes: await app.vault.read(note), jobs: state.jobs.length };
     }, initial.path);
     expect(runFromNote(final.bytes).error).toContain('changed outside CoForge');

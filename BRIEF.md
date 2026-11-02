@@ -566,7 +566,17 @@ recovery, project scope, host permissions and final human review.
   project name and brief, agent settings, and the local repository/worktree configuration.
   Each project has its own requests and workflow. A project's repository may be outside the vault;
   the vault is the streamer's CoForge command centre, not the game repository.
-- Plugin data (`coforge-state.json` in the plugin folder): votes, increments,
+- Private vault data (owner decision, 2026-11-02): save vault-owned runtime data in
+  `.coforge-data/` at the vault root, organized by responsibility. Keep editable
+  Markdown notes in their visible vault folders so Obsidian can index them.
+  Include machine-bound worker files under a machine-specific runtime subtree and
+  ignore the entire data folder in Git (owner correction, 2026-11-02). Preserve
+  active worker ownership during migration; hold new Builds until its original
+  generation can be safely relocated. The plugin directory contains installation
+  assets (including Obsidian's required manifest) and settings-only `data.json`.
+  Migrate existing records without overwriting conflicting generations or changing
+  canonical note IDs, frontmatter or body bytes.
+- Studio data (`.coforge-data/studio/coforge-state.json`): votes, increments,
   contributors, registered players, community environment/ranks, balances/reward claims,
   operational counters/history, recurring messages/delivery intents, chat, agent runs and settings.
 - Obsidian secret storage: Twitch access/refresh token pairs for streamer and bot (referenced by name only).

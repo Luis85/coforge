@@ -181,7 +181,7 @@ describe("Public OBS overlays in the contained host", () => {
       const saved: unknown = JSON.parse(
         await obsidian.eval(({ app, pluginId }) =>
           app.vault.adapter.read(
-            `${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`,
+            `.coforge-data/studio/coforge-state.json`,
           ),
         ),
       );

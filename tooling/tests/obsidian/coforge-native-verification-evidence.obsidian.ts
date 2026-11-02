@@ -17,10 +17,9 @@ import { record } from '../../../src/plugin/features/coforge/domain/check';
 const TITLE = 'SYNTHETIC verification rendering fixture';
 async function stored(obsidian: ObsidianHarness) {
   return obsidian.eval(async ({ app, pluginId }) => {
-    const folder = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
     const file = app.vault.getMarkdownFiles().find(file => file.path.startsWith('CoForge/Ideas/'));
     if (!file) throw new Error('The synthetic request note is missing.');
-    return { notePath: file.path, note: await app.vault.read(file), statePath: `${folder}/coforge-state.json`, state: await app.vault.adapter.read(`${folder}/coforge-state.json`) };
+    return { notePath: file.path, note: await app.vault.read(file), statePath: `.coforge-data/studio/coforge-state.json`, state: await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`) };
   });
 }
 

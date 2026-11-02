@@ -40,8 +40,7 @@ describe('Codex CoForge-context disclosure in the contained host', () => {
     await obsidian.disablePlugin();
     // Seed only this contained test vault's private evidence while the plugin is stopped.
     await obsidian.eval(async ({ app, pluginId }, fixture) => {
-      const folder = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
-      const path = `${folder}/coforge-state.json`;
+      const path = `.coforge-data/studio/coforge-state.json`;
       const state = JSON.parse(await app.vault.adapter.read(path));
       if (state.jobs.length !== 0) throw new Error('Rendering fixture must begin with no dispatched jobs.');
       state.jobs = [{ id: 'codex-render-fixture', ideaId: fixture.ideaId, projectId: state.activeProjectId, provider: 'codex', model: 'gpt-6.1-sol', stage: 'plan', status: 'succeeded', startedAt: fixture.at, finishedAt: fixture.at, logs: ['Unpaid rendering fixture; no CLI inference was started.'],

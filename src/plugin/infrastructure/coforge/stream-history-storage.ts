@@ -8,7 +8,7 @@ import { summarizeStream, type StreamHistory, type StreamSummary } from "../../f
 import { list, nullable, shape } from "../../features/coforge/domain/check";
 import { readJson, writeJson, type JsonFiles } from "./atomic-json";
 
-const FOLDER = "CoForge/Streams";
+const FOLDER = ".coforge-data/streams";
 const INDEX = FOLDER + "/.index.json";
 const indexCheck = shape({ activeId: nullable(streamHistoryId), streams: list(streamSummaryCheck) });
 const pathFor = (id: string) => `${FOLDER}/${streamHistoryId(id)}.json`;
@@ -33,7 +33,7 @@ export class StreamHistoryStorage implements StreamHistoryPort {
     return value;
   }
   private async ensureFolder(): Promise<void> {
-    for (const folder of ["CoForge", FOLDER]) {
+    for (const folder of [".coforge-data", FOLDER]) {
       if (await this.files.exists(folder)) continue;
       try {
         await this.files.mkdir(folder);

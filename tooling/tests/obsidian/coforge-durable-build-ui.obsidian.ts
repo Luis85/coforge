@@ -194,11 +194,8 @@ describe("Durable Build configuration and studio activity in the contained host"
       view.getByRole("button", { name: "Recent activity", exact: true }),
     ).toBeFocused();
     const jobs = await obsidian.eval(async ({ app, pluginId }) => {
-      const folder =
-        app.plugins.manifests[pluginId]?.dir ??
-        `${app.vault.configDir}/plugins/${pluginId}`;
       const value: unknown = JSON.parse(
-        await app.vault.adapter.read(`${folder}/coforge-state.json`),
+        await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`),
       );
       if (
         !value ||

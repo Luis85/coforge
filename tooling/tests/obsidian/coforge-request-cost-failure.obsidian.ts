@@ -27,7 +27,7 @@ describe('Recorded failure and request cost details in the contained host', () =
     });
     await obsidian.disablePlugin();
     await obsidian.eval(async ({ app, pluginId }, ideaId) => {
-      const path = `.obsidian/plugins/${pluginId}/coforge-state.json`;
+      const path = `.coforge-data/studio/coforge-state.json`;
       const state = JSON.parse(await app.vault.adapter.read(path));
       const projectId = state.activeProjectId; const at = '2026-11-01T13:00:00Z';
       state.jobs = [{ id: 'synthetic-failed-build', ideaId, projectId, provider: 'codex', model: 'captured-synthetic-model', stage: 'implement',
@@ -89,7 +89,7 @@ describe('Recorded failure and request cost details in the contained host', () =
       await obsidian.screenshot(`request-cost-provenance-${theme}-${width}`);
     }
     expect(await obsidian.eval(({ app }, path) => app.vault.adapter.read(path), note.path)).toBe(note.bytes);
-    expect(await obsidian.eval(async ({ app, pluginId }) => JSON.parse(await app.vault.adapter.read(`.obsidian/plugins/${pluginId}/coforge-state.json`)).jobs.length)).toBe(1);
+    expect(await obsidian.eval(async ({ app, pluginId }) => JSON.parse(await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`)).jobs.length)).toBe(1);
     expect(obsidian.errors()).toEqual([]);
   });
 });

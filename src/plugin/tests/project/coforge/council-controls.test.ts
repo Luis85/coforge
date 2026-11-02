@@ -353,9 +353,8 @@ describe("operator controls and live execution authority", () => {
         "Private/Proposal.md",
         "CoForge/Tests/Original.md",
       );
-      const directory = ".obsidian/plugins/coforge";
-      const settingsPath = `${directory}/coforge-council-settings.json`;
-      const journalPath = `${directory}/coforge-execution-v2.json`;
+      const settingsPath = `.coforge-data/council/coforge-council-settings.json`;
+      const journalPath = `.coforge-data/council/coforge-execution-v2.json`;
       const before = await f.app.vault.adapter.read(journalPath);
       const current = record(
         JSON.parse(await f.app.vault.adapter.read(settingsPath)),

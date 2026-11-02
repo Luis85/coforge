@@ -19,6 +19,8 @@ import { McpCoworkerTools } from './mcp-coworker-tools';
 import type { CouncilActions } from '../../features/coforge/application/council-ports';
 import { McpObsidianTools } from './mcp-obsidian-tools';
 import { McpWorktreeCommands } from './mcp-worktree-commands';
+import { COFORGE_DATA, CoforgeDataDirectory, legacyPluginDirectory } from './vault-data-location';
+import { assertOwnedMcpRelocation } from './mcp-data-relocation';
 
 const entryCheck = shape({ command: text({ min: 1, max: 1000 }), args: list(text({ min: 1, max: 4096 }), { min: 2, max: 2 }) }, { strict: true });
 const registrationCheck = shape({ name: text({ min: 1, max: 100 }), phase: oneOf(['pending', 'active', 'attention'] as const),
@@ -100,7 +102,8 @@ export class McpModule implements McpActions {
       const adapter = this.plugin.app.vault.adapter;
       if (!this.environment && !localAdapter(adapter)) { this.failure = 'MCP requires desktop Obsidian with a local vault.'; return; }
       this.vaultPath = this.environment?.vaultPath ?? (localAdapter(adapter) ? adapter.getBasePath() : '');
-      this.directory = this.environment?.directory ?? resolve(this.vaultPath, this.plugin.manifest.dir ?? `${this.plugin.app.vault.configDir}/plugins/${this.plugin.manifest.id}`);
+      if (!this.environment) await new CoforgeDataDirectory(() => this.plugin).prepare();
+      this.directory = this.environment?.directory ?? resolve(this.vaultPath, COFORGE_DATA, 'integrations', 'mcp');
       this.vaultId = createHash('sha256').update(this.directory).digest('hex').slice(0, 10);
       try {
         await mkdir(this.directory, { recursive: true });
@@ -109,6 +112,17 @@ export class McpModule implements McpActions {
         if (raw && Buffer.byteLength(raw) > 1024 * 1024) throw new Error('limit');
         const settings = settingsCheck(raw ? JSON.parse(raw) : { format: 'coforge-mcp/v1', acknowledgedTasks: [] });
         this.saved = settings.registration; this.acknowledgedTasks = settings.acknowledgedTasks;
+        if (this.saved) {
+          const next = { command: this.saved.entry.command, args: [join(this.directory, 'coforge-mcp-bridge.cjs'), this.descriptor] };
+          if (JSON.stringify(next) !== JSON.stringify(this.saved.entry)) {
+            const userSettings = this.environment?.userSettings ?? (process.env.CLAUDE_CONFIG_DIR ? join(resolve(process.env.CLAUDE_CONFIG_DIR), '.claude.json') : join(homedir(), '.claude.json'));
+            assertOwnedMcpRelocation(this.saved, this.vaultPath, resolve(this.vaultPath, legacyPluginDirectory(this.plugin)), userSettings);
+            await writeFile(next.args[0]!, MCP_BRIDGE_SOURCE, { mode: 0o600 });
+            await this.registration.relocate(this.saved.paths, this.saved.name, this.saved.entry, next);
+            this.saved.entry = next;
+            await this.persist();
+          }
+        }
         if (this.saved?.phase === 'active') {
           await writeFile(join(this.directory, 'coforge-mcp-bridge.cjs'), MCP_BRIDGE_SOURCE, { mode: 0o600 });
           await this.listen();

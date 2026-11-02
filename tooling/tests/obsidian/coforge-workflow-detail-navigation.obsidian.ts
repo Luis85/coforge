@@ -19,9 +19,8 @@ async function createRequest(view: Locator, title: string) {
 
 async function inspectRequestSections(obsidian: ObsidianHarness, view: Locator) {
   const retained = () => obsidian.eval(async ({ app, pluginId }) => {
-    const directory = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
     return {
-      state: await app.vault.adapter.read(`${directory}/coforge-state.json`),
+      state: await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`),
       notes: await Promise.all(app.vault.getMarkdownFiles().filter(file => file.path.startsWith('CoForge/Ideas/')).sort((left, right) => left.path.localeCompare(right.path)).map(file => app.vault.read(file))),
     };
   });

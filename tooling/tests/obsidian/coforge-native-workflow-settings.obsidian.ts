@@ -90,8 +90,7 @@ describe('Native workflow tools authoring in the contained host', () => {
       await obsidian.screenshot(`native-tools-${theme}-${width}`);
     }
     const data = await obsidian.eval(async ({ app, pluginId }) => {
-      const folder = app.plugins.manifests[pluginId]?.dir ?? `${app.vault.configDir}/plugins/${pluginId}`;
-      return app.vault.adapter.read(`${folder}/coforge-state.json`);
+      return app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`);
     });
     const saved = parsePersistedStudio(JSON.parse(data));
     expect(saved.jobs).toEqual([]);

@@ -77,3 +77,6 @@ __pycache__/
 
 /prototypes
 /Music
+
+# Private vault records and machine-bound execution journals.
+/.coforge-data/

@@ -89,7 +89,7 @@ describe("Economy in the contained Obsidian host", () => {
       obsidian.eval(async ({ app, pluginId }) => {
         const data = JSON.parse(
           await app.vault.adapter.read(
-            `${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`,
+            `.coforge-data/studio/coforge-state.json`,
           ),
         );
         const player = data.population.players.find(

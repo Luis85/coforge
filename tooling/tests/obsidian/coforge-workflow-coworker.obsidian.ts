@@ -52,7 +52,7 @@ describe('Assigned workflow CoWorkers in the contained host', () => {
         if (body.includes('Assigned CoWorker workflow')) { note = body; break; }
       }
       if (!note) throw new Error('Missing canonical assigned-workflow project');
-      const state: unknown = JSON.parse(await app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`));
+      const state: unknown = JSON.parse(await app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`));
       return { note, jobs: state && typeof state === 'object' && 'jobs' in state && Array.isArray(state.jobs) ? state.jobs.length : -1 };
     });
     expect(saved.note).toContain('effort: medium');

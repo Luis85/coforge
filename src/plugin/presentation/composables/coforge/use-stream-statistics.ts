@@ -188,7 +188,7 @@ export function useStreamStatistics() {
     } catch {
       if (!closed && current === listRevision)
         error.value =
-          "Stream histories could not be listed. Check CoForge/Streams and try again.";
+          "Stream histories could not be listed. Check .coforge-data/streams and try again.";
     } finally {
       if (!closed && current === listRevision) listing.value = false;
     }

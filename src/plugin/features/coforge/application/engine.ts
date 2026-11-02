@@ -35,24 +35,7 @@ import { polishingSaveOptions, workflowRunSaveOptions } from './polishing-save-o
 import { effectivePolishingIdea } from './polishing-amendments';
 import { HostOperationLifetime } from './host-operation-lifetime';
 import { managedWorkflowContinuation } from './managed-workflow-continuation';
-
-function assertRuntime(state: InternalState, stage: AgentStage, projectId: string, provider = stageAgent(projectSettings(state, projectId), stage).provider): void {
-  const project = findProject(state, projectId);
-  if (project.unavailable) throw new StudioError('Restore this project note before running agents.', 409);
-  if (provider === 'herdr') {
-    if (!state.runtime.herdrWorkflow?.ready) throw new StudioError(state.runtime.herdrWorkflow?.message || 'Connect Herdr and load its recovery journals before running workflow steps.', 409);
-    if (!project.projectPath) throw new StudioError('Set this project’s workspace before running Herdr workflow steps.', 409);
-    if (stage === 'implement' && !project.allowImplementation) throw new StudioError('Real implementation is disabled for this project.', 409);
-    return;
-  }
-  if (provider !== 'claude' && provider !== 'codex') return;
-  if (provider === 'codex' && !state.runtime.codexAvailable) throw new StudioError('Codex CLI is not available. Install it, sign in locally, then check Runtime settings.', 409);
-  if (provider === 'claude' && !state.runtime.cliAvailable) throw new StudioError('Claude Code CLI is not available. Install it, sign in locally, then check the runtime in CoForge settings.', 409);
-  if (!project.projectPath && (stage === 'plan' || stage === 'implement'))
-    throw new StudioError('Set this project’s repository path in Project settings before planning or building.', 409);
-  if (stage === 'implement' && !project.allowImplementation)
-    throw new StudioError('Real implementation is disabled. Enable it for this project in Project settings after reviewing the integration guide.', 409);
-}
+import { assertStageRuntime } from './stage-runtime-policy';
 
 /** Writes a successful stage result onto the idea. Local injection heuristics always apply to screening. */
 function applyResult(state: InternalState, job: AgentJob, result: StageResult): void {
@@ -192,7 +175,7 @@ export class WorkflowEngine {
       assertStage(idea, stage);
       if (state.jobs.some(j => j.ideaId === ideaId && isActiveJob(j))) throw new StudioError('This idea already has a queued or running job.', 409);
       if (state.jobs.filter(j => j.status === 'queued').length >= 50) throw new StudioError('The queue is full. Wait for current work to finish.', 409);
-      assertRuntime(state, stage, projectId, agent.provider);
+      assertStageRuntime(state, stage, projectId, agent.provider);
       delete idea.lastError;
       state.manualHolds = state.manualHolds.filter(id => id !== ideaId);
       const queued: AgentJob = {
@@ -346,7 +329,7 @@ export class WorkflowEngine {
       if (!idea) throw new Error('The idea was removed before its run started.');
       const projectId = next.projectId ?? ideaProjectId(idea);
       if (ideaProjectId(idea) !== projectId) throw new Error('The idea moved to another project before its run started.');
-      assertRuntime(state, job.stage, projectId, job.provider);
+      assertStageRuntime(state, job.stage, projectId, job.provider);
       assertStage(idea, job.stage);
       job.status = 'running'; job.startedAt = new Date().toISOString();
       const agent = stageAgent(projectSettings(state, projectId), job.stage);

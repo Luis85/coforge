@@ -22,7 +22,7 @@ function run(note: string) {
   return workflowRunCheck(restoreWorkflowNoteData(record(parse(yaml))['workflow-run']));
 }
 async function durableState(obsidian: ObsidianHarness) {
-  return parsePersistedStudio(JSON.parse(await obsidian.eval(async ({ app, pluginId }) => app.vault.adapter.read(`${app.vault.configDir}/plugins/${pluginId}/coforge-state.json`))));
+  return parsePersistedStudio(JSON.parse(await obsidian.eval(async ({ app, pluginId }) => app.vault.adapter.read(`.coforge-data/studio/coforge-state.json`))));
 }
 
 describe('Operator Stop and Restart in real Obsidian', () => {
