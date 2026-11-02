@@ -71,6 +71,7 @@ describe('Increment review handoff in the contained host', () => {
     await browserExpect(view.getByRole('button', { name: 'Accept increment', exact: true })).toBeEnabled();
     const disclosure = findings.locator('details');
     const summary = disclosure.locator('summary');
+    await browserExpect(disclosure).not.toHaveAttribute('open', '');
     const diff = view.getByRole('region', { name: 'Illustrative diff', exact: true });
     for (const width of [1280, 720]) for (const theme of ['light', 'dark']) {
       await obsidian.page.setViewportSize({ width, height: 900 });
@@ -79,7 +80,6 @@ describe('Increment review handoff in the contained host', () => {
         document.body.classList.toggle('theme-dark', selected === 'dark');
       }, theme);
       await summary.focus();
-      await obsidian.page.keyboard.press('Enter');
       await browserExpect(disclosure).not.toHaveAttribute('open', '');
       await obsidian.page.keyboard.press('Enter');
       await browserExpect(disclosure).toHaveAttribute('open', '');
@@ -88,6 +88,9 @@ describe('Increment review handoff in the contained host', () => {
       expect(await criteria.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
       await findings.scrollIntoViewIfNeeded();
       await obsidian.screenshot(`increment-findings-${theme}-${width}`);
+      await summary.focus();
+      await obsidian.page.keyboard.press('Enter');
+      await browserExpect(disclosure).not.toHaveAttribute('open', '');
       await diff.focus();
       await browserExpect(diff).toBeFocused();
       expect(await diff.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);

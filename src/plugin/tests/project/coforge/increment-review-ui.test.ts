@@ -68,7 +68,17 @@ it('presents planned criteria, attributed post-build findings and evidence bound
     const findings = f.wrapper.get('[aria-label="Post-build findings"]');
     expect(findings.text()).toContain('Product assessment');
     expect(findings.text()).toContain('Simulated assessment');
+    const disclosure = findings.get('details');
+    expect(disclosure.attributes('open')).toBeUndefined();
+    disclosure.element.setAttribute('open', '');
     expect(findings.text()).toContain('Polish before publishing.');
+    const headings = f.wrapper.findAll('.cf-idea-scroll h3').map(heading => heading.text());
+    expect(headings).toEqual(expect.arrayContaining(['What changed Demo', 'Illustrative changes', 'Illustrative diff', 'Verification notes', 'Acceptance criteria', 'Post-build findings']));
+    expect(headings.indexOf('What changed Demo')).toBeLessThan(headings.indexOf('Illustrative changes'));
+    expect(headings.indexOf('Illustrative changes')).toBeLessThan(headings.indexOf('Illustrative diff'));
+    expect(headings.indexOf('Illustrative diff')).toBeLessThan(headings.indexOf('Verification notes'));
+    expect(headings.indexOf('Verification notes')).toBeLessThan(headings.indexOf('Acceptance criteria'));
+    expect(headings.indexOf('Acceptance criteria')).toBeLessThan(headings.indexOf('Post-build findings'));
     expect(findings.get('time').attributes('datetime')).toBe('2026-10-31T19:00:00.000Z');
     expect(f.wrapper.text()).not.toContain('Earlier PRD must not appear here.');
     expect(f.wrapper.text()).toContain('Agent-reported summary');

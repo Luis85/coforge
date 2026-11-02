@@ -1,5 +1,5 @@
-import { afterEach, expect, it, vi } from 'vitest';
-import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { mkdir, mkdtemp, readFile, readdir, rename, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { StageInput } from '../../../features/coforge/application/ports';
 import { createSeed, defaultIntegration, defaultSettings } from '../../../features/coforge/domain/seed';
@@ -7,6 +7,14 @@ import { McpWorktreeCommands } from '../../../infrastructure/coforge/mcp-worktre
 import { McpCommandJournal } from '../../../infrastructure/coforge/mcp-command-journal';
 import type { OwnedWorktreeOptions, OwnedWorktreeProcess, OwnedWorktreeResult } from '../../../infrastructure/coforge/native-process/owned-worktree-process';
 
+vi.mock('node:fs/promises', async importOriginal => {
+  const actual = await importOriginal<typeof import('node:fs/promises')>();
+  return { ...actual, rename: vi.fn(actual.rename) };
+});
+beforeEach(async () => {
+  const actual = await vi.importActual<typeof import('node:fs/promises')>('node:fs/promises');
+  vi.mocked(rename).mockReset().mockImplementation(actual.rename);
+});
 const roots: string[] = [];
 afterEach(async () => { vi.restoreAllMocks(); vi.unstubAllEnvs(); for (const root of roots.splice(0)) await rm(root, { recursive: true, force: true }); });
 async function fixture() {
@@ -45,6 +53,41 @@ it('records ownership before command effects and reuses an uncertain-response id
     expect(f.backend).toHaveBeenCalledOnce();
     await expect(f.commands.status('CFP-999', 'task', first.id)).rejects.toThrow();
   } finally { await f.commands.settle(f.input); }
+});
+
+it('retains ownership and completion through transient atomic ledger locks without replaying the command', async () => {
+  const f = await fixture();
+  await expect(f.commands.status('CFP-001', 'task', 'missing')).rejects.toThrow();
+  const request = { command: 'echo check', idempotencyKey: 'transient-lock', yieldTimeMs: 0 };
+  const locked = () => Object.assign(new Error('Synthetic ledger replacement lock'), { code: 'EPERM' });
+  vi.mocked(rename).mockRejectedValueOnce(locked());
+  try {
+    const admitted = await f.commands.start(f.input, f.lease, request, () => {});
+    await expect.poll(async () => (await f.commands.status('CFP-001', 'task', admitted.id)).output).toContain('Observed output');
+    vi.mocked(rename).mockRejectedValueOnce(locked());
+    f.finish();
+    await expect.poll(async () => (await f.commands.status('CFP-001', 'task', admitted.id)).status).toBe('completed');
+    expect((await f.commands.start(f.input, f.lease, request, () => {})).id).toBe(admitted.id);
+    expect(f.backend).toHaveBeenCalledOnce();
+    const retained = await new McpCommandJournal(() => f.root).load();
+    expect(retained[0]?.outcome).toMatchObject({ id: admitted.id, status: 'completed', exitCode: 0 });
+    expect(retained[0]?.identity?.birth).toBe('fixture');
+    expect(await readdir(join(f.root, 'mcp-command-ledger'))).toEqual(['commands.json']);
+  } finally { await f.commands.settle(f.input); }
+});
+
+it('keeps the prior ledger and prevents effects when an atomic replacement remains locked', async () => {
+  const f = await fixture();
+  await expect(f.commands.status('CFP-001', 'task', 'missing')).rejects.toThrow();
+  const path = join(f.root, 'mcp-command-ledger/commands.json');
+  const before = await readFile(path);
+  vi.mocked(rename).mockRejectedValue(Object.assign(new Error('Synthetic persistent replacement lock'), { code: 'EPERM' }));
+  await expect(f.commands.start(f.input, f.lease, { command: 'echo never', idempotencyKey: 'persistent-lock', yieldTimeMs: 0 }, () => {})).rejects.toThrow('private command ledger could not be saved');
+  expect(f.backend).not.toHaveBeenCalled();
+  expect(await readFile(path)).toEqual(before);
+  expect(await f.commands.list('CFP-001', 'task', {})).toEqual({ commands: [], total: 0 });
+  expect(await readdir(join(f.root, 'mcp-command-ledger'))).toEqual(['commands.json']);
+  expect(vi.mocked(rename).mock.calls.length).toBeLessThanOrEqual(6);
 });
 it('discovers retained task command IDs with bounded newest-first pagination without replay or cross-project leakage', async () => {
   const f = await fixture(); const ids: string[] = [];

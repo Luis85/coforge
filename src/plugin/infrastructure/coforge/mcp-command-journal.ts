@@ -1,4 +1,4 @@
-import { lstat, mkdir, readFile, realpath, rename, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, realpath } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { McpCommandOutcome } from '../../features/coforge/application/mcp-coding-ports';
 import { boolean, list, number, oneOf, optional, shape, text, timestamp } from '../../features/coforge/domain/check';
@@ -6,6 +6,7 @@ import { nativeWorkflowLifetimeRefCheck, type NativeWorkflowLifetimeRef } from '
 import { nativeWorkflowProcessIdentityCheck, type NativeWorkflowProcessIdentity } from '../../features/coforge/domain/native-workflow-process';
 import { providerFailureInfoCheck } from '../../features/coforge/domain/provider-failure';
 import { McpToolError } from './mcp-errors';
+import { WorkerFiles } from './durable-worker/files';
 
 export interface StoredMcpCommand { outcome: McpCommandOutcome; keyHash: string; requestHash: string; identity?: NativeWorkflowProcessIdentity; lifetime?: NativeWorkflowLifetimeRef }
 const id = text({ min: 1, max: 160 }), hash = text({ pattern: /^[a-f0-9]{64}$/u });
@@ -47,9 +48,6 @@ export class McpCommandJournal {
     await this.validate(); const value = journalCheck({ version: 1, commands });
     const bytes = Buffer.from(JSON.stringify(value), 'utf8');
     if (bytes.length > this.maxBytes) throw capacityError();
-    const path = join(this.directory, 'commands.json');
-    const temporary = join(this.directory, 'commands-' + crypto.randomUUID() + '.tmp');
-    await writeFile(temporary, bytes, { flag: 'wx', mode: 0o600 });
-    await this.validate(); await rename(temporary, path);
+    await new WorkerFiles(this.directory).write('commands.json', value);
   }
 }

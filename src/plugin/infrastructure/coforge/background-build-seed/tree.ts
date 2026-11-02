@@ -6,6 +6,7 @@ import { agentGit } from '../agent-worktree';
 import { workflowRepositoryFilePath, workflowRepositoryPathDenied } from '../mcp-step-files';
 import { inputHash } from '../durable-worker/protocol';
 import { ProcessFailure } from '../process';
+import { settledReadPair } from '../git-read-pair';
 
 export const SNAPSHOT_FILE_LIMIT = 64 * 1024 * 1024;
 export const SNAPSHOT_TOTAL_LIMIT = 512 * 1024 * 1024;
@@ -46,9 +47,10 @@ async function baseFiles(root: string, commit: string) {
 }
 async function indexModes(root: string) {
   const modes = new Map<string, '100644' | '100755'>();
-  for (const entry of (await agentGit(root, ['ls-files', '--stage', '-z'])).split('\0').filter(Boolean)) {
-    const match = /^(100644|100755) [a-f0-9]{40,64} 0\t(.+)$/u.exec(entry); if (!match) throw invalidSnapshot();
-    modes.set(match[2]!, match[1] === '100755' ? '100755' : '100644');
+  for (const entry of (await agentGit(root, ['ls-files', '--stage', '-v', '-z'])).split('\0').filter(Boolean)) {
+    const match = /^([A-Za-z]) (100644|100755) [a-f0-9]{40,64} 0\t(.+)$/u.exec(entry); if (!match) throw invalidSnapshot();
+    if (/^[a-zS]$/u.test(match[1]!)) throw new Error('Unsupported hidden Git index flags must be cleared before reviewing a snapshot.');
+    modes.set(match[3]!, match[2] === '100755' ? '100755' : '100644');
   }
   return modes;
 }
@@ -65,9 +67,7 @@ async function ignoredPaths(root: string, paths: string[]): Promise<Set<string>>
 }
 /** Hashes actual regular files, including ignored untracked files for retained workspace sources. */
 export async function snapshotTree(root: string, commit: string, repositoryOnly = false) {
-  const base = await baseFiles(root, commit); const modes = await indexModes(root);
-  for (const flag of (await agentGit(root, ['ls-files', '-v', '-z'])).split('\0').filter(Boolean))
-    if (/^[a-zS]/u.test(flag)) throw new Error('Unsupported hidden Git index flags must be cleared before reviewing a snapshot.');
+  const [base, modes] = await settledReadPair(baseFiles(root, commit), indexModes(root));
   // Git identifies logical modifications after checkout/EOL conversion. Raw byte hashes separately enforce exact copy equality.
   const changed = new Set((await agentGit(root, ['diff', '--no-ext-diff', '--no-textconv', '--no-renames', '--name-only', '-z', commit, '--'])).split('\0').filter(Boolean));
   const tracked = [...new Set([...base.keys(), ...modes.keys()])]; const excludedPaths: SnapshotExclusion[] = [];

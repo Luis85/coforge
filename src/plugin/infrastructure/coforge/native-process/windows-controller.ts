@@ -26,6 +26,12 @@ async function cached(directory: string): Promise<string> {
       value.executableHash !== await executableHash(files.path('Controller.exe')) || await files.source('Controller.cs') !== source) throw unavailable();
   return files.path('Controller.exe');
 }
+/** Identity reads may reuse verified code, but never compile, create or repair a controller cache. */
+export async function existingWindowsControllerExecutable(): Promise<string | undefined> {
+  if (process.platform !== 'win32') return undefined;
+  try { return await cached(join(await realpath(tmpdir()), 'coforge-native-controller-' + windowsControllerSourceHash)); }
+  catch { return undefined; }
+}
 async function compileController(signal?: AbortSignal): Promise<string> {
   const root = await realpath(tmpdir()); const directory = join(root, 'coforge-native-controller-' + windowsControllerSourceHash);
   try { return await cached(directory); }

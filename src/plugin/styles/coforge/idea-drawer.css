@@ -1,5 +1,5 @@
 /* Idea inspection keeps the board visible while protecting the review task. */
-.cf-idea-drawer { width: min(620px, 100%); animation: cf-idea-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
+.cf-drawer.cf-idea-drawer { width: min(1040px, 100%); animation: cf-idea-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes cf-idea-enter { from { opacity: 0; transform: translateX(24px); } }
 
 .cf-idea-inline { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -15,28 +15,34 @@
 /* Header, title and section tabs. */
 .cf-idea-top {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; flex: 0 0 auto;
-  padding: 14px 25px; border-bottom: 1px solid var(--cf-border); color: var(--cf-muted); font-size: 11px;
+  padding: var(--cf-space-sm) var(--cf-space-lg); border-bottom: 1px solid var(--cf-border); color: var(--cf-muted); font-size: var(--font-ui-smaller);
 }
 .cf-idea-id { font-size: 11px; color: var(--cf-muted); }
-.cf-idea-heading { padding: 26px 28px 21px; flex: 0 0 auto; }
+.cf-drawer .cf-idea-heading { padding: var(--cf-space-md) var(--cf-space-lg); flex: 0 0 auto; background: var(--cf-bg); border-bottom: 1px solid var(--cf-border); max-height: 30%; overflow-y: auto; }
 .cf-studio .cf-idea-heading h2 {
-  margin: 16px 0 15px; font-size: 25px; font-weight: 650; line-height: 1.35; letter-spacing: -0.025em; overflow-wrap: anywhere;
+  margin: var(--cf-space-sm) 0; font-size: var(--h2-size); font-weight: 650; line-height: 1.35; overflow-wrap: anywhere;
 }
 .cf-idea-byline { display: flex; align-items: center; gap: 8px; color: var(--cf-muted); font-size: 10px; flex-wrap: wrap; }
 .cf-idea-byline strong { color: var(--cf-text); font-weight: 600; }
-.cf-idea-tabs { display: flex; padding: 0 28px; border-bottom: 1px solid var(--cf-border); gap: 24px; flex: 0 0 auto; }
-.cf-studio nav.cf-idea-tabs { flex-flow: row wrap; flex: 0 0 auto; gap: 0 var(--cf-space-lg); }
+.cf-idea-workspace { display: grid; grid-template-columns: 190px minmax(0, 1fr); flex: 1; min-height: 0; }
+.cf-idea-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.cf-idea-nav-item { position: relative; min-width: 0; }
+.cf-studio nav.cf-idea-tabs { display: flex; flex-flow: column nowrap; padding: var(--cf-space-md) var(--cf-space-sm); border-right: 1px solid var(--cf-border); flex: 0 0 auto; gap: var(--cf-space-xs); min-height: 0; overflow-y: auto; align-items: stretch; background: var(--cf-surface); }
 .cf-studio .cf-idea-tabs button {
-  border: 0; border-radius: 0; padding: 12px 0; height: auto; font-size: 12px; color: var(--cf-muted); background: none;
-  position: relative; display: flex; align-items: center; gap: 7px; width: auto; flex: 0 0 auto;
+  border: 1px solid transparent; border-radius: var(--radius-s); padding: var(--cf-space-sm) var(--cf-space-sm) calc(var(--cf-space-sm) + 1.8em); height: auto; font-size: var(--font-ui-small); color: var(--cf-text); background: transparent;
+  display: flex; flex-direction: column; align-items: stretch; gap: var(--cf-space-xs); width: 100%; flex: 0 0 auto; text-align: left; white-space: normal; min-width: 0;
 }
-.cf-studio .cf-idea-tabs button:hover { color: var(--cf-text); }
-.cf-studio .cf-idea-tabs button.is-active { color: var(--cf-accent); }
-.cf-idea-tabs button.is-active::after {
-  content: ""; position: absolute; bottom: -1px; height: 2px; left: 0; right: 0; background: var(--cf-accent);
-}
+.cf-studio .cf-idea-tabs button:hover { background: var(--cf-bg); }
+.cf-studio .cf-idea-tabs button.is-active { color: var(--cf-text); background: var(--cf-accent-soft); border-color: var(--cf-accent); }
+.cf-idea-tabs small { position: absolute; left: var(--cf-space-sm); right: var(--cf-space-sm); bottom: var(--cf-space-sm); pointer-events: none; font-size: var(--font-ui-smaller); font-weight: 400; color: var(--cf-muted); line-height: 1.5; }
+.cf-idea-tab-label { display: flex; align-items: center; gap: var(--cf-space-sm); font-weight: var(--font-semibold); }
 .cf-idea-tab-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.8; }
-.cf-idea-scroll { flex: 1 1 auto; padding: 25px 28px 30px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.cf-idea-scroll { flex: 1 1 auto; padding: var(--cf-space-lg); min-height: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.cf-idea-scroll:focus-visible { outline: 2px solid var(--cf-accent); outline-offset: -3px; }
+.cf-idea-pane-intro { padding-bottom: var(--cf-space-md); margin-bottom: var(--cf-space-lg); border-bottom: 1px solid var(--cf-border); }
+.cf-studio .cf-idea-pane-intro h3 { margin: 0 0 var(--cf-space-xs); font-size: 18px; font-weight: 650; }
+.cf-studio .cf-idea-pane-intro p { margin: 0; color: var(--cf-muted); font-size: var(--font-ui-small); line-height: 1.7; max-width: 70ch; }
+.cf-idea-followup { border-top: 1px solid var(--cf-border); padding-top: var(--cf-space-lg); }
 
 /* Sections and headings. */
 .cf-idea-section { margin-bottom: 28px; }
@@ -201,7 +207,8 @@
 .cf-studio .cf-idea-empty p { max-width: 40ch; margin: 0 0 20px; color: var(--cf-muted); font-size: 12px; line-height: 1.8; }
 
 /* Footer: next stage or the streamer's review decision. */
-.cf-idea-footer { flex: 0 0 auto; padding: 19px 28px 24px; border-top: 1px solid var(--cf-border); background: var(--cf-bg); }
+.cf-idea-footer { flex: 0 0 auto; max-height: 45%; overflow-y: auto; padding: var(--cf-space-md) var(--cf-space-lg); border-top: 1px solid var(--cf-border); background: var(--cf-bg); }
+.cf-idea-scroll .cf-idea-footer { max-height: none; overflow: visible; padding-inline: 0; margin-top: var(--cf-space-lg); }
 .cf-studio .cf-idea-footer > .cf-idea-help { margin: 0 0 13px; }
 .cf-idea-footer .cf-idea-field { margin-bottom: 12px; }
 .cf-idea-footer .cf-idea-field textarea { min-height: 60px; }
@@ -212,15 +219,17 @@
   border-left: 1px solid color-mix(in srgb, currentColor 35%, transparent);
 }
 
-@container plugin-shell-leaf (max-width: 600px) {
+@container plugin-shell-leaf (max-width: 700px) {
+  .cf-idea-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .cf-studio nav.cf-idea-tabs { flex-flow: row wrap; gap: var(--cf-space-sm); padding: var(--cf-space-sm); border-right: 0; border-bottom: 1px solid var(--cf-border); overflow-y: auto; max-height: 110px; }
+  .cf-studio .cf-idea-tabs button { padding: var(--cf-space-xs) var(--cf-space-sm); min-height: 32px; justify-content: center; }
+  .cf-idea-tabs small { display: none; }
   .cf-idea-fields-grid { gap: 0 12px; }
-  .cf-idea-top { padding: 12px 18px; }
-  .cf-idea-heading { padding: 22px 20px 18px; }
-  .cf-studio .cf-idea-heading h2 { font-size: 23px; }
-  .cf-idea-tabs { padding: 0 20px; gap: 22px; }
-  .cf-studio nav.cf-idea-tabs { column-gap: var(--cf-space-md); }
-  .cf-idea-scroll { padding: 22px 20px; }
-  .cf-idea-footer { padding: 17px 20px 20px; }
+  .cf-idea-top { gap: var(--cf-space-xs); padding: var(--cf-space-sm); }
+  .cf-drawer .cf-idea-heading { padding: var(--cf-space-sm) var(--cf-space-md); }
+  .cf-studio .cf-idea-heading h2 { font-size: var(--h3-size); }
+  .cf-idea-scroll { padding: var(--cf-space-md); }
+  .cf-idea-footer { padding: var(--cf-space-sm) var(--cf-space-md); }
   .cf-idea-rice-equation { padding: 18px 8px; gap: 3px; }
   .cf-idea-rice-equation strong { font-size: 16px; }
   .cf-idea-rice-equation span { font-size: 8px; }

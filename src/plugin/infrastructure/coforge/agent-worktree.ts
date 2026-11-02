@@ -8,6 +8,7 @@ import type {
   IntegrationSettings,
 } from "../../features/coforge/domain/types";
 import { captureProcess } from "./process";
+import { settledReadPair } from './git-read-pair';
 
 const OUTPUT_LIMIT = 2 * 1024 * 1024;
 const DIFF_LIMIT = 160_000;
@@ -102,13 +103,11 @@ export async function captureIncrement(
   signal?: AbortSignal,
   options: { allowEmpty?: boolean; baseCommit?: string } = {},
 ): Promise<Increment> {
-  const files: FileChange[] = (
-    await agentGit(
-      worktree,
-      ["diff", "--no-ext-diff", "--no-textconv", "--numstat", options.baseCommit ?? "HEAD", "--"],
-      signal,
-    )
-  )
+  const [statistics, patch] = await settledReadPair(
+    agentGit(worktree, ["diff", "--no-ext-diff", "--no-textconv", "--numstat", options.baseCommit ?? "HEAD", "--"], signal),
+    agentGit(worktree, ["diff", "--no-ext-diff", "--no-textconv", "--no-color", options.baseCommit ?? "HEAD", "--"], signal),
+  );
+  const files: FileChange[] = statistics
     .trim()
     .split("\n")
     .filter(Boolean)
@@ -120,11 +119,7 @@ export async function captureIncrement(
         deletions: Number(remove) || 0,
       };
     });
-  let diff = await agentGit(
-    worktree,
-    ["diff", "--no-ext-diff", "--no-textconv", "--no-color", options.baseCommit ?? "HEAD", "--"],
-    signal,
-  );
+  let diff = patch;
   diff += await newFiles(worktree, files, signal);
   if (!files.length && !options.allowEmpty)
     throw new Error(

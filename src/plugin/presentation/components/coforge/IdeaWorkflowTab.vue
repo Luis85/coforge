@@ -11,16 +11,20 @@ const model = useWorkflow(() => props.idea.id);
 </script>
 <template>
   <div class="cf-idea-workflow-tab">
-    <h3>Workflow runs</h3>
-    <PolishingActionButton :idea-id="idea.id" />
-    <CurrentPolishedResult :idea="idea" />
-    <PolishingRunHistory :idea-id="idea.id" />
-    <p class="cf-settings-help">Captured runs, decisions and results for this request. Workflow settings configure future runs.</p>
     <WorkflowSummary v-if="model.selected"
       :paused="model.paused" :summary-label="model.summaryLabel"
       :automatic-step-label="model.automaticStepLabel" :cadence-label="model.cadenceLabel"
       :provider-title="model.providerTitle" :provider-icon="model.providerIcon" :provider-label="model.providerLabel"
     />
-    <ConfiguredWorkflowExecution :model="model" />
+    <ConfiguredWorkflowExecution :model="model" compact />
+    <section class="cf-idea-section" aria-label="Improvement passes">
+      <div class="cf-idea-section-heading">
+        <h3>Improvement passes</h3>
+        <PolishingActionButton :idea-id="idea.id" />
+      </div>
+      <p class="cf-idea-help">Follow-up improvements keep their own feedback, proposed result and review history.</p>
+      <CurrentPolishedResult :idea="idea" />
+      <PolishingRunHistory :idea-id="idea.id" />
+    </section>
   </div>
 </template>

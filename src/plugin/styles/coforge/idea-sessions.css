@@ -1,7 +1,6 @@
 .cf-studio .cf-card-sessions { padding: 0 var(--cf-space-sm) var(--cf-space-sm); }
 .cf-studio .cf-card-sessions .cf-btn { width: 100%; justify-content: flex-start; font-size: var(--font-ui-smaller); min-width: 0; flex-wrap: wrap; }
 .cf-card-session-count { color: var(--cf-muted); margin-left: auto; }
-.cf-idea-drawer.is-sessions { width: min(960px, 100%); }
 .cf-session-layout { display: grid; grid-template-columns: minmax(170px, 220px) minmax(0, 1fr); gap: var(--cf-space-lg); margin-top: var(--cf-space-lg); }
 .cf-session-list { max-height: 520px; overflow: auto; min-width: 0; }
 .cf-session-list ol { list-style: none; margin: 0; padding: 0; }

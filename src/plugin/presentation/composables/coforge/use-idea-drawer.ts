@@ -23,17 +23,9 @@ import { currentDesignSpecification } from "./use-idea-design";
 import { ideaRunHistory } from './idea-run-history';
 import { backgroundRetryCandidate } from './background-build-retry-display';
 import { failedWorkflowJobId } from './attempt-failure-evidence';
+import { IDEA_SECTIONS, useIdeaSectionScroll } from './idea-sections';
 
 export type IdeaDrawerTab = "overview" | "plan" | "increment" | "activity" | 'workflow' | 'sessions' | 'ai-costs';
-const TABS: ReadonlyArray<{ value: IdeaDrawerTab; label: string }> = [
-  { value: "overview", label: "Overview" },
-  { value: 'sessions', label: 'Sessions' },
-  { value: "plan", label: "Plan & Design" },
-  { value: "increment", label: "Increment" },
-  { value: 'workflow', label: 'Workflow runs' },
-  { value: 'ai-costs', label: 'AI costs' },
-  { value: "activity", label: "Activity" },
-];
 /** Contributor ids the streamer votes under (the studio votes as the simulator's `streamer`). */
 const STREAMER_IDS = ["simulator:streamer", "local:streamer", "streamer"];
 const NOTE_REQUIRED =
@@ -52,6 +44,7 @@ function createIdeaDrawer() {
     },
   });
   const note = ref("");
+  const sectionScroll = useIdeaSectionScroll(tab, () => store.selected);
   const error = ref("");
   const pending = ref("");
   const close = () => {
@@ -169,8 +162,11 @@ function createIdeaDrawer() {
     focus,
     idea,
     tab,
+    sectionScroll,
+    section: computed(() => IDEA_SECTIONS.find(item => item.value === tab.value) ?? IDEA_SECTIONS[0]!),
     note,
     error,
+    reviewNoteError: computed(() => error.value === NOTE_REQUIRED ? NOTE_REQUIRED : ''),
     pending,
     isBusy,
     operatorHeld,
@@ -182,7 +178,7 @@ function createIdeaDrawer() {
     blockedBuild,
     activeJob,
     tabs: computed(() =>
-      TABS.filter(item => item.value !== 'workflow' || projectFeatureEnabled(project.value, 'workflow') || Boolean(idea.value?.workflowRun) || Boolean(idea.value?.polishingRuns?.length)).map((item) => ({
+      IDEA_SECTIONS.filter(item => item.value !== 'workflow' || projectFeatureEnabled(project.value, 'workflow') || Boolean(idea.value?.workflowRun) || Boolean(idea.value?.polishingRuns?.length)).map((item) => ({
         ...item,
         active: tab.value === item.value,
         dot:

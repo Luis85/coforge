@@ -82,7 +82,7 @@ describe('Project Request Object in the contained host', () => {
     });
     expect(surface.opacity).toBe('1'); expect(surface.background).not.toBe('transparent'); expect(surface.alpha).toBe(1);
     const tabs = drawer.getByRole('navigation', { name: 'Idea sections', exact: true });
-    await browserExpect(tabs.getByRole('button')).toHaveText(['Overview', 'Sessions', 'Plan & Design', 'Increment', 'Workflow runs', 'AI costs', 'Activity']);
+    await browserExpect(tabs.getByRole('button')).toHaveText(['Overview', 'Workflow runs', 'Plan & Design', 'Increment', 'Sessions', 'AI costs', 'Activity']);
     await browserExpect(tabs).toHaveCSS('flex-direction', 'row'); await browserExpect(tabs).toHaveCSS('flex-wrap', 'wrap');
     const geometry = await tabs.evaluate(element => {
       const bounds = element.getBoundingClientRect(); const style = getComputedStyle(element);

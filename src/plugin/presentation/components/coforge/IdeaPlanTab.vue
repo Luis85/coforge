@@ -13,9 +13,8 @@ const plan = useIdeaPlan(props);
 const design = useIdeaDesign(props);
 </script>
 <template>
-  <CurrentPolishedResult :idea="idea" />
   <template v-if="idea.plan">
-    <section class="cf-idea-section">
+    <section class="cf-idea-section" aria-label="Implementation plan">
       <div class="cf-idea-section-heading">
         <h3><CfIcon name="list-checks" /> Implementation plan</h3>
         <button
@@ -50,14 +49,13 @@ const design = useIdeaDesign(props);
     </section>
     <p class="cf-idea-help">{{ plan.savedLabel }}</p>
   </template>
-  <div v-else class="cf-idea-empty">
-    <CfIcon name="list-checks" size="lg" />
-    <h3>No plan yet</h3>
-    <p>A planning step can save proposed changes and acceptance criteria here. Open the workflow to inspect this request’s configured process.</p>
+  <section v-else class="cf-idea-section" aria-label="Implementation plan">
+    <h3><CfIcon name="list-checks" /> Implementation plan <span class="cf-badge">Not saved</span></h3>
+    <p class="cf-idea-help">No plan yet. A planning step can save proposed changes and acceptance criteria here.</p>
     <button v-if="idea.status === 'ranked'" type="button" class="cf-btn cf-btn-secondary" :disabled="drawer.isBusy" @click="drawer.act('plan')">
       Create a plan <CfIcon name="arrow-right" />
     </button>
-  </div>
+  </section>
   <section class="cf-idea-section" aria-label="Design specification">
     <template v-if="design.markdown">
       <div class="cf-idea-section-heading">
@@ -70,9 +68,10 @@ const design = useIdeaDesign(props);
       <p class="cf-idea-help">{{ design.savedLabel }}</p>
     </template>
     <template v-else>
-      <h3><CfIcon name="pencil-ruler" /> No design specification yet</h3>
-      <p class="cf-idea-help">The standard workflow creates a private Design specification after Plan for Build to use. Earlier or invalidated results remain in Workflow runs.</p>
+      <h3><CfIcon name="pencil-ruler" /> Design specification <span class="cf-badge">Not saved</span></h3>
+      <p class="cf-idea-help">No design specification yet. The standard workflow saves one after Plan for Build to use. Earlier or invalidated results remain in Workflow runs.</p>
     </template>
-    <button v-if="idea.workflowRun && drawer.workflowVisible" type="button" class="cf-btn cf-btn-ghost cf-idea-small-button" @click="drawer.openWorkflow()">Inspect workflow evidence</button>
+    <button v-if="drawer.workflowVisible" type="button" class="cf-btn cf-btn-ghost cf-idea-small-button" @click="drawer.openWorkflow()">{{ idea.workflowRun ? 'Inspect workflow evidence' : 'Open workflow' }}</button>
   </section>
+  <CurrentPolishedResult :idea="idea" />
 </template>

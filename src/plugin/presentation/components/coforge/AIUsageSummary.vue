@@ -3,11 +3,11 @@ import {
   formatTokens,
   type tokenSummary,
 } from "../../../features/coforge/domain/ai-usage";
-defineProps<{ summary: ReturnType<typeof tokenSummary> }>();
+defineProps<{ summary: ReturnType<typeof tokenSummary>; headingLevel?: 'h2' | 'h4' }>();
 </script>
 <template>
   <section class="cf-ai-token-usage" aria-label="Token usage">
-    <h2>Token usage</h2>
+    <component :is="headingLevel ?? 'h2'">Token usage</component>
     <dl class="cf-ai-token-totals">
       <div>
         <dt>Uncached input tokens</dt>

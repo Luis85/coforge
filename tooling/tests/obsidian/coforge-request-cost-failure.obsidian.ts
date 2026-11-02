@@ -53,7 +53,7 @@ describe('Recorded failure and request cost details in the contained host', () =
     await view.getByRole('button', { name: `Sessions 1 parent attempt for ${ideaId}`, exact: true }).click();
     const drawer = view.getByRole('dialog', { name: TITLE, exact: true });
     const sections = drawer.getByRole('navigation', { name: 'Idea sections', exact: true });
-    await browserExpect(sections.getByRole('button')).toHaveText(['Overview', 'Sessions', 'Plan & Design', 'Increment', 'Workflow runs', 'AI costs', 'Activity']);
+    await browserExpect(sections.getByRole('button')).toHaveText(['Overview', 'Workflow runs', 'Plan & Design', 'Increment', 'Sessions', 'AI costs', 'Activity']);
     const failure = drawer.getByRole('region', { name: 'Recorded attempt failure', exact: true });
     await browserExpect(failure).toContainText('Specific cause was not recorded');
     await browserExpect(failure).toContainText('No response captured'); await browserExpect(failure).toContainText('No workspace captured');
