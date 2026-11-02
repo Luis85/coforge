@@ -43,3 +43,5 @@ No live provider request or real billing was exercised. Host validation targets 
 ## Integration qualification
 
 Rebased onto 8d4ec0ef (#70, workflow agent refinement and task execution). Prior local results above qualify d9a675db plus the readability diff. The merged captured-configuration view preserves upstream analytical-tool evidence alongside readable CoWorker instructions. Full PR CI, including browser and real-Obsidian jobs, will qualify the integrated commit before merge. The owner explicitly requested opening this PR and merging after CI is green.
+
+Post-rebase focused checks passed 4 files / 17 tests (26.87s). Initial CI passed the repository, browser, Windows lifetime, isolation and security jobs. The host suite passed 70/71 and exposed an old assessment-disclosure selector matching the new nested source disclosure. The corrected test scopes both disclosures explicitly and verifies original assessment bytes from the canonical note with keyboard access across both themes and widths. Local contained-host confirmation: 1 passed (37.42s). Existing data/privacy assertions and limits are retained. Final CI qualification is recorded on PR #71 before merge.

@@ -1,10 +1,13 @@
 import { expect as browserExpect } from '@playwright/test';
 import { describe, expect } from 'vitest';
+import { parse } from 'yaml';
 import { test, type ObsidianHarness } from './support/obsidian-fixture';
 import { openWorkflowDisclosure, openWorkflowRuns, openWorkflowSettings } from '../../../tests/e2e/support/workflow-navigation';
 import { defaultWorkflowDefinition } from '../../../src/plugin/features/coforge/domain/configured-workflow';
 import { defaultSettings } from '../../../src/plugin/features/coforge/domain/seed';
 import { parsePersistedStudio } from '../../../src/plugin/features/coforge/domain/persisted';
+import { parseIdeaNote } from '../../../src/plugin/features/coforge/domain/idea-note';
+import { splitNote } from '../../../src/plugin/infrastructure/coforge/markdown';
 
 const TITLE = 'Review the captured lantern increment';
 
@@ -73,7 +76,10 @@ describe('Increment review handoff in the contained host', () => {
     const summary = disclosure.locator(':scope > summary');
     const original = disclosure.locator('details.cf-readable-original');
     const originalSummary = original.locator(':scope > summary');
-    const savedFinding = saved.state.ideas.find(idea => idea.title === TITLE)?.workflowRun?.artifacts.find(artifact => artifact.stepId === 'assessment')?.markdown;
+    const savedParts = splitNote(saved.note);
+    if (!savedParts.yaml) throw new Error('The captured request frontmatter is missing.');
+    const savedIdea = parseIdeaNote(parse(savedParts.yaml), savedParts.body);
+    const savedFinding = savedIdea.workflowRun?.artifacts.find(artifact => artifact.stepId === 'assessment')?.markdown;
     if (!savedFinding) throw new Error('The captured assessment is missing.');
     await browserExpect(disclosure).not.toHaveAttribute('open', '');
     const diff = view.getByRole('region', { name: 'Illustrative diff', exact: true });

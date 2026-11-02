@@ -49,4 +49,8 @@ Provider prompts, captured bytes, canonical notes, publication, tool execution a
 
 ## Untested scope
 
+## Pull request qualification (2026-11-02)
+
+PR #71 rebases the readability change onto #70 (8d4ec0ef), preserving upstream analytical-tool evidence. Post-rebase focused checks passed 4 files / 17 tests (26.87s). Initial CI passed the complete repository and browser jobs, Windows lifetime, verification isolation and security; the host suite passed 70 of 71 tests and exposed an assessment-disclosure selector that also matched the new nested source disclosure. The test now targets the assessment disclosure and its direct summary, and adds keyboard/source-byte checks for its nested original text. Expected text is parsed from the canonical request note. The corrected contained-host test passed (1 test, 37.42s), preserving all original data/privacy assertions and limits. Final CI results are recorded on the PR before merge.
+
 No live provider request or real billing was exercised. Native verification targets the affected reader/navigation paths, not every host spec. Concurrent vault-storage migration code is excluded from isolated qualification and is preserved in the shared checkout.
