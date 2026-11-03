@@ -80,3 +80,7 @@ __pycache__/
 
 # Private vault records and machine-bound execution journals.
 /.coforge-data/
+# CoForge managed private data
+/.coforge-data/
+/.obsidian/plugins/coforge/data.json
+# End CoForge managed private data
